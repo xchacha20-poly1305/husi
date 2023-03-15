@@ -1,0 +1,1 @@
+Husi is a proxy configurations manager.

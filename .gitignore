@@ -1,0 +1,21 @@
+*.iml
+.gradle
+.idea
+.vscode
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/app/libs/
+/service_account_credentials.json
+jniLibs/
+/library/libcore_build/
+.idea/deploymentTargetDropDown.xml
+/nkmr
+go.work*
+/Dash-*
+
+# submodules
+/external
