@@ -10,6 +10,7 @@ require (
 	github.com/sagernet/sing-dns v0.1.12
 	github.com/sagernet/sing-tun v0.2.0-rc.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
+	github.com/xchacha20-poly1305/cazilla v0.1.2
 	github.com/xchacha20-poly1305/dun v1.0.0 // replaced
 	golang.org/x/mobile v0.0.0-20220722155234-aaac322e2105
 )
@@ -21,7 +22,6 @@ require (
 	github.com/caddyserver/certmagic v0.20.0 // indirect
 	github.com/cloudflare/circl v1.3.6 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
 	github.com/go-chi/chi/v5 v5.0.11 // indirect

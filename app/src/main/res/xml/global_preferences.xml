@@ -261,6 +261,11 @@
                 app:key="acquireWakeLock"
                 app:summary="@string/acquire_wake_lock_summary"
                 app:title="@string/acquire_wake_lock"/>
+        <SwitchPreference
+                app:icon="@drawable/ic_baseline_multiline_chart_24"
+                app:key="enabledCazilla"
+                app:summary="@string/cazilla_long"
+                app:title="@string/cazilla"/>
         <EditTextPreference
                 app:defaultValue="127.0.0.1:9090"
                 app:icon="@drawable/baseline_construction_24"

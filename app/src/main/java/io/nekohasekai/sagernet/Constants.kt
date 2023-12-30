@@ -158,6 +158,7 @@ object Key {
     const val NEKO_PLUGIN_MANAGED = "nekoPlugins"
     const val APP_TLS_VERSION = "appTLSVersion"
     const val CLASH_API_LISTEN = "clashAPIListen"
+    const val ENABLED_CAZILLA = "enabledCazilla"
 }
 
 object TunImplementation {

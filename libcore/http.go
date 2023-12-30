@@ -21,6 +21,8 @@ import (
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/protocol/socks"
 	"github.com/sagernet/sing/protocol/socks/socks5"
+
+	"github.com/xchacha20-poly1305/cazilla"
 )
 
 type HTTPClient interface {
@@ -33,6 +35,7 @@ type HTTPClient interface {
 	SetInsecure(bool)
 	NewRequest() HTTPRequest
 	Close()
+	UseCazilla(bool)
 }
 
 type HTTPRequest interface {
@@ -141,6 +144,15 @@ func (c *httpClient) NewRequest() HTTPRequest {
 
 func (c *httpClient) Close() {
 	c.transport.CloseIdleConnections()
+}
+
+func (c *httpClient) UseCazilla(yes bool) {
+	if yes {
+		cazilla.ConfigureHTTPTransport(&c.transport)
+		return
+	}
+
+	cazilla.DefaultHTTPTransport(&c.transport)
 }
 
 type httpRequest struct {

@@ -610,4 +610,8 @@
     <string name="vpn_app_type_other">Other</string>
     <string name="vpn_core_type_unknown">Unknown</string>
     <string name="assets_update">Update geo assets</string>
+    <string name="cazilla">Use Mozilla CA Certificate Program.</string>
+    <string name="cazilla_long">"May be can avoid attack from who can control CA. And can let old
+        device use new certificate. "
+    </string>
 </resources>

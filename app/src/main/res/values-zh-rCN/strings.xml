@@ -525,4 +525,8 @@
     <string name="vpn_app_type_other">其他</string>
     <string name="vpn_core_type_unknown">未知</string>
     <string name="assets_update">更新 geo 资源</string>
+    <string name="cazilla">使用 Mozilla 证书 CA 机构</string>
+    <string name="cazilla_long">可能能防止能操纵 CA
+        机构的力量攻击。也可以让旧的设备得以使用新的证书。
+    </string>
 </resources>

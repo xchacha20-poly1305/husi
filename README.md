@@ -7,6 +7,7 @@ English | [简体中文](./README_zh.md)
 [![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
 
 * Android API 34 & Gradle 8.2.0 & ndk 26.1.10909125.
+* Use Moziila CA certificate trust list, which can proctect us from some hijackings.
 * sing-box rule_set which use less memory.
 * Countless protocol support power by sing-box: socks, http, Shadowsocks, VMess, Trojan, 
   WireGuard, Hysteria (1 and 2) (with port hopping), ShadowTLS, VLESS, TUIC, SSH.
