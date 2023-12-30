@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.os.StrictMode
@@ -147,6 +148,7 @@ class SagerNet : Application(),
         val user by lazy { application.getSystemService<UserManager>()!! }
         val uiMode by lazy { application.getSystemService<UiModeManager>()!! }
         val power by lazy { application.getSystemService<PowerManager>()!! }
+        val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
 
         fun getClipboardText(): String {
             return clipboard.primaryClip?.takeIf { it.itemCount > 0 }

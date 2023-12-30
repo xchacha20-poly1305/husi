@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import android.Manifest
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -20,7 +21,10 @@ import androidx.preference.PreferenceDataStore
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
-import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.GroupType
+import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
@@ -38,7 +42,6 @@ import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListHolderListener
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
-import java.util.*
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
@@ -107,7 +110,25 @@ class MainActivity : ThemedActivity(),
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
                 //动态申请
                 ActivityCompat.requestPermissions(
-                    this@MainActivity, arrayOf(POST_NOTIFICATIONS), 0
+                    this@MainActivity,
+                    arrayOf(POST_NOTIFICATIONS),
+                    0
+                )
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    0
                 )
             }
         }
@@ -386,7 +407,7 @@ class MainActivity : ThemedActivity(),
     val connection = SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
     override fun onServiceConnected(service: ISagerNetService) = changeState(
         try {
-            BaseService.State.values()[service.state]
+            BaseService.State.entries[service.state]
         } catch (_: RemoteException) {
             BaseService.State.Idle
         }
@@ -477,5 +498,4 @@ class MainActivity : ThemedActivity(),
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
-
 }

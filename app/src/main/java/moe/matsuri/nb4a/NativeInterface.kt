@@ -1,5 +1,6 @@
 package moe.matsuri.nb4a
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
@@ -11,6 +12,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.BoxPlatformInterface
 import libcore.NB4AInterface
+import libcore.WIFIState
 import moe.matsuri.nb4a.utils.LibcoreUtil
 import java.net.InetSocketAddress
 
@@ -91,6 +93,16 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
                 }
             }
         }
+    }
+
+    // TODO new API
+    override fun readWIFIState(): WIFIState? {
+        val wifiInfo = SagerNet.wifiManager.connectionInfo ?: return null
+        var ssid = wifiInfo.ssid
+        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+            ssid = ssid.substring(1, ssid.length - 1)
+        }
+        return WIFIState(ssid, wifiInfo.bssid)
     }
 
 }

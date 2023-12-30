@@ -24,6 +24,15 @@ var boxPlatformInterfaceInstance platform.Interface = &boxPlatformInterfaceWrapp
 
 type boxPlatformInterfaceWrapper struct{}
 
+type WIFIState struct {
+	SSID  string
+	BSSID string
+}
+
+func NewWIFIState(wifiSSID string, wifiBSSID string) *WIFIState {
+	return &WIFIState{wifiSSID, wifiBSSID}
+}
+
 func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
 	return adapter.WIFIState{}
 }
