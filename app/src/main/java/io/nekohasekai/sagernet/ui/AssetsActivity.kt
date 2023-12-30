@@ -243,7 +243,7 @@ class AssetsActivity : ThemedActivity() {
 
         val repos: List<String> = when (DataStore.rulesProvider) {
             0 -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
-//            1 -> // waiting for it
+            1 -> listOf("xchacha20-poly1305/sing-geoip", "xchacha20-poly1305/sing-geosite")
             2 -> listOf("Chocolate4U/Iran-sing-box-rules")
             else -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
         }
