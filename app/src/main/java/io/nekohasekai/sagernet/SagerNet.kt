@@ -22,7 +22,10 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.utils.*
+import io.nekohasekai.sagernet.utils.CrashHandler
+import io.nekohasekai.sagernet.utils.DefaultNetworkListener
+import io.nekohasekai.sagernet.utils.PackageCache
+import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
@@ -103,16 +106,12 @@ class SagerNet : Application(),
         updateNotificationChannels()
     }
 
-    private fun getWorkManagerConfigurationInternal() =
-        WorkConfiguration.Builder()
-            .setDefaultProcessName("${BuildConfig.APPLICATION_ID}:bg")
-            .build()
-
     override val workManagerConfiguration: androidx.work.Configuration
         get() {
-            return getWorkManagerConfigurationInternal()
+            return WorkConfiguration.Builder()
+                .setDefaultProcessName("${BuildConfig.APPLICATION_ID}:bg")
+                .build()
         }
-
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
