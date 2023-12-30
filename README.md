@@ -2,7 +2,11 @@ English | [简体中文](./README_zh.md)
 
 ## Features
 
-* Android API 34 & Gradle 8.2.0.
+[![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
+[![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
+[![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
+
+* Android API 34 & Gradle 8.2.0 & ndk 26.1.10909125.
 * sing-box rule_set which use less memory.
 * Countless protocol support power by sing-box: socks, http, Shadowsocks, VMess, Trojan, 
   WireGuard, Hysteria (1 and 2) (with port hopping), ShadowTLS, VLESS, TUIC, SSH.

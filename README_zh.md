@@ -12,7 +12,11 @@
 
 ## 特性
 
-* 安卓 API 34 & Gredle 8.2.0。
+[![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
+[![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
+[![License: GPL-3.0(世界)](https://img.shields.io/badge/license-GPL--3.0(世界)-orange.svg)](https://sing-box.sagernet.org/#license)
+
+* 安卓 API 34 & Gradle 8.2.0 & ndk 26.1.10909125。
 * 节省内存的 sing-box rule_set。
 * 由 sing-box 强力驱动的数不胜数的协议：socks, http, Shadowsocks, VMess, Trojan,
   WireGuard, Hysteria (1 和 2) (附带端口跳跃), ShadowTLS, VLESS, TUIC, SSH。
@@ -110,8 +114,8 @@ Android GUI:
 - [MatsuriDayo/NekoBoxForAndroid](https://github.com/MatsuriDayo/NekoBoxForAndroid)
 - [SagerNet/sing-box-for-android](https://github.com/SagerNet/sing-box-for-android)
 - [AntiNeko/CatBoxForAndroid](https://github.com/AntiNeko/CatBoxForAndroid)
+- [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
 
 Web Dashboard:
 
-- [MetaCubeX/Yacd-meta](https://github.com/MetaCubeX/Yacd-meta)
 - [MetaCubeX/metacubexd](https://github.com/MetaCubeX/metacubexd)
