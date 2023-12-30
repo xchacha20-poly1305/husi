@@ -3,169 +3,199 @@
 package libcore
 
 import (
-	"fmt"
+	"bytes"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
+	"time"
 
+	E "github.com/sagernet/sing/common/exceptions"
 	"golang.org/x/mobile/asset"
 )
 
+// 支持非官方源的，放 Android 目录 (dashboard)
+// 不支持非官方源的，就放 file 目录 (geo)
+// 解压的是 apk 里面的 assets
 func extractAssets() {
 	useOfficialAssets := intfNB4A.UseOfficialAssets()
 
-	extract := func(name string) {
-		err := extractAssetName(name, useOfficialAssets)
+	if useOfficialAssets {
+		err := extractGeo()
 		if err != nil {
-			log.Println("Extract", geoipDat, "failed:", err)
+			log.Println(err)
 		}
 	}
 
-	extract(geoipDat)
-	extract(geositeDat)
-	extract(yacdDstFolder)
+	err := extractDash()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
-// 这里解压的是 apk 里面的
-func extractAssetName(name string, useOfficialAssets bool) error {
-	// 支持非官方源的，就是 replaceable，放 Android 目录
-	// 不支持非官方源的，就放 file 目录
-	replaceable := true
+// extract geo files.
+func extractGeo() error {
+	names := []string{geoipDat, geositeDat}
+	versionPaths := []string{geoipVersion, geositeVersion}
+	dir := externalAssetsPath
+	targetDir := filepath.Join(dir, "geo")
+	assetsDir := apkAssetPrefixSingBox
 
-	var version string
-	var apkPrefix string
-	switch name {
-	case geoipDat:
-		version = geoipVersion
-		apkPrefix = apkAssetPrefixSingBox
-	case geositeDat:
-		version = geositeVersion
-		apkPrefix = apkAssetPrefixSingBox
-	case yacdDstFolder:
-		version = yacdVersion
-		replaceable = false
-	}
-
-	var dir string
-	if !replaceable {
-		dir = internalAssetsPath
-	} else {
-		dir = externalAssetsPath
-	}
-	dstName := dir + name
-
-	var localVersion string
-	var assetVersion string
-
-	// loadAssetVersion from APK
-	loadAssetVersion := func() error {
-		av, err := asset.Open(apkPrefix + version)
-		if err != nil {
-			return fmt.Errorf("open version in assets: %v", err)
+	// load assets version
+	var assetsVersions [][]byte
+	for _, versionPath := range versionPaths {
+		assetsVersion, err := readAssetsVersion(filepath.Join(assetsDir, versionPath))
+		if err != nil || len(assetsVersion) < 1 {
+			assetsVersions = append(assetsVersions,
+				[]byte(time.Now().Format("20060102")))
+			continue
 		}
-		b, err := ioutil.ReadAll(av)
-		av.Close()
-		if err != nil {
-			return fmt.Errorf("read internal version: %v", err)
-		}
-		assetVersion = string(b)
-		return nil
+		assetsVersions = append(assetsVersions, assetsVersion)
 	}
-	if err := loadAssetVersion(); err != nil {
+
+	// compare version
+	for i, assetsVersion := range assetsVersions {
+		localVersion, err := readLocalVersion(filepath.Join(dir, versionPaths[i]))
+		if err != nil {
+			// miss local versionPath
+			break
+		}
+		// needn't update
+		if bytes.Equal(assetsVersion, localVersion) {
+			return nil
+		}
+	}
+
+	// Prepare directory
+	os.RemoveAll(targetDir)
+	os.MkdirAll(targetDir, os.ModePerm)
+
+	// Unzip geoip and geosite
+	for _, name := range names {
+		file, err := asset.Open(filepath.Join(assetsDir, name) + ".zip")
+		if err != nil {
+			return E.Cause(err, "open asset", name)
+		}
+
+		tmpZipName := filepath.Join(targetDir, name) + ".zip"
+		err = extractAsset(file, tmpZipName)
+		if err != nil {
+			return E.Cause(err, "extract:", name)
+		}
+
+		err = UnzipWithoutDir(tmpZipName, targetDir)
+		os.Remove(tmpZipName)
+		if err != nil {
+			return E.Cause(err, "unzip:", name)
+		}
+	}
+
+	// write version
+	for i, version := range versionPaths {
+		err := writeVersion(assetsVersions[i],
+			filepath.Join(dir, version))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Extract dashboard
+func extractDash() error {
+	name := dashDstFolder
+	versionPath := dashVersion
+	dir := internalAssetsPath
+	dstName := filepath.Join(dir, name)
+
+	// load assets version
+	assetsVersion, err := readAssetsVersion(versionPath)
+	if err != nil || len(assetsVersion) < 1 {
+		assetsVersion = []byte(time.Now().Format("20060102"))
+	}
+
+	// compare version
+	localVersion, err := readLocalVersion(filepath.Join(dir, versionPath))
+	if err == nil {
+		// needn't update
+		if bytes.Equal(assetsVersion, localVersion) {
+			return nil
+		}
+	}
+
+	os.RemoveAll(dstName)
+
+	// unzip file
+	file, err := asset.Open(dashArchive)
+	if err != nil {
+		return E.Cause(err, "can't open", dashArchive)
+	}
+	tmpZipName := dstName + ".zip"
+	err = extractAsset(file, tmpZipName)
+	if err != nil {
+		return E.Cause(err, "extract:", tmpZipName)
+	}
+	err = Unzip(tmpZipName, dir)
+	if err != nil {
+		return E.Cause(err, "unzip")
+	}
+
+	// find multiplex files
+	multiFile, err := filepath.Glob(filepath.Join(dir, "Dash-*"))
+	if err != nil {
+		return E.Cause(err, "glob dashboard")
+	}
+	// delete more dashboards
+	for i := 1; i < len(multiFile); i++ {
+		os.RemoveAll(multiFile[i])
+	}
+	err = os.Rename(multiFile[0], dstName)
+	if err != nil {
+		return E.Cause(err, "rename dashboard")
+	}
+
+	err = writeVersion(assetsVersion, filepath.Join(dir, versionPath))
+	if err != nil {
 		return err
 	}
 
-	var doExtract bool
-
-	if _, err := os.Stat(dstName); err != nil {
-		// assetFileMissing
-		doExtract = true
-	} else if useOfficialAssets || !replaceable {
-		// 官方源升级
-		b, err := ioutil.ReadFile(dir + version)
-		if err != nil {
-			// versionFileMissing
-			doExtract = true
-			_ = os.RemoveAll(version)
-		} else {
-			localVersion = string(b)
-			if localVersion == "Custom" {
-				doExtract = false
-			} else {
-				av, err := strconv.ParseUint(assetVersion, 10, 64)
-				if err != nil {
-					doExtract = assetVersion != localVersion
-				} else {
-					lv, err := strconv.ParseUint(localVersion, 10, 64)
-					doExtract = err != nil || av > lv
-				}
-			}
-		}
-	} else {
-		//非官方源不升级
-	}
-
-	if !doExtract {
-		return nil
-	}
-
-	extractXz := func(f asset.File) error {
-		tmpXzName := dstName + ".xz"
-		err := extractAsset(f, tmpXzName)
-		if err == nil {
-			err = Unxz(tmpXzName, dstName)
-			os.Remove(tmpXzName)
-		}
-		if err != nil {
-			return fmt.Errorf("extract xz: %v", err)
-		}
-		return nil
-	}
-
-	extracZip := func(f asset.File, outDir string) error {
-		tmpZipName := dstName + ".zip"
-		err := extractAsset(f, tmpZipName)
-		if err == nil {
-			err = Unzip(tmpZipName, outDir)
-			os.Remove(tmpZipName)
-		}
-		if err != nil {
-			return fmt.Errorf("extract zip: %v", err)
-		}
-		return nil
-	}
-
-	if f, err := asset.Open(apkPrefix + name + ".xz"); err == nil {
-		extractXz(f)
-	} else if f, err := asset.Open("yacd.zip"); err == nil {
-		os.RemoveAll(dstName)
-		extracZip(f, internalAssetsPath)
-		m, err := filepath.Glob(internalAssetsPath + "/Yacd-*")
-		if err != nil {
-			return fmt.Errorf("glob Yacd: %v", err)
-		}
-		if len(m) != 1 {
-			return fmt.Errorf("glob Yacd found %d result, expect 1", len(m))
-		}
-		err = os.Rename(m[0], dstName)
-		if err != nil {
-			return fmt.Errorf("rename Yacd: %v", err)
-		}
-
-	} // TODO normal file
-
-	o, err := os.Create(dir + version)
-	if err != nil {
-		return fmt.Errorf("create version: %v", err)
-	}
-	_, err = io.WriteString(o, assetVersion)
-	o.Close()
-	return err
+	return nil
 }
 
+// Read the version file in assets
+func readAssetsVersion(path string) ([]byte, error) {
+	av, err := asset.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer av.Close()
+	return io.ReadAll(av)
+}
+
+// Read the local assets name
+func readLocalVersion(path string) ([]byte, error) {
+	return os.ReadFile(path)
+}
+
+// Write version to version file
+func writeVersion(version []byte, versionPath string) error {
+	os.Remove(versionPath)
+
+	versionFile, err := os.Create(versionPath)
+	if err != nil {
+		return E.Cause(err, "create version file:", versionPath)
+	}
+	_, err = versionFile.Write(version)
+	versionFile.Close()
+	if err != nil {
+		return E.Cause(err, "write version:", version)
+	}
+
+	return nil
+}
+
+// Extract the file in asset
 func extractAsset(i asset.File, path string) error {
 	defer i.Close()
 	o, err := os.Create(path)

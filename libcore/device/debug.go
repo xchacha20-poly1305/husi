@@ -1,8 +1,9 @@
 package device
 
 import (
-	"fmt"
 	"runtime/debug"
+
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
 var DebugFunc func(interface{})
@@ -13,9 +14,9 @@ func GoDebug(any interface{}) {
 	}
 }
 
-func AllDefer(name string, log func(string)) {
+func DeferPanicToError(name string, err func(error)) {
 	if r := recover(); r != nil {
-		s := fmt.Sprintln(name+" panic", r, string(debug.Stack()))
-		log(s)
+		s := E.New(name, "panic: ", r, "\n", string(debug.Stack()))
+		err(s)
 	}
 }

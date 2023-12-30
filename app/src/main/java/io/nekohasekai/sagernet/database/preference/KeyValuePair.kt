@@ -71,6 +71,7 @@ class KeyValuePair() : Parcelable {
         get() = when (valueType) {
             @Suppress("DEPRECATION") TYPE_INT,
             -> ByteBuffer.wrap(value).int.toLong()
+
             TYPE_LONG -> ByteBuffer.wrap(value).long
             else -> null
         }

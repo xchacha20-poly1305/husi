@@ -1,14 +1,9 @@
 package moe.matsuri.nb4a.utils
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Base64
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonParseException
 import java.io.ByteArrayOutputStream
-import java.lang.reflect.Type
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.zip.Deflater
@@ -26,7 +21,7 @@ object Util {
      */
     fun getSubString(text: String, left: String?, right: String?): String {
         var zLen: Int
-        if (left == null || left.isEmpty()) {
+        if (left.isNullOrEmpty()) {
             zLen = 0
         } else {
             zLen = text.indexOf(left)
@@ -37,7 +32,7 @@ object Util {
             }
         }
         var yLen = if (right == null) -1 else text.indexOf(right, zLen)
-        if (yLen < 0 || right == null || right.isEmpty()) {
+        if (yLen < 0 || right.isNullOrEmpty()) {
             yLen = text.length
         }
         return text.substring(zLen, yLen)
@@ -77,7 +72,7 @@ object Util {
         for (flag in flags) {
             try {
                 ret = Base64.decode(str, flag)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             }
             if (ret != null) return ret
         }
@@ -118,6 +113,21 @@ object Util {
         }
     }
 
+
+    fun mergeJSON(j: String, to: MutableMap<String, Any>) {
+        if (j.isBlank()) return
+        val m = JavaUtil.gson.fromJson(j, to.javaClass)
+        m.forEach { (k, v) ->
+            if (v is Map<*, *> && to[k] is Map<*, *>) {
+                val currentMap = (to[k] as Map<*, *>).toMutableMap()
+                currentMap += v
+                to[k] = currentMap
+            } else {
+                to[k] = v
+            }
+        }
+    }
+
     // Format Time
 
     @SuppressLint("SimpleDateFormat")
@@ -130,6 +140,16 @@ object Util {
     fun tryToSetField(o: Any, name: String, value: Any) {
         try {
             o.javaClass.getField(name).set(o, value)
+        } catch (_: Exception) {
+        }
+    }
+
+    @SuppressLint("WrongConstant")
+    fun collapseStatusBar(context: Context) {
+        try {
+            val statusBarManager = context.getSystemService("statusbar")
+            val collapse = statusBarManager.javaClass.getMethod("collapsePanels")
+            collapse.invoke(statusBarManager)
         } catch (_: Exception) {
         }
     }

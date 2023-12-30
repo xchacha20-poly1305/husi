@@ -51,6 +51,7 @@ abstract class ThemedActivity : AppCompatActivity {
             maxLines = 10
         }
     }
+
     internal open fun snackbarInternal(text: CharSequence): Snackbar = throw NotImplementedError()
 
 }

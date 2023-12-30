@@ -13,7 +13,7 @@ import moe.matsuri.nb4a.TempDatabase
 
 object DataStore : OnPreferenceDataStoreChangeListener {
 
-    // share service state in main process
+    // share service state in main & bg process
     @Volatile
     var serviceState = BaseService.State.Idle
 
@@ -29,9 +29,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // only in bg process
     var vpnService: VpnService? = null
     var baseService: BaseService.Interface? = null
-
-    // only in GUI process
-    var postLogListener: ((String) -> Unit)? = null
 
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
@@ -75,8 +72,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var nekoPlugins by configurationStore.string(Key.NEKO_PLUGIN_MANAGED)
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
-    var enableClashAPI by configurationStore.boolean(Key.ENABLE_CLASH_API)
+    var clashAPIListen by configurationStore.string(Key.CLASH_API_LISTEN)
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
+
+    var allowInsecureOnRequest by configurationStore.boolean(Key.ALLOW_INSECURE_ON_REQUEST)
 
     //
 
@@ -85,28 +84,29 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
 
-//    var domainStrategy by configurationStore.string(Key.DOMAIN_STRATEGY) { "AsIs" }
-    var trafficSniffing by configurationStore.boolean(Key.TRAFFIC_SNIFFING) { true }
+    var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { 1 }
     var resolveDestination by configurationStore.boolean(Key.RESOLVE_DESTINATION)
 
-//    var tcpKeepAliveInterval by configurationStore.stringToInt(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
+    //    var tcpKeepAliveInterval by configurationStore.stringToInt(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
     var mtu by configurationStore.stringToInt(Key.MTU) { 9000 }
 
     var bypassLan by configurationStore.boolean(Key.BYPASS_LAN)
-    var bypassLanInCoreOnly by configurationStore.boolean(Key.BYPASS_LAN_IN_CORE_ONLY)
+    var bypassLanInCore by configurationStore.boolean(Key.BYPASS_LAN_IN_CORE)
+    var inboundUsername by configurationStore.string(Key.INBOUND_USERNAME) { "" }
+    var inboundPassword by configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
     var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL)
+    var showGroupInNotification by configurationStore.boolean("showGroupInNotification")
 
-    var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "https://8.8.8.8/dns-query" }
-    var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://223.5.5.5/dns-query" }
-    var directDnsUseSystem by configurationStore.boolean(Key.DIRECT_DNS_USE_SYSTEM)
+    var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
+    var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
+    var underlyingDns by configurationStore.string(Key.UNDERLYING_DNS) { "local" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKEDNS)
-    var dnsNetwork by configurationStore.stringSet(Key.DNS_NETWORK)
 
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
-    var enableLog by configurationStore.boolean(Key.ENABLE_LOG)
+    var logLevel by configurationStore.stringToInt(Key.LOG_LEVEL)
     var logBufSize by configurationStore.int(Key.LOG_BUF_SIZE) { 0 }
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
 
@@ -120,9 +120,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         set(value) {
             saveLocalPort(Key.LOCAL_DNS_PORT, value)
         }
-    var transproxyPort: Int
-        get() = getLocalPort(Key.TRANSPROXY_PORT, 9200)
-        set(value) = saveLocalPort(Key.TRANSPROXY_PORT, value)
 
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {
@@ -130,9 +127,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         }
         if (configurationStore.getString(Key.LOCAL_DNS_PORT) == null) {
             localDNSPort = localDNSPort
-        }
-        if (configurationStore.getString(Key.TRANSPROXY_PORT) == null) {
-            transproxyPort = transproxyPort
         }
     }
 
@@ -153,21 +147,25 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var individual by configurationStore.string(Key.INDIVIDUAL)
     var showDirectSpeed by configurationStore.boolean(Key.SHOW_DIRECT_SPEED) { true }
 
+    val persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
+
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
-    var requireTransproxy by configurationStore.boolean(Key.REQUIRE_TRANSPROXY)
-    var transproxyMode by configurationStore.stringToInt(Key.TRANSPROXY_MODE)
     var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
+    var connectionTestConcurrent by configurationStore.int("connectionTestConcurrent") { 5 }
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
 
-    var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.SYSTEM }
+    var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
 
-    var yacdURL by configurationStore.string("yacdURL") { "http://127.0.0.1:9090/ui" }
+    var dashURL by configurationStore.string("dashURL") { "http://127.0.0.1:9090/ui" }
+    var enabledCazilla by configurationStore.boolean(Key.ENABLED_CAZILLA) { false }
 
     // protocol
 
+    var muxType by configurationStore.stringToInt(Key.MUX_TYPE)
     var muxProtocols by configurationStore.stringSet(Key.MUX_PROTOCOLS)
     var muxConcurrency by configurationStore.stringToInt(Key.MUX_CONCURRENCY) { 8 }
+    var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
 
     // old cache, DO NOT ADD
 
@@ -177,6 +175,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var profileName by profileCacheStore.string(Key.PROFILE_NAME)
     var serverAddress by profileCacheStore.string(Key.SERVER_ADDRESS)
     var serverPort by profileCacheStore.stringToInt(Key.SERVER_PORT)
+    var serverPorts by profileCacheStore.string("serverPorts")
     var serverUsername by profileCacheStore.string(Key.SERVER_USERNAME)
     var serverPassword by profileCacheStore.string(Key.SERVER_PASSWORD)
     var serverPassword1 by profileCacheStore.string(Key.SERVER_PASSWORD1)
@@ -197,16 +196,21 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverHeaders by profileCacheStore.string(Key.SERVER_HEADERS)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
 
+    // ECH
+    var ech by profileCacheStore.boolean(Key.ECH)
+    var echCfg by profileCacheStore.string(Key.ECH_CFG)
+
     var serverAuthType by profileCacheStore.stringToInt(Key.SERVER_AUTH_TYPE)
     var serverUploadSpeed by profileCacheStore.stringToInt(Key.SERVER_UPLOAD_SPEED)
     var serverDownloadSpeed by profileCacheStore.stringToInt(Key.SERVER_DOWNLOAD_SPEED)
     var serverStreamReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_STREAM_RECEIVE_WINDOW)
     var serverConnectionReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_CONNECTION_RECEIVE_WINDOW)
-    var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU) { 1420 }
     var serverDisableMtuDiscovery by profileCacheStore.boolean(Key.SERVER_DISABLE_MTU_DISCOVERY)
     var serverHopInterval by profileCacheStore.stringToInt(Key.SERVER_HOP_INTERVAL) { 10 }
 
-    var serverProtocolVersion by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)
+    var protocolVersion by profileCacheStore.stringToInt(Key.PROTOCOL_VERSION) { 2 } // default is SOCKS5
+
+    var serverProtocolInt by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)
     var serverPrivateKey by profileCacheStore.string(Key.SERVER_PRIVATE_KEY)
     var serverInsecureConcurrency by profileCacheStore.stringToInt(Key.SERVER_INSECURE_CONCURRENCY)
 
@@ -214,9 +218,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverCongestionController by profileCacheStore.string(Key.SERVER_CONGESTION_CONTROLLER)
     var serverDisableSNI by profileCacheStore.boolean(Key.SERVER_DISABLE_SNI)
     var serverReduceRTT by profileCacheStore.boolean(Key.SERVER_REDUCE_RTT)
-    var serverFastConnect by profileCacheStore.boolean(Key.SERVER_FAST_CONNECT)
 
     var routeName by profileCacheStore.string(Key.ROUTE_NAME)
+    var routeRuleSet by profileCacheStore.string(Key.ROUTE_RULE_SET)
     var routeDomain by profileCacheStore.string(Key.ROUTE_DOMAIN)
     var routeIP by profileCacheStore.string(Key.ROUTE_IP)
     var routePort by profileCacheStore.string(Key.ROUTE_PORT)
@@ -225,15 +229,24 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeSource by profileCacheStore.string(Key.ROUTE_SOURCE)
     var routeProtocol by profileCacheStore.string(Key.ROUTE_PROTOCOL)
     var routeOutbound by profileCacheStore.stringToInt(Key.ROUTE_OUTBOUND)
-    var routeOutboundRule by profileCacheStore.long(Key.ROUTE_OUTBOUND_RULE)
+    var routeOutboundRule by profileCacheStore.long(Key.ROUTE_OUTBOUND + "Long")
     var routePackages by profileCacheStore.string(Key.ROUTE_PACKAGES)
+    var routeSSID by profileCacheStore.string(Key.ROUTE_SSID)
+    var routeBSSID by profileCacheStore.string(Key.ROUTE_BSSID)
 
+    var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")
+    var landingProxy by profileCacheStore.long(Key.GROUP_LANDING_PROXY + "Long")
+    var frontProxyTmp by profileCacheStore.stringToInt(Key.GROUP_FRONT_PROXY)
+    var landingProxyTmp by profileCacheStore.stringToInt(Key.GROUP_LANDING_PROXY)
 
     var serverConfig by profileCacheStore.string(Key.SERVER_CONFIG)
+    var serverCustom by profileCacheStore.string(Key.SERVER_CUSTOM)
+    var serverCustomOutbound by profileCacheStore.string(Key.SERVER_CUSTOM_OUTBOUND)
 
     var groupName by profileCacheStore.string(Key.GROUP_NAME)
     var groupType by profileCacheStore.stringToInt(Key.GROUP_TYPE)
     var groupOrder by profileCacheStore.stringToInt(Key.GROUP_ORDER)
+    var groupIsSelector by profileCacheStore.boolean(Key.GROUP_IS_SELECTOR)
 
     var subscriptionLink by profileCacheStore.string(Key.SUBSCRIPTION_LINK)
     var subscriptionForceResolve by profileCacheStore.boolean(Key.SUBSCRIPTION_FORCE_RESOLVE)

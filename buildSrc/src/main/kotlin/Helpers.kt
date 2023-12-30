@@ -1,8 +1,11 @@
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.gradle.AbstractAppExtension
-import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.getByName
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import java.security.MessageDigest
 import java.util.*
 import kotlin.system.exitProcess
@@ -13,7 +16,7 @@ fun sha256Hex(bytes: ByteArray): String {
     return digest.fold("") { str, it -> str + "%02x".format(it) }
 }
 
-private val Project.android get() = extensions.getByName<BaseExtension>("android")
+private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
 
 private lateinit var metadata: Properties
 private lateinit var localProperties: Properties
@@ -28,10 +31,12 @@ fun Project.requireFlavor(): String {
                 flavor = taskName.substringAfter("assemble")
                 return flavor
             }
+
             taskName.contains("install") -> {
                 flavor = taskName.substringAfter("install")
                 return flavor
             }
+
             taskName.contains("bundle") -> {
                 flavor = taskName.substringAfter("bundle")
                 return flavor
@@ -46,7 +51,7 @@ fun Project.requireFlavor(): String {
 fun Project.requireMetadata(): Properties {
     if (!::metadata.isInitialized) {
         metadata = Properties().apply {
-            load(rootProject.file("sager.properties").inputStream())
+            load(rootProject.file("husi.properties").inputStream())
         }
     }
     return metadata
@@ -71,7 +76,7 @@ fun Project.requireTargetAbi(): String {
     var targetAbi = ""
     if (gradle.startParameter.taskNames.isNotEmpty()) {
         if (gradle.startParameter.taskNames.size == 1) {
-            val targetTask = gradle.startParameter.taskNames[0].toLowerCase(Locale.ROOT).trim()
+            val targetTask = gradle.startParameter.taskNames[0].lowercase(Locale.ROOT).trim()
             when {
                 targetTask.contains("arm64") -> targetAbi = "arm64-v8a"
                 targetTask.contains("arm") -> targetAbi = "armeabi-v7a"
@@ -85,27 +90,34 @@ fun Project.requireTargetAbi(): String {
 
 fun Project.setupCommon() {
     android.apply {
-        buildToolsVersion("30.0.3")
-        compileSdkVersion(32)
+        buildToolsVersion = "34.0.0"
+        compileSdk = 34
         defaultConfig {
             minSdk = 21
-            targetSdk = 32
+            targetSdk = 34
         }
         buildTypes {
             getByName("release") {
                 isMinifyEnabled = true
             }
         }
-        lintOptions {
-            isShowAll = true
-            isCheckAllWarnings = true
-            isCheckReleaseBuilds = false
-            isWarningsAsErrors = true
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
+        (android as ExtensionAware).extensions.getByName<KotlinJvmOptions>("kotlinOptions").apply {
+            jvmTarget = JavaVersion.VERSION_17.toString()
+        }
+        lint {
+            showAll = true
+            checkAllWarnings = true
+            checkReleaseBuilds = true
+            warningsAsErrors = true
             textOutput = project.file("build/lint.txt")
             htmlOutput = project.file("build/lint.html")
         }
-        packagingOptions {
-            excludes.addAll(
+        packaging {
+            resources.excludes.addAll(
                 listOf(
                     "**/*.kotlin_*",
                     "/META-INF/*.version",
@@ -120,8 +132,6 @@ fun Project.setupCommon() {
                     "okhttp3/**"
                 )
             )
-        }
-        packagingOptions {
             jniLibs.useLegacyPackaging = true
         }
         (this as? AbstractAppExtension)?.apply {
@@ -144,7 +154,7 @@ fun Project.setupCommon() {
                     it as BaseVariantOutputImpl
                     it.outputFileName = it.outputFileName.replace(
                         "app", "${project.name}-" + variant.versionName
-                    ).replace("-release", "").replace("-oss", "")
+                    ).replace("-release", "").replace("-foss", "")
                 }
             }
         }
@@ -163,13 +173,13 @@ fun Project.setupAppCommon() {
         if (keystorePwd != null) {
             signingConfigs {
                 create("release") {
-                    storeFile(rootProject.file("release.keystore"))
-                    storePassword(keystorePwd)
-                    keyAlias(alias)
-                    keyPassword(pwd)
+                    storeFile = rootProject.file("release.keystore")
+                    storePassword = keystorePwd
+                    keyAlias = alias
+                    keyPassword = pwd
                 }
             }
-        } else if (requireFlavor().contains("(Oss|Expert|Play)Release".toRegex())) {
+        } else if (requireFlavor().contains("(Foss|Expert|Play)Release".toRegex())) {
             exitProcess(0)
         }
         buildTypes {
@@ -220,21 +230,19 @@ fun Project.setupApp() {
             }
         }
 
-        flavorDimensions("vendor")
+        flavorDimensions += "vendor"
         productFlavors {
-            create("oss")
+            create("foss")
             create("fdroid")
-            create("play") {
-                versionCode = verCode - 4
-            }
+            create("play")
         }
 
         applicationVariants.all {
             outputs.all {
                 this as BaseVariantOutputImpl
-                outputFileName = outputFileName.replace(project.name, "NB4A-$versionName")
+                outputFileName = outputFileName.replace(project.name, "husi-$versionName")
                     .replace("-release", "")
-                    .replace("-oss", "")
+                    .replace("-foss", "")
             }
         }
 
@@ -244,5 +252,8 @@ fun Project.setupApp() {
             }
         }
 
+        sourceSets.getByName("main").apply {
+            jniLibs.srcDir("executableSo")
+        }
     }
 }

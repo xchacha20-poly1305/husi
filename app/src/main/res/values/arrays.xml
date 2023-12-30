@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string-array name="int_array_2">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="int_array_3">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="int_array_4">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="int_array_5">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="int_array_7">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
+
     <string-array name="bypass_private_route">
         <item>1.0.0.0/8</item>
         <item>2.0.0.0/7</item>
@@ -182,16 +219,10 @@
     <string-array name="service_modes">
         <item>@string/service_mode_vpn</item>
         <item>@string/service_mode_proxy</item>
-        <!--
-                <item>@string/service_mode_transproxy</item>
-        -->
     </string-array>
     <string-array name="service_mode_values">
         <item>vpn</item>
         <item>proxy</item>
-        <!--
-                <item>transproxy</item>
-        -->
     </string-array>
 
     <string-array name="route_protocol_entry">
@@ -201,7 +232,7 @@
     </string-array>
 
     <string-array name="route_protocol_value">
-        <item />
+        <item/>
         <item>tcp</item>
         <item>udp</item>
     </string-array>
@@ -220,12 +251,23 @@
         <item>3</item>
     </string-array>
 
+    <string-array name="front_proxy_entry">
+        <item>@string/ssh_auth_type_none</item>
+        <item>@string/route_profile</item>
+    </string-array>
+
+    <string-array name="front_proxy_value">
+        <item>0</item>
+        <item>3</item>
+    </string-array>
+
     <string-array name="networks_value">
         <item>tcp</item>
         <item>ws</item>
         <item>http</item>
         <item>quic</item>
         <item>grpc</item>
+        <item>httpupgrade</item>
     </string-array>
 
     <string-array name="trojan_go_networks_entry">
@@ -289,14 +331,9 @@
         <item>IPOnDemand</item>
     </string-array>
 
-    <string-array name="transproxy_mode">
-        <item>REDIRECT</item>
-        <item>TPROXY</item>
-    </string-array>
-
-    <string-array name="int_array_2">
-        <item>0</item>
-        <item>1</item>
+    <string-array name="mieru_protocol">
+        <item>TCP</item>
+        <item>UDP</item>
     </string-array>
 
     <string-array name="naive_proto_entry">
@@ -315,13 +352,6 @@
         <item>@string/disable</item>
         <item>@string/auto</item>
     </string-array>
-    <string-array name="int_array_4">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
     <string-array name="ipv6_mode">
         <item>@string/disable</item>
         <item>@string/enable</item>
@@ -331,7 +361,8 @@
 
     <string-array name="rules_dat_provider">
         <item>@string/route_rules_official</item>
-        <item>Loyalsoldier (soffchen/sing-geosite)</item>
+        <item>Loyalsoldier (xchacha20-poly1305/sing-geo*)</item>
+        <item>Chocolate4U/Iran-sing-box-rules</item>
     </string-array>
 
     <string-array name="balancer_type">
@@ -344,15 +375,10 @@
         <item>@string/leastPing</item>
     </string-array>
     <string-array name="balancer_strategy_value">
-        <item />
+        <item/>
         <item>leastPing</item>
     </string-array>
 
-    <string-array name="int_array_3">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
 
     <string-array name="group_types">
         <item>@string/group_basic</item>
@@ -363,6 +389,16 @@
         <item>@string/plugin_disabled</item>
         <item>STRING</item>
         <item>BASE64</item>
+    </string-array>
+
+    <string-array name="hysteria_version">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="tuic_version">
+        <item>5</item>
+        <item>4</item>
     </string-array>
 
     <string-array name="socks_versions">
@@ -391,6 +427,7 @@
     <string-array name="tun_implementation">
         <item>gVisor</item>
         <item>System</item>
+        <item>Mixed</item>
     </string-array>
 
     <string-array name="hysteria_protocol">
@@ -401,7 +438,7 @@
 
     <string-array name="packet_encoding_entry">
         <item>none</item>
-        <item>packet</item>
+        <item>packetaddr</item>
         <item>xudp</item>
     </string-array>
 
@@ -410,13 +447,20 @@
         <item>9000</item>
     </string-array>
 
-    <string-array name="mux_select_init" />
+    <string-array name="mux_select_init"/>
+
+    <string-array name="mux_type">
+        <item>h2mux</item>
+        <item>smux</item>
+        <item>yamux</item>
+    </string-array>
 
     <string-array name="dns_network_select">
-        <item>NoRemoteIPv4</item>
-        <item>NoRemoteIPv6</item>
-        <item>NoDirectIPv4</item>
-        <item>NoDirectIPv6</item>
+        <item>auto</item>
+        <item>prefer_ipv6</item>
+        <item>prefer_ipv4</item>
+        <item>ipv4_only</item>
+        <item>ipv6_only</item>
     </string-array>
 
     <string-array name="exe_prefer_provider">
@@ -441,24 +485,18 @@
         <item>android</item>
         <item>random</item>
         <item>randomized</item>
-    </string-array>
-
-    <string-array name="tuic_udp_relay_mode_entry">
-        <item>NATIVE</item>
-        <item>QUIC</item>
+        <item>chrome_psk</item>
+        <item>chrome_psk_shuffle</item>
+        <item>chrome_padding_psk_shuffle</item>
+        <item>chrome_pq</item>
+        <item>chrome_pq_psk</item>
     </string-array>
 
     <string-array name="tuic_udp_relay_mode_value">
         <item>native</item>
         <item>quic</item>
+        <item>UDP over Stream</item>
     </string-array>
-
-    <string-array name="tuic_congestion_controller_entry">
-        <item>CUBIC</item>
-        <item>NEW RENO</item>
-        <item>BBR</item>
-    </string-array>
-
 
     <string-array name="tuic_congestion_controller_value">
         <item>cubic</item>
@@ -469,13 +507,33 @@
     <string-array name="xtls_flow_value" translatable="false">
         <item></item>
         <item>xtls-rprx-vision</item>
-        <item>xtls-rprx-vision-udp443</item>
     </string-array>
 
     <string-array name="box_shadowsocks_plugins" translatable="false">
         <item></item>
         <item>obfs-local</item>
         <item>v2ray-plugin</item>
+    </string-array>
+
+    <string-array name="log_level" translatable="false">
+        <item>panic</item>
+        <item>fatal</item>
+        <item>error</item>
+        <item>warn</item>
+        <item>info</item>
+        <item>debug</item>
+        <item>trace</item>
+    </string-array>
+
+    <string-array name="shadowtls_version_value">
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="traffic_sniffing_values">
+        <item>@string/off</item>
+        <item>@string/sniff_routing</item>
+        <item>@string/sniff_override</item>
     </string-array>
 
 </resources>

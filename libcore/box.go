@@ -2,127 +2,146 @@ package libcore
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
-	"reflect"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"time"
-	"unsafe"
 
-	"github.com/matsuridayo/sing-box-extra/boxbox"
-	_ "github.com/matsuridayo/sing-box-extra/distro/all"
+	_ "github.com/xchacha20-poly1305/dun/distro/all"
+	"github.com/xchacha20-poly1305/dun/dunapi"
+	"github.com/xchacha20-poly1305/dun/dunbox"
+	"libcore/device"
 
-	"github.com/matsuridayo/libneko/neko_common"
 	"github.com/matsuridayo/libneko/protect_server"
 	"github.com/matsuridayo/libneko/speedtest"
-	"github.com/matsuridayo/sing-box-extra/boxapi"
 
-	sblog "github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing-box/outbound"
+	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/service"
+	"github.com/sagernet/sing/service/pause"
 )
 
 var mainInstance *BoxInstance
 
-func init() {
-	neko_common.GetProxyHttpClient = func() *http.Client {
-		if mainInstance == nil {
-			return nil
-		}
-		return boxapi.GetProxyHttpClient(mainInstance.Box)
-	}
-}
-
+// VersionBox
+// Get your box version
+//
+// Format:
+//
+//	sing-box: {dun_version}
+//	{go_version}@{os}/{arch}
+//	{tags}
 func VersionBox() string {
 	version := []string{
-		"sing-box-extra: " + boxbox.Version(),
+		"sing-box: " + dunbox.Version,
 		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
 	}
 
-	var tags string
 	debugInfo, loaded := debug.ReadBuildInfo()
 	if loaded {
 		for _, setting := range debugInfo.Settings {
 			switch setting.Key {
 			case "-tags":
-				tags = setting.Value
+				if setting.Value != "" {
+					version = append(version, setting.Value)
+					break
+				}
 			}
 		}
-	}
-
-	if tags != "" {
-		version = append(version, tags)
 	}
 
 	return strings.Join(version, "\n")
 }
 
 func ResetAllConnections(system bool) {
-	// TODO api
+	if system {
+		conntrack.Close()
+		log.Println("[Debug] Reset system connections done")
+	}
 }
 
 type BoxInstance struct {
-	*boxbox.Box
+	*dunbox.Box
 	cancel context.CancelFunc
-	state  int
 
-	v2api *boxapi.SbV2rayServer
+	// state is sing-box state
+	// 0: never started
+	// 1: running
+	// 2: closed
+	state int
+
+	v2api        *dunapi.SbV2rayServer
+	selector     *outbound.Selector
+	pauseManager pause.Manager
 
 	ForTest bool
 }
 
 func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
-	defer func() {
-		if v := recover(); v != nil {
-			err = fmt.Errorf("panic: %v", v)
-		}
-	}()
+	defer device.DeferPanicToError("NewSingBoxInstance", func(err_ error) { err = err_ })
 
 	// parse options
 	var options option.Options
 	err = options.UnmarshalJSON([]byte(config))
 	if err != nil {
-		return nil, fmt.Errorf("decode config: %v", err)
+		return nil, E.Cause(err, "decode config")
 	}
 
 	// create box
 	ctx, cancel := context.WithCancel(context.Background())
-	instance, err := boxbox.New(ctx, options, boxPlatformInterfaceInstance)
+	ctx = pause.WithDefaultManager(ctx)
+	platformWrapper := &boxPlatformInterfaceWrapper{}
+	instance, err := dunbox.New(dunbox.Options{
+		Options:           options,
+		Context:           ctx,
+		PlatformInterface: platformWrapper,
+	})
 	if err != nil {
 		cancel()
-		return nil, fmt.Errorf("create service: %v", err)
+		return nil, E.Cause(err, "create service")
 	}
 
 	b = &BoxInstance{
-		Box:    instance,
-		cancel: cancel,
+		Box:          instance,
+		cancel:       cancel,
+		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
 
-	// fuck your sing-box platformFormatter
-	logFactory_ := reflect.Indirect(reflect.ValueOf(instance)).FieldByName("logFactory")
-	logFactory_ = reflect.NewAt(logFactory_.Type(), unsafe.Pointer(logFactory_.UnsafeAddr())).Elem() // get unexported logFactory
-	logFactory_ = logFactory_.Elem().Elem()                                                          // get struct
-	platformFormatter_ := logFactory_.FieldByName("platformFormatter")
-	platformFormatter_ = reflect.NewAt(platformFormatter_.Type(), unsafe.Pointer(platformFormatter_.UnsafeAddr())) // get unexported Formatter
-	platformFormatter := platformFormatter_.Interface().(*sblog.Formatter)
-	platformFormatter.DisableColors = true
+	// sing-box platformFormatter
+	logPlatformFormatter := instance.GetLogPlatformFormatter()
+	logPlatformFormatter.DisableColors = true
+	logPlatformFormatter.DisableLineBreak = false
+
+	// selector
+	proxy, outboundHasProxy := b.Router().Outbound("proxy")
+	if outboundHasProxy {
+		selector, enabledSelector := proxy.(*outbound.Selector)
+		if enabledSelector {
+			b.selector = selector
+		}
+	}
 
 	return b, nil
 }
 
-func (b *BoxInstance) Start() error {
+func (b *BoxInstance) Start() (err error) {
+	defer device.DeferPanicToError("box.Start", func(err_ error) { err = err_ })
+
 	if b.state == 0 {
 		b.state = 1
 		return b.Box.Start()
 	}
-	return errors.New("already started")
+	return E.New("already started")
 }
 
-func (b *BoxInstance) Close() error {
+func (b *BoxInstance) Close() (err error) {
+	defer device.DeferPanicToError("box.Close", func(err_ error) { err = err_ })
+
 	// no double close
 	if b.state == 2 {
 		return nil
@@ -136,26 +155,18 @@ func (b *BoxInstance) Close() error {
 	}
 
 	// close box
-	t := time.NewTimer(time.Second * 2)
-	c := make(chan struct{}, 1)
-	disableSingBoxLog = true
+	b.CloseWithTimeout(b.cancel, time.Second*2, log.Println)
 
-	go func(cancel context.CancelFunc, closer io.Closer) {
-		cancel()
-		closer.Close()
-		c <- struct{}{}
-		close(c)
-	}(b.cancel, b.Box)
-
-	select {
-	case <-t.C:
-		log.Println("[Warning] sing-box close takes longer than expected.")
-	case <-c:
-	}
-
-	disableSingBoxLog = false
-	t.Stop()
 	return nil
+}
+
+func (b *BoxInstance) Sleep() {
+	b.pauseManager.DevicePause()
+	b.Box.Router().ResetNetwork()
+}
+
+func (b *BoxInstance) Wake() {
+	b.pauseManager.DeviceWake()
 }
 
 func (b *BoxInstance) SetAsMain() {
@@ -168,7 +179,7 @@ func (b *BoxInstance) SetConnectionPoolEnabled(enable bool) {
 }
 
 func (b *BoxInstance) SetV2rayStats(outbounds string) {
-	b.v2api = boxapi.NewSbV2rayServer(option.V2RayStatsServiceOptions{
+	b.v2api = dunapi.NewSbV2rayServer(option.V2RayStatsServiceOptions{
 		Enabled:   true,
 		Outbounds: strings.Split(outbounds, "\n"),
 	})
@@ -182,12 +193,20 @@ func (b *BoxInstance) QueryStats(tag, direct string) int64 {
 	return b.v2api.QueryStats(fmt.Sprintf("outbound>>>%s>>>traffic>>>%s", tag, direct))
 }
 
-func UrlTest(i *BoxInstance, link string, timeout int32) (int32, error) {
+func (b *BoxInstance) SelectOutbound(tag string) bool {
+	if b.selector != nil {
+		return b.selector.SelectOutbound(tag)
+	}
+	return false
+}
+
+func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err error) {
+	defer device.DeferPanicToError("box.UrlTest", func(err_ error) { err = err_ })
 	if i == nil {
 		// test current
-		return speedtest.UrlTest(neko_common.GetProxyHttpClient(), link, timeout)
+		return speedtest.UrlTest(dunapi.CreateProxyHttpClient(mainInstance.Box), link, timeout)
 	}
-	return speedtest.UrlTest(boxapi.GetProxyHttpClient(i.Box), link, timeout)
+	return speedtest.UrlTest(dunapi.CreateProxyHttpClient(i.Box), link, timeout)
 }
 
 var protectCloser io.Closer

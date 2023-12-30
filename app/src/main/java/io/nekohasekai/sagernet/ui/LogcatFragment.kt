@@ -12,9 +12,11 @@ import android.view.View
 import android.widget.ScrollView
 import androidx.appcompat.widget.Toolbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.SendLog
 
@@ -38,23 +40,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
 
         reloadSession()
-
-        DataStore.postLogListener = {
-            runOnMainDispatcher {
-                val color = getColorForLine(it)
-                val span = SpannableString(it)
-                span.setSpan(color, 0, it.length, SPAN_EXCLUSIVE_EXCLUSIVE)
-                binding.textview.append(span)
-                binding.scroolview.post {
-                    binding.scroolview.fullScroll(ScrollView.FOCUS_DOWN)
-                }
-            }
-        }
-    }
-
-    override fun onDestroy() {
-        DataStore.postLogListener = null
-        super.onDestroy()
+        // TODO new logcat
     }
 
     private fun getColorForLine(line: String): ForegroundColorSpan {
@@ -63,9 +49,11 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             line.contains(" INFO[") || line.contains(" [Info]") -> {
                 color = ForegroundColorSpan((0xFF86C166).toInt())
             }
+
             line.contains(" ERROR[") || line.contains(" [Error]") -> {
                 color = ForegroundColorSpan(Color.RED)
             }
+
             line.contains(" WARN[") || line.contains(" [Warning]") -> {
                 color = ForegroundColorSpan(Color.RED)
             }
@@ -111,12 +99,14 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                 }
 
             }
+
             R.id.action_send_logcat -> {
                 val context = requireContext()
                 runOnDefaultDispatcher {
-                    SendLog.sendLog(context, "NB4A")
+                    SendLog.sendLog(context, "husi")
                 }
             }
+
             R.id.action_refresh -> {
                 reloadSession()
             }

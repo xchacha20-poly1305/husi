@@ -9,35 +9,43 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.*
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.http.toUri
-import io.nekohasekai.sagernet.fmt.hysteria.*
+import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
+import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
+import io.nekohasekai.sagernet.fmt.hysteria.canUseSingBox
+import io.nekohasekai.sagernet.fmt.hysteria.toUri
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
+import io.nekohasekai.sagernet.fmt.mieru.MieruBean
+import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.naive.toUri
-import io.nekohasekai.sagernet.fmt.shadowsocks.*
+import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
+import io.nekohasekai.sagernet.fmt.shadowsocks.toUri
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.socks.toUri
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
-import io.nekohasekai.sagernet.fmt.trojan.toUri
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
 import io.nekohasekai.sagernet.fmt.trojan_go.toUri
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
-import io.nekohasekai.sagernet.fmt.tuic.buildTuicConfig
-import io.nekohasekai.sagernet.fmt.v2ray.*
+import io.nekohasekai.sagernet.fmt.tuic.toUri
+import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
+import io.nekohasekai.sagernet.fmt.v2ray.isTLS
+import io.nekohasekai.sagernet.fmt.v2ray.toUriVMessVLESSTrojan
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ui.profile.*
 import moe.matsuri.nb4a.Protocols
-import moe.matsuri.nb4a.proxy.neko.*
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
 import moe.matsuri.nb4a.proxy.neko.NekoBean
 import moe.matsuri.nb4a.proxy.neko.NekoSettingActivity
 import moe.matsuri.nb4a.proxy.neko.haveStandardLink
 import moe.matsuri.nb4a.proxy.neko.shareLink
+import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
+import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 
 @Entity(
     tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
@@ -59,11 +67,13 @@ data class ProxyEntity(
     var vmessBean: VMessBean? = null,
     var trojanBean: TrojanBean? = null,
     var trojanGoBean: TrojanGoBean? = null,
+    var mieruBean: MieruBean? = null,
     var naiveBean: NaiveBean? = null,
     var hysteriaBean: HysteriaBean? = null,
     var tuicBean: TuicBean? = null,
     var sshBean: SSHBean? = null,
     var wgBean: WireGuardBean? = null,
+    var shadowTLSBean: ShadowTLSBean? = null,
     var chainBean: ChainBean? = null,
     var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
@@ -74,16 +84,18 @@ data class ProxyEntity(
         const val TYPE_HTTP = 1
         const val TYPE_SS = 2
         const val TYPE_VMESS = 4
-
         const val TYPE_TROJAN = 6
+
         const val TYPE_TROJAN_GO = 7
+        const val TYPE_MIERU = 21
         const val TYPE_NAIVE = 9
         const val TYPE_HYSTERIA = 15
+        const val TYPE_TUIC = 20
 
         const val TYPE_SSH = 17
         const val TYPE_WG = 18
 
-        const val TYPE_TUIC = 20
+        const val TYPE_SHADOWTLS = 19
 
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999
@@ -106,10 +118,6 @@ data class ProxyEntity(
             }
         }
     }
-
-    @Ignore
-    @Transient
-    var info: String = ""
 
     @Ignore
     @Transient
@@ -166,29 +174,33 @@ data class ProxyEntity(
             TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
             TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
             TYPE_TROJAN_GO -> trojanGoBean = KryoConverters.trojanGoDeserialize(byteArray)
+            TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
             TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
             TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
             TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
             TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
             TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
+            TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
             TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
         }
     }
 
-    fun displayType() = when (type) {
+    fun displayType(): String = when (type) {
         TYPE_SOCKS -> socksBean!!.protocolName()
         TYPE_HTTP -> if (httpBean!!.isTLS()) "HTTPS" else "HTTP"
         TYPE_SS -> "Shadowsocks"
         TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
         TYPE_TROJAN -> "Trojan"
         TYPE_TROJAN_GO -> "Trojan-Go"
+        TYPE_MIERU -> "Mieru"
         TYPE_NAIVE -> "Naïve"
-        TYPE_HYSTERIA -> "Hysteria"
+        TYPE_HYSTERIA -> "Hysteria" + hysteriaBean!!.protocolVersion
         TYPE_SSH -> "SSH"
         TYPE_WG -> "WireGuard"
         TYPE_TUIC -> "TUIC"
+        TYPE_SHADOWTLS -> "ShadowTLS"
         TYPE_CHAIN -> chainName
         TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
@@ -206,11 +218,13 @@ data class ProxyEntity(
             TYPE_VMESS -> vmessBean
             TYPE_TROJAN -> trojanBean
             TYPE_TROJAN_GO -> trojanGoBean
+            TYPE_MIERU -> mieruBean
             TYPE_NAIVE -> naiveBean
             TYPE_HYSTERIA -> hysteriaBean
             TYPE_SSH -> sshBean
             TYPE_WG -> wgBean
             TYPE_TUIC -> tuicBean
+            TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_CHAIN -> chainBean
             TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
@@ -227,31 +241,28 @@ data class ProxyEntity(
 
     fun haveStandardLink(): Boolean {
         return when (requireBean()) {
-            is TuicBean -> false
             is SSHBean -> false
             is WireGuardBean -> false
+            is ShadowTLSBean -> false
             is NekoBean -> nekoBean!!.haveStandardLink()
             is ConfigBean -> false
             else -> true
         }
     }
 
-    fun toLink(compact: Boolean = false): String? = with(requireBean()) {
+    fun toStdLink(compact: Boolean = false): String = with(requireBean()) {
         when (this) {
             is SOCKSBean -> toUri()
             is HttpBean -> toUri()
             is ShadowsocksBean -> toUri()
-            is VMessBean -> if (compact) toV2rayN() else toUri()
-            is TrojanBean -> toUri()
+            is VMessBean -> toUriVMessVLESSTrojan(false)
+            is TrojanBean -> toUriVMessVLESSTrojan(true)
             is TrojanGoBean -> toUri()
             is NaiveBean -> toUri()
             is HysteriaBean -> toUri()
-            is SSHBean -> toUniversalLink()
-            is WireGuardBean -> toUniversalLink()
-            is TuicBean -> toUniversalLink()
-            is ConfigBean -> toUniversalLink()
+            is TuicBean -> toUri()
             is NekoBean -> shareLink()
-            else -> null
+            else -> toUniversalLink()
         }
     }
 
@@ -260,7 +271,7 @@ data class ProxyEntity(
 
         return with(requireBean()) {
             StringBuilder().apply {
-                val config = buildConfig(this@ProxyEntity)
+                val config = buildConfig(this@ProxyEntity, forExport = true)
                 append(config.config)
 
                 if (!config.externalIndex.all { it.chain.isEmpty() }) {
@@ -274,17 +285,20 @@ data class ProxyEntity(
                                 append("\n\n")
                                 append(bean.buildTrojanGoConfig(port))
                             }
+
+                            is MieruBean -> {
+                                append("\n\n")
+                                append(bean.buildMieruConfig(port))
+                            }
+
                             is NaiveBean -> {
                                 append("\n\n")
                                 append(bean.buildNaiveConfig(port))
                             }
+
                             is HysteriaBean -> {
                                 append("\n\n")
-                                append(bean.buildHysteriaConfig(port, null))
-                            }
-                            is TuicBean -> {
-                                append("\n\n")
-                                append(bean.buildTuicConfig(port, null))
+                                append(bean.buildHysteria1Config(port, null))
                             }
                         }
                     }
@@ -296,26 +310,25 @@ data class ProxyEntity(
     fun needExternal(): Boolean {
         return when (type) {
             TYPE_TROJAN_GO -> true
+            TYPE_MIERU -> true
             TYPE_NAIVE -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
-            TYPE_TUIC -> true
             TYPE_NEKO -> true
-            else -> false
-        }
-    }
-
-    fun isV2RayNetworkTcp(): Boolean {
-        val bean = requireBean() as StandardV2RayBean
-        return when (bean.type) {
-            "tcp", "ws", "http" -> true
             else -> false
         }
     }
 
     fun needCoreMux(): Boolean {
         return when (type) {
-            TYPE_VMESS -> isV2RayNetworkTcp() && Protocols.shouldEnableMux("vmess")
-            TYPE_TROJAN -> isV2RayNetworkTcp() && Protocols.shouldEnableMux("trojan")
+            TYPE_VMESS -> if (vmessBean!!.isVLESS) {
+                Protocols.isProfileNeedMux(vmessBean!!) && Protocols.shouldEnableMux("vless")
+            } else {
+                Protocols.isProfileNeedMux(vmessBean!!) && Protocols.shouldEnableMux("vmess")
+            }
+
+            TYPE_TROJAN -> Protocols.isProfileNeedMux(trojanBean!!)
+                    && Protocols.shouldEnableMux("trojan")
+
             TYPE_SS -> !ssBean!!.sUoT && Protocols.shouldEnableMux("shadowsocks")
             else -> false
         }
@@ -328,11 +341,13 @@ data class ProxyEntity(
         vmessBean = null
         trojanBean = null
         trojanGoBean = null
+        mieruBean = null
         naiveBean = null
         hysteriaBean = null
         sshBean = null
         wgBean = null
         tuicBean = null
+        shadowTLSBean = null
         chainBean = null
         configBean = null
         nekoBean = null
@@ -342,58 +357,82 @@ data class ProxyEntity(
                 type = TYPE_SOCKS
                 socksBean = bean
             }
+
             is HttpBean -> {
                 type = TYPE_HTTP
                 httpBean = bean
             }
+
             is ShadowsocksBean -> {
                 type = TYPE_SS
                 ssBean = bean
             }
+
             is VMessBean -> {
                 type = TYPE_VMESS
                 vmessBean = bean
             }
+
             is TrojanBean -> {
                 type = TYPE_TROJAN
                 trojanBean = bean
             }
+
             is TrojanGoBean -> {
                 type = TYPE_TROJAN_GO
                 trojanGoBean = bean
             }
+
+            is MieruBean -> {
+                type = TYPE_MIERU
+                mieruBean = bean
+            }
+
             is NaiveBean -> {
                 type = TYPE_NAIVE
                 naiveBean = bean
             }
+
             is HysteriaBean -> {
                 type = TYPE_HYSTERIA
                 hysteriaBean = bean
             }
+
             is SSHBean -> {
                 type = TYPE_SSH
                 sshBean = bean
             }
+
             is WireGuardBean -> {
                 type = TYPE_WG
                 wgBean = bean
             }
+
             is TuicBean -> {
                 type = TYPE_TUIC
                 tuicBean = bean
             }
+
+            is ShadowTLSBean -> {
+                type = TYPE_SHADOWTLS
+                shadowTLSBean = bean
+            }
+
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
             }
+
             is NekoBean -> {
                 type = TYPE_NEKO
                 nekoBean = bean
             }
+
             is ConfigBean -> {
                 type = TYPE_CONFIG
                 configBean = bean
             }
+
             else -> error("Undefined type $type")
         }
         return this
@@ -408,11 +447,13 @@ data class ProxyEntity(
                 TYPE_VMESS -> VMessSettingsActivity::class.java
                 TYPE_TROJAN -> TrojanSettingsActivity::class.java
                 TYPE_TROJAN_GO -> TrojanGoSettingsActivity::class.java
+                TYPE_MIERU -> MieruSettingsActivity::class.java
                 TYPE_NAIVE -> NaiveSettingsActivity::class.java
                 TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
                 TYPE_SSH -> SSHSettingsActivity::class.java
                 TYPE_WG -> WireGuardSettingsActivity::class.java
                 TYPE_TUIC -> TuicSettingsActivity::class.java
+                TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_NEKO -> NekoSettingActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java

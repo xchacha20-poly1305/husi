@@ -6,11 +6,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.os.StrictMode
@@ -24,26 +23,28 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.utils.*
+import io.nekohasekai.sagernet.utils.CrashHandler
+import io.nekohasekai.sagernet.utils.DefaultNetworkListener
+import io.nekohasekai.sagernet.utils.PackageCache
+import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
-import libcore.BoxPlatformInterface
 import libcore.Libcore
-import libcore.NB4AInterface
+import moe.matsuri.nb4a.NativeInterface
 import moe.matsuri.nb4a.utils.JavaUtil
 import moe.matsuri.nb4a.utils.cleanWebview
-import java.net.InetSocketAddress
 import androidx.work.Configuration as WorkConfiguration
 
 class SagerNet : Application(),
-    BoxPlatformInterface,
-    WorkConfiguration.Provider, NB4AInterface {
+    WorkConfiguration.Provider {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
         application = this
     }
+
+    val nativeInterface = NativeInterface()
 
     val externalAssets by lazy { getExternalFilesDir(null) ?: filesDir }
     val process = JavaUtil.getProcessName()
@@ -77,12 +78,10 @@ class SagerNet : Application(),
             filesDir.absolutePath + "/",
             externalAssets.absolutePath + "/",
             DataStore.logBufSize,
-            DataStore.enableLog,
-            this
+            DataStore.logLevel > 0,
+            nativeInterface, nativeInterface,
+            DataStore.enabledCazilla
         )
-
-        // libbox: platform interface
-        Libcore.setBoxPlatformInterface(this)
 
         if (isMainProcess) {
             Theme.apply(this)
@@ -104,21 +103,17 @@ class SagerNet : Application(),
         )
     }
 
-    fun getPackageInfo(packageName: String) = packageManager.getPackageInfo(
-        packageName, if (Build.VERSION.SDK_INT >= 28) PackageManager.GET_SIGNING_CERTIFICATES
-        else @Suppress("DEPRECATION") PackageManager.GET_SIGNATURES
-    )!!
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         updateNotificationChannels()
     }
 
-    override fun getWorkManagerConfiguration(): WorkConfiguration {
-        return WorkConfiguration.Builder()
-            .setDefaultProcessName("${BuildConfig.APPLICATION_ID}:bg")
-            .build()
-    }
+    override val workManagerConfiguration: androidx.work.Configuration
+        get() {
+            return WorkConfiguration.Builder()
+                .setDefaultProcessName("${BuildConfig.APPLICATION_ID}:bg")
+                .build()
+        }
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
@@ -133,11 +128,6 @@ class SagerNet : Application(),
 
         val isTv by lazy {
             uiMode.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-        }
-
-        // /data/user_de available when not unlocked
-        val deviceStorage by lazy {
-            if (Build.VERSION.SDK_INT < 24) application else DeviceStorageApp(application)
         }
 
         val configureIntent: (Context) -> PendingIntent by lazy {
@@ -159,8 +149,8 @@ class SagerNet : Application(),
         val user by lazy { application.getSystemService<UserManager>()!! }
         val uiMode by lazy { application.getSystemService<UiModeManager>()!! }
         val power by lazy { application.getSystemService<PowerManager>()!! }
-
-        val packageInfo: PackageInfo by lazy { application.getPackageInfo(application.packageName) }
+        val connection by lazy { application.getSystemService<ConnectivityManager>()!! }
+        val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
 
         fun getClipboardText(): String {
             return clipboard.primaryClip?.takeIf { it.itemCount > 0 }
@@ -213,71 +203,5 @@ class SagerNet : Application(),
 
     }
 
-
-    //  libbox interface
-
-    override fun autoDetectInterfaceControl(fd: Int) {
-        DataStore.vpnService?.protect(fd)
-    }
-
-    override fun openTun(singTunOptionsJson: String, tunPlatformOptionsJson: String): Long {
-        if (DataStore.vpnService == null) {
-            throw Exception("no VpnService")
-        }
-        return DataStore.vpnService!!.startVpn(singTunOptionsJson, tunPlatformOptionsJson).toLong()
-    }
-
-    override fun useProcFS(): Boolean {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun findConnectionOwner(
-        ipProto: Int, srcIp: String, srcPort: Int, destIp: String, destPort: Int
-    ): Int {
-        return connectivity.getConnectionOwnerUid(
-            ipProto, InetSocketAddress(srcIp, srcPort), InetSocketAddress(destIp, destPort)
-        )
-    }
-
-    override fun packageNameByUid(uid: Int): String {
-        PackageCache.awaitLoadSync()
-
-        if (uid <= 1000L) {
-            return "android"
-        }
-
-        val packageNames = PackageCache.uidMap[uid]
-        if (!packageNames.isNullOrEmpty()) for (packageName in packageNames) {
-            return packageName
-        }
-
-        error("unknown uid $uid")
-    }
-
-    override fun uidByPackageName(packageName: String): Int {
-        PackageCache.awaitLoadSync()
-        return PackageCache[packageName] ?: 0
-    }
-
-    // nb4a interface
-
-    override fun write(p: ByteArray): Long {
-        // NB4AGuiLogWriter
-        if (isBgProcess) {
-            runOnDefaultDispatcher {
-                DataStore.baseService?.data?.binder?.broadcast {
-                    it.cbLogUpdate(String(p))
-                }
-            }
-        } else {
-            DataStore.postLogListener?.let { it(String(p)) }
-        }
-        return p.size.toLong()
-    }
-
-    override fun useOfficialAssets(): Boolean {
-        return DataStore.rulesProvider == 0
-    }
 
 }

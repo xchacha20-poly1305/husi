@@ -1,17 +1,27 @@
 package io.nekohasekai.sagernet.database;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import io.nekohasekai.sagernet.fmt.Serializable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.nekohasekai.sagernet.fmt.Serializable;
-
 public class SubscriptionBean extends Serializable {
 
+    public static final Creator<SubscriptionBean> CREATOR = new CREATOR<SubscriptionBean>() {
+        @NonNull
+        @Override
+        public SubscriptionBean newInstance() {
+            return new SubscriptionBean();
+        }
+
+        @Override
+        public SubscriptionBean[] newArray(int size) {
+            return new SubscriptionBean[size];
+        }
+    };
     public Integer type;
     public String link;
     public String token;
@@ -21,22 +31,19 @@ public class SubscriptionBean extends Serializable {
     public String customUserAgent;
     public Boolean autoUpdate;
     public Integer autoUpdateDelay;
-    public Integer lastUpdated;
 
     // SIP008
-
+    public Integer lastUpdated;
     public Long bytesUsed;
-    public Long bytesRemaining;
 
     // Open Online Config
-
+    public Long bytesRemaining;
     public String username;
     public Integer expiryDate;
-    public List<String> protocols;
 
 
     // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
-
+    public List<String> protocols;
     public String subscriptionUserinfo;
 
     public SubscriptionBean() {
@@ -121,18 +128,5 @@ public class SubscriptionBean extends Serializable {
         if (expiryDate == null) expiryDate = 0;
         if (protocols == null) protocols = new ArrayList<>();
     }
-
-    public static final Creator<SubscriptionBean> CREATOR = new CREATOR<SubscriptionBean>() {
-        @NonNull
-        @Override
-        public SubscriptionBean newInstance() {
-            return new SubscriptionBean();
-        }
-
-        @Override
-        public SubscriptionBean[] newArray(int size) {
-            return new SubscriptionBean[size];
-        }
-    };
 
 }

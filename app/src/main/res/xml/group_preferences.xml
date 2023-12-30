@@ -1,75 +1,93 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <EditTextPreference
-        app:icon="@drawable/ic_social_emoji_symbols"
-        app:key="groupName"
-        app:title="@string/group_name"
-        app:useSimpleSummaryProvider="true" />
+            app:icon="@drawable/ic_social_emoji_symbols"
+            app:key="groupName"
+            app:title="@string/group_name"
+            app:useSimpleSummaryProvider="true"/>
 
-    <com.takisoft.preferencex.SimpleMenuPreference
-        app:defaultValue="0"
-        app:entries="@array/group_types"
-        app:entryValues="@array/int_array_2"
-        app:icon="@drawable/ic_baseline_layers_24"
-        app:key="groupType"
-        app:title="@string/group_type"
-        app:useSimpleSummaryProvider="true" />
-    <com.takisoft.preferencex.SimpleMenuPreference
-        app:defaultValue="0"
-        app:entries="@array/group_orders"
-        app:entryValues="@array/int_array_3"
-        app:icon="@drawable/ic_baseline_low_priority_24"
-        app:key="groupOrder"
-        app:title="@string/group_order"
-        app:useSimpleSummaryProvider="true" />
+    <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/group_types"
+            app:entryValues="@array/int_array_2"
+            app:icon="@drawable/ic_baseline_layers_24"
+            app:key="groupType"
+            app:title="@string/group_type"
+            app:useSimpleSummaryProvider="true"/>
+
+    <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/group_orders"
+            app:entryValues="@array/int_array_3"
+            app:icon="@drawable/ic_baseline_low_priority_24"
+            app:key="groupOrder"
+            app:title="@string/group_order"
+            app:useSimpleSummaryProvider="true"/>
+
+    <SwitchPreference
+            app:icon="@drawable/ic_baseline_manage_search_24"
+            app:key="groupIsSelector"
+            app:title="@string/use_selector"/>
+
+    <io.nekohasekai.sagernet.widget.OutboundPreference
+            app:icon="@drawable/ic_hardware_router"
+            app:key="groupFrontProxy"
+            app:title="@string/front_proxy"
+            app:useSimpleSummaryProvider="true"/>
+
+    <io.nekohasekai.sagernet.widget.OutboundPreference
+            app:icon="@drawable/baseline_public_24"
+            app:key="groupLandingProxy"
+            app:title="@string/landing_proxy"
+            app:useSimpleSummaryProvider="true"/>
 
     <PreferenceCategory
-        app:key="groupSubscription"
-        app:title="@string/subscription_settings">
+            app:key="groupSubscription"
+            app:title="@string/subscription_settings">
 
         <io.nekohasekai.sagernet.widget.LinkOrContentPreference
-            app:icon="@drawable/ic_baseline_link_24"
-            app:key="subscriptionLink"
-            app:title="@string/group_subscription_link"
-            app:useSimpleSummaryProvider="true" />
+                app:icon="@drawable/ic_baseline_link_24"
+                app:key="subscriptionLink"
+                app:title="@string/group_subscription_link"
+                app:useSimpleSummaryProvider="true"/>
 
         <SwitchPreference
-            app:icon="@drawable/ic_baseline_manage_search_24"
-            app:key="subscriptionForceResolve"
-            app:summary="@string/force_resolve_sum"
-            app:title="@string/force_resolve" />
+                app:icon="@drawable/ic_baseline_manage_search_24"
+                app:key="subscriptionForceResolve"
+                app:summary="@string/force_resolve_sum"
+                app:title="@string/force_resolve"/>
 
         <SwitchPreference
-            app:icon="@drawable/ic_baseline_import_contacts_24"
-            app:key="subscriptionDeduplication"
-            app:summary="@string/deduplication_sum"
-            app:title="@string/deduplication" />
+                app:icon="@drawable/ic_baseline_import_contacts_24"
+                app:key="subscriptionDeduplication"
+                app:summary="@string/deduplication_sum"
+                app:title="@string/deduplication"/>
 
     </PreferenceCategory>
 
     <PreferenceCategory
-        app:key="subscriptionUpdate"
-        app:title="@string/update_settings">
+            app:key="subscriptionUpdate"
+            app:title="@string/update_settings">
         <SwitchPreference
-            app:icon="@drawable/ic_baseline_security_24"
-            app:key="subscriptionUpdateWhenConnectedOnly"
-            app:summary="@string/update_when_connected_only_sum"
-            app:title="@string/update_when_connected_only" />
+                app:icon="@drawable/ic_baseline_security_24"
+                app:key="subscriptionUpdateWhenConnectedOnly"
+                app:summary="@string/update_when_connected_only_sum"
+                app:title="@string/update_when_connected_only"/>
         <io.nekohasekai.sagernet.widget.UserAgentPreference
-            app:icon="@drawable/ic_baseline_grid_3x3_24"
-            app:key="subscriptionUserAgent"
-            app:title="@string/subscription_user_agent"
-            app:useSimpleSummaryProvider="true" />
+                app:icon="@drawable/ic_baseline_grid_3x3_24"
+                app:key="subscriptionUserAgent"
+                app:title="@string/subscription_user_agent"
+                app:useSimpleSummaryProvider="true"/>
         <SwitchPreference
-            app:icon="@drawable/ic_baseline_flip_camera_android_24"
-            app:key="subscriptionAutoUpdate"
-            app:title="@string/auto_update" />
+                app:icon="@drawable/ic_baseline_flip_camera_android_24"
+                app:key="subscriptionAutoUpdate"
+                app:title="@string/auto_update"/>
         <EditTextPreference
-            app:defaultValue="1440"
-            app:icon="@drawable/ic_baseline_timelapse_24"
-            app:key="subscriptionAutoUpdateDelay"
-            app:title="@string/auto_update_delay"
-            app:useSimpleSummaryProvider="true" />
+                app:defaultValue="1440"
+                app:icon="@drawable/ic_baseline_timelapse_24"
+                app:key="subscriptionAutoUpdateDelay"
+                app:title="@string/auto_update_delay"
+                app:useSimpleSummaryProvider="true"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

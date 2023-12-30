@@ -1,40 +1,95 @@
 package libcore
 
 import (
-	"context"
+	"archive/zip"
 	"io"
 	"os"
+	"path/filepath"
 
-	"github.com/codeclysm/extract"
-	"github.com/ulikunitz/xz"
+	"github.com/sagernet/sing/common"
+	E "github.com/sagernet/sing/common/exceptions"
+	//"github.com/ulikunitz/xz"
 )
 
-func Unxz(archive string, path string) error {
-	i, err := os.Open(archive)
+func Unzip(archive string, path string) error {
+	r, err := zip.OpenReader(archive)
 	if err != nil {
 		return err
 	}
-	r, err := xz.NewReader(i)
-	if err != nil {
-		i.Close()
-		return err
+	defer r.Close()
+
+	os.MkdirAll(path, os.ModePerm)
+
+	for _, file := range r.File {
+		filePath := filepath.Join(path, file.Name)
+
+		if file.FileInfo().IsDir() {
+			os.MkdirAll(filePath, os.ModePerm)
+			continue
+		}
+
+		// Don't forget to close it.
+		newFile, err := os.Create(filePath)
+		if err != nil {
+			return err
+		}
+
+		zipFile, err := file.Open()
+		if err != nil {
+			newFile.Close()
+			return err
+		}
+
+		_, err = io.Copy(newFile, zipFile)
+		errs := E.Errors(err, common.Close(zipFile, newFile))
+		if errs != nil {
+			return errs
+		}
 	}
-	o, err := os.Create(path)
-	if err != nil {
-		i.Close()
-		return err
-	}
-	_, err = io.Copy(o, r)
-	i.Close()
-	return err
+
+	return nil
 }
 
-func Unzip(archive string, path string) error {
-	i, err := os.Open(archive)
+// UnzipWithoutDir
+// Ignore the directory in the zip file.
+func UnzipWithoutDir(archive, path string) error {
+	r, err := zip.OpenReader(archive)
 	if err != nil {
 		return err
 	}
-	defer i.Close()
-	err = extract.Zip(context.Background(), i, path, nil)
-	return err
+	defer r.Close()
+
+	os.MkdirAll(path, os.ModePerm)
+
+	for _, file := range r.File {
+		if file.FileInfo().IsDir() {
+			continue
+		}
+
+		// 获取文件基本名称而非全路径
+		fileName := filepath.Base(file.Name)
+
+		filePath := filepath.Join(path, fileName)
+
+		os.Remove(filePath)
+		// Don't forget to close it.
+		newFile, err := os.Create(filePath)
+		if err != nil {
+			return err
+		}
+
+		zipFile, err := file.Open()
+		if err != nil {
+			newFile.Close()
+			return err
+		}
+
+		_, err = io.Copy(newFile, zipFile)
+		errs := E.Errors(err, common.Close(zipFile, newFile))
+		if errs != nil {
+			return errs
+		}
+	}
+
+	return nil
 }

@@ -8,11 +8,13 @@ import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
 @Parcelize
+@TypeConverters(ListConverter::class)
 data class RuleEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var name: String = "",
     var userOrder: Long = 0L,
     var enabled: Boolean = false,
+    var ruleSet: String = "",
     var domains: String = "",
     var ip: String = "",
     var port: String = "",
@@ -22,6 +24,8 @@ data class RuleEntity(
     var protocol: String = "",
     var outbound: Long = 0,
     var packages: List<String> = listOf(),
+    var ssid: String = "",
+    var bssid: String = "",
 ) : Parcelable {
 
     fun displayName(): String {
@@ -30,6 +34,7 @@ data class RuleEntity(
 
     fun mkSummary(): String {
         var summary = ""
+        if (ruleSet.isNotBlank()) summary += "$ruleSet\n"
         if (domains.isNotBlank()) summary += "$domains\n"
         if (ip.isNotBlank()) summary += "$ip\n"
         if (source.isNotBlank()) summary += "source: $source\n"
@@ -40,6 +45,8 @@ data class RuleEntity(
         if (packages.isNotEmpty()) summary += app.getString(
             R.string.apps_message, packages.size
         ) + "\n"
+        if (ssid.isNotBlank()) summary += "ssid: $ssid"
+        if (bssid.isNotBlank()) summary += "bssid: $bssid"
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {
             lines.subList(0, 3).joinToString("\n", postfix = "\n...")
@@ -54,7 +61,7 @@ data class RuleEntity(
             -1L -> app.getString(R.string.route_bypass)
             -2L -> app.getString(R.string.route_block)
             else -> ProfileManager.getProfile(outbound)?.displayName()
-                ?: app.getString(R.string.route_proxy)
+                ?: app.getString(R.string.error_title)
         }
     }
 
@@ -104,3 +111,5 @@ data class RuleEntity(
 
 
 }
+
+

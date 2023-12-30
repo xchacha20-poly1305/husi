@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.utils.PackageCache
 
@@ -56,12 +55,19 @@ object Plugins {
 
     fun getPlugin(pluginId: String): ProviderInfo? {
         if (pluginId.isBlank()) return null
+        getPluginExternal(pluginId)?.let { return it }
+        // internal so
+        return ProviderInfo().apply { authority = AUTHORITIES_PREFIX_NEKO_EXE }
+    }
+
+    fun getPluginExternal(pluginId: String): ProviderInfo? {
+        if (pluginId.isBlank()) return null
 
         // try queryIntentContentProviders
-        var providers = getPluginOld(pluginId)
+        var providers = getExtPluginOld(pluginId)
 
         // try PackageCache
-        if (providers.isEmpty()) providers = getPluginNew(pluginId)
+        if (providers.isEmpty()) providers = getExtPluginNew(pluginId)
 
         // not found
         if (providers.isEmpty()) return null
@@ -82,7 +88,7 @@ object Plugins {
         return providers[0]
     }
 
-    fun getPluginNew(pluginId: String): List<ProviderInfo> {
+    private fun getExtPluginNew(pluginId: String): List<ProviderInfo> {
         PackageCache.awaitLoadSync()
         val pkgs = PackageCache.installedPluginPackages
             .map { it.value }
@@ -96,7 +102,7 @@ object Plugins {
         .path("/$id")
         .build()
 
-    private fun getPluginOld(pluginId: String): List<ProviderInfo> {
+    private fun getExtPluginOld(pluginId: String): List<ProviderInfo> {
         var flags = PackageManager.GET_META_DATA
         if (Build.VERSION.SDK_INT >= 24) {
             flags =

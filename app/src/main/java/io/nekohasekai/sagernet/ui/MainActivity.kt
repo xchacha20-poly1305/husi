@@ -1,20 +1,30 @@
 package io.nekohasekai.sagernet.ui
 
+import android.Manifest
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.RemoteException
 import android.view.KeyEvent
 import android.view.MenuItem
-import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.IdRes
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.preference.PreferenceDataStore
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
-import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.GroupType
+import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
@@ -30,9 +40,8 @@ import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListHolderListener
-import kotlinx.coroutines.launch
 import moe.matsuri.nb4a.utils.Util
-import java.util.*
+import java.io.File
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
@@ -44,6 +53,10 @@ class MainActivity : ThemedActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window?.apply {
+            statusBarColor = Color.TRANSPARENT
+        }
 
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
@@ -61,6 +74,13 @@ class MainActivity : ThemedActivity(),
 
         if (savedInstanceState == null) {
             displayFragmentWithId(R.id.nav_configuration)
+        }
+        onBackPressedDispatcher.addCallback {
+            if (supportFragmentManager.findFragmentById(R.id.fragment_holder) is ConfigurationFragment) {
+                moveTaskToBack(true)
+            } else {
+                displayFragmentWithId(R.id.nav_configuration)
+            }
         }
 
         binding.fab.setOnClickListener {
@@ -81,6 +101,62 @@ class MainActivity : ThemedActivity(),
             onNewIntent(intent)
         }
 
+        refreshNavMenu(!DataStore.clashAPIListen.isNullOrBlank())
+
+        // sdk 33 notification
+        if (Build.VERSION.SDK_INT >= 33) {
+            val checkPermission =
+                ContextCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
+            if (checkPermission != PackageManager.PERMISSION_GRANTED) {
+                //动态申请
+                ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    arrayOf(POST_NOTIFICATIONS),
+                    0
+                )
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    0
+                )
+            }
+        }
+
+        // consent
+        try {
+            val f = File(application.filesDir, "consent")
+            if (!f.exists()) {
+                MaterialAlertDialogBuilder(this@MainActivity)
+                    .setTitle("VpnService policy")
+                    .setMessage("Since the main function of this application is VPN, it must use VpnService.")
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        f.createNewFile()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ ->
+                        finish()
+                    }
+                    .show()
+            }
+        } catch (e: Exception) {
+            Logs.w(e)
+        }
+    }
+
+    fun refreshNavMenu(clashApi: Boolean) {
+        if (::navigation.isInitialized) {
+            navigation.menu.findItem(R.id.nav_traffic)?.isVisible = clashApi
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -220,7 +296,7 @@ class MainActivity : ThemedActivity(),
             }
             .setNeutralButton(android.R.string.cancel, null)
             .setNeutralButton(R.string.action_learn_more) { _, _ ->
-                launchCustomTab("https://matsuridayo.github.io/m-plugin/")
+                launchCustomTab("https://AntiNeko.github.io/m-plugin/")
             }
             .show()
     }
@@ -283,6 +359,7 @@ class MainActivity : ThemedActivity(),
             R.id.nav_configuration -> {
                 displayFragment(ConfigurationFragment())
             }
+
             R.id.nav_group -> displayFragment(GroupFragment())
             R.id.nav_route -> displayFragment(RouteFragment())
             R.id.nav_settings -> displayFragment(SettingsFragment())
@@ -290,31 +367,16 @@ class MainActivity : ThemedActivity(),
             R.id.nav_tools -> displayFragment(ToolsFragment())
             R.id.nav_logcat -> displayFragment(LogcatFragment())
             R.id.nav_faq -> {
-                launchCustomTab("https://matsuridayo.github.io/")
+                launchCustomTab("https://AntiNeko.github.io")
                 return false
             }
+
             R.id.nav_about -> displayFragment(AboutFragment())
-            R.id.nav_tuiguang -> {
-                launchCustomTab("https://matsuricom.github.io/")
-                return false
-            }
+
             else -> return false
         }
         navigation.menu.findItem(id).isChecked = true
         return true
-    }
-
-    @SuppressLint("CommitTransaction")
-    fun ruleCreated() {
-        navigation.menu.findItem(R.id.nav_route).isChecked = true
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_holder, RouteFragment())
-            .commitAllowingStateLoss()
-        if (DataStore.serviceState.started) {
-            snackbar(getString(R.string.restart)).setAction(R.string.apply) {
-                SagerNet.reloadService()
-            }.show()
-        }
     }
 
     private fun changeState(
@@ -327,16 +389,6 @@ class MainActivity : ThemedActivity(),
         binding.fab.changeState(state, DataStore.serviceState, animate)
         binding.stats.changeState(state)
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
-
-        when (state) {
-            BaseService.State.Stopped -> {
-                runOnDefaultDispatcher {
-                    // refresh view
-                    ProfileManager.postUpdate(DataStore.currentProfile)
-                }
-            }
-            else -> {}
-        }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
@@ -352,22 +404,10 @@ class MainActivity : ThemedActivity(),
         changeState(state, msg, true)
     }
 
-    override fun routeAlert(type: Int, routeName: String) {
-        when (type) {
-            0 -> {
-                // need vpn
-
-                Toast.makeText(
-                    this, getString(R.string.route_need_vpn, routeName), Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
-    val connection = SagerConnection(true)
+    val connection = SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
     override fun onServiceConnected(service: ISagerNetService) = changeState(
         try {
-            BaseService.State.values()[service.state]
+            BaseService.State.entries[service.state]
         } catch (_: RemoteException) {
             BaseService.State.Idle
         }
@@ -395,12 +435,22 @@ class MainActivity : ThemedActivity(),
         }
     }
 
+    override fun cbSelectorUpdate(id: Long) {
+        val old = DataStore.selectedProxy
+        DataStore.selectedProxy = id
+        DataStore.currentProfile = id
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(old, true)
+            ProfileManager.postUpdate(id, true)
+        }
+    }
+
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
         when (key) {
             Key.SERVICE_MODE -> onBinderDied()
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {
-                    snackbar(getString(R.string.restart)).setAction(R.string.apply) {
+                    snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
                         SagerNet.reloadService()
                     }.show()
                 }
@@ -409,10 +459,12 @@ class MainActivity : ThemedActivity(),
     }
 
     override fun onStart() {
+        connection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
         super.onStart()
     }
 
     override fun onStop() {
+        connection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND)
         super.onStop()
     }
 
@@ -430,6 +482,7 @@ class MainActivity : ThemedActivity(),
                 binding.drawerLayout.open()
                 navigation.requestFocus()
             }
+
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (binding.drawerLayout.isOpen) {
                     binding.drawerLayout.close()
@@ -445,46 +498,4 @@ class MainActivity : ThemedActivity(),
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
-
-    @SuppressLint("SimpleDateFormat")
-    override fun onResume() {
-        super.onResume()
-
-        // TODO nb4a release
-        /*      
-        val sdf = SimpleDateFormat("yyyy-MM-dd")
-        val now = System.currentTimeMillis()
-        val expire = Libcore.getExpireTime() * 1000
-        val dateExpire = Date(expire)
-        val build = Libcore.getBuildTime() * 1000
-        val dateBuild = Date(build)
-
-        var text: String? = null
-        if (now > expire) {
-            text = getString(
-                R.string.please_update_force, sdf.format(dateBuild), sdf.format(dateExpire)
-            )
-        } else if (now > (expire - 2592000000)) {
-            // 30 days remind :D
-            text = getString(
-                R.string.please_update, sdf.format(dateBuild), sdf.format(dateExpire)
-            )
-        }
-
-
-        if (text != null) {
-            MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.insecure)
-                .setMessage(text)
-                .setPositiveButton(R.string.action_download) { _, _ ->
-                    launchCustomTab(
-                        "https://github.com/MatsuriDayo/NekoBoxForAndroid/releases"
-                    )
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .setCancelable(false)
-                .show()
-        }
-        */
-    }
-
 }

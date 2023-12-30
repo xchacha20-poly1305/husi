@@ -9,15 +9,16 @@ import android.net.ProxyInfo
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.PowerManager
-import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.IPv6Mode
+import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
-import libcore.*
-import moe.matsuri.nb4a.net.LocalResolverImpl
 import moe.matsuri.nb4a.proxy.neko.needBypassRootUid
 import android.net.VpnService as BaseVpnService
 
@@ -95,9 +96,8 @@ class VpnService : BaseVpnService(),
 //        val tunOptions = JSONObject(tunOptionsJson)
 
         // address & route & MTU ...... use NB4A GUI config
-        val profile = data.proxy!!.profile
         val builder = Builder().setConfigureIntent(SagerNet.configureIntent(this))
-            .setSession(profile.displayName())
+            .setSession(getString(R.string.app_name))
             .setMtu(DataStore.mtu)
         val ipv6Mode = DataStore.ipv6Mode
 
@@ -109,7 +109,7 @@ class VpnService : BaseVpnService(),
         builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
 
         // route
-        if (DataStore.bypassLan && !DataStore.bypassLanInCoreOnly) {
+        if (DataStore.bypassLan) {
             resources.getStringArray(R.array.bypass_private_route).forEach {
                 val subnet = Subnet.fromString(it)!!
                 builder.addRoute(subnet.address.hostAddress!!, subnet.prefixSize)
@@ -127,22 +127,16 @@ class VpnService : BaseVpnService(),
             }
         }
 
-        // ?
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            // TODO listen for change?
-            if (SagerNet.underlyingNetwork != null) {
-                builder.setUnderlyingNetworks(arrayOf(SagerNet.underlyingNetwork))
-            }
-        }
+        updateUnderlyingNetwork(builder)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
 
         // app route
         val packageName = packageName
-        var proxyApps = DataStore.proxyApps
+        val proxyApps = DataStore.proxyApps
         var bypass = DataStore.bypass
-        var workaroundSYSTEM = false /* DataStore.tunImplementation == TunImplementation.SYSTEM */
-        var needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficMap.values.any {
-            it.nekoBean?.needBypassRootUid() == true || it.hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
+        val workaroundSYSTEM = false /* DataStore.tunImplementation == TunImplementation.SYSTEM */
+        val needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficMap.values.any {
+            it[0].nekoBean?.needBypassRootUid() == true || it[0].hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
         }
 
         if (proxyApps || needBypassRootUid) {
@@ -198,7 +192,9 @@ class VpnService : BaseVpnService(),
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy &&
+            DataStore.inboundUsername.isNullOrEmpty() && DataStore.inboundPassword.isNullOrEmpty()
+        ) {
             builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort))
         }
 
@@ -206,62 +202,21 @@ class VpnService : BaseVpnService(),
         if (Build.VERSION.SDK_INT >= 29) builder.setMetered(metered)
         conn = builder.establish() ?: throw NullConnectionException()
 
-        // post setup
-        Libcore.setLocalResolver(LocalResolverImpl)
-
         return conn!!.fd
     }
 
-//
-//    val appStats = mutableListOf<AppStats>()
-//
-//    override fun updateStats(stats: AppStats) {
-//        appStats.add(stats)
-//    }
-//
-//    fun persistAppStats() {
-//        if (!DataStore.appTrafficStatistics) return
-//        val tun = getTun() ?: return
-//        appStats.clear()
-//        tun.readAppTraffics(this)
-//        val toUpdate = mutableListOf<StatsEntity>()
-//        val all = SagerDatabase.statsDao.all().associateBy { it.packageName }
-//        for (stats in appStats) {
-//            if (stats.nekoConnectionsJSON.isNotBlank()) continue
-//            val packageName = if (stats.uid >= 10000) {
-//                PackageCache.uidMap[stats.uid]?.iterator()?.next() ?: "android"
-//            } else {
-//                "android"
-//            }
-//            if (!all.containsKey(packageName)) {
-//                SagerDatabase.statsDao.create(
-//                    StatsEntity(
-//                        packageName = packageName,
-//                        tcpConnections = stats.tcpConnTotal,
-//                        udpConnections = stats.udpConnTotal,
-//                        uplink = stats.uplinkTotal,
-//                        downlink = stats.downlinkTotal
-//                    )
-//                )
-//            } else {
-//                val entity = all[packageName]!!
-//                entity.tcpConnections += stats.tcpConnTotal
-//                entity.udpConnections += stats.udpConnTotal
-//                entity.uplink += stats.uplinkTotal
-//                entity.downlink += stats.downlinkTotal
-//                toUpdate.add(entity)
-//            }
-//            if (toUpdate.isNotEmpty()) {
-//                SagerDatabase.statsDao.update(toUpdate)
-//            }
-//
-//        }
-//    }
+    fun updateUnderlyingNetwork(builder: Builder? = null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            SagerNet.underlyingNetwork?.let {
+                builder?.setUnderlyingNetworks(arrayOf(SagerNet.underlyingNetwork))
+                    ?: setUnderlyingNetworks(arrayOf(SagerNet.underlyingNetwork))
+            }
+        }
+    }
 
     override fun onRevoke() = stopRunner()
 
     override fun onDestroy() {
-        Libcore.setLocalResolver(null)
         DataStore.vpnService = null
         super.onDestroy()
         data.binder.close()

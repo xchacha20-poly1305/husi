@@ -1,1 +1,1 @@
-Proxy toolchain for Android
+Husi is a proxy configurations manager.

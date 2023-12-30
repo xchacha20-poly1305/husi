@@ -6,11 +6,15 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
-import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.Toast
+import androidx.activity.result.component1
+import androidx.activity.result.component2
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -21,12 +25,10 @@ import androidx.core.view.isVisible
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceDataStore
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.input.input
+import androidx.preference.PreferenceFragmentCompat
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.takisoft.preferencex.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.*
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
@@ -35,10 +37,7 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.widget.ListListener
 import kotlinx.parcelize.Parcelize
@@ -121,9 +120,8 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
                 onMainDispatcher {
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.settings, MyPreferenceFragmentCompat().apply {
-                            activity = this@ProfileSettingsActivity
-                        }).commit()
+                        .replace(R.id.settings, MyPreferenceFragmentCompat())
+                        .commit()
                 }
             }
 
@@ -211,16 +209,21 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
     class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
 
-        lateinit var activity: ProfileSettingsActivity<*>
+        var activity: ProfileSettingsActivity<*>? = null
 
-        override fun onCreatePreferencesFix(savedInstanceState: Bundle?, rootKey: String?) {
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = DataStore.profileCacheStore
-            activity.apply {
-                createPreferences(savedInstanceState, rootKey)
-
-                if (isSubscription) {
-//                    findPreference<Preference>(Key.PROFILE_NAME)?.isEnabled = false
+            try {
+                activity = (requireActivity() as ProfileSettingsActivity<*>).apply {
+                    createPreferences(savedInstanceState, rootKey)
                 }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    SagerNet.application,
+                    "Error on createPreferences, please try again.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Logs.e(e)
             }
         }
 
@@ -229,12 +232,26 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
             ViewCompat.setOnApplyWindowInsetsListener(listView, ListListener)
 
-            activity.apply {
+            activity?.apply {
                 viewCreated(view, savedInstanceState)
+                DataStore.dirty = false
+                DataStore.profileCacheStore.registerChangeListener(this)
             }
+        }
 
-            DataStore.dirty = false
-            DataStore.profileCacheStore.registerChangeListener(activity)
+        var callbackCustom: ((String) -> Unit)? = null
+        var callbackCustomOutbound: ((String) -> Unit)? = null
+
+        val resultCallbackCustom = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { (_, _) ->
+            callbackCustom?.let { it(DataStore.serverCustom) }
+        }
+
+        val resultCallbackCustomOutbound = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { (_, _) ->
+            callbackCustomOutbound?.let { it(DataStore.serverCustomOutbound) }
         }
 
         @SuppressLint("CheckResult")
@@ -254,49 +271,48 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 }
                 true
             }
+
             R.id.action_apply -> {
                 runOnDefaultDispatcher {
-                    activity.saveAndExit()
+                    activity?.saveAndExit()
                 }
                 true
             }
+
             R.id.action_custom_outbound_json -> {
-                activity.proxyEntity?.apply {
+                activity?.proxyEntity?.apply {
                     val bean = requireBean()
-                    MaterialDialog(activity).show {
-                        title(R.string.custom_outbound_json)
-                        input(
-                            prefill = bean.customOutboundJson,
-                            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE,
-                            allowEmpty = true
-                        ) { _, str ->
-                            bean.customOutboundJson = str.toString()
-                            DataStore.dirty = true
-                        }
-                        positiveButton(R.string.save)
-                    }
+                    DataStore.serverCustomOutbound = bean.customOutboundJson
+                    callbackCustomOutbound = { bean.customOutboundJson = it }
+                    resultCallbackCustomOutbound.launch(
+                        Intent(
+                            requireContext(),
+                            ConfigEditActivity::class.java
+                        ).apply {
+                            putExtra("key", Key.SERVER_CUSTOM_OUTBOUND)
+                        })
                 }
                 true
             }
+
             R.id.action_custom_config_json -> {
-                activity.proxyEntity?.apply {
+                activity?.proxyEntity?.apply {
                     val bean = requireBean()
-                    MaterialDialog(activity).show {
-                        title(R.string.custom_config_json)
-                        input(
-                            prefill = bean.customConfigJson,
-                            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE,
-                            allowEmpty = true
-                        ) { _, str ->
-                            bean.customConfigJson = str.toString()
-                            DataStore.dirty = true
-                        }
-                        positiveButton(R.string.save)
-                    }
+                    DataStore.serverCustom = bean.customConfigJson
+                    callbackCustom = { bean.customConfigJson = it }
+                    resultCallbackCustom.launch(
+                        Intent(
+                            requireContext(),
+                            ConfigEditActivity::class.java
+                        ).apply {
+                            putExtra("key", Key.SERVER_CUSTOM)
+                        })
                 }
                 true
             }
+
             R.id.action_create_shortcut -> {
+                val activity = requireActivity() as ProfileSettingsActivity<*>
                 val ent = activity.proxyEntity!!
                 val shortcut = ShortcutInfoCompat.Builder(activity, "shortcut-profile-${ent.id}")
                     .setShortLabel(ent.displayName())
@@ -313,7 +329,9 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     }).build()
                 ShortcutManagerCompat.requestPinShortcut(activity, shortcut, null)
             }
+
             R.id.action_move -> {
+                val activity = requireActivity() as ProfileSettingsActivity<*>
                 val view = LinearLayout(context).apply {
                     val ent = activity.proxyEntity!!
                     orientation = LinearLayout.VERTICAL
@@ -343,14 +361,18 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                             }
                         }
                 }
-                MaterialAlertDialogBuilder(activity).setView(view).show()
+                val scrollView = ScrollView(context).apply {
+                    addView(view)
+                }
+                MaterialAlertDialogBuilder(activity).setView(scrollView).show()
                 true
             }
+
             else -> false
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {
-            activity.apply {
+            activity?.apply {
                 if (displayPreferenceDialog(preference)) return
             }
             super.onDisplayPreferenceDialog(preference)

@@ -1,11 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
-import android.widget.Switch
 import androidx.preference.EditTextPreference
+import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
-import com.takisoft.preferencex.PreferenceFragmentCompat
-import com.takisoft.preferencex.SimpleMenuPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -20,6 +18,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         DataStore.profileName = name
         DataStore.serverAddress = serverAddress
         DataStore.serverPort = serverPort
+        DataStore.serverUsername = uuid
         DataStore.serverPassword = token
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = caText
@@ -28,15 +27,16 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         DataStore.serverDisableSNI = disableSNI
         DataStore.serverSNI = sni
         DataStore.serverReduceRTT = reduceRTT
-        DataStore.serverMTU = mtu
-        DataStore.serverFastConnect = fastConnect
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.ech = ech
+        DataStore.echCfg = echCfg
     }
 
     override fun TuicBean.serialize() {
         name = DataStore.profileName
         serverAddress = DataStore.serverAddress
         serverPort = DataStore.serverPort
+        uuid = DataStore.serverUsername
         token = DataStore.serverPassword
         alpn = DataStore.serverALPN
         caText = DataStore.serverCertificates
@@ -45,9 +45,9 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         disableSNI = DataStore.serverDisableSNI
         sni = DataStore.serverSNI
         reduceRTT = DataStore.serverReduceRTT
-        mtu = DataStore.serverMTU
-        fastConnect = DataStore.serverFastConnect
         allowInsecure = DataStore.serverAllowInsecure
+        ech = DataStore.ech
+        echCfg = DataStore.echCfg
     }
 
     override fun PreferenceFragmentCompat.createPreferences(

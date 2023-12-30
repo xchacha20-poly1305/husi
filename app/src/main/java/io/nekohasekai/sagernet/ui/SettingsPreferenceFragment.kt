@@ -7,13 +7,8 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.core.app.ActivityCompat
-import androidx.preference.EditTextPreference
-import androidx.preference.MultiSelectListPreference
-import androidx.preference.Preference
-import androidx.preference.SwitchPreference
+import androidx.preference.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.takisoft.preferencex.PreferenceFragmentCompat
-import com.takisoft.preferencex.SimpleMenuPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -22,11 +17,11 @@ import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.AppListPreference
-import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.ui.ColorPickerPreference
-import moe.matsuri.nb4a.ui.LongClickSwitchPreference
+import moe.matsuri.nb4a.ui.LongClickListPreference
 import moe.matsuri.nb4a.ui.MTUPreference
+import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
@@ -39,18 +34,18 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         listView.layoutManager = FixedLinearLayoutManager(listView)
     }
 
-    val reloadListener = Preference.OnPreferenceChangeListener { _, _ ->
+    private val reloadListener = Preference.OnPreferenceChangeListener { _, _ ->
         needReload()
         true
     }
 
-    override fun onCreatePreferencesFix(savedInstanceState: Bundle?, rootKey: String?) {
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
         DataStore.routePackages = DataStore.nekoPlugins
-        nekoPlugins = findPreference<AppListPreference>(Key.NEKO_PLUGIN_MANAGED)!!
+        nekoPlugins = findPreference(Key.NEKO_PLUGIN_MANAGED)!!
         nekoPlugins.setOnPreferenceClickListener {
             // borrow from route app settings
             startActivity(Intent(
@@ -80,7 +75,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
         val mixedPort = findPreference<EditTextPreference>(Key.MIXED_PORT)!!
-        val speedInterval = findPreference<Preference>(Key.SPEED_INTERVAL)!!
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
@@ -88,7 +82,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val portLocalDns = findPreference<EditTextPreference>(Key.LOCAL_DNS_PORT)!!
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
-//        val domainStrategy = findPreference<Preference>(Key.DOMAIN_STRATEGY)!!
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)!!
 
         val muxConcurrency = findPreference<EditTextPreference>(Key.MUX_CONCURRENCY)!!
@@ -96,44 +89,25 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         tcpKeepAliveInterval.isVisible = false
 
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
-        val bypassLanInCoreOnly = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE_ONLY)!!
-
-        bypassLanInCoreOnly.isEnabled = bypassLan.isChecked
-        bypassLan.setOnPreferenceChangeListener { _, newValue ->
-            bypassLanInCoreOnly.isEnabled = newValue as Boolean
-            needReload()
-            true
-        }
+        val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
+        val inboundUsername = findPreference<EditTextPreference>(Key.INBOUND_USERNAME)!!
+        val inboundPassword = findPreference<EditTextPreference>(Key.INBOUND_PASSWORD)!!
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
-        val directDnsUseSystem = findPreference<SwitchPreference>(Key.DIRECT_DNS_USE_SYSTEM)!!
+        val underlyingDns = findPreference<EditTextPreference>(Key.UNDERLYING_DNS)!!
         val enableDnsRouting = findPreference<SwitchPreference>(Key.ENABLE_DNS_ROUTING)!!
         val enableFakeDns = findPreference<SwitchPreference>(Key.ENABLE_FAKEDNS)!!
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            DataStore.directDnsUseSystem = false
-            directDnsUseSystem.remove()
-        } else {
-            directDns.isEnabled = !directDnsUseSystem.isChecked
-            directDnsUseSystem.setOnPreferenceChangeListener { _, newValue ->
-                directDns.isEnabled = !(newValue as Boolean)
-                needReload()
-                true
-            }
-        }
-
-        val requireTransproxy = findPreference<SwitchPreference>(Key.REQUIRE_TRANSPROXY)!!
-        val transproxyPort = findPreference<EditTextPreference>(Key.TRANSPROXY_PORT)!!
-        val transproxyMode = findPreference<SimpleMenuPreference>(Key.TRANSPROXY_MODE)!!
-        val enableLog = findPreference<LongClickSwitchPreference>(Key.ENABLE_LOG)!!
+        val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
 
-        enableLog.setOnPreferenceChangeListener { _, _ ->
+        logLevel.dialogLayoutResource = R.layout.layout_loglevel_help
+        logLevel.setOnPreferenceChangeListener { _, _ ->
             needRestart()
             true
         }
-        enableLog.setOnLongClickListener {
+        logLevel.setOnLongClickListener {
             if (context == null) return@setOnLongClickListener true
 
             val view = EditText(context).apply {
@@ -155,16 +129,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        transproxyPort.isEnabled = requireTransproxy.isChecked
-        transproxyMode.isEnabled = requireTransproxy.isChecked
-
-        requireTransproxy.setOnPreferenceChangeListener { _, newValue ->
-            transproxyPort.isEnabled = newValue as Boolean
-            transproxyMode.isEnabled = newValue
-            needReload()
-            true
-        }
-
         val muxProtocols = findPreference<MultiSelectListPreference>(Key.MUX_PROTOCOLS)!!
 
         muxProtocols.apply {
@@ -172,8 +136,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             entries = e
             entryValues = e
         }
-
-        val dnsNetwork = findPreference<MultiSelectListPreference>(Key.DNS_NETWORK)!!
 
         portLocalDns.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         muxConcurrency.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -192,9 +154,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         val profileTrafficStatistics =
             findPreference<SwitchPreference>(Key.PROFILE_TRAFFIC_STATISTICS)!!
-        speedInterval.isEnabled = profileTrafficStatistics.isChecked
-        profileTrafficStatistics.setOnPreferenceChangeListener { _, newValue ->
-            speedInterval.isEnabled = newValue as Boolean
+        val speedInterval = findPreference<SimpleMenuPreference>(Key.SPEED_INTERVAL)!!
+        profileTrafficStatistics.isEnabled = speedInterval.value.toString() != "0"
+        speedInterval.setOnPreferenceChangeListener { _, newValue ->
+            profileTrafficStatistics.isEnabled = newValue.toString() != "0"
             needReload()
             true
         }
@@ -207,36 +170,33 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val tunImplementation = findPreference<SimpleMenuPreference>(Key.TUN_IMPLEMENTATION)!!
         val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
         val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)!!
-        val enableClashAPI = findPreference<SwitchPreference>(Key.ENABLE_CLASH_API)!!
+        val clashAPIListen = reloadListener
 
-        speedInterval.onPreferenceChangeListener = reloadListener
         mixedPort.onPreferenceChangeListener = reloadListener
         appendHttpProxy.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
-//        domainStrategy.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener
         muxConcurrency.onPreferenceChangeListener = reloadListener
         tcpKeepAliveInterval.onPreferenceChangeListener = reloadListener
-        bypassLanInCoreOnly.onPreferenceChangeListener = reloadListener
+        bypassLan.onPreferenceChangeListener = reloadListener
+        bypassLanInCore.onPreferenceChangeListener = reloadListener
+        inboundUsername.onPreferenceChangeListener = reloadListener
+        inboundPassword.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener
         remoteDns.onPreferenceChangeListener = reloadListener
         directDns.onPreferenceChangeListener = reloadListener
+        underlyingDns.onPreferenceChangeListener = reloadListener
         enableDnsRouting.onPreferenceChangeListener = reloadListener
-        dnsNetwork.onPreferenceChangeListener = reloadListener
 
         portLocalDns.onPreferenceChangeListener = reloadListener
         ipv6Mode.onPreferenceChangeListener = reloadListener
         allowAccess.onPreferenceChangeListener = reloadListener
 
-        transproxyPort.onPreferenceChangeListener = reloadListener
-        transproxyMode.onPreferenceChangeListener = reloadListener
-
         resolveDestination.onPreferenceChangeListener = reloadListener
         tunImplementation.onPreferenceChangeListener = reloadListener
         acquireWakeLock.onPreferenceChangeListener = reloadListener
-        enableClashAPI.onPreferenceChangeListener = reloadListener
 
     }
 

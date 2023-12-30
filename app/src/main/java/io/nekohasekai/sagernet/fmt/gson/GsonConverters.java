@@ -1,14 +1,13 @@
 package io.nekohasekai.sagernet.fmt.gson;
 
 import androidx.room.TypeConverter;
+import kotlin.collections.CollectionsKt;
+import kotlin.collections.SetsKt;
+import moe.matsuri.nb4a.utils.JavaUtil;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import kotlin.collections.CollectionsKt;
-import kotlin.collections.SetsKt;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 public class GsonConverters {
 

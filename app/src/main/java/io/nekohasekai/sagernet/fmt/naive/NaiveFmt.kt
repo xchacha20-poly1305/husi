@@ -18,7 +18,6 @@ fun parseNaive(link: String): NaiveBean {
         username = url.username
         password = url.password
         sni = url.queryParameter("sni")
-        certificates = url.queryParameter("cert")
         extraHeaders = url.queryParameter("extra-headers")?.unUrlSafe()?.replace("\r\n", "\n")
         insecureConcurrency = url.queryParameter("insecure-concurrency")?.toIntOrNull()
         name = url.fragment
@@ -30,16 +29,13 @@ fun NaiveBean.toUri(proxyOnly: Boolean = false): String {
     val builder = linkBuilder().host(finalAddress).port(finalPort)
     if (username.isNotBlank()) {
         builder.username(username)
-        if (password.isNotBlank()) {
-            builder.password(password)
-        }
+    }
+    if (password.isNotBlank()) {
+        builder.password(password)
     }
     if (!proxyOnly) {
         if (sni.isNotBlank()) {
             builder.addQueryParameter("sni", sni)
-        }
-        if (certificates.isNotBlank()) {
-            builder.addQueryParameter("cert", certificates)
         }
         if (extraHeaders.isNotBlank()) {
             builder.addQueryParameter("extra-headers", extraHeaders)
@@ -80,7 +76,7 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         if (extraHeaders.isNotBlank()) {
             put("extra-headers", extraHeaders.split("\n").joinToString("\r\n"))
         }
-        if (DataStore.enableLog) {
+        if (DataStore.logLevel > 0) {
             put("log", "")
         }
         if (insecureConcurrency > 0) {

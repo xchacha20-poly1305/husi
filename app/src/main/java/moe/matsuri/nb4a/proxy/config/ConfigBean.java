@@ -1,18 +1,27 @@
 package moe.matsuri.nb4a.proxy.config;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.internal.InternalBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class ConfigBean extends InternalBean {
 
+    public static final Creator<ConfigBean> CREATOR = new CREATOR<ConfigBean>() {
+        @NonNull
+        @Override
+        public ConfigBean newInstance() {
+            return new ConfigBean();
+        }
+
+        @Override
+        public ConfigBean[] newArray(int size) {
+            return new ConfigBean[size];
+        }
+    };
     public Integer type; // 0=config 1=outbound
     public String config;
 
@@ -57,17 +66,4 @@ public class ConfigBean extends InternalBean {
     public ConfigBean clone() {
         return KryoConverters.deserialize(new ConfigBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<ConfigBean> CREATOR = new CREATOR<ConfigBean>() {
-        @NonNull
-        @Override
-        public ConfigBean newInstance() {
-            return new ConfigBean();
-        }
-
-        @Override
-        public ConfigBean[] newArray(int size) {
-            return new ConfigBean[size];
-        }
-    };
 }

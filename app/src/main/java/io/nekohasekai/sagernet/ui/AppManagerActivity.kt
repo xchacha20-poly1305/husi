@@ -212,6 +212,7 @@ class AppManagerActivity : ThemedActivity() {
                     DataStore.proxyApps = false
                     finish()
                 }
+
                 R.id.appProxyModeOn -> DataStore.bypass = false
                 R.id.appProxyModeBypass -> DataStore.bypass = true
             }
@@ -251,10 +252,12 @@ class AppManagerActivity : ThemedActivity() {
                 scanChinaApps()
                 return true
             }
+
             R.id.action_invert_selections -> {
                 runOnDefaultDispatcher {
+                    val proxiedUidsOld = proxiedUids.clone()
                     for (app in apps) {
-                        if (proxiedUids.contains(app.uid)) {
+                        if (proxiedUidsOld.contains(app.uid)) {
                             proxiedUids.delete(app.uid)
                         } else {
                             proxiedUids[app.uid] = true
@@ -270,6 +273,7 @@ class AppManagerActivity : ThemedActivity() {
 
                 return true
             }
+
             R.id.action_clear_selections -> {
                 runOnDefaultDispatcher {
                     proxiedUids.clear()
@@ -280,8 +284,10 @@ class AppManagerActivity : ThemedActivity() {
                     }
                 }
             }
+
             R.id.action_export_clipboard -> {
-                val success = SagerNet.trySetPrimaryClip("${DataStore.bypass}\n${DataStore.individual}")
+                val success =
+                    SagerNet.trySetPrimaryClip("${DataStore.bypass}\n${DataStore.individual}")
                 Snackbar.make(
                     binding.list,
                     if (success) R.string.action_export_msg else R.string.action_export_err,
@@ -289,8 +295,10 @@ class AppManagerActivity : ThemedActivity() {
                 ).show()
                 return true
             }
+
             R.id.action_import_clipboard -> {
-                val proxiedAppString = SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString()
+                val proxiedAppString =
+                    SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString()
                 if (!proxiedAppString.isNullOrEmpty()) {
                     val i = proxiedAppString.indexOf('\n')
                     try {
@@ -382,7 +390,8 @@ class AppManagerActivity : ThemedActivity() {
                     continue
                 }*/
 
-                val index = appsAdapter.filteredApps.indexOfFirst { it.uid == app.applicationInfo.uid }
+                val index =
+                    appsAdapter.filteredApps.indexOfFirst { it.uid == app.applicationInfo.uid }
                 var changed = false
 
                 onMainDispatcher {

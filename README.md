@@ -1,60 +1,108 @@
-# NekoBox for Android
+## Features
 
-[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![Releases](https://img.shields.io/github/v/release/MatsuriDayo/NekoBoxForAndroid)](https://github.com/MatsuriDayo/NekoBoxForAndroid/releases)
-[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-orange.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
+[![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
+[![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
+* Android API 34 & Gradle 8.2.0 & NDK 26.1.10909125.
+* sing-box rule_set instead of geosite and geoip.
+* Route based on WIFI status. 
+* Trust the certificate list trusted by Mozilla to prevent certain hijacks.
 
-sing-box / universal proxy toolchain for Android.
+## Development
 
-## 下载 / Downloads
+### Before Releasing a New Version......
 
-### GitHub Releases
+* `go mod tidy`
 
-[![GitHub All Releases](https://img.shields.io/github/downloads/Matsuridayo/NekoBoxForAndroid/total?label=downloads-total&logo=github&style=flat-square)](https://github.com/Matsuridayo/NekoBoxForAndroid/releases)
+* Update version information ([husi.properties](./husi.properties)).
 
-[下载](https://github.com/Matsuridayo/NekoBoxForAndroid/releases)
+* Ensure that CI tests pass.
 
-## 更改记录 & 发布频道 / Changelog & Telegram channel
+### Compilation
 
-https://t.me/Matsuridayo
+#### Get the Source Code
 
-## 项目主页 & 文档 / Homepage & Documents
+```shell
+git clone https://github.com/xchacha20-poly1305/husi.git --depth=1
+cd husi/
+./run lib source
+```
 
-https://matsuridayo.github.io
+#### libcore
 
-## 代理 / Proxy
+Environment:
 
-* SOCKS (4/4a/5)
-* HTTP(S)
-* SSH
-* Shadowsocks
-* VMess
-* VLESS
-* WireGuard
-* Trojan
-* Trojan-Go ( trojan-go-plugin )
-* NaïveProxy ( naive-plugin )
-* Hysteria ( hysteria-plugin )
+* go (should be as up-to-date as possible)
 
-请到项目主页下载插件。
+Run:
 
-Please go to the project homepage to download plugins.
+```shell
+./run lib core
+```
 
-### 订阅 / Subscription
+This will generate `app/libs/libcore.aar`.
 
-* Raw: some widely used formats (like shadowsocks, clash and v2rayN)
-* 原始格式：一些广泛使用的格式（如 shadowsocks、clash 和 v2rayN）
-* [Open Online Config](https://github.com/Shadowsocks-NET/OpenOnlineConfig)
-* [Shadowsocks SIP008](https://shadowsocks.org/guide/sip008.html)
+If gomobile is not in the GOPATH, it will be automatically downloaded and compiled.
 
-### 捐助 / Donate
+#### Dashboard
 
-欢迎捐赠以支持项目开发。
+Ensure that the Node environment is set up correctly (with pnpm, etc.).
 
-USDT TRC20
+```shell
+./run lib dashboard
+```
 
-`TRhnA7SXE5Sap5gSG3ijxRmdYFiD4KRhPs`
+#### APK
 
-XMR
+Environment:
 
-`49bwESYQjoRL3xmvTcjZKHEKaiGywjLYVQJMUv79bXonGiyDCs8AzE3KiGW2ytTybBCpWJUvov8SjZZEGg66a4e59GXa6k5`
+* jdk-17-openjdk
+* ndk 26.1.10909125
+
+If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script `buildScript/init/env_ndk.sh`:
+
+```shell
+echo "sdk.dir=${ANDROID_HOME}" > local.properties
+echo "ndk.dir=${ANDROID_HOME}/ndk/26.1.10909125" >> local.properties
+```
+
+Signing preparation (optional, it is recommended to sign after compilation): Replace `release.keystore` with your own keystore.
+
+```shell
+echo "KEYSTORE_PASS=" >> local.properties
+echo "ALIAS_NAME=" >> local.properties
+echo "ALIAS_PASS=" >> local.properties
+```
+
+Download geo resource files:
+
+```shell
+./run lib assets
+```
+
+Compile the release version:
+
+```shell
+./gradlew app:assembleFossRelease
+```
+
+The APK file will be located in `app/build/outputs/apk`.
+
+## Credits
+
+Core:
+- [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
+- [Matsuridayo/sing-box-extra](https://github.com/MatsuriDayo/sing-box-extra)
+
+Android GUI:
+- [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)
+- [SagerNet/SagerNet](https://github.com/SagerNet/SagerNet)
+- [Matsuridayo/Matsuri](https://github.com/MatsuriDayo/Matsuri)
+- [MatsuriDayo/NekoBoxForAndroid](https://github.com/MatsuriDayo/NekoBoxForAndroid)
+- [SagerNet/sing-box-for-android](https://github.com/SagerNet/sing-box-for-android)
+- [AntiNeko/CatBoxForAndroid](https://github.com/AntiNeko/CatBoxForAndroid)
+- [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
+
+Web Dashboard:
+
+- [MetaCubeX/metacubexd](https://github.com/MetaCubeX/metacubexd)

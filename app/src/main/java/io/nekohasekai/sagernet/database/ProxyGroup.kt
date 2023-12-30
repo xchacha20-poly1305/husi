@@ -19,6 +19,9 @@ data class ProxyGroup(
     var type: Int = GroupType.BASIC,
     var subscription: SubscriptionBean? = null,
     var order: Int = GroupOrder.ORIGIN,
+    var isSelector: Boolean = false,
+    var frontProxy: Long = -1L,
+    var landingProxy: Long = -1L
 ) : Serializable() {
 
     @Transient

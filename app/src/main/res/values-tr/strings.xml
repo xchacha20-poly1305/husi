@@ -6,31 +6,44 @@
     <string name="telegram">Telegram güncelleme kanalı</string>
     <string name="github">Kaynak kodu</string>
     <string name="project">Proje</string>
-    <string name="app_desc">Android için Kotlin ile yazılmış evrensel vekil sunucu araç zinciri.</string>
+    <string name="app_desc">Android için Kotlin ile yazılmış evrensel vekil sunucu araç zinciri.
+    </string>
     <string name="enable_dns_routing">DNS Yönlendirmesini Etkinleştir</string>
     <string name="direct_dns">Direkt DNS</string>
     <string name="remote_dns">Uzak DNS</string>
+    <string name="underlying_dns">Underlying DNS</string>
     <string name="cag_dns">DNS Ayarları</string>
     <string name="connection_test_error_status_code">Hata kodu: #%d</string>
     <string name="connection_test_fail">Internet Bağlantısı Yok</string>
     <string name="connection_test_error">Başarısız: %s</string>
-    <string name="connection_test_available_http">Başarılı: HTTP el sıkışması %dms sonra gerçekleşti</string>
-    <string name="connection_test_available">Başarılı: HTTPS el sıkışması %dms sonra gerçekleşti</string>
+    <string name="connection_test_available_http">Başarılı: HTTP el sıkışması %dms sonra
+        gerçekleşti
+    </string>
+    <string name="connection_test_available">Başarılı: HTTPS el sıkışması %dms sonra gerçekleşti
+    </string>
     <string name="connection_test_testing">Test ediliyor…</string>
     <string name="speed">%s/s</string>
     <string name="speed_detail">Vekil Sunucu： %1$s↑ %2$s↓
-\nDirekt： %3$s↑ %4$s↓</string>
+        \nDirekt： %3$s↑ %4$s↓
+    </string>
     <string name="traffic">%1$s↑ %2$s↓</string>
-    <string name="allow_insecure_sum">Sertifika doğrulamasını devre dışı bırakır, Etkinleştirildikten sonra yapılandırma düz metin olarak korunur</string>
+    <string name="allow_insecure_sum">Sertifika doğrulamasını devre dışı bırakır,
+        Etkinleştirildikten sonra yapılandırma düz metin olarak korunur
+    </string>
     <string name="allow_insecure">Güvenliksiz Bağlantıyı Etkinleştir</string>
     <string name="security_settings">Güvenlik Ayarları</string>
-    <string name="show_direct_speed_sum">Vekil sunucu olmadan oluşan veri trafiği hızını da göster</string>
+    <string name="show_direct_speed_sum">Vekil sunucu olmadan oluşan veri trafiği hızını da göster
+    </string>
     <string name="show_direct_speed">Direkt Hızı Göster</string>
-    <string name="show_stop_sum">Hızlı Ayarlar kısayolunu anahtar olarak kullanmak istemiyorsanız kullanın</string>
+    <string name="show_stop_sum">Hızlı Ayarlar kısayolunu anahtar olarak kullanmak istemiyorsanız
+        kullanın
+    </string>
     <string name="show_stop">Durdur Butonunu Göster</string>
     <string name="cag_misc">Diğer Ayarlar</string>
     <string name="speed_interval">Hız Bildirimi Güncelleme Aralığı</string>
-    <string name="ws_browser_forwarding_sum">İlgili WebSocket bağlantılarını tarayıcı üzerinden yönlendir.</string>
+    <string name="ws_browser_forwarding_sum">İlgili WebSocket bağlantılarını tarayıcı üzerinden
+        yönlendir.
+    </string>
     <string name="ws_browser_forwarding">Tarayıcı Yönlendirmesi</string>
     <string name="cag_ws">WebSocket Ayarları</string>
     <string name="require_http">HTTP üzerinden istekleri etkinleştir</string>
@@ -39,19 +52,22 @@
     <string name="allow_access_sum">Gelen sunucu isteklerini 0.0.0.0 üzerine bağla</string>
     <string name="allow_access">Yerel ağdan bağlantılara izin ver</string>
     <string name="cag_route">Rota Ayarları</string>
-    <string name="port_transproxy">Transproxy Portu</string>
     <string name="port_http">HTTP Vekil Sunucu Portu</string>
     <string name="port_proxy">SOCKS5 Vekil Sunucu Portu</string>
     <string name="service_mode_proxy">Sadece vekil sunucu</string>
     <string name="service_mode">Servis Modu</string>
     <string name="group_duplicate">%s
-\ntekrarlı</string>
+        \ntekrarlı
+    </string>
     <string name="group_deleted">%s
-\nsilindi</string>
+        \nsilindi
+    </string>
     <string name="group_changed">%s
-\ngüncellendi</string>
+        \ngüncellendi
+    </string>
     <string name="group_added">%s
-\neklendi</string>
+        \neklendi
+    </string>
     <string name="group_delete_confirm_prompt">Bu grubu silmek istediğinize emin misiniz\?</string>
     <string name="group_diff">Fark (%s)</string>
     <string name="group_show_diff">Fark</string>
@@ -77,25 +93,24 @@
     <string name="menu_about">Hakkında</string>
     <string name="menu_group">Grup</string>
     <string name="menu_configuration">Yapılandırma</string>
-    <string name="logcat_summary">Çok faydalı wow</string>
     <string name="logcat">Hata ayıklama bilgisini dışa aktar</string>
     <string name="username">Kullanıcı adı</string>
     <string name="server_port">Uzak Bağlantı Noktası</string>
     <string name="server_address">Sunucu</string>
     <string name="profile_name">Profil ismi</string>
     <string name="connection_test_url">Bağlantı Testi URL\'si</string>
-    <string name="transproxy_mode">Transproxy Modu</string>
-    <string name="require_transproxy">Transproxy Gelenini Etkinleştir</string>
     <string name="port_local_dns">Yerel DNS Bağlantı Noktası</string>
     <string name="dns_hosts">Etki alanı yeniden yazma</string>
-    <string name="fakedns_message">Proxy durdurulduktan sonra ağa yeniden bağlanmak için diğer uygulamaların yeniden başlatılmasına neden olabilir</string>
+    <string name="fakedns_message">Proxy durdurulduktan sonra ağa yeniden bağlanmak için diğer
+        uygulamaların yeniden başlatılmasına neden olabilir
+    </string>
     <string name="enable_fakedns">Sahte DNS aktivasyonu</string>
-    <string name="dns_routing_message">Doğrudan DNS ile geçiş yollarındaki etki alanlarını çözümleyin. Potansiyel DNS sızıntılarının farkında olun</string>
+    <string name="dns_routing_message">Doğrudan DNS ile geçiş yollarındaki etki alanlarını
+        çözümleyin. Potansiyel DNS sızıntılarının farkında olun
+    </string>
     <string name="certificates">Sertifikalar</string>
     <string name="sni">Görünecek Sunucu Adı</string>
     <string name="tls">TLS kullan</string>
-    <string name="quic_key">Quic Anahtarı</string>
-    <string name="quic_security">QUIC Güvenliği</string>
     <string name="http_path">HTTP Konumu</string>
     <string name="http_host">HTTP Sunucu</string>
     <string name="ws_path">WebSocket Konumu</string>
@@ -113,8 +128,6 @@
     <string name="password_opt">Parola (İsteğe bağlı)</string>
     <string name="username_opt">Kullanıcı adı (İsteğe bağlı)</string>
     <string name="menu_traffic">Trafik</string>
-    <string name="route_reverse_redirect">Ters Yönlendirme</string>
-    <string name="route_reverse">Ters Vekil Sunucu</string>
     <string name="route_reset">Sıfırla</string>
     <string name="route_bypass_ip">%s için IP kuralı</string>
     <string name="route_bypass_domain">%s için etki alanı kuralı</string>
@@ -137,26 +150,29 @@
     <string name="extra_headers">Ekstra Başlıklar</string>
     <string name="encryption">Şifreleme</string>
     <string name="early_data_header_name">Erken Veri Başlığı Adı</string>
-    <string name="pinned_peer_certificate_chain_sha256">Sabitlenmiş Sertifika Zinciri</string>
     <string name="bypass_apps">Atlat</string>
     <string name="route_opt_bypass_lan">Yerel Ağı Atlat</string>
     <string name="route_bypass">Atlat</string>
-    <string name="route_need_vpn">%s yönlendirme kuralı VPN\'in etkin olmasına bağlıdır ve bu nedenle görmezden gelindi.</string>
+    <string name="route_need_vpn">%s yönlendirme kuralı VPN\'in etkin olmasına bağlıdır ve bu
+        nedenle görmezden gelindi.
+    </string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android Eklentisi)</string>
-    <string name="shadowsocks_plugin_simple_obfs">Basit Şaşırtmaca (Shadowsocks Android Eklentisi)</string>
+    <string name="shadowsocks_plugin_simple_obfs">Basit Şaşırtmaca (Shadowsocks Android Eklentisi)
+    </string>
     <string name="hysteria_connection_receive_window">QUIC Bağlantı Alım Penceresi</string>
     <string name="hysteria_stream_receive_window">QUIC Akış Alım Penceresi</string>
-    <string name="experimental_no_termination_signal">Duplex sonlandırma sinyalini VMess kullanırken TCP bağlantısı için yollama. Bu bazı uygulamaları bozacaktır.</string>
-    <string name="force_resolve_sum">Güncelleme yaparken bütün alan adlarının IP adreslerini çöz. Mümkünse sunucu ve SNI otomatik olarak eklenir</string>
-    <string name="bypass_lan_in_core_only_sum">Eğer Lineage\'in Hotspot istemcilerinin VPN kullanmasına izin ver özelliği çalışmıyorsa bunu deneyin.</string>
-    <string name="bypass_lan_in_core_only">Yerel Ağı Sadece Çekirdekte Atlat</string>
-    <string name="always_show_address_sum">Yapılandırma kartının üzerinde her zaman sunucu adresini göster</string>
+    <string name="force_resolve_sum">Güncelleme yaparken bütün alan adlarının IP adreslerini çöz.
+        Mümkünse sunucu ve SNI otomatik olarak eklenir
+    </string>
+    <string name="always_show_address_sum">Yapılandırma kartının üzerinde her zaman sunucu adresini
+        göster
+    </string>
     <string name="probe_interval">Dengeleyici gözlem aralığı</string>
-    <string name="insecure_warn_sum">Qv2ray Geliştirici Topluluğu Tarafından Sağlanmıştır</string>
-    <string name="insecure_warn">Güvenlik Danışmanlığı</string>
     <string name="add_profile_methods_manual_settings">Elle Ayar Ekle</string>
     <string name="profile_config">Profil yapılandırması</string>
-    <string name="file_manager_missing">Cihazınızda dosya yöneticisi bulunamadı, lütfen bir tane kurun, örneğin Material Files.</string>
+    <string name="file_manager_missing">Cihazınızda dosya yöneticisi bulunamadı, lütfen bir tane
+        kurun, örneğin Material Files.
+    </string>
     <string name="action_from_link">Abonelikten</string>
     <string name="circular_reference_sum">Rota kendisini içinde barındıramaz.</string>
     <string name="circular_reference">Dairesel referans</string>
@@ -175,12 +191,12 @@
     <string name="open_app">Uygulamayı Aç</string>
     <string name="copy_package_name">Paket Adını Kopyala</string>
     <string name="copy_label">İsmi Kopyala</string>
-    <string name="traffic_holder">Trafik istatistiklerini kaydetmek için VPN\'i açın</string>
     <string name="udp_connections">%d UDP bağlantı</string>
     <string name="tcp_connections">%d TCP bağlantı</string>
-    <string name="traffic_stats">İstatistikler</string>
-    <string name="traffic_active">Etkin</string>
-    <string name="plugin_exists_but_on_shit_system">Profil %s %s eklentisine ihtiyaç duyuyor, ancak kapalı kaynak ekipman sağlayıcınız (genellikle sermaye devleri ve kötü amaçlı yazılım geliştiricileri) Android ile oynamış ve eklenti bu yüzden kullanılamıyor.</string>
+    <string name="plugin_exists_but_on_shit_system">Profil %s %s eklentisine ihtiyaç duyuyor, ancak
+        kapalı kaynak ekipman sağlayıcınız (genellikle sermaye devleri ve kötü amaçlı yazılım
+        geliştiricileri) Android ile oynamış ve eklenti bu yüzden kullanılamıyor.
+    </string>
     <string name="group_order_by_delay">Gecikme</string>
     <string name="group_order_by_name">İsim</string>
     <string name="group_order_origin">Köken</string>
@@ -193,31 +209,36 @@
     <string name="select_apps">Uygulama Seç</string>
     <string name="apps">Uygulamalar</string>
     <string name="clear_profiles_message">Bu grubu temizlemek istediğinize emin misiniz\?</string>
-    <string name="profile_import_message">%s profilini gerçekten içe aktarmak istiyor musunuz\?</string>
+    <string name="profile_import_message">%s profilini gerçekten içe aktarmak istiyor musunuz\?
+    </string>
     <string name="profile_import">Profili içe aktar</string>
-    <string name="subscription_import_message">%s aboneliğini içe aktarmayı gerçekten istiyor musunuz\? Eğer güvenilir olmayan bir kaynaktan geliyorsanız bu IP adresinizin ve davranışınızın sızdırılmasına sebep olabilir.</string>
+    <string name="subscription_import_message">%s aboneliğini içe aktarmayı gerçekten istiyor
+        musunuz\? Eğer güvenilir olmayan bir kaynaktan geliyorsanız bu IP adresinizin ve
+        davranışınızın sızdırılmasına sebep olabilir.
+    </string>
     <string name="subscription_import">Aboneliği içe aktar</string>
     <string name="subscription_traffic">%s Kullanıldı / %s Kaldı</string>
     <string name="subscription_used">%s Kullanıldı</string>
-    <string name="group_filter_tags_nf">Bu abonelikte hiç etiket yok</string>
-    <string name="group_filter_groups_nf">Bu abonelikte hiç grup yok</string>
-    <string name="group_filter_ns">Filtreleme özelliği için OOCv1 aboneliği gereklidir</string>
-    <string name="group_filter_tags">Etiketler</string>
-    <string name="group_filter_groups">Gruplar</string>
     <string name="group_filter">Filtre</string>
     <string name="subscription_update_message">%s güncelleniyor …</string>
     <string name="subscription_update">Abonelik Güncellemesi</string>
     <string name="service_subscription">Abonelik Güncelleme Servisi</string>
-    <string name="ooc_missing_protocol">Bu abonelik %s protokolü için destek gerektirir ama bulunamıyor. Desteklenmeyen profiller görmezden gelinir.</string>
+    <string name="ooc_missing_protocol">Bu abonelik %s protokolü için destek gerektirir ama
+        bulunamıyor. Desteklenmeyen profiller görmezden gelinir.
+    </string>
     <string name="ooc_warning">Uyarı</string>
-    <string name="update_subscription_warning">Vekil sunucu bağlanmadı, güncellemeye devam etmek istediğinize emin misiniz\?</string>
+    <string name="update_subscription_warning">Vekil sunucu bağlanmadı, güncellemeye devam etmek
+        istediğinize emin misiniz\?
+    </string>
     <string name="ooc_subscription_token_invalid">OOCv1 Anahtarı Geçersiz</string>
     <string name="download">İndir</string>
     <string name="install_from_fdroid">F-Droid\'den Kur</string>
     <string name="install_from_play_store">Play Store\'dan Kur</string>
     <string name="action_download">İNDİR</string>
     <string name="action_learn_more">DAHA FAZLASINI ÖĞREN</string>
-    <string name="profile_requiring_plugin">Profil %s %s eklentisinin kurulmasını gerektirir ama kurulu değil.</string>
+    <string name="profile_requiring_plugin">Profil %s %s eklentisinin kurulmasını gerektirir ama
+        kurulu değil.
+    </string>
     <string name="missing_plugin">Eksik Eklenti</string>
     <string name="confirm">Doğrula</string>
     <string name="subscription_user_agent">Kullanıcı Kimliği</string>
@@ -238,7 +259,9 @@
     <string name="group_basic">Basit</string>
     <string name="trojan_provider">Trojan Sağlayıcısı</string>
     <string name="protocol_settings">Protokol Ayarları</string>
-    <string name="append_http_proxy_sum">HTTP vekil sunucu direkt tarayıcı veya bazı destekli uygulamalar tarafından, sanal NIC aygıtından geçmeden kullanılır (Android 10+)</string>
+    <string name="append_http_proxy_sum">HTTP vekil sunucu direkt tarayıcı veya bazı destekli
+        uygulamalar tarafından, sanal NIC aygıtından geçmeden kullanılır (Android 10+)
+    </string>
     <string name="append_http_proxy">HTTP Vekil Sunucuyu VPN\'e Dahil Et</string>
     <string name="connection_test_timeout">Zaman Aşımı</string>
     <string name="connection_test_unreachable">Erişilemez</string>
@@ -263,26 +286,33 @@
     <string name="follow_system">Sistemi Takip Et</string>
     <string name="night_mode">Gece Modu</string>
     <string name="lines">%d Satır</string>
-    <string name="route_warn">Kişisel kurallar eklemeden önce dökümanı okuduğunuza emin olun, yoksa Internet\'e bağlanamayabilirsiniz.</string>
+    <string name="route_warn">Kişisel kurallar eklemeden önce dökümanı okuduğunuza emin olun, yoksa
+        Internet\'e bağlanamayabilirsiniz.
+    </string>
     <string name="license">Lisans</string>
-    <string name="restart">Değişiklikleri uygulamak için vekil sunucu servisini yeniden başlatın</string>
+    <string name="need_reload">Değişiklikleri uygulamak için vekil sunucu servisini yeniden
+        başlatın
+    </string>
     <string name="apply">Uygula</string>
     <string name="no">Hayır</string>
     <string name="yes">Evet</string>
-    <string name="unsaved_changes_prompt">Değişiklikler kaydedilmedi. Kaydetmek ister misiniz\?</string>
+    <string name="unsaved_changes_prompt">Değişiklikler kaydedilmedi. Kaydetmek ister misiniz\?
+    </string>
     <string name="ss_cat">Shadowsocks Ayarları</string>
     <string name="proxy_cat">Sunucu Ayarları</string>
-    <string name="plugin_auto_connect_unlock_only">Bu eklenti Otomatik Bağlan ile çalışmayabilir</string>
-    <string name="plugin_untrusted">Uyarı: Bu eklenti bilinen güvenilir bir kaynaktan geliyora benzemiyor.</string>
+    <string name="plugin_auto_connect_unlock_only">Bu eklenti Otomatik Bağlan ile çalışmayabilir
+    </string>
+    <string name="plugin_untrusted">Uyarı: Bu eklenti bilinen güvenilir bir kaynaktan geliyora
+        benzemiyor.
+    </string>
     <string name="plugin_unknown">Bilinmeyen eklenti %s</string>
     <string name="plugin_disabled">Devre Dışı</string>
     <string name="plugin">Eklenti</string>
     <string name="ignore_battery_optimizations_sum">Bazı kısıtlamaları kaldır</string>
     <string name="ignore_battery_optimizations">Pil optimizasyonlarını devre dışı bırak</string>
-    <string name="donate_info">Paraya aşığım</string>
-    <string name="donate">Bağış yap</string>
     <string name="deduplication">Tekilleştirme</string>
-    <string name="no_proxies_found_in_clipboard">Kopyalama panosunda vekil sunucu bulunamadı</string>
+    <string name="no_proxies_found_in_clipboard">Kopyalama panosunda vekil sunucu bulunamadı
+    </string>
     <string name="no_proxies_found_in_file">Dosya içinde vekil sunucu bulunamadı</string>
     <string name="no_proxies_found_in_subscription">Abonelik içinde vekil sunucu bulunamadı</string>
     <string name="no_proxies_found">Link içinde vekil sunucu bulunamadı</string>
@@ -331,8 +361,12 @@
     <string name="clipboard_empty">Kopyalama panosu boş</string>
     <string name="connect">Bağlan</string>
     <string name="profile_empty">Lütfen bir profil seçin</string>
-    <string name="reboot_required">VPN servisi oluşturma başarısız oldu. Cihazınızı yeniden başlatmanız gerekiyor olabilir.</string>
-    <string name="vpn_permission_denied">VPN servisi oluşturabilmek için gereken izin isteği reddedildi</string>
+    <string name="reboot_required">VPN servisi oluşturma başarısız oldu. Cihazınızı yeniden
+        başlatmanız gerekiyor olabilir.
+    </string>
+    <string name="vpn_permission_denied">VPN servisi oluşturabilmek için gereken izin isteği
+        reddedildi
+    </string>
     <string name="vpn_error">%s</string>
     <string name="stopping">Kapatılıyor…</string>
     <string name="stop">Durdur</string>
@@ -343,7 +377,9 @@
     <string name="service_vpn">VPN Servisi</string>
     <string name="direct_boot_aware_summary">Seçili profil bilginiz daha az korunacak</string>
     <string name="direct_boot_aware">Kilit Ekranında Açıp Kapatmaya İzin Ver</string>
-    <string name="auto_connect_summary">Eğer önceden çalışıyorsa açılışta/uygulama güncellemesinde tekrar vekil sunucuyu etkinleştir</string>
+    <string name="auto_connect_summary">Eğer önceden çalışıyorsa açılışta/uygulama güncellemesinde
+        tekrar vekil sunucuyu etkinleştir
+    </string>
     <string name="auto_connect">Otomatik Bağlan</string>
     <string name="show_system_apps">Sistem uygulamalarını göster</string>
     <string name="clear_selections">Seçimleri temizle</string>
@@ -354,10 +390,7 @@
     <string name="on">Açık</string>
     <string name="proxied_apps_summary">VPN modunu seçili uygulamalar için ayarla</string>
     <string name="proxied_apps">Uygulama VPN modu</string>
-    <string name="mux_for_all_sum">Eğer sunucu çoklayıcıyı desteklemiyorsa o sunucuya bağlanamayız.</string>
-    <string name="mux_for_all">Çoklayıcıyı tüm olası desteklenen protokoller için etkinleştir</string>
     <string name="mux_concurrency">Çoklayıcı Eşzamanlı Bağlantı Sayısı</string>
-    <string name="mux_sum">Çoklayıcı bağlantı verimini arttırmak için değil TCP el sıkışma gecikmesini azaltmak için tasarlanmıştır. Video izlemek, bir şeyler indirmek veya hız testleri için genellikle verimsizdir</string>
     <string name="enable_mux">Çoklayıcıyı Etkinleştir</string>
     <string name="traffic_sniffing">Trafik İzlemeyi Etkinleştir</string>
     <string name="domain_strategy">Alan Adı Çözümleme Stratejisi</string>
@@ -369,19 +402,16 @@
     <string name="alter_id">Alternatif ID</string>
     <string name="obfs">Şaşırtmaca</string>
     <string name="tcp_keep_alive_interval">TCP aktif paket teslim koruma aralığı</string>
-    <string name="route_not_asset">Varlık dosyası değil: .dat beklendi ama %s</string>
+    <string name="route_not_asset">Varlık dosyası değil: .zip beklendi ama %s</string>
     <string name="route_rules_provider">Rota Varlıkları Sağlayıcısı</string>
     <string name="route_assets">Varlıklar</string>
     <string name="route_manage_assets">Rota Varlıklarını Yönet</string>
     <string name="alpn">Uygulama Katmanı Protokol Aşımı</string>
     <string name="grpc_service_name">gRPC ServisAdı</string>
-    <string name="kcp_seed">mKCP Tohumu</string>
     <string name="hysteria_disable_mtu_discovery">Yol MTU Keşfini Devre Dışı Bırak</string>
-    <string name="experimental_authenticated_length">Her yük bölümünun uzunluğunu artık biçimlendirilebilir yapma. Bu deneysel özellik istemci ve sunucunun aynı v2ray-core sürümünü kullanmasını gerektirir. Bu deneysel özellik için daha fazla bozucu güncelleme bekleniyor.</string>
     <string name="hysteria_auth_payload">Doğrulama Yükü</string>
     <string name="hysteria_obfs">Şaşırtmaca Parolası</string>
     <string name="no_statistics">Henüz istatistik yok</string>
-    <string name="traffic_statistics_summary">Güç tüketimini arttırabilir</string>
     <string name="clear_logcat">Günlüğü Temizle</string>
     <string name="menu_log">Günlükler</string>
     <string name="menu_tools">Araçlar</string>
@@ -393,27 +423,33 @@
     <string name="wireguard_psk">Eş Ön Paylaşımlı Anahtarı</string>
     <string name="wireguard_public_key">Eş Umumi Anahtarı</string>
     <string name="wireguard_local_address">Yerel Adres</string>
-    <string name="resolve_destination_summary">Eğer hedef adres bir alan adıysa, IPv6 stratejisine göre iletilir.</string>
+    <string name="resolve_destination_summary">Eğer hedef adres bir alan adıysa, IPv6 stratejisine
+        göre iletilir.
+    </string>
     <string name="resolve_destination">Hedefi Çözümle</string>
-    <string name="destination_override_summary">Sadece yönlendirme için değil, hedef adresi geçersiz kılmak için de yakalanmış alan adını kullan</string>
+    <string name="destination_override_summary">Sadece yönlendirme için değil, hedef adresi geçersiz
+        kılmak için de yakalanmış alan adını kullan
+    </string>
     <string name="destination_override">Hedefi Geçersiz Kıl</string>
     <string name="tun_implementation">TUN Tanımlaması</string>
     <string name="generating">Oluşturuluyor…</string>
     <string name="warp_generate">Yapılandırma Oluştur</string>
     <string name="cloudflare_wrap">Warp</string>
-    <string name="profile_traffic_statistics_summary">Devre dışı bırakıldığında kullanılan trafik sayılmayacak</string>
-    <string name="pcap_summary">Trafiği .pcap dosyasına kaydet</string>
+    <string name="profile_traffic_statistics_summary">Devre dışı bırakıldığında kullanılan trafik
+        sayılmayacak
+    </string>
     <string name="pcap_notice">Pcap dosyaları %s içine kaydedilecek</string>
-    <string name="group_filter_owners">Sahipler</string>
-    <string name="group_filter_owners_nf">Bu abonelikte hiç sahip yok</string>
-    <string name="app_traffic_statistics">Uygulama Trafiği İstatistikleri</string>
     <string name="profile_traffic_statistics">Profil Trafiği İstatistikleri</string>
     <string name="app_statistics_disabled">Uygulama Trafiği istatistikleri devre dışı</string>
-    <string name="enable_pcap">Pcap\'i Etkinleştir</string>
     <string name="route_play_store">%s için Play Store kuralı</string>
     <string name="route_opt_block_analysis">Çözümlemeyi engelle</string>
     <string name="naive_insecure_concurrency">Güvensiz Eşzamanlılık</string>
-    <string name="naive_insecure_concurrency_summary">Kötü ağ koşullarında daha sağlam olmak için N eşzamanlı tünel bağlantısı kullan. Daha fazla bağlantı, tünellemeyi algılamayı kolaylaştırır ve daha az güvenli hale getirir. Bu proje, trafik çözümlemesine karşı en güçlü güvenlik için çaba göstermektedir. Güvensiz bir şekilde kullanmak amacını bozar.
-\n
-\nBunu kullanmanız gerekiyorsa, sorunlarınızı çözüp çözmediğini görmek için önce N=2 değerini deneyin. Burada 4\'ten fazla bağlantı kullanmamanızı şiddetle tavsiye ederiz.</string>
+    <string name="naive_insecure_concurrency_summary">Kötü ağ koşullarında daha sağlam olmak için N
+        eşzamanlı tünel bağlantısı kullan. Daha fazla bağlantı, tünellemeyi algılamayı kolaylaştırır
+        ve daha az güvenli hale getirir. Bu proje, trafik çözümlemesine karşı en güçlü güvenlik için
+        çaba göstermektedir. Güvensiz bir şekilde kullanmak amacını bozar.
+        \n
+        \nBunu kullanmanız gerekiyorsa, sorunlarınızı çözüp çözmediğini görmek için önce N=2
+        değerini deneyin. Burada 4\'ten fazla bağlantı kullanmamanızı şiddetle tavsiye ederiz.
+    </string>
 </resources>

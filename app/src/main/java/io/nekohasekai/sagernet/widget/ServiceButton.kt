@@ -114,6 +114,7 @@ class ServiceButton @JvmOverloads constructor(
             BaseService.State.Stopping -> {
                 changeState(iconStopping, animate && previousState == BaseService.State.Connected)
             }
+
             else -> changeState(iconStopped, animate)
         }
         checked = state == BaseService.State.Connected

@@ -36,20 +36,32 @@ import io.nekohasekai.sagernet.database.DataStore
 
 @Suppress("DEPRECATION")
 class QuickToggleShortcut : Activity(), SagerConnection.Callback {
-    private val connection = SagerConnection()
+    private val connection = SagerConnection(SagerConnection.CONNECTION_ID_SHORTCUT)
     private var profileId = -1L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (intent.action == Intent.ACTION_CREATE_SHORTCUT) {
-            setResult(RESULT_OK, ShortcutManagerCompat.createShortcutResultIntent(this,
-                ShortcutInfoCompat.Builder(this, "toggle")
-                    .setIntent(Intent(this,
-                        QuickToggleShortcut::class.java).setAction(Intent.ACTION_MAIN))
-                    .setIcon(IconCompat.createWithResource(this,
-                        R.drawable.ic_qu_shadowsocks_launcher))
-                    .setShortLabel(getString(R.string.quick_toggle))
-                    .build()))
+            setResult(
+                RESULT_OK, ShortcutManagerCompat.createShortcutResultIntent(
+                    this,
+                    ShortcutInfoCompat.Builder(this, "toggle")
+                        .setIntent(
+                            Intent(
+                                this,
+                                QuickToggleShortcut::class.java
+                            ).setAction(Intent.ACTION_MAIN)
+                        )
+                        .setIcon(
+                            IconCompat.createWithResource(
+                                this,
+                                R.drawable.ic_qu_shadowsocks_launcher
+                            )
+                        )
+                        .setShortLabel(getString(R.string.quick_toggle))
+                        .build()
+                )
+            )
             finish()
         } else {
             profileId = intent.getLongExtra("profile", -1L)
@@ -71,6 +83,7 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
                     SagerNet.reloadService()
                 }
             }
+
             state == BaseService.State.Stopped -> {
                 if (profileId >= 0L) DataStore.selectedProxy = profileId
                 SagerNet.startService()

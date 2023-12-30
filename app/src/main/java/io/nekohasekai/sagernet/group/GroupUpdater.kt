@@ -1,6 +1,9 @@
 package io.nekohasekai.sagernet.group
 
-import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.IPv6Mode
+import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -99,17 +102,21 @@ abstract class GroupUpdater {
                 is HttpBean -> {
                     if (isTLS() && sni.isBlank()) sni = bean.serverAddress
                 }
+
                 is StandardV2RayBean -> {
                     when (security) {
                         "tls" -> if (sni.isBlank()) sni = bean.serverAddress
                     }
                 }
+
                 is TrojanBean -> {
                     if (sni.isBlank()) sni = bean.serverAddress
                 }
+
                 is TrojanGoBean -> {
                     if (sni.isBlank()) sni = bean.serverAddress
                 }
+
                 is HysteriaBean -> {
                     if (sni.isBlank()) sni = bean.serverAddress
                 }

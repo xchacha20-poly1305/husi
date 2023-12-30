@@ -1,25 +1,33 @@
 package io.nekohasekai.sagernet.fmt.trojan_go;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import moe.matsuri.nb4a.utils.JavaUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class TrojanGoBean extends AbstractBean {
 
+    public static final Creator<TrojanGoBean> CREATOR = new CREATOR<TrojanGoBean>() {
+        @NonNull
+        @Override
+        public TrojanGoBean newInstance() {
+            return new TrojanGoBean();
+        }
+
+        @Override
+        public TrojanGoBean[] newArray(int size) {
+            return new TrojanGoBean[size];
+        }
+    };
     /**
      * Trojan 的密码。
      * 不可省略，不能为空字符串，不建议含有非 ASCII 可打印字符。
      * 必须使用 encodeURIComponent 编码。
      */
     public String password;
-
     /**
      * 自定义 TLS 的 SNI。
      * 省略时默认与 trojan-host 同值。不得为空字符串。
@@ -27,7 +35,6 @@ public class TrojanGoBean extends AbstractBean {
      * 必须使用 encodeURIComponent 编码。
      */
     public String sni;
-
     /**
      * 传输类型。
      * 省略时默认为 original，但不可为空字符串。
@@ -37,7 +44,6 @@ public class TrojanGoBean extends AbstractBean {
      * 当取值为 ws 时，使用 wss 作为传输层。
      */
     public String type;
-
     /**
      * 自定义 HTTP Host 头。
      * 可以省略，省略时值同 trojan-host。
@@ -48,7 +54,6 @@ public class TrojanGoBean extends AbstractBean {
      * 必须使用 encodeURIComponent 编码。
      */
     public String host;
-
     /**
      * 当传输类型 type 取 ws、h2、h2+ws 时，此项有效。
      * 不可省略，不可为空。
@@ -58,7 +63,6 @@ public class TrojanGoBean extends AbstractBean {
      * 必须使用 encodeURIComponent 编码。
      */
     public String path;
-
     /**
      * 用于保证 Trojan 流量密码学安全的加密层。
      * 可省略，默认为 none，即不使用加密。
@@ -78,15 +82,13 @@ public class TrojanGoBean extends AbstractBean {
      */
     public String encryption;
 
+    // ---
     /**
      * 额外的插件选项。本字段保留。
      * 可省略，但不可以为空字符串。
      */
     // not used in NB4A
     public String plugin;
-
-    // ---
-
     public Boolean allowInsecure;
 
     @Override
@@ -160,17 +162,4 @@ public class TrojanGoBean extends AbstractBean {
     public TrojanGoBean clone() {
         return KryoConverters.deserialize(new TrojanGoBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<TrojanGoBean> CREATOR = new CREATOR<TrojanGoBean>() {
-        @NonNull
-        @Override
-        public TrojanGoBean newInstance() {
-            return new TrojanGoBean();
-        }
-
-        @Override
-        public TrojanGoBean[] newArray(int size) {
-            return new TrojanGoBean[size];
-        }
-    };
 }

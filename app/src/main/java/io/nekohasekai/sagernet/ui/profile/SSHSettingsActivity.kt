@@ -2,13 +2,13 @@ package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
 import androidx.preference.EditTextPreference
-import com.takisoft.preferencex.PreferenceFragmentCompat
-import com.takisoft.preferencex.SimpleMenuPreference
+import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
+import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
 
@@ -35,9 +35,11 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
         when (authType) {
             SSHBean.AUTH_TYPE_NONE -> {
             }
+
             SSHBean.AUTH_TYPE_PASSWORD -> {
                 password = DataStore.serverPassword
             }
+
             SSHBean.AUTH_TYPE_PRIVATE_KEY -> {
                 privateKey = DataStore.serverPrivateKey
                 privateKeyPassphrase = DataStore.serverPassword1
@@ -58,9 +60,10 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
             summaryProvider = PasswordSummaryProvider
         }
         val privateKey = findPreference<EditTextPreference>(Key.SERVER_PRIVATE_KEY)!!
-        val privateKeyPassphrase = findPreference<EditTextPreference>(Key.SERVER_PASSWORD1)!!.apply {
-            summaryProvider = PasswordSummaryProvider
-        }
+        val privateKeyPassphrase =
+            findPreference<EditTextPreference>(Key.SERVER_PASSWORD1)!!.apply {
+                summaryProvider = PasswordSummaryProvider
+            }
         val authType = findPreference<SimpleMenuPreference>(Key.SERVER_AUTH_TYPE)!!
         fun updateAuthType(type: Int = DataStore.serverAuthType) {
             password.isVisible = type == SSHBean.AUTH_TYPE_PASSWORD

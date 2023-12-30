@@ -67,7 +67,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {
 
             var versionName = BuildConfig.VERSION_NAME
-            if (!isOss) {
+            if (!isFoss) {
                 versionName += " ${BuildConfig.FLAVOR}"
             }
             if (BuildConfig.DEBUG) {
@@ -83,17 +83,18 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         .subText(versionName)
                         .setOnClickAction {
                             requireContext().launchCustomTab(
-                                "https://github.com/MatsuriDayo/NekoBoxForAndroid/releases"
+                                "https://github.com/AntiNeko/CatBoxForAndroid/releases"
                             )
                         }
                         .build())
                     .addItem(MaterialAboutActionItem.Builder()
-                        .icon(R.drawable.ic_baseline_airplanemode_active_24)
+                        .icon(R.drawable.ic_baseline_layers_24)
                         .text(getString(R.string.version_x, "sing-box"))
                         .subText(Libcore.versionBox())
                         .setOnClickAction { }
                         .build())
                     .apply {
+                        PackageCache.awaitLoadSync()
                         for ((_, pkg) in PackageCache.installedPluginPackages) {
                             try {
                                 val pluginId = pkg.providers[0].loadString(Plugins.METADATA_KEY_ID)
@@ -151,7 +152,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         .text(R.string.github)
                         .setOnClickAction {
                             requireContext().launchCustomTab(
-                                "https://github.com/MatsuriDayo/NekoBoxForAndroid"
+                                "https://github.com/xchacha20-poly1305/husi"
 
                             )
                         }
@@ -161,7 +162,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         .text(R.string.telegram)
                         .setOnClickAction {
                             requireContext().launchCustomTab(
-                                "https://t.me/MatsuriDayo"
+                                "https://t.me/AntiNek0"
                             )
                         }
                         .build())

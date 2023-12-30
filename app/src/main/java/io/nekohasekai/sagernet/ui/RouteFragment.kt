@@ -45,7 +45,10 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         ruleListView.adapter = ruleAdapter
         undoManager = UndoSnackbarManager(activity, ruleAdapter)
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START) {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            ItemTouchHelper.START
+        ) {
 
             override fun getSwipeDirs(
                 recyclerView: RecyclerView,
@@ -78,7 +81,10 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 return if (target is RuleAdapter.DocumentHolder) {
                     false
                 } else {
-                    ruleAdapter.move(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
+                    ruleAdapter.move(
+                        viewHolder.bindingAdapterPosition,
+                        target.bindingAdapterPosition
+                    )
                     true
                 }
             }
@@ -105,6 +111,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             R.id.action_new_route -> {
                 startActivity(Intent(context, RouteSettingsActivity::class.java))
             }
+
             R.id.action_reset_route -> {
                 MaterialAlertDialogBuilder(activity).setTitle(R.string.confirm)
                     .setMessage(R.string.clear_profiles_message)
@@ -118,6 +125,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                     .setNegativeButton(R.string.no, null)
                     .show()
             }
+
             R.id.action_manage_assets -> {
                 startActivity(Intent(requireContext(), AssetsActivity::class.java))
             }
@@ -125,7 +133,8 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         return true
     }
 
-    inner class RuleAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ProfileManager.RuleListener, UndoSnackbarManager.Interface<RuleEntity> {
+    inner class RuleAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(),
+        ProfileManager.RuleListener, UndoSnackbarManager.Interface<RuleEntity> {
 
         val ruleList = ArrayList<RuleEntity>()
         suspend fun reload() {
@@ -180,7 +189,10 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         fun move(from: Int, to: Int) {
             val first = ruleList[from - 1]
             var previousOrder = first.userOrder
-            val (step, range) = if (from < to) Pair(1, from - 1 until to - 1) else Pair(-1, to downTo from - 1)
+            val (step, range) = if (from < to) Pair(1, from - 1 until to - 1) else Pair(
+                -1,
+                to downTo from - 1
+            )
             for (i in range) {
                 val next = ruleList[i + step]
                 val order = next.userOrder
@@ -261,15 +273,17 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             }
         }
 
-        inner class DocumentHolder(binding: LayoutEmptyRouteBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class DocumentHolder(binding: LayoutEmptyRouteBinding) :
+            RecyclerView.ViewHolder(binding.root) {
             fun bind() {
                 itemView.setOnClickListener {
-                    it.context.launchCustomTab("https://sing-box.sagernet.org/configuration/route/rule/")
+                    it.context.launchCustomTab("https://AntiNeko.github.io/cb4a-route/")
                 }
             }
         }
 
-        inner class RuleHolder(binding: LayoutRouteItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class RuleHolder(binding: LayoutRouteItemBinding) :
+            RecyclerView.ViewHolder(binding.root) {
 
             lateinit var rule: RuleEntity
             val profileName = binding.profileName

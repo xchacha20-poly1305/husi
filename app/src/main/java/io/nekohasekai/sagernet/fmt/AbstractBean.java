@@ -1,16 +1,13 @@
 package io.nekohasekai.sagernet.fmt;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
+import io.nekohasekai.sagernet.ktx.NetsKt;
+import moe.matsuri.nb4a.utils.JavaUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-
-import io.nekohasekai.sagernet.ktx.NetsKt;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 public abstract class AbstractBean extends Serializable {
 
@@ -27,6 +24,7 @@ public abstract class AbstractBean extends Serializable {
     //
     public transient String finalAddress;
     public transient int finalPort;
+    private transient boolean serializeWithoutName;
 
     public String displayName() {
         if (JavaUtil.isNotBlank(name)) {
@@ -74,9 +72,6 @@ public abstract class AbstractBean extends Serializable {
         if (customOutboundJson == null) customOutboundJson = "";
         if (customConfigJson == null) customConfigJson = "";
     }
-
-
-    private transient boolean serializeWithoutName;
 
     @Override
     public void serializeToBuffer(@NonNull ByteBufferOutput output) {

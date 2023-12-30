@@ -2,7 +2,7 @@ package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
 import androidx.preference.EditTextPreference
-import com.takisoft.preferencex.PreferenceFragmentCompat
+import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -21,9 +21,9 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         DataStore.serverPassword = password
         DataStore.serverProtocol = proto
         DataStore.serverSNI = sni
-        DataStore.serverCertificates = certificates
         DataStore.serverHeaders = extraHeaders
         DataStore.serverInsecureConcurrency = insecureConcurrency
+        DataStore.profileCacheStore.putBoolean("sUoT", sUoT)
     }
 
     override fun NaiveBean.serialize() {
@@ -34,9 +34,9 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         password = DataStore.serverPassword
         proto = DataStore.serverProtocol
         sni = DataStore.serverSNI
-        certificates = DataStore.serverCertificates
         extraHeaders = DataStore.serverHeaders.replace("\r\n", "\n")
         insecureConcurrency = DataStore.serverInsecureConcurrency
+        sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
     }
 
     override fun PreferenceFragmentCompat.createPreferences(

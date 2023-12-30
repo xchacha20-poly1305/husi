@@ -34,28 +34,29 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
     override fun name0() = app.getString(R.string.backup)
 
     var content = ""
-    private val exportSettings = registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
-        if (data != null) {
-            runOnDefaultDispatcher {
-                try {
-                    requireActivity().contentResolver.openOutputStream(
-                        data
-                    )!!.bufferedWriter().use {
-                        it.write(content)
+    private val exportSettings =
+        registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
+            if (data != null) {
+                runOnDefaultDispatcher {
+                    try {
+                        requireActivity().contentResolver.openOutputStream(
+                            data
+                        )!!.bufferedWriter().use {
+                            it.write(content)
+                        }
+                        onMainDispatcher {
+                            snackbar(getString(R.string.action_export_msg)).show()
+                        }
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher {
+                            snackbar(e.readableMessage).show()
+                        }
                     }
-                    onMainDispatcher {
-                        snackbar(getString(R.string.action_export_msg)).show()
-                    }
-                } catch (e: Exception) {
-                    Logs.w(e)
-                    onMainDispatcher {
-                        snackbar(e.readableMessage).show()
-                    }
-                }
 
+                }
             }
         }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -70,7 +71,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 )
                 onMainDispatcher {
                     startFilesForResult(
-                        exportSettings, "matsuri_backup_${Date().toLocaleString()}.json"
+                        exportSettings, "husi_backup_${Date().toLocaleString()}.json"
                     )
                 }
             }
@@ -85,7 +86,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 )
                 app.cacheDir.mkdirs()
                 val cacheFile = File(
-                    app.cacheDir, "matsuri_backup_${Date().toLocaleString()}.json"
+                    app.cacheDir, "husi_backup_${Date().toLocaleString()}.json"
                 )
                 cacheFile.writeText(content)
                 onMainDispatcher {
@@ -236,7 +237,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         }.onFailure {
                             Logs.w(it)
                             onMainDispatcher {
-                                alert(it.readableMessage).show()
+                                alert(it.readableMessage).tryToShow()
                             }
                         }
 

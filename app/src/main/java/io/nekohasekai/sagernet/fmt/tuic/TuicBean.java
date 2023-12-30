@@ -1,17 +1,26 @@
 package io.nekohasekai.sagernet.fmt.tuic;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import org.jetbrains.annotations.NotNull;
 
 public class TuicBean extends AbstractBean {
 
+    public static final Creator<TuicBean> CREATOR = new CREATOR<TuicBean>() {
+        @NonNull
+        @Override
+        public TuicBean newInstance() {
+            return new TuicBean();
+        }
+
+        @Override
+        public TuicBean[] newArray(int size) {
+            return new TuicBean[size];
+        }
+    };
     public String token;
     public String caText;
     public String udpRelayMode;
@@ -20,9 +29,18 @@ public class TuicBean extends AbstractBean {
     public Boolean disableSNI;
     public Boolean reduceRTT;
     public Integer mtu;
+
+    // TUIC zep
     public String sni;
     public Boolean fastConnect;
+
     public Boolean allowInsecure;
+    public String customJSON;
+    public Integer protocolVersion;
+    public String uuid;
+    // ECH
+    public Boolean ech;
+    public String echCfg;
 
     @Override
     public void initializeDefaultValues() {
@@ -38,11 +56,16 @@ public class TuicBean extends AbstractBean {
         if (sni == null) sni = "";
         if (fastConnect == null) fastConnect = false;
         if (allowInsecure == null) allowInsecure = false;
+        if (customJSON == null) customJSON = "";
+        if (protocolVersion == null) protocolVersion = 5;
+        if (uuid == null) uuid = "";
+        if (ech == null) ech = false;
+        if (echCfg == null) echCfg = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
         super.serialize(output);
         output.writeString(token);
         output.writeString(caText);
@@ -55,6 +78,11 @@ public class TuicBean extends AbstractBean {
         output.writeString(sni);
         output.writeBoolean(fastConnect);
         output.writeBoolean(allowInsecure);
+        output.writeString(customJSON);
+        output.writeInt(protocolVersion);
+        output.writeString(uuid);
+        output.writeBoolean(ech);
+        output.writeString(echCfg);
     }
 
     @Override
@@ -74,6 +102,27 @@ public class TuicBean extends AbstractBean {
             fastConnect = input.readBoolean();
             allowInsecure = input.readBoolean();
         }
+        if (version >= 2) {
+            customJSON = input.readString();
+            protocolVersion = input.readInt();
+            uuid = input.readString();
+        } else {
+            protocolVersion = 4;
+        }
+
+        ech = input.readBoolean();
+        echCfg = input.readString();
+    }
+
+    @Override
+    public void applyFeatureSettings(AbstractBean other) {
+        if (!(other instanceof TuicBean)) return;
+        TuicBean bean = ((TuicBean) other);
+    }
+
+    @Override
+    public boolean canTCPing() {
+        return false;
     }
 
     @NotNull
@@ -81,17 +130,4 @@ public class TuicBean extends AbstractBean {
     public TuicBean clone() {
         return KryoConverters.deserialize(new TuicBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<TuicBean> CREATOR = new CREATOR<TuicBean>() {
-        @NonNull
-        @Override
-        public TuicBean newInstance() {
-            return new TuicBean();
-        }
-
-        @Override
-        public TuicBean[] newArray(int size) {
-            return new TuicBean[size];
-        }
-    };
 }

@@ -12,8 +12,10 @@ class Subnet(val address: InetAddress, val prefixSize: Int) : Comparable<Subnet>
             check(lengthCheck < 0 || addr.address.size == lengthCheck)
             return if (parts.size == 2) try {
                 val prefixSize = parts[1].toInt()
-                if (prefixSize < 0 || prefixSize > addr.address.size shl 3) null else Subnet(addr,
-                    prefixSize)
+                if (prefixSize < 0 || prefixSize > addr.address.size shl 3) null else Subnet(
+                    addr,
+                    prefixSize
+                )
             } catch (_: NumberFormatException) {
                 null
             } else Subnet(addr, addr.address.size shl 3)

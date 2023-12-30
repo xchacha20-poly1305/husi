@@ -9,10 +9,12 @@ import io.nekohasekai.sagernet.R
 object ListHolderListener : OnApplyWindowInsetsListener {
     override fun onApplyWindowInsets(view: View, insets: WindowInsetsCompat): WindowInsetsCompat {
         val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-        view.setPadding(statusBarInsets.left,
+        view.setPadding(
+            statusBarInsets.left,
             statusBarInsets.top,
             statusBarInsets.right,
-            statusBarInsets.bottom)
+            statusBarInsets.bottom
+        )
         return WindowInsetsCompat.Builder(insets).apply {
             setInsets(WindowInsetsCompat.Type.statusBars(), Insets.NONE)
             /*setInsets(WindowInsetsCompat.Type.navigationBars(),
@@ -28,8 +30,10 @@ object ListHolderListener : OnApplyWindowInsetsListener {
 
 object MainListListener : OnApplyWindowInsetsListener {
     override fun onApplyWindowInsets(view: View, insets: WindowInsetsCompat) = insets.apply {
-        view.updatePadding(bottom = view.resources.getDimensionPixelOffset(R.dimen.main_list_padding_bottom) +
-                insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom)
+        view.updatePadding(
+            bottom = view.resources.getDimensionPixelOffset(R.dimen.main_list_padding_bottom) +
+                    insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        )
     }
 }
 

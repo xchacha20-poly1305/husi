@@ -8,7 +8,6 @@
     <string name="app_version">نسخه</string>
     <string name="version_x">نسخه (%s)</string>
     <string name="logcat">صادر اطلاعات اشکال زدایی</string>
-    <string name="logcat_summary">بسیار مفید است</string>
     <string name="menu_configuration">پیکربندی</string>
     <string name="menu_group">گروه</string>
     <string name="menu_about">در باره</string>
@@ -39,7 +38,8 @@
     <string name="group_updated">%s: اپدیت شد %d پراکسی ها</string>
     <string name="group_show_diff">تفاوت</string>
     <string name="group_diff">تفاوت (%s)</string>
-    <string name="group_delete_confirm_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید?</string>
+    <string name="group_delete_confirm_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید?
+    </string>
     <string name="group_added">اضافه شده:\n%s</string>
     <string name="group_changed">اپدیت شد: \n%s</string>
     <string name="group_deleted">حذف شد\n%s</string>
@@ -49,7 +49,6 @@
     <string name="service_mode_proxy">فقط پروکسی</string>
     <string name="port_proxy">پورت پروکسی SOCKS5</string>
     <string name="port_http">پورت پروکسی HTTP</string>
-    <string name="port_transproxy">پورت ترانسپروکسی</string>
     <string name="cag_route">تنظیمات مسیر</string>
     <string name="allow_access">اتصالات از LAN را مجاز کنید</string>
     <string name="allow_access_sum">سرورهای ورودی را به 0.0.0.0 متصل کنید</string>
@@ -58,7 +57,8 @@
     <string name="require_http">ورودی HTTP را فعال کنید</string>
     <string name="cag_ws">تنظیمات وب سوکت</string>
     <string name="ws_browser_forwarding">ارسال مرورگر</string>
-    <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.</string>
+    <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.
+    </string>
     <string name="speed_interval">فاصله به روز رسانی اعلان سرعت</string>
     <string name="cag_misc">تنظیمات متفرقه</string>
     <string name="show_stop">نمایش دکمه توقف</string>
@@ -67,7 +67,9 @@
     <string name="show_direct_speed_sum">سرعت ترافیک را بدون پروکسی نیز در اعلان نشان دهید</string>
     <string name="security_settings">تنظیمات امنیتی</string>
     <string name="allow_insecure">اجازه ناامن</string>
-    <string name="allow_insecure_sum">غیرفعال کردن بررسی گواهی وقتی فعال باشد، این پیکربندی به اندازه متن ساده ایمن است</string>
+    <string name="allow_insecure_sum">غیرفعال کردن بررسی گواهی وقتی فعال باشد، این پیکربندی به
+        اندازه متن ساده ایمن است
+    </string>
     <string name="speed_detail">پروکسی：%1$s↑%2$s↓\nمستقیم：%3$s↑%4$s↓</string>
     <string name="speed">%s/ثانیه</string>
     <string name="connection_test_testing">آزمایش کردن…</string>
@@ -79,15 +81,17 @@
     <string name="cag_dns">تنظیمات DNS</string>
     <string name="remote_dns">DNS از راه دور</string>
     <string name="direct_dns">DNS مستقیم</string>
-    <string name="direct_dns_use_system">از DNS سیستم به عنوان Direct DNS استفاده کنید</string>
+    <string name="underlying_dns">Underlying DNS</string>
     <string name="enable_dns_routing">مسیریابی DNS را فعال کنید</string>
-    <string name="dns_routing_message">حل دامنه ها در مسیرهای بای پس با Direct DNS. از نشت های احتمالی DNS آگاه باشید</string>
+    <string name="dns_routing_message">حل دامنه ها در مسیرهای بای پس با Direct DNS. از نشت های
+        احتمالی DNS آگاه باشید
+    </string>
     <string name="enable_fakedns">FakeDNS را فعال کنید</string>
-    <string name="fakedns_message">ممکن است باعث شود پس از توقف پراکسی، برنامه‌های دیگر برای اتصال مجدد به شبکه مجدداً راه‌اندازی شوند</string>
+    <string name="fakedns_message">ممکن است باعث شود پس از توقف پراکسی، برنامه‌های دیگر برای اتصال
+        مجدد به شبکه مجدداً راه‌اندازی شوند
+    </string>
     <string name="dns_hosts">بازنویسی دامنه</string>
     <string name="port_local_dns">پورت DNS محلی</string>
-    <string name="require_transproxy">Transproxy Inbound را فعال کنید</string>
-    <string name="transproxy_mode">پورت ترانسپروکسی</string>
     <string name="connection_test_url">URL تست اتصال</string>
     <!-- proxy category -->
     <string name="profile_name">نام پروفایل</string>
@@ -117,7 +121,6 @@
     <string name="sni">نشانگر نام سرور</string>
     <string name="alpn">سطح کاربردی مذاکرات پروتکل</string>
     <string name="certificates">گواهینامه ها</string>
-    <string name="pinned_peer_certificate_chain_sha256">زنجیره گواهی پین شده</string>
     <string name="early_data_header_name">نام هدر داده اولیه</string>
     <string name="encryption">رمزگذاری</string>
     <string name="extra_headers">هدر های اضافی</string>
@@ -128,7 +131,8 @@
     <string name="prefer">ترجیح دادن</string>
     <string name="only">فقط</string>
     <string name="metered">اشاره گر اندازه گیری شده</string>
-    <string name="metered_summary">سیستم راهنمایی برای برخورد با VPN به عنوان اندازه‌گیری شده</string>
+    <string name="metered_summary">سیستم راهنمایی برای برخورد با VPN به عنوان اندازه‌گیری شده
+    </string>
     <string name="menu_route">مسیر</string>
     <string name="route_add">ایجاد مسیر</string>
     <string name="delete_route_prompt">آیا مطمئن هستید که می خواهید این مسیر را حذف کنید?</string>
@@ -143,8 +147,6 @@
     <string name="route_play_store">قانون فروشگاه Play برای %s</string>
     <string name="route_bypass_ip">قانون IP برای %s</string>
     <string name="route_reset">بازنشانی کنید</string>
-    <string name="route_reverse">پروکسی معکوس</string>
-    <string name="route_reverse_redirect">تغییر مسیر معکوس</string>
     <string name="route_manage_assets">مدیریت مسیر</string>
     <string name="route_assets">دارایی</string>
     <string name="route_rules_provider">ارائه دهنده دارایی های قانون</string>
@@ -152,7 +154,7 @@
     <string name="route_asset_status">نسخه محلی: %s</string>
     <string name="route_asset_no_update">بدون آپدیت</string>
     <string name="route_asset_updated">به روز رسانی</string>
-    <string name="route_not_asset">نه یک فایل پشتیبان: به جز .dat، اما %s</string>
+    <string name="route_not_asset">نه یک فایل پشتیبان: به جز .zip، اما %s</string>
     <string name="route_opt_bypass_lan">دور زدن LAN</string>
     <string name="route_opt_block_ads">مسدود کردن تبلیغات</string>
     <string name="route_opt_block_analysis">بلاک کردن انالیز ها</string>
@@ -160,10 +162,7 @@
     <string name="domain_strategy">استراتژی حل و فصل دامنه</string>
     <string name="traffic_sniffing">بو کشیدن ترافیک را فعال کنید</string>
     <string name="enable_mux">مولتی پلکسر را فعال کنید</string>
-    <string name="mux_sum">Mux برای کاهش تأخیر در دست دادن TCP طراحی شده است، نه برای افزایش توان اتصال. استفاده از Mux برای تماشای فیلم، دانلود یا تست سرعت معمولاً نتیجه‌ای ندارد</string>
     <string name="mux_concurrency">Mux اتصالات همزمان</string>
-    <string name="mux_for_all">Mux را برای همه پروتکل های پشتیبانی شده ممکن فعال کنید</string>
-    <string name="mux_for_all_sum">اگر سرور از Mux پشتیبانی نکند، نمی توانیم به آن متصل شویم.</string>
     <string name="tcp_keep_alive_interval">TCP بازه تحویل بسته را فعال نگه می دارد</string>
     <string name="proxied_apps">حالت VPN برنامه ها</string>
     <string name="proxied_apps_summary">حالت VPN را برای برنامه های انتخابی پیکربندی کنید</string>
@@ -176,7 +175,9 @@
     <string name="bypass_apps">بایپس</string>
     <string name="show_system_apps">نمایش برنامه های سیستم</string>
     <string name="auto_connect">ارتباط خودکار</string>
-    <string name="auto_connect_summary">فعال کردن پروکسی در هنگام راه‌اندازی/به‌روزرسانی برنامه اگر قبلاً اجرا می‌شد</string>
+    <string name="auto_connect_summary">فعال کردن پروکسی در هنگام راه‌اندازی/به‌روزرسانی برنامه اگر
+        قبلاً اجرا می‌شد
+    </string>
     <string name="direct_boot_aware">تغییر در صفحه قفل مجاز است</string>
     <string name="direct_boot_aware_summary">اطلاعات نمایه انتخابی شما کمتر محافظت می شود</string>
     <!-- notification category -->
@@ -184,12 +185,14 @@
     <string name="service_proxy">سرویس پروکسی</string>
     <string name="forward_success">پروکسی شروع شد.</string>
     <string name="invalid_server">نام سرور نامعتبر است</string>
-    <string name="service_failed">ناموفق: </string>
+    <string name="service_failed">ناموفق:</string>
     <string name="stop">متوقف کردن</string>
     <string name="stopping">خاموش شدن…</string>
     <string name="vpn_error">%s</string>
     <string name="vpn_permission_denied">اجازه ایجاد سرویس VPN رد شد</string>
-    <string name="reboot_required">سرویس VPN راه اندازی نشد. ممکن است لازم باشد دستگاه خود را مجددا راه اندازی کنید.</string>
+    <string name="reboot_required">سرویس VPN راه اندازی نشد. ممکن است لازم باشد دستگاه خود را مجددا
+        راه اندازی کنید.
+    </string>
     <!-- alert category -->
     <string name="profile_empty">لطفا یک پروفایل انتخاب کنید</string>
     <string name="connect">اتصال</string>
@@ -223,7 +226,9 @@
     <string name="action_export_err">صادر نشد.</string>
     <string name="action_import_msg">با موفقیت وارد شد!</string>
     <string name="action_import_err">وارد کردن ناموفق بود.</string>
-    <string name="file_manager_missing">دستگاه شما فاقد انتخابگر فایل استاندارد Android است، لطفاً یکی مانند Material Files را نصب کنید.</string>
+    <string name="file_manager_missing">دستگاه شما فاقد انتخابگر فایل استاندارد Android است، لطفاً
+        یکی مانند Material Files را نصب کنید.
+    </string>
     <!-- share -->
     <!-- profile -->
     <string name="profile_config">پیکربندی پروفایل</string>
@@ -241,8 +246,6 @@
         <item quantity="other">%d پروکسی اضافه شد</item>
     </plurals>
     <string name="undo">واگرد</string>
-    <string name="insecure_warn">مشاوره امنیتی</string>
-    <string name="insecure_warn_sum">ارائه شده توسط انجمن توسعه دهندگان Qv2ray</string>
     <string name="insecure">ناامن</string>
     <string name="deprecated">Deprecated</string>
     <!-- tasker -->
@@ -259,8 +262,6 @@
     <string name="no_proxies_found_in_file">هیچ پروکسی در فایل یافت نشد</string>
     <string name="no_proxies_found_in_clipboard">هیچ پروکسی در کلیپ بورد یافت نشد</string>
     <string name="deduplication">کپی برداری</string>
-    <string name="donate">هدیه دادن</string>
-    <string name="donate_info">من عاشق پول هستم</string>
     <string name="ignore_battery_optimizations">بهینه سازی باتری را نادیده بگیرید</string>
     <string name="ignore_battery_optimizations_sum">برخی محدودیت ها را بردارید</string>
     <!-- plugin -->
@@ -268,17 +269,22 @@
     <string name="plugin_configure">پیکربندی…</string>
     <string name="plugin_disabled">غیر فعال شده</string>
     <string name="plugin_unknown">افزونه ناشناخته %s</string>
-    <string name="plugin_untrusted">هشدار: به نظر نمی رسد این افزونه از یک منبع معتبر شناخته شده باشد.</string>
-    <string name="plugin_auto_connect_unlock_only">این افزونه ممکن است با Auto Connect کار نکند</string>
+    <string name="plugin_untrusted">هشدار: به نظر نمی رسد این افزونه از یک منبع معتبر شناخته شده
+        باشد.
+    </string>
+    <string name="plugin_auto_connect_unlock_only">این افزونه ممکن است با Auto Connect کار نکند
+    </string>
     <string name="proxy_cat">تنظیمات سرور</string>
     <string name="ss_cat">تنظیمات Shadowsocks</string>
     <string name="unsaved_changes_prompt">تغییرات ذخیره نشد. آیا می خواهید ذخیره کنید؟</string>
     <string name="yes">آره</string>
     <string name="no">نه</string>
     <string name="apply">اعمال کردن</string>
-    <string name="restart">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگیری کنید</string>
+    <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگیری کنید</string>
     <string name="license">مجوز</string>
-    <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.</string>
+    <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در
+        غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.
+    </string>
     <string name="lines">%d خطوط</string>
     <string name="night_mode">حالت شب</string>
     <string name="follow_system">سیستم را دنبال کنید</string>
@@ -305,9 +311,9 @@
     <string name="connection_test_unreachable">غیر قابل دسترسی</string>
     <string name="connection_test_timeout">تایم اوت</string>
     <string name="append_http_proxy">پروکسی HTTP را به VPN اضافه کنید</string>
-    <string name="append_http_proxy_sum">پروکسی HTTP مستقیماً از (مرورگر/برخی برنامه‌های پشتیبانی‌شده) بدون استفاده از دستگاه NIC مجازی (Android 10+) استفاده می‌شود.</string>
-    <string name="bypass_lan_in_core_only">دور زدن LAN در Core</string>
-    <string name="bypass_lan_in_core_only_sum">اگر Lineage \"اجازه دادن به سرویس گیرندگان هات اسپات برای استفاده از VPN\" کار نمی کند، این را امتحان کنید.</string>
+    <string name="append_http_proxy_sum">پروکسی HTTP مستقیماً از (مرورگر/برخی برنامه‌های
+        پشتیبانی‌شده) بدون استفاده از دستگاه NIC مجازی (Android 10+) استفاده می‌شود.
+    </string>
     <string name="protocol_settings">تنظیمات پروتکل</string>
     <string name="trojan_provider">ارائه دهنده تروجان</string>
     <string name="group_basic">پایه ای</string>
@@ -318,7 +324,9 @@
     <string name="subscription_type">نوع اشتراک</string>
     <string name="delete_group_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید؟</string>
     <string name="force_resolve">اجبار حل و فصل</string>
-    <string name="force_resolve_sum">هنگام به روز رسانی، همه نام های دامنه را به آدرس های IP حل کنید. هاست و SNI در صورت امکان به طور خودکار اضافه می شوند</string>
+    <string name="force_resolve_sum">هنگام به روز رسانی، همه نام های دامنه را به آدرس های IP حل
+        کنید. هاست و SNI در صورت امکان به طور خودکار اضافه می شوند
+    </string>
     <string name="deduplication_sum">هنگام به روز رسانی تنظیمات تکراری را حذف کنید</string>
     <string name="raw">خام</string>
     <string name="update_settings">به روز رسانی تنظیمات</string>
@@ -329,35 +337,37 @@
     <string name="subscription_user_agent">عامل کاربر</string>
     <string name="confirm">تایید</string>
     <string name="missing_plugin">افزونه از دست رفته</string>
-    <string name="profile_requiring_plugin">پروفایل %s نیاز دارد %s افزونه نصب شود، اما پیدا نشد.</string>
+    <string name="profile_requiring_plugin">پروفایل %s نیاز دارد %s افزونه نصب شود، اما پیدا نشد.
+    </string>
     <string name="action_learn_more">بیشتر بدانید</string>
     <string name="action_download">دانلود</string>
     <string name="install_from_play_store">از پلی استور نصب کنید</string>
     <string name="install_from_fdroid">از F-Droid نصب کنید</string>
     <string name="download">دانلود</string>
     <string name="ooc_subscription_token_invalid">توکن OOCv1 نامعتبر است</string>
-    <string name="update_subscription_warning">پروکسی متصل نیست، آیا مطمئن هستید که می خواهید به روز رسانی ادامه دهید؟</string>
+    <string name="update_subscription_warning">پروکسی متصل نیست، آیا مطمئن هستید که می خواهید به روز
+        رسانی ادامه دهید؟
+    </string>
     <string name="ooc_warning">هشدار</string>
-    <string name="ooc_missing_protocol">اشتراک به پشتیبانی از پروتکل نیاز دارد%s، اما پیدا نمی شود. نمایه های پشتیبانی نشده نادیده گرفته می شوند.</string>
+    <string name="ooc_missing_protocol">اشتراک به پشتیبانی از پروتکل نیاز دارد%s، اما پیدا نمی شود.
+        نمایه های پشتیبانی نشده نادیده گرفته می شوند.
+    </string>
     <string name="service_subscription">سرویس به روز رسانی اشتراک</string>
     <string name="subscription_update">به روز رسانی اشتراک</string>
     <string name="subscription_update_message">در حال بروز رسانی %s …</string>
     <string name="group_filter">فیلتر</string>
-    <string name="group_filter_groups">گروه ها</string>
-    <string name="group_filter_tags">تگ ها</string>
-    <string name="group_filter_owners">صاحبان</string>
-    <string name="group_filter_ns">اشتراک OOCv1 برای استفاده از ویژگی فیلتر کردن لازم است</string>
-    <string name="group_filter_groups_nf">هیچ گروهی در این اشتراک وجود ندارد</string>
-    <string name="group_filter_tags_nf">هیچ تگ در این اشتراک وجود ندارد</string>
-    <string name="group_filter_owners_nf">هیچ مالکی در این اشتراک وجود ندارد</string>
     <string name="subscription_used">%s استفاده شده</string>
     <string name="subscription_traffic">%s استفاده شده / %s باقی مانده است</string>
     <string name="subscription_expire">انقضا: %s</string>
     <string name="subscription_import">وارد کردن اشتراک</string>
-    <string name="subscription_import_message">تأیید کنید که می خواهید اشتراک را وارد کنید %s? اگر از یک منبع نامعتبر وارد می شوید، انجام این کار ممکن است منجر به لو رفتن IP شما و این رفتار شود.</string>
+    <string name="subscription_import_message">تأیید کنید که می خواهید اشتراک را وارد کنید %s? اگر
+        از یک منبع نامعتبر وارد می شوید، انجام این کار ممکن است منجر به لو رفتن IP شما و این رفتار
+        شود.
+    </string>
     <string name="profile_import">وارد کردن پروفایل</string>
     <string name="profile_import_message">تأیید کنید که می‌خواهید پروفایل را وارد کنید%s؟</string>
-    <string name="clear_profiles_message">آیا مطمئن هستید که می خواهید این گروه را پاک کنید؟</string>
+    <string name="clear_profiles_message">آیا مطمئن هستید که می خواهید این گروه را پاک کنید؟
+    </string>
     <string name="apps">برنامه ها</string>
     <string name="select_apps">برنامه ها را انتخاب کنید</string>
     <string name="apps_message">%d برنامه ها</string>
@@ -367,8 +377,6 @@
     <string name="hysteria_upload_mbps">حداکثر سرعت آپلود (به مگابیت بر ثانیه)</string>
     <string name="hysteria_download_mbps">حداکثر سرعت دانلود (به مگابیت بر ثانیه)</string>
     <string name="experimental_settings">تجربی</string>
-    <string name="experimental_authenticated_length">طول هر بخش محموله بار دیگر قابل انعطاف نباشد. این آزمایش مستلزم استفاده سرور و کلاینت از نسخه مشابه v2ray-core است. انتظار می‌رود به‌روزرسانی‌های سریع‌تری درباره این آزمایش انجام شود.</string>
-    <string name="experimental_no_termination_signal">هنگام انتقال از طریق VMess، سیگنال پایان دوطرفه برای اتصال TCP ارسال نکنید. این باعث شکستن برخی از برنامه ها می شود.</string>
     <string name="hysteria_stream_receive_window">پنجره دریافت جریان QUIC</string>
     <string name="hysteria_connection_receive_window">پنجره دریافت اتصال QUIC</string>
     <string name="hysteria_disable_mtu_discovery">Path MTU Discovery را غیرفعال کنید</string>
@@ -376,14 +384,14 @@
     <string name="group_order_origin">مبدا</string>
     <string name="group_order_by_name">بر اساس اسم</string>
     <string name="group_order_by_delay">با تاخیر</string>
-    <string name="plugin_exists_but_on_shit_system">پروفایل %s نیاز دارد %s افزونه، اما فروشنده تجهیزات اختصاصی شما (معمولا غول های سرمایه نظارتی و سازنده بدافزار) اندروید شما را دستکاری کرده و باعث غیرقابل استفاده شدن افزونه شده است.</string>
+    <string name="plugin_exists_but_on_shit_system">پروفایل %s نیاز دارد %s افزونه، اما فروشنده
+        تجهیزات اختصاصی شما (معمولا غول های سرمایه نظارتی و سازنده بدافزار) اندروید شما را دستکاری
+        کرده و باعث غیرقابل استفاده شدن افزونه شده است.
+    </string>
     <string name="shadowsocks_plugin_simple_obfs">Obfs ساده (افزونه اندروید Shadowsocks)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (افزونه Shadowsocks Android)</string>
-    <string name="traffic_active">فعال</string>
-    <string name="traffic_stats">آمار</string>
     <string name="tcp_connections">%d اتصالات TCP</string>
     <string name="udp_connections">%d اتصالات UDP</string>
-    <string name="traffic_holder">VPN را برای ثبت آمار ترافیک باز کنید</string>
     <string name="copy_label">کپی نام</string>
     <string name="copy_package_name">کپی نام بسته</string>
     <string name="open_app">اپلیکیشن را باز کن</string>
@@ -394,11 +402,13 @@
     <string name="copy_failed">کپی ناموفق بود.</string>
     <string name="app_no_launcher">برنامه هیچ رابطی ندارد.</string>
     <string name="route_for">قانون برای %s</string>
-    <string name="route_need_vpn">قانون مسیریابی %s برای کارایی VPN متکی است، بنابراین نادیده گرفته می شود.</string>
-    <string name="app_traffic_statistics">آمار ترافیک اپلیکیشن</string>
+    <string name="route_need_vpn">قانون مسیریابی %s برای کارایی VPN متکی است، بنابراین نادیده گرفته
+        می شود.
+    </string>
     <string name="profile_traffic_statistics">آمار ترافیک پروفایل</string>
-    <string name="traffic_statistics_summary">ممکن است مصرف برق را افزایش دهد</string>
-    <string name="profile_traffic_statistics_summary">در صورت غیرفعال شدن، ترافیک استفاده شده محاسبه نخواهد شد</string>
+    <string name="profile_traffic_statistics_summary">در صورت غیرفعال شدن، ترافیک استفاده شده محاسبه
+        نخواهد شد
+    </string>
     <string name="no_statistics">هنوز آماری وجود ندارد</string>
     <string name="app_statistics_disabled">آمار ترافیک برنامه غیرفعال شد</string>
     <string name="ssh_auth_type_none">هیچ یک</string>
@@ -412,21 +422,33 @@
     <string name="wireguard_local_address">آدرس محلی</string>
     <string name="wireguard_public_key">کلید عمومی همتا</string>
     <string name="wireguard_psk">کلید از پیش مشترک همتا</string>
-    <string name="warp_license">CloudFlare Warp یک ارائه دهنده رایگان WireGuard VPN است. با استفاده از آن، با TOS موافقت می کنید.</string>
+    <string name="warp_license">CloudFlare Warp یک ارائه دهنده رایگان WireGuard VPN است. با استفاده
+        از آن، با TOS موافقت می کنید.
+    </string>
     <string name="warp_generate">ایجاد پیکربندی</string>
     <string name="generating">در حال تولید…</string>
     <string name="tun_implementation">پیاده سازی TUN</string>
     <string name="destination_override">لغو مقصد</string>
-    <string name="destination_override_summary">از دامنه sniffed برای بازنویسی آدرس مقصد استفاده کنید، نه فقط برای مسیریابی</string>
+    <string name="destination_override_summary">از دامنه sniffed برای بازنویسی آدرس مقصد استفاده
+        کنید، نه فقط برای مسیریابی
+    </string>
     <string name="resolve_destination">مقصد را حل کنید</string>
-    <string name="resolve_destination_summary">اگر آدرس مقصد یک دامنه باشد، بر اساس استراتژی IPv6 (تعارض با FakeDNS) از بین می‌رود.</string>
-    <string name="enable_pcap">Pcap را فعال کنید</string>
-    <string name="pcap_summary">ذخیره ترافیک در فایل pcap</string>
+    <string name="resolve_destination_summary">اگر آدرس مقصد یک دامنه باشد، بر اساس استراتژی IPv6
+        (تعارض با FakeDNS) از بین می‌رود.
+    </string>
     <string name="pcap_notice">فایل های Pcap در ذخیره می شوند%s</string>
     <string name="naive_insecure_concurrency">همزمانی ناامن</string>
-    <string name="naive_insecure_concurrency_summary">از N اتصال تونل همزمان برای قوی تر بودن در شرایط بد شبکه استفاده کنید. اتصالات بیشتر تشخیص تونل را آسان تر و ایمن تر می کند. این پروژه برای قوی ترین امنیت در برابر تجزیه و تحلیل ترافیک تلاش می کند. استفاده از آن به روشی ناامن، هدف آن را شکست می دهد. \n\n اگر باید از این استفاده کنید، ابتدا N=2 را امتحان کنید تا ببینید آیا مشکلات شما حل می شود یا خیر. اکیداً توصیه می شود از بیش از 4 اتصال در اینجا استفاده نکنید.</string>
+    <string name="naive_insecure_concurrency_summary">از N اتصال تونل همزمان برای قوی تر بودن در
+        شرایط بد شبکه استفاده کنید. اتصالات بیشتر تشخیص تونل را آسان تر و ایمن تر می کند. این پروژه
+        برای قوی ترین امنیت در برابر تجزیه و تحلیل ترافیک تلاش می کند. استفاده از آن به روشی ناامن،
+        هدف آن را شکست می دهد. \n\n اگر باید از این استفاده کنید، ابتدا N=2 را امتحان کنید تا ببینید
+        آیا مشکلات شما حل می شود یا خیر. اکیداً توصیه می شود از بیش از 4 اتصال در اینجا استفاده
+        نکنید.
+    </string>
     <string name="stun_test">کشف رفتار NAT</string>
-    <string name="stun_test_summary">رفتار نگاشت NAT کلاینت و رفتار فیلتر NAT تعریف شده در RFC 3478 را با استفاده از STUN تعیین کنید.</string>
+    <string name="stun_test_summary">رفتار نگاشت NAT کلاینت و رفتار فیلتر NAT تعریف شده در RFC 3478
+        را با استفاده از STUN تعیین کنید.
+    </string>
     <string name="start">شروع</string>
     <string name="stun_attest_loading">این ممکن است چند دقیقه طول بکشد…</string>
     <string name="nat_stun_server_hint">سرور بیهوش</string>
@@ -436,27 +458,29 @@
     <string name="backup_groups_and_configurations">گروه ها و تنظیمات</string>
     <string name="backup_rules">قوانین مسیریابی</string>
     <string name="backup_settings">تنظیمات</string>
-    <string name="backup_summary">اگر از تنظیمات مسیریابی با تنظیمات پشتیبان تهیه نشود، خروجی های سفارشی از بین خواهند رفت.</string>
+    <string name="backup_summary">اگر از تنظیمات مسیریابی با تنظیمات پشتیبان تهیه نشود، خروجی های
+        سفارشی از بین خواهند رفت.
+    </string>
     <string name="backup_not_file">نه یک فایل پشتیبان: به جز .json، اما %s</string>
     <string name="invalid_backup_file">فایل پشتیبان نامعتبر است</string>
     <string name="backup_import">وارد كردن</string>
     <string name="backup_import_summary">وارد کردن داده‌های موجود را بازنویسی می‌کند.</string>
     <string name="backup_importing">وارد کردن…</string>
     <string name="packet_encoding">رمزگذاری بسته ها</string>
-    <string name="experimental_reduced_iv_head_entropy">این پیشنهاد GFWReport برای یک اقدام متقابل برای جریان تصادفی مانند رفتار مسدود کردن پروتکل مشاهده شده در GFW است. این گزینه 6 بایت اول IV را به کاراکترهای قابل چاپ بازنگری می‌کند، این امکان برای هر کسی که در مسیر شبکه ممتاز است می‌تواند در صورت فعال بودن پروتکل را شناسایی کند.</string>
     <string name="acquire_wake_lock">WakeLock را بدست آورید</string>
     <string name="release_wake_lock">WakeLock را آزاد کنید</string>
     <string name="acquire_wake_lock_summary">CPU را روشن نگه دارید</string>
     <string name="action_switch">تعویض</string>
-    <string name="tuic_token">توکن</string>
     <string name="tuic_udp_relay_mode">حالت واقعی UDP</string>
     <string name="tuic_congestion_controller">کنترل کننده ازدحام</string>
     <string name="tuic_disable_sni">SNI را غیرفعال کنید</string>
     <string name="tuic_reduce_rtt">UDP کاهش RTT</string>
-    <string name="tuic_fast_connect">اتصال سریع TCP</string>
-    <string name="tuic_fast_connect_summary">نیاز به پشتیبانی افزونه و سرور دارد</string>
-    <string name="please_update">ماتسوری شما خیلی قدیمی است (%s). و در %s کار نخواهد کرد. لطفا به روز رسانی کن!</string>
-    <string name="please_update_force">ماتسوری شما خیلی قدیمی است (%s). و در %s کار نمی کند. لطفا به روز رسانی کن!</string>
+    <string name="please_update">ماتسوری شما خیلی قدیمی است (%s). و در %s کار نخواهد کرد. لطفا به
+        روز رسانی کن!
+    </string>
+    <string name="please_update_force">ماتسوری شما خیلی قدیمی است (%s). و در %s کار نمی کند. لطفا به
+        روز رسانی کن!
+    </string>
     <string name="connection_test_delete_unavailable">پاک کردن در دسترس نیست</string>
     <string name="neko_plugin">افزونه پیشرفته</string>
     <string name="neko_plugin_internal_error">%s خطای داخلی</string>
