@@ -17,29 +17,29 @@ enum class PluginEntry(
     NaiveProxy(
         "naive-plugin",
         SagerNet.application.getString(R.string.action_naive),
-        "io.nekohasekai.sagernet.plugin.naive"
+        "io.nekohasekai.sagernet.plugin.naive",
+        DownloadSource(
+            playStore = false,
+            fdroid = false,
+            downloadLink = "https://github.com/AntiNeko/sing-plugin/releases?q=naive"
+        )
     ),
     Hysteria(
         "hysteria-plugin",
         SagerNet.application.getString(R.string.action_hysteria),
-        "moe.matsuri.exe.hysteria", DownloadSource(
+        "moe.matsuri.exe.hysteria",
+        DownloadSource(
             playStore = false,
             fdroid = false,
             downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=Hysteria"
         )
-    ),
-    TUIC(
-        "tuic-plugin",
-        SagerNet.application.getString(R.string.action_tuic),
-        "io.nekohasekai.sagernet.plugin.tuic",
-        DownloadSource(fdroid = false)
     ),
     ;
 
     data class DownloadSource(
         val playStore: Boolean = true,
         val fdroid: Boolean = true,
-        val downloadLink: String = "https://sagernet.org/download/"
+        val downloadLink: String = "https://AntiNeko.github.io/"
     )
 
     companion object {

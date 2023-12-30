@@ -8,6 +8,7 @@ import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
 @Parcelize
+@TypeConverters(ListConverter::class)
 data class RuleEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var name: String = "",
@@ -54,7 +55,7 @@ data class RuleEntity(
             -1L -> app.getString(R.string.route_bypass)
             -2L -> app.getString(R.string.route_block)
             else -> ProfileManager.getProfile(outbound)?.displayName()
-                ?: app.getString(R.string.route_proxy)
+                ?: app.getString(R.string.error_title)
         }
     }
 
@@ -104,3 +105,5 @@ data class RuleEntity(
 
 
 }
+
+

@@ -7,7 +7,6 @@
     <string name="oss_licenses">開放原始碼授權協定</string>
     <string name="app_version">版本</string>
     <string name="logcat">匯出 debug 所需資訊</string>
-    <string name="logcat_summary">這種非常有用啊(^O^)／</string>
     <string name="menu_configuration">設定檔</string>
     <string name="menu_group">組</string>
     <string name="menu_about">關於</string>
@@ -30,11 +29,14 @@
     <string name="group_show_diff">變化</string>
     <string name="group_delete_confirm_prompt">您真的希望刪除這個群組嗎？</string>
     <string name="group_added">新增：
-\n%s</string>
+        \n%s
+    </string>
     <string name="group_changed">更新：
-\n%s</string>
+        \n%s
+    </string>
     <string name="group_deleted">刪除：
-\n%s</string>
+        \n%s
+    </string>
     <!-- misc -->
     <string name="service_mode">執行模式</string>
     <string name="service_mode_proxy">代理</string>
@@ -54,7 +56,8 @@
     <string name="speed_interval">速度通知更新間隔</string>
     <string name="traffic">%1$s↑ %2$s↓</string>
     <string name="speed_detail">代理： %1$s↑ %2$s↓
-\n直連： %3$s↑ %4$s↓</string>
+        \n直連： %3$s↑ %4$s↓
+    </string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">測試中……</string>
     <string name="connection_test_available">成功：HTTPS 握手花費 %dms</string>
@@ -168,13 +171,9 @@
     <string name="license">授權協定</string>
     <string name="document">文檔</string>
     <string name="early_data_header_name">前置資料標頭</string>
-    <string name="pinned_peer_certificate_chain_sha256">固定憑證鏈結雜湊</string>
     <string name="certificates">憑證（鏈結）</string>
     <string name="alpn">應用層協定協商</string>
     <string name="grpc_service_name">gRPC 服務名稱</string>
-    <string name="kcp_seed">mKCP 混淆密碼</string>
-    <string name="quic_key">QUIC 金鑰</string>
-    <string name="quic_security">QUIC 安全</string>
     <string name="http_path">HTTP 路徑</string>
     <string name="http_host">HTTP 主機</string>
     <string name="ws_path">WebSocket 路徑</string>
@@ -183,13 +182,13 @@
     <string name="key_opt">金鑰（選用）</string>
     <string name="username">使用者名稱</string>
     <string name="connection_test_url">連線測試 URL</string>
-    <string name="transproxy_mode">透明代理模式</string>
-    <string name="require_transproxy">啟用透明代理傳入伺服器</string>
     <string name="dns_hosts">網域重寫</string>
-    <string name="dns_routing_message">使用在路由中被略過的直連 DNS 解析網域。請注意潛在的 DNS 洩漏</string>
+    <string name="dns_routing_message">使用在路由中被略過的直連 DNS 解析網域。請注意潛在的 DNS 洩漏
+    </string>
     <string name="enable_dns_routing">啟用 DNS 路由</string>
     <string name="direct_dns">直連 DNS</string>
     <string name="remote_dns">遠端 DNS</string>
+    <string name="underlying_dns">底層 DNS</string>
     <string name="connection_test_available_http">成功：HTTP 握手花費 %d 毫秒</string>
     <string name="allow_insecure_sum">停用憑證檢查。當啟用時，此設定檔將和純文字同等安全</string>
     <string name="allow_insecure">允許不安全的連線</string>
@@ -199,9 +198,9 @@
     <string name="show_stop_sum">如果您不想使用快速設定圖塊進行切換</string>
     <string name="show_stop">顯示停止按鈕</string>
     <string name="cag_misc">其他設定</string>
-    <string name="port_transproxy">透明代理連接埠</string>
     <string name="group_duplicate">重複：
-\n%s</string>
+        \n%s
+    </string>
     <string name="group_diff">差異（%s）</string>
     <string name="tile_title">切換器</string>
     <string name="group_default">未分組</string>
@@ -225,8 +224,6 @@
     <string name="route_bypass_domain">%s 網域規則</string>
     <string name="route_bypass_ip">%s IP 規則</string>
     <string name="route_reset">重設</string>
-    <string name="route_reverse_redirect">反向位址</string>
-    <string name="route_reverse">反向代理</string>
     <string name="route_manage_assets">管理路由資源</string>
     <string name="route_assets">資源</string>
     <string name="route_rules_provider">規則資源提供者</string>
@@ -234,16 +231,13 @@
     <string name="route_asset_status">本地版本：%s</string>
     <string name="route_asset_no_update">無更新</string>
     <string name="route_asset_updated">已更新</string>
-    <string name="route_not_asset">非資源檔案：預期副檔名為 .dat，但 %s</string>
+    <string name="route_not_asset">非資源檔案：預期副檔名為 .zip，但 %s</string>
     <string name="route_opt_bypass_lan">略過區域網路位址</string>
     <string name="route_opt_block_ads">封鎖廣告</string>
     <string name="domain_strategy">網域解析策略</string>
     <string name="traffic_sniffing">啟用流量嗅探</string>
     <string name="enable_mux">啟用多工器</string>
-    <string name="mux_sum">多工器被設計用於減少 TCP 握手延遲，而非提高連線的輸送量。使用多工器觀看影片，進行下載或進行網路速度測試通常都有反效果</string>
     <string name="mux_concurrency">多工器同時連線數目</string>
-    <string name="mux_for_all">為所有可能的支援的協定啟用多工器</string>
-    <string name="mux_for_all_sum">如果伺服器並不支援多工器，我們可能會無法成功連接它。</string>
     <string name="tcp_keep_alive_interval">TCP 保持連線傳送間隔</string>
     <string name="service_failed">失敗：</string>
     <string name="select_profile">選擇設定檔</string>
@@ -259,19 +253,16 @@
     <string name="circular_reference_sum">路由中不能包含自己。</string>
     <string name="clear_profiles">清除</string>
     <string name="action_export">匯出</string>
-    <string name="insecure_warn">安全性建議</string>
-    <string name="insecure_warn_sum">由 Qv2ray 開發者社群提供</string>
     <string name="insecure">不安全</string>
     <string name="deprecated">已被取代</string>
     <string name="no_proxies_found_in_subscription">未在此訂閱中找到代理</string>
     <string name="no_proxies_found_in_file">未在此檔案中找到代理</string>
     <string name="no_proxies_found_in_clipboard">未在剪貼簿中找到代理</string>
     <string name="deduplication">重複資料刪除</string>
-    <string name="donate">捐贈</string>
     <string name="ignore_battery_optimizations">忽略電池效能最佳化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
     <string name="ss_cat">Shadowsocks 設定</string>
-    <string name="restart">重新載入代理服務以套用修改</string>
+    <string name="need_reload">重新載入代理服務以套用修改</string>
     <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
     <string name="lines">%d 行</string>
     <string name="night_mode">夜間模式</string>
@@ -296,13 +287,12 @@
     <string name="connection_test_icmp_ping_unavailable">ICMPing 無法使用</string>
     <string name="connection_test_domain_not_found">網域不存在</string>
     <string name="connection_test_refused">連線被拒</string>
-    <string name="donate_info">世界很可愛 請給世界錢</string>
     <string name="connection_test_unreachable">無法連線</string>
     <string name="connection_test_timeout">逾時</string>
     <string name="append_http_proxy">為 VPN 附加 HTTP 代理</string>
-    <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android 10+）</string>
-    <string name="bypass_lan_in_core_only">僅在 Core 中繞過區域網路</string>
-    <string name="bypass_lan_in_core_only_sum">如果 LineageOS 的“允許熱點客戶端使用此裝置的 VPN”無法使用，嘗試啟用此選項。</string>
+    <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android
+        10+）
+    </string>
     <string name="trojan_provider">Trojan 提供程式</string>
     <string name="protocol_settings">協議設定</string>
     <string name="group_basic">基本</string>
@@ -313,7 +303,9 @@
     <string name="subscription_type">訂閱類型</string>
     <string name="delete_group_prompt">您真的希望移除此群組嗎？</string>
     <string name="force_resolve">強制解析</string>
-    <string name="force_resolve_sum">在更新時將所有網域解析為 IP。主機名和伺服器名稱指示將在可能時被自動附加</string>
+    <string name="force_resolve_sum">在更新時將所有網域解析為
+        IP。主機名和伺服器名稱指示將在可能時被自動附加
+    </string>
     <string name="deduplication_sum">在更新時移除重複的設定檔</string>
     <string name="raw">原始</string>
     <string name="update_settings">更新設定</string>
@@ -333,37 +325,41 @@
     <string name="ooc_subscription_token_invalid">無效的 OOCv1 權杖</string>
     <string name="update_subscription_warning">代理尚未連線，您真的希望繼續更新嗎？</string>
     <string name="ooc_warning">警告</string>
-    <string name="ooc_missing_protocol">此訂閱需要 %s 協定支援，但其未被安裝，不支援的設定檔將被忽略。</string>
+    <string name="ooc_missing_protocol">此訂閱需要 %s
+        協定支援，但其未被安裝，不支援的設定檔將被忽略。
+    </string>
     <string name="service_subscription">訂閱更新服務</string>
     <string name="subscription_update">訂閱更新</string>
     <string name="subscription_update_message">更新 %s 中…</string>
     <string name="group_filter">篩選</string>
-    <string name="group_filter_groups">群組</string>
-    <string name="group_filter_tags">標籤</string>
-    <string name="group_filter_ns">需要 OOCv1 訂閱以使用篩選功能</string>
-    <string name="group_filter_groups_nf">此訂閱中沒有群組</string>
-    <string name="group_filter_tags_nf">此訂閱中沒有標籤</string>
     <string name="subscription_used">已用 %s</string>
     <string name="subscription_traffic">已用 %s / 剩餘 %s</string>
     <string name="subscription_import">匯入訂閱</string>
-    <string name="subscription_import_message">您確定要匯入訂閱 %s 嗎？如果訂閱的來源不可信，您的 IP 和行為將被洩漏。</string>
+    <string name="subscription_import_message">您確定要匯入訂閱 %s 嗎？如果訂閱的來源不可信，您的 IP
+        和行為將被洩漏。
+    </string>
     <string name="profile_import">匯入設定檔</string>
     <string name="profile_import_message">您確定要匯入設定檔 %s 嗎？</string>
     <string name="clear_profiles_message">您確定要清除此群組嗎？</string>
     <string name="apps">應用程式</string>
     <string name="select_apps">選擇應用程式</string>
     <string name="apps_message">%d 個應用程式</string>
-    <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器, 請安裝一個, 如 Material Files.</string>
+    <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器, 請安裝一個, 如 Material
+        Files.
+    </string>
     <string name="menu_traffic">流量</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android 外掛程式)</string>
-    <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 外掛程式)</string>
-    <string name="plugin_exists_but_on_shit_system">設定檔 %s 需要外掛程式 %s，但是您的專有設備提供商（通常也是監視資本主義巨頭和惡意軟體製造商）篡改了你的 Android 系統，使此外掛程式不可用。</string>
+    <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 外掛程式)
+    </string>
+    <string name="plugin_exists_but_on_shit_system">設定檔 %s 需要外掛程式
+        %s，但是您的專有設備提供商（通常也是監視資本主義巨頭和惡意軟體製造商）篡改了你的 Android
+        系統，使此外掛程式不可用。
+    </string>
     <string name="ssh_private_key_passphrase">私密金鑰複雜密碼</string>
     <string name="ssh_private_key">私密金鑰</string>
     <string name="ssh_public_key">公開金鑰</string>
     <string name="ssh_auth_type_none">無</string>
     <string name="no_statistics">暫無統計資料</string>
-    <string name="traffic_statistics_summary">可能增加電量消耗</string>
     <string name="route_need_vpn">路由規則`%s` 需要 VPN 模式以生效，因此被忽略。</string>
     <string name="route_for">%s 的規則</string>
     <string name="app_no_launcher">此應用程式沒有介面。</string>
@@ -375,11 +371,8 @@
     <string name="open_app">打開應用程式</string>
     <string name="copy_package_name">複製軟體包名稱</string>
     <string name="copy_label">複製名稱</string>
-    <string name="traffic_holder">打開 VPN 以記錄流量統計資料</string>
     <string name="udp_connections">%d 個 UDP 連線</string>
     <string name="tcp_connections">%d 個 TCP 連線</string>
-    <string name="traffic_stats">統計資料</string>
-    <string name="traffic_active">作用中</string>
     <string name="group_order_by_delay">以延遲</string>
     <string name="group_order_by_name">以名稱</string>
     <string name="group_order_origin">原始</string>
@@ -387,8 +380,6 @@
     <string name="hysteria_disable_mtu_discovery">停用路徑 MTU 探索</string>
     <string name="hysteria_connection_receive_window">QUIC 連線接收視窗</string>
     <string name="hysteria_stream_receive_window">QUIC 串流接收視窗</string>
-    <string name="experimental_no_termination_signal">不在使用 VMess 傳輸時為 TCP 連線傳送單雙工中止訊號。此選項和一些應用程式不相容。</string>
-    <string name="experimental_authenticated_length">使每個認證承載的長度不再具有延展性。此實驗要求伺服器和客戶端使用相同版本的 v2ray-core。此實驗預期會有更多破壞性更新。</string>
     <string name="experimental_settings">實驗性</string>
     <string name="hysteria_download_mbps">最大下載速度（Mbps）</string>
     <string name="hysteria_upload_mbps">最大上傳速度（Mbps）</string>
@@ -407,27 +398,30 @@
     <string name="wireguard_local_address">本機位址</string>
     <string name="wireguard_public_key">節點公開金鑰</string>
     <string name="wireguard_psk">節點預先共用金鑰</string>
-    <string name="warp_license">CloudFlare Warp 是一個免費的 WireGuard VPN 提供者。使用此服務表示您同意其服務條款。</string>
+    <string name="warp_license">CloudFlare Warp 是一個免費的 WireGuard VPN
+        提供者。使用此服務表示您同意其服務條款。
+    </string>
     <string name="warp_generate">產生設定檔</string>
     <string name="generating">正在產生……</string>
-    <string name="enable_pcap">啟用 Pcap</string>
-    <string name="pcap_summary">儲存流量資料至 .pcap 檔案</string>
     <string name="pcap_notice">Pcap 檔案將被儲存至 %s</string>
     <string name="profile_traffic_statistics">設定檔流量統計資料</string>
-    <string name="app_traffic_statistics">應用程式流量統計資料</string>
-    <string name="resolve_destination_summary">如果目的地位址是一個網域，則基於 IPv6 策略傳出。</string>
-    <string name="destination_override_summary">使用被偵測到的網域複寫目的地位址，而不是僅用於路由</string>
-    <string name="group_filter_owners">所有者</string>
+    <string name="resolve_destination_summary">如果目的地位址是一個網域，則基於 IPv6 策略傳出。
+    </string>
+    <string name="destination_override_summary">使用被偵測到的網域複寫目的地位址，而不是僅用於路由
+    </string>
     <string name="route_opt_block_analysis">封鎖分析</string>
     <string name="route_play_store">%s 谷歌Play商店規則</string>
-    <string name="group_filter_owners_nf">此訂閱中沒有所有者</string>
     <string name="naive_insecure_concurrency">不安全並發</string>
     <string name="stun_test">NAT 行為尋找</string>
-    <string name="naive_insecure_concurrency_summary">使用N個並發的隧道能使網路條件較差时更加可用。但數量越多，越易被偵測，安全性越低。由於本項目致力於面對流量分析的安全性，以不安全的方式使用違背了其初忠。
-\n
-\n如一定要使用，請先嘗試 N=2，觀察其是否解決了您的問題。強烈反對於此使用多於4個隧道。</string>
+    <string name="naive_insecure_concurrency_summary">
+        使用N個並發的隧道能使網路條件較差时更加可用。但數量越多，越易被偵測，安全性越低。由於本項目致力於面對流量分析的安全性，以不安全的方式使用違背了其初忠。
+        \n
+        \n如一定要使用，請先嘗試 N=2，觀察其是否解決了您的問題。強烈反對於此使用多於4個隧道。
+    </string>
     <string name="stun_attest_loading">這可能需要數分鐘…</string>
-    <string name="stun_test_summary">使用 STUN 確定客戶端的 NAT 映射行為和 RFC 5780 中定義的 NAT 過濾行為。</string>
+    <string name="stun_test_summary">使用 STUN 確定客戶端的 NAT 映射行為和 RFC 5780 中定義的 NAT
+        過濾行為。
+    </string>
     <string name="start">開始</string>
     <string name="backup">備份</string>
     <string name="backup_rules">路由規則</string>
@@ -440,8 +434,5 @@
     <string name="backup_groups_and_configurations">分組和配置</string>
     <string name="backup_summary">如果路由規則不與配置一起備份，則自定義出站將丟失。</string>
     <string name="backup_not_file">不是一個備份文件，預計 .json，但 %s</string>
-    <string name="experimental_reduced_iv_head_entropy">這是 GFWReport 針對在 GFW 上觀察到的隨機流（如封鎖協議的行為）提出的提案。
-\n
-\n此選項將 IV 的前 6 個字節重新映射為可打印字符，啟用後特權網路路徑上的任何人都可以識別協議。</string>
     <string name="packet_encoding">包編碼</string>
 </resources>

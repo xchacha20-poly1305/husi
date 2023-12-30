@@ -7,10 +7,12 @@ import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
 import android.webkit.WebView;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
+import io.nekohasekai.sagernet.BuildConfig;
+import io.nekohasekai.sagernet.ktx.Logs;
+import kotlin.text.StringsKt;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -22,23 +24,27 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.nekohasekai.sagernet.BuildConfig;
-import io.nekohasekai.sagernet.ktx.Logs;
-import kotlin.text.StringsKt;
-
 public class JavaUtil {
 
+    public static final Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setLenient()
+            .disableHtmlEscaping()
+            .create();
     // The encoded character of each character escape.
     // This array functions as the keys of a sorted map, from encoded characters to decoded characters.
     static final char[] ENCODED_ESCAPES = {'\"', '\'', '\\', 'b', 'f', 'n', 'r', 't'};
-
     // The decoded character of each character escape.
     // This array functions as the values of a sorted map, from encoded characters to decoded characters.
     static final char[] DECODED_ESCAPES = {'\"', '\'', '\\', '\b', '\f', '\n', '\r', '\t'};
-
     // A pattern that matches an escape.
     // What follows the escape indicator is captured by group 1=character 2=octal 3=Unicode.
     static final Pattern PATTERN = Pattern.compile("\\\\(?:(b|t|n|f|r|\\\"|\\\'|\\\\)|((?:[0-3]?[0-7])?[0-7])|u+(\\p{XDigit}{4}))");
+
+    // Webview Utils
+    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
 
     // Process the return of webView.evaluateJavascript
     public static String unescapeString(CharSequence encodedString) {
@@ -65,8 +71,6 @@ public class JavaUtil {
         matcher.appendTail(decodedString);
         return new String(decodedString);
     }
-
-    // Webview Utils
 
     public static void handleWebviewDir(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -139,6 +143,8 @@ public class JavaUtil {
         }
     }
 
+    // Old hutool Utils
+
     private static boolean checkIsHuaweiRom() {
         return Build.MANUFACTURER.contains("HUAWEI");
     }
@@ -161,8 +167,6 @@ public class JavaUtil {
         }
     }
 
-    // Old hutool Utils
-
     public static boolean isNullOrBlank(String str) {
         return str == null || StringsKt.isBlank(str);
     }
@@ -170,8 +174,6 @@ public class JavaUtil {
     public static boolean isNotBlank(String str) {
         return !isNullOrBlank(str);
     }
-
-    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
 
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -183,18 +185,10 @@ public class JavaUtil {
         return new String(hexChars);
     }
 
+    // gson
+
     public static boolean isEmpty(byte[] array) {
         return array == null || array.length == 0;
     }
-
-    // gson
-
-    public static final Gson gson = new GsonBuilder()
-            .setPrettyPrinting()
-            .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
-            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
-            .setLenient()
-            .disableHtmlEscaping()
-            .create();
 
 }

@@ -23,16 +23,24 @@ abstract class AlertDialogFragment<Arg : Parcelable, Ret : Parcelable?> :
         private const val KEY_RET = "ret"
         private const val KEY_WHICH = "which"
 
-        fun <Ret : Parcelable> setResultListener(fragment: Fragment, requestKey: String,
-                                                 listener: (Int, Ret?) -> Unit) {
+        fun <Ret : Parcelable> setResultListener(
+            fragment: Fragment, requestKey: String,
+            listener: (Int, Ret?) -> Unit
+        ) {
             fragment.setFragmentResultListener(requestKey) { _, bundle ->
-                listener(bundle.getInt(KEY_WHICH, Activity.RESULT_CANCELED), bundle.getParcelable(KEY_RET))
+                listener(
+                    bundle.getInt(KEY_WHICH, Activity.RESULT_CANCELED),
+                    bundle.getParcelable(KEY_RET)
+                )
             }
         }
+
         inline fun <reified T : AlertDialogFragment<*, Ret>, Ret : Parcelable?> setResultListener(
-            fragment: Fragment, noinline listener: (Int, Ret?) -> Unit) =
+            fragment: Fragment, noinline listener: (Int, Ret?) -> Unit
+        ) =
             setResultListener(fragment, T::class.java.name, listener)
     }
+
     protected abstract fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener)
 
     private val resultKey get() = requireArguments().getString(KEY_RESULT)

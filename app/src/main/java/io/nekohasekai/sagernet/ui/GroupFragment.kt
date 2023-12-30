@@ -18,7 +18,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.database.*
+import io.nekohasekai.sagernet.database.GroupManager
+import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
@@ -111,6 +113,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             R.id.action_new_group -> {
                 startActivity(Intent(context, GroupSettingsActivity::class.java))
             }
+
             R.id.action_update_all -> {
                 MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                     .setMessage(R.string.update_all_subscription)
@@ -130,30 +133,31 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
     private lateinit var selectedGroup: ProxyGroup
 
-    private val exportProfiles = registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
-        if (data != null) {
-            runOnDefaultDispatcher {
-                val profiles = SagerDatabase.proxyDao.getByGroup(selectedGroup.id)
-                val links = profiles.mapNotNull { it.toLink(compact = true) }.joinToString("\n")
-                try {
-                    (requireActivity() as MainActivity).contentResolver.openOutputStream(
-                        data
-                    )!!.bufferedWriter().use {
-                        it.write(links)
+    private val exportProfiles =
+        registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
+            if (data != null) {
+                runOnDefaultDispatcher {
+                    val profiles = SagerDatabase.proxyDao.getByGroup(selectedGroup.id)
+                    val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
+                    try {
+                        (requireActivity() as MainActivity).contentResolver.openOutputStream(
+                            data
+                        )!!.bufferedWriter().use {
+                            it.write(links)
+                        }
+                        onMainDispatcher {
+                            snackbar(getString(R.string.action_export_msg)).show()
+                        }
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher {
+                            snackbar(e.readableMessage).show()
+                        }
                     }
-                    onMainDispatcher {
-                        snackbar(getString(R.string.action_export_msg)).show()
-                    }
-                } catch (e: Exception) {
-                    Logs.w(e)
-                    onMainDispatcher {
-                        snackbar(e.readableMessage).show()
-                    }
-                }
 
+                }
             }
         }
-    }
 
     inner class GroupAdapter : RecyclerView.Adapter<GroupHolder>(),
         GroupManager.Listener,
@@ -310,7 +314,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         undoManager.flush()
     }
 
-    inner class GroupHolder(binding: LayoutGroupItemBinding) : RecyclerView.ViewHolder(binding.root),
+    inner class GroupHolder(binding: LayoutGroupItemBinding) :
+        RecyclerView.ViewHolder(binding.root),
         PopupMenu.OnMenuItemClickListener {
 
         lateinit var proxyGroup: ProxyGroup
@@ -337,23 +342,26 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                         proxyGroup.toUniversalLink(), proxyGroup.displayName()
                     ).showAllowingStateLoss(parentFragmentManager)
                 }
+
                 R.id.action_universal_clipboard -> {
                     export(proxyGroup.toUniversalLink())
                 }
+
                 R.id.action_export_clipboard -> {
                     runOnDefaultDispatcher {
                         val profiles = SagerDatabase.proxyDao.getByGroup(selectedGroup.id)
-                        val links = profiles.mapNotNull { it.toLink(compact = true) }
-                            .joinToString("\n")
+                        val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
                         onMainDispatcher {
                             SagerNet.trySetPrimaryClip(links)
                             snackbar(getString(R.string.copy_toast_msg)).show()
                         }
                     }
                 }
+
                 R.id.action_export_file -> {
                     startFilesForResult(exportProfiles, "profiles_${proxyGroup.displayName()}.txt")
                 }
+
                 R.id.action_clear -> {
                     MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                         .setMessage(R.string.clear_profiles_message)
@@ -397,7 +405,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 popup.menuInflater.inflate(R.menu.group_action_menu, popup.menu)
 
                 if (proxyGroup.type != GroupType.SUBSCRIPTION) {
-                    popup.menu.removeItem(R.id.action_share)
+                    popup.menu.removeItem(R.id.action_share_subscription)
                 }
                 popup.setOnMenuItemClickListener(this)
                 popup.show()
@@ -414,9 +422,10 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     subscriptionUpdateProgress.isIndeterminate = true
                 } else {
                     subscriptionUpdateProgress.isIndeterminate = false
-                    val progress = GroupUpdater.progress[proxyGroup.id]!!
-                    subscriptionUpdateProgress.max = progress.max
-                    subscriptionUpdateProgress.progress = progress.progress
+                    GroupUpdater.progress[proxyGroup.id]?.let {
+                        subscriptionUpdateProgress.max = it.max
+                        subscriptionUpdateProgress.progress = it.progress
+                    }
                 }
 
                 updateButton.isInvisible = true
@@ -435,56 +444,60 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             if (subscription != null && subscription.bytesUsed > 0L) { // SIP008 & Open Online Config
                 groupTraffic.isVisible = true
                 groupTraffic.text = if (subscription.bytesRemaining > 0L) {
-                    getString(
+                    app.getString(
                         R.string.subscription_traffic, Formatter.formatFileSize(
-                            context, subscription.bytesUsed
+                            app, subscription.bytesUsed
                         ), Formatter.formatFileSize(
-                            context, subscription.bytesRemaining
+                            app, subscription.bytesRemaining
                         )
                     )
                 } else {
-                    getString(
+                    app.getString(
                         R.string.subscription_used, Formatter.formatFileSize(
-                            context, subscription.bytesUsed
+                            app, subscription.bytesUsed
                         )
                     )
                 }
                 groupStatus.setPadding(0)
             } else if (subscription != null && !subscription.subscriptionUserinfo.isNullOrBlank()) { // Raw
-                var text = "";
+                var text = ""
 
                 fun get(regex: String): String? {
                     return regex.toRegex().findAll(subscription.subscriptionUserinfo).mapNotNull {
                         if (it.groupValues.size > 1) it.groupValues[1] else null
-                    }.firstOrNull();
+                    }.firstOrNull()
                 }
 
-                var used: Long = 0
-                get("upload=([0-9]+)")?.apply {
-                    used += toLong()
-                }
-                get("download=([0-9]+)")?.apply {
-                    used += toLong()
-                }
-                val total = get("total=([0-9]+)")?.toLong() ?: 0
-                if (used > 0 || total > 0) {
-                    text += getString(
-                        R.string.subscription_traffic,
-                        used.toBytesString(),
-                        (total - used).toBytesString()
-                    )
-                }
-                get("expire=([0-9]+)")?.apply {
-                    text += "\n"
-                    text += getString(
-                        R.string.subscription_expire,
-                        Util.timeStamp2Text(this.toLong() * 1000)
-                    )
+                try {
+                    var used: Long = 0
+                    get("upload=([0-9]+)")?.apply {
+                        used += toLong()
+                    }
+                    get("download=([0-9]+)")?.apply {
+                        used += toLong()
+                    }
+                    val total = get("total=([0-9]+)")?.toLong() ?: 0
+                    if (used > 0 || total > 0) {
+                        text += getString(
+                            R.string.subscription_traffic,
+                            used.toBytesString(),
+                            (total - used).toBytesString()
+                        )
+                    }
+                    get("expire=([0-9]+)")?.apply {
+                        text += "\n"
+                        text += getString(
+                            R.string.subscription_expire,
+                            Util.timeStamp2Text(this.toLong() * 1000)
+                        )
+                    }
+                } catch (_: NumberFormatException) {
+                    // ignore
                 }
 
                 if (text.isNotEmpty()) {
                     groupTraffic.isVisible = true
-                    groupTraffic.text = text;
+                    groupTraffic.text = text
                     groupStatus.setPadding(0)
                 }
             } else {
@@ -505,6 +518,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                                 groupStatus.text = getString(R.string.group_status_proxies, size)
                             }
                         }
+
                         GroupType.SUBSCRIPTION -> {
                             groupStatus.text = if (size == 0L) {
                                 getString(R.string.group_status_empty_subscription)

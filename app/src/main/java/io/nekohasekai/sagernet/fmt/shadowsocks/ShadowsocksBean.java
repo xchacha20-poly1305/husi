@@ -1,22 +1,30 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import moe.matsuri.nb4a.utils.JavaUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class ShadowsocksBean extends AbstractBean {
 
+    public static final Creator<ShadowsocksBean> CREATOR = new CREATOR<ShadowsocksBean>() {
+        @NonNull
+        @Override
+        public ShadowsocksBean newInstance() {
+            return new ShadowsocksBean();
+        }
+
+        @Override
+        public ShadowsocksBean[] newArray(int size) {
+            return new ShadowsocksBean[size];
+        }
+    };
     public String method;
     public String password;
     public String plugin;
-
     public Boolean sUoT;
 
     @Override
@@ -50,22 +58,16 @@ public class ShadowsocksBean extends AbstractBean {
         sUoT = input.readBoolean();
     }
 
+    @Override
+    public void applyFeatureSettings(AbstractBean other) {
+        if (!(other instanceof ShadowsocksBean)) return;
+        ShadowsocksBean bean = ((ShadowsocksBean) other);
+        bean.sUoT = sUoT;
+    }
+
     @NotNull
     @Override
     public ShadowsocksBean clone() {
         return KryoConverters.deserialize(new ShadowsocksBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<ShadowsocksBean> CREATOR = new CREATOR<ShadowsocksBean>() {
-        @NonNull
-        @Override
-        public ShadowsocksBean newInstance() {
-            return new ShadowsocksBean();
-        }
-
-        @Override
-        public ShadowsocksBean[] newArray(int size) {
-            return new ShadowsocksBean[size];
-        }
-    };
 }

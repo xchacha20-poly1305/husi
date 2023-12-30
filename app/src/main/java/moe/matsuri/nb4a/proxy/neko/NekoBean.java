@@ -1,28 +1,48 @@
 package moe.matsuri.nb4a.proxy.neko;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
-
 import io.nekohasekai.sagernet.R;
 import io.nekohasekai.sagernet.SagerNet;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.ktx.Logs;
 import moe.matsuri.nb4a.plugin.NekoPluginManager;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 public class NekoBean extends AbstractBean {
 
+    public static final Creator<NekoBean> CREATOR = new CREATOR<NekoBean>() {
+        @NonNull
+        @Override
+        public NekoBean newInstance() {
+            return new NekoBean();
+        }
+
+        @Override
+        public NekoBean[] newArray(int size) {
+            return new NekoBean[size];
+        }
+    };
     // BoxInstance use this
     public JSONObject allConfig = null;
-
     public String plgId;
     public String protocolId;
     public JSONObject sharedStorage = new JSONObject();
+
+    @NotNull
+    public static JSONObject tryParseJSON(String input) {
+        JSONObject ret;
+        try {
+            ret = new JSONObject(input);
+        } catch (Exception e) {
+            ret = new JSONObject();
+            Logs.INSTANCE.e(e);
+        }
+        return ret;
+    }
 
     @Override
     public void initializeDefaultValues() {
@@ -47,18 +67,6 @@ public class NekoBean extends AbstractBean {
         plgId = input.readString();
         protocolId = input.readString();
         sharedStorage = tryParseJSON(input.readString());
-    }
-
-    @NotNull
-    public static JSONObject tryParseJSON(String input) {
-        JSONObject ret;
-        try {
-            ret = new JSONObject(input);
-        } catch (Exception e) {
-            ret = new JSONObject();
-            Logs.INSTANCE.e(e);
-        }
-        return ret;
     }
 
     public String displayType() {
@@ -94,17 +102,4 @@ public class NekoBean extends AbstractBean {
     public NekoBean clone() {
         return KryoConverters.deserialize(new NekoBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<NekoBean> CREATOR = new CREATOR<NekoBean>() {
-        @NonNull
-        @Override
-        public NekoBean newInstance() {
-            return new NekoBean();
-        }
-
-        @Override
-        public NekoBean[] newArray(int size) {
-            return new NekoBean[size];
-        }
-    };
 }

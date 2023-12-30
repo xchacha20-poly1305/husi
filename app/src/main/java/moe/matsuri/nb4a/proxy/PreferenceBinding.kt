@@ -1,9 +1,7 @@
 package moe.matsuri.nb4a.proxy
 
 import androidx.preference.Preference
-import com.takisoft.preferencex.EditTextPreference
-import com.takisoft.preferencex.PreferenceFragmentCompat
-import com.takisoft.preferencex.SimpleMenuPreference
+import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -75,17 +73,20 @@ class PreferenceBinding(
                     DataStore.profileCacheStore.putString(cacheName, value)
                 }
             }
+
             Type.TextToInt -> {
                 if (value is Int) {
 //                    Logs.d("writeToCache TEXT2INT $value $cacheName -> $fieldName")
                     DataStore.profileCacheStore.putString(cacheName, value.toString())
                 }
             }
+
             Type.Int -> {
                 if (value is Int) {
                     DataStore.profileCacheStore.putInt(cacheName, value)
                 }
             }
+
             Type.Bool -> {
                 if (value is Boolean) {
                     DataStore.profileCacheStore.putBoolean(cacheName, value)

@@ -5,25 +5,21 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import androidx.preference.ListPreference
 import androidx.preference.PreferenceViewHolder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.takisoft.preferencex.SimpleMenuPreference
+import io.nekohasekai.sagernet.R
 
-class MTUPreference : SimpleMenuPreference {
-    constructor(context: Context?) : super(context)
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
-        context, attrs, defStyleAttr
-    )
-
-    constructor(
-        context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes)
+class MTUPreference
+@JvmOverloads constructor(
+    context: Context, attrs: AttributeSet? = null, defStyle: Int = R.attr.dropdownPreferenceStyle
+) : ListPreference(context, attrs, defStyle, 0) {
 
     init {
         setSummaryProvider {
             value.toString()
         }
+        dialogLayoutResource = R.layout.layout_mtu_help
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -39,7 +35,7 @@ class MTUPreference : SimpleMenuPreference {
                 .setView(view)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     val mtu = view.text.toString().toInt()
-                    if (mtu < 1000 || mtu > 10000) return@setPositiveButton
+                    if (mtu <= 1000 || mtu > 65535) return@setPositiveButton
                     value = mtu.toString()
                 }
                 .setNegativeButton(android.R.string.cancel, null)

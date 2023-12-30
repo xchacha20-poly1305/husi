@@ -38,9 +38,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.plugin.NekoPluginManager
 import moe.matsuri.nb4a.plugin.Plugins
+import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.ui.Dialogs
 import kotlin.coroutines.coroutineContext
 
@@ -268,7 +268,7 @@ class AppListActivity : ThemedActivity() {
         binding.searchLayout.isGone = forNeko
         binding.hintNekoPlugin.isGone = !forNeko
         binding.actionLearnMore.setOnClickListener {
-            launchCustomTab("https://matsuridayo.github.io/m-plugin/")
+            launchCustomTab("https://AntiNeko.github.io/m-plugin/")
         }
 
         loadApps()
@@ -306,6 +306,7 @@ class AppListActivity : ThemedActivity() {
 
                 return true
             }
+
             R.id.action_clear_selections -> {
                 runOnDefaultDispatcher {
                     proxiedUids.clear()
@@ -316,6 +317,7 @@ class AppListActivity : ThemedActivity() {
                     }
                 }
             }
+
             R.id.action_export_clipboard -> {
                 val success = SagerNet.trySetPrimaryClip("false\n${DataStore.routePackages}")
                 Snackbar.make(
@@ -325,6 +327,7 @@ class AppListActivity : ThemedActivity() {
                 ).show()
                 return true
             }
+
             R.id.action_import_clipboard -> {
                 val proxiedAppString =
                     SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString()
@@ -344,6 +347,7 @@ class AppListActivity : ThemedActivity() {
                 }
                 Snackbar.make(binding.list, R.string.action_import_err, Snackbar.LENGTH_LONG).show()
             }
+
             R.id.uninstall_all -> {
                 runOnDefaultDispatcher {
                     proxiedUids.clear()

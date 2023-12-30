@@ -29,12 +29,11 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
 import moe.matsuri.nb4a.utils.NGUtil
 import java.io.FileDescriptor
 import java.net.*
@@ -233,18 +232,23 @@ fun Fragment.startFilesForResult(
 
 fun Fragment.needReload() {
     if (DataStore.serviceState.started) {
-        snackbar(getString(R.string.restart)).setAction(R.string.apply) {
+        snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
             SagerNet.reloadService()
         }.show()
     }
 }
 
 fun Fragment.needRestart() {
-    snackbar("Restart APP to apply changes.").setAction(R.string.apply) {
-        Executable.killAll(true)
-        ProcessPhoenix.triggerRebirth(
-            requireContext(), Intent(requireContext(), MainActivity::class.java)
-        )
+    snackbar(R.string.need_restart).setAction(R.string.apply) {
+        SagerNet.stopService()
+        val ctx = requireContext()
+        runOnDefaultDispatcher {
+            delay(500)
+            SagerDatabase.instance.close()
+            PublicDatabase.instance.close()
+            Executable.killAll(true)
+            ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
+        }
     }.show()
 }
 
@@ -258,13 +262,12 @@ fun Context.getColorAttr(@AttrRes resId: Int): Int {
     }.resourceId)
 }
 
-var isExpert: Boolean
-    get() = BuildConfig.DEBUG || DataStore.isExpert
-    set(value) = TODO()
+val isExpert: Boolean by lazy { BuildConfig.DEBUG || DataStore.isExpert }
 
 val isExpertFlavor = ((BuildConfig.FLAVOR == "expert") || BuildConfig.DEBUG)
 const val isOss = BuildConfig.FLAVOR == "oss"
 const val isFdroid = BuildConfig.FLAVOR == "fdroid"
+const val isPlay = BuildConfig.FLAVOR == "play"
 
 fun <T> Continuation<T>.tryResume(value: T) {
     try {

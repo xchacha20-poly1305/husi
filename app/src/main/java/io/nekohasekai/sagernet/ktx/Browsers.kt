@@ -1,4 +1,4 @@
-  package io.nekohasekai.sagernet.ktx
+package io.nekohasekai.sagernet.ktx
 
 import android.content.Context
 import android.net.Uri

@@ -46,6 +46,7 @@ object Commandline {
                         result.append('\\')  // intentionally no break
                         result.append(it)
                     }
+
                     else -> result.append(it)
                 }
             }
@@ -93,6 +94,7 @@ object Commandline {
                     lastTokenHasBeenQuoted = true
                     state = normal
                 } else current.append(nextTok)
+
                 inDoubleQuote -> when (nextTok) {
                     "\"" -> if (lastTokenIsSlash) {
                         current.append(nextTok)
@@ -101,10 +103,12 @@ object Commandline {
                         lastTokenHasBeenQuoted = true
                         state = normal
                     }
+
                     "\\" -> lastTokenIsSlash = if (lastTokenIsSlash) {
                         current.append(nextTok)
                         false
                     } else true
+
                     else -> {
                         if (lastTokenIsSlash) {
                             current.append("\\")   // unescaped
@@ -113,12 +117,14 @@ object Commandline {
                         current.append(nextTok)
                     }
                 }
+
                 else -> {
                     when {
                         lastTokenIsSlash -> {
                             current.append(nextTok)
                             lastTokenIsSlash = false
                         }
+
                         "\\" == nextTok -> lastTokenIsSlash = true
                         "\'" == nextTok -> state = inQuote
                         "\"" == nextTok -> state = inDoubleQuote
@@ -126,6 +132,7 @@ object Commandline {
                             result.add(current.toString())
                             current.setLength(0)
                         }
+
                         else -> current.append(nextTok)
                     }
                     lastTokenHasBeenQuoted = false

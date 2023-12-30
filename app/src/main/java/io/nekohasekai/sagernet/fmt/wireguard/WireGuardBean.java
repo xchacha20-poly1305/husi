@@ -1,17 +1,26 @@
 package io.nekohasekai.sagernet.fmt.wireguard;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import org.jetbrains.annotations.NotNull;
 
 public class WireGuardBean extends AbstractBean {
 
+    public static final Creator<WireGuardBean> CREATOR = new CREATOR<WireGuardBean>() {
+        @NonNull
+        @Override
+        public WireGuardBean newInstance() {
+            return new WireGuardBean();
+        }
+
+        @Override
+        public WireGuardBean[] newArray(int size) {
+            return new WireGuardBean[size];
+        }
+    };
     public String localAddress;
     public String privateKey;
     public String peerPublicKey;
@@ -44,7 +53,6 @@ public class WireGuardBean extends AbstractBean {
 
     @Override
     public void deserialize(ByteBufferInput input) {
-        int version = input.readInt();
         super.deserialize(input);
         localAddress = input.readString();
         privateKey = input.readString();
@@ -54,22 +62,14 @@ public class WireGuardBean extends AbstractBean {
         reserved = input.readString();
     }
 
+    @Override
+    public boolean canTCPing() {
+        return false;
+    }
+
     @NotNull
     @Override
     public WireGuardBean clone() {
         return KryoConverters.deserialize(new WireGuardBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<WireGuardBean> CREATOR = new CREATOR<WireGuardBean>() {
-        @NonNull
-        @Override
-        public WireGuardBean newInstance() {
-            return new WireGuardBean();
-        }
-
-        @Override
-        public WireGuardBean[] newArray(int size) {
-            return new WireGuardBean[size];
-        }
-    };
 }

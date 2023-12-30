@@ -1,0 +1,121 @@
+name: Nightly Build
+on:
+  push:
+    branches:
+      - dev*
+    paths:
+      - "app/**"
+      - "buildScript/**"
+      - "buildScr/**"
+      - "libcore/**"
+      - "grade/**"
+      - ".github/workflows/nightly-build.yml"
+
+jobs:
+  libcore:
+    name: Native Build (LibCore)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Golang Status
+        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
+      - name: Libcore Status
+        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+      - name: LibCore Cache
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            app/libs/libcore.aar
+          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+      - name: Install Golang
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1.21
+      - name: Native Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          ./run lib source
+          ./run lib core
+  build:
+    name: Build OSS APK
+    runs-on: ubuntu-latest
+    needs:
+      - libcore
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Golang Status
+        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
+      - name: Libcore Status
+        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+      - name: LibCore Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            app/libs/libcore.aar
+          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+      - name: Set Up pnpn
+        run: npm install -g pnpm
+      - name: Gradle cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle
+          key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
+      - name: Gradle Build
+        env:
+          BUILD_PLUGIN: none
+        run: |
+          ./run lib source
+          ./run lib dashboard
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "ndk.dir=${ANDROID_HOME}/ndk/26.1.10909125" >> local.properties
+          # export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
+          ./run init action gradle
+          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS}}" ./gradlew clean app:assembleOssDebug
+          # ./gradlew clean app:assembleOssRelease
+
+          APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
+          APK=$(dirname $APK)
+          echo "APK=$APK" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        with:
+          name: APKs
+          path: ${{ env.APK }}
+
+  # f-droid:
+  #   name: F-Droid Test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Golang Status
+  #       run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
+  #     - name: Libcore Status
+  #       run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+  #     - name: LibCore Cache
+  #       id: cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           app/libs/libcore.aar
+  #         key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+  #     - name: Golang Cache
+  #       if: steps.cache.outputs.cache-hit != 'true'
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: build/golang
+  #         key: go-${{ hashFiles('.github/workflows/*', 'golang_status') }}
+  #     - name: Native Build
+  #       if: steps.cache.outputs.cache-hit != 'true'
+  #       run: ./run fdroid prebuild

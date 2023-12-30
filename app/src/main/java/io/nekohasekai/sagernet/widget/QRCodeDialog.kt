@@ -59,14 +59,16 @@ class QRCodeDialog() : DialogFragment() {
         } catch (e: Exception) {
         }
 
-        val size = if (pixelMin > 0) pixelMin else resources.getDimensionPixelSize(R.dimen.qrcode_size)
+        val size =
+            if (pixelMin > 0) pixelMin else resources.getDimensionPixelSize(R.dimen.qrcode_size)
 
         // draw QR Code
         val url = arguments?.getString(KEY_URL)!!
         val displayName = arguments?.getString(KEY_NAME)!!
 
         val hints = mutableMapOf<EncodeHintType, Any>()
-        if (!iso88591.canEncode(url)) hints[EncodeHintType.CHARACTER_SET] = StandardCharsets.UTF_8.name()
+        if (!iso88591.canEncode(url)) hints[EncodeHintType.CHARACTER_SET] =
+            StandardCharsets.UTF_8.name()
         val qrBits = MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE, size, size, hints)
         LinearLayout(context).apply {
             // Layout

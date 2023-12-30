@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -18,6 +17,7 @@ import (
 	"strconv"
 	"sync"
 
+	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/protocol/socks"
 	"github.com/sagernet/sing/protocol/socks/socks5"
@@ -30,6 +30,7 @@ type HTTPClient interface {
 	PinnedSHA256(sumHex string)
 	TrySocks5(port int32)
 	KeepAlive()
+	SetInsecure(bool)
 	NewRequest() HTTPRequest
 	Close()
 }
@@ -98,7 +99,7 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 				return nil
 			}
 		}
-		return errors.New("pinned sha256 sum mismatch")
+		return E.New("pinned sha256 sum mismatch")
 	}
 }
 
@@ -118,6 +119,10 @@ func (c *httpClient) TrySocks5(port int32) {
 		}
 		return dialer.DialContext(ctx, network, addr)
 	}
+}
+
+func (c *httpClient) SetInsecure(allow bool) {
+	c.tls.InsecureSkipVerify = allow
 }
 
 func (c *httpClient) KeepAlive() {
@@ -204,6 +209,9 @@ func (h *httpResponse) errorString() string {
 	if err != nil {
 		return fmt.Sprint("HTTP ", h.Status)
 	}
+	if len(content) > 100 {
+		content = content[:100] + " ..."
+	}
 	return fmt.Sprint("HTTP ", h.Status, ": ", content)
 }
 
@@ -214,7 +222,7 @@ func (h *httpResponse) GetHeader(key string) string {
 func (h *httpResponse) GetContent() ([]byte, error) {
 	h.getContentOnce.Do(func() {
 		defer h.Body.Close()
-		h.content, h.contentError = ioutil.ReadAll(h.Body)
+		h.content, h.contentError = io.ReadAll(h.Body)
 	})
 	return h.content, h.contentError
 }

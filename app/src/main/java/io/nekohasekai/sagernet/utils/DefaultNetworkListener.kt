@@ -41,12 +41,14 @@ object DefaultNetworkListener {
                 listeners[message.key] = message.listener
                 if (network != null) message.listener(network)
             }
+
             is NetworkMessage.Get -> {
                 check(listeners.isNotEmpty()) { "Getting network without any listeners is not supported" }
                 if (network == null) pendingRequests += message else message.response.complete(
                     network
                 )
             }
+
             is NetworkMessage.Stop -> if (listeners.isNotEmpty() && // was not empty
                 listeners.remove(message.key) != null && listeners.isEmpty()
             ) {
@@ -60,11 +62,13 @@ object DefaultNetworkListener {
                 pendingRequests.clear()
                 listeners.values.forEach { it(network) }
             }
+
             is NetworkMessage.Update -> if (network == message.network) listeners.values.forEach {
                 it(
                     network
                 )
             }
+
             is NetworkMessage.Lost -> if (network == message.network) {
                 network = null
                 listeners.values.forEach { it(null) }
@@ -130,15 +134,19 @@ object DefaultNetworkListener {
                         request, Callback, mainHandler
                     )
                 }
+
                 in 28 until 31 -> @TargetApi(28) {  // we want REQUEST here instead of LISTEN
                     SagerNet.connectivity.requestNetwork(request, Callback, mainHandler)
                 }
+
                 in 26 until 28 -> @TargetApi(26) {
                     SagerNet.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
                 }
+
                 in 24 until 26 -> @TargetApi(24) {
                     SagerNet.connectivity.registerDefaultNetworkCallback(Callback)
                 }
+
                 else -> {
                     SagerNet.connectivity.requestNetwork(request, Callback)
                     // known bug on API 23: https://stackoverflow.com/a/33509180/2245107

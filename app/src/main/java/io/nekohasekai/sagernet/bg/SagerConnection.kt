@@ -8,20 +8,30 @@ import android.os.IBinder
 import android.os.RemoteException
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.aidl.*
+import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
+import io.nekohasekai.sagernet.aidl.SpeedDisplayData
+import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 
-class SagerConnection(private var listenForDeath: Boolean = false) : ServiceConnection,
-    IBinder.DeathRecipient {
+class SagerConnection(
+    private var connectionId: Int,
+    private var listenForDeath: Boolean = false
+) : ServiceConnection, IBinder.DeathRecipient {
 
     companion object {
         val serviceClass
             get() = when (DataStore.serviceMode) {
                 Key.MODE_PROXY -> ProxyService::class
-                Key.MODE_VPN -> VpnService::class //   Key.MODE_TRANS -> TransproxyService::class
+                Key.MODE_VPN -> VpnService::class
                 else -> throw UnknownError()
             }.java
+
+        const val CONNECTION_ID_SHORTCUT = 0
+        const val CONNECTION_ID_TILE = 1
+        const val CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND = 2
+        const val CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND = 3
     }
 
     interface Callback {
@@ -29,11 +39,11 @@ class SagerConnection(private var listenForDeath: Boolean = false) : ServiceConn
 
         fun cbSpeedUpdate(stats: SpeedDisplayData) {}
         fun cbTrafficUpdate(data: TrafficData) {}
+        fun cbSelectorUpdate(id: Long) {}
 
         fun stateChanged(state: BaseService.State, profileName: String?, msg: String?)
 
         fun missingPlugin(profileName: String, pluginName: String) {}
-        fun routeAlert(type: Int, routeName: String) {}
 
         fun onServiceConnected(service: ISagerNetService)
 
@@ -50,6 +60,7 @@ class SagerConnection(private var listenForDeath: Boolean = false) : ServiceConn
     private val serviceCallback = object : ISagerNetServiceCallback.Stub() {
 
         override fun stateChanged(state: Int, profileName: String?, msg: String?) {
+            if (state < 0) return // skip private
             val s = BaseService.State.values()[state]
             DataStore.serviceState = s
             val callback = callback ?: return
@@ -72,28 +83,17 @@ class SagerConnection(private var listenForDeath: Boolean = false) : ServiceConn
             }
         }
 
+        override fun cbSelectorUpdate(id: Long) {
+            val callback = callback ?: return
+            runOnMainDispatcher {
+                callback.cbSelectorUpdate(id)
+            }
+        }
+
         override fun missingPlugin(profileName: String, pluginName: String) {
             val callback = callback ?: return
             runOnMainDispatcher {
                 callback.missingPlugin(profileName, pluginName)
-            }
-        }
-
-        override fun routeAlert(type: Int, routeName: String) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.routeAlert(type, routeName)
-            }
-        }
-
-        override fun updateWakeLockStatus(acquired: Boolean) {
-        }
-
-        override fun cbLogUpdate(str: String?) {
-            DataStore.postLogListener?.let {
-                if (str != null) {
-                    it(str)
-                }
             }
         }
 
@@ -103,6 +103,15 @@ class SagerConnection(private var listenForDeath: Boolean = false) : ServiceConn
 
     var service: ISagerNetService? = null
 
+    fun updateConnectionId(id: Int) {
+        connectionId = id
+        try {
+            service?.registerCallback(serviceCallback, id)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
         this.binder = binder
         val service = ISagerNetService.Stub.asInterface(binder)!!
@@ -110,7 +119,7 @@ class SagerConnection(private var listenForDeath: Boolean = false) : ServiceConn
         try {
             if (listenForDeath) binder.linkToDeath(this, 0)
             check(!callbackRegistered)
-            service.registerCallback(serviceCallback)
+            service.registerCallback(serviceCallback, connectionId)
             callbackRegistered = true
         } catch (e: RemoteException) {
             e.printStackTrace()

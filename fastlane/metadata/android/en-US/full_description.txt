@@ -1,1 +1,1 @@
-A proxy toolchain for Android, written in Kotlin. This is a fork of SagerNet with different features and improved experience in some situations.
+Husi is a proxy configurations manager for Android. It use sing-box-extra, which based on sing-box, support many features for proxy.

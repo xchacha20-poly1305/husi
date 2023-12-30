@@ -1,10 +1,16 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
-import moe.matsuri.nb4a.SingBoxOptions
 import io.nekohasekai.sagernet.ktx.*
+import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.Util
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONObject
+
+fun ShadowsocksBean.fixPluginName() {
+    if (plugin.startsWith("simple-obfs")) {
+        plugin = plugin.replaceFirst("simple-obfs", "obfs-local")
+    }
+}
 
 fun parseShadowsocks(url: String): ShadowsocksBean {
 
@@ -31,6 +37,7 @@ fun parseShadowsocks(url: String): ShadowsocksBean {
                 password = link.password
                 plugin = link.queryParameter("plugin") ?: ""
                 name = link.fragment
+                fixPluginName()
             }
         }
 
@@ -43,6 +50,7 @@ fun parseShadowsocks(url: String): ShadowsocksBean {
             password = methodAndPswd.substringAfter(":")
             plugin = link.queryParameter("plugin") ?: ""
             name = link.fragment
+            fixPluginName()
         }
     } else {
         // v2rayN style
@@ -106,7 +114,6 @@ fun buildSingBoxOutboundShadowsocksBean(bean: ShadowsocksBean): SingBoxOptions.O
         server_port = bean.serverPort
         password = bean.password
         method = bean.method
-        udp_over_tcp = bean.sUoT
         if (bean.plugin.isNotBlank()) {
             plugin = bean.plugin.substringBefore(";")
             plugin_opts = bean.plugin.substringAfter(";")

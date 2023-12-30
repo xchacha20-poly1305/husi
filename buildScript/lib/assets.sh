@@ -13,16 +13,31 @@ get_latest_release() {
     sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
 }
 
-####
-VERSION_GEOIP=`get_latest_release "SagerNet/sing-geoip"`
-echo VERSION_GEOIP=$VERSION_GEOIP
-echo -n $VERSION_GEOIP > geoip.version.txt
-curl -LSsO https://github.com/SagerNet/sing-geoip/releases/download/$VERSION_GEOIP/geoip.db
-xz -9 geoip.db
+get_rule_set() {
+  local type=$1 # example: geoip
+  local zip_name="${type}.zip"
+  local rule_set_name="sing-${type}-rule-set"
+
+  unzip -q $zip_name
+  rm $zip_name
+  mv $rule_set_name $type
+  zip -r -q -X $zip_name $type -9
+  rm -rf $type
+}
 
 ####
-VERSION_GEOSITE=`get_latest_release "SagerNet/sing-geosite"`
+# VERSION_GEOIP=`get_latest_release "SagerNet/sing-geoip"`
+VERSION_GEOIP=$(date +%Y%m%d)
+echo VERSION_GEOIP=$VERSION_GEOIP
+echo -n $VERSION_GEOIP >geoip.version.txt
+curl -fLSso geoip.zip https://codeload.github.com/SagerNet/sing-geoip/zip/refs/heads/rule-set
+get_rule_set geoip
+# xz -9 geoip.db
+
+####
+VERSION_GEOSITE=$(date "+%Y%m%d")
 echo VERSION_GEOSITE=$VERSION_GEOSITE
-echo -n $VERSION_GEOSITE > geosite.version.txt
-curl -LSsO https://github.com/SagerNet/sing-geosite/releases/download/$VERSION_GEOSITE/geosite.db
-xz -9 geosite.db
+echo -n $VERSION_GEOSITE >geosite.version.txt
+curl -fLSso geosite.zip https://codeload.github.com/SagerNet/sing-geosite/zip/refs/heads/rule-set
+get_rule_set geosite
+# xz -9 geosite.db

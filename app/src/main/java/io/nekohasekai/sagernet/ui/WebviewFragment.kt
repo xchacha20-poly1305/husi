@@ -6,9 +6,10 @@ import android.text.InputType
 import android.view.MenuItem
 import android.view.View
 import android.webkit.*
+import android.widget.EditText
 import androidx.appcompat.widget.Toolbar
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.input.input
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutWebviewBinding
@@ -26,13 +27,15 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
 
         // layout
         toolbar.setTitle(R.string.menu_dashboard)
-        toolbar.inflateMenu(R.menu.yacd_menu)
+        toolbar.inflateMenu(R.menu.dash_menu)
         toolbar.setOnMenuItemClickListener(this)
 
         val binding = LayoutWebviewBinding.bind(view)
 
         // webview
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         mWebView = binding.webview
+        mWebView.settings.domStorageEnabled = true
         mWebView.settings.javaScriptEnabled = true
         mWebView.webViewClient = object : WebViewClient() {
             override fun onReceivedError(
@@ -45,31 +48,31 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                 super.onPageFinished(view, url)
             }
         }
-        mWebView.loadUrl(DataStore.yacdURL)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // mWebView.onPause()
-        // mWebView.removeAllViews()
-        // mWebView.destroy()
+        mWebView.loadUrl(DataStore.dashURL)
     }
 
     @SuppressLint("CheckResult")
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_set_url -> {
-                MaterialDialog(requireContext()).show {
-                    title(R.string.set_panel_url)
-                    input(
-                        prefill = DataStore.yacdURL,
-                        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-                    ) { _, str ->
-                        DataStore.yacdURL = str.toString()
-                        mWebView.loadUrl(DataStore.yacdURL)
-                    }
-                    positiveButton(R.string.save)
+                val view = EditText(context).apply {
+                    inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                    setText(DataStore.dashURL)
                 }
+                MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.set_panel_url)
+                    .setView(view)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        DataStore.dashURL = view.text.toString()
+                        mWebView.loadUrl(DataStore.dashURL)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+
+            R.id.close -> {
+                mWebView.onPause()
+                mWebView.removeAllViews()
+                mWebView.destroy()
             }
         }
         return true

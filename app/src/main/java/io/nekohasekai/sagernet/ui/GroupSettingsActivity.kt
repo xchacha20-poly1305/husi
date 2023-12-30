@@ -1,31 +1,36 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.preference.*
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
-import com.takisoft.preferencex.PreferenceFragmentCompat
-import com.takisoft.preferencex.SimpleMenuPreference
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.*
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.widget.ListListener
-import io.nekohasekai.sagernet.widget.UserAgentPreference
+import io.nekohasekai.sagernet.widget.OutboundPreference
 import kotlinx.parcelize.Parcelize
+import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 @Suppress("UNCHECKED_CAST")
 class GroupSettingsActivity(
@@ -33,10 +38,20 @@ class GroupSettingsActivity(
 ) : ThemedActivity(resId),
     OnPreferenceDataStoreChangeListener {
 
+    private lateinit var frontProxyPreference: OutboundPreference
+    private lateinit var landingProxyPreference: OutboundPreference
+
     fun ProxyGroup.init() {
         DataStore.groupName = name ?: ""
         DataStore.groupType = type
         DataStore.groupOrder = order
+        DataStore.groupIsSelector = isSelector
+
+        DataStore.frontProxy = frontProxy
+        DataStore.landingProxy = landingProxy
+        DataStore.frontProxyTmp = if (frontProxy >= 0) 3 else 0
+        DataStore.landingProxyTmp = if (landingProxy >= 0) 3 else 0
+
         val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
         DataStore.subscriptionLink = subscription.link
         DataStore.subscriptionForceResolve = subscription.forceResolve
@@ -51,6 +66,10 @@ class GroupSettingsActivity(
         name = DataStore.groupName.takeIf { it.isNotBlank() } ?: "My group"
         type = DataStore.groupType
         order = DataStore.groupOrder
+        isSelector = DataStore.groupIsSelector
+
+        frontProxy = if (DataStore.frontProxyTmp == 3) DataStore.frontProxy else -1
+        landingProxy = if (DataStore.landingProxyTmp == 3) DataStore.landingProxy else -1
 
         val isSubscription = type == GroupType.SUBSCRIPTION
         if (isSubscription) {
@@ -77,6 +96,37 @@ class GroupSettingsActivity(
     ) {
         addPreferencesFromResource(R.xml.group_preferences)
 
+        frontProxyPreference = findPreference(Key.GROUP_FRONT_PROXY)!!
+        frontProxyPreference.apply {
+            setEntries(R.array.front_proxy_entry)
+            setEntryValues(R.array.front_proxy_value)
+            setOnPreferenceChangeListener { _, newValue ->
+                if (newValue.toString() == "3") {
+                    selectProfileForAddFront.launch(
+                        Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
+                    )
+                    false
+                } else {
+                    true
+                }
+            }
+        }
+        landingProxyPreference = findPreference(Key.GROUP_LANDING_PROXY)!!
+        landingProxyPreference.apply {
+            setEntries(R.array.front_proxy_entry)
+            setEntryValues(R.array.front_proxy_value)
+            setOnPreferenceChangeListener { _, newValue ->
+                if (newValue.toString() == "3") {
+                    selectProfileForAddLanding.launch(
+                        Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
+                    )
+                    false
+                } else {
+                    true
+                }
+            }
+        }
+
         val groupType = findPreference<SimpleMenuPreference>(Key.GROUP_TYPE)!!
         val groupSubscription = findPreference<PreferenceCategory>(Key.GROUP_SUBSCRIPTION)!!
         val subscriptionUpdate = findPreference<PreferenceCategory>(Key.SUBSCRIPTION_UPDATE)!!
@@ -92,8 +142,6 @@ class GroupSettingsActivity(
             true
         }
 
-        val subscriptionUserAgent =
-            findPreference<UserAgentPreference>(Key.SUBSCRIPTION_USER_AGENT)!!
         val subscriptionAutoUpdate =
             findPreference<SwitchPreference>(Key.SUBSCRIPTION_AUTO_UPDATE)!!
         val subscriptionAutoUpdateDelay =
@@ -112,13 +160,6 @@ class GroupSettingsActivity(
             subscriptionAutoUpdateDelay.isEnabled = (newValue as Boolean)
             true
         }
-    }
-
-    fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
-    }
-
-    fun PreferenceFragmentCompat.displayPreferenceDialog(preference: Preference): Boolean {
-        return false
     }
 
     class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
@@ -184,9 +225,7 @@ class GroupSettingsActivity(
 
                 onMainDispatcher {
                     supportFragmentManager.beginTransaction()
-                        .replace(R.id.settings, MyPreferenceFragmentCompat().apply {
-                            activity = this@GroupSettingsActivity
-                        })
+                        .replace(R.id.settings, MyPreferenceFragmentCompat())
                         .commit()
 
                     DataStore.dirty = false
@@ -209,7 +248,12 @@ class GroupSettingsActivity(
                 finish()
                 return
             }
-            entity.subscription?.subscriptionUserinfo = "";
+            val keepUserInfo = (entity.type == GroupType.SUBSCRIPTION &&
+                    DataStore.groupType == GroupType.SUBSCRIPTION &&
+                    entity.subscription?.link == DataStore.subscriptionLink)
+            if (!keepUserInfo) {
+                entity.subscription?.subscriptionUserinfo = "";
+            }
             GroupManager.updateGroup(entity.apply { serialize() })
         }
 
@@ -250,12 +294,21 @@ class GroupSettingsActivity(
 
     class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
 
-        lateinit var activity: GroupSettingsActivity
+        var activity: GroupSettingsActivity? = null
 
-        override fun onCreatePreferencesFix(savedInstanceState: Bundle?, rootKey: String?) {
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = DataStore.profileCacheStore
-            activity.apply {
-                createPreferences(savedInstanceState, rootKey)
+            try {
+                activity = (requireActivity() as GroupSettingsActivity).apply {
+                    createPreferences(savedInstanceState, rootKey)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    SagerNet.application,
+                    "Error on createPreferences, please try again.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                Logs.e(e)
             }
         }
 
@@ -263,10 +316,6 @@ class GroupSettingsActivity(
             super.onViewCreated(view, savedInstanceState)
 
             ViewCompat.setOnApplyWindowInsetsListener(listView, ListListener)
-
-            activity.apply {
-                viewCreated(view, savedInstanceState)
-            }
         }
 
         override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
@@ -281,20 +330,15 @@ class GroupSettingsActivity(
                 }
                 true
             }
+
             R.id.action_apply -> {
                 runOnDefaultDispatcher {
-                    activity.saveAndExit()
+                    activity?.saveAndExit()
                 }
                 true
             }
-            else -> false
-        }
 
-        override fun onDisplayPreferenceDialog(preference: Preference) {
-            activity.apply {
-                if (displayPreferenceDialog(preference)) return
-            }
-            super.onDisplayPreferenceDialog(preference)
+            else -> false
         }
 
     }
@@ -310,6 +354,34 @@ class GroupSettingsActivity(
             }
         }
 
+    }
+
+    val selectProfileForAddFront = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+            val profile = ProfileManager.getProfile(
+                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+            ) ?: return@runOnDefaultDispatcher
+            DataStore.frontProxy = profile.id
+            onMainDispatcher {
+                frontProxyPreference.value = "3"
+            }
+        }
+    }
+
+    val selectProfileForAddLanding = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+            val profile = ProfileManager.getProfile(
+                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+            ) ?: return@runOnDefaultDispatcher
+            DataStore.landingProxy = profile.id
+            onMainDispatcher {
+                landingProxyPreference.value = "3"
+            }
+        }
     }
 
 }

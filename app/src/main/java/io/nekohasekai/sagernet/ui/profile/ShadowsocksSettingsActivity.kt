@@ -2,7 +2,7 @@ package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
 import androidx.preference.EditTextPreference
-import com.takisoft.preferencex.PreferenceFragmentCompat
+import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -39,7 +39,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
         val pn = pluginName.readStringFromCache()
         val pc = pluginConfig.readStringFromCache()
-        plugin = if (pn.isNotBlank() && pc.isNotBlank()) "$pn;$pc" else ""
+        plugin = if (pn.isNotBlank()) "$pn;$pc" else ""
     }
 
     override fun PreferenceFragmentCompat.createPreferences(

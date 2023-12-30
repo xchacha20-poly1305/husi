@@ -4,16 +4,18 @@ import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.fmt.http.parseHttp
-import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria
+import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1
+import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2
 import io.nekohasekai.sagernet.fmt.naive.parseNaive
 import io.nekohasekai.sagernet.fmt.parseUniversal
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
 import io.nekohasekai.sagernet.fmt.socks.parseSOCKS
 import io.nekohasekai.sagernet.fmt.trojan.parseTrojan
 import io.nekohasekai.sagernet.fmt.trojan_go.parseTrojanGo
+import io.nekohasekai.sagernet.fmt.tuic.parseTuic
 import io.nekohasekai.sagernet.fmt.v2ray.parseV2Ray
-import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.plugin.NekoPluginManager
+import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.proxy.neko.parseShareLink
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
@@ -181,9 +183,23 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.w(it)
             }
         } else if (startsWith("hysteria://")) {
-            Logs.d("Try parse hysteria link: $this")
+            Logs.d("Try parse hysteria1 link: $this")
             runCatching {
-                entities.add(parseHysteria(this))
+                entities.add(parseHysteria1(this))
+            }.onFailure {
+                Logs.w(it)
+            }
+        } else if (startsWith("hysteria2://") || startsWith("hy2://")) {
+            Logs.d("Try parse hysteria2 link: $this")
+            runCatching {
+                entities.add(parseHysteria2(this))
+            }.onFailure {
+                Logs.w(it)
+            }
+        } else if (startsWith("tuic://")) {
+            Logs.d("Try parse TUIC link: $this")
+            runCatching {
+                entities.add(parseTuic(this))
             }.onFailure {
                 Logs.w(it)
             }

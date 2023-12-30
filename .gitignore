@@ -9,12 +9,13 @@ build/
 .cxx
 local.properties
 /app/libs/
-/app/src/main/assets/sing-box
 /service_account_credentials.json
 jniLibs/
 /library/libcore_build/
 .idea/deploymentTargetDropDown.xml
 /nkmr
+go.work*
+/Dash-*
 
 # submodules
 /external

@@ -2,8 +2,8 @@ package io.nekohasekai.sagernet.fmt.v2ray;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
+import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
 
 public abstract class StandardV2RayBean extends AbstractBean {
@@ -13,7 +13,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     //////// End of VMess & VLESS ////////
 
-    // "V2Ray Transport" tcp/http/ws/quic/grpc
+    // "V2Ray Transport" tcp/http/ws/quic/grpc/httpUpgrade
     public String type;
 
     public String host;
@@ -39,6 +39,12 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public String realityShortId;
 
+    // --------------------------------------- ECH
+
+    public Boolean ech;
+
+    public String echCfg;
+
 
     // --------------------------------------- //
 
@@ -49,7 +55,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     // --------------------------------------- //
 
-    public Integer packetEncoding; // 1:packet 2:xudp
+    public Integer packetEncoding; // 1:packetaddr 2:xudp
 
     @Override
     public void initializeDefaultValues() {
@@ -60,10 +66,18 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (JavaUtil.isNullOrBlank(type)) type = "tcp";
         else if ("h2".equals(type)) type = "http";
 
+        type = type.toLowerCase();
+
         if (JavaUtil.isNullOrBlank(host)) host = "";
         if (JavaUtil.isNullOrBlank(path)) path = "";
 
-        if (JavaUtil.isNullOrBlank(security)) security = "none";
+        if (JavaUtil.isNullOrBlank(security)) {
+            if (this instanceof TrojanBean || isVLESS()) {
+                security = "tls";
+            } else {
+                security = "none";
+            }
+        }
         if (JavaUtil.isNullOrBlank(sni)) sni = "";
         if (JavaUtil.isNullOrBlank(alpn)) alpn = "";
 
@@ -77,6 +91,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (realityPubKey == null) realityPubKey = "";
         if (realityShortId == null) realityShortId = "";
+
+        if (ech == null) ech = false;
+        if (echCfg == null) echCfg = "";
     }
 
     @Override
@@ -111,6 +128,11 @@ public abstract class StandardV2RayBean extends AbstractBean {
             case "grpc": {
                 output.writeString(path);
             }
+            case "httpupgrade": {
+                output.writeString(host);
+                output.writeString(path);
+
+            }
         }
 
         output.writeString(security);
@@ -122,6 +144,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
             output.writeString(utlsFingerprint);
             output.writeString(realityPubKey);
             output.writeString(realityShortId);
+            output.writeBoolean(ech);
+            output.writeString(echCfg);
         }
 
         output.writeInt(packetEncoding);
@@ -158,6 +182,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
             case "grpc": {
                 path = input.readString();
             }
+            case "httpupgrade": {
+                host = input.readString();
+                path = input.readString();
+            }
         }
 
         security = input.readString();
@@ -169,6 +197,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
             utlsFingerprint = input.readString();
             realityPubKey = input.readString();
             realityShortId = input.readString();
+            ech = input.readBoolean();
+            echCfg = input.readString();
         }
 
         packetEncoding = input.readInt();
@@ -180,13 +210,15 @@ public abstract class StandardV2RayBean extends AbstractBean {
         StandardV2RayBean bean = ((StandardV2RayBean) other);
         bean.allowInsecure = allowInsecure;
         bean.utlsFingerprint = utlsFingerprint;
-        bean.realityPubKey = realityPubKey;
-        bean.realityShortId = realityShortId;
+        bean.packetEncoding = packetEncoding;
+        bean.ech = ech;
+        bean.echCfg = echCfg;
     }
 
     public boolean isVLESS() {
         if (this instanceof VMessBean) {
-            return ((VMessBean) this).alterId == -1;
+            Integer aid = ((VMessBean) this).alterId;
+            return aid != null && aid == -1;
         }
         return false;
     }

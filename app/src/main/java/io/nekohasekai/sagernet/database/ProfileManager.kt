@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.database
 
 import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.ktx.Logs
@@ -18,7 +17,7 @@ object ProfileManager {
     interface Listener {
         suspend fun onAdd(profile: ProxyEntity)
         suspend fun onUpdated(data: TrafficData)
-        suspend fun onUpdated(profile: ProxyEntity)
+        suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean)
         suspend fun onRemoved(groupId: Long, profileId: Long)
     }
 
@@ -88,13 +87,13 @@ object ProfileManager {
 
     suspend fun updateProfile(profile: ProxyEntity) {
         SagerDatabase.proxyDao.updateProxy(profile)
-        iterator { onUpdated(profile) }
+        iterator { onUpdated(profile, false) }
     }
 
     suspend fun updateProfile(profiles: List<ProxyEntity>) {
         SagerDatabase.proxyDao.updateProxy(profiles)
         profiles.forEach {
-            iterator { onUpdated(it) }
+            iterator { onUpdated(it, false) }
         }
     }
 
@@ -142,12 +141,12 @@ object ProfileManager {
 
     // postUpdate: post to listeners, don't change the DB
 
-    suspend fun postUpdate(profileId: Long) {
-        postUpdate(getProfile(profileId) ?: return)
+    suspend fun postUpdate(profileId: Long, noTraffic: Boolean = false) {
+        postUpdate(getProfile(profileId) ?: return, noTraffic)
     }
 
-    suspend fun postUpdate(profile: ProxyEntity) {
-        iterator { onUpdated(profile) }
+    suspend fun postUpdate(profile: ProxyEntity, noTraffic: Boolean = false) {
+        iterator { onUpdated(profile, noTraffic) }
     }
 
     suspend fun postUpdate(data: TrafficData) {
@@ -213,23 +212,16 @@ object ProfileManager {
                     outbound = -2,
                 )
             )
-            var country = Locale.getDefault().country.lowercase()
-            var displayCountry = Locale.getDefault().displayCountry
-            if (country in arrayOf(
-                    "ir"
-                )
-            ) {
-                createRule(
-                    RuleEntity(
-                        name = app.getString(R.string.route_bypass_domain, displayCountry),
-                        domains = "domain:$country",
-                        outbound = -1
-                    ), false
-                )
-            } else {
-                country = Locale.CHINA.country.lowercase()
-                displayCountry = Locale.CHINA.displayCountry
-                createRule(
+            val fuckedCountry = mutableListOf("cn:中国")
+            if (Locale.getDefault().country != Locale.CHINA.country) {
+                // 非中文用户
+                fuckedCountry += "ir:Iran"
+            }
+            for (c in fuckedCountry) {
+                val country = c.substringBefore(":")
+                val displayCountry = c.substringAfter(":")
+                //
+                if (country == "cn") createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_play_store, displayCountry),
                         domains = "domain:googleapis.cn",
@@ -242,14 +234,14 @@ object ProfileManager {
                         outbound = -1
                     ), false
                 )
+                createRule(
+                    RuleEntity(
+                        name = app.getString(R.string.route_bypass_ip, displayCountry),
+                        ip = "geoip:$country",
+                        outbound = -1
+                    ), false
+                )
             }
-            createRule(
-                RuleEntity(
-                    name = app.getString(R.string.route_bypass_ip, displayCountry),
-                    ip = "geoip:$country",
-                    outbound = -1
-                ), false
-            )
             rules = SagerDatabase.rulesDao.allRules()
         }
         return rules

@@ -1,35 +1,47 @@
 package io.nekohasekai.sagernet.fmt.hysteria;
 
 import androidx.annotation.NonNull;
-
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import io.nekohasekai.sagernet.ktx.NetsKt;
+import kotlin.text.StringsKt;
+import org.jetbrains.annotations.NotNull;
 
 public class HysteriaBean extends AbstractBean {
-
     public static final int TYPE_NONE = 0;
     public static final int TYPE_STRING = 1;
+
     public static final int TYPE_BASE64 = 2;
-
-    public Integer authPayloadType;
-    public String authPayload;
-
     public static final int PROTOCOL_UDP = 0;
+
+    // HY1 & 2
     public static final int PROTOCOL_FAKETCP = 1;
     public static final int PROTOCOL_WECHAT_VIDEO = 2;
+    public static final Creator<HysteriaBean> CREATOR = new CREATOR<HysteriaBean>() {
+        @NonNull
+        @Override
+        public HysteriaBean newInstance() {
+            return new HysteriaBean();
+        }
 
-    public Integer protocol;
-
+        @Override
+        public HysteriaBean[] newArray(int size) {
+            return new HysteriaBean[size];
+        }
+    };
+    public Integer protocolVersion;
+    // Use serverPorts instead of serverPort
+    public String serverPorts;
+    public Boolean ech;
+    public String echCfg;
+    public String authPayload;
     public String obfuscation;
     public String sni;
-    public String alpn;
     public String caText;
 
+    // HY1
     public Integer uploadMbps;
     public Integer downloadMbps;
     public Boolean allowInsecure;
@@ -37,6 +49,9 @@ public class HysteriaBean extends AbstractBean {
     public Integer connectionReceiveWindow;
     public Boolean disableMtuDiscovery;
     public Integer hopInterval;
+    public String alpn;
+    public Integer authPayloadType;
+    public Integer protocol;
 
     @Override
     public boolean canMapping() {
@@ -46,6 +61,8 @@ public class HysteriaBean extends AbstractBean {
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
+        if (protocolVersion == null) protocolVersion = 2;
+
         if (authPayloadType == null) authPayloadType = TYPE_NONE;
         if (authPayload == null) authPayload = "";
         if (protocol == null) protocol = PROTOCOL_UDP;
@@ -53,21 +70,33 @@ public class HysteriaBean extends AbstractBean {
         if (sni == null) sni = "";
         if (alpn == null) alpn = "";
         if (caText == null) caText = "";
-
-        if (uploadMbps == null) uploadMbps = 10;
-        if (downloadMbps == null) downloadMbps = 50;
         if (allowInsecure == null) allowInsecure = false;
+
+        if (protocolVersion == 1) {
+            if (uploadMbps == null) uploadMbps = 10;
+            if (downloadMbps == null) downloadMbps = 50;
+        } else {
+            if (uploadMbps == null) uploadMbps = 0;
+            if (downloadMbps == null) downloadMbps = 0;
+        }
 
         if (streamReceiveWindow == null) streamReceiveWindow = 0;
         if (connectionReceiveWindow == null) connectionReceiveWindow = 0;
         if (disableMtuDiscovery == null) disableMtuDiscovery = false;
         if (hopInterval == null) hopInterval = 10;
+        if (serverPorts == null) serverPorts = "443";
+
+        if (ech == null) ech = false;
+        if (echCfg == null) echCfg = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(5);
+        output.writeInt(7);
         super.serialize(output);
+
+        output.writeInt(protocolVersion);
+
         output.writeInt(authPayloadType);
         output.writeString(authPayload);
         output.writeInt(protocol);
@@ -84,6 +113,10 @@ public class HysteriaBean extends AbstractBean {
         output.writeInt(connectionReceiveWindow);
         output.writeBoolean(disableMtuDiscovery);
         output.writeInt(hopInterval);
+        output.writeString(serverPorts);
+
+        output.writeBoolean(ech);
+        output.writeString(echCfg);
 
     }
 
@@ -91,6 +124,11 @@ public class HysteriaBean extends AbstractBean {
     public void deserialize(ByteBufferInput input) {
         int version = input.readInt();
         super.deserialize(input);
+        if (version >= 7) {
+            protocolVersion = input.readInt();
+        } else {
+            protocolVersion = 1;
+        }
         authPayloadType = input.readInt();
         authPayload = input.readString();
         if (version >= 3) {
@@ -113,6 +151,20 @@ public class HysteriaBean extends AbstractBean {
         if (version >= 5) {
             hopInterval = input.readInt();
         }
+        if (version >= 6) {
+            serverPorts = input.readString();
+        } else {
+            // old update to new
+            if (HysteriaFmtKt.isMultiPort(serverAddress)) {
+                serverPorts = StringsKt.substringAfterLast(serverAddress, ":", serverAddress);
+                serverAddress = StringsKt.substringBeforeLast(serverAddress, ":", serverAddress);
+            } else {
+                serverPorts = serverPort.toString();
+            }
+        }
+
+        ech = input.readBoolean();
+        echCfg = input.readString();
     }
 
     @Override
@@ -124,14 +176,18 @@ public class HysteriaBean extends AbstractBean {
         bean.allowInsecure = allowInsecure;
         bean.disableMtuDiscovery = disableMtuDiscovery;
         bean.hopInterval = hopInterval;
+        bean.ech = ech;
+        bean.echCfg = echCfg;
     }
 
     @Override
     public String displayAddress() {
-        if (HysteriaFmtKt.isMultiPort(this)) {
-            return serverAddress;
-        }
-        return super.displayAddress();
+        return NetsKt.wrapIPV6Host(serverAddress) + ":" + serverPorts;
+    }
+
+    @Override
+    public boolean canTCPing() {
+        return false;
     }
 
     @NotNull
@@ -139,17 +195,4 @@ public class HysteriaBean extends AbstractBean {
     public HysteriaBean clone() {
         return KryoConverters.deserialize(new HysteriaBean(), KryoConverters.serialize(this));
     }
-
-    public static final Creator<HysteriaBean> CREATOR = new CREATOR<HysteriaBean>() {
-        @NonNull
-        @Override
-        public HysteriaBean newInstance() {
-            return new HysteriaBean();
-        }
-
-        @Override
-        public HysteriaBean[] newArray(int size) {
-            return new HysteriaBean[size];
-        }
-    };
-} 
+}

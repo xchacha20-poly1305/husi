@@ -35,7 +35,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         }
 
         ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
-            putExtra("sendLog", "NB4A Crash")
+            putExtra("sendLog", "husi Crash")
         })
     }
 
@@ -61,7 +61,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
 
     fun buildReportHeader(): String {
         var report = ""
-        report += "NekoBox for Andoird ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.FLAVOR.uppercase()}\n"
+        report += "husi ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.FLAVOR.uppercase()}\n"
         report += "Date: ${getCurrentMilliSecondUTCTimeStamp()}\n\n"
         report += "OS_VERSION: ${getSystemPropertyWithAndroidAPI("os.version")}\n"
         report += "SDK_INT: ${Build.VERSION.SDK_INT}\n"
@@ -102,7 +102,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
                 report += "\n"
                 report += pair.key + ": " + pair.toString()
             }
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             report += "Export settings failed: " + formatThrowable(e)
         }
 
@@ -136,7 +136,8 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
                 if (matcher.matches()) {
                     key = matcher.group(1)
                     value = matcher.group(2)
-                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) systemProperties[key] = value
+                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) systemProperties[key] =
+                        value
                 }
             }
             bufferedReader.close()

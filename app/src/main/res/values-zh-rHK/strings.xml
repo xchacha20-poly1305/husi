@@ -6,7 +6,6 @@
     <string name="menu_about">關於</string>
     <string name="telegram">Telegram 更新頻道</string>
     <string name="app_desc">以 Kotlin 編寫的 Android 通用代理工具鏈。</string>
-    <string name="logcat_summary">超級有用啊wow</string>
     <string name="group_update">更新</string>
     <string name="theme">主題</string>
     <string name="document">文件</string>
@@ -18,11 +17,14 @@
     <string name="group_no_difference">%s: 沒有變化</string>
     <string name="group_updated">%s: 更新了 %d 個代理</string>
     <string name="group_added">已新增：
-\n%s</string>
+        \n%s
+    </string>
     <string name="group_changed">已更新：
-\n%s</string>
+        \n%s
+    </string>
     <string name="group_deleted">已移除：
-\n%s</string>
+        \n%s
+    </string>
     <string name="connection_test_testing">測試中……</string>
     <string name="connection_test_available">連接成功: HTTPS 握手需時 %dms</string>
     <string name="tls">使用 TLS</string>
@@ -46,7 +48,6 @@
     <string name="auto_connect_summary">在開機或本程式更新後將自動重新啓用代理</string>
     <string name="delete">移除</string>
     <string name="enable">啟用</string>
-    <string name="donate_info">世界好得意 請比世界錢</string>
     <string name="route_bypass">繞過</string>
     <string name="route_block">封鎖</string>
     <string name="add_profile_methods_scan_qr_code">掃描二維碼</string>
@@ -67,7 +68,8 @@
     <string name="group_diff">變化 (%s)</string>
     <string name="group_show_diff">變化</string>
     <string name="group_duplicate">重複：
-\n%s</string>
+        \n%s
+    </string>
     <string name="general_settings">應用程式設定</string>
     <string name="cag_misc">其他設定</string>
     <string name="speed">%s/s</string>
@@ -81,12 +83,13 @@
     <string name="show_direct_speed">顯示直連速度</string>
     <string name="security_settings">安全設定</string>
     <string name="speed_detail">代理： %1$s↑ %2$s↓
-\n直連： %3$s↑ %4$s↓</string>
+        \n直連： %3$s↑ %4$s↓
+    </string>
     <string name="cag_dns">DNS 設定</string>
     <string name="direct_dns">直連 DNS</string>
+    <string name="underlying_dns">底層 DNS</string>
     <string name="enable_dns_routing">啟用 DNS 路由</string>
     <string name="dns_hosts">域名重寫</string>
-    <string name="transproxy_mode">透明代理模式</string>
     <string name="encryption">加密</string>
     <string name="route_rules_official">官方</string>
     <string name="route_opt_block_ads">封鎖廣告</string>

@@ -1,17 +1,11 @@
 #!/bin/bash
 
-# For CI build, use downloaded golang
-export golang=$PWD/build/golang
-export GOPATH=$golang/gopath
-export GOROOT=$golang/go
-export PATH=$golang/go/bin:$GOPATH/bin:$PATH
-
 source buildScript/init/env_ndk.sh
 
 if [[ "$OSTYPE" =~ ^darwin ]]; then
-  export PROJECT=$PWD
+  export SRC_ROOT=$PWD
 else
-  export PROJECT=$(realpath .)
+  export SRC_ROOT=$(realpath .)
 fi
 
 DEPS=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin

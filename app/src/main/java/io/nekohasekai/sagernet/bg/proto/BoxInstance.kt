@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import android.os.Build
 import android.os.SystemClock
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.AbstractInstance
@@ -10,21 +9,25 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
-import io.nekohasekai.sagernet.fmt.hysteria.buildHysteriaConfig
+import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
+import io.nekohasekai.sagernet.fmt.mieru.MieruBean
+import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
-import io.nekohasekai.sagernet.fmt.tuic.TuicBean
-import io.nekohasekai.sagernet.fmt.tuic.buildTuicConfig
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.plugin.PluginManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.plus
 import libcore.BoxInstance
 import libcore.Libcore
+import moe.matsuri.nb4a.plugin.NekoPluginManager
 import moe.matsuri.nb4a.proxy.neko.NekoBean
 import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
-import moe.matsuri.nb4a.plugin.NekoPluginManager
 import moe.matsuri.nb4a.proxy.neko.updateAllConfig
 import org.json.JSONObject
 import java.io.File
@@ -67,13 +70,20 @@ abstract class BoxInstance(
                         initPlugin("trojan-go-plugin")
                         pluginConfigs[port] = profile.type to bean.buildTrojanGoConfig(port)
                     }
+
+                    is MieruBean -> {
+                        initPlugin("mieru-plugin")
+                        pluginConfigs[port] = profile.type to bean.buildMieruConfig(port)
+                    }
+
                     is NaiveBean -> {
                         initPlugin("naive-plugin")
                         pluginConfigs[port] = profile.type to bean.buildNaiveConfig(port)
                     }
+
                     is HysteriaBean -> {
                         initPlugin("hysteria-plugin")
-                        pluginConfigs[port] = profile.type to bean.buildHysteriaConfig(port) {
+                        pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
                             File(
                                 app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
                             ).apply {
@@ -82,18 +92,7 @@ abstract class BoxInstance(
                             }
                         }
                     }
-                    is TuicBean -> {
-                        initPlugin("tuic-plugin")
-                        pluginConfigs[port] = profile.type to bean.buildTuicConfig(port) {
-                            File(
-                                app.noBackupFilesDir,
-                                "tuic_" + SystemClock.elapsedRealtime() + ".ca"
-                            ).apply {
-                                parentFile?.mkdirs()
-                                cacheFiles.add(this)
-                            }
-                        }
-                    }
+
                     is NekoBean -> {
                         // check if plugin binary can be loaded
                         initPlugin(bean.plgId)
@@ -112,10 +111,8 @@ abstract class BoxInstance(
 
     override fun launch() {
         // TODO move, this is not box
-        val context =
-            if (Build.VERSION.SDK_INT < 24 || SagerNet.user.isUserUnlocked) SagerNet.application else SagerNet.deviceStorage
-        val cache = File(context.cacheDir, "tmpcfg")
-        cache.mkdirs()
+        val cacheDir = File(SagerNet.application.cacheDir, "tmpcfg")
+        cacheDir.mkdirs()
 
         for ((chain) in config.externalIndex) {
             chain.entries.forEachIndexed { index, (port, profile) ->
@@ -127,9 +124,10 @@ abstract class BoxInstance(
                     externalInstances.containsKey(port) -> {
                         externalInstances[port]!!.launch()
                     }
+
                     bean is TrojanGoBean -> {
                         val configFile = File(
-                            cache, "trojan_go_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir, "trojan_go_" + SystemClock.elapsedRealtime() + ".json"
                         )
                         configFile.parentFile?.mkdirs()
                         configFile.writeText(config)
@@ -141,9 +139,29 @@ abstract class BoxInstance(
 
                         processes.start(commands)
                     }
+
+                    bean is MieruBean -> {
+                        val configFile = File(
+                            cacheDir, "mieru_" + SystemClock.elapsedRealtime() + ".json"
+                        )
+
+                        configFile.parentFile?.mkdirs()
+                        configFile.writeText(config)
+                        cacheFiles.add(configFile)
+
+                        val envMap = mutableMapOf<String, String>()
+                        envMap["MIERU_CONFIG_JSON_FILE"] = configFile.absolutePath
+
+                        val commands = mutableListOf(
+                            initPlugin("mieru-plugin").path, "run",
+                        )
+
+                        processes.start(commands, envMap)
+                    }
+
                     bean is NaiveBean -> {
                         val configFile = File(
-                            cache, "naive_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir, "naive_" + SystemClock.elapsedRealtime() + ".json"
                         )
 
                         configFile.parentFile?.mkdirs()
@@ -152,27 +170,16 @@ abstract class BoxInstance(
 
                         val envMap = mutableMapOf<String, String>()
 
-                        if (bean.certificates.isNotBlank()) {
-                            val certFile = File(
-                                cache, "naive_" + SystemClock.elapsedRealtime() + ".crt"
-                            )
-
-                            certFile.parentFile?.mkdirs()
-                            certFile.writeText(bean.certificates)
-                            cacheFiles.add(certFile)
-
-                            envMap["SSL_CERT_FILE"] = certFile.absolutePath
-                        }
-
                         val commands = mutableListOf(
                             initPlugin("naive-plugin").path, configFile.absolutePath
                         )
 
                         processes.start(commands, envMap)
                     }
+
                     bean is HysteriaBean -> {
                         val configFile = File(
-                            cache, "hysteria_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".json"
                         )
 
                         configFile.parentFile?.mkdirs()
@@ -185,7 +192,7 @@ abstract class BoxInstance(
                             "--config",
                             configFile.absolutePath,
                             "--log-level",
-                            if (DataStore.enableLog) "trace" else "warn",
+                            if (DataStore.logLevel > 0) "trace" else "warn",
                             "client"
                         )
 
@@ -195,6 +202,7 @@ abstract class BoxInstance(
 
                         processes.start(commands)
                     }
+
                     bean is NekoBean -> {
                         // config built from JS
                         val nekoRunConfigs = bean.allConfig.optJSONArray("nekoRunConfigs")
@@ -204,7 +212,7 @@ abstract class BoxInstance(
                             any as JSONObject
 
                             val name = any.getString("name")
-                            val configFile = File(cache, name)
+                            val configFile = File(cacheDir, name)
                             configFile.parentFile?.mkdirs()
                             val content = any.getString("content")
                             configFile.writeText(content)
@@ -229,24 +237,6 @@ abstract class BoxInstance(
                                 }
                             }
                         }
-
-                        processes.start(commands)
-                    }
-                    bean is TuicBean -> {
-                        val configFile = File(
-                            context.noBackupFilesDir,
-                            "tuic_" + SystemClock.elapsedRealtime() + ".json"
-                        )
-
-                        configFile.parentFile?.mkdirs()
-                        configFile.writeText(config)
-                        cacheFiles.add(configFile)
-
-                        val commands = mutableListOf(
-                            initPlugin("tuic-plugin").path,
-                            "-c",
-                            configFile.absolutePath,
-                        )
 
                         processes.start(commands)
                     }

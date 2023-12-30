@@ -32,6 +32,7 @@ fun parseTrojanGo(server: String): TrojanGoBean {
                         path = it
                     }
                 }
+
                 else -> {
                 }
             }
@@ -91,7 +92,7 @@ fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
         put("password", JSONArray().apply {
             put(password)
         })
-        put("log_level", if (DataStore.enableLog) 0 else 2)
+        put("log_level", if (DataStore.logLevel > 0) 0 else 2)
         if (Protocols.shouldEnableMux("trojan-go")) put("mux", JSONObject().apply {
             put("enabled", true)
             put("concurrency", DataStore.muxConcurrency)
@@ -103,6 +104,7 @@ fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
         when (type) {
             "original" -> {
             }
+
             "ws" -> put("websocket", JSONObject().apply {
                 put("enabled", true)
                 put("host", host)
@@ -116,12 +118,13 @@ fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
 
         put("ssl", JSONObject().apply {
             if (sni.isNotBlank()) put("sni", sni)
-            if (allowInsecure) put("verify", false)
+            if (allowInsecure) put("verify", !(allowInsecure || DataStore.globalAllowInsecure))
         })
 
         when {
             encryption == "none" -> {
             }
+
             encryption.startsWith("ss;") -> put("shadowsocks", JSONObject().apply {
                 put("enabled", true)
                 put("method", encryption.substringAfter(";").substringBefore(":"))
@@ -139,6 +142,7 @@ fun JSONObject.parseTrojanGo(): TrojanGoBean {
             is String -> {
                 password = pass
             }
+
             is List<*> -> {
                 password = pass[0] as String
             }

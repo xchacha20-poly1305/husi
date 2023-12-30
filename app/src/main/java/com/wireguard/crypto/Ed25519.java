@@ -51,13 +51,61 @@ public final class Ed25519 {
     private static final BigInteger D2_BI = BigInteger.valueOf(2).multiply(D_BI).mod(P_BI);
     private static final BigInteger SQRTM1_BI =
             BigInteger.valueOf(2).modPow(P_BI.subtract(BigInteger.ONE).divide(BigInteger.valueOf(4)), P_BI);
+    private static final int PUBLIC_KEY_LEN = Field25519.FIELD_LEN;
+    private static final int SIGNATURE_LEN = Field25519.FIELD_LEN * 2;
+    // (x = 0, y = 1) point
+    private static final CachedXYT CACHED_NEUTRAL = new CachedXYT(
+            new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            new long[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    private static final PartialXYZT NEUTRAL = new PartialXYZT(
+            new XYZ(new long[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                    new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0}),
+            new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    // The order of the generator as unsigned bytes in little endian order.
+    // (2^252 + 0x14def9dea2f79cd65812631a5cf5d3ed, cf. RFC 7748)
+    private static final byte[] GROUP_ORDER = {
+            (byte) 0xed, (byte) 0xd3, (byte) 0xf5, (byte) 0x5c,
+            (byte) 0x1a, (byte) 0x63, (byte) 0x12, (byte) 0x58,
+            (byte) 0xd6, (byte) 0x9c, (byte) 0xf7, (byte) 0xa2,
+            (byte) 0xde, (byte) 0xf9, (byte) 0xde, (byte) 0x14,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x10};
 
-    private Ed25519() {
+    static {
+        Point b = new Point();
+        b.y = BigInteger.valueOf(4).multiply(BigInteger.valueOf(5).modInverse(P_BI)).mod(P_BI);
+        b.x = recoverX(b.y);
+
+        D = Field25519.expand(toLittleEndian(D_BI));
+        D2 = Field25519.expand(toLittleEndian(D2_BI));
+        SQRTM1 = Field25519.expand(toLittleEndian(SQRTM1_BI));
+
+        Point bi = b;
+        B_TABLE = new CachedXYT[32][8];
+        for (int i = 0; i < 32; i++) {
+            Point bij = bi;
+            for (int j = 0; j < 8; j++) {
+                B_TABLE[i][j] = getCachedXYT(bij);
+                bij = edwards(bij, bi);
+            }
+            for (int j = 0; j < 8; j++) {
+                bi = edwards(bi, bi);
+            }
+        }
+        bi = b;
+        Point b2 = edwards(b, b);
+        B2 = new CachedXYT[8];
+        for (int i = 0; i < 8; i++) {
+            B2[i] = getCachedXYT(bi);
+            bi = edwards(bi, b2);
+        }
     }
 
-    private static class Point {
-        private BigInteger x;
-        private BigInteger y;
+    private Ed25519() {
     }
 
     private static BigInteger recoverX(BigInteger y) {
@@ -107,989 +155,6 @@ public final class Ed25519 {
                 Field25519.expand(toLittleEndian(p.y.add(p.x).mod(P_BI))),
                 Field25519.expand(toLittleEndian(p.y.subtract(p.x).mod(P_BI))),
                 Field25519.expand(toLittleEndian(D2_BI.multiply(p.x).multiply(p.y).mod(P_BI))));
-    }
-
-    static {
-        Point b = new Point();
-        b.y = BigInteger.valueOf(4).multiply(BigInteger.valueOf(5).modInverse(P_BI)).mod(P_BI);
-        b.x = recoverX(b.y);
-
-        D = Field25519.expand(toLittleEndian(D_BI));
-        D2 = Field25519.expand(toLittleEndian(D2_BI));
-        SQRTM1 = Field25519.expand(toLittleEndian(SQRTM1_BI));
-
-        Point bi = b;
-        B_TABLE = new CachedXYT[32][8];
-        for (int i = 0; i < 32; i++) {
-            Point bij = bi;
-            for (int j = 0; j < 8; j++) {
-                B_TABLE[i][j] = getCachedXYT(bij);
-                bij = edwards(bij, bi);
-            }
-            for (int j = 0; j < 8; j++) {
-                bi = edwards(bi, bi);
-            }
-        }
-        bi = b;
-        Point b2 = edwards(b, b);
-        B2 = new CachedXYT[8];
-        for (int i = 0; i < 8; i++) {
-            B2[i] = getCachedXYT(bi);
-            bi = edwards(bi, b2);
-        }
-    }
-
-    private static final int PUBLIC_KEY_LEN = Field25519.FIELD_LEN;
-    private static final int SIGNATURE_LEN = Field25519.FIELD_LEN * 2;
-
-    /**
-     * Defines field 25519 function based on <a
-     * href="https://github.com/agl/curve25519-donna/blob/master/curve25519-donna.c">curve25519-donna C
-     * implementation</a> (mostly identical).
-     *
-     * <p>Field elements are written as an array of signed, 64-bit limbs (an array of longs), least
-     * significant first. The value of the field element is:
-     *
-     * <pre>
-     * x[0] + 2^26·x[1] + 2^51·x[2] + 2^77·x[3] + 2^102·x[4] + 2^128·x[5] + 2^153·x[6] + 2^179·x[7] +
-     * 2^204·x[8] + 2^230·x[9],
-     * </pre>
-     *
-     * <p>i.e. the limbs are 26, 25, 26, 25, ... bits wide.
-     */
-    private static final class Field25519 {
-        /**
-         * During Field25519 computation, the mixed radix representation may be in different forms:
-         * <ul>
-         *  <li> Reduced-size form: the array has size at most 10.
-         *  <li> Non-reduced-size form: the array is not reduced modulo 2^255 - 19 and has size at most
-         *  19.
-         * </ul>
-         * <p>
-         * TODO(quannguyen):
-         * <ul>
-         *  <li> Clarify ill-defined terminologies.
-         *  <li> The reduction procedure is different from DJB's paper
-         *  (http://cr.yp.to/ecdh/curve25519-20060209.pdf). The coefficients after reducing degree and
-         *  reducing coefficients aren't guaranteed to be in range {-2^25, ..., 2^25}. We should check to
-         *  see what's going on.
-         *  <li> Consider using method mult() everywhere and making product() private.
-         * </ul>
-         */
-
-        static final int FIELD_LEN = 32;
-        static final int LIMB_CNT = 10;
-        private static final long TWO_TO_25 = 1 << 25;
-        private static final long TWO_TO_26 = TWO_TO_25 << 1;
-
-        private static final int[] EXPAND_START = {0, 3, 6, 9, 12, 16, 19, 22, 25, 28};
-        private static final int[] EXPAND_SHIFT = {0, 2, 3, 5, 6, 0, 1, 3, 4, 6};
-        private static final int[] MASK = {0x3ffffff, 0x1ffffff};
-        private static final int[] SHIFT = {26, 25};
-
-        /**
-         * Sums two numbers: output = in1 + in2
-         * <p>
-         * On entry: in1, in2 are in reduced-size form.
-         */
-        static void sum(long[] output, long[] in1, long[] in2) {
-            for (int i = 0; i < LIMB_CNT; i++) {
-                output[i] = in1[i] + in2[i];
-            }
-        }
-
-        /**
-         * Sums two numbers: output += in
-         * <p>
-         * On entry: in is in reduced-size form.
-         */
-        static void sum(long[] output, long[] in) {
-            sum(output, output, in);
-        }
-
-        /**
-         * Find the difference of two numbers: output = in1 - in2
-         * (note the order of the arguments!).
-         * <p>
-         * On entry: in1, in2 are in reduced-size form.
-         */
-        static void sub(long[] output, long[] in1, long[] in2) {
-            for (int i = 0; i < LIMB_CNT; i++) {
-                output[i] = in1[i] - in2[i];
-            }
-        }
-
-        /**
-         * Find the difference of two numbers: output = in - output
-         * (note the order of the arguments!).
-         * <p>
-         * On entry: in, output are in reduced-size form.
-         */
-        static void sub(long[] output, long[] in) {
-            sub(output, in, output);
-        }
-
-        /**
-         * Multiply a number by a scalar: output = in * scalar
-         */
-        static void scalarProduct(long[] output, long[] in, long scalar) {
-            for (int i = 0; i < LIMB_CNT; i++) {
-                output[i] = in[i] * scalar;
-            }
-        }
-
-        /**
-         * Multiply two numbers: out = in2 * in
-         * <p>
-         * output must be distinct to both inputs. The inputs are reduced coefficient form,
-         * the output is not.
-         * <p>
-         * out[x] <= 14 * the largest product of the input limbs.
-         */
-        static void product(long[] out, long[] in2, long[] in) {
-            out[0] = in2[0] * in[0];
-            out[1] = in2[0] * in[1]
-                    + in2[1] * in[0];
-            out[2] = 2 * in2[1] * in[1]
-                    + in2[0] * in[2]
-                    + in2[2] * in[0];
-            out[3] = in2[1] * in[2]
-                    + in2[2] * in[1]
-                    + in2[0] * in[3]
-                    + in2[3] * in[0];
-            out[4] = in2[2] * in[2]
-                    + 2 * (in2[1] * in[3] + in2[3] * in[1])
-                    + in2[0] * in[4]
-                    + in2[4] * in[0];
-            out[5] = in2[2] * in[3]
-                    + in2[3] * in[2]
-                    + in2[1] * in[4]
-                    + in2[4] * in[1]
-                    + in2[0] * in[5]
-                    + in2[5] * in[0];
-            out[6] = 2 * (in2[3] * in[3] + in2[1] * in[5] + in2[5] * in[1])
-                    + in2[2] * in[4]
-                    + in2[4] * in[2]
-                    + in2[0] * in[6]
-                    + in2[6] * in[0];
-            out[7] = in2[3] * in[4]
-                    + in2[4] * in[3]
-                    + in2[2] * in[5]
-                    + in2[5] * in[2]
-                    + in2[1] * in[6]
-                    + in2[6] * in[1]
-                    + in2[0] * in[7]
-                    + in2[7] * in[0];
-            out[8] = in2[4] * in[4]
-                    + 2 * (in2[3] * in[5] + in2[5] * in[3] + in2[1] * in[7] + in2[7] * in[1])
-                    + in2[2] * in[6]
-                    + in2[6] * in[2]
-                    + in2[0] * in[8]
-                    + in2[8] * in[0];
-            out[9] = in2[4] * in[5]
-                    + in2[5] * in[4]
-                    + in2[3] * in[6]
-                    + in2[6] * in[3]
-                    + in2[2] * in[7]
-                    + in2[7] * in[2]
-                    + in2[1] * in[8]
-                    + in2[8] * in[1]
-                    + in2[0] * in[9]
-                    + in2[9] * in[0];
-            out[10] =
-                    2 * (in2[5] * in[5] + in2[3] * in[7] + in2[7] * in[3] + in2[1] * in[9] + in2[9] * in[1])
-                            + in2[4] * in[6]
-                            + in2[6] * in[4]
-                            + in2[2] * in[8]
-                            + in2[8] * in[2];
-            out[11] = in2[5] * in[6]
-                    + in2[6] * in[5]
-                    + in2[4] * in[7]
-                    + in2[7] * in[4]
-                    + in2[3] * in[8]
-                    + in2[8] * in[3]
-                    + in2[2] * in[9]
-                    + in2[9] * in[2];
-            out[12] = in2[6] * in[6]
-                    + 2 * (in2[5] * in[7] + in2[7] * in[5] + in2[3] * in[9] + in2[9] * in[3])
-                    + in2[4] * in[8]
-                    + in2[8] * in[4];
-            out[13] = in2[6] * in[7]
-                    + in2[7] * in[6]
-                    + in2[5] * in[8]
-                    + in2[8] * in[5]
-                    + in2[4] * in[9]
-                    + in2[9] * in[4];
-            out[14] = 2 * (in2[7] * in[7] + in2[5] * in[9] + in2[9] * in[5])
-                    + in2[6] * in[8]
-                    + in2[8] * in[6];
-            out[15] = in2[7] * in[8]
-                    + in2[8] * in[7]
-                    + in2[6] * in[9]
-                    + in2[9] * in[6];
-            out[16] = in2[8] * in[8]
-                    + 2 * (in2[7] * in[9] + in2[9] * in[7]);
-            out[17] = in2[8] * in[9]
-                    + in2[9] * in[8];
-            out[18] = 2 * in2[9] * in[9];
-        }
-
-        /**
-         * Reduce a field element by calling reduceSizeByModularReduction and reduceCoefficients.
-         *
-         * @param input  An input array of any length. If the array has 19 elements, it will be used as
-         *               temporary buffer and its contents changed.
-         * @param output An output array of size LIMB_CNT. After the call |output[i]| < 2^26 will hold.
-         */
-        static void reduce(long[] input, long[] output) {
-            long[] tmp;
-            if (input.length == 19) {
-                tmp = input;
-            } else {
-                tmp = new long[19];
-                System.arraycopy(input, 0, tmp, 0, input.length);
-            }
-            reduceSizeByModularReduction(tmp);
-            reduceCoefficients(tmp);
-            System.arraycopy(tmp, 0, output, 0, LIMB_CNT);
-        }
-
-        /**
-         * Reduce a long form to a reduced-size form by taking the input mod 2^255 - 19.
-         * <p>
-         * On entry: |output[i]| < 14*2^54
-         * On exit: |output[0..8]| < 280*2^54
-         */
-        static void reduceSizeByModularReduction(long[] output) {
-            // The coefficients x[10], x[11],..., x[18] are eliminated by reduction modulo 2^255 - 19.
-            // For example, the coefficient x[18] is multiplied by 19 and added to the coefficient x[8].
-            //
-            // Each of these shifts and adds ends up multiplying the value by 19.
-            //
-            // For output[0..8], the absolute entry value is < 14*2^54 and we add, at most, 19*14*2^54 thus,
-            // on exit, |output[0..8]| < 280*2^54.
-            output[8] += output[18] << 4;
-            output[8] += output[18] << 1;
-            output[8] += output[18];
-            output[7] += output[17] << 4;
-            output[7] += output[17] << 1;
-            output[7] += output[17];
-            output[6] += output[16] << 4;
-            output[6] += output[16] << 1;
-            output[6] += output[16];
-            output[5] += output[15] << 4;
-            output[5] += output[15] << 1;
-            output[5] += output[15];
-            output[4] += output[14] << 4;
-            output[4] += output[14] << 1;
-            output[4] += output[14];
-            output[3] += output[13] << 4;
-            output[3] += output[13] << 1;
-            output[3] += output[13];
-            output[2] += output[12] << 4;
-            output[2] += output[12] << 1;
-            output[2] += output[12];
-            output[1] += output[11] << 4;
-            output[1] += output[11] << 1;
-            output[1] += output[11];
-            output[0] += output[10] << 4;
-            output[0] += output[10] << 1;
-            output[0] += output[10];
-        }
-
-        /**
-         * Reduce all coefficients of the short form input so that |x| < 2^26.
-         * <p>
-         * On entry: |output[i]| < 280*2^54
-         */
-        static void reduceCoefficients(long[] output) {
-            output[10] = 0;
-
-            for (int i = 0; i < LIMB_CNT; i += 2) {
-                long over = output[i] / TWO_TO_26;
-                // The entry condition (that |output[i]| < 280*2^54) means that over is, at most, 280*2^28 in
-                // the first iteration of this loop. This is added to the next limb and we can approximate the
-                // resulting bound of that limb by 281*2^54.
-                output[i] -= over << 26;
-                output[i + 1] += over;
-
-                // For the first iteration, |output[i+1]| < 281*2^54, thus |over| < 281*2^29. When this is
-                // added to the next limb, the resulting bound can be approximated as 281*2^54.
-                //
-                // For subsequent iterations of the loop, 281*2^54 remains a conservative bound and no
-                // overflow occurs.
-                over = output[i + 1] / TWO_TO_25;
-                output[i + 1] -= over << 25;
-                output[i + 2] += over;
-            }
-            // Now |output[10]| < 281*2^29 and all other coefficients are reduced.
-            output[0] += output[10] << 4;
-            output[0] += output[10] << 1;
-            output[0] += output[10];
-
-            output[10] = 0;
-            // Now output[1..9] are reduced, and |output[0]| < 2^26 + 19*281*2^29 so |over| will be no more
-            // than 2^16.
-            long over = output[0] / TWO_TO_26;
-            output[0] -= over << 26;
-            output[1] += over;
-            // Now output[0,2..9] are reduced, and |output[1]| < 2^25 + 2^16 < 2^26. The bound on
-            // |output[1]| is sufficient to meet our needs.
-        }
-
-        /**
-         * A helpful wrapper around {@ref Field25519#product}: output = in * in2.
-         * <p>
-         * On entry: |in[i]| < 2^27 and |in2[i]| < 2^27.
-         * <p>
-         * The output is reduced degree (indeed, one need only provide storage for 10 limbs) and
-         * |output[i]| < 2^26.
-         */
-        static void mult(long[] output, long[] in, long[] in2) {
-            long[] t = new long[19];
-            product(t, in, in2);
-            // |t[i]| < 2^26
-            reduce(t, output);
-        }
-
-        /**
-         * Square a number: out = in**2
-         * <p>
-         * output must be distinct from the input. The inputs are reduced coefficient form, the output is
-         * not.
-         * <p>
-         * out[x] <= 14 * the largest product of the input limbs.
-         */
-        private static void squareInner(long[] out, long[] in) {
-            out[0] = in[0] * in[0];
-            out[1] = 2 * in[0] * in[1];
-            out[2] = 2 * (in[1] * in[1] + in[0] * in[2]);
-            out[3] = 2 * (in[1] * in[2] + in[0] * in[3]);
-            out[4] = in[2] * in[2]
-                    + 4 * in[1] * in[3]
-                    + 2 * in[0] * in[4];
-            out[5] = 2 * (in[2] * in[3] + in[1] * in[4] + in[0] * in[5]);
-            out[6] = 2 * (in[3] * in[3] + in[2] * in[4] + in[0] * in[6] + 2 * in[1] * in[5]);
-            out[7] = 2 * (in[3] * in[4] + in[2] * in[5] + in[1] * in[6] + in[0] * in[7]);
-            out[8] = in[4] * in[4]
-                    + 2 * (in[2] * in[6] + in[0] * in[8] + 2 * (in[1] * in[7] + in[3] * in[5]));
-            out[9] = 2 * (in[4] * in[5] + in[3] * in[6] + in[2] * in[7] + in[1] * in[8] + in[0] * in[9]);
-            out[10] = 2 * (in[5] * in[5]
-                    + in[4] * in[6]
-                    + in[2] * in[8]
-                    + 2 * (in[3] * in[7] + in[1] * in[9]));
-            out[11] = 2 * (in[5] * in[6] + in[4] * in[7] + in[3] * in[8] + in[2] * in[9]);
-            out[12] = in[6] * in[6]
-                    + 2 * (in[4] * in[8] + 2 * (in[5] * in[7] + in[3] * in[9]));
-            out[13] = 2 * (in[6] * in[7] + in[5] * in[8] + in[4] * in[9]);
-            out[14] = 2 * (in[7] * in[7] + in[6] * in[8] + 2 * in[5] * in[9]);
-            out[15] = 2 * (in[7] * in[8] + in[6] * in[9]);
-            out[16] = in[8] * in[8] + 4 * in[7] * in[9];
-            out[17] = 2 * in[8] * in[9];
-            out[18] = 2 * in[9] * in[9];
-        }
-
-        /**
-         * Returns in^2.
-         * <p>
-         * On entry: The |in| argument is in reduced coefficients form and |in[i]| < 2^27.
-         * <p>
-         * On exit: The |output| argument is in reduced coefficients form (indeed, one need only provide
-         * storage for 10 limbs) and |out[i]| < 2^26.
-         */
-        static void square(long[] output, long[] in) {
-            long[] t = new long[19];
-            squareInner(t, in);
-            // |t[i]| < 14*2^54 because the largest product of two limbs will be < 2^(27+27) and SquareInner
-            // adds together, at most, 14 of those products.
-            reduce(t, output);
-        }
-
-        /**
-         * Takes a little-endian, 32-byte number and expands it into mixed radix form.
-         */
-        static long[] expand(byte[] input) {
-            long[] output = new long[LIMB_CNT];
-            for (int i = 0; i < LIMB_CNT; i++) {
-                output[i] = ((((long) (input[EXPAND_START[i]] & 0xff))
-                        | ((long) (input[EXPAND_START[i] + 1] & 0xff)) << 8
-                        | ((long) (input[EXPAND_START[i] + 2] & 0xff)) << 16
-                        | ((long) (input[EXPAND_START[i] + 3] & 0xff)) << 24) >> EXPAND_SHIFT[i]) & MASK[i & 1];
-            }
-            return output;
-        }
-
-        /**
-         * Takes a fully reduced mixed radix form number and contract it into a little-endian, 32-byte
-         * array.
-         * <p>
-         * On entry: |input_limbs[i]| < 2^26
-         */
-        @SuppressWarnings("NarrowingCompoundAssignment")
-        static byte[] contract(long[] inputLimbs) {
-            long[] input = Arrays.copyOf(inputLimbs, LIMB_CNT);
-            for (int j = 0; j < 2; j++) {
-                for (int i = 0; i < 9; i++) {
-                    // This calculation is a time-invariant way to make input[i] non-negative by borrowing
-                    // from the next-larger limb.
-                    int carry = -(int) ((input[i] & (input[i] >> 31)) >> SHIFT[i & 1]);
-                    input[i] = input[i] + (carry << SHIFT[i & 1]);
-                    input[i + 1] -= carry;
-                }
-
-                // There's no greater limb for input[9] to borrow from, but we can multiply by 19 and borrow
-                // from input[0], which is valid mod 2^255-19.
-                {
-                    int carry = -(int) ((input[9] & (input[9] >> 31)) >> 25);
-                    input[9] += (carry << 25);
-                    input[0] -= (carry * 19);
-                }
-
-                // After the first iteration, input[1..9] are non-negative and fit within 25 or 26 bits,
-                // depending on position. However, input[0] may be negative.
-            }
-
-            // The first borrow-propagation pass above ended with every limb except (possibly) input[0]
-            // non-negative.
-            //
-            // If input[0] was negative after the first pass, then it was because of a carry from input[9].
-            // On entry, input[9] < 2^26 so the carry was, at most, one, since (2**26-1) >> 25 = 1. Thus
-            // input[0] >= -19.
-            //
-            // In the second pass, each limb is decreased by at most one. Thus the second borrow-propagation
-            // pass could only have wrapped around to decrease input[0] again if the first pass left
-            // input[0] negative *and* input[1] through input[9] were all zero.  In that case, input[1] is
-            // now 2^25 - 1, and this last borrow-propagation step will leave input[1] non-negative.
-            {
-                int carry = -(int) ((input[0] & (input[0] >> 31)) >> 26);
-                input[0] += (carry << 26);
-                input[1] -= carry;
-            }
-
-            // All input[i] are now non-negative. However, there might be values between 2^25 and 2^26 in a
-            // limb which is, nominally, 25 bits wide.
-            for (int j = 0; j < 2; j++) {
-                for (int i = 0; i < 9; i++) {
-                    int carry = (int) (input[i] >> SHIFT[i & 1]);
-                    input[i] &= MASK[i & 1];
-                    input[i + 1] += carry;
-                }
-            }
-
-            {
-                int carry = (int) (input[9] >> 25);
-                input[9] &= 0x1ffffff;
-                input[0] += 19 * carry;
-            }
-
-            // If the first carry-chain pass, just above, ended up with a carry from input[9], and that
-            // caused input[0] to be out-of-bounds, then input[0] was < 2^26 + 2*19, because the carry was,
-            // at most, two.
-            //
-            // If the second pass carried from input[9] again then input[0] is < 2*19 and the input[9] ->
-            // input[0] carry didn't push input[0] out of bounds.
-
-            // It still remains the case that input might be between 2^255-19 and 2^255. In this case,
-            // input[1..9] must take their maximum value and input[0] must be >= (2^255-19) & 0x3ffffff,
-            // which is 0x3ffffed.
-            int mask = gte((int) input[0], 0x3ffffed);
-            for (int i = 1; i < LIMB_CNT; i++) {
-                mask &= eq((int) input[i], MASK[i & 1]);
-            }
-
-            // mask is either 0xffffffff (if input >= 2^255-19) and zero otherwise. Thus this conditionally
-            // subtracts 2^255-19.
-            input[0] -= mask & 0x3ffffed;
-            input[1] -= mask & 0x1ffffff;
-            for (int i = 2; i < LIMB_CNT; i += 2) {
-                input[i] -= mask & 0x3ffffff;
-                input[i + 1] -= mask & 0x1ffffff;
-            }
-
-            for (int i = 0; i < LIMB_CNT; i++) {
-                input[i] <<= EXPAND_SHIFT[i];
-            }
-            byte[] output = new byte[FIELD_LEN];
-            for (int i = 0; i < LIMB_CNT; i++) {
-                output[EXPAND_START[i]] |= input[i] & 0xff;
-                output[EXPAND_START[i] + 1] |= (input[i] >> 8) & 0xff;
-                output[EXPAND_START[i] + 2] |= (input[i] >> 16) & 0xff;
-                output[EXPAND_START[i] + 3] |= (input[i] >> 24) & 0xff;
-            }
-            return output;
-        }
-
-        /**
-         * Computes inverse of z = z(2^255 - 21)
-         * <p>
-         * Shamelessly copied from agl's code which was shamelessly copied from djb's code. Only the
-         * comment format and the variable namings are different from those.
-         */
-        static void inverse(long[] out, long[] z) {
-            long[] z2 = new long[Field25519.LIMB_CNT];
-            long[] z9 = new long[Field25519.LIMB_CNT];
-            long[] z11 = new long[Field25519.LIMB_CNT];
-            long[] z2To5Minus1 = new long[Field25519.LIMB_CNT];
-            long[] z2To10Minus1 = new long[Field25519.LIMB_CNT];
-            long[] z2To20Minus1 = new long[Field25519.LIMB_CNT];
-            long[] z2To50Minus1 = new long[Field25519.LIMB_CNT];
-            long[] z2To100Minus1 = new long[Field25519.LIMB_CNT];
-            long[] t0 = new long[Field25519.LIMB_CNT];
-            long[] t1 = new long[Field25519.LIMB_CNT];
-
-            square(z2, z);                          // 2
-            square(t1, z2);                         // 4
-            square(t0, t1);                         // 8
-            mult(z9, t0, z);                        // 9
-            mult(z11, z9, z2);                      // 11
-            square(t0, z11);                        // 22
-            mult(z2To5Minus1, t0, z9);              // 2^5 - 2^0 = 31
-
-            square(t0, z2To5Minus1);                // 2^6 - 2^1
-            square(t1, t0);                         // 2^7 - 2^2
-            square(t0, t1);                         // 2^8 - 2^3
-            square(t1, t0);                         // 2^9 - 2^4
-            square(t0, t1);                         // 2^10 - 2^5
-            mult(z2To10Minus1, t0, z2To5Minus1);    // 2^10 - 2^0
-
-            square(t0, z2To10Minus1);               // 2^11 - 2^1
-            square(t1, t0);                         // 2^12 - 2^2
-            for (int i = 2; i < 10; i += 2) {       // 2^20 - 2^10
-                square(t0, t1);
-                square(t1, t0);
-            }
-            mult(z2To20Minus1, t1, z2To10Minus1);   // 2^20 - 2^0
-
-            square(t0, z2To20Minus1);               // 2^21 - 2^1
-            square(t1, t0);                         // 2^22 - 2^2
-            for (int i = 2; i < 20; i += 2) {       // 2^40 - 2^20
-                square(t0, t1);
-                square(t1, t0);
-            }
-            mult(t0, t1, z2To20Minus1);             // 2^40 - 2^0
-
-            square(t1, t0);                         // 2^41 - 2^1
-            square(t0, t1);                         // 2^42 - 2^2
-            for (int i = 2; i < 10; i += 2) {       // 2^50 - 2^10
-                square(t1, t0);
-                square(t0, t1);
-            }
-            mult(z2To50Minus1, t0, z2To10Minus1);   // 2^50 - 2^0
-
-            square(t0, z2To50Minus1);               // 2^51 - 2^1
-            square(t1, t0);                         // 2^52 - 2^2
-            for (int i = 2; i < 50; i += 2) {       // 2^100 - 2^50
-                square(t0, t1);
-                square(t1, t0);
-            }
-            mult(z2To100Minus1, t1, z2To50Minus1);  // 2^100 - 2^0
-
-            square(t1, z2To100Minus1);              // 2^101 - 2^1
-            square(t0, t1);                         // 2^102 - 2^2
-            for (int i = 2; i < 100; i += 2) {      // 2^200 - 2^100
-                square(t1, t0);
-                square(t0, t1);
-            }
-            mult(t1, t0, z2To100Minus1);            // 2^200 - 2^0
-
-            square(t0, t1);                         // 2^201 - 2^1
-            square(t1, t0);                         // 2^202 - 2^2
-            for (int i = 2; i < 50; i += 2) {       // 2^250 - 2^50
-                square(t0, t1);
-                square(t1, t0);
-            }
-            mult(t0, t1, z2To50Minus1);             // 2^250 - 2^0
-
-            square(t1, t0);                         // 2^251 - 2^1
-            square(t0, t1);                         // 2^252 - 2^2
-            square(t1, t0);                         // 2^253 - 2^3
-            square(t0, t1);                         // 2^254 - 2^4
-            square(t1, t0);                         // 2^255 - 2^5
-            mult(out, t1, z11);                     // 2^255 - 21
-        }
-
-
-        /**
-         * Returns 0xffffffff iff a == b and zero otherwise.
-         */
-        private static int eq(int a, int b) {
-            a = ~(a ^ b);
-            a &= a << 16;
-            a &= a << 8;
-            a &= a << 4;
-            a &= a << 2;
-            a &= a << 1;
-            return a >> 31;
-        }
-
-        /**
-         * returns 0xffffffff if a >= b and zero otherwise, where a and b are both non-negative.
-         */
-        private static int gte(int a, int b) {
-            a -= b;
-            // a >= 0 iff a >= b.
-            return ~(a >> 31);
-        }
-    }
-
-    // (x = 0, y = 1) point
-    private static final CachedXYT CACHED_NEUTRAL = new CachedXYT(
-            new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-            new long[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
-    private static final PartialXYZT NEUTRAL = new PartialXYZT(
-            new XYZ(new long[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0}),
-            new long[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
-
-    /**
-     * Projective point representation (X:Y:Z) satisfying x = X/Z, y = Y/Z
-     * <p>
-     * Note that this is referred as ge_p2 in ref10 impl.
-     * Also note that x = X, y = Y and z = Z below following Java coding style.
-     * <p>
-     * See
-     * Koyama K., Tsuruoka Y. (1993) Speeding up Elliptic Cryptosystems by Using a Signed Binary
-     * Window Method.
-     * <p>
-     * https://hyperelliptic.org/EFD/g1p/auto-twisted-projective.html
-     */
-    private static class XYZ {
-
-        final long[] x;
-        final long[] y;
-        final long[] z;
-
-        XYZ() {
-            this(new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT]);
-        }
-
-        XYZ(long[] x, long[] y, long[] z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-
-        XYZ(XYZ xyz) {
-            x = Arrays.copyOf(xyz.x, Field25519.LIMB_CNT);
-            y = Arrays.copyOf(xyz.y, Field25519.LIMB_CNT);
-            z = Arrays.copyOf(xyz.z, Field25519.LIMB_CNT);
-        }
-
-        XYZ(PartialXYZT partialXYZT) {
-            this();
-            fromPartialXYZT(this, partialXYZT);
-        }
-
-        /**
-         * ge_p1p1_to_p2.c
-         */
-        static XYZ fromPartialXYZT(XYZ out, PartialXYZT in) {
-            Field25519.mult(out.x, in.xyz.x, in.t);
-            Field25519.mult(out.y, in.xyz.y, in.xyz.z);
-            Field25519.mult(out.z, in.xyz.z, in.t);
-            return out;
-        }
-
-        /**
-         * Encodes this point to bytes.
-         */
-        byte[] toBytes() {
-            long[] recip = new long[Field25519.LIMB_CNT];
-            long[] x = new long[Field25519.LIMB_CNT];
-            long[] y = new long[Field25519.LIMB_CNT];
-            Field25519.inverse(recip, z);
-            Field25519.mult(x, this.x, recip);
-            Field25519.mult(y, this.y, recip);
-            byte[] s = Field25519.contract(y);
-            s[31] = (byte) (s[31] ^ (getLsb(x) << 7));
-            return s;
-        }
-
-
-        /**
-         * Best effort fix-timing array comparison.
-         *
-         * @return true if two arrays are equal.
-         */
-        private static boolean bytesEqual(final byte[] x, final byte[] y) {
-            if (x == null || y == null) {
-                return false;
-            }
-            if (x.length != y.length) {
-                return false;
-            }
-            int res = 0;
-            for (int i = 0; i < x.length; i++) {
-                res |= x[i] ^ y[i];
-            }
-            return res == 0;
-        }
-
-        /**
-         * Checks that the point is on curve
-         */
-        boolean isOnCurve() {
-            long[] x2 = new long[Field25519.LIMB_CNT];
-            Field25519.square(x2, x);
-            long[] y2 = new long[Field25519.LIMB_CNT];
-            Field25519.square(y2, y);
-            long[] z2 = new long[Field25519.LIMB_CNT];
-            Field25519.square(z2, z);
-            long[] z4 = new long[Field25519.LIMB_CNT];
-            Field25519.square(z4, z2);
-            long[] lhs = new long[Field25519.LIMB_CNT];
-            // lhs = y^2 - x^2
-            Field25519.sub(lhs, y2, x2);
-            // lhs = z^2 * (y2 - x2)
-            Field25519.mult(lhs, lhs, z2);
-            long[] rhs = new long[Field25519.LIMB_CNT];
-            // rhs = x^2 * y^2
-            Field25519.mult(rhs, x2, y2);
-            // rhs = D * x^2 * y^2
-            Field25519.mult(rhs, rhs, D);
-            // rhs = z^4 + D * x^2 * y^2
-            Field25519.sum(rhs, z4);
-            // Field25519.mult reduces its output, but Field25519.sum does not, so we have to manually
-            // reduce it here.
-            Field25519.reduce(rhs, rhs);
-            // z^2 (y^2 - x^2) == z^4 + D * x^2 * y^2
-            return bytesEqual(Field25519.contract(lhs), Field25519.contract(rhs));
-        }
-    }
-
-    /**
-     * Represents extended projective point representation (X:Y:Z:T) satisfying x = X/Z, y = Y/Z,
-     * XY = ZT
-     * <p>
-     * Note that this is referred as ge_p3 in ref10 impl.
-     * Also note that t = T below following Java coding style.
-     * <p>
-     * See
-     * Hisil H., Wong K.KH., Carter G., Dawson E. (2008) Twisted Edwards Curves Revisited.
-     * <p>
-     * https://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html
-     */
-    private static class XYZT {
-
-        final XYZ xyz;
-        final long[] t;
-
-        XYZT() {
-            this(new XYZ(), new long[Field25519.LIMB_CNT]);
-        }
-
-        XYZT(XYZ xyz, long[] t) {
-            this.xyz = xyz;
-            this.t = t;
-        }
-
-        XYZT(PartialXYZT partialXYZT) {
-            this();
-            fromPartialXYZT(this, partialXYZT);
-        }
-
-        /**
-         * ge_p1p1_to_p2.c
-         */
-        private static XYZT fromPartialXYZT(XYZT out, PartialXYZT in) {
-            Field25519.mult(out.xyz.x, in.xyz.x, in.t);
-            Field25519.mult(out.xyz.y, in.xyz.y, in.xyz.z);
-            Field25519.mult(out.xyz.z, in.xyz.z, in.t);
-            Field25519.mult(out.t, in.xyz.x, in.xyz.y);
-            return out;
-        }
-
-        /**
-         * Decodes {@code s} into an extented projective point.
-         * See Section 5.1.3 Decoding in https://tools.ietf.org/html/rfc8032#section-5.1.3
-         */
-        private static XYZT fromBytesNegateVarTime(byte[] s) throws GeneralSecurityException {
-            long[] x = new long[Field25519.LIMB_CNT];
-            long[] y = Field25519.expand(s);
-            long[] z = new long[Field25519.LIMB_CNT];
-            z[0] = 1;
-            long[] t = new long[Field25519.LIMB_CNT];
-            long[] u = new long[Field25519.LIMB_CNT];
-            long[] v = new long[Field25519.LIMB_CNT];
-            long[] vxx = new long[Field25519.LIMB_CNT];
-            long[] check = new long[Field25519.LIMB_CNT];
-            Field25519.square(u, y);
-            Field25519.mult(v, u, D);
-            Field25519.sub(u, u, z); // u = y^2 - 1
-            Field25519.sum(v, v, z); // v = dy^2 + 1
-
-            long[] v3 = new long[Field25519.LIMB_CNT];
-            Field25519.square(v3, v);
-            Field25519.mult(v3, v3, v); // v3 = v^3
-            Field25519.square(x, v3);
-            Field25519.mult(x, x, v);
-            Field25519.mult(x, x, u); // x = uv^7
-
-            pow2252m3(x, x); // x = (uv^7)^((q-5)/8)
-            Field25519.mult(x, x, v3);
-            Field25519.mult(x, x, u); // x = uv^3(uv^7)^((q-5)/8)
-
-            Field25519.square(vxx, x);
-            Field25519.mult(vxx, vxx, v);
-            Field25519.sub(check, vxx, u); // vx^2-u
-            if (isNonZeroVarTime(check)) {
-                Field25519.sum(check, vxx, u); // vx^2+u
-                if (isNonZeroVarTime(check)) {
-                    throw new GeneralSecurityException("Cannot convert given bytes to extended projective "
-                            + "coordinates. No square root exists for modulo 2^255-19");
-                }
-                Field25519.mult(x, x, SQRTM1);
-            }
-
-            if (!isNonZeroVarTime(x) && (s[31] & 0xff) >> 7 != 0) {
-                throw new GeneralSecurityException("Cannot convert given bytes to extended projective "
-                        + "coordinates. Computed x is zero and encoded x's least significant bit is not zero");
-            }
-            if (getLsb(x) == ((s[31] & 0xff) >> 7)) {
-                neg(x, x);
-            }
-
-            Field25519.mult(t, x, y);
-            return new XYZT(new XYZ(x, y, z), t);
-        }
-    }
-
-    /**
-     * Partial projective point representation ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
-     * <p>
-     * Note that this is referred as complete form in the original ref10 impl (ge_p1p1).
-     * Also note that t = T below following Java coding style.
-     * <p>
-     * Although this has the same types as XYZT, it is redefined to have its own type so that it is
-     * readable and 1:1 corresponds to ref10 impl.
-     * <p>
-     * Can be converted to XYZT as follows:
-     * X1 = X * T = x * Z * T = x * Z1
-     * Y1 = Y * Z = y * T * Z = y * Z1
-     * Z1 = Z * T = Z * T
-     * T1 = X * Y = x * Z * y * T = x * y * Z1 = X1Y1 / Z1
-     */
-    private static class PartialXYZT {
-
-        final XYZ xyz;
-        final long[] t;
-
-        PartialXYZT() {
-            this(new XYZ(), new long[Field25519.LIMB_CNT]);
-        }
-
-        PartialXYZT(XYZ xyz, long[] t) {
-            this.xyz = xyz;
-            this.t = t;
-        }
-
-        PartialXYZT(PartialXYZT other) {
-            xyz = new XYZ(other.xyz);
-            t = Arrays.copyOf(other.t, Field25519.LIMB_CNT);
-        }
-    }
-
-    /**
-     * Corresponds to the caching mentioned in the last paragraph of Section 3.1 of
-     * Hisil H., Wong K.KH., Carter G., Dawson E. (2008) Twisted Edwards Curves Revisited.
-     * with Z = 1.
-     */
-    private static class CachedXYT {
-
-        final long[] yPlusX;
-        final long[] yMinusX;
-        final long[] t2d;
-
-        /**
-         * Creates a cached XYZT with Z = 1
-         *
-         * @param yPlusX  y + x
-         * @param yMinusX y - x
-         * @param t2d     2d * xy
-         */
-        CachedXYT(long[] yPlusX, long[] yMinusX, long[] t2d) {
-            this.yPlusX = yPlusX;
-            this.yMinusX = yMinusX;
-            this.t2d = t2d;
-        }
-
-        CachedXYT(CachedXYT other) {
-            yPlusX = Arrays.copyOf(other.yPlusX, Field25519.LIMB_CNT);
-            yMinusX = Arrays.copyOf(other.yMinusX, Field25519.LIMB_CNT);
-            t2d = Arrays.copyOf(other.t2d, Field25519.LIMB_CNT);
-        }
-
-        // z is one implicitly, so this just copies {@code in} to {@code output}.
-        void multByZ(long[] output, long[] in) {
-            System.arraycopy(in, 0, output, 0, Field25519.LIMB_CNT);
-        }
-
-        /**
-         * If icopy is 1, copies {@code other} into this point. Time invariant wrt to icopy value.
-         */
-        void copyConditional(CachedXYT other, int icopy) {
-            copyConditional(yPlusX, other.yPlusX, icopy);
-            copyConditional(yMinusX, other.yMinusX, icopy);
-            copyConditional(t2d, other.t2d, icopy);
-        }
-
-        /**
-         * Conditionally copies a reduced-form limb arrays {@code b} into {@code a} if {@code icopy} is 1,
-         * but leave {@code a} unchanged if 'iswap' is 0. Runs in data-invariant time to avoid
-         * side-channel attacks.
-         *
-         * <p>NOTE that this function requires that {@code icopy} be 1 or 0; other values give wrong
-         * results. Also, the two limb arrays must be in reduced-coefficient, reduced-degree form: the
-         * values in a[10..19] or b[10..19] aren't swapped, and all all values in a[0..9],b[0..9] must
-         * have magnitude less than Integer.MAX_VALUE.
-         */
-        static void copyConditional(long[] a, long[] b, int icopy) {
-            int copy = -icopy;
-            for (int i = 0; i < Field25519.LIMB_CNT; i++) {
-                int x = copy & (((int) a[i]) ^ ((int) b[i]));
-                a[i] = ((int) a[i]) ^ x;
-            }
-        }
-    }
-
-    private static class CachedXYZT extends CachedXYT {
-
-        private final long[] z;
-
-        CachedXYZT() {
-            this(new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT]);
-        }
-
-        /**
-         * ge_p3_to_cached.c
-         */
-        CachedXYZT(XYZT xyzt) {
-            this();
-            Field25519.sum(yPlusX, xyzt.xyz.y, xyzt.xyz.x);
-            Field25519.sub(yMinusX, xyzt.xyz.y, xyzt.xyz.x);
-            System.arraycopy(xyzt.xyz.z, 0, z, 0, Field25519.LIMB_CNT);
-            Field25519.mult(t2d, xyzt.t, D2);
-        }
-
-        /**
-         * Creates a cached XYZT
-         *
-         * @param yPlusX  Y + X
-         * @param yMinusX Y - X
-         * @param z       Z
-         * @param t2d     2d * (XY/Z)
-         */
-        CachedXYZT(long[] yPlusX, long[] yMinusX, long[] z, long[] t2d) {
-            super(yPlusX, yMinusX, t2d);
-            this.z = z;
-        }
-
-        @Override
-        public void multByZ(long[] output, long[] in) {
-            Field25519.mult(output, in, z);
-        }
     }
 
     /**
@@ -2440,18 +1505,6 @@ public final class Ed25519 {
         s[31] = (byte) (s11 >> 17);
     }
 
-    // The order of the generator as unsigned bytes in little endian order.
-    // (2^252 + 0x14def9dea2f79cd65812631a5cf5d3ed, cf. RFC 7748)
-    private static final byte[] GROUP_ORDER = {
-            (byte) 0xed, (byte) 0xd3, (byte) 0xf5, (byte) 0x5c,
-            (byte) 0x1a, (byte) 0x63, (byte) 0x12, (byte) 0x58,
-            (byte) 0xd6, (byte) 0x9c, (byte) 0xf7, (byte) 0xa2,
-            (byte) 0xde, (byte) 0xf9, (byte) 0xde, (byte) 0x14,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x10};
-
     // Checks whether s represents an integer smaller than the order of the group.
     // This is needed to ensure that EdDSA signatures are non-malleable, as failing to check
     // the range of S allows to modify signatures (cf. RFC 8032, Section 5.2.7 and Section 8.4.)
@@ -2503,6 +1556,949 @@ public final class Ed25519 {
             return true;
         } catch (final GeneralSecurityException ignored) {
             return false;
+        }
+    }
+
+    private static class Point {
+        private BigInteger x;
+        private BigInteger y;
+    }
+
+    /**
+     * Defines field 25519 function based on <a
+     * href="https://github.com/agl/curve25519-donna/blob/master/curve25519-donna.c">curve25519-donna C
+     * implementation</a> (mostly identical).
+     *
+     * <p>Field elements are written as an array of signed, 64-bit limbs (an array of longs), least
+     * significant first. The value of the field element is:
+     *
+     * <pre>
+     * x[0] + 2^26·x[1] + 2^51·x[2] + 2^77·x[3] + 2^102·x[4] + 2^128·x[5] + 2^153·x[6] + 2^179·x[7] +
+     * 2^204·x[8] + 2^230·x[9],
+     * </pre>
+     *
+     * <p>i.e. the limbs are 26, 25, 26, 25, ... bits wide.
+     */
+    private static final class Field25519 {
+        /**
+         * During Field25519 computation, the mixed radix representation may be in different forms:
+         * <ul>
+         *  <li> Reduced-size form: the array has size at most 10.
+         *  <li> Non-reduced-size form: the array is not reduced modulo 2^255 - 19 and has size at most
+         *  19.
+         * </ul>
+         * <p>
+         * TODO(quannguyen):
+         * <ul>
+         *  <li> Clarify ill-defined terminologies.
+         *  <li> The reduction procedure is different from DJB's paper
+         *  (http://cr.yp.to/ecdh/curve25519-20060209.pdf). The coefficients after reducing degree and
+         *  reducing coefficients aren't guaranteed to be in range {-2^25, ..., 2^25}. We should check to
+         *  see what's going on.
+         *  <li> Consider using method mult() everywhere and making product() private.
+         * </ul>
+         */
+
+        static final int FIELD_LEN = 32;
+        static final int LIMB_CNT = 10;
+        private static final long TWO_TO_25 = 1 << 25;
+        private static final long TWO_TO_26 = TWO_TO_25 << 1;
+
+        private static final int[] EXPAND_START = {0, 3, 6, 9, 12, 16, 19, 22, 25, 28};
+        private static final int[] EXPAND_SHIFT = {0, 2, 3, 5, 6, 0, 1, 3, 4, 6};
+        private static final int[] MASK = {0x3ffffff, 0x1ffffff};
+        private static final int[] SHIFT = {26, 25};
+
+        /**
+         * Sums two numbers: output = in1 + in2
+         * <p>
+         * On entry: in1, in2 are in reduced-size form.
+         */
+        static void sum(long[] output, long[] in1, long[] in2) {
+            for (int i = 0; i < LIMB_CNT; i++) {
+                output[i] = in1[i] + in2[i];
+            }
+        }
+
+        /**
+         * Sums two numbers: output += in
+         * <p>
+         * On entry: in is in reduced-size form.
+         */
+        static void sum(long[] output, long[] in) {
+            sum(output, output, in);
+        }
+
+        /**
+         * Find the difference of two numbers: output = in1 - in2
+         * (note the order of the arguments!).
+         * <p>
+         * On entry: in1, in2 are in reduced-size form.
+         */
+        static void sub(long[] output, long[] in1, long[] in2) {
+            for (int i = 0; i < LIMB_CNT; i++) {
+                output[i] = in1[i] - in2[i];
+            }
+        }
+
+        /**
+         * Find the difference of two numbers: output = in - output
+         * (note the order of the arguments!).
+         * <p>
+         * On entry: in, output are in reduced-size form.
+         */
+        static void sub(long[] output, long[] in) {
+            sub(output, in, output);
+        }
+
+        /**
+         * Multiply a number by a scalar: output = in * scalar
+         */
+        static void scalarProduct(long[] output, long[] in, long scalar) {
+            for (int i = 0; i < LIMB_CNT; i++) {
+                output[i] = in[i] * scalar;
+            }
+        }
+
+        /**
+         * Multiply two numbers: out = in2 * in
+         * <p>
+         * output must be distinct to both inputs. The inputs are reduced coefficient form,
+         * the output is not.
+         * <p>
+         * out[x] <= 14 * the largest product of the input limbs.
+         */
+        static void product(long[] out, long[] in2, long[] in) {
+            out[0] = in2[0] * in[0];
+            out[1] = in2[0] * in[1]
+                    + in2[1] * in[0];
+            out[2] = 2 * in2[1] * in[1]
+                    + in2[0] * in[2]
+                    + in2[2] * in[0];
+            out[3] = in2[1] * in[2]
+                    + in2[2] * in[1]
+                    + in2[0] * in[3]
+                    + in2[3] * in[0];
+            out[4] = in2[2] * in[2]
+                    + 2 * (in2[1] * in[3] + in2[3] * in[1])
+                    + in2[0] * in[4]
+                    + in2[4] * in[0];
+            out[5] = in2[2] * in[3]
+                    + in2[3] * in[2]
+                    + in2[1] * in[4]
+                    + in2[4] * in[1]
+                    + in2[0] * in[5]
+                    + in2[5] * in[0];
+            out[6] = 2 * (in2[3] * in[3] + in2[1] * in[5] + in2[5] * in[1])
+                    + in2[2] * in[4]
+                    + in2[4] * in[2]
+                    + in2[0] * in[6]
+                    + in2[6] * in[0];
+            out[7] = in2[3] * in[4]
+                    + in2[4] * in[3]
+                    + in2[2] * in[5]
+                    + in2[5] * in[2]
+                    + in2[1] * in[6]
+                    + in2[6] * in[1]
+                    + in2[0] * in[7]
+                    + in2[7] * in[0];
+            out[8] = in2[4] * in[4]
+                    + 2 * (in2[3] * in[5] + in2[5] * in[3] + in2[1] * in[7] + in2[7] * in[1])
+                    + in2[2] * in[6]
+                    + in2[6] * in[2]
+                    + in2[0] * in[8]
+                    + in2[8] * in[0];
+            out[9] = in2[4] * in[5]
+                    + in2[5] * in[4]
+                    + in2[3] * in[6]
+                    + in2[6] * in[3]
+                    + in2[2] * in[7]
+                    + in2[7] * in[2]
+                    + in2[1] * in[8]
+                    + in2[8] * in[1]
+                    + in2[0] * in[9]
+                    + in2[9] * in[0];
+            out[10] =
+                    2 * (in2[5] * in[5] + in2[3] * in[7] + in2[7] * in[3] + in2[1] * in[9] + in2[9] * in[1])
+                            + in2[4] * in[6]
+                            + in2[6] * in[4]
+                            + in2[2] * in[8]
+                            + in2[8] * in[2];
+            out[11] = in2[5] * in[6]
+                    + in2[6] * in[5]
+                    + in2[4] * in[7]
+                    + in2[7] * in[4]
+                    + in2[3] * in[8]
+                    + in2[8] * in[3]
+                    + in2[2] * in[9]
+                    + in2[9] * in[2];
+            out[12] = in2[6] * in[6]
+                    + 2 * (in2[5] * in[7] + in2[7] * in[5] + in2[3] * in[9] + in2[9] * in[3])
+                    + in2[4] * in[8]
+                    + in2[8] * in[4];
+            out[13] = in2[6] * in[7]
+                    + in2[7] * in[6]
+                    + in2[5] * in[8]
+                    + in2[8] * in[5]
+                    + in2[4] * in[9]
+                    + in2[9] * in[4];
+            out[14] = 2 * (in2[7] * in[7] + in2[5] * in[9] + in2[9] * in[5])
+                    + in2[6] * in[8]
+                    + in2[8] * in[6];
+            out[15] = in2[7] * in[8]
+                    + in2[8] * in[7]
+                    + in2[6] * in[9]
+                    + in2[9] * in[6];
+            out[16] = in2[8] * in[8]
+                    + 2 * (in2[7] * in[9] + in2[9] * in[7]);
+            out[17] = in2[8] * in[9]
+                    + in2[9] * in[8];
+            out[18] = 2 * in2[9] * in[9];
+        }
+
+        /**
+         * Reduce a field element by calling reduceSizeByModularReduction and reduceCoefficients.
+         *
+         * @param input  An input array of any length. If the array has 19 elements, it will be used as
+         *               temporary buffer and its contents changed.
+         * @param output An output array of size LIMB_CNT. After the call |output[i]| < 2^26 will hold.
+         */
+        static void reduce(long[] input, long[] output) {
+            long[] tmp;
+            if (input.length == 19) {
+                tmp = input;
+            } else {
+                tmp = new long[19];
+                System.arraycopy(input, 0, tmp, 0, input.length);
+            }
+            reduceSizeByModularReduction(tmp);
+            reduceCoefficients(tmp);
+            System.arraycopy(tmp, 0, output, 0, LIMB_CNT);
+        }
+
+        /**
+         * Reduce a long form to a reduced-size form by taking the input mod 2^255 - 19.
+         * <p>
+         * On entry: |output[i]| < 14*2^54
+         * On exit: |output[0..8]| < 280*2^54
+         */
+        static void reduceSizeByModularReduction(long[] output) {
+            // The coefficients x[10], x[11],..., x[18] are eliminated by reduction modulo 2^255 - 19.
+            // For example, the coefficient x[18] is multiplied by 19 and added to the coefficient x[8].
+            //
+            // Each of these shifts and adds ends up multiplying the value by 19.
+            //
+            // For output[0..8], the absolute entry value is < 14*2^54 and we add, at most, 19*14*2^54 thus,
+            // on exit, |output[0..8]| < 280*2^54.
+            output[8] += output[18] << 4;
+            output[8] += output[18] << 1;
+            output[8] += output[18];
+            output[7] += output[17] << 4;
+            output[7] += output[17] << 1;
+            output[7] += output[17];
+            output[6] += output[16] << 4;
+            output[6] += output[16] << 1;
+            output[6] += output[16];
+            output[5] += output[15] << 4;
+            output[5] += output[15] << 1;
+            output[5] += output[15];
+            output[4] += output[14] << 4;
+            output[4] += output[14] << 1;
+            output[4] += output[14];
+            output[3] += output[13] << 4;
+            output[3] += output[13] << 1;
+            output[3] += output[13];
+            output[2] += output[12] << 4;
+            output[2] += output[12] << 1;
+            output[2] += output[12];
+            output[1] += output[11] << 4;
+            output[1] += output[11] << 1;
+            output[1] += output[11];
+            output[0] += output[10] << 4;
+            output[0] += output[10] << 1;
+            output[0] += output[10];
+        }
+
+        /**
+         * Reduce all coefficients of the short form input so that |x| < 2^26.
+         * <p>
+         * On entry: |output[i]| < 280*2^54
+         */
+        static void reduceCoefficients(long[] output) {
+            output[10] = 0;
+
+            for (int i = 0; i < LIMB_CNT; i += 2) {
+                long over = output[i] / TWO_TO_26;
+                // The entry condition (that |output[i]| < 280*2^54) means that over is, at most, 280*2^28 in
+                // the first iteration of this loop. This is added to the next limb and we can approximate the
+                // resulting bound of that limb by 281*2^54.
+                output[i] -= over << 26;
+                output[i + 1] += over;
+
+                // For the first iteration, |output[i+1]| < 281*2^54, thus |over| < 281*2^29. When this is
+                // added to the next limb, the resulting bound can be approximated as 281*2^54.
+                //
+                // For subsequent iterations of the loop, 281*2^54 remains a conservative bound and no
+                // overflow occurs.
+                over = output[i + 1] / TWO_TO_25;
+                output[i + 1] -= over << 25;
+                output[i + 2] += over;
+            }
+            // Now |output[10]| < 281*2^29 and all other coefficients are reduced.
+            output[0] += output[10] << 4;
+            output[0] += output[10] << 1;
+            output[0] += output[10];
+
+            output[10] = 0;
+            // Now output[1..9] are reduced, and |output[0]| < 2^26 + 19*281*2^29 so |over| will be no more
+            // than 2^16.
+            long over = output[0] / TWO_TO_26;
+            output[0] -= over << 26;
+            output[1] += over;
+            // Now output[0,2..9] are reduced, and |output[1]| < 2^25 + 2^16 < 2^26. The bound on
+            // |output[1]| is sufficient to meet our needs.
+        }
+
+        /**
+         * A helpful wrapper around {@ref Field25519#product}: output = in * in2.
+         * <p>
+         * On entry: |in[i]| < 2^27 and |in2[i]| < 2^27.
+         * <p>
+         * The output is reduced degree (indeed, one need only provide storage for 10 limbs) and
+         * |output[i]| < 2^26.
+         */
+        static void mult(long[] output, long[] in, long[] in2) {
+            long[] t = new long[19];
+            product(t, in, in2);
+            // |t[i]| < 2^26
+            reduce(t, output);
+        }
+
+        /**
+         * Square a number: out = in**2
+         * <p>
+         * output must be distinct from the input. The inputs are reduced coefficient form, the output is
+         * not.
+         * <p>
+         * out[x] <= 14 * the largest product of the input limbs.
+         */
+        private static void squareInner(long[] out, long[] in) {
+            out[0] = in[0] * in[0];
+            out[1] = 2 * in[0] * in[1];
+            out[2] = 2 * (in[1] * in[1] + in[0] * in[2]);
+            out[3] = 2 * (in[1] * in[2] + in[0] * in[3]);
+            out[4] = in[2] * in[2]
+                    + 4 * in[1] * in[3]
+                    + 2 * in[0] * in[4];
+            out[5] = 2 * (in[2] * in[3] + in[1] * in[4] + in[0] * in[5]);
+            out[6] = 2 * (in[3] * in[3] + in[2] * in[4] + in[0] * in[6] + 2 * in[1] * in[5]);
+            out[7] = 2 * (in[3] * in[4] + in[2] * in[5] + in[1] * in[6] + in[0] * in[7]);
+            out[8] = in[4] * in[4]
+                    + 2 * (in[2] * in[6] + in[0] * in[8] + 2 * (in[1] * in[7] + in[3] * in[5]));
+            out[9] = 2 * (in[4] * in[5] + in[3] * in[6] + in[2] * in[7] + in[1] * in[8] + in[0] * in[9]);
+            out[10] = 2 * (in[5] * in[5]
+                    + in[4] * in[6]
+                    + in[2] * in[8]
+                    + 2 * (in[3] * in[7] + in[1] * in[9]));
+            out[11] = 2 * (in[5] * in[6] + in[4] * in[7] + in[3] * in[8] + in[2] * in[9]);
+            out[12] = in[6] * in[6]
+                    + 2 * (in[4] * in[8] + 2 * (in[5] * in[7] + in[3] * in[9]));
+            out[13] = 2 * (in[6] * in[7] + in[5] * in[8] + in[4] * in[9]);
+            out[14] = 2 * (in[7] * in[7] + in[6] * in[8] + 2 * in[5] * in[9]);
+            out[15] = 2 * (in[7] * in[8] + in[6] * in[9]);
+            out[16] = in[8] * in[8] + 4 * in[7] * in[9];
+            out[17] = 2 * in[8] * in[9];
+            out[18] = 2 * in[9] * in[9];
+        }
+
+        /**
+         * Returns in^2.
+         * <p>
+         * On entry: The |in| argument is in reduced coefficients form and |in[i]| < 2^27.
+         * <p>
+         * On exit: The |output| argument is in reduced coefficients form (indeed, one need only provide
+         * storage for 10 limbs) and |out[i]| < 2^26.
+         */
+        static void square(long[] output, long[] in) {
+            long[] t = new long[19];
+            squareInner(t, in);
+            // |t[i]| < 14*2^54 because the largest product of two limbs will be < 2^(27+27) and SquareInner
+            // adds together, at most, 14 of those products.
+            reduce(t, output);
+        }
+
+        /**
+         * Takes a little-endian, 32-byte number and expands it into mixed radix form.
+         */
+        static long[] expand(byte[] input) {
+            long[] output = new long[LIMB_CNT];
+            for (int i = 0; i < LIMB_CNT; i++) {
+                output[i] = ((((long) (input[EXPAND_START[i]] & 0xff))
+                        | ((long) (input[EXPAND_START[i] + 1] & 0xff)) << 8
+                        | ((long) (input[EXPAND_START[i] + 2] & 0xff)) << 16
+                        | ((long) (input[EXPAND_START[i] + 3] & 0xff)) << 24) >> EXPAND_SHIFT[i]) & MASK[i & 1];
+            }
+            return output;
+        }
+
+        /**
+         * Takes a fully reduced mixed radix form number and contract it into a little-endian, 32-byte
+         * array.
+         * <p>
+         * On entry: |input_limbs[i]| < 2^26
+         */
+        @SuppressWarnings("NarrowingCompoundAssignment")
+        static byte[] contract(long[] inputLimbs) {
+            long[] input = Arrays.copyOf(inputLimbs, LIMB_CNT);
+            for (int j = 0; j < 2; j++) {
+                for (int i = 0; i < 9; i++) {
+                    // This calculation is a time-invariant way to make input[i] non-negative by borrowing
+                    // from the next-larger limb.
+                    int carry = -(int) ((input[i] & (input[i] >> 31)) >> SHIFT[i & 1]);
+                    input[i] = input[i] + (carry << SHIFT[i & 1]);
+                    input[i + 1] -= carry;
+                }
+
+                // There's no greater limb for input[9] to borrow from, but we can multiply by 19 and borrow
+                // from input[0], which is valid mod 2^255-19.
+                {
+                    int carry = -(int) ((input[9] & (input[9] >> 31)) >> 25);
+                    input[9] += (carry << 25);
+                    input[0] -= (carry * 19);
+                }
+
+                // After the first iteration, input[1..9] are non-negative and fit within 25 or 26 bits,
+                // depending on position. However, input[0] may be negative.
+            }
+
+            // The first borrow-propagation pass above ended with every limb except (possibly) input[0]
+            // non-negative.
+            //
+            // If input[0] was negative after the first pass, then it was because of a carry from input[9].
+            // On entry, input[9] < 2^26 so the carry was, at most, one, since (2**26-1) >> 25 = 1. Thus
+            // input[0] >= -19.
+            //
+            // In the second pass, each limb is decreased by at most one. Thus the second borrow-propagation
+            // pass could only have wrapped around to decrease input[0] again if the first pass left
+            // input[0] negative *and* input[1] through input[9] were all zero.  In that case, input[1] is
+            // now 2^25 - 1, and this last borrow-propagation step will leave input[1] non-negative.
+            {
+                int carry = -(int) ((input[0] & (input[0] >> 31)) >> 26);
+                input[0] += (carry << 26);
+                input[1] -= carry;
+            }
+
+            // All input[i] are now non-negative. However, there might be values between 2^25 and 2^26 in a
+            // limb which is, nominally, 25 bits wide.
+            for (int j = 0; j < 2; j++) {
+                for (int i = 0; i < 9; i++) {
+                    int carry = (int) (input[i] >> SHIFT[i & 1]);
+                    input[i] &= MASK[i & 1];
+                    input[i + 1] += carry;
+                }
+            }
+
+            {
+                int carry = (int) (input[9] >> 25);
+                input[9] &= 0x1ffffff;
+                input[0] += 19 * carry;
+            }
+
+            // If the first carry-chain pass, just above, ended up with a carry from input[9], and that
+            // caused input[0] to be out-of-bounds, then input[0] was < 2^26 + 2*19, because the carry was,
+            // at most, two.
+            //
+            // If the second pass carried from input[9] again then input[0] is < 2*19 and the input[9] ->
+            // input[0] carry didn't push input[0] out of bounds.
+
+            // It still remains the case that input might be between 2^255-19 and 2^255. In this case,
+            // input[1..9] must take their maximum value and input[0] must be >= (2^255-19) & 0x3ffffff,
+            // which is 0x3ffffed.
+            int mask = gte((int) input[0], 0x3ffffed);
+            for (int i = 1; i < LIMB_CNT; i++) {
+                mask &= eq((int) input[i], MASK[i & 1]);
+            }
+
+            // mask is either 0xffffffff (if input >= 2^255-19) and zero otherwise. Thus this conditionally
+            // subtracts 2^255-19.
+            input[0] -= mask & 0x3ffffed;
+            input[1] -= mask & 0x1ffffff;
+            for (int i = 2; i < LIMB_CNT; i += 2) {
+                input[i] -= mask & 0x3ffffff;
+                input[i + 1] -= mask & 0x1ffffff;
+            }
+
+            for (int i = 0; i < LIMB_CNT; i++) {
+                input[i] <<= EXPAND_SHIFT[i];
+            }
+            byte[] output = new byte[FIELD_LEN];
+            for (int i = 0; i < LIMB_CNT; i++) {
+                output[EXPAND_START[i]] |= input[i] & 0xff;
+                output[EXPAND_START[i] + 1] |= (input[i] >> 8) & 0xff;
+                output[EXPAND_START[i] + 2] |= (input[i] >> 16) & 0xff;
+                output[EXPAND_START[i] + 3] |= (input[i] >> 24) & 0xff;
+            }
+            return output;
+        }
+
+        /**
+         * Computes inverse of z = z(2^255 - 21)
+         * <p>
+         * Shamelessly copied from agl's code which was shamelessly copied from djb's code. Only the
+         * comment format and the variable namings are different from those.
+         */
+        static void inverse(long[] out, long[] z) {
+            long[] z2 = new long[Field25519.LIMB_CNT];
+            long[] z9 = new long[Field25519.LIMB_CNT];
+            long[] z11 = new long[Field25519.LIMB_CNT];
+            long[] z2To5Minus1 = new long[Field25519.LIMB_CNT];
+            long[] z2To10Minus1 = new long[Field25519.LIMB_CNT];
+            long[] z2To20Minus1 = new long[Field25519.LIMB_CNT];
+            long[] z2To50Minus1 = new long[Field25519.LIMB_CNT];
+            long[] z2To100Minus1 = new long[Field25519.LIMB_CNT];
+            long[] t0 = new long[Field25519.LIMB_CNT];
+            long[] t1 = new long[Field25519.LIMB_CNT];
+
+            square(z2, z);                          // 2
+            square(t1, z2);                         // 4
+            square(t0, t1);                         // 8
+            mult(z9, t0, z);                        // 9
+            mult(z11, z9, z2);                      // 11
+            square(t0, z11);                        // 22
+            mult(z2To5Minus1, t0, z9);              // 2^5 - 2^0 = 31
+
+            square(t0, z2To5Minus1);                // 2^6 - 2^1
+            square(t1, t0);                         // 2^7 - 2^2
+            square(t0, t1);                         // 2^8 - 2^3
+            square(t1, t0);                         // 2^9 - 2^4
+            square(t0, t1);                         // 2^10 - 2^5
+            mult(z2To10Minus1, t0, z2To5Minus1);    // 2^10 - 2^0
+
+            square(t0, z2To10Minus1);               // 2^11 - 2^1
+            square(t1, t0);                         // 2^12 - 2^2
+            for (int i = 2; i < 10; i += 2) {       // 2^20 - 2^10
+                square(t0, t1);
+                square(t1, t0);
+            }
+            mult(z2To20Minus1, t1, z2To10Minus1);   // 2^20 - 2^0
+
+            square(t0, z2To20Minus1);               // 2^21 - 2^1
+            square(t1, t0);                         // 2^22 - 2^2
+            for (int i = 2; i < 20; i += 2) {       // 2^40 - 2^20
+                square(t0, t1);
+                square(t1, t0);
+            }
+            mult(t0, t1, z2To20Minus1);             // 2^40 - 2^0
+
+            square(t1, t0);                         // 2^41 - 2^1
+            square(t0, t1);                         // 2^42 - 2^2
+            for (int i = 2; i < 10; i += 2) {       // 2^50 - 2^10
+                square(t1, t0);
+                square(t0, t1);
+            }
+            mult(z2To50Minus1, t0, z2To10Minus1);   // 2^50 - 2^0
+
+            square(t0, z2To50Minus1);               // 2^51 - 2^1
+            square(t1, t0);                         // 2^52 - 2^2
+            for (int i = 2; i < 50; i += 2) {       // 2^100 - 2^50
+                square(t0, t1);
+                square(t1, t0);
+            }
+            mult(z2To100Minus1, t1, z2To50Minus1);  // 2^100 - 2^0
+
+            square(t1, z2To100Minus1);              // 2^101 - 2^1
+            square(t0, t1);                         // 2^102 - 2^2
+            for (int i = 2; i < 100; i += 2) {      // 2^200 - 2^100
+                square(t1, t0);
+                square(t0, t1);
+            }
+            mult(t1, t0, z2To100Minus1);            // 2^200 - 2^0
+
+            square(t0, t1);                         // 2^201 - 2^1
+            square(t1, t0);                         // 2^202 - 2^2
+            for (int i = 2; i < 50; i += 2) {       // 2^250 - 2^50
+                square(t0, t1);
+                square(t1, t0);
+            }
+            mult(t0, t1, z2To50Minus1);             // 2^250 - 2^0
+
+            square(t1, t0);                         // 2^251 - 2^1
+            square(t0, t1);                         // 2^252 - 2^2
+            square(t1, t0);                         // 2^253 - 2^3
+            square(t0, t1);                         // 2^254 - 2^4
+            square(t1, t0);                         // 2^255 - 2^5
+            mult(out, t1, z11);                     // 2^255 - 21
+        }
+
+
+        /**
+         * Returns 0xffffffff iff a == b and zero otherwise.
+         */
+        private static int eq(int a, int b) {
+            a = ~(a ^ b);
+            a &= a << 16;
+            a &= a << 8;
+            a &= a << 4;
+            a &= a << 2;
+            a &= a << 1;
+            return a >> 31;
+        }
+
+        /**
+         * returns 0xffffffff if a >= b and zero otherwise, where a and b are both non-negative.
+         */
+        private static int gte(int a, int b) {
+            a -= b;
+            // a >= 0 iff a >= b.
+            return ~(a >> 31);
+        }
+    }
+
+    /**
+     * Projective point representation (X:Y:Z) satisfying x = X/Z, y = Y/Z
+     * <p>
+     * Note that this is referred as ge_p2 in ref10 impl.
+     * Also note that x = X, y = Y and z = Z below following Java coding style.
+     * <p>
+     * See
+     * Koyama K., Tsuruoka Y. (1993) Speeding up Elliptic Cryptosystems by Using a Signed Binary
+     * Window Method.
+     * <p>
+     * https://hyperelliptic.org/EFD/g1p/auto-twisted-projective.html
+     */
+    private static class XYZ {
+
+        final long[] x;
+        final long[] y;
+        final long[] z;
+
+        XYZ() {
+            this(new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT]);
+        }
+
+        XYZ(long[] x, long[] y, long[] z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        XYZ(XYZ xyz) {
+            x = Arrays.copyOf(xyz.x, Field25519.LIMB_CNT);
+            y = Arrays.copyOf(xyz.y, Field25519.LIMB_CNT);
+            z = Arrays.copyOf(xyz.z, Field25519.LIMB_CNT);
+        }
+
+        XYZ(PartialXYZT partialXYZT) {
+            this();
+            fromPartialXYZT(this, partialXYZT);
+        }
+
+        /**
+         * ge_p1p1_to_p2.c
+         */
+        static XYZ fromPartialXYZT(XYZ out, PartialXYZT in) {
+            Field25519.mult(out.x, in.xyz.x, in.t);
+            Field25519.mult(out.y, in.xyz.y, in.xyz.z);
+            Field25519.mult(out.z, in.xyz.z, in.t);
+            return out;
+        }
+
+        /**
+         * Best effort fix-timing array comparison.
+         *
+         * @return true if two arrays are equal.
+         */
+        private static boolean bytesEqual(final byte[] x, final byte[] y) {
+            if (x == null || y == null) {
+                return false;
+            }
+            if (x.length != y.length) {
+                return false;
+            }
+            int res = 0;
+            for (int i = 0; i < x.length; i++) {
+                res |= x[i] ^ y[i];
+            }
+            return res == 0;
+        }
+
+        /**
+         * Encodes this point to bytes.
+         */
+        byte[] toBytes() {
+            long[] recip = new long[Field25519.LIMB_CNT];
+            long[] x = new long[Field25519.LIMB_CNT];
+            long[] y = new long[Field25519.LIMB_CNT];
+            Field25519.inverse(recip, z);
+            Field25519.mult(x, this.x, recip);
+            Field25519.mult(y, this.y, recip);
+            byte[] s = Field25519.contract(y);
+            s[31] = (byte) (s[31] ^ (getLsb(x) << 7));
+            return s;
+        }
+
+        /**
+         * Checks that the point is on curve
+         */
+        boolean isOnCurve() {
+            long[] x2 = new long[Field25519.LIMB_CNT];
+            Field25519.square(x2, x);
+            long[] y2 = new long[Field25519.LIMB_CNT];
+            Field25519.square(y2, y);
+            long[] z2 = new long[Field25519.LIMB_CNT];
+            Field25519.square(z2, z);
+            long[] z4 = new long[Field25519.LIMB_CNT];
+            Field25519.square(z4, z2);
+            long[] lhs = new long[Field25519.LIMB_CNT];
+            // lhs = y^2 - x^2
+            Field25519.sub(lhs, y2, x2);
+            // lhs = z^2 * (y2 - x2)
+            Field25519.mult(lhs, lhs, z2);
+            long[] rhs = new long[Field25519.LIMB_CNT];
+            // rhs = x^2 * y^2
+            Field25519.mult(rhs, x2, y2);
+            // rhs = D * x^2 * y^2
+            Field25519.mult(rhs, rhs, D);
+            // rhs = z^4 + D * x^2 * y^2
+            Field25519.sum(rhs, z4);
+            // Field25519.mult reduces its output, but Field25519.sum does not, so we have to manually
+            // reduce it here.
+            Field25519.reduce(rhs, rhs);
+            // z^2 (y^2 - x^2) == z^4 + D * x^2 * y^2
+            return bytesEqual(Field25519.contract(lhs), Field25519.contract(rhs));
+        }
+    }
+
+    /**
+     * Represents extended projective point representation (X:Y:Z:T) satisfying x = X/Z, y = Y/Z,
+     * XY = ZT
+     * <p>
+     * Note that this is referred as ge_p3 in ref10 impl.
+     * Also note that t = T below following Java coding style.
+     * <p>
+     * See
+     * Hisil H., Wong K.KH., Carter G., Dawson E. (2008) Twisted Edwards Curves Revisited.
+     * <p>
+     * https://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html
+     */
+    private static class XYZT {
+
+        final XYZ xyz;
+        final long[] t;
+
+        XYZT() {
+            this(new XYZ(), new long[Field25519.LIMB_CNT]);
+        }
+
+        XYZT(XYZ xyz, long[] t) {
+            this.xyz = xyz;
+            this.t = t;
+        }
+
+        XYZT(PartialXYZT partialXYZT) {
+            this();
+            fromPartialXYZT(this, partialXYZT);
+        }
+
+        /**
+         * ge_p1p1_to_p2.c
+         */
+        private static XYZT fromPartialXYZT(XYZT out, PartialXYZT in) {
+            Field25519.mult(out.xyz.x, in.xyz.x, in.t);
+            Field25519.mult(out.xyz.y, in.xyz.y, in.xyz.z);
+            Field25519.mult(out.xyz.z, in.xyz.z, in.t);
+            Field25519.mult(out.t, in.xyz.x, in.xyz.y);
+            return out;
+        }
+
+        /**
+         * Decodes {@code s} into an extented projective point.
+         * See Section 5.1.3 Decoding in https://tools.ietf.org/html/rfc8032#section-5.1.3
+         */
+        private static XYZT fromBytesNegateVarTime(byte[] s) throws GeneralSecurityException {
+            long[] x = new long[Field25519.LIMB_CNT];
+            long[] y = Field25519.expand(s);
+            long[] z = new long[Field25519.LIMB_CNT];
+            z[0] = 1;
+            long[] t = new long[Field25519.LIMB_CNT];
+            long[] u = new long[Field25519.LIMB_CNT];
+            long[] v = new long[Field25519.LIMB_CNT];
+            long[] vxx = new long[Field25519.LIMB_CNT];
+            long[] check = new long[Field25519.LIMB_CNT];
+            Field25519.square(u, y);
+            Field25519.mult(v, u, D);
+            Field25519.sub(u, u, z); // u = y^2 - 1
+            Field25519.sum(v, v, z); // v = dy^2 + 1
+
+            long[] v3 = new long[Field25519.LIMB_CNT];
+            Field25519.square(v3, v);
+            Field25519.mult(v3, v3, v); // v3 = v^3
+            Field25519.square(x, v3);
+            Field25519.mult(x, x, v);
+            Field25519.mult(x, x, u); // x = uv^7
+
+            pow2252m3(x, x); // x = (uv^7)^((q-5)/8)
+            Field25519.mult(x, x, v3);
+            Field25519.mult(x, x, u); // x = uv^3(uv^7)^((q-5)/8)
+
+            Field25519.square(vxx, x);
+            Field25519.mult(vxx, vxx, v);
+            Field25519.sub(check, vxx, u); // vx^2-u
+            if (isNonZeroVarTime(check)) {
+                Field25519.sum(check, vxx, u); // vx^2+u
+                if (isNonZeroVarTime(check)) {
+                    throw new GeneralSecurityException("Cannot convert given bytes to extended projective "
+                            + "coordinates. No square root exists for modulo 2^255-19");
+                }
+                Field25519.mult(x, x, SQRTM1);
+            }
+
+            if (!isNonZeroVarTime(x) && (s[31] & 0xff) >> 7 != 0) {
+                throw new GeneralSecurityException("Cannot convert given bytes to extended projective "
+                        + "coordinates. Computed x is zero and encoded x's least significant bit is not zero");
+            }
+            if (getLsb(x) == ((s[31] & 0xff) >> 7)) {
+                neg(x, x);
+            }
+
+            Field25519.mult(t, x, y);
+            return new XYZT(new XYZ(x, y, z), t);
+        }
+    }
+
+    /**
+     * Partial projective point representation ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
+     * <p>
+     * Note that this is referred as complete form in the original ref10 impl (ge_p1p1).
+     * Also note that t = T below following Java coding style.
+     * <p>
+     * Although this has the same types as XYZT, it is redefined to have its own type so that it is
+     * readable and 1:1 corresponds to ref10 impl.
+     * <p>
+     * Can be converted to XYZT as follows:
+     * X1 = X * T = x * Z * T = x * Z1
+     * Y1 = Y * Z = y * T * Z = y * Z1
+     * Z1 = Z * T = Z * T
+     * T1 = X * Y = x * Z * y * T = x * y * Z1 = X1Y1 / Z1
+     */
+    private static class PartialXYZT {
+
+        final XYZ xyz;
+        final long[] t;
+
+        PartialXYZT() {
+            this(new XYZ(), new long[Field25519.LIMB_CNT]);
+        }
+
+        PartialXYZT(XYZ xyz, long[] t) {
+            this.xyz = xyz;
+            this.t = t;
+        }
+
+        PartialXYZT(PartialXYZT other) {
+            xyz = new XYZ(other.xyz);
+            t = Arrays.copyOf(other.t, Field25519.LIMB_CNT);
+        }
+    }
+
+    /**
+     * Corresponds to the caching mentioned in the last paragraph of Section 3.1 of
+     * Hisil H., Wong K.KH., Carter G., Dawson E. (2008) Twisted Edwards Curves Revisited.
+     * with Z = 1.
+     */
+    private static class CachedXYT {
+
+        final long[] yPlusX;
+        final long[] yMinusX;
+        final long[] t2d;
+
+        /**
+         * Creates a cached XYZT with Z = 1
+         *
+         * @param yPlusX  y + x
+         * @param yMinusX y - x
+         * @param t2d     2d * xy
+         */
+        CachedXYT(long[] yPlusX, long[] yMinusX, long[] t2d) {
+            this.yPlusX = yPlusX;
+            this.yMinusX = yMinusX;
+            this.t2d = t2d;
+        }
+
+        CachedXYT(CachedXYT other) {
+            yPlusX = Arrays.copyOf(other.yPlusX, Field25519.LIMB_CNT);
+            yMinusX = Arrays.copyOf(other.yMinusX, Field25519.LIMB_CNT);
+            t2d = Arrays.copyOf(other.t2d, Field25519.LIMB_CNT);
+        }
+
+        /**
+         * Conditionally copies a reduced-form limb arrays {@code b} into {@code a} if {@code icopy} is 1,
+         * but leave {@code a} unchanged if 'iswap' is 0. Runs in data-invariant time to avoid
+         * side-channel attacks.
+         *
+         * <p>NOTE that this function requires that {@code icopy} be 1 or 0; other values give wrong
+         * results. Also, the two limb arrays must be in reduced-coefficient, reduced-degree form: the
+         * values in a[10..19] or b[10..19] aren't swapped, and all all values in a[0..9],b[0..9] must
+         * have magnitude less than Integer.MAX_VALUE.
+         */
+        static void copyConditional(long[] a, long[] b, int icopy) {
+            int copy = -icopy;
+            for (int i = 0; i < Field25519.LIMB_CNT; i++) {
+                int x = copy & (((int) a[i]) ^ ((int) b[i]));
+                a[i] = ((int) a[i]) ^ x;
+            }
+        }
+
+        // z is one implicitly, so this just copies {@code in} to {@code output}.
+        void multByZ(long[] output, long[] in) {
+            System.arraycopy(in, 0, output, 0, Field25519.LIMB_CNT);
+        }
+
+        /**
+         * If icopy is 1, copies {@code other} into this point. Time invariant wrt to icopy value.
+         */
+        void copyConditional(CachedXYT other, int icopy) {
+            copyConditional(yPlusX, other.yPlusX, icopy);
+            copyConditional(yMinusX, other.yMinusX, icopy);
+            copyConditional(t2d, other.t2d, icopy);
+        }
+    }
+
+    private static class CachedXYZT extends CachedXYT {
+
+        private final long[] z;
+
+        CachedXYZT() {
+            this(new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT], new long[Field25519.LIMB_CNT]);
+        }
+
+        /**
+         * ge_p3_to_cached.c
+         */
+        CachedXYZT(XYZT xyzt) {
+            this();
+            Field25519.sum(yPlusX, xyzt.xyz.y, xyzt.xyz.x);
+            Field25519.sub(yMinusX, xyzt.xyz.y, xyzt.xyz.x);
+            System.arraycopy(xyzt.xyz.z, 0, z, 0, Field25519.LIMB_CNT);
+            Field25519.mult(t2d, xyzt.t, D2);
+        }
+
+        /**
+         * Creates a cached XYZT
+         *
+         * @param yPlusX  Y + X
+         * @param yMinusX Y - X
+         * @param z       Z
+         * @param t2d     2d * (XY/Z)
+         */
+        CachedXYZT(long[] yPlusX, long[] yMinusX, long[] z, long[] t2d) {
+            super(yPlusX, yMinusX, t2d);
+            this.z = z;
+        }
+
+        @Override
+        public void multByZ(long[] output, long[] in) {
+            Field25519.mult(output, in, z);
         }
     }
 }
