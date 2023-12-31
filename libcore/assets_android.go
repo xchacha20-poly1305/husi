@@ -3,6 +3,7 @@
 package libcore
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"os"
@@ -16,22 +17,24 @@ import (
 // 支持非官方源的，放 Android 目录
 // 不支持非官方源的，就放 file 目录
 func extractAssets() {
-	// TODO avoid unofficial assets
 	useOfficialAssets := intfNB4A.UseOfficialAssets()
 
 	// 解压的是 apk 里面的 assets
 
-	err := extractGeo(useOfficialAssets)
-	if err != nil {
-		log.Println(err)
+	if useOfficialAssets {
+		err := extractGeo()
+		if err != nil {
+			log.Println(err)
+		}
 	}
-	err = extractDash(useOfficialAssets)
+
+	err := extractDash()
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-func extractGeo(useOfficialAssets bool) error {
+func extractGeo() error {
 	names := []string{geoipDat, geositeDat}
 	versions := []string{geoipVersion, geositeVersion}
 	dir := externalAssetsPath
@@ -48,6 +51,18 @@ func extractGeo(useOfficialAssets bool) error {
 			continue
 		}
 		assetsVersions = append(assetsVersions, assetsVersion)
+	}
+
+	// compare version
+	for i, assetsVersion := range assetsVersions {
+		localVersion, err := readLocalVersion(filepath.Join(dir, versions[i]))
+		if err != nil {
+			// miss local version
+			break
+		}
+		if bytes.Equal(assetsVersion, localVersion) {
+			return nil
+		}
 	}
 
 	// Prepare directory
@@ -86,7 +101,7 @@ func extractGeo(useOfficialAssets bool) error {
 	return nil
 }
 
-func extractDash(useOfficialAssets bool) error {
+func extractDash() error {
 	name := dashDstFolder
 	version := dashVersion
 	dir := internalAssetsPath
@@ -95,6 +110,14 @@ func extractDash(useOfficialAssets bool) error {
 	assetsVersion, err := readAssetsVersion(version)
 	if err != nil || len(assetsVersion) < 1 {
 		assetsVersion = []byte(time.Now().Format("20060102"))
+	}
+
+	localVersion, err := readLocalVersion(filepath.Join(dir, version))
+	if err == nil {
+		// needn't update
+		if bytes.Equal(assetsVersion, localVersion) {
+			return nil
+		}
 	}
 
 	os.RemoveAll(dstName)
@@ -142,6 +165,10 @@ func readAssetsVersion(path string) ([]byte, error) {
 	}
 	defer av.Close()
 	return io.ReadAll(av)
+}
+
+func readLocalVersion(path string) ([]byte, error) {
+	return os.ReadFile(path)
 }
 
 func writeVersion(version []byte, versionPath string) error {
