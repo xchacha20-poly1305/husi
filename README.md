@@ -83,7 +83,7 @@ Download geo resource files:
 Compile the release version:
 
 ```shell
-./gradlew app:assembleOssRelease
+./gradlew app:assembleFossRelease
 ```
 
 The APK file will be located in `app/build/outputs/apk`.

@@ -154,7 +154,7 @@ fun Project.setupCommon() {
                     it as BaseVariantOutputImpl
                     it.outputFileName = it.outputFileName.replace(
                         "app", "${project.name}-" + variant.versionName
-                    ).replace("-release", "").replace("-oss", "")
+                    ).replace("-release", "").replace("-foss", "")
                 }
             }
         }
@@ -179,7 +179,7 @@ fun Project.setupAppCommon() {
                     keyPassword = pwd
                 }
             }
-        } else if (requireFlavor().contains("(Oss|Expert|Play)Release".toRegex())) {
+        } else if (requireFlavor().contains("(Foss|Expert|Play)Release".toRegex())) {
             exitProcess(0)
         }
         buildTypes {
@@ -232,7 +232,7 @@ fun Project.setupApp() {
 
         flavorDimensions += "vendor"
         productFlavors {
-            create("oss")
+            create("foss")
             create("fdroid")
             create("play")
         }
@@ -242,7 +242,7 @@ fun Project.setupApp() {
                 this as BaseVariantOutputImpl
                 outputFileName = outputFileName.replace(project.name, "husi-$versionName")
                     .replace("-release", "")
-                    .replace("-oss", "")
+                    .replace("-foss", "")
             }
         }
 

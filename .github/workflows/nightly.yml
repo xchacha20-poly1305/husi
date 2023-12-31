@@ -40,7 +40,7 @@ jobs:
           ./run lib source
           ./run lib core
   build:
-    name: Build OSS APK
+    name: Build FOSS APK
     runs-on: ubuntu-latest
     needs:
       - libcore
@@ -71,7 +71,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.gradle
-          key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
+          key: gradle-foss-${{ hashFiles('**/*.gradle.kts') }}
       - name: Gradle Build
         env:
           BUILD_PLUGIN: none
@@ -82,8 +82,8 @@ jobs:
           echo "ndk.dir=${ANDROID_HOME}/ndk/26.1.10909125" >> local.properties
           # export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
-          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS}}" ./gradlew clean app:assembleOssDebug
-          # ./gradlew clean app:assembleOssRelease
+          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS}}" ./gradlew clean app:assembleFossDebug
+          # ./gradlew clean app:assembleFossRelease
 
           APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname $APK)
