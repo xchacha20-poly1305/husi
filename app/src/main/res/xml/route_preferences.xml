@@ -50,6 +50,16 @@
                 app:key="routeProtocol"
                 app:title="protocol"
                 app:useSimpleSummaryProvider="true"/>
+        <EditTextPreference
+                app:icon="@drawable/ic_baseline_wifi"
+                app:key="routeSSID"
+                app:title="WIFI SSID"
+                app:useSimpleSummaryProvider="true"/>
+        <EditTextPreference
+                app:icon="@drawable/ic_baseline_wifi_not_connected"
+                app:key="routeBSSID"
+                app:title="WIFI BSSID"
+                app:useSimpleSummaryProvider="true"/>
         <io.nekohasekai.sagernet.widget.OutboundPreference
                 app:icon="@drawable/ic_hardware_router"
                 app:key="routeOutbound"

@@ -135,6 +135,8 @@ object Key {
     const val ROUTE_PROTOCOL = "routeProtocol"
     const val ROUTE_OUTBOUND = "routeOutbound"
     const val ROUTE_PACKAGES = "routePackages"
+    const val ROUTE_SSID = "routeSSID"
+    const val ROUTE_BSSID = "routeBSSID"
 
     const val GROUP_NAME = "groupName"
     const val GROUP_TYPE = "groupType"

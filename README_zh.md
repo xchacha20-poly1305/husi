@@ -18,6 +18,7 @@
 
 * 安卓 API 34 & Gradle 8.2.0 & ndk 26.1.10909125。
 * 信任 Moziila 信任的证书列表以防止某些劫持。
+* 根据 WIFI 状态的路由。（不再是官方 sing-box 客户端特有。）
 * 节省内存的 sing-box rule_set。
 * 由 sing-box 强力驱动的数不胜数的协议：socks, http, Shadowsocks, VMess, Trojan,
   WireGuard, Hysteria (1 和 2) (附带端口跳跃), ShadowTLS, VLESS, TUIC, SSH。

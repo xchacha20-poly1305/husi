@@ -4451,6 +4451,10 @@ public class SingBoxOptions {
 
         public List<String> rule_set;
 
+        public List<String> wifi_ssid;
+
+        public List<String> wifi_bssid;
+
     }
 
     public static class Rule_SetOptions extends SingBoxOption {
@@ -4559,6 +4563,10 @@ public class SingBoxOptions {
         public Integer rewrite_ttl;
 
         public List<String> rule_set;
+
+        public List<String> wifi_ssid;
+
+        public List<String> wifi_bssid;
 
     }
 

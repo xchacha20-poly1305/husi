@@ -98,7 +98,18 @@ class RouteSettingsActivity(
 
     fun needSave(): Boolean {
         if (!DataStore.dirty) return false
-        if (DataStore.routePackages.isBlank() && DataStore.routeDomain.isBlank() && DataStore.routeIP.isBlank() && DataStore.routePort.isBlank() && DataStore.routeSourcePort.isBlank() && DataStore.routeNetwork.isBlank() && DataStore.routeSource.isBlank() && DataStore.routeProtocol.isBlank()) {
+        if (DataStore.routePackages.isBlank() &&
+            DataStore.routeDomain.isBlank() &&
+            DataStore.routeIP.isBlank() &&
+            DataStore.routePort.isBlank() &&
+            DataStore.routeSourcePort.isBlank() &&
+            DataStore.routeNetwork.isBlank() &&
+            DataStore.routeSource.isBlank() &&
+            DataStore.routeProtocol.isBlank() &&
+            DataStore.routeSSID.isBlank() &&
+            DataStore.routeBSSID.isBlank() &&
+            DataStore.routeOutbound == 0
+        ) {
             return false
         }
         return true
