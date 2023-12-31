@@ -12,7 +12,7 @@ require (
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
 	github.com/xchacha20-poly1305/cazilla v0.1.2
 	github.com/xchacha20-poly1305/dun v1.0.0 // replaced
-	golang.org/x/mobile v0.0.0-20220722155234-aaac322e2105
+	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
 )
 
 require (
@@ -58,7 +58,7 @@ require (
 	github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 // indirect
 	github.com/sagernet/quic-go v0.40.1-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
-	github.com/sagernet/sing-mux v0.1.7-rc.1 // indirect
+	github.com/sagernet/sing-mux v0.1.7-rc.2 // indirect
 	github.com/sagernet/sing-quic v1.0.0 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.6 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.1.6-rc.1 // indirect
