@@ -38,6 +38,7 @@ class AssetsActivity : ThemedActivity() {
         setContentView(binding.root)
 
         updating = findViewById(R.id.action_updating)
+        updating.visibility = View.GONE
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
@@ -174,11 +175,11 @@ class AssetsActivity : ThemedActivity() {
             assets.add(File(filesDir, "geosite.version.txt"))
 //            if (files != null) assets.addAll(files)
 
-            updating.visibility = View.GONE
-
             layout.refreshLayout.post {
                 notifyDataSetChanged()
             }
+
+            updating.setProgressCompat(0, true)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetHolder {
@@ -239,7 +240,10 @@ class AssetsActivity : ThemedActivity() {
 
     private suspend fun updateAsset() {
         val filesDir = getExternalFilesDir(null) ?: filesDir
-
+        var progress = 0
+        fun setProgress() {
+            updating.setProgressCompat(progress, true)
+        }
 
         val repos: List<String> = when (DataStore.rulesProvider) {
             0 -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
@@ -247,15 +251,16 @@ class AssetsActivity : ThemedActivity() {
             2 -> listOf("Chocolate4U/Iran-sing-box-rules")
             else -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
         }
-
+        progress = 15
         onMainDispatcher {
             updating.visibility = View.VISIBLE
+            setProgress()
         }
 
         val geoDir = File(filesDir, "geo")
         var cacheFiles: Array<File> = arrayOf()
 
-        for ((list, repo) in repos.withIndex()) {
+        for ((i, repo) in repos.withIndex()) {
 
             val client = Libcore.newHttpClient().apply {
                 modernTLS()
@@ -270,12 +275,10 @@ class AssetsActivity : ThemedActivity() {
                     setURL("https://codeload.github.com/$repo/zip/refs/heads/rule-set")
                 }.execute()
 
-                val cacheFile = File(filesDir.parentFile, filesDir.name + list + ".tmp")
+                val cacheFile = File(filesDir.parentFile, filesDir.name + i + ".tmp")
                 cacheFile.parentFile?.mkdirs()
                 response.writeTo(cacheFile.canonicalPath)
                 cacheFiles += cacheFile
-
-                adapter.reloadAssets()
 
             } catch (e: Exception) {
                 onMainDispatcher {
@@ -284,16 +287,21 @@ class AssetsActivity : ThemedActivity() {
             } finally {
                 client.close()
             }
+
+            progress += 20
+            onMainDispatcher {
+                setProgress()
+            }
+
         }
 
         for (cacheFile in cacheFiles) {
+            progress += 15
+            onMainDispatcher {
+                setProgress()
+            }
             Libcore.unzipWithoutDir(cacheFile.absolutePath, geoDir.absolutePath)
             cacheFile.delete()
-        }
-
-        onMainDispatcher {
-            snackbar(R.string.route_asset_updated).show()
-            updating.visibility = View.GONE
         }
 
         val versionFileList: List<File> = listOf(
@@ -301,6 +309,10 @@ class AssetsActivity : ThemedActivity() {
             File(filesDir, "geosite.version.txt")
         )
         for (versionFile in versionFileList) {
+            progress += 5
+            onMainDispatcher {
+                setProgress()
+            }
             versionFile.writeText(
                 LocalDate.now()
                     .format(
@@ -309,7 +321,14 @@ class AssetsActivity : ThemedActivity() {
                     )
             )
         }
-        adapter.reloadAssets()
+
+        progress = 100
+        onMainDispatcher {
+            setProgress()
+            updating.visibility = View.GONE
+            adapter.reloadAssets()
+            snackbar(R.string.route_asset_updated).show()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
