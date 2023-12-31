@@ -16,8 +16,9 @@ TAGS=(
 
 BUILD_TAGS="${TAGS[*]}"
 
-gomobile bind -v -androidapi 21 -trimpath -ldflags='-s -w' \
+gomobile bind -v -androidapi 21 -trimpath -ldflags='-s -w -buildid=' \
  -tags="$BUILD_TAGS" . || exit 1
+
 rm -r libcore-sources.jar
 
 proj=../app/libs
