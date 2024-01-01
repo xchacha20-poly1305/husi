@@ -29,7 +29,6 @@ object SingBoxOptionsUtil {
 }
 
 fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(list: List<String>) {
-    geosite = mutableListOf<String>()
     domain = mutableListOf<String>()
     domain_suffix = mutableListOf<String>()
     domain_regex = mutableListOf<String>()
@@ -54,7 +53,6 @@ fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(list: List<String>) {
             domain.plusAssign(it.lowercase())
         }
     }
-    geosite?.removeIf { it.isNullOrBlank() }
     rule_set?.removeIf { it.isNullOrBlank() }
     domain?.removeIf { it.isNullOrBlank() }
     domain_suffix?.removeIf { it.isNullOrBlank() }
@@ -73,15 +71,14 @@ fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(list: List<String>) {
 }
 
 fun SingBoxOptions.DNSRule_DefaultOptions.checkEmpty(): Boolean {
-    if (geosite?.isNotEmpty() == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (domain?.isNotEmpty() == true) return false
     if (domain_suffix?.isNotEmpty() == true) return false
     if (domain_regex?.isNotEmpty() == true) return false
     if (domain_keyword?.isNotEmpty() == true) return false
     if (user_id?.isNotEmpty() == true) return false
-    if (wifi_ssid?.isEmpty() == true) return false
-    if (wifi_bssid?.isEmpty() == true) return false
+    if (wifi_ssid?.isNotEmpty() == true) return false
+    if (wifi_bssid?.isNotEmpty() == true) return false
     return true
 }
 
@@ -95,8 +92,6 @@ fun SingBoxOptions.Rule_DefaultOptions.makeSingBoxRule(list: List<String>, isIP:
         domain_suffix = mutableListOf<String>()
         domain_regex = mutableListOf<String>()
         domain_keyword = mutableListOf<String>()
-        wifi_ssid = mutableListOf<String>()
-        wifi_bssid = mutableListOf<String>()
     }
     rule_set = mutableListOf<String>()
     list.forEach {
@@ -126,31 +121,21 @@ fun SingBoxOptions.Rule_DefaultOptions.makeSingBoxRule(list: List<String>, isIP:
         }
     }
     ip_cidr?.removeIf { it.isNullOrBlank() }
-    geoip?.removeIf { it.isNullOrBlank() }
-    geosite?.removeIf { it.isNullOrBlank() }
     rule_set?.removeIf { it.isNullOrBlank() }
     domain?.removeIf { it.isNullOrBlank() }
     domain_suffix?.removeIf { it.isNullOrBlank() }
     domain_regex?.removeIf { it.isNullOrBlank() }
     domain_keyword?.removeIf { it.isNullOrBlank() }
-    wifi_ssid?.removeIf() { it.isNullOrBlank() }
-    wifi_bssid?.removeIf() { it.isNullOrBlank() }
     if (ip_cidr?.isEmpty() == true) ip_cidr = null
-    if (geoip?.isEmpty() == true) geoip = null
-    if (geosite?.isEmpty() == true) geosite = null
     if (rule_set?.isEmpty() == true) rule_set = null
     if (domain?.isEmpty() == true) domain = null
     if (domain_suffix?.isEmpty() == true) domain_suffix = null
     if (domain_regex?.isEmpty() == true) domain_regex = null
     if (domain_keyword?.isEmpty() == true) domain_keyword = null
-    if (wifi_ssid?.isEmpty() == true) wifi_ssid = null
-    if (wifi_bssid?.isEmpty() == true) wifi_bssid = null
 }
 
 fun SingBoxOptions.Rule_DefaultOptions.checkEmpty(): Boolean {
     if (ip_cidr?.isNotEmpty() == true) return false
-    if (geoip?.isNotEmpty() == true) return false
-    if (geosite?.isNotEmpty() == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (domain?.isNotEmpty() == true) return false
     if (domain_suffix?.isNotEmpty() == true) return false
@@ -161,8 +146,8 @@ fun SingBoxOptions.Rule_DefaultOptions.checkEmpty(): Boolean {
     if (port?.isNotEmpty() == true) return false
     if (port_range?.isNotEmpty() == true) return false
     if (source_ip_cidr?.isNotEmpty() == true) return false
-    if (wifi_ssid?.isEmpty() == true) return false
-    if (wifi_bssid?.isEmpty() == true) return false
+    if (wifi_ssid?.isNotEmpty() == true) return false
+    if (wifi_bssid?.isNotEmpty() == true) return false
     return true
 }
 

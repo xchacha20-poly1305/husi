@@ -577,6 +577,12 @@ fun buildConfig(
                 if (rule.protocol.isNotBlank()) {
                     protocol = rule.protocol.listByLineOrComma()
                 }
+                if (rule.ssid.isNotBlank()) {
+                    wifi_ssid = rule.ssid.listByLineOrComma()
+                }
+                if (rule.bssid.isNotBlank()) {
+                    wifi_bssid = rule.bssid.listByLineOrComma()
+                }
 
                 fun makeDnsRuleObj(): DNSRule_DefaultOptions {
                     return DNSRule_DefaultOptions().apply {

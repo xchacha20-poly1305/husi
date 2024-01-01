@@ -22,7 +22,9 @@ import (
 
 var boxPlatformInterfaceInstance platform.Interface = &boxPlatformInterfaceWrapper{}
 
-type boxPlatformInterfaceWrapper struct{}
+type boxPlatformInterfaceWrapper struct {
+	iif BoxPlatformInterface
+}
 
 type WIFIState struct {
 	SSID  string
@@ -34,7 +36,11 @@ func NewWIFIState(wifiSSID string, wifiBSSID string) *WIFIState {
 }
 
 func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
-	return adapter.WIFIState{}
+	wifiState := w.iif.ReadWIFIState()
+	if wifiState == nil {
+		return adapter.WIFIState{}
+	}
+	return (adapter.WIFIState)(*wifiState)
 }
 
 func (w *boxPlatformInterfaceWrapper) Initialize(ctx context.Context, router adapter.Router) error {

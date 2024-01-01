@@ -95,10 +95,14 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 	// create box
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = pause.WithDefaultManager(ctx)
+	platformWrapper := &boxPlatformInterfaceWrapper{}
+	if intfBox != nil {
+		platformWrapper.iif = intfBox
+	}
 	instance, err := dunbox.New(dunbox.Options{
 		Options:           options,
 		Context:           ctx,
-		PlatformInterface: boxPlatformInterfaceInstance,
+		PlatformInterface: platformWrapper,
 	})
 	if err != nil {
 		cancel()

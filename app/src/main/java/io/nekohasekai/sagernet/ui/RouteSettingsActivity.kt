@@ -65,6 +65,8 @@ class RouteSettingsActivity(
         DataStore.routeSource = source
         DataStore.routeProtocol = protocol
         DataStore.routeOutboundRule = outbound
+        DataStore.routeSSID = ssid
+        DataStore.routeBSSID = bssid
         DataStore.routeOutbound = when (outbound) {
             0L -> 0
             -1L -> 1
@@ -83,6 +85,8 @@ class RouteSettingsActivity(
         network = DataStore.routeNetwork
         source = DataStore.routeSource
         protocol = DataStore.routeProtocol
+        ssid = DataStore.routeSSID
+        bssid = DataStore.routeBSSID
         outbound = when (DataStore.routeOutbound) {
             0 -> 0L
             1 -> -1L
