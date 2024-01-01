@@ -28,25 +28,31 @@ import (
 
 var mainInstance *BoxInstance
 
+// VersionBox
+// Get your box version
+//
+// Format:
+//
+//	sing-box: {dun_version}
+//	{go_version}@{os}/{arch}
+//	{tags}
 func VersionBox() string {
 	version := []string{
 		"sing-box: " + dunbox.Version,
 		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
 	}
 
-	var tags string
 	debugInfo, loaded := debug.ReadBuildInfo()
 	if loaded {
 		for _, setting := range debugInfo.Settings {
 			switch setting.Key {
 			case "-tags":
-				tags = setting.Value
+				if setting.Value != "" {
+					version = append(version, setting.Value)
+					break
+				}
 			}
 		}
-	}
-
-	if tags != "" {
-		version = append(version, tags)
 	}
 
 	return strings.Join(version, "\n")
@@ -62,7 +68,12 @@ func ResetAllConnections(system bool) {
 type BoxInstance struct {
 	*dunbox.Box
 	cancel context.CancelFunc
-	state  int
+
+	// state is sing-box state
+	// 0: never started
+	// 1: running
+	// 2: closed
+	state int
 
 	v2api        *dunapi.SbV2rayServer
 	selector     *outbound.Selector
@@ -91,7 +102,7 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 	})
 	if err != nil {
 		cancel()
-		return nil, E.Cause(err, "create servicev")
+		return nil, E.Cause(err, "create service")
 	}
 
 	b = &BoxInstance{
@@ -100,14 +111,16 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
 
-	// fuck your sing-box platformFormatter
-	pf := instance.GetLogPlatformFormatter()
-	pf.DisableColors = true
-	pf.DisableLineBreak = false
+	// sing-box platformFormatter
+	logPlatformFormatter := instance.GetLogPlatformFormatter()
+	logPlatformFormatter.DisableColors = true
+	logPlatformFormatter.DisableLineBreak = false
 
 	// selector
-	if proxy, ok := b.Router().Outbound("proxy"); ok {
-		if selector, ok := proxy.(*outbound.Selector); ok {
+	proxy, outboundHasProxy := b.Router().Outbound("proxy")
+	if outboundHasProxy {
+		selector, enabledSelector := proxy.(*outbound.Selector)
+		if enabledSelector {
 			b.selector = selector
 		}
 	}
@@ -148,7 +161,7 @@ func (b *BoxInstance) Close() (err error) {
 
 func (b *BoxInstance) Sleep() {
 	b.pauseManager.DevicePause()
-	_ = b.Box.Router().ResetNetwork()
+	b.Box.Router().ResetNetwork()
 }
 
 func (b *BoxInstance) Wake() {

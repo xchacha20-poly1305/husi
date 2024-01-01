@@ -65,12 +65,12 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	b, _ := json.Marshal(platformOptions)
 	tunFd, err := intfBox.OpenTun(string(a), string(b))
 	if err != nil {
-		return nil, E.Cause(err, "intfBox.OpenTunv")
+		return nil, E.Cause(err, "intfBox.OpenTun")
 	}
 	// Do you want to close it?
 	tunFd, err = syscall.Dup(tunFd)
 	if err != nil {
-		return nil, E.Cause(err, "syscall.Dupv")
+		return nil, E.Cause(err, "syscall.Dup")
 	}
 	//
 	options.FileDescriptor = int(tunFd)

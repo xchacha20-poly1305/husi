@@ -14,12 +14,11 @@ import (
 	"golang.org/x/mobile/asset"
 )
 
-// 支持非官方源的，放 Android 目录
-// 不支持非官方源的，就放 file 目录
+// 支持非官方源的，放 Android 目录 (dashboard)
+// 不支持非官方源的，就放 file 目录 (geo)
+// 解压的是 apk 里面的 assets
 func extractAssets() {
 	useOfficialAssets := intfNB4A.UseOfficialAssets()
-
-	// 解压的是 apk 里面的 assets
 
 	if useOfficialAssets {
 		err := extractGeo()
@@ -34,17 +33,18 @@ func extractAssets() {
 	}
 }
 
+// extract geo files.
 func extractGeo() error {
 	names := []string{geoipDat, geositeDat}
-	versions := []string{geoipVersion, geositeVersion}
+	versionPaths := []string{geoipVersion, geositeVersion}
 	dir := externalAssetsPath
-	dstName := filepath.Join(dir, "geo")
-	apkPrefix := apkAssetPrefixSingBox
+	targetDir := filepath.Join(dir, "geo")
+	assetsDir := apkAssetPrefixSingBox
 
 	// load assets version
 	var assetsVersions [][]byte
-	for _, version := range versions {
-		assetsVersion, err := readAssetsVersion(filepath.Join(apkPrefix, version))
+	for _, versionPath := range versionPaths {
+		assetsVersion, err := readAssetsVersion(filepath.Join(assetsDir, versionPath))
 		if err != nil || len(assetsVersion) < 1 {
 			assetsVersions = append(assetsVersions,
 				[]byte(time.Now().Format("20060102")))
@@ -55,34 +55,35 @@ func extractGeo() error {
 
 	// compare version
 	for i, assetsVersion := range assetsVersions {
-		localVersion, err := readLocalVersion(filepath.Join(dir, versions[i]))
+		localVersion, err := readLocalVersion(filepath.Join(dir, versionPaths[i]))
 		if err != nil {
-			// miss local version
+			// miss local versionPath
 			break
 		}
+		// needn't update
 		if bytes.Equal(assetsVersion, localVersion) {
 			return nil
 		}
 	}
 
 	// Prepare directory
-	os.RemoveAll(dstName)
-	os.MkdirAll(dstName, os.ModePerm)
+	os.RemoveAll(targetDir)
+	os.MkdirAll(targetDir, os.ModePerm)
 
 	// Unzip geoip and geosite
 	for _, name := range names {
-		file, err := asset.Open(filepath.Join(apkPrefix, name) + ".zip")
+		file, err := asset.Open(filepath.Join(assetsDir, name) + ".zip")
 		if err != nil {
 			return E.Cause(err, "open asset", name)
 		}
 
-		tmpZipName := filepath.Join(dstName, name) + ".zip"
+		tmpZipName := filepath.Join(targetDir, name) + ".zip"
 		err = extractAsset(file, tmpZipName)
 		if err != nil {
 			return E.Cause(err, "extract:", name)
 		}
 
-		err = UnzipWithoutDir(tmpZipName, dstName)
+		err = UnzipWithoutDir(tmpZipName, targetDir)
 		os.Remove(tmpZipName)
 		if err != nil {
 			return E.Cause(err, "unzip:", name)
@@ -90,7 +91,7 @@ func extractGeo() error {
 	}
 
 	// write version
-	for i, version := range versions {
+	for i, version := range versionPaths {
 		err := writeVersion(assetsVersions[i],
 			filepath.Join(dir, version))
 		if err != nil {
@@ -101,18 +102,21 @@ func extractGeo() error {
 	return nil
 }
 
+// Extract dashboard
 func extractDash() error {
 	name := dashDstFolder
-	version := dashVersion
+	versionPath := dashVersion
 	dir := internalAssetsPath
 	dstName := filepath.Join(dir, name)
 
-	assetsVersion, err := readAssetsVersion(version)
+	// load assets version
+	assetsVersion, err := readAssetsVersion(versionPath)
 	if err != nil || len(assetsVersion) < 1 {
 		assetsVersion = []byte(time.Now().Format("20060102"))
 	}
 
-	localVersion, err := readLocalVersion(filepath.Join(dir, version))
+	// compare version
+	localVersion, err := readLocalVersion(filepath.Join(dir, versionPath))
 	if err == nil {
 		// needn't update
 		if bytes.Equal(assetsVersion, localVersion) {
@@ -122,6 +126,7 @@ func extractDash() error {
 
 	os.RemoveAll(dstName)
 
+	// unzip file
 	file, err := asset.Open(dashArchive)
 	if err != nil {
 		return E.Cause(err, "can't open", dashArchive)
@@ -150,7 +155,7 @@ func extractDash() error {
 		return E.Cause(err, "rename dashboard")
 	}
 
-	err = writeVersion(assetsVersion, filepath.Join(dir, version))
+	err = writeVersion(assetsVersion, filepath.Join(dir, versionPath))
 	if err != nil {
 		return err
 	}
@@ -158,6 +163,7 @@ func extractDash() error {
 	return nil
 }
 
+// Read the version file in assets
 func readAssetsVersion(path string) ([]byte, error) {
 	av, err := asset.Open(path)
 	if err != nil {
@@ -167,10 +173,12 @@ func readAssetsVersion(path string) ([]byte, error) {
 	return io.ReadAll(av)
 }
 
+// Read the local assets name
 func readLocalVersion(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
+// Write version to version file
 func writeVersion(version []byte, versionPath string) error {
 	os.Remove(versionPath)
 
@@ -187,6 +195,7 @@ func writeVersion(version []byte, versionPath string) error {
 	return nil
 }
 
+// Extract the file in asset
 func extractAsset(i asset.File, path string) error {
 	defer i.Close()
 	o, err := os.Create(path)

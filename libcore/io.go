@@ -18,22 +18,17 @@ func Unzip(archive string, path string) error {
 	}
 	defer r.Close()
 
-	err = os.MkdirAll(path, os.ModePerm)
-	if err != nil {
-		return err
-	}
+	os.MkdirAll(path, os.ModePerm)
 
 	for _, file := range r.File {
 		filePath := filepath.Join(path, file.Name)
 
 		if file.FileInfo().IsDir() {
-			err = os.MkdirAll(filePath, os.ModePerm)
-			if err != nil {
-				return err
-			}
+			os.MkdirAll(filePath, os.ModePerm)
 			continue
 		}
 
+		// Don't forget to close it.
 		newFile, err := os.Create(filePath)
 		if err != nil {
 			return err
@@ -45,10 +40,8 @@ func Unzip(archive string, path string) error {
 			return err
 		}
 
-		var errs error
 		_, err = io.Copy(newFile, zipFile)
-		errs = E.Errors(errs, err)
-		errs = E.Errors(errs, common.Close(zipFile, newFile))
+		errs := E.Errors(err, common.Close(zipFile, newFile))
 		if errs != nil {
 			return errs
 		}
@@ -56,6 +49,9 @@ func Unzip(archive string, path string) error {
 
 	return nil
 }
+
+// UnzipWithoutDir
+// Ignore the directory in the zip file.
 func UnzipWithoutDir(archive, path string) error {
 	r, err := zip.OpenReader(archive)
 	if err != nil {
@@ -63,10 +59,7 @@ func UnzipWithoutDir(archive, path string) error {
 	}
 	defer r.Close()
 
-	err = os.MkdirAll(path, os.ModePerm)
-	if err != nil {
-		return err
-	}
+	os.MkdirAll(path, os.ModePerm)
 
 	for _, file := range r.File {
 		if file.FileInfo().IsDir() {
@@ -79,6 +72,7 @@ func UnzipWithoutDir(archive, path string) error {
 		filePath := filepath.Join(path, fileName)
 
 		os.Remove(filePath)
+		// Don't forget to close it.
 		newFile, err := os.Create(filePath)
 		if err != nil {
 			return err
@@ -90,10 +84,8 @@ func UnzipWithoutDir(archive, path string) error {
 			return err
 		}
 
-		var errs error
 		_, err = io.Copy(newFile, zipFile)
-		errs = E.Errors(errs, err)
-		errs = E.Errors(errs, common.Close(zipFile, newFile))
+		errs := E.Errors(err, common.Close(zipFile, newFile))
 		if errs != nil {
 			return errs
 		}

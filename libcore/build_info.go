@@ -1,4 +1,4 @@
-// go:build android
+//go:build android
 
 package libcore
 
@@ -132,6 +132,7 @@ func readAndroidVPNTypeEntry(zipFile *zip.File) (*AndroidVPNType, error) {
 		vpnType.CorePath, _ = determineCorePath(buildInfo, vpnType.CoreType)
 		return &vpnType, nil
 	}
+	// Yes your ray love protobuf
 	if dependencies["github.com/golang/protobuf"] && dependencies["github.com/v2fly/ss-bloomring"] {
 		vpnType.CoreType = androidVPNCoreTypeV2Ray
 		return &vpnType, nil
@@ -141,16 +142,18 @@ func readAndroidVPNTypeEntry(zipFile *zip.File) (*AndroidVPNType, error) {
 
 func determinePkgType(pkgName string) (string, bool) {
 	pkgNameLower := strings.ToLower(pkgName)
-	if strings.Contains(pkgNameLower, "clash") {
-		return androidVPNCoreTypeClash, true
-	}
-	if strings.Contains(pkgNameLower, "v2ray") || strings.Contains(pkgNameLower, "xray") {
-		return androidVPNCoreTypeV2Ray, true
-	}
 
 	if strings.Contains(pkgNameLower, "sing-box") {
 		return androidVPNCoreTypeSingBox, true
 	}
+	// SagerNet use clash, too.
+	if strings.Contains(pkgNameLower, "v2ray") || strings.Contains(pkgNameLower, "xray") {
+		return androidVPNCoreTypeV2Ray, true
+	}
+	if strings.Contains(pkgNameLower, "clash") || strings.Contains(pkgNameLower, "mihomo") {
+		return androidVPNCoreTypeClash, true
+	}
+
 	return "", false
 }
 
@@ -165,7 +168,10 @@ func determinePkgTypeSecondary(pkgName string) (string, bool) {
 func determineCorePath(pkgInfo *buildinfo.BuildInfo, pkgType string) (string, bool) {
 	switch pkgType {
 	case androidVPNCoreTypeClash:
-		return determineCorePathForPkgs(pkgInfo, []string{"github.com/Dreamacro/clash"}, []string{"clash"})
+		return determineCorePathForPkgs(pkgInfo, []string{
+			"github.com/Dreamacro/clash",
+			"github.com/metacubex/mihomo",
+		}, []string{"clash"})
 	case androidVPNCoreTypeV2Ray:
 		if v2rayVersion, loaded := determineCorePathForPkgs(pkgInfo, []string{
 			"github.com/v2fly/v2ray-core",

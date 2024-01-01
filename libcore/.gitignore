@@ -3,5 +3,3 @@ binary*.go
 .idea
 .vscode
 /debug.go
-build
-.build

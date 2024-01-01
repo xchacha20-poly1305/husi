@@ -7,8 +7,6 @@ import (
 	"github.com/sagernet/sing/common/x/list"
 )
 
-// wtf
-
 type interfaceMonitor struct {
 }
 

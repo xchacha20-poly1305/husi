@@ -40,7 +40,7 @@ func StunTest(server string) *StunResult {
 
 	natBehavior, err := client.BehaviorTest()
 	if err != nil {
-		text += fmt.Sprintln("BehaviorTest Error:", err.Error())
+		text += fmt.Sprintln("BehaviorTest Error:", err)
 	}
 
 	if natBehavior != nil {
