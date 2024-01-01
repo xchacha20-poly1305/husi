@@ -34,6 +34,7 @@ func ForceGc() {
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
 	if1 NB4AInterface, if2 BoxPlatformInterface,
+	enabledCazilla bool,
 ) {
 	defer device.DeferPanicToError("InitCore", func(err error) { log.Println(err) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
@@ -72,9 +73,13 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 		internalAssetsPath = internalAssets
 
 		// certs
-		pem, err := os.ReadFile(externalAssetsPath + "ca.pem")
-		if err == nil {
-			updateRootCACerts(pem)
+		if enabledCazilla {
+			updateCazilla()
+		} else {
+			pem, err := os.ReadFile(externalAssetsPath + "ca.pem")
+			if err == nil {
+				updateRootCACerts(pem)
+			}
 		}
 
 		// bg

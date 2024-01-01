@@ -266,7 +266,6 @@ class AssetsActivity : ThemedActivity() {
                 modernTLS()
                 keepAlive()
                 trySocks5(DataStore.mixedPort)
-                useCazilla(DataStore.enabledCazilla)
             }
 
             try {

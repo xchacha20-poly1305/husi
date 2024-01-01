@@ -60,7 +60,6 @@ object RawUpdater : GroupUpdater() {
                     "1.3" -> restrictedTLS()
                 }
                 setInsecure(DataStore.allowInsecureOnRequest)
-                useCazilla(DataStore.enabledCazilla)
             }.newRequest().apply {
                 setURL(subscription.link)
                 setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)

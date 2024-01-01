@@ -24,7 +24,6 @@ object Cloudflare {
         val client = Libcore.newHttpClient().apply {
             pinnedTLS12()
             trySocks5(DataStore.mixedPort)
-            useCazilla(DataStore.enabledCazilla)
         }
 
         try {

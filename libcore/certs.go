@@ -6,6 +6,7 @@ import (
 	_ "unsafe" // for go:linkname
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
+	"github.com/xchacha20-poly1305/cazilla"
 )
 
 //go:linkname systemRoots crypto/x509.systemRoots
@@ -20,6 +21,11 @@ func updateRootCACerts(pem []byte) {
 	}
 	systemRoots = roots
 	log.Println("external ca.pem was loaded")
+}
+
+func updateCazilla() {
+	systemRoots = cazilla.CA
+	log.Println("Use cazilla as your CA")
 }
 
 //go:linkname initSystemRoots crypto/x509.initSystemRoots

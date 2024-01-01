@@ -10,7 +10,7 @@ require (
 	github.com/sagernet/sing-dns v0.1.12
 	github.com/sagernet/sing-tun v0.2.0-rc.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
-	github.com/xchacha20-poly1305/cazilla v0.1.2
+	github.com/xchacha20-poly1305/cazilla v0.2.0-beta.2
 	github.com/xchacha20-poly1305/dun v1.0.0 // replaced
 	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
 )

@@ -79,7 +79,8 @@ class SagerNet : Application(),
             externalAssets.absolutePath + "/",
             DataStore.logBufSize,
             DataStore.logLevel > 0,
-            nativeInterface, nativeInterface
+            nativeInterface, nativeInterface,
+            DataStore.enabledCazilla
         )
 
         if (isMainProcess) {
