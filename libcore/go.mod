@@ -6,7 +6,7 @@ require (
 	github.com/matsuridayo/libneko v0.0.0-20230913024055-5277a5bfc889
 	github.com/miekg/dns v1.1.57
 	github.com/sagernet/sing v0.3.0-rc.7
-	github.com/sagernet/sing-box v1.0.0 // replaced
+	github.com/sagernet/sing-box v1.8.0 // replaced
 	github.com/sagernet/sing-dns v0.1.12
 	github.com/sagernet/sing-tun v0.2.0-rc.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
