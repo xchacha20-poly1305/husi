@@ -56,9 +56,9 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
     }
 
     override fun finish() {
-        if (DataStore.profileName == "喵要打开隐藏功能") {
+        if (DataStore.profileName == "人间风雨爱好者") {
             DataStore.isExpert = true
-        } else if (DataStore.profileName == "喵要关闭隐藏功能") {
+        } else if (DataStore.profileName == "世界") {
             DataStore.isExpert = false
         }
         super.finish()

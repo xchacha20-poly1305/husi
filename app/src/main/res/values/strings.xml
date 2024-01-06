@@ -530,12 +530,6 @@
     <string name="tuic_disable_sni">Disable SNI</string>
     <string name="tuic_reduce_rtt">Enable 0-RTT QUIC handshake</string>
 
-    <string name="please_update">Your APP is too old (%s). And will stop working at %s. Please
-        update!
-    </string>
-    <string name="please_update_force">Your APP is too old (%s). And has been stopped working at %s.
-        Please update!
-    </string>
     <string name="connection_test_delete_unavailable">Clear unavailable</string>
     <string name="neko_plugin">Advanced plugin</string>
     <string name="neko_plugin_summary">Advanced plugins can provide protocols that are not
@@ -614,4 +608,5 @@
     <string name="cazilla_long">"May be can avoid attack from who can control CA. And can let old
         device use new certificate. "
     </string>
+    <string name="sekai">nekohasekai</string>
 </resources>

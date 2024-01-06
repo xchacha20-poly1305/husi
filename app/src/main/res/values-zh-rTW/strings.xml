@@ -435,4 +435,5 @@
     <string name="backup_summary">如果路由規則不與配置一起備份，則自定義出站將丟失。</string>
     <string name="backup_not_file">不是一個備份文件，預計 .json，但 %s</string>
     <string name="packet_encoding">包編碼</string>
+    <string name="sekai">世界</string>
 </resources>

@@ -448,8 +448,6 @@
     <string name="backup_importing">正导入…</string>
     <string name="action_copy">复制</string>
     <string name="action_open">打开</string>
-    <string name="please_update">您的 APP (%s) 太旧了喵，%s 再不更新就没的用了喵～</string>
-    <string name="please_update_force">您的 APP (%s) 版本过旧，已于 %s 停止工作，请立即升级。</string>
     <string name="connection_test_delete_unavailable">清理不可用配置</string>
     <string name="neko_plugin">高级插件</string>
     <string name="neko_plugin_summary">高级插件可以提供原本不支持的协议。\n\n
@@ -529,4 +527,5 @@
     <string name="cazilla_long">可能能防止能操纵 CA
         机构的力量攻击。也可以让旧的设备得以使用新的证书。
     </string>
+    <string name="sekai">世界</string>
 </resources>
