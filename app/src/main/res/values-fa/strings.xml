@@ -475,12 +475,6 @@
     <string name="tuic_congestion_controller">کنترل کننده ازدحام</string>
     <string name="tuic_disable_sni">SNI را غیرفعال کنید</string>
     <string name="tuic_reduce_rtt">UDP کاهش RTT</string>
-    <string name="please_update">ماتسوری شما خیلی قدیمی است (%s). و در %s کار نخواهد کرد. لطفا به
-        روز رسانی کن!
-    </string>
-    <string name="please_update_force">ماتسوری شما خیلی قدیمی است (%s). و در %s کار نمی کند. لطفا به
-        روز رسانی کن!
-    </string>
     <string name="connection_test_delete_unavailable">پاک کردن در دسترس نیست</string>
     <string name="neko_plugin">افزونه پیشرفته</string>
     <string name="neko_plugin_internal_error">%s خطای داخلی</string>
