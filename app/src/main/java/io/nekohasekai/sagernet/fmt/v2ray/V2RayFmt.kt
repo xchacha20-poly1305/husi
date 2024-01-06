@@ -266,7 +266,7 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
     }
 }
 
-// 不确定是谁的格式
+//https://github.com/eycorsican/kitsunebi-android/
 private fun tryResolveVmess4Kitsunebi(server: String): VMessBean {
     // vmess://YXV0bzo1YWY1ZDBlYy02ZWEwLTNjNDMtOTNkYi1jYTMwMDg1MDNiZGJAMTgzLjIzMi41Ni4xNjE6MTIwMg
     // ?remarks=*%F0%9F%87%AF%F0%9F%87%B5JP%20-355%20TG@moon365free&obfsParam=%7B%22Host%22:%22183.232.56.161%22%7D&path=/v2ray&obfs=websocket&alterId=0
@@ -457,22 +457,29 @@ fun VMessBean.toV2rayN(): String {
     }
 }
 
-fun StandardV2RayBean.toUriVMessVLESSTrojan(isTrojan: Boolean): String {
-    // VMess
-    if (this is VMessBean && !isVLESS) {
-        return toV2rayN()
+fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
+
+    var isTrojan = false
+    val protocol = if (this is VMessBean) {
+        if (isVLESS) "vless" else "vmess"
+    } else {
+        isTrojan = true
+        "trojan"
     }
 
-    // VLESS & Trojan (ducksoft fmt)
+    // ducksoft fmt
     val builder = linkBuilder()
         .username(if (this is TrojanBean) password else uuid)
         .host(serverAddress)
         .port(serverPort)
         .addQueryParameter("type", type)
 
-    if (isVLESS) {
-        builder.addQueryParameter("encryption", "none")
-        if (encryption != "auto") builder.addQueryParameter("flow", encryption)
+    if (!isTrojan) {
+        if (isVLESS) {
+            builder.addQueryParameter("flow", encryption)
+        } else {
+            builder.addQueryParameter("encryption", encryption)
+        }
         when (packetEncoding) {
             1 -> {
                 builder.addQueryParameter("packetEncoding", "packetaddr")
@@ -545,7 +552,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(isTrojan: Boolean): String {
         builder.encodedFragment(name.urlSafe())
     }
 
-    return builder.toLink(if (isTrojan) "trojan" else "vless")
+    return builder.toLink(protocol)
 }
 
 fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportOptions? {
