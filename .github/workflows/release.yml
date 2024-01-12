@@ -1,13 +1,8 @@
 name: Release Build
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release Tag"
-        required: true
-      publish:
-        description: "Publish: If want ignore"
-        required: false
+  push:
+    tags:
+      - "v*"
 jobs:
   libcore:
     name: Native Build (LibCore)
@@ -105,4 +100,5 @@ jobs:
         run: |
           curl -Lo - https://github.com/tcnksm/ghr/releases/download/v0.16.0/ghr_v0.16.0_linux_amd64.tar.gz | tar xzv
           mv ghr*linux_amd64/ghr .
-          ./ghr -delete -prerelease -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" "${{ github.event.inputs.tag }}" ./artifacts/
+          ./ghr -delete -prerelease -t "${{ github.token }}" -n "${{ github.ref }}" "${{ github
+          .ref }}" ./artifacts/
