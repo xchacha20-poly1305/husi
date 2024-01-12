@@ -99,40 +99,57 @@ class AssetsActivity : ThemedActivity() {
 
 
     private val importFile =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { file ->
-            if (file != null) {
-                val fileName = contentResolver.query(file, null, null, null, null)?.use { cursor ->
+        registerForActivityResult(ActivityResultContracts.GetContent()) { fileUri ->
+            if (fileUri == null) return@registerForActivityResult
+            val fileName = contentResolver.query(fileUri, null, null, null, null)
+                ?.use { cursor ->
                     cursor.moveToFirst()
                     cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
                         .let(cursor::getString)
-                }?.takeIf { it.isNotBlank() } ?: file.pathSegments.last().substringAfterLast('/')
-                    .substringAfter(':')
+                }?.takeIf { it.isNotBlank() } ?: fileUri.path
+            if (fileName == null) return@registerForActivityResult
+            if (!fileName.endsWith(".zip")) {
+                alert(getString(R.string.route_not_asset, fileName)).show()
+                return@registerForActivityResult
+            }
 
-                if (fileName.endsWith(".zip")) {
-                    alert(getString(R.string.route_not_asset, fileName)).show()
-                    return@registerForActivityResult
-                }
+            runOnDefaultDispatcher {
                 val filesDir = getExternalFilesDir(null) ?: filesDir
+                val geoDir = File(filesDir, "geo")
+                if (!geoDir.exists()) {
+                    geoDir.mkdirs()
+                }
 
-                runOnDefaultDispatcher {
-                    val outFile = File(filesDir, fileName).apply {
-                        parentFile?.mkdirs()
+                val outFile = File(filesDir, fileName).apply {
+                    parentFile?.mkdirs()
+                }
+                contentResolver.openInputStream(fileUri)?.use(outFile.outputStream())
+
+                try {
+                    Libcore.unzipWithoutDir(outFile.absolutePath, geoDir.absolutePath)
+                } catch (e: Exception) {
+                    onMainDispatcher {
+                        e.message?.let { snackbar(it).show() }
                     }
+                    return@runOnDefaultDispatcher
+                } finally {
+                    outFile.delete()
+                }
 
-                    contentResolver.openInputStream(file)?.use(outFile.outputStream())
-
-                    File(outFile.parentFile, outFile.nameWithoutExtension + ".version.txt").apply {
+                val nameList = listOf("geosite", "geoip")
+                for (name in nameList) {
+                    File(filesDir, "$name.version.txt").apply {
                         if (isFile) delete()
                         createNewFile()
                         val fw = FileWriter(this)
                         fw.write("Custom")
                         fw.close()
                     }
-
-                    adapter.reloadAssets()
                 }
 
+                adapter.reloadAssets()
             }
+
         }
 
 
@@ -168,12 +185,9 @@ class AssetsActivity : ThemedActivity() {
             if (!geoDir.exists()) {
                 geoDir.mkdirs()
             }
-//            val files = filesDir.listFiles()
-//                ?.filter { it.isFile && it.name.endsWith("version.txt") }
             assets.clear()
             assets.add(File(filesDir, "geoip.version.txt"))
             assets.add(File(filesDir, "geosite.version.txt"))
-//            if (files != null) assets.addAll(files)
 
             layout.refreshLayout.post {
                 notifyDataSetChanged()
