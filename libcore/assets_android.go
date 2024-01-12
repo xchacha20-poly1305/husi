@@ -3,11 +3,11 @@
 package libcore
 
 import (
-	"bytes"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	E "github.com/sagernet/sing/common/exceptions"
@@ -54,6 +54,7 @@ func extractGeo() error {
 	}
 
 	// compare version
+	needUpdate := true
 	for i, assetsVersion := range assetsVersions {
 		localVersion, err := readLocalVersion(filepath.Join(dir, versionPaths[i]))
 		if err != nil {
@@ -61,9 +62,12 @@ func extractGeo() error {
 			break
 		}
 		// needn't update
-		if bytes.Equal(assetsVersion, localVersion) {
-			return nil
+		if !versionLess(localVersion, assetsVersion) {
+			needUpdate = false
 		}
+	}
+	if !needUpdate {
+		return nil
 	}
 
 	// Prepare directory
@@ -119,7 +123,7 @@ func extractDash() error {
 	localVersion, err := readLocalVersion(filepath.Join(dir, versionPath))
 	if err == nil {
 		// needn't update
-		if bytes.Equal(assetsVersion, localVersion) {
+		if !versionLess(localVersion, assetsVersion) {
 			return nil
 		}
 	}
@@ -176,6 +180,13 @@ func readAssetsVersion(path string) ([]byte, error) {
 // Read the local assets name
 func readLocalVersion(path string) ([]byte, error) {
 	return os.ReadFile(path)
+}
+
+// Compare version
+func versionLess(localVersion, assetsVersion []byte) bool {
+	localInt, _ := strconv.Atoi(string(localVersion))
+	assetsInt, _ := strconv.Atoi(string(assetsVersion))
+	return localInt < assetsInt
 }
 
 // Write version to version file
