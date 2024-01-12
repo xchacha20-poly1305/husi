@@ -7,6 +7,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import org.jetbrains.annotations.NotNull;
 
+// TODO: from sub
 public class SSHBean extends AbstractBean {
 
     public static final int AUTH_TYPE_NONE = 0;

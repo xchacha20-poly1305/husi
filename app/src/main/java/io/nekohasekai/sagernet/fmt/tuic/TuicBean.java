@@ -32,12 +32,11 @@ public class TuicBean extends AbstractBean {
 
     // TUIC zep
     public String sni;
-    public Boolean fastConnect;
 
     public Boolean allowInsecure;
     public String customJSON;
-    public Integer protocolVersion; // TODO: Remove
     public String uuid;
+
     // ECH
     public Boolean ech;
     public String echCfg;
@@ -54,10 +53,8 @@ public class TuicBean extends AbstractBean {
         if (reduceRTT == null) reduceRTT = false;
         if (mtu == null) mtu = 1400;
         if (sni == null) sni = "";
-        if (fastConnect == null) fastConnect = false;
         if (allowInsecure == null) allowInsecure = false;
         if (customJSON == null) customJSON = "";
-        if (protocolVersion == null) protocolVersion = 5;
         if (uuid == null) uuid = "";
         if (ech == null) ech = false;
         if (echCfg == null) echCfg = "";
@@ -76,10 +73,8 @@ public class TuicBean extends AbstractBean {
         output.writeBoolean(reduceRTT);
         output.writeInt(mtu);
         output.writeString(sni);
-        output.writeBoolean(fastConnect);
         output.writeBoolean(allowInsecure);
         output.writeString(customJSON);
-        output.writeInt(protocolVersion);
         output.writeString(uuid);
         output.writeBoolean(ech);
         output.writeString(echCfg);
@@ -99,15 +94,11 @@ public class TuicBean extends AbstractBean {
         mtu = input.readInt();
         sni = input.readString();
         if (version >= 1) {
-            fastConnect = input.readBoolean();
             allowInsecure = input.readBoolean();
         }
         if (version >= 2) {
             customJSON = input.readString();
-            protocolVersion = input.readInt();
             uuid = input.readString();
-        } else {
-            protocolVersion = 4;
         }
 
         ech = input.readBoolean();
