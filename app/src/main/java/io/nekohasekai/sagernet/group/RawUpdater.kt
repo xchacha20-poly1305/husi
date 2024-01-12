@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Json
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
+import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.trojan_go.parseTrojanGo
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
@@ -422,6 +423,7 @@ object RawUpdater : GroupUpdater() {
                                         "tag" -> name = opt.value.toString()
                                         "server" -> serverAddress = opt.value.toString()
                                         "server_port" -> serverPort = opt.value.toString().toInt()
+                                        "ports" -> hopPorts = opt.value.toString()
 
                                         "obfs" -> obfuscation = opt.value.toString()
 
@@ -607,6 +609,30 @@ object RawUpdater : GroupUpdater() {
                                 }
                             }
                             proxies.add(bean)
+                        }
+
+                        "ssh" -> {
+                            val bean = SSHBean()
+                            for (opt in proxy) {
+                                if (opt.value == null) continue
+                                when (opt.key) {
+                                    "tag" -> bean.name = opt.value.toString()
+                                    "server" -> bean.serverAddress = opt.value.toString()
+                                    "server_port" -> bean.serverPort = opt.value.toString().toInt()
+
+                                    "user" -> bean.username = opt.value.toString()
+                                    "password" -> bean.password = opt.value.toString()
+                                    "private_key" -> bean.privateKey = opt.value.toString()
+                                    "private_key_passphrase" -> bean.privateKeyPassphrase =
+                                        opt.value.toString()
+                                    "host_key" -> {
+                                        val hostKey = (opt.value as? List<String>)
+                                        if (hostKey != null) {
+                                            bean.publicKey = hostKey.first()
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
