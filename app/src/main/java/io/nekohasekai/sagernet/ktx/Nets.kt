@@ -8,6 +8,7 @@ import moe.matsuri.nb4a.utils.NGUtil
 import okhttp3.HttpUrl
 import java.net.InetSocketAddress
 import java.net.Socket
+import libcore.Libcore
 
 fun linkBuilder() = HttpUrl.Builder().scheme("https")
 
@@ -63,4 +64,12 @@ fun mkPort(): Int {
     return port
 }
 
-const val USER_AGENT = "husi/" + BuildConfig.VERSION_NAME + " (Prefer ClashMeta Format)"
+val USER_AGENT by lazy {
+    var ua = "husi/"
+    ua += BuildConfig.VERSION_NAME
+    ua += " ("
+    ua += "sing-box "
+    ua += Libcore.version()
+    ua += ")"
+    ua
+}

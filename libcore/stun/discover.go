@@ -21,48 +21,49 @@ import (
 
 // Follow RFC 3489 and RFC 5389.
 // Figure 2: Flow for type discovery process (from RFC 3489).
-//                        +--------+
-//                        |  Test  |
-//                        |   I    |
-//                        +--------+
-//                             |
-//                             |
-//                             V
-//                            /\              /\
-//                         N /  \ Y          /  \ Y             +--------+
-//          UDP     <-------/Resp\--------->/ IP \------------->|  Test  |
-//          Blocked         \ ?  /          \Same/              |   II   |
-//                           \  /            \? /               +--------+
-//                            \/              \/                    |
-//                                             | N                  |
-//                                             |                    V
-//                                             V                    /\
-//                                         +--------+  Sym.      N /  \
-//                                         |  Test  |  UDP    <---/Resp\
-//                                         |   II   |  Firewall   \ ?  /
-//                                         +--------+              \  /
-//                                             |                    \/
-//                                             V                     |Y
-//                  /\                         /\                    |
-//   Symmetric  N  /  \       +--------+   N  /  \                   V
-//      NAT  <--- / IP \<-----|  Test  |<--- /Resp\               Open
-//                \Same/      |   I    |     \ ?  /               Internet
-//                 \? /       +--------+      \  /
-//                  \/                         \/
-//                  |Y                          |Y
-//                  |                           |
-//                  |                           V
-//                  |                           Full
-//                  |                           Cone
-//                  V              /\
-//              +--------+        /  \ Y
-//              |  Test  |------>/Resp\---->Restricted
-//              |   III  |       \ ?  /
-//              +--------+        \  /
-//                                 \/
-//                                  |N
-//                                  |       Port
-//                                  +------>Restricted
+//
+//	                     +--------+
+//	                     |  Test  |
+//	                     |   I    |
+//	                     +--------+
+//	                          |
+//	                          |
+//	                          V
+//	                         /\              /\
+//	                      N /  \ Y          /  \ Y             +--------+
+//	       UDP     <-------/Resp\--------->/ IP \------------->|  Test  |
+//	       Blocked         \ ?  /          \Same/              |   II   |
+//	                        \  /            \? /               +--------+
+//	                         \/              \/                    |
+//	                                          | N                  |
+//	                                          |                    V
+//	                                          V                    /\
+//	                                      +--------+  Sym.      N /  \
+//	                                      |  Test  |  UDP    <---/Resp\
+//	                                      |   II   |  Firewall   \ ?  /
+//	                                      +--------+              \  /
+//	                                          |                    \/
+//	                                          V                     |Y
+//	               /\                         /\                    |
+//	Symmetric  N  /  \       +--------+   N  /  \                   V
+//	   NAT  <--- / IP \<-----|  Test  |<--- /Resp\               Open
+//	             \Same/      |   I    |     \ ?  /               Internet
+//	              \? /       +--------+      \  /
+//	               \/                         \/
+//	               |Y                          |Y
+//	               |                           |
+//	               |                           V
+//	               |                           Full
+//	               |                           Cone
+//	               V              /\
+//	           +--------+        /  \ Y
+//	           |  Test  |------>/Resp\---->Restricted
+//	           |   III  |       \ ?  /
+//	           +--------+        \  /
+//	                              \/
+//	                               |N
+//	                               |       Port
+//	                               +------>Restricted
 func (c *Client) discover(conn net.PacketConn, addr *net.UDPAddr) (_ NATType, _ *Host, _ error, fakeFullCone bool) {
 	// Perform test1 to check if it is under NAT.
 	c.logger.Debugln("Do Test1")

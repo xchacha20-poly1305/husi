@@ -36,7 +36,7 @@ public class TuicBean extends AbstractBean {
 
     public Boolean allowInsecure;
     public String customJSON;
-    public Integer protocolVersion;
+    public Integer protocolVersion; // TODO: Remove
     public String uuid;
     // ECH
     public Boolean ech;

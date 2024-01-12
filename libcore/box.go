@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strings"
@@ -56,6 +57,11 @@ func VersionBox() string {
 	}
 
 	return strings.Join(version, "\n")
+}
+
+func Version() string {
+	re := regexp.MustCompile(`-dun.*$`)
+	return re.ReplaceAllString(dunbox.Version, "")
 }
 
 func ResetAllConnections(system bool) {
