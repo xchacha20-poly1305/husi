@@ -15,8 +15,6 @@ fun parseTuic(url: String): TuicBean {
         "invalid tuic link $url"
     )
     return TuicBean().apply {
-        protocolVersion = 5
-
         name = link.fragment
         uuid = link.username
         token = link.password
@@ -62,7 +60,6 @@ fun TuicBean.toUri(): String {
 }
 
 fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOptions {
-    if (bean.protocolVersion == 4) throw Exception("TUIC v4 is no longer supported")
     return SingBoxOptions.Outbound_TUICOptions().apply {
         type = "tuic"
         server = bean.serverAddress

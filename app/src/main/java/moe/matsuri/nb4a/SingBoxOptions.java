@@ -4466,8 +4466,6 @@ public class SingBoxOptions {
         public String format;
 
         public String path;
-
-        // TODO: remote
     }
 
     public static class Rule_LogicalOptions extends Rule {
