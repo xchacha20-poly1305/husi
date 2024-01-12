@@ -245,8 +245,7 @@
                 app:dialogLayout="@layout/layout_password_dialog"
                 app:icon="@drawable/ic_settings_password"
                 app:key="inboundPassword"
-                app:title="@string/inbound_password"
-                app:useSimpleSummaryProvider="true"/>
+                app:title="@string/inbound_password"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cag_misc">
