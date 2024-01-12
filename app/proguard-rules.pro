@@ -22,9 +22,6 @@
 # ini4j
 -keep public class org.ini4j.spi.** { <init>(); }
 
-# SnakeYaml
--keep class org.yaml.snakeyaml.** { *; }
-
 -dontobfuscate
 -keepattributes SourceFile
 

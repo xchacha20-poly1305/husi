@@ -113,8 +113,8 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data
-                        android:host="install-config"
-                        android:scheme="clash"/>
+                        android:host="import-remote-profile"
+                        android:scheme="sing-box"/>
             </intent-filter>
 
             <intent-filter android:label="@string/profile_import">
