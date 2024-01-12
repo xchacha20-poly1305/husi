@@ -7,6 +7,7 @@ import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean;
 import org.jetbrains.annotations.NotNull;
 
+// TODO: add path
 public class HttpBean extends StandardV2RayBean {
 
     public static final Creator<HttpBean> CREATOR = new CREATOR<HttpBean>() {

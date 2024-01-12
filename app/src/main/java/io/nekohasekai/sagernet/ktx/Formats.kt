@@ -112,7 +112,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
     val entitiesByLine = ArrayList<AbstractBean>()
 
     suspend fun String.parseLink(entities: ArrayList<AbstractBean>) {
-        if (startsWith("clash://install-config?") || startsWith("sn://subscription?")) {
+        if (startsWith("sing-box://import-remote-profile?") || startsWith("sn://subscription?")) {
             throw SubscriptionFoundException(this)
         }
 
