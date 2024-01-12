@@ -10,8 +10,8 @@ require (
 	github.com/sagernet/sing-dns v0.1.12
 	github.com/sagernet/sing-tun v0.2.0-rc.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
-	github.com/xchacha20-poly1305/cazilla v0.2.0-beta.2
-	github.com/xchacha20-poly1305/dun v1.0.0 // replaced
+	github.com/xchacha20-poly1305/cazilla v0.2.1
+	github.com/xchacha20-poly1305/dun v1.8.0-dun-0.1.4 // replaced
 	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
 )
 
@@ -20,7 +20,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/caddyserver/certmagic v0.20.0 // indirect
-	github.com/cloudflare/circl v1.3.6 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
@@ -98,3 +98,5 @@ replace github.com/xchacha20-poly1305/dun => ../dun
 replace github.com/sagernet/sing-box => ../dun/sing-box
 
 replace github.com/sagernet/sing-quic => ../dun/sing-quic
+
+replace encoding/json => github.com/sagernet/sing/common/json v0.3.0-rc.7

@@ -6,8 +6,8 @@ github.com/andybalholm/brotli v1.0.6 h1:Yf9fFpf49Zrxb9NlQaluyE92/+X7UVHlhMNJN2sx
 github.com/andybalholm/brotli v1.0.6/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/caddyserver/certmagic v0.20.0 h1:bTw7LcEZAh9ucYCRXyCpIrSAGplplI0vGYJ4BpCQ/Fc=
 github.com/caddyserver/certmagic v0.20.0/go.mod h1:N4sXgpICQUskEWpj7zVzvWD41p3NYacrNoZYiRM2jTg=
-github.com/cloudflare/circl v1.3.6 h1:/xbKIqSHbZXHwkhbrhrt2YOHIwYJlXH94E3tI/gDlUg=
-github.com/cloudflare/circl v1.3.6/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUKZrLbUZFA=
+github.com/cloudflare/circl v1.3.7 h1:qlCDlTPz2n9fu58M0Nh1J/JzcFpfgkFHHX3O35r5vcU=
+github.com/cloudflare/circl v1.3.7/go.mod h1:sRTcRWXGLrKw6yIGJ+l7amYJFfAXbZG0kBSc8r4zxgA=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/cretz/bine v0.1.0/go.mod h1:6PF6fWAvYtwjRGkAuDEJeWNOv3a2hUouSP/yRYXmvHw=
 github.com/cretz/bine v0.2.0 h1:8GiDRGlTgz+o8H9DSnsl+5MeBK4HsExxgl6WgzOCuZo=
@@ -146,8 +146,8 @@ github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74 h1:gga7acRE695AP
 github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
 github.com/xchacha20-poly1305/TLS-scribe v0.2.2 h1:cuTLmDLGuLGrX4sgkC9an6sw3k0B/QPikGelSZsFKcA=
 github.com/xchacha20-poly1305/TLS-scribe v0.2.2/go.mod h1:4Uz7O32rR8UnZ/9sU4Ar1CHhfY48v+oEHOur07ouiHI=
-github.com/xchacha20-poly1305/cazilla v0.2.0-beta.2 h1:JGhtyel/F1TysdvFFqC9F6ESFES9DVk5qAD13s2RqpI=
-github.com/xchacha20-poly1305/cazilla v0.2.0-beta.2/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
+github.com/xchacha20-poly1305/cazilla v0.2.1 h1:GuKdZWIS7Wrka+vm11TJXCS/Nbmzgn9Undip+KLE9Y0=
+github.com/xchacha20-poly1305/cazilla v0.2.1/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
 github.com/zeebo/assert v1.1.0/go.mod h1:Pq9JiuJQpG8JLJdtkwrJESF0Foym2/D9XMU5ciN/wJ0=
 github.com/zeebo/blake3 v0.2.3 h1:TFoLXsjeXqRNFxSbk35Dk4YtszE/MQQGK10BH4ptoTg=
