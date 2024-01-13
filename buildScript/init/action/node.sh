@@ -1,9 +1,20 @@
-curl -Lo node.tar.gz https://nodejs.org/dist/latest/node-v21.5.0-linux-x64.tar.gz
+#!/bin/bash
 
-echo "6e61f81fe1759892fb1f84f62fe470c8d4d6dfc07969af5700f06b4672a9e8d3 node.tar.gz" | sha256sum -c -
+set -e
 
-tar xzf node.tar.gz --strip-components=1 -C /usr/local/
+cd $PWD/build
 
-rm node.tar.gz
+curl -Lo node.tar.xz https://nodejs.org/dist/latest/node-v21.6.0-linux-x64.tar.xz
+
+echo "d940589762748bdbfc1a39132d27a16455b9d283ac3d8a84c3415005269effe4 node.tar.xz" | sha256sum -c -
+
+rm -rf node
+mkdir -p node
+tar xf node.tar.xz --strip-components=1 -C node
+
+rm node.tar.xz
 
 npm install -g pnpm
+
+node -v
+npm -v

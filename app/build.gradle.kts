@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "1.9.22-1.0.16"
+    id("com.google.devtools.ksp") version "1.9.22-1.0.17"
 }
 
 setupApp()
@@ -46,7 +46,7 @@ dependencies {
 
     implementation(fileTree("libs"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.activity:activity-ktx:1.8.2")
@@ -64,12 +64,12 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.code.gson:gson:2.10")
 
-    implementation("com.github.jenly1314:zxing-lite:2.1.1")
+    implementation("com.github.jenly1314:zxing-lite:2.4.0")
     implementation("com.blacksquircle.ui:editorkit:2.6.0")
-    implementation("com.blacksquircle.ui:language-base:2.6.0")
-    implementation("com.blacksquircle.ui:language-json:2.6.0")
+    implementation("com.blacksquircle.ui:language-base:2.9.0")
+    implementation("com.blacksquircle.ui:language-json:2.9.0")
 
-    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.3")
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
     implementation("com.jakewharton:process-phoenix:2.1.2")
     implementation("com.esotericsoftware:kryo:5.2.1")

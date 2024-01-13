@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/xchacha20-poly1305/dun/distro/all"
 	"github.com/xchacha20-poly1305/dun/dunapi"
 	"github.com/xchacha20-poly1305/dun/dunbox"
 	"libcore/device"
