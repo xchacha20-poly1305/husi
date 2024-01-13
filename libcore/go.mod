@@ -12,7 +12,7 @@ require (
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
 	github.com/xchacha20-poly1305/cazilla v0.2.1
 	github.com/xchacha20-poly1305/dun v1.8.0-dun-0.1.4 // replaced
-	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a
+	golang.org/x/mobile v0.0.0-20240112133503-c713f31d574b
 )
 
 require (
@@ -78,14 +78,14 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20231226003508-02704c960a9b // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.16.0 // indirect
+	golang.org/x/tools v0.17.0 // indirect
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
 	google.golang.org/grpc v1.60.1 // indirect
