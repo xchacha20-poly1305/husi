@@ -21,7 +21,7 @@ jobs:
         run: git ls-files libcore | xargs cat | sha1sum > libcore_status
       - name: LibCore Cache
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             app/libs/libcore.aar
@@ -53,7 +53,7 @@ jobs:
       - name: Libcore Status
         run: git ls-files libcore | xargs cat | sha1sum > libcore_status
       - name: LibCore Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             app/libs/libcore.aar
@@ -69,7 +69,7 @@ jobs:
       - name: Set Up pnpn
         run: npm install -g pnpm
       - name: Gradle cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle
           key: gradle-foss-${{ hashFiles('**/*.gradle.kts') }}
