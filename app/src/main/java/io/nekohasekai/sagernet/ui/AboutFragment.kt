@@ -90,7 +90,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                     .addItem(MaterialAboutActionItem.Builder()
                         .icon(R.drawable.ic_baseline_layers_24)
                         .text(getString(R.string.version_x, "sing-box"))
-                        .subText(Libcore.versionBox())
+                        .subText(Libcore.version())
                         .setOnClickAction { }
                         .build())
                     .apply {
