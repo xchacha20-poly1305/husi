@@ -73,13 +73,9 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 		internalAssetsPath = internalAssets
 
 		// certs
-		if enabledCazilla {
-			updateCazilla()
-		} else {
-			pem, err := os.ReadFile(externalAssetsPath + "ca.pem")
-			if err == nil {
-				updateRootCACerts(pem)
-			}
+		pem, err := os.ReadFile(externalAssetsPath + "ca.pem")
+		if err == nil {
+			updateRootCACerts(pem, enabledCazilla)
 		}
 
 		// bg
