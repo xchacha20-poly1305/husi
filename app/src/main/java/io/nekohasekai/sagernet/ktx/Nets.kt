@@ -69,7 +69,7 @@ val USER_AGENT by lazy {
     ua += BuildConfig.VERSION_NAME
     ua += " ("
     ua += "sing-box "
-    ua += Libcore.version()
+    ua += Libcore.versionBox()
     ua += ")"
     ua
 }
