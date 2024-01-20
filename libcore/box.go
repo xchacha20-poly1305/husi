@@ -28,15 +28,15 @@ import (
 
 var mainInstance *BoxInstance
 
-// VersionBox
-// Get your box version
+// Version
+// Show detail version
 //
 // Format:
 //
 //	sing-box: {dun_version}
 //	{go_version}@{os}/{arch}
 //	{tags}
-func VersionBox() string {
+func Version() string {
 	version := []string{
 		"sing-box: " + dunbox.Version,
 		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
@@ -58,7 +58,9 @@ func VersionBox() string {
 	return strings.Join(version, "\n")
 }
 
-func Version() string {
+// VersionBox
+// Just show sing-box version
+func VersionBox() string {
 	re := regexp.MustCompile(`-dun.*$`)
 	return re.ReplaceAllString(dunbox.Version, "")
 }
