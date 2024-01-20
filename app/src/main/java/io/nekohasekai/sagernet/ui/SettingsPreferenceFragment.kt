@@ -39,6 +39,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         true
     }
 
+    private val restartListener = Preference.OnPreferenceChangeListener { _, _ ->
+        needRestart()
+        true
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
         DataStore.initGlobal()
@@ -103,10 +108,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
 
         logLevel.dialogLayoutResource = R.layout.layout_loglevel_help
-        logLevel.setOnPreferenceChangeListener { _, _ ->
-            needRestart()
-            true
-        }
+        logLevel.onPreferenceChangeListener = restartListener
         logLevel.setOnLongClickListener {
             if (context == null) return@setOnLongClickListener true
 
@@ -170,7 +172,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val tunImplementation = findPreference<SimpleMenuPreference>(Key.TUN_IMPLEMENTATION)!!
         val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
         val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)!!
-        val clashAPIListen = reloadListener
+        val clashAPIListen = findPreference<EditTextPreference>(Key.CLASH_API_LISTEN)!!
+        val enabledCazilla = findPreference<SwitchPreference>(Key.ENABLED_CAZILLA)!!
 
         mixedPort.onPreferenceChangeListener = reloadListener
         appendHttpProxy.onPreferenceChangeListener = reloadListener
@@ -197,6 +200,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         resolveDestination.onPreferenceChangeListener = reloadListener
         tunImplementation.onPreferenceChangeListener = reloadListener
         acquireWakeLock.onPreferenceChangeListener = reloadListener
+
+        clashAPIListen.onPreferenceChangeListener = reloadListener
+        enabledCazilla.onPreferenceChangeListener = restartListener
 
     }
 

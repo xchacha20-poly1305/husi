@@ -12,20 +12,22 @@ import (
 //go:linkname systemRoots crypto/x509.systemRoots
 var systemRoots *x509.CertPool
 
-func updateRootCACerts(pem []byte) {
-	x509.SystemCertPool()
-	roots := x509.NewCertPool()
+func updateRootCACerts(pem []byte, enabledCazilla bool) {
+	roots := func(useMozilla bool) *x509.CertPool {
+		if useMozilla {
+			return cazilla.CA
+		}
+
+		p, _ := x509.SystemCertPool()
+		return p
+	}(enabledCazilla)
+
 	if !roots.AppendCertsFromPEM(pem) {
 		log.Println("failed to append certificates from pem")
 		return
 	}
 	systemRoots = roots
 	log.Println("external ca.pem was loaded")
-}
-
-func updateCazilla() {
-	systemRoots = cazilla.CA
-	log.Println("Use cazilla as your CA")
 }
 
 //go:linkname initSystemRoots crypto/x509.initSystemRoots
