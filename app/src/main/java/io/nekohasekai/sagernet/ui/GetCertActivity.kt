@@ -44,40 +44,35 @@ class GetCertActivity : ThemedActivity() {
             try {
                 val certificate = Libcore.pinCert(server, serverName)
 
-                if (certificate.isNullOrEmpty()) {
-                    onMainDispatcher {
-                        binding.waitLayout.isVisible = false
-                        AlertDialog.Builder(this@GetCertActivity)
-                            .setTitle(R.string.error_title)
-                            .setMessage(R.string.get_cert_fail)
-                            .setPositiveButton(android.R.string.ok) { _, _ ->
-//                                finish()
-                            }
-                            .setOnCancelListener {
-//                                finish()
-                            }
-                            .runCatching { show() }
-                    }
-                } else {
-                    // 复制到剪贴板
-                    val clipboardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                    val clipData = ClipData.newPlainText("Certificate", certificate)
-                    clipboardManager.setPrimaryClip(clipData)
 
-                    val snackbar = Snackbar.make(
-                        binding.root,
-                        R.string.get_cert_success,
-                        Snackbar.LENGTH_SHORT
-                    )
-                    snackbar.show()
+                // 复制到剪贴板
+                val clipboardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                val clipData = ClipData.newPlainText("Certificate", certificate)
+                clipboardManager.setPrimaryClip(clipData)
 
-                    onMainDispatcher {
-                        binding.waitLayout.isVisible = false
-                    }
+                val snackbar = Snackbar.make(
+                    binding.root,
+                    R.string.get_cert_success,
+                    Snackbar.LENGTH_SHORT
+                )
+                snackbar.show()
+
+                onMainDispatcher {
+                    binding.waitLayout.isVisible = false
                 }
             } catch (e: Exception) {
                 onMainDispatcher {
                     binding.waitLayout.isVisible = false
+                    AlertDialog.Builder(this@GetCertActivity)
+                        .setTitle(R.string.error_title)
+                        .setMessage(e.toString())
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+//                                finish()
+                        }
+                        .setOnCancelListener {
+//                                finish()
+                        }
+                        .runCatching { show() }
                 }
             }
         }

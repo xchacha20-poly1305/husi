@@ -31,11 +31,6 @@ func updateCazilla() {
 //go:linkname initSystemRoots crypto/x509.initSystemRoots
 func initSystemRoots()
 
-func PinCert(target, serverName string) string {
-	r, err := scribe.Execute(target, serverName)
-	if err != nil {
-		return ""
-	}
-
-	return r
+func PinCert(target, serverName string) (cert string, err error) {
+	return scribe.Execute(target, serverName)
 }
