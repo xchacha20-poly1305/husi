@@ -1,5 +1,10 @@
 name: Release Build
 on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish: If want ignore, enter \"y\""
+        required: false
   push:
     tags:
       - "v*"
@@ -51,8 +56,8 @@ jobs:
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
       - name: Set Up Node.js
         uses: actions/setup-node@v4
         with:
