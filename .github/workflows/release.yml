@@ -31,6 +31,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ^1.21
+      - uses: goto-bus-stop/setup-zig@v2
+        if: steps.cache.outputs.cache-hit != 'true'
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |

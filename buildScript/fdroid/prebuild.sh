@@ -2,7 +2,9 @@
 
 buildScript/lib/source.sh
 
-# Setup go & external library
+# Setup go & zig & external library
+export PATH=$PWD/build/zig:$PATH
+buildScript/init/action/zig.sh
 export golang=$PWD/build/golang
 export GOPATH=$golang/gopath
 export GOROOT=$golang/go
