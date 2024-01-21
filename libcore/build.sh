@@ -25,3 +25,4 @@ proj=../app/libs
 mkdir -p $proj
 cp -f libcore.aar $proj
 echo ">> install $(realpath $proj)/libcore.aar"
+sha256sum libcore.aar

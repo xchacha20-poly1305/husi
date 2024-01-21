@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Install gomobile
 if [ ! -f "$GOPATH/bin/gomobile" ]; then
@@ -7,3 +8,4 @@ if [ ! -f "$GOPATH/bin/gomobile" ]; then
 fi
 
 gomobile init
+touch inited
