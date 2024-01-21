@@ -9,7 +9,7 @@ on:
       - "buildScr/**"
       - "libcore/**"
       - "grade/**"
-      - ".github/workflows/nightly-build.yml"
+      - ".github/workflows/nightly.yml"
 
 jobs:
   libcore:
@@ -43,6 +43,11 @@ jobs:
         run: |
           ./run lib source
           ./run lib core
+      - name: Upload libcore
+        uses: actions/upload-artifact@v4
+        with:
+          path: app/libs/libcore.aar
+          name: "libcore"
   build:
     name: Build FOSS APK
     runs-on: ubuntu-latest
