@@ -409,36 +409,28 @@
         proveedor de su equipo patentado (por lo general, los gigantes del capital de vigilancia y
         el fabricante de malware) manipuló su Android e inutilizó el complemento.
     </string>
-
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (complemento de Android Shadowsocks)
     </string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (complemento de Android Shadowsocks)</string>
-
     <string name="traffic_uplink" translatable="false">%s | %s/s ↑</string>
     <string name="traffic_downlink" translatable="false">%s | %s/s ↓</string>
-
     <string name="traffic_uplink_total" translatable="false">%s ↑</string>
     <string name="traffic_downlink_total" translatable="false">%s ↓</string>
-
     <string name="tcp_connections">%d conexiones TCP</string>
     <string name="udp_connections">%d conexiones UDP</string>
-
     <string name="copy_label">Copiar nombre</string>
     <string name="copy_package_name">Copiar nombre del paquete</string>
     <string name="open_app">Abrir la app</string>
     <string name="open_settings">Abrir los ajustes</string>
     <string name="open_market">Abrir la tienda</string>
     <string name="create_rule">Crear regla</string>
-
     <string name="copy_success">¡Copiado exitoso!</string>
     <string name="copy_failed">Error al copiar.</string>
     <string name="app_no_launcher">La aplicación no tiene interfaz.</string>
     <string name="route_for">Regla para %s</string>
-
     <string name="route_need_vpn">La regla de enrutamiento %s depende de que la VPN esté en vigor,
         por lo que se ignora.
     </string>
-
     <string name="profile_traffic_statistics">Estadísticas de tráfico del perfil</string>
     <string name="profile_traffic_statistics_summary">Cuando está desactivado, el tráfico utilizado
         no se contará
@@ -457,7 +449,6 @@
     <string name="wireguard_local_address">Dirección local</string>
     <string name="wireguard_public_key">Clave pública de pares</string>
     <string name="wireguard_psk">Clave precompartida de pares</string>
-
     <string name="cloudflare_wrap" translatable="false">Cloudflare Warp</string>
     <string name="warp_license">CloudFlare Warp es un proveedor gratuito de la VPN WireGuard. Al
         usarlo, usted acepta los TOS.
@@ -483,18 +474,16 @@
         \n\nSi debe usar esto, pruebe N=2 primero para ver si resuelve sus problemas. Se recomienda
         enfáticamente no usar más de 4 conexiones aquí.
     </string>
-
     <string name="stun_test">Descubrimiento de comportamiento NAT</string>
     <string name="stun_test_summary">Determine el comportamiento de asignación de NAT del cliente y
         el comportamiento de filtrado de NAT definido en RFC 3478 mediante STUN.
     </string>
     <string name="start">Iniciar</string>
     <string name="stun_attest_loading">Esto puede tomar unos pocos minutos…</string>
-    <string name="nat_stun_server_hint">Servidor Stun</string>
+    <string name="nat_stun_server_hint">Servidor STUN</string>
     <string name="nat_result_hint">Resultado de la comprobación de NAT</string>
     <string name="tools_network">Red</string>
     <string name="mtu" translatable="false">MTU</string>
-
     <string name="backup">Respaldo</string>
     <string name="backup_groups_and_configurations">Grupos y configuraciones</string>
     <string name="backup_rules">Reglas de enrutamiento</string>
@@ -507,15 +496,12 @@
     <string name="backup_import">Importar</string>
     <string name="backup_import_summary">La importación sobrescribirá los datos existentes.</string>
     <string name="backup_importing">Importando…</string>
-
     <string name="packet_encoding">Codificación de paquetes</string>
     <string name="acquire_wake_lock">Adquirir WakeLock</string>
     <string name="release_wake_lock">Liberar WakeLock</string>
     <string name="acquire_wake_lock_summary">Mantener la CPU encendida</string>
     <string name="action_switch">Cambiar</string>
-
     <string name="connection_test_delete_unavailable">Borrado no disponible</string>
     <string name="neko_plugin">Complemento avanzado</string>
     <string name="neko_plugin_internal_error">%s error interno</string>
-
-</resources> 
+</resources>

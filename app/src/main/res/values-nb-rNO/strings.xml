@@ -419,4 +419,18 @@
     <string name="copy_package_name">Kopier pakkenavn</string>
     <string name="copy_label">Kopier navn</string>
     <string name="udp_connections">%d UDP-tilkoblinger</string>
+    <string name="tun_implementation">TUN-implementasjon</string>
+    <string name="start">Start</string>
+    <string name="backup_importing">Importerer …</string>
+    <string name="app_name">husi</string>
+    <string name="app_name_long">husi for Android</string>
+    <string name="action_copy">Kopier</string>
+    <string name="action_open">Åpne</string>
+    <string name="generating">Genererer …</string>
+    <string name="destination_override">Overstyr mål</string>
+    <string name="stun_attest_loading">Dette kan ta noen minutter …</string>
+    <string name="invalid_backup_file">Ugyldig sikkerhetskopifil</string>
+    <string name="backup_import">Importer</string>
+    <string name="backup_import_summary">Importering overstyrer eksisterende data.</string>
+    <string name="move">Flytt</string>
 </resources>
