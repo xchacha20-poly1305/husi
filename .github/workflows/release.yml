@@ -93,6 +93,10 @@ jobs:
         with:
           name: APKs
           path: ${{ env.APK }}
+      - name: Upload libcore
+        uses: actions/upload-artifact@v4
+        with:
+          path: app/libs/libcore.aar
   publish:
     name: Publish Release
     if: github.event.inputs.publish != 'y'
