@@ -8,6 +8,9 @@
                     android:id="@+id/action_standard_qr"
                     android:title="@string/standard"/>
             <item
+                    android:id="@+id/action_v2rayn_qr"
+                    android:title="@string/v2rayn"/>
+            <item
                     android:id="@+id/action_universal_qr"
                     android:title="SN Link"/>
         </menu>
@@ -19,6 +22,9 @@
             <item
                     android:id="@+id/action_standard_clipboard"
                     android:title="@string/standard"/>
+            <item
+                    android:id="@+id/action_v2rayn_clipboard"
+                    android:title="@string/v2rayn"/>
             <item
                     android:id="@+id/action_universal_clipboard"
                     android:title="SN Link"/>
