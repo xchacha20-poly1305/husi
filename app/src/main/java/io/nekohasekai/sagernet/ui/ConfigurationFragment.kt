@@ -1610,18 +1610,24 @@ class ConfigurationFragment @JvmOverloads constructor(
                         popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
 
                         when {
-                            !proxyEntity.haveStandardLink() -> {
-                                popup.menu.findItem(R.id.action_group_qr)
-                                    .subMenu?.removeItem(R.id.action_standard_qr)
-                                popup.menu.findItem(R.id.action_group_clipboard)
-                                    .subMenu?.removeItem(R.id.action_standard_clipboard)
-                            }
 
                             proxyEntity.type != ProxyEntity.TYPE_VMESS -> {
                                 popup.menu.findItem(R.id.action_group_qr)
                                     .subMenu?.removeItem(R.id.action_v2rayn_qr)
                                 popup.menu.findItem(R.id.action_group_clipboard)
                                     .subMenu?.removeItem(R.id.action_v2rayn_clipboard)
+
+                                if (!proxyEntity.haveStandardLink()) {
+                                    popup.menu.findItem(R.id.action_group_qr)
+                                        .subMenu?.removeItem(R.id
+                                        .action_standard_qr)
+
+                                    popup.menu.findItem(R.id
+                                        .action_group_clipboard)
+                                        .subMenu?.removeItem(
+                                            R.id.action_standard_clipboard
+                                        )
+                                }
                             }
 
                             !proxyEntity.haveLink() -> {
