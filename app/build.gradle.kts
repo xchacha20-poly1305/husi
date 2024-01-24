@@ -62,18 +62,18 @@ dependencies {
     implementation("androidx.work:work-multiprocess:2.9.0")
 
     implementation("com.google.android.material:material:1.11.0")
-    implementation("com.google.code.gson:gson:2.10")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.github.jenly1314:zxing-lite:2.4.0")
-    implementation("com.blacksquircle.ui:editorkit:2.6.0")
+    implementation("com.blacksquircle.ui:editorkit:2.9.0")
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
 
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
     implementation("com.jakewharton:process-phoenix:2.1.2")
-    implementation("com.esotericsoftware:kryo:5.2.1")
-    implementation("com.google.guava:guava:32.0.0-android")
+    implementation("com.esotericsoftware:kryo:5.6.0")
+    implementation("com.google.guava:guava:33.0.0-android")
     implementation("org.ini4j:ini4j:0.5.4")
 
     implementation("com.simplecityapps:recyclerview-fastscroll:2.0.1") {

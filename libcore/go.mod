@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	github.com/matsuridayo/libneko v0.0.0-20230913024055-5277a5bfc889
-	github.com/miekg/dns v1.1.57
+	github.com/miekg/dns v1.1.58
 	github.com/sagernet/sing v0.3.0
-	github.com/sagernet/sing-box v1.8.0 // replaced
+	github.com/sagernet/sing-box v1.8.4 // replaced
 	github.com/sagernet/sing-dns v0.1.12
 	github.com/sagernet/sing-tun v0.2.0
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
@@ -56,7 +56,7 @@ require (
 	github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1 // indirect
 	github.com/sagernet/gvisor v0.0.0-20231209105102-8d27a30e436e // indirect
 	github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 // indirect
-	github.com/sagernet/quic-go v0.40.1-beta.2 // indirect
+	github.com/sagernet/quic-go v0.40.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
 	github.com/sagernet/sing-quic v1.0.0 // indirect
