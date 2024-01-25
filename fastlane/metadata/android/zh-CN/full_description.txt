@@ -1,1 +1,1 @@
-Husi, using sing-box-extra, is a proxy configurations manager for Android.
+Husi is a proxy configurations manager for Android. It uses dun, which based on sing-box, support many features for proxy.

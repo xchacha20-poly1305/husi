@@ -1,14 +1,28 @@
+<a href="https://apt.izzysoft.de/fdroid/index/apk/fr.husi/">
+    <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png"
+    alt="Get it on IzzyOnDroid"
+    height="80">
+</a>
+
 ## Features
 
 [![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
 [![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
 [![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
-* Android API 34 & Gradle 8.2.0 & NDK 26.1.10909125.
+
+* Android API 34 & Gradle 8.2 & NDK 26.1.10909125.
 * sing-box rule_set instead of geosite and geoip.
 * Route based on WIFI status. 
 * Trust the certificate list trusted by Mozilla to prevent certain hijacks.
 
 ## Development
+
+### Localization
+
+Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the 
+translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
+
+[![Translation status](https://hosted.weblate.org/widgets/husi/-/horizontal-auto.svg)](https://hosted.weblate.org/engage/husi/)
 
 ### Before Releasing a New Version......
 
@@ -93,19 +107,17 @@ The APK file will be located in `app/build/outputs/apk`.
 Core:
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
 - [Matsuridayo/sing-box-extra](https://github.com/MatsuriDayo/sing-box-extra)
+- [xchacha20-poly1305/dun](https://github.com/xchacha20-poly1305/dun)
 
 Android GUI:
 - [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)
 - [SagerNet/SagerNet](https://github.com/SagerNet/SagerNet)
-
+- [XTLS/AnXray](https://github.com/XTLS/AnXray)
 - [Matsuridayo/Matsuri](https://github.com/MatsuriDayo/Matsuri)
-
 - [MatsuriDayo/NekoBoxForAndroid](https://github.com/MatsuriDayo/NekoBoxForAndroid)
 - [SagerNet/sing-box-for-android](https://github.com/SagerNet/sing-box-for-android)
 - [AntiNeko/CatBoxForAndroid](https://github.com/AntiNeko/CatBoxForAndroid)
 - [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
-
-- [xtls/AnXray](https://github.com/xtls/AnXray)
 
 Web Dashboard:
 
