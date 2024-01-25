@@ -1,1 +1,1 @@
-husi 是一款使用 sing-box-extra 的 Android 通用代理软件。
+Husi is a proxy configurations manager.
