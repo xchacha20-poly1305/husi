@@ -166,6 +166,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var muxProtocols by configurationStore.stringSet(Key.MUX_PROTOCOLS)
     var muxConcurrency by configurationStore.stringToInt(Key.MUX_CONCURRENCY) { 8 }
     var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
+    var uploadSpeed by configurationStore.stringToInt(Key.UPLOAD_SPEED) { 0 }
+    var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
 
     // old cache, DO NOT ADD
 
@@ -202,8 +204,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var echCfg by profileCacheStore.string(Key.ECH_CFG)
 
     var serverAuthType by profileCacheStore.stringToInt(Key.SERVER_AUTH_TYPE)
-    var serverUploadSpeed by profileCacheStore.stringToInt(Key.SERVER_UPLOAD_SPEED)
-    var serverDownloadSpeed by profileCacheStore.stringToInt(Key.SERVER_DOWNLOAD_SPEED)
     var serverStreamReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_STREAM_RECEIVE_WINDOW)
     var serverConnectionReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_CONNECTION_RECEIVE_WINDOW)
     var serverDisableMtuDiscovery by profileCacheStore.boolean(Key.SERVER_DISABLE_MTU_DISCOVERY)

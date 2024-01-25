@@ -29,8 +29,6 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = caText
         DataStore.serverAllowInsecure = allowInsecure
-        DataStore.serverUploadSpeed = uploadMbps
-        DataStore.serverDownloadSpeed = downloadMbps
         DataStore.serverStreamReceiveWindow = streamReceiveWindow
         DataStore.serverConnectionReceiveWindow = connectionReceiveWindow
         DataStore.serverDisableMtuDiscovery = disableMtuDiscovery
@@ -52,8 +50,6 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         alpn = DataStore.serverALPN
         caText = DataStore.serverCertificates
         allowInsecure = DataStore.serverAllowInsecure
-        uploadMbps = DataStore.serverUploadSpeed
-        downloadMbps = DataStore.serverDownloadSpeed
         streamReceiveWindow = DataStore.serverStreamReceiveWindow
         connectionReceiveWindow = DataStore.serverConnectionReceiveWindow
         disableMtuDiscovery = DataStore.serverDisableMtuDiscovery
@@ -117,12 +113,6 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         updateVersion(DataStore.protocolVersion)
 
-        findPreference<EditTextPreference>(Key.SERVER_UPLOAD_SPEED)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
-        }
-        findPreference<EditTextPreference>(Key.SERVER_DOWNLOAD_SPEED)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
-        }
         findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }

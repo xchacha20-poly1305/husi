@@ -92,6 +92,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val muxConcurrency = findPreference<EditTextPreference>(Key.MUX_CONCURRENCY)!!
         val tcpKeepAliveInterval = findPreference<EditTextPreference>(Key.TCP_KEEP_ALIVE_INTERVAL)!!
         tcpKeepAliveInterval.isVisible = false
+        val uploadSpeed = findPreference<EditTextPreference>(Key.UPLOAD_SPEED)!!
+        val downloadSpeed = findPreference<EditTextPreference>(Key.DOWNLOAD_SPEED)!!
 
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
         val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
@@ -179,6 +181,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         appendHttpProxy.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener
+        uploadSpeed.onPreferenceChangeListener = reloadListener
+        downloadSpeed.onPreferenceChangeListener = reloadListener
         muxConcurrency.onPreferenceChangeListener = reloadListener
         tcpKeepAliveInterval.onPreferenceChangeListener = reloadListener
         bypassLan.onPreferenceChangeListener = reloadListener

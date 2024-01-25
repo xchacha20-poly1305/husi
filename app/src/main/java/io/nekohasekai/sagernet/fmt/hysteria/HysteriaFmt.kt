@@ -35,12 +35,6 @@ fun parseHysteria1(url: String): HysteriaBean {
         link.queryParameter("insecure")?.also {
             allowInsecure = it == "1" || it == "true"
         }
-        link.queryParameter("upmbps")?.also {
-            uploadMbps = it.toIntOrNull() ?: uploadMbps
-        }
-        link.queryParameter("downmbps")?.also {
-            downloadMbps = it.toIntOrNull() ?: downloadMbps
-        }
         link.queryParameter("alpn")?.also {
             alpn = it
         }
@@ -87,17 +81,11 @@ fun parseHysteria2(url: String): HysteriaBean {
         link.queryParameter("insecure")?.also {
             allowInsecure = it == "1" || it == "true"
         }
-//        link.queryParameter("upmbps")?.also {
-//            uploadMbps = it.toIntOrNull() ?: uploadMbps
-//        }
-//        link.queryParameter("downmbps")?.also {
-//            downloadMbps = it.toIntOrNull() ?: downloadMbps
-//        }
         link.queryParameter("obfs-password")?.also {
             obfuscation = it
         }
         link.queryParameter("pinSHA256")?.also {
-            // TODO your box do not support it
+            TODO("your box do not support it")
         }
     }
 }
@@ -135,8 +123,6 @@ fun HysteriaBean.toUri(): String {
         if (authPayload.isNotBlank()) {
             builder.addQueryParameter("auth", authPayload)
         }
-        builder.addQueryParameter("upmbps", "$uploadMbps")
-        builder.addQueryParameter("downmbps", "$downloadMbps")
         if (alpn.isNotBlank()) {
             builder.addQueryParameter("alpn", alpn)
         }
@@ -171,8 +157,6 @@ fun JSONObject.parseHysteria1Json(): HysteriaBean {
         protocolVersion = 1
         serverAddress = optString("server").substringBeforeLast(":")
         serverPorts = optString("server").substringAfterLast(":")
-        uploadMbps = getIntNya("up_mbps")
-        downloadMbps = getIntNya("down_mbps")
         obfuscation = getStr("obfs")
         getStr("auth")?.also {
             authPayloadType = HysteriaBean.TYPE_BASE64
@@ -218,8 +202,6 @@ fun HysteriaBean.buildHysteria1Config(port: Int, cacheFile: (() -> File)?): Stri
                 put("protocol", "wechat-video")
             }
         }
-        put("up_mbps", uploadMbps)
-        put("down_mbps", downloadMbps)
         put(
             "socks5", JSONObject(
                 mapOf(
@@ -287,9 +269,17 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
             } else {
                 hop_ports = bean.serverPorts
             }
+            up_mbps = if (DataStore.uploadSpeed > 0) {
+                DataStore.uploadSpeed
+            } else {
+                10
+            }
+            down_mbps = if (DataStore.downloadSpeed > 0) {
+                DataStore.uploadSpeed
+            } else {
+                10
+            }
             hop_interval = bean.hopInterval
-            up_mbps = bean.uploadMbps
-            down_mbps = bean.downloadMbps
             obfs = bean.obfuscation
             disable_mtu_discovery = bean.disableMtuDiscovery
             when (bean.authPayloadType) {
@@ -336,8 +326,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                 hop_ports = bean.serverPorts
             }
             hop_interval = bean.hopInterval
-            up_mbps = bean.uploadMbps
-            down_mbps = bean.downloadMbps
+            up_mbps = DataStore.uploadSpeed
+            down_mbps = DataStore.downloadSpeed
             if (bean.obfuscation.isNotBlank()) {
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
                     type = "salamander"

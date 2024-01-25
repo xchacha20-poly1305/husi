@@ -42,8 +42,6 @@ public class HysteriaBean extends AbstractBean {
     public String caText;
 
     // HY1
-    public Integer uploadMbps;
-    public Integer downloadMbps;
     public Boolean allowInsecure;
     public Integer streamReceiveWindow;
     public Integer connectionReceiveWindow;
@@ -72,13 +70,6 @@ public class HysteriaBean extends AbstractBean {
         if (caText == null) caText = "";
         if (allowInsecure == null) allowInsecure = false;
 
-        if (protocolVersion == 1) {
-            if (uploadMbps == null) uploadMbps = 10;
-            if (downloadMbps == null) downloadMbps = 50;
-        } else {
-            if (uploadMbps == null) uploadMbps = 0;
-            if (downloadMbps == null) downloadMbps = 0;
-        }
 
         if (streamReceiveWindow == null) streamReceiveWindow = 0;
         if (connectionReceiveWindow == null) connectionReceiveWindow = 0;
@@ -104,8 +95,6 @@ public class HysteriaBean extends AbstractBean {
         output.writeString(sni);
         output.writeString(alpn);
 
-        output.writeInt(uploadMbps);
-        output.writeInt(downloadMbps);
         output.writeBoolean(allowInsecure);
 
         output.writeString(caText);
@@ -139,8 +128,6 @@ public class HysteriaBean extends AbstractBean {
         if (version >= 2) {
             alpn = input.readString();
         }
-        uploadMbps = input.readInt();
-        downloadMbps = input.readInt();
         allowInsecure = input.readBoolean();
         if (version >= 1) {
             caText = input.readString();
@@ -171,8 +158,6 @@ public class HysteriaBean extends AbstractBean {
     public void applyFeatureSettings(AbstractBean other) {
         if (!(other instanceof HysteriaBean)) return;
         HysteriaBean bean = ((HysteriaBean) other);
-        bean.uploadMbps = uploadMbps;
-        bean.downloadMbps = downloadMbps;
         bean.allowInsecure = allowInsecure;
         bean.disableMtuDiscovery = disableMtuDiscovery;
         bean.hopInterval = hopInterval;

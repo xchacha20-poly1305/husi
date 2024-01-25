@@ -74,16 +74,6 @@
                 app:summary="@string/allow_insecure_sum"
                 app:title="@string/allow_insecure"/>
         <EditTextPreference
-                app:icon="@drawable/ic_file_file_upload"
-                app:key="serverUploadSpeed"
-                app:title="@string/hysteria_upload_mbps"
-                app:useSimpleSummaryProvider="true"/>
-        <EditTextPreference
-                app:icon="@drawable/ic_baseline_download_24"
-                app:key="serverDownloadSpeed"
-                app:title="@string/hysteria_download_mbps"
-                app:useSimpleSummaryProvider="true"/>
-        <EditTextPreference
                 app:icon="@drawable/ic_baseline_texture_24"
                 app:key="serverStreamReceiveWindow"
                 app:title="@string/hysteria_stream_receive_window"
