@@ -189,12 +189,6 @@ fun buildConfig(
         }
 
         dns = DNSOptions().apply {
-            // TODO nb4a hosts?
-//            hosts = DataStore.hosts.split("\n")
-//                .filter { it.isNotBlank() }
-//                .associate { it.substringBefore(" ") to it.substringAfter(" ") }
-//                .toMutableMap()
-
             servers = mutableListOf()
             rules = mutableListOf()
             independent_cache = true
@@ -590,7 +584,7 @@ fun buildConfig(
                 fun makeDnsRuleObj(): DNSRule_DefaultOptions {
                     return DNSRule_DefaultOptions().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
-                        domainList?.let { makeSingBoxRule(it + rule.ruleSet) }
+                        makeSingBoxRule(domainList ?: listOf(), rule.ruleSet.listByLineOrComma())
                     }
                 }
 
@@ -761,7 +755,7 @@ fun buildConfig(
             route.rules.add(0, Rule_DefaultOptions().apply {
                 port = listOf(53)
                 outbound = TAG_DNS_OUT
-            }) // TODO new mode use system dns?
+            })
             if (DataStore.bypassLanInCore) {
                 route.rules.add(Rule_DefaultOptions().apply {
                     outbound = TAG_BYPASS
@@ -795,7 +789,7 @@ fun buildConfig(
             // force bypass (always top DNS rule)
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
-                    makeSingBoxRule(domainListDNSDirectForce.toHashSet().toList())
+                    makeSingBoxRule(domainListDNSDirectForce.toHashSet().toList(), listOf())
                     server = "dns-direct"
                 })
             }
