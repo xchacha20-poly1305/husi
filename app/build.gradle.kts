@@ -22,6 +22,9 @@ android {
         }
         ndkVersion = "26.1.10909125"
     }
+    dependenciesInfo {
+        includeInApk = false
+    }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     }
