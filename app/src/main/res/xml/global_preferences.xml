@@ -157,6 +157,16 @@
                 app:key="muxConcurrency"
                 app:title="@string/mux_concurrency"
                 app:useSimpleSummaryProvider="true"/>
+        <EditTextPreference
+                app:icon="@drawable/ic_file_file_upload"
+                app:key="uploadSpeed"
+                app:title="@string/hysteria_upload_mbps"
+                app:useSimpleSummaryProvider="true"/>
+        <EditTextPreference
+                app:icon="@drawable/ic_baseline_download_24"
+                app:key="downloadSpeed"
+                app:title="@string/hysteria_download_mbps"
+                app:useSimpleSummaryProvider="true"/>
         <SwitchPreference
                 app:key="globalAllowInsecure"
                 app:icon="@drawable/ic_action_lock_open"
