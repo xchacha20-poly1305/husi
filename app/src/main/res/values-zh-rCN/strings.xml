@@ -442,7 +442,7 @@
     <string name="backup_not_file">不是一个备份文件，预期 .json，但 %s</string>
     <string name="backup_rules">路由规则</string>
     <string name="nat_result_hint">NAT 测试结果</string>
-    <string name="nat_stun_server_hint">Stun 服务器</string>
+    <string name="nat_stun_server_hint">STUN 服务器</string>
     <string name="invalid_backup_file">无效的备份文件</string>
     <string name="backup_import_summary">导入将覆盖现有的数据。</string>
     <string name="backup_importing">正导入…</string>
