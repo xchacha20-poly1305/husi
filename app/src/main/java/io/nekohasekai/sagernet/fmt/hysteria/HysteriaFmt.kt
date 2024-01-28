@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.fmt.hysteria
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
+import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
@@ -85,7 +86,7 @@ fun parseHysteria2(url: String): HysteriaBean {
             obfuscation = it
         }
         link.queryParameter("pinSHA256")?.also {
-            TODO("your box do not support it")
+            // TODO your box do not support it
         }
     }
 }
@@ -146,6 +147,9 @@ fun HysteriaBean.toUri(): String {
         if (obfuscation.isNotBlank()) {
             builder.addQueryParameter("obfs", "salamander")
             builder.addQueryParameter("obfs-password", obfuscation)
+        }
+        if (caText.isNotBlank()) {
+            builder.addQueryParameter("pinSHA256", Libcore.sha256OpenSSL(caText.toByteArray()))
         }
     }
     return builder.toLink(if (protocolVersion == 2) "hy2" else "hysteria")
