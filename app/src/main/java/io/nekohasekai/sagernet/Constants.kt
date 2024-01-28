@@ -46,6 +46,8 @@ object Key {
     const val APPEND_HTTP_PROXY = "appendHttpProxy"
 
     const val CONNECTION_TEST_URL = "connectionTestURL"
+    const val CONNECTION_TEST_CONCURRENT = "connectionTestConcurrent"
+    const val CONNECTION_TEST_TIMEOUT = "connectionTestTimeout"
 
     const val TCP_KEEP_ALIVE_INTERVAL = "tcpKeepAliveInterval"
     const val RULES_PROVIDER = "rulesProvider"

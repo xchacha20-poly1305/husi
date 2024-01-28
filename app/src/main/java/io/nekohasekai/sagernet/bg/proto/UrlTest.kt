@@ -6,7 +6,7 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 class UrlTest {
 
     val link = DataStore.connectionTestURL
-    val timeout = 3000
+    val timeout = DataStore.connectionTestTimeout
 
     suspend fun doTest(profile: ProxyEntity): Int {
         return TestInstance(profile, link, timeout).doTest()
