@@ -528,4 +528,5 @@
         机构的力量攻击。也可以让旧的设备得以使用新的证书。
     </string>
     <string name="sekai">世界</string>
+    <string name="test_timeout">测试超时 (ms)</string>
 </resources>

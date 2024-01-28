@@ -595,4 +595,5 @@
         device use new certificate. "
     </string>
     <string name="sekai">nekohasekai</string>
+    <string name="test_timeout">Test timeout (ms)</string>
 </resources>
