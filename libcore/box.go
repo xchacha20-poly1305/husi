@@ -16,12 +16,13 @@ import (
 	"libcore/device"
 
 	"github.com/matsuridayo/libneko/protect_server"
-	"github.com/matsuridayo/libneko/speedtest"
-
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
+	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
 	E "github.com/sagernet/sing/common/exceptions"
+	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 )
@@ -209,11 +210,28 @@ func (b *BoxInstance) SelectOutbound(tag string) bool {
 
 func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err error) {
 	defer device.DeferPanicToError("box.UrlTest", func(err_ error) { err = err_ })
+
+	var router adapter.Router
 	if i == nil {
 		// test current
-		return speedtest.UrlTest(dunapi.CreateProxyHttpClient(mainInstance.Box), link, timeout)
+		router = mainInstance.Router()
+	} else {
+		router = i.Router()
 	}
-	return speedtest.UrlTest(dunapi.CreateProxyHttpClient(i.Box), link, timeout)
+
+	defOutbound, err := router.DefaultOutbound(N.NetworkTCP)
+	if err != nil {
+		return 0, E.Cause(err, "find default outbound")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
+	defer cancel()
+
+	t, err := urltest.URLTest(ctx, link, defOutbound)
+	if err != nil {
+		return 0, err
+	}
+	return int32(t), nil
 }
 
 var protectCloser io.Closer
