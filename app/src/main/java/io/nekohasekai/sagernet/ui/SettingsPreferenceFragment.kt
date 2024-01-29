@@ -108,6 +108,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
+        val showProxyNum = findPreference<SwitchPreference>(Key.SHOW_PROXY_NUM)!!
 
         logLevel.dialogLayoutResource = R.layout.layout_loglevel_help
         logLevel.onPreferenceChangeListener = restartListener
@@ -190,6 +191,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         inboundUsername.onPreferenceChangeListener = reloadListener
         inboundPassword.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
+        showProxyNum.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener
         remoteDns.onPreferenceChangeListener = reloadListener

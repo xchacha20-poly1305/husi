@@ -596,4 +596,5 @@
     </string>
     <string name="sekai">nekohasekai</string>
     <string name="test_timeout">Test timeout (ms)</string>
+    <string name="show_proxy_num">Display the number of proxies in the group</string>
 </resources>

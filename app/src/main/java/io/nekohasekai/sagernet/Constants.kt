@@ -55,6 +55,7 @@ object Key {
     const val LOG_BUF_SIZE = "logBufSize"
     const val MTU = "mtu"
     const val ALWAYS_SHOW_ADDRESS = "alwaysShowAddress"
+    const val SHOW_PROXY_NUM = "showProxyNum"
 
     // Protocol Settings
     const val MUX_TYPE = "muxType"

@@ -169,7 +169,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         TabLayoutMediator(tabLayout, groupPager) { tab, position ->
             if (adapter.groupList.size > position) {
-                tab.text = adapter.groupList[position].displayName()
+                tab.text = displayGroupName(adapter.groupList[position])
             }
             tab.view.setOnLongClickListener { // clear toast
                 true
@@ -988,16 +988,21 @@ class ConfigurationFragment @JvmOverloads constructor(
             if (index == -1) return
 
             tabLayout.post {
-                tabLayout.getTabAt(index)?.text = group.displayName()
+                tabLayout.getTabAt(index-1)?.text = displayGroupName(group)
             }
         }
 
         override suspend fun groupUpdated(groupId: Long) = Unit
 
         override suspend fun onAdd(profile: ProxyEntity) {
-            if (groupList.find { it.id == profile.groupId } == null) {
+            val group = groupList.find { it.id == profile.groupId }
+            if (group == null) {
                 DataStore.selectedGroup = profile.groupId
                 reload()
+            } else {
+                onMainDispatcher {
+                    tabLayout.getTabAt(group.id.toInt()-1)?.text = displayGroupName(group)
+                }
             }
         }
 
@@ -1009,6 +1014,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             val group = groupList.find { it.id == groupId } ?: return
             if (group.ungrouped && SagerDatabase.proxyDao.countByGroup(groupId) == 0L) {
                 reload()
+            }
+            onMainDispatcher {
+                tabLayout.getTabAt(group.id.toInt()-1)?.text = displayGroupName(group)
             }
         }
     }
@@ -1619,11 +1627,15 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                                 if (!proxyEntity.haveStandardLink()) {
                                     popup.menu.findItem(R.id.action_group_qr)
-                                        .subMenu?.removeItem(R.id
-                                        .action_standard_qr)
+                                        .subMenu?.removeItem(
+                                            R.id
+                                                .action_standard_qr
+                                        )
 
-                                    popup.menu.findItem(R.id
-                                        .action_group_clipboard)
+                                    popup.menu.findItem(
+                                        R.id
+                                            .action_group_clipboard
+                                    )
                                         .subMenu?.removeItem(
                                             R.id.action_standard_clipboard
                                         )
@@ -1734,6 +1746,15 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun cancelSearch(searchView: SearchView) {
         searchView.onActionViewCollapsed()
         searchView.clearFocus()
+    }
+
+    private fun displayGroupName(group: ProxyGroup): String {
+        var groupName = group.displayName()
+        if (DataStore.showProxyNum) {
+            val proxiesCount = SagerDatabase.proxyDao.getByGroup(group.id).size
+            groupName = "$groupName ($proxiesCount)"
+        }
+        return groupName
     }
 
 }

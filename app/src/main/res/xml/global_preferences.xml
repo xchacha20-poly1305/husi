@@ -64,6 +64,9 @@
                 app:key="showGroupInNotification"
                 app:title="@string/show_group_in_notification"/>
         <SwitchPreference
+                app:key="showProxyNum"
+                app:title="@string/show_proxy_num"/>
+        <SwitchPreference
                 app:icon="@drawable/ic_baseline_center_focus_weak_24"
                 app:key="alwaysShowAddress"
                 app:summary="@string/always_show_address_sum"

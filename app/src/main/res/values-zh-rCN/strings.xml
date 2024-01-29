@@ -529,4 +529,5 @@
     </string>
     <string name="sekai">世界</string>
     <string name="test_timeout">测试超时 (ms)</string>
+    <string name="show_proxy_num">显示分组的代理数量</string>
 </resources>
