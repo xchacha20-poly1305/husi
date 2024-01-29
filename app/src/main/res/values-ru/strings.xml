@@ -80,7 +80,7 @@
     <string name="group_updated">%s: Обновлено %d прокси</string>
     <string name="group_no_difference">%s: Не отличаются</string>
     <string name="group_status_proxies_subscription">%d Прокси | Обновлено %s</string>
-    <string name="group_status_proxies">%d прокси</string>
+    <string name="group_status_proxies">%d Прокси</string>
     <string name="group_status_empty_subscription">Еще не обновлено</string>
     <string name="group_status_empty">Пустая группа</string>
     <string name="group_edit_subscription">Редактировать подписку</string>
@@ -482,4 +482,16 @@
         пользовательские исходящие соединения будут потеряны.
     </string>
     <string name="packet_encoding">Кодирование пакетов</string>
+    <string name="action_open">Открыть</string>
+    <string name="update_all_subscription">Обновить все подписки</string>
+    <string name="connection_test_delete_unavailable">Удалить недоступные</string>
+    <string name="custom_outbound_json">Свой исходящий JSON</string>
+    <string name="move">Переместить</string>
+    <string name="neko_plugin">Доп. расширение</string>
+    <string name="neko_plugin_summary">Дополнительные плагины могут давать протоколы, которые изначально не поддерживаются.
+\n
+\nЛюбой может написать плагины, которые будут работать в Husi. Пожалуйста, загрузите и установите их из надежных источников.</string>
+    <string name="app_name_long">husi для Андроид</string>
+    <string name="app_tls_version">Минимальная версия TLS протокола</string>
+    <string name="assets_update">Обновить геоданные</string>
 </resources>
