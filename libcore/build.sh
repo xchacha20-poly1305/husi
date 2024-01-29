@@ -2,7 +2,7 @@
 
 source ../buildScript/init/env_ndk.sh
 
-#set -x
+# set -x
 
 TAGS=(
     "with_conntrack"
@@ -14,7 +14,7 @@ TAGS=(
     "with_ech"
 )
 
-BUILD_TAGS="${TAGS[*]}"
+IFS="," BUILD_TAGS="${TAGS[*]}"
 
 gomobile bind -v -androidapi 21 -trimpath -ldflags='-s -w -buildid=' \
  -tags="$BUILD_TAGS" . || exit 1
