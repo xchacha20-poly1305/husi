@@ -8,12 +8,9 @@ import (
 	"strings"
 	_ "unsafe"
 
-	"github.com/xchacha20-poly1305/dun/dunmain"
-	"libcore/device"
-
-	"github.com/matsuridayo/libneko/neko_common"
-	"github.com/matsuridayo/libneko/neko_log"
 	"github.com/sagernet/sing-box/nekoutils"
+	"github.com/xchacha20-poly1305/dun/dunbox"
+	"libcore/device"
 )
 
 //go:linkname resourcePaths github.com/sagernet/sing-box/constant.resourcePaths
@@ -24,7 +21,7 @@ func NekoLogPrintln(s string) {
 }
 
 func NekoLogClear() {
-	neko_log.LogWriter.Truncate()
+	husiLogWriter.truncate()
 }
 
 func ForceGc() {
@@ -39,7 +36,6 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	defer device.DeferPanicToError("InitCore", func(err error) { log.Println(err) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
 
-	neko_common.RunMode = neko_common.RunMode_NekoBoxForAndroid
 	intfNB4A = if1
 	intfBox = if2
 	useProcfs = intfBox.UseProcFS()
@@ -56,10 +52,10 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	if maxLogSizeKb < 50 {
 		maxLogSizeKb = 50
 	}
-	neko_log.LogWriterDisable = !logEnable
-	neko_log.TruncateOnStart = isBgProcess
-	neko_log.SetupLog(int(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"))
-	dunmain.DisableColor()
+	logWriterDisable = !logEnable
+	truncateOnStart = isBgProcess
+	setupLog(int64(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"))
+	dunbox.DisableColor()
 
 	// nekoutils
 	nekoutils.Selector_OnProxySelected = intfNB4A.Selector_OnProxySelected
