@@ -483,4 +483,8 @@
         пользовательские исходящие соединения будут потеряны.
     </string>
     <string name="packet_encoding">Кодирование пакетов</string>
+    <string name="action_open">Открыть</string>
+    <string name="update_all_subscription">Обновить все подписки</string>
+    <string name="connection_test_delete_unavailable">Удалить недоступные</string>
+    <string name="custom_outbound_json">Свой исходящий JSON</string>
 </resources>
