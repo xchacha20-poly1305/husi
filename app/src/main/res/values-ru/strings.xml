@@ -47,7 +47,7 @@
     </string>
     <string name="show_stop">Показать кнопку остановки</string>
     <string name="cag_misc">Прочие настройки</string>
-    <string name="speed_interval">Интервал обновления уведомлений о скорости</string>
+    <string name="speed_interval">Скорость - интервал в уведомлении</string>
     <string name="ws_browser_forwarding_sum">Перенаправьте соответствующие веб-сокеты через
         браузер.
     </string>
@@ -80,7 +80,7 @@
     <string name="group_updated">%s: Обновлено %d прокси</string>
     <string name="group_no_difference">%s: Не отличаются</string>
     <string name="group_status_proxies_subscription">%d Прокси | Обновлено %s</string>
-    <string name="group_status_proxies">%d прокси</string>
+    <string name="group_status_proxies">%d Прокси</string>
     <string name="group_status_empty_subscription">Еще не обновлено</string>
     <string name="group_status_empty">Пустая группа</string>
     <string name="group_edit_subscription">Редактировать подписку</string>
@@ -482,4 +482,27 @@
         пользовательские исходящие соединения будут потеряны.
     </string>
     <string name="packet_encoding">Кодирование пакетов</string>
+    <string name="action_open">Открыть</string>
+    <string name="update_all_subscription">Обновить все подписки</string>
+    <string name="connection_test_delete_unavailable">Удалить недоступные</string>
+    <string name="custom_outbound_json">Свой исходящий JSON</string>
+    <string name="move">Переместить</string>
+    <string name="neko_plugin">Доп. расширение</string>
+    <string name="neko_plugin_summary">Дополнительные плагины могут давать протоколы, которые изначально не поддерживаются.
+\n
+\nЛюбой может написать плагины, которые будут работать в Husi. Пожалуйста, загрузите и установите их из надежных источников.</string>
+    <string name="app_name_long">husi для Андроид</string>
+    <string name="app_tls_version">Минимальная версия TLS протокола</string>
+    <string name="assets_update">Обновить геоданные</string>
+    <string name="show_bottom_bar">Показать нижнюю панель, как в SagerNet</string>
+    <string name="log_level">Тип журнала</string>
+    <string name="bypass_lan_in_core">Обход LAN в ядре</string>
+    <string name="landing_proxy">Конечный прокси</string>
+    <string name="show_group_in_notification">Название группы в уведомлении</string>
+    <string name="menu_dashboard">Веб-панель</string>
+    <string name="action_copy">Копировать</string>
+    <string name="mux_sum">Протокол мультиплексирования предназначен для уменьшения задержки TCP запросов, а не для увеличения пропускной способности соединения. Его использование для просмотра видео, загрузки или проверки скорости обычно непродуктивно. Если сервер его не поддерживает, вы не сможете выйти в Интернет.</string>
+    <string name="log_level_help">Удерживайте для настройки размера буфера</string>
+    <string name="allow_insecure_on_request_sum">Отключить проверку сертификатов при обновлении подписок</string>
+    <string name="mux_type">Протокол мультиплексирования</string>
 </resources>
