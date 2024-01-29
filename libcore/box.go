@@ -13,9 +13,9 @@ import (
 
 	"github.com/xchacha20-poly1305/dun/dunapi"
 	"github.com/xchacha20-poly1305/dun/dunbox"
+	"github.com/xchacha20-poly1305/dun/protectserver"
 	"libcore/device"
 
-	"github.com/matsuridayo/libneko/protect_server"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/common/urltest"
@@ -252,7 +252,7 @@ func goServeProtect(start bool) {
 		protectCloser = nil
 	}
 	if start {
-		protectCloser = protect_server.ServeProtect("protect_path", false, 0, func(fd int) {
+		protectCloser = protectserver.ServeProtect("protect_path", 0, func(fd int) {
 			intfBox.AutoDetectInterfaceControl(int32(fd))
 		})
 	}
