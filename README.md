@@ -17,6 +17,13 @@
 
 ## Development
 
+### Localization
+
+Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the 
+translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
+
+[![Translation status](https://hosted.weblate.org/widgets/husi/-/horizontal-auto.svg)](https://hosted.weblate.org/engage/husi/)
+
 ### Before Releasing a New Version......
 
 * `go mod tidy`
