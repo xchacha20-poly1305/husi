@@ -20,8 +20,6 @@ import (
 	N "github.com/sagernet/sing/common/network"
 )
 
-//var boxPlatformInterfaceInstance platform.Interface = &boxPlatformInterfaceWrapper{}
-
 type boxPlatformInterfaceWrapper struct{}
 
 type WIFIState struct {
@@ -34,16 +32,14 @@ func NewWIFIState(wifiSSID string, wifiBSSID string) *WIFIState {
 }
 
 func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
-	if intfBox == nil {
-		return adapter.WIFIState{}
+	if intfBox != nil {
+		wifiState := intfBox.ReadWIFIState()
+		if wifiState != nil {
+			log.Printf("SSID: %s BSSID: %s\n", wifiState.SSID, wifiState.BSSID)
+			return (adapter.WIFIState)(*wifiState)
+		}
 	}
-
-	wifiState := intfBox.ReadWIFIState()
-	if wifiState == nil {
-		return adapter.WIFIState{}
-	}
-
-	return (adapter.WIFIState)(*wifiState)
+	return adapter.WIFIState{}
 }
 
 func (w *boxPlatformInterfaceWrapper) Initialize(ctx context.Context, router adapter.Router) error {
