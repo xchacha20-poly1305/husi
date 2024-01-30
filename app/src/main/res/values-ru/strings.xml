@@ -474,8 +474,7 @@
     <string name="backup_settings">Настройки</string>
     <string name="backup_not_file">Не файл резервной копии: ожидался .json, а не %s</string>
     <string name="invalid_backup_file">Недействительный файл резервной копии</string>
-    <string name="backup_import_summary">При импорте существующие данные будут перезаписаны.
-    </string>
+    <string name="backup_import_summary">При импорте существующие данные будут перезаписаны.</string>
     <string name="backup_importing">Импортирование…</string>
     <string name="backup_import">Импортировать</string>
     <string name="backup_groups_and_configurations">Группы и конфигурации</string>
