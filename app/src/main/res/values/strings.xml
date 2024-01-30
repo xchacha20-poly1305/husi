@@ -505,7 +505,7 @@
     <string name="backup_not_file">Not an backup file: excepted .json, but %s</string>
     <string name="invalid_backup_file">Invalid backup file</string>
     <string name="backup_import">Import</string>
-    <string name="backup_import_summary">Importing will overwrite the existing data.</string>
+    <string name="backup_import_summary">Importing overwrites existing data.</string>
     <string name="backup_importing">Importing…</string>
     <string name="packet_encoding">Packet Encoding</string>
     <string name="acquire_wake_lock">Acquire WakeLock</string>
