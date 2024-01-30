@@ -149,7 +149,6 @@ class SagerNet : Application(),
         val user by lazy { application.getSystemService<UserManager>()!! }
         val uiMode by lazy { application.getSystemService<UiModeManager>()!! }
         val power by lazy { application.getSystemService<PowerManager>()!! }
-        val connection by lazy { application.getSystemService<ConnectivityManager>()!! }
         val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
 
         fun getClipboardText(): String {
