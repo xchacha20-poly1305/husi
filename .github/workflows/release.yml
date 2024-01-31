@@ -56,16 +56,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Golang Status
-        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
-      - name: Libcore Status
-        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
-      - name: LibCore Cache
-        uses: actions/cache@v4
+      - name: LibCore Artifact 
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+          name: "libcore"
+          path: app/libs/libcore.aar
       - uses: actions/setup-java@v4
         with:
           java-version: "17"
