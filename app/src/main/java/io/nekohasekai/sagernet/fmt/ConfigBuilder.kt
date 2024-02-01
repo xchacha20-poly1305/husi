@@ -387,7 +387,6 @@ fun buildConfig(
                     }
 
                     currentOutbound.apply {
-                        // TODO nb4a keepAliveInterval?
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
 
@@ -418,13 +417,13 @@ fun buildConfig(
                     } catch (_: Exception) {
                     }
 
-                    // domain_strategy
                     pastEntity?.requireBean()?.apply {
                         // don't loopback
                         if (defaultServerDomainStrategy != "" && !serverAddress.isIpAddress()) {
                             domainListDNSDirectForce.add("full:$serverAddress")
                         }
                     }
+                    // domain_strategy
                     currentOutbound["domain_strategy"] =
                         if (forTest) "" else defaultServerDomainStrategy
 
@@ -778,7 +777,6 @@ fun buildConfig(
                 dns.servers.add(DNSServerOptions().apply {
                     address = "fakeip"
                     tag = "dns-fake"
-                    strategy = "ipv4_only" // TODO: remove
                 })
                 dns.rules.add(DNSRule_DefaultOptions().apply {
                     inbound = listOf("tun-in")
