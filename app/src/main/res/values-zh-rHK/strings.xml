@@ -97,4 +97,6 @@
     <string name="insecure">不安全</string>
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="sekai">世界</string>
+    <string name="app_name">虎兕</string>
+    <string name="app_name_long">匪兕匪虎 率彼曠野</string>
 </resources>
