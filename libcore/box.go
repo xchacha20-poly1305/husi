@@ -108,6 +108,7 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 		Options:           options,
 		Context:           ctx,
 		PlatformInterface: platformWrapper,
+		PlatformLogWriter: platformLogWrapper,
 	})
 	if err != nil {
 		cancel()

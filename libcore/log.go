@@ -1,21 +1,23 @@
 package libcore
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"syscall"
 
+	boxlog "github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-var husiLogWriter *logWriter
+var platformLogWrapper *logWriter
 var logWriterDisable = false
 var truncateOnStart = true
 var guiLogWriter io.Writer
 
 func setupLog(maxSize int64, path string) (err error) {
-	if husiLogWriter != nil {
+	if platformLogWrapper != nil {
 		return
 	}
 
@@ -50,17 +52,27 @@ func setupLog(maxSize int64, path string) (err error) {
 	}
 
 	//
-	husiLogWriter = &logWriter{}
-	husiLogWriter.writers = []io.Writer{guiLogWriter, f}
+	platformLogWrapper = &logWriter{}
+	platformLogWrapper.writers = []io.Writer{guiLogWriter, f}
 	// setup std log
 	log.SetFlags(log.LstdFlags | log.LUTC)
-	log.SetOutput(husiLogWriter)
+	log.SetOutput(platformLogWrapper)
 
 	return
 }
 
+var _ boxlog.PlatformWriter = (*logWriter)(nil)
+
 type logWriter struct {
 	writers []io.Writer
+}
+
+func (w *logWriter) DisableColors() bool {
+	return true
+}
+
+func (w *logWriter) WriteMessage(level boxlog.Level, message string) {
+	w.Write([]byte(fmt.Sprintf("%s[0000] %s", boxlog.FormatLevel(level), message)))
 }
 
 func (w *logWriter) Write(p []byte) (int, error) {
