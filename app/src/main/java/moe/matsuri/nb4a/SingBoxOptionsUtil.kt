@@ -18,7 +18,7 @@ object SingBoxOptionsUtil {
                 auto2AsIs("domain_strategy_for_direct")
             }
 
-            // server
+            // "server"
             else -> {
                 auto2AsIs("domain_strategy_for_server")
             }
