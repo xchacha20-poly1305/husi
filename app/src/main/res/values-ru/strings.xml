@@ -487,7 +487,7 @@
     <string name="connection_test_delete_unavailable">Удалить недоступные</string>
     <string name="custom_outbound_json">Свой исходящий JSON</string>
     <string name="move">Переместить</string>
-    <string name="neko_plugin">Доп. расширение</string>
+    <string name="neko_plugin">Дополнительные плагины</string>
     <string name="neko_plugin_summary">Дополнительные плагины могут давать протоколы, которые изначально не поддерживаются.
 \n
 \nЛюбой может написать плагины, которые будут работать в Husi. Пожалуйста, загрузите и установите их из надежных источников.</string>
@@ -506,4 +506,33 @@
     <string name="allow_insecure_on_request_sum">Отключить проверку сертификатов при обновлении подписок</string>
     <string name="mux_type">Протокол мультиплексирования</string>
     <string name="subscription_expire">Истекает: %s</string>
+    <string name="sniff_override">Слушать адрес назначения</string>
+    <string name="tuic_disable_sni">Отключить SNI</string>
+    <string name="neko_plugin_internal_error">%s внутренняя ошибка</string>
+    <string name="domain_strategy_for_direct">DNS для прямых запросов</string>
+    <string name="domain_strategy_for_server">DNS для адреса сервера</string>
+    <string name="utls_fingerprint">отпечаток uTLS</string>
+    <string name="set_panel_url">Изменить адрес панели</string>
+    <string name="is_outbound_only">Сделать JSON исходящим</string>
+    <string name="enable_clash_api">Clash API адрес подключения</string>
+    <string name="need_restart">Перезапустите приложение для принятия изменений</string>
+    <string name="share_subscription">Поделиться подпиской</string>
+    <string name="protocol_version">Версия протокола</string>
+    <string name="use_selector">Использовать селектор</string>
+    <string name="front_proxy">Внешний прокси</string>
+    <string name="reset_connections">Сбросить соединения</string>
+    <string name="remove_duplicate">Удалить дубликаты серверов</string>
+    <string name="sniff_routing">Слушать правило маршрута</string>
+    <string name="update_current_subscription">Обновить подписку группы</string>
+    <string name="inbound_password">Пароль пользователя SOCKS5</string>
+    <string name="vpn_app_type">Тип приложения</string>
+    <string name="vpn_core_type">Тип ядра</string>
+    <string name="vpn_core_path">Обнаруженный путь</string>
+    <string name="vpn_golang_version">Перейти к версии</string>
+    <string name="vpn_app_type_other">Другой</string>
+    <string name="nat_stun_server_hint">STUN сервер</string>
+    <string name="vpn_core_type_unknown">Неизвестный</string>
+    <string name="inbound_username">Имя пользователя SOCKS5</string>
+    <string name="mtu_help">Удерживайте для настройки своего MTU.</string>
+    <string name="route_opt_block_quic">Блокировать QUIC</string>
 </resources>
