@@ -164,14 +164,14 @@ fun buildConfig(
     }
 
     return MyOptions().apply {
-        if (!forTest) experimental = ExperimentalOptions().apply {
-            clash_api = ClashAPIOptions().apply {
+        experimental = ExperimentalOptions().apply {
+            if (!forTest) clash_api = ClashAPIOptions().apply {
                 external_controller = DataStore.clashAPIListen
                 external_ui = "../files/dashboard"
             }
             cache_file = CacheFileOptions().apply {
                 enabled = true
-                path = "../cache/clash.db"
+                path = "../cache/cache.db"
             }
         }
 
