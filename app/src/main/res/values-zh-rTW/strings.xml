@@ -436,4 +436,6 @@
     <string name="backup_not_file">不是一個備份文件，預計 .json，但 %s</string>
     <string name="packet_encoding">包編碼</string>
     <string name="sekai">世界</string>
+    <string name="app_name">虎兕</string>
+    <string name="app_name_long">匪兕匪虎 率彼曠野</string>
 </resources>
