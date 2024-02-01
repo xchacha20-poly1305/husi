@@ -21,7 +21,7 @@ func NekoLogPrintln(s string) {
 }
 
 func NekoLogClear() {
-	husiLogWriter.truncate()
+	platformLogWrapper.truncate()
 }
 
 func ForceGc() {
