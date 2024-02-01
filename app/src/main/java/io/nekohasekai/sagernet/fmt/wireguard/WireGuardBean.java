@@ -53,6 +53,7 @@ public class WireGuardBean extends AbstractBean {
 
     @Override
     public void deserialize(ByteBufferInput input) {
+        int version = input.readInt();
         super.deserialize(input);
         localAddress = input.readString();
         privateKey = input.readString();
