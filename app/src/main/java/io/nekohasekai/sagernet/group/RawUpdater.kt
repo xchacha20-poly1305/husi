@@ -695,21 +695,23 @@ object RawUpdater : GroupUpdater() {
         if (localAddresses.isNullOrEmpty()) error("Empty address in 'Interface' selection")
         bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
         bean.privateKey = iface["PrivateKey"]
-        bean.mtu = iface["MTU"]?.toIntOrNull()
+        bean.mtu = iface["MTU"]?.toIntOrNull() ?: 1408
         val peers = ini.getAll("Peer")
         if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
         val beans = mutableListOf<WireGuardBean>()
-        for (peer in peers) {
-            val endpoint = peer["Endpoint"]
-            if (endpoint.isNullOrBlank() || !endpoint.contains(":")) {
-                continue
-            }
-
+        loopPeer@ for (peer in peers) {
             val peerBean = bean.clone()
-            peerBean.serverAddress = endpoint.substringBeforeLast(":")
-            peerBean.serverPort = endpoint.substringAfterLast(":").toIntOrNull() ?: continue
-            peerBean.peerPublicKey = peer["PublicKey"] ?: continue
-            peerBean.peerPreSharedKey = peer["PresharedKey"]
+            for ((keyName, keyValue) in peer) {
+                when (keyName.lowercase()) {
+                    "endpoint" -> {
+                        peerBean.serverAddress =  keyValue.substringBeforeLast(":")
+                        peerBean.serverPort = keyValue.substringAfterLast(":").toIntOrNull() ?:
+                        continue@loopPeer
+                    }
+                    "publickey" -> peerBean.peerPublicKey = keyValue ?: continue@loopPeer
+                    "presharedkey" -> peerBean.peerPreSharedKey = keyValue
+                }
+            }
             beans.add(peerBean.applyDefaultValues())
         }
         if (beans.isEmpty()) error("Empty available peer list")

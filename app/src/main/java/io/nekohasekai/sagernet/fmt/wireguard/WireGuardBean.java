@@ -35,7 +35,7 @@ public class WireGuardBean extends AbstractBean {
         if (privateKey == null) privateKey = "";
         if (peerPublicKey == null) peerPublicKey = "";
         if (peerPreSharedKey == null) peerPreSharedKey = "";
-        if (mtu == null) mtu = 1420;
+        if (mtu == null || mtu < 1000 || mtu > 2000) mtu = 1420;
         if (reserved == null) reserved = "";
     }
 
