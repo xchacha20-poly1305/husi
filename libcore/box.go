@@ -47,11 +47,9 @@ type BoxInstance struct {
 	v2api        *api.SbV2rayServer
 	selector     *outbound.Selector
 	pauseManager pause.Manager
-
-	ForTest bool
 }
 
-func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
+func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error) {
 	defer device.DeferPanicToError("NewSingBoxInstance", func(err_ error) { err = err_ })
 
 	// parse options
@@ -65,12 +63,15 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = pause.WithDefaultManager(ctx)
 	platformWrapper := &boxPlatformInterfaceWrapper{}
-	instance, err := box.New(box.Options{
+	boxOption := box.Options{
 		Options:           options,
 		Context:           ctx,
 		PlatformInterface: platformWrapper,
-		PlatformLogWriter: platformLogWrapper,
-	})
+	}
+	if !forTest {
+		boxOption.PlatformLogWriter = platformLogWrapper
+	}
+	instance, err := box.New(boxOption)
 	if err != nil {
 		cancel()
 		return nil, E.Cause(err, "create service")

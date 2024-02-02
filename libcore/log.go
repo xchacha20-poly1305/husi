@@ -64,7 +64,7 @@ func setupLog(maxSize int64, path string) (err error) {
 		boxlog.Formatter{BaseTime: time.Now(), DisableColors: true},
 		os.Stderr,
 		"",
-		nil,
+		platformLogWrapper,
 		false).Logger())
 
 	return
