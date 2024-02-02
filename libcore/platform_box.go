@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"context"
-	"log"
 	"net/netip"
 	"syscall"
 
@@ -22,6 +21,8 @@ import (
 
 type boxPlatformInterfaceWrapper struct{}
 
+var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
+
 type WIFIState struct {
 	SSID  string
 	BSSID string
@@ -35,7 +36,6 @@ func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
 	if intfBox != nil {
 		wifiState := intfBox.ReadWIFIState()
 		if wifiState != nil {
-			log.Printf("SSID: %s BSSID: %s\n", wifiState.SSID, wifiState.BSSID)
 			return (adapter.WIFIState)(*wifiState)
 		}
 	}
@@ -78,7 +78,7 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 		return nil, E.Cause(err, "syscall.Dup")
 	}
 	//
-	options.FileDescriptor = int(tunFd)
+	options.FileDescriptor = tunFd
 	return tun.New(*options)
 }
 
@@ -138,16 +138,4 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(ctx context.Context, netwo
 	}
 	packageName, _ := intfBox.PackageNameByUid(uid)
 	return &process.Info{UserId: uid, PackageName: packageName}, nil
-}
-
-// io.Writer
-
-var disableSingBoxLog = false
-
-func (w *boxPlatformInterfaceWrapper) Write(p []byte) (n int, err error) {
-	// use neko_log
-	if !disableSingBoxLog {
-		log.Print(string(p))
-	}
-	return len(p), nil
 }
