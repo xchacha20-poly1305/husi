@@ -16,6 +16,7 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/common/urltest"
+	boxlog "github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -103,6 +104,8 @@ func (b *BoxInstance) Start() (err error) {
 	return E.New("already started")
 }
 
+const closeTimeout = time.Second * 2
+
 func (b *BoxInstance) Close() (err error) {
 	defer device.DeferPanicToError("box.Close", func(err_ error) { err = err_ })
 
@@ -119,8 +122,20 @@ func (b *BoxInstance) Close() (err error) {
 	}
 
 	// close box
-	b.Close()
-	//b.CloseWithTimeout(b.cancel, time.Second*2, log.Println)
+	chClosed := make(chan struct{}, 1)
+	ctx, cancel := context.WithTimeout(context.Background(), closeTimeout)
+	defer cancel()
+	start := time.Now()
+	go func() {
+		b.Close()
+		chClosed <- struct{}{}
+	}()
+	select {
+	case <-ctx.Done():
+		boxlog.Warn("sing-box close takes longer than expected.")
+	case <-chClosed:
+		boxlog.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
+	}
 
 	return nil
 }
