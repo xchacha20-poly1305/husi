@@ -15,7 +15,7 @@
 * Route based on WIFI status. 
 * Trust the certificate list trusted by Mozilla to prevent certain hijacks.
 
-## Development
+## Contribution
 
 ### Localization
 
@@ -24,22 +24,14 @@ translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
 
 [![Translation status](https://hosted.weblate.org/widgets/husi/-/horizontal-auto.svg)](https://hosted.weblate.org/engage/husi/)
 
-### Before Releasing a New Version......
-
-* `go mod tidy`
-
-* Update version information ([husi.properties](./husi.properties)).
-
-* Ensure that CI tests pass.
-
-### Compilation
+### Learn to Compilation
 
 #### Get the Source Code
 
 ```shell
 git clone https://github.com/xchacha20-poly1305/husi.git --depth=1
 cd husi/
-./run lib source
+./run lib source # Will help you to get submodules
 ```
 
 #### libcore
@@ -57,6 +49,8 @@ Run:
 This will generate `app/libs/libcore.aar`.
 
 If gomobile is not in the GOPATH, it will be automatically downloaded and compiled.
+
+If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
 #### Dashboard
 
@@ -77,7 +71,6 @@ If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set
 
 ```shell
 echo "sdk.dir=${ANDROID_HOME}" > local.properties
-echo "ndk.dir=${ANDROID_HOME}/ndk/26.1.10909125" >> local.properties
 ```
 
 Signing preparation (optional, it is recommended to sign after compilation): Replace `release.keystore` with your own keystore.
@@ -101,6 +94,10 @@ Compile the release version:
 ```
 
 The APK file will be located in `app/build/outputs/apk`.
+
+## License
+
+[GPL-3.0](./LICENSE)
 
 ## Credits
 
