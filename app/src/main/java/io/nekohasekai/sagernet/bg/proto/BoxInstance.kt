@@ -58,7 +58,7 @@ abstract class BoxInstance(
 
     protected open suspend fun loadConfig() {
         NekoJSInterface.Default.destroyAllJsi()
-        box = Libcore.newSingBoxInstance(config.config)
+        box = Libcore.newSingBoxInstance(config.config, false)
     }
 
     open suspend fun init() {
