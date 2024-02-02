@@ -164,8 +164,8 @@ fun buildConfig(
     }
 
     return MyOptions().apply {
-        experimental = ExperimentalOptions().apply {
-            if (!forTest) clash_api = ClashAPIOptions().apply {
+        if (!forTest) experimental = ExperimentalOptions().apply {
+            clash_api = ClashAPIOptions().apply {
                 external_controller = DataStore.clashAPIListen
                 external_ui = "../files/dashboard"
             }
