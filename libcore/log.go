@@ -1,11 +1,13 @@
 package libcore
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"syscall"
+	"time"
 
 	boxlog "github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -58,6 +60,14 @@ func setupLog(maxSize int64, path string) (err error) {
 	log.SetFlags(log.LstdFlags | log.LUTC)
 	log.SetOutput(platformLogWrapper)
 
+	// setup box log
+	boxlog.SetStdLogger(boxlog.NewDefaultFactory(context.Background(),
+		boxlog.Formatter{BaseTime: time.Now(), DisableColors: true},
+		os.Stderr,
+		"",
+		platformLogWrapper,
+		false).Logger())
+
 	return
 }
 
@@ -72,7 +82,7 @@ func (w *logWriter) DisableColors() bool {
 }
 
 func (w *logWriter) WriteMessage(level boxlog.Level, message string) {
-	w.Write([]byte(fmt.Sprintf("%s[0000] %s", boxlog.FormatLevel(level), message)))
+	w.Write([]byte(fmt.Sprintf("%s\n", message)))
 }
 
 func (w *logWriter) Write(p []byte) (int, error) {

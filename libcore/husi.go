@@ -9,18 +9,17 @@ import (
 	_ "unsafe"
 
 	"github.com/sagernet/sing-box/nekoutils"
-	"github.com/xchacha20-poly1305/dun/dunbox"
 	"libcore/device"
 )
 
 //go:linkname resourcePaths github.com/sagernet/sing-box/constant.resourcePaths
 var resourcePaths []string
 
-func NekoLogPrintln(s string) {
+func LogPrintln(s string) {
 	log.Println(s)
 }
 
-func NekoLogClear() {
+func LogClear() {
 	platformLogWrapper.truncate()
 }
 
@@ -55,7 +54,6 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	logWriterDisable = !logEnable
 	truncateOnStart = isBgProcess
 	setupLog(int64(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"))
-	dunbox.DisableColor()
 
 	// nekoutils
 	nekoutils.Selector_OnProxySelected = intfNB4A.Selector_OnProxySelected

@@ -106,8 +106,8 @@ The APK file will be located in `app/build/outputs/apk`.
 
 Core:
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
-- [Matsuridayo/sing-box-extra](https://github.com/MatsuriDayo/sing-box-extra)
-- [xchacha20-poly1305/dun](https://github.com/xchacha20-poly1305/dun)
+- ~~[Matsuridayo/sing-box-extra](https://github.com/MatsuriDayo/sing-box-extra)~~
+- ~~[xchacha20-poly1305/dun](https://github.com/xchacha20-poly1305/dun)~~
 
 Android GUI:
 - [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)

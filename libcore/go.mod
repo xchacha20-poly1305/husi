@@ -10,7 +10,6 @@ require (
 	github.com/sagernet/sing-tun v0.2.0
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
 	github.com/xchacha20-poly1305/cazilla v0.2.1
-	github.com/xchacha20-poly1305/dun v1.8.0-dun-0.1.4 // replaced
 	golang.org/x/mobile v0.0.0-20240112133503-c713f31d574b
 )
 
@@ -88,8 +87,6 @@ require (
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/xchacha20-poly1305/dun => ../dun
+replace github.com/sagernet/sing-box => ./sing-box
 
-replace github.com/sagernet/sing-box => ../dun/sing-box
-
-replace github.com/sagernet/sing-quic => ../dun/sing-quic
+replace github.com/sagernet/sing-quic => ./sing-quic

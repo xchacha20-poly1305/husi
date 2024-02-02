@@ -10,9 +10,7 @@ RESET_GIT() {
 
 git submodule update --remote
 
-pushd dun/
-
-RESET_GIT dev
+pushd libcore/
 
 pushd sing-box/
 RESET_GIT def
@@ -22,8 +20,6 @@ pushd sing-quic
 RESET_GIT dev
 popd
 
-popd
-
-pushd libcore/
 go mod tidy
+
 popd

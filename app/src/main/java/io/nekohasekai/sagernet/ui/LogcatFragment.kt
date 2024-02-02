@@ -85,7 +85,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             R.id.action_clear_logcat -> {
                 runOnDefaultDispatcher {
                     try {
-                        Libcore.nekoLogClear()
+                        Libcore.logClear()
                         Runtime.getRuntime().exec("/system/bin/logcat -c")
                     } catch (e: Exception) {
                         onMainDispatcher {
