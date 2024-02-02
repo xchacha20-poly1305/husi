@@ -1,6 +1,9 @@
 [submodule "metacubexd"]
 	path = metacubexd
 	url = https://github.com/MetaCubeX/metacubexd.git
-[submodule "dun"]
-	path = dun
-	url = https://github.com/xchacha20-poly1305/dun.git
+[submodule "libcore/sing-box"]
+	path = libcore/sing-box
+	url = https://github.com/xchacha20-poly1305/sing-box.git
+[submodule "libcore/sing-quic"]
+	path = libcore/sing-quic
+	url = https://github.com/xchacha20-poly1305/sing-quic.git

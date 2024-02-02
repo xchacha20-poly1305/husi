@@ -50,10 +50,10 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
             try {
                 while (true) {
                     thread(name = "stderr-$cmdName") {
-                        streamLogger(process.errorStream) { Libcore.nekoLogPrintln("[$cmdName] $it") }
+                        streamLogger(process.errorStream) { Libcore.logPrintln("[$cmdName]$it") }
                     }
                     thread(name = "stdout-$cmdName") {
-                        streamLogger(process.inputStream) { Libcore.nekoLogPrintln("[$cmdName] $it") }
+                        streamLogger(process.inputStream) { Libcore.logPrintln("[$cmdName] $it") }
                         // this thread also acts as a daemon thread for waitFor
                         runBlocking { exitChannel.send(process.waitFor()) }
                     }

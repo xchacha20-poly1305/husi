@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"regexp"
-	"runtime"
-	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/xchacha20-poly1305/dun/dunapi"
-	"github.com/xchacha20-poly1305/dun/dunbox"
-	"github.com/xchacha20-poly1305/dun/protectserver"
+	"libcore/api"
 	"libcore/device"
+	"libcore/protectserver"
 
+	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/common/urltest"
@@ -29,43 +26,6 @@ import (
 
 var mainInstance *BoxInstance
 
-// Version
-// Show detail version
-//
-// Format:
-//
-//	sing-box: {dun_version}
-//	{go_version}@{os}/{arch}
-//	{tags}
-func Version() string {
-	version := []string{
-		"sing-box: " + dunbox.Version,
-		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
-	}
-
-	debugInfo, loaded := debug.ReadBuildInfo()
-	if loaded {
-		for _, setting := range debugInfo.Settings {
-			switch setting.Key {
-			case "-tags":
-				if setting.Value != "" {
-					version = append(version, setting.Value)
-					break
-				}
-			}
-		}
-	}
-
-	return strings.Join(version, "\n")
-}
-
-// VersionBox
-// Just show sing-box version
-func VersionBox() string {
-	re := regexp.MustCompile(`-dun.*$`)
-	return re.ReplaceAllString(dunbox.Version, "")
-}
-
 func ResetAllConnections(system bool) {
 	if system {
 		conntrack.Close()
@@ -74,7 +34,7 @@ func ResetAllConnections(system bool) {
 }
 
 type BoxInstance struct {
-	*dunbox.Box
+	*box.Box
 	cancel context.CancelFunc
 
 	// state is sing-box state
@@ -83,7 +43,7 @@ type BoxInstance struct {
 	// 2: closed
 	state int
 
-	v2api        *dunapi.SbV2rayServer
+	v2api        *api.SbV2rayServer
 	selector     *outbound.Selector
 	pauseManager pause.Manager
 
@@ -104,7 +64,7 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = pause.WithDefaultManager(ctx)
 	platformWrapper := &boxPlatformInterfaceWrapper{}
-	instance, err := dunbox.New(dunbox.Options{
+	instance, err := box.New(box.Options{
 		Options:           options,
 		Context:           ctx,
 		PlatformInterface: platformWrapper,
@@ -120,11 +80,6 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 		cancel:       cancel,
 		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
-
-	// sing-box platformFormatter
-	logPlatformFormatter := instance.GetLogPlatformFormatter()
-	logPlatformFormatter.DisableColors = true
-	logPlatformFormatter.DisableLineBreak = false
 
 	// selector
 	proxy, outboundHasProxy := b.Router().Outbound("proxy")
@@ -164,7 +119,8 @@ func (b *BoxInstance) Close() (err error) {
 	}
 
 	// close box
-	b.CloseWithTimeout(b.cancel, time.Second*2, log.Println)
+	b.Close()
+	//b.CloseWithTimeout(b.cancel, time.Second*2, log.Println)
 
 	return nil
 }
@@ -188,7 +144,7 @@ func (b *BoxInstance) SetConnectionPoolEnabled(enable bool) {
 }
 
 func (b *BoxInstance) SetV2rayStats(outbounds string) {
-	b.v2api = dunapi.NewSbV2rayServer(option.V2RayStatsServiceOptions{
+	b.v2api = api.NewSbV2rayServer(option.V2RayStatsServiceOptions{
 		Enabled:   true,
 		Outbounds: strings.Split(outbounds, "\n"),
 	})
