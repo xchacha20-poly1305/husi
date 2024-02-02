@@ -127,12 +127,13 @@ func (b *BoxInstance) Close() (err error) {
 	defer cancel()
 	start := time.Now()
 	go func() {
-		b.Close()
+		b.cancel()
+		b.Box.Close()
 		chClosed <- struct{}{}
 	}()
 	select {
 	case <-ctx.Done():
-		boxlog.Warn("sing-box close takes longer than expected.")
+		boxlog.Warn("Closing sing-box takes longer than expected.")
 	case <-chClosed:
 		boxlog.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
 	}
