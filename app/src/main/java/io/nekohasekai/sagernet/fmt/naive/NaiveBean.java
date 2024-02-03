@@ -48,7 +48,7 @@ public class NaiveBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(3);
+        output.writeInt(0);
         super.serialize(output);
         output.writeString(proto);
         output.writeString(username);
@@ -68,15 +68,9 @@ public class NaiveBean extends AbstractBean {
         username = input.readString();
         password = input.readString();
         extraHeaders = input.readString();
-        if (version >= 2) {
-            sni = input.readString();
-        }
-        if (version >= 1) {
-            insecureConcurrency = input.readInt();
-        }
-        if (version >= 3) {
-            sUoT = input.readBoolean();
-        }
+        sni = input.readString();
+        insecureConcurrency = input.readInt();
+        sUoT = input.readBoolean();
     }
 
     @NotNull

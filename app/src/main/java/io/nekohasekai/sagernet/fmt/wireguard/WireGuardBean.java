@@ -41,7 +41,7 @@ public class WireGuardBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(0);
         super.serialize(output);
         output.writeString(localAddress);
         output.writeString(privateKey);
