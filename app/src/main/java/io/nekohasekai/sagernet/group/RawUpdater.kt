@@ -218,50 +218,120 @@ object RawUpdater : GroupUpdater() {
                 for (proxy in (json["outbounds"] as? (List<Map<String, Any?>>) ?: error(
                     app.getString(R.string.no_proxies_found_in_file)
                 ))) {
-                    // Note: YAML numbers parsed as "Long"
-
-                    when (proxy["type"] as String) {
+                    when (proxy["type"].toString()) {
                         "socks" -> {
                             proxies.add(SOCKSBean().apply {
-                                serverAddress = proxy["server"] as String
-                                serverPort = proxy["server_port"].toString().toInt()
-                                username = proxy["username"]?.toString()
-                                password = proxy["password"]?.toString()
-                                name = proxy["tag"]?.toString()
-                                protocol = when (proxy["version"]?.toString()) {
-                                    "4" -> SOCKSBean.PROTOCOL_SOCKS4
-                                    "4a" -> SOCKSBean.PROTOCOL_SOCKS4A
-                                    else -> SOCKSBean.PROTOCOL_SOCKS5
+                                for (opt in proxy) {
+                                    if (opt.value == null) continue
+                                    when (opt.key) {
+                                        "tag" -> name = opt.value.toString()
+                                        "server" -> serverAddress = opt.value.toString()
+                                        "server_port" -> serverPort = opt.value.toString().toInt()
+                                        "username" -> username = opt.value.toString()
+                                        "password" -> password = opt.value.toString()
+                                        "version" -> {
+                                            protocol = when (opt.value.toString()) {
+                                                "4" -> SOCKSBean.PROTOCOL_SOCKS4
+                                                "4a" -> SOCKSBean.PROTOCOL_SOCKS4A
+                                                else -> SOCKSBean.PROTOCOL_SOCKS5
+                                            }
+                                        }
+
+                                        "udp_over_tcp" -> sUoT = parseUot(opt.value)
+                                    }
                                 }
-                                sUoT = proxy["udp_over_tcp"]?.toString() == "true"
                             })
                         }
 
                         "http" -> {
                             proxies.add(HttpBean().apply {
-                                serverAddress = proxy["server"] as String
-                                serverPort = proxy["server_port"].toString().toInt()
-                                username = proxy["username"]?.toString()
-                                password = proxy["password"]?.toString()
-                                setTLS(proxy["tls"]?.toString() == "true")
-                                sni = proxy["sni"]?.toString()
-                                name = proxy["tag"]?.toString()
+                                for (opt in proxy) {
+                                    if (opt.value == null) continue
+                                    when (opt.key) {
+                                        "tag" -> name = opt.value.toString()
+                                        "server" -> serverAddress = opt.value.toString()
+                                        "server_port" -> serverPort = opt.value.toString().toInt()
+                                        "username" -> username = opt.value.toString()
+                                        "password" -> password = opt.value.toString()
+                                        "tls" -> {
+                                            for (tlsOpt in opt.value as Map<String, Any>) {
+                                                when (tlsOpt.key) {
+                                                    "enabled" -> setTLS(
+                                                        tlsOpt.value.toString().toBoolean()
+                                                    )
+
+                                                    "server_name" -> sni = tlsOpt.value.toString()
+                                                    "insecure" -> allowInsecure =
+                                                        tlsOpt.value.toString().toBoolean()
+
+                                                    "alpn" -> {
+                                                        val alpnList =
+                                                            (tlsOpt.value as? (List<String>))
+                                                        alpn = alpnList?.joinToString("\n")
+                                                    }
+
+                                                    "certificate" -> certificates =
+                                                        tlsOpt.value.toString()
+
+                                                    "ech" -> {
+                                                        for (echOpt in (tlsOpt.value as Map<String, Any>)) {
+                                                            when (echOpt.key) {
+                                                                "enabled" -> ech =
+                                                                    echOpt.value.toString()
+                                                                        .toBoolean()
+
+                                                                "config" -> echCfg =
+                                                                    echOpt.value.toString()
+                                                            }
+                                                        }
+                                                    }
+
+                                                    "utls" -> {
+                                                        for (utlsOpt in (tlsOpt.value as Map<String, Any>)) {
+                                                            when (utlsOpt.key) {
+                                                                "fingerprint" -> utlsFingerprint =
+                                                                    utlsOpt.value.toString()
+                                                            }
+                                                        }
+                                                    }
+
+                                                    "reality" -> {
+                                                        for (realityOpt in (tlsOpt.value as Map<String, Any>)) {
+                                                            when (realityOpt.key) {
+                                                                "public_key" -> realityPubKey =
+                                                                    realityOpt.value.toString()
+
+                                                                "short_id" -> realityShortId =
+                                                                    realityOpt.value.toString()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             })
                         }
 
                         "shadowsocks" -> {
-                            val ssPlugin = mutableListOf<String>().apply {
-                                add(proxy["plugin"].toString())
-                                add(proxy["plugin_opts"].toString())
-                            }
                             proxies.add(ShadowsocksBean().apply {
-                                serverAddress = proxy["server"] as String
-                                serverPort = proxy["server_port"].toString().toInt()
-                                password = proxy["password"]?.toString()
-                                method = proxy["method"] as String
-                                plugin = ssPlugin.joinToString(";")
-                                name = proxy["tag"]?.toString()
-                                sUoT = proxy["udp_over_tcp"]?.toString() == "true"
+                                var pluginS = ""
+                                var pluginOpt = ""
+                                for (opt in proxy) {
+                                    if (opt.value == null) continue
+                                    when (opt.key) {
+                                        "tag" -> name = opt.value.toString()
+                                        "server" -> serverAddress = opt.value.toString()
+                                        "server_port" -> serverPort = opt.value.toString().toInt()
+                                        "password" -> password = opt.value.toString()
+                                        "method" -> method = opt.value.toString()
+                                        "plugin" -> pluginS = opt.value.toString()
+                                        "plugin_opts" -> pluginOpt = opt.value.toString()
+                                        "udp_over_tcp" -> sUoT = parseUot(opt.value)
+                                    }
+                                }
+                                plugin = "$pluginS;$pluginOpt"
                             })
                         }
 
@@ -303,19 +373,16 @@ object RawUpdater : GroupUpdater() {
                                     "transport" -> {
                                         for (transportOpt in (opt.value as Map<String, Any>)) {
                                             when (transportOpt.key) {
-                                                "type" -> bean.type = transportOpt.value as String
-                                                "host" -> bean.host = transportOpt.value as
-                                                        String
-
+                                                "type" -> bean.type = transportOpt.value.toString()
+                                                "host" -> bean.host = transportOpt.value.toString()
                                                 "path", "service_name" -> bean.path =
-                                                    transportOpt.value as String
+                                                    transportOpt.value.toString()
 
                                                 "max_early_data" -> bean.wsMaxEarlyData =
-                                                    transportOpt.value
-                                                        .toString().toInt()
+                                                    transportOpt.value.toString().toInt()
 
                                                 "early_data_header_name" -> bean.earlyDataHeaderName =
-                                                    transportOpt.value as String
+                                                    transportOpt.value.toString()
                                             }
                                         }
                                     }
@@ -323,11 +390,13 @@ object RawUpdater : GroupUpdater() {
                                     "tls" -> {
                                         for (tlsOpt in (opt.value as Map<String, Any>)) {
                                             when (tlsOpt.key) {
-                                                "enabled" -> bean.setTLS(tlsOpt.value.toString() == "true")
-                                                "server_name" -> bean.sni = tlsOpt.value as String
+                                                "enabled" -> bean.setTLS(
+                                                    tlsOpt.value.toString().toBoolean()
+                                                )
+
+                                                "server_name" -> bean.sni = tlsOpt.value.toString()
                                                 "insecure" -> bean.allowInsecure =
-                                                    tlsOpt.value.toString() ==
-                                                            "true"
+                                                    tlsOpt.value.toString().toBoolean()
 
                                                 "alpn" -> {
                                                     val alpn = (tlsOpt.value as? (List<String>))
@@ -335,17 +404,16 @@ object RawUpdater : GroupUpdater() {
                                                 }
 
                                                 "certificate" -> bean.certificates =
-                                                    tlsOpt.value as String
+                                                    tlsOpt.value.toString()
 
                                                 "ech" -> {
                                                     for (echOpt in (tlsOpt.value as Map<String, Any>)) {
                                                         when (echOpt.key) {
                                                             "enabled" -> bean.ech =
-                                                                echOpt.value.toString() ==
-                                                                        "true"
+                                                                echOpt.value.toString().toBoolean()
 
                                                             "config" -> bean.echCfg =
-                                                                echOpt.value as String
+                                                                echOpt.value.toString()
                                                         }
                                                     }
                                                 }
@@ -354,8 +422,7 @@ object RawUpdater : GroupUpdater() {
                                                     for (utlsOpt in (tlsOpt.value as Map<String, Any>)) {
                                                         when (utlsOpt.key) {
                                                             "fingerprint" -> bean.utlsFingerprint =
-                                                                utlsOpt
-                                                                    .value as String
+                                                                utlsOpt.value.toString()
                                                         }
                                                     }
                                                 }
@@ -364,13 +431,10 @@ object RawUpdater : GroupUpdater() {
                                                     for (realityOpt in (tlsOpt.value as Map<String, Any>)) {
                                                         when (realityOpt.key) {
                                                             "public_key" -> bean.realityPubKey =
-                                                                realityOpt
-                                                                    .value
-                                                                        as String
+                                                                realityOpt.value.toString()
 
                                                             "short_id" -> bean.realityShortId =
-                                                                realityOpt
-                                                                    .value as String
+                                                                realityOpt.value.toString()
                                                         }
                                                     }
                                                 }
@@ -392,21 +456,28 @@ object RawUpdater : GroupUpdater() {
 
                             val bean = WireGuardBean().apply {
                                 name = proxy["tag"].toString()
+                                for (opt in configToUse) {
+                                    if (opt.value == null) continue
+                                    when (opt.key) {
+                                        "server" -> serverAddress = opt.value.toString()
+                                        "server_port" -> serverPort = opt.value.toString().toInt()
+                                        "local_address" -> {
+                                            val addrList = opt.value as List<String>
+                                            localAddress = addrList.joinToString("\n")
+                                        }
 
-                                serverAddress = configToUse["server"] as String
-                                serverPort = configToUse["server_port"].toString().toInt()
-                                localAddress = {
-                                    val addrList = configToUse["local_address"] as (List<String>)
-                                    addrList.joinToString("\n")
-                                }.toString()
-                                privateKey = configToUse["private_key"] as String
-                                peerPublicKey = configToUse["peer_public_key"] as String
-                                peerPreSharedKey = configToUse["pre_shared_key"] as String
-                                mtu = configToUse["mtu"]?.toString()?.toIntOrNull() ?: 1408
-                                reserved = {
-                                    val reservedList = (configToUse["reserved"] as? List<String>)
-                                    reservedList?.joinToString(",")
-                                }.toString()
+                                        "private_key" -> privateKey = opt.value.toString()
+                                        "peer_public_key", "public_key" -> peerPublicKey =
+                                            opt.value.toString()
+
+                                        "pre_shared_key" -> peerPreSharedKey = opt.value.toString()
+                                        "mtu" -> mtu = opt.value.toString().toIntOrNull() ?: 1408
+                                        "reserved" -> {
+                                            val reservedList = opt.value as? List<Int>
+                                            reserved = reservedList?.joinToString(",")
+                                        }
+                                    }
+                                }
                             }
 
                             proxies.add(bean)
@@ -440,10 +511,9 @@ object RawUpdater : GroupUpdater() {
                                         "tls" -> {
                                             for (tlsOpt in (proxy["tls"] as Map<String, Any>)) {
                                                 when (tlsOpt.key) {
-                                                    "server_name" -> sni = tlsOpt.value as String
+                                                    "server_name" -> sni = tlsOpt.value.toString()
                                                     "insecure" -> allowInsecure =
-                                                        tlsOpt.value.toString() ==
-                                                                "true"
+                                                        tlsOpt.value.toString().toBoolean()
 
                                                     "alpn" -> {
                                                         val alpnTmp =
@@ -451,16 +521,18 @@ object RawUpdater : GroupUpdater() {
                                                         alpn = alpnTmp?.joinToString("\n")
                                                     }
 
-                                                    "certificate" -> caText = tlsOpt.value as String
+                                                    "certificate" -> caText =
+                                                        tlsOpt.value.toString()
+
                                                     "ech" -> {
                                                         for (echOpt in (tlsOpt.value as Map<String, Any>)) {
                                                             when (echOpt.key) {
                                                                 "enabled" -> ech =
-                                                                    echOpt.value.toString() ==
-                                                                            "true"
+                                                                    echOpt.value.toString()
+                                                                        .toBoolean()
 
                                                                 "config" -> echCfg =
-                                                                    echOpt.value as String
+                                                                    echOpt.value.toString()
                                                             }
                                                         }
                                                     }
@@ -485,15 +557,15 @@ object RawUpdater : GroupUpdater() {
                                 if (opt.value == null) continue
                                 when (opt.key) {
                                     "tag" -> bean.name = opt.value.toString()
-                                    "server" -> bean.serverAddress = opt.value as String
+                                    "server" -> bean.serverAddress = opt.value.toString()
                                     "server_port" -> bean.serverPorts = opt.value.toString()
                                     "ports" -> hopPorts = opt.value.toString()
 
                                     "obfs" -> {
                                         for (obfsOpt in (opt.value as Map<String, Any>)) {
                                             when (obfsOpt.key) {
-                                                "password" -> bean.obfuscation = obfsOpt.value
-                                                    .toString()
+                                                "password" -> bean.obfuscation =
+                                                    obfsOpt.value.toString()
                                             }
                                         }
                                     }
@@ -503,28 +575,26 @@ object RawUpdater : GroupUpdater() {
                                     "tls" -> {
                                         for (tlsOpt in (opt.value as Map<String, Any>)) {
                                             when (tlsOpt.key) {
-                                                "server_name" -> bean.sni = tlsOpt.value as String
-                                                "insecure" -> bean.allowInsecure = tlsOpt.value
-                                                    .toString() ==
-                                                        "true"
+                                                "server_name" -> bean.sni = tlsOpt.value.toString()
+                                                "insecure" -> bean.allowInsecure =
+                                                    tlsOpt.value.toString().toBoolean()
 
                                                 "alpn" -> {
                                                     val alpn = (tlsOpt.value as? (List<String>))
                                                     bean.alpn = alpn?.joinToString("\n")
                                                 }
 
-                                                "certificate" -> bean.caText = tlsOpt.value as
-                                                        String
+                                                "certificate" -> bean.caText =
+                                                    tlsOpt.value.toString()
 
                                                 "ech" -> {
                                                     for (echOpt in (tlsOpt.value as Map<String, Any>)) {
                                                         when (echOpt.key) {
                                                             "enabled" -> bean.ech =
-                                                                echOpt.value.toString() ==
-                                                                        "true"
+                                                                echOpt.value.toString().toBoolean()
 
-                                                            "config" -> bean.echCfg = echOpt
-                                                                .value as String
+                                                            "config" -> bean.echCfg =
+                                                                echOpt.value.toString()
                                                         }
                                                     }
                                                 }
@@ -542,25 +612,23 @@ object RawUpdater : GroupUpdater() {
 
                         "tuic" -> {
                             val bean = TuicBean()
-                            var ip = ""
                             for (opt in proxy) {
                                 if (opt.value == null) continue
                                 when (opt.key) {
                                     "tag" -> bean.name = opt.value.toString()
                                     "server" -> bean.serverAddress = opt.value.toString()
-                                    "ip" -> ip = opt.value.toString()
                                     "server_port" -> bean.serverPort = opt.value.toString().toInt()
                                     "uuid" -> bean.uuid = opt.value.toString()
                                     "password" -> bean.token = opt.value.toString()
                                     "zero_rtt_handshake" -> bean.reduceRTT =
-                                        opt.value.toString() == "true"
+                                        opt.value.toString().toBoolean()
 
                                     "congestion_control" -> bean.congestionController =
                                         opt.value.toString()
 
                                     "udp_relay_mode" -> bean.udpRelayMode = opt.value.toString()
                                     "udp_over_stream" -> {
-                                        if (opt.value.toString() == "true") {
+                                        if (opt.value.toString().toBoolean()) {
                                             bean.udpRelayMode = "UDP over Stream"
                                         }
                                     }
@@ -568,31 +636,29 @@ object RawUpdater : GroupUpdater() {
                                     "tls" -> {
                                         for (tlsOpt in (opt.value as Map<String, Any>)) {
                                             when (tlsOpt.key) {
-                                                "server_name" -> bean.sni = tlsOpt.value as String
-                                                "disable_sni" -> bean.disableSNI = tlsOpt.value
-                                                    .toString() == "true"
+                                                "server_name" -> bean.sni = tlsOpt.value.toString()
+                                                "disable_sni" -> bean.disableSNI =
+                                                    tlsOpt.value.toString().toBoolean()
 
-                                                "insecure" -> bean.allowInsecure = tlsOpt.value
-                                                    .toString() ==
-                                                        "true"
+                                                "insecure" -> bean.allowInsecure =
+                                                    tlsOpt.value.toString().toBoolean()
 
                                                 "alpn" -> {
                                                     val alpn = (tlsOpt.value as? (List<String>))
                                                     bean.alpn = alpn?.joinToString("\n")
                                                 }
 
-                                                "certificate" -> bean.caText = tlsOpt.value as
-                                                        String
+                                                "certificate" -> bean.caText =
+                                                    tlsOpt.value.toString()
 
                                                 "ech" -> {
                                                     for (echOpt in (tlsOpt.value as Map<String, Any>)) {
                                                         when (echOpt.key) {
                                                             "enabled" -> bean.ech =
-                                                                echOpt.value.toString() ==
-                                                                        "true"
+                                                                echOpt.value.toString().toBoolean()
 
-                                                            "config" -> bean.echCfg = echOpt
-                                                                .value as String
+                                                            "config" -> bean.echCfg =
+                                                                echOpt.value.toString()
                                                         }
                                                     }
                                                 }
@@ -600,12 +666,6 @@ object RawUpdater : GroupUpdater() {
                                         }
                                     }
 
-                                }
-                            }
-                            if (ip.isNotBlank()) {
-                                bean.serverAddress = ip
-                                if (bean.sni.isNullOrBlank() && !bean.serverAddress.isNullOrBlank() && !bean.serverAddress.isIpAddress()) {
-                                    bean.sni = bean.serverAddress
                                 }
                             }
                             proxies.add(bean)
@@ -625,6 +685,7 @@ object RawUpdater : GroupUpdater() {
                                     "private_key" -> bean.privateKey = opt.value.toString()
                                     "private_key_passphrase" -> bean.privateKeyPassphrase =
                                         opt.value.toString()
+
                                     "host_key" -> {
                                         val hostKey = (opt.value as? List<String>)
                                         if (hostKey != null) {
@@ -687,6 +748,13 @@ object RawUpdater : GroupUpdater() {
         return null
     }
 
+    fun parseUot(conf: Any?): Boolean {
+        val uotBool = conf as? String
+        if (uotBool.toBoolean()) return true
+        val uotStruct = (conf as? Map<String, Any>) ?: return false
+        return uotStruct["enabled"].toString().toBoolean()
+    }
+
     fun parseWireGuard(conf: String): List<WireGuardBean> {
         val ini = Ini(StringReader(conf))
         val iface = ini["Interface"] ?: error("Missing 'Interface' selection")
@@ -704,10 +772,11 @@ object RawUpdater : GroupUpdater() {
             for ((keyName, keyValue) in peer) {
                 when (keyName.lowercase()) {
                     "endpoint" -> {
-                        peerBean.serverAddress =  keyValue.substringBeforeLast(":")
-                        peerBean.serverPort = keyValue.substringAfterLast(":").toIntOrNull() ?:
-                        continue@loopPeer
+                        peerBean.serverAddress = keyValue.substringBeforeLast(":")
+                        peerBean.serverPort =
+                            keyValue.substringAfterLast(":").toIntOrNull() ?: continue@loopPeer
                     }
+
                     "publickey" -> peerBean.peerPublicKey = keyValue ?: continue@loopPeer
                     "presharedkey" -> peerBean.peerPreSharedKey = keyValue
                 }
