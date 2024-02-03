@@ -6,7 +6,6 @@ import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.ktx.NetsKt;
-import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 
 public class HysteriaBean extends AbstractBean {
@@ -83,7 +82,7 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(7);
+        output.writeInt(0);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -113,42 +112,22 @@ public class HysteriaBean extends AbstractBean {
     public void deserialize(ByteBufferInput input) {
         int version = input.readInt();
         super.deserialize(input);
-        if (version >= 7) {
-            protocolVersion = input.readInt();
-        } else {
-            protocolVersion = 1;
-        }
+        protocolVersion = input.readInt();
+
         authPayloadType = input.readInt();
         authPayload = input.readString();
-        if (version >= 3) {
-            protocol = input.readInt();
-        }
+        protocol = input.readInt();
         obfuscation = input.readString();
         sni = input.readString();
-        if (version >= 2) {
-            alpn = input.readString();
-        }
+        alpn = input.readString();
         allowInsecure = input.readBoolean();
-        if (version >= 1) {
-            caText = input.readString();
-            streamReceiveWindow = input.readInt();
-            connectionReceiveWindow = input.readInt();
-            if (version != 4) disableMtuDiscovery = input.readBoolean(); // note: skip 4
-        }
-        if (version >= 5) {
-            hopInterval = input.readInt();
-        }
-        if (version >= 6) {
-            serverPorts = input.readString();
-        } else {
-            // old update to new
-            if (HysteriaFmtKt.isMultiPort(serverAddress)) {
-                serverPorts = StringsKt.substringAfterLast(serverAddress, ":", serverAddress);
-                serverAddress = StringsKt.substringBeforeLast(serverAddress, ":", serverAddress);
-            } else {
-                serverPorts = serverPort.toString();
-            }
-        }
+        caText = input.readString();
+        streamReceiveWindow = input.readInt();
+        connectionReceiveWindow = input.readInt();
+        disableMtuDiscovery = input.readBoolean(); // note: skip 4
+        hopInterval = input.readInt();
+        serverPorts = input.readString();
+
 
         ech = input.readBoolean();
         echCfg = input.readString();

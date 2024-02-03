@@ -40,7 +40,7 @@ public class ShadowsocksBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(0);
         super.serialize(output);
         output.writeString(method);
         output.writeString(password);

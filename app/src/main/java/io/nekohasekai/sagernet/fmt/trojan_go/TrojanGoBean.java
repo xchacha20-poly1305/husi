@@ -107,7 +107,7 @@ public class TrojanGoBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(0);
         super.serialize(output);
         output.writeString(password);
         output.writeString(sni);
@@ -143,9 +143,7 @@ public class TrojanGoBean extends AbstractBean {
         }
         encryption = input.readString();
         plugin = input.readString();
-        if (version >= 1) {
-            allowInsecure = input.readBoolean();
-        }
+        allowInsecure = input.readBoolean();
     }
 
     @Override

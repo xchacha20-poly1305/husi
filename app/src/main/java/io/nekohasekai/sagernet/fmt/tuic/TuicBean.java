@@ -62,7 +62,7 @@ public class TuicBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(0);
         super.serialize(output);
         output.writeString(token);
         output.writeString(caText);
@@ -93,13 +93,9 @@ public class TuicBean extends AbstractBean {
         reduceRTT = input.readBoolean();
         mtu = input.readInt();
         sni = input.readString();
-        if (version >= 1) {
-            allowInsecure = input.readBoolean();
-        }
-        if (version >= 2) {
-            customJSON = input.readString();
-            uuid = input.readString();
-        }
+        allowInsecure = input.readBoolean();
+        customJSON = input.readString();
+        uuid = input.readString();
 
         ech = input.readBoolean();
         echCfg = input.readString();

@@ -79,7 +79,7 @@ public class SOCKSBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(0);
         super.serialize(output);
         output.writeInt(protocol);
         output.writeString(username);
@@ -91,14 +91,10 @@ public class SOCKSBean extends AbstractBean {
     public void deserialize(ByteBufferInput input) {
         int version = input.readInt();
         super.deserialize(input);
-        if (version >= 1) {
-            protocol = input.readInt();
-        }
+        protocol = input.readInt();
         username = input.readString();
         password = input.readString();
-        if (version >= 2) {
-            sUoT = input.readBoolean();
-        }
+        sUoT = input.readBoolean();
     }
 
     @NotNull
