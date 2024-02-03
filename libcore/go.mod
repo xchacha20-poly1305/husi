@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/sing v0.3.0
-	github.com/sagernet/sing-box v1.8.4 // replaced
+	github.com/sagernet/sing-box v1.8.5 // Bump core version here.
 	github.com/sagernet/sing-dns v0.1.12
 	github.com/sagernet/sing-tun v0.2.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2

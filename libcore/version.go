@@ -8,15 +8,26 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 )
 
-const VERSION = "v1.8.4"
+const SingBoxPath = "github.com/sagernet/sing-box"
 
 func init() {
-	C.Version = VERSION
+	buildInfo, _ := debug.ReadBuildInfo()
+	for _, dep := range buildInfo.Deps {
+		switch dep.Path {
+		case SingBoxPath:
+			C.Version = dep.Version
+			return
+		}
+	}
+}
+
+// VersionBox returns sing-box version
+func VersionBox() string {
+	return C.Version
 }
 
 // Version
 // Show detail version
-//
 // Format:
 //
 //	sing-box: {dun_version}
@@ -24,7 +35,7 @@ func init() {
 //	{tags}
 func Version() string {
 	detailVersion := []string{
-		"sing-box: " + VERSION,
+		"sing-box: " + C.Version,
 		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
 	}
 
