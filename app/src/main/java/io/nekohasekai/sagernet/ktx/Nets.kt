@@ -64,4 +64,4 @@ fun mkPort(): Int {
     return port
 }
 
-const val USER_AGENT = "husi/${BuildConfig.VERSION_NAME} (sing-box ${Libcore.VERSION})"
+val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (sing-box ${Libcore.versionBox()})"}
