@@ -2,21 +2,21 @@
 
 set -e
 
-DEST_NAME="Dash-metacubexd"
+DIST_NAME="Dash-metacubexd"
 
-pnpm -v
+bun -v
 
-rm -rf ./${DEST_NAME}
+rm -rf ./${DIST_NAME}
 
 pushd metacubexd/
-mkdir -p ../${DEST_NAME}
-pnpm install
-pnpm build --outDir ../${DEST_NAME} -- --no-cache
+bun install
+bun run build
+mv dist ../${DIST_NAME}
 popd
 
-zip -r -X app/src/main/assets/dashboard.zip ./${DEST_NAME} -9
+zip -r -X app/src/main/assets/dashboard.zip ./${DIST_NAME} -9
 VERSION_DASH=$(date +%Y%m%d)
 echo -n "$VERSION_DASH" >app/src/main/assets/dashboard.version.txt
 
-echo ">> install ${DEST_NAME} to  app/src/main/assets/dashboard.zip"
+echo ">> install ${DIST_NAME} to  app/src/main/assets/dashboard.zip"
 sha256sum app/src/main/assets/dashboard.zip

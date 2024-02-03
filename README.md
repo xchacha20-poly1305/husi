@@ -54,7 +54,7 @@ If you don't want to build it, you can download then in [actions](https://github
 
 #### Dashboard
 
-Ensure that the Node environment is set up correctly (with pnpm, etc.).
+Ensure that the Node environment is set up correctly (with bun, etc.).
 
 ```shell
 ./run lib dashboard

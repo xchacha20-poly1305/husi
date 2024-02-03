@@ -7,7 +7,7 @@ require (
 	github.com/sagernet/sing v0.3.0
 	github.com/sagernet/sing-box v1.8.4 // replaced
 	github.com/sagernet/sing-dns v0.1.12
-	github.com/sagernet/sing-tun v0.2.0
+	github.com/sagernet/sing-tun v0.2.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.2.2
 	github.com/xchacha20-poly1305/cazilla v0.2.1
 	golang.org/x/mobile v0.0.0-20240112133503-c713f31d574b
@@ -74,7 +74,7 @@ require (
 	go.uber.org/zap v1.26.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect

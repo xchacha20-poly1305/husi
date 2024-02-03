@@ -72,8 +72,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "latest"
-      - name: Set Up pnpn
-        run: npm install -g pnpm
+      - name: Set Up bun
+        run: npm install -g bun
       - name: Gradle cache
         uses: actions/cache@v4
         with:
