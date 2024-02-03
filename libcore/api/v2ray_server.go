@@ -1,8 +1,6 @@
 package api
 
 import (
-	"context"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
 )
@@ -22,7 +20,7 @@ func (s *SbV2rayServer) Close() error                            { return nil }
 func (s *SbV2rayServer) StatsService() adapter.V2RayStatsService { return s.ss }
 
 func (s *SbV2rayServer) QueryStats(name string) int64 {
-	value, err := s.ss.GetStats(context.TODO(), name, true)
+	value, err := s.ss.GetStats(name, true)
 	if err == nil {
 		return value
 	}
