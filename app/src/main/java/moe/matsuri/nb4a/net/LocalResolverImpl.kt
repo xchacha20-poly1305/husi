@@ -5,7 +5,7 @@ import android.os.Build
 import android.os.CancellationSignal
 import android.system.ErrnoException
 import androidx.annotation.RequiresApi
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.ktx.tryResumeWithException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -52,7 +52,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     }
                 }
                 DnsResolver.getInstance().rawQuery(
-                    SagerNet.underlyingNetwork,
+                    DefaultNetworkMonitor.defaultNetwork,
                     message,
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
@@ -98,7 +98,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     }
                     if (type != null) {
                         DnsResolver.getInstance().query(
-                            SagerNet.underlyingNetwork,
+                            DefaultNetworkMonitor.defaultNetwork,
                             domain,
                             type,
                             DnsResolver.FLAG_NO_RETRY,
@@ -108,7 +108,7 @@ object LocalResolverImpl : LocalDNSTransport {
                         )
                     } else {
                         DnsResolver.getInstance().query(
-                            SagerNet.underlyingNetwork,
+                            DefaultNetworkMonitor.defaultNetwork,
                             domain,
                             DnsResolver.FLAG_NO_RETRY,
                             Dispatchers.IO.asExecutor(),
@@ -120,7 +120,7 @@ object LocalResolverImpl : LocalDNSTransport {
             }
         } else {
             val answer = try {
-                val u = SagerNet.underlyingNetwork
+                val u = DefaultNetworkMonitor.defaultNetwork
                 if (u != null) {
                     u.getAllByName(domain)
                 } else {

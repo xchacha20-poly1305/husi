@@ -127,7 +127,10 @@ class MainActivity : ThemedActivity(),
             ) {
                 ActivityCompat.requestPermissions(
                     this@MainActivity,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    arrayOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                    ),
                     0
                 )
             }
@@ -396,7 +399,6 @@ class MainActivity : ThemedActivity(),
             if (binding.fab.isShown) {
                 anchorView = binding.fab
             }
-            // TODO
         }
     }
 
