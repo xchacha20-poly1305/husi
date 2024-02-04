@@ -30,7 +30,7 @@ var mainInstance *BoxInstance
 func ResetAllConnections(system bool) {
 	if system {
 		conntrack.Close()
-		log.Println("[Debug] Reset system connections done")
+		log.Println("[Debug] Reset system connections done.")
 	}
 }
 

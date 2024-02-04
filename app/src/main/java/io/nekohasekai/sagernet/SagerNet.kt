@@ -24,7 +24,6 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.utils.CrashHandler
-import io.nekohasekai.sagernet.utils.DefaultNetworkListener
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
@@ -86,11 +85,6 @@ class SagerNet : Application(),
         if (isMainProcess) {
             Theme.apply(this)
             Theme.applyNightTheme()
-            runOnDefaultDispatcher {
-                DefaultNetworkListener.start(this) {
-                    underlyingNetwork = it
-                }
-            }
         }
 
         if (BuildConfig.DEBUG) StrictMode.setVmPolicy(

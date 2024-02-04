@@ -5,17 +5,21 @@ import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
-import libcore.BoxPlatformInterface
-import libcore.NB4AInterface
-import libcore.WIFIState
+import libcore.*
+import libcore.NetworkInterface as LibcoreNetworkInterface
 import moe.matsuri.nb4a.utils.LibcoreUtil
+import java.net.Inet6Address
 import java.net.InetSocketAddress
+import java.net.InterfaceAddress
+import java.net.NetworkInterface
+import java.util.*
 
 class NativeInterface : BoxPlatformInterface, NB4AInterface {
 
@@ -110,6 +114,61 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
             ssid = ssid.substring(1, ssid.length - 1)
         }
         return WIFIState(ssid, wifiInfo.bssid)
+    }
+
+    override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
+        DefaultNetworkMonitor.setListener(listener)
+    }
+
+    override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener?) {
+        DefaultNetworkMonitor.setListener(null)
+    }
+
+    override fun getInterfaces(): NetworkInterfaceIterator {
+        return InterfaceArray(NetworkInterface.getNetworkInterfaces())
+    }
+
+    private class InterfaceArray(private val iterator: Enumeration<NetworkInterface>) :
+        NetworkInterfaceIterator {
+
+        override fun hasNext(): Boolean {
+            return iterator.hasMoreElements()
+        }
+
+        override fun next(): LibcoreNetworkInterface {
+            val element = iterator.nextElement()
+            return LibcoreNetworkInterface().apply {
+                name = element.name
+                index = element.index
+                runCatching {
+                    mtu = element.mtu
+                }
+                addresses =
+                    StringArray(
+                        element.interfaceAddresses.mapTo(mutableListOf()) { it.toPrefix() }
+                            .iterator()
+                    )
+            }
+        }
+
+        private fun InterfaceAddress.toPrefix(): String {
+            return if (address is Inet6Address) {
+                "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
+            } else {
+                "${address.hostAddress}/${networkPrefixLength}"
+            }
+        }
+    }
+
+    private class StringArray(private val iterator: Iterator<String>) : StringIterator {
+
+        override fun hasNext(): Boolean {
+            return iterator.hasNext()
+        }
+
+        override fun next(): String {
+            return iterator.next()
+        }
     }
 
 }

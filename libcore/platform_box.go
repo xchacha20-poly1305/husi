@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"context"
+	"github.com/sagernet/sing/common"
 	"net/netip"
 	"syscall"
 
@@ -19,7 +20,9 @@ import (
 	N "github.com/sagernet/sing/common/network"
 )
 
-type boxPlatformInterfaceWrapper struct{}
+type boxPlatformInterfaceWrapper struct {
+	router adapter.Router
+}
 
 var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
 
@@ -43,6 +46,7 @@ func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
 }
 
 func (w *boxPlatformInterfaceWrapper) Initialize(ctx context.Context, router adapter.Router) error {
+	w.router = router
 	return nil
 }
 
@@ -91,7 +95,10 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformDefaultInterfaceMonitor() bool 
 }
 
 func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(l logger.Logger) tun.DefaultInterfaceMonitor {
-	return &interfaceMonitor{}
+	return &interfaceMonitor{
+		boxPlatformInterfaceWrapper: w,
+		defaultInterfaceIndex:       -1,
+	}
 }
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformInterfaceGetter() bool {
@@ -99,7 +106,23 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformInterfaceGetter() bool {
 }
 
 func (w *boxPlatformInterfaceWrapper) Interfaces() ([]platform.NetworkInterface, error) {
-	return nil, E.New("wtf")
+	if intfBox != nil {
+		interfaceIterator, err := intfBox.GetInterfaces()
+		if err != nil {
+			return nil, err
+		}
+		var interfaces []platform.NetworkInterface
+		for _, netInterface := range iteratorToArray[*NetworkInterface](interfaceIterator) {
+			interfaces = append(interfaces, platform.NetworkInterface{
+				Index:     int(netInterface.Index),
+				MTU:       int(netInterface.MTU),
+				Name:      netInterface.Name,
+				Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
+			})
+		}
+		return interfaces, nil
+	}
+	return nil, E.New("")
 }
 
 // Android not using
