@@ -142,6 +142,14 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                     .build())
                             }
                         }
+                        addItem(MaterialAboutActionItem.Builder()
+                            .icon(R.drawable.ic_baseline_card_giftcard_24)
+                            .text(R.string.sekai)
+                            .setOnClickAction {
+                                requireContext().launchCustomTab("https://sekai.icu/sponsor/")
+                            }
+                            .build()
+                        )
                     }
                     .build())
                 .addCard(MaterialAboutCard.Builder()
