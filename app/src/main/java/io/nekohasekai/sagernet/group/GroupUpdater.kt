@@ -3,7 +3,7 @@ package io.nekohasekai.sagernet.group
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -63,13 +63,13 @@ abstract class GroupUpdater {
             lookupJobs.add(GlobalScope.launch(lookupPool) {
                 try {
                     val results = if (
-                        SagerNet.underlyingNetwork != null &&
+                        DefaultNetworkMonitor.defaultNetwork != null &&
                         DataStore.enableFakeDns &&
                         DataStore.serviceState.started &&
                         DataStore.serviceMode == Key.MODE_VPN
                     ) {
                         // FakeDNS
-                        SagerNet.underlyingNetwork!!
+                        DefaultNetworkMonitor.defaultNetwork!!
                             .getAllByName(profile.serverAddress)
                             .filterNotNull()
                     } else {

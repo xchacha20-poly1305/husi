@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
@@ -18,13 +17,14 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import go.Seq
+import io.nekohasekai.sagernet.bg.DefaultNetworkListener
+import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.utils.CrashHandler
-import io.nekohasekai.sagernet.utils.DefaultNetworkListener
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
@@ -88,7 +88,7 @@ class SagerNet : Application(),
             Theme.applyNightTheme()
             runOnDefaultDispatcher {
                 DefaultNetworkListener.start(this) {
-                    underlyingNetwork = it
+                    DefaultNetworkMonitor.defaultNetwork = it
                 }
             }
         }
@@ -197,8 +197,6 @@ class SagerNet : Application(),
 
         fun stopService() =
             application.sendBroadcast(Intent(Action.CLOSE).setPackage(application.packageName))
-
-        var underlyingNetwork: Network? = null
 
     }
 

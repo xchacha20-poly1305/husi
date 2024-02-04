@@ -30,7 +30,7 @@ var mainInstance *BoxInstance
 func ResetAllConnections(system bool) {
 	if system {
 		conntrack.Close()
-		log.Println("[Debug] Reset system connections done")
+		log.Println("[Debug] Reset system connections done.")
 	}
 }
 
@@ -68,6 +68,8 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 		Context:           ctx,
 		PlatformInterface: platformWrapper,
 	}
+	// If set platformLogWrapper, box will set something about cache file,
+	// which will panic with simple configuration.
 	if !forTest {
 		boxOption.PlatformLogWriter = platformLogWrapper
 	}
@@ -83,6 +85,7 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
 
+	// TODO: remove
 	// selector
 	proxy, outboundHasProxy := b.Router().Outbound("proxy")
 	if outboundHasProxy {
@@ -175,7 +178,7 @@ func (b *BoxInstance) QueryStats(tag, direct string) int64 {
 	return b.v2api.QueryStats(fmt.Sprintf("outbound>>>%s>>>traffic>>>%s", tag, direct))
 }
 
-func (b *BoxInstance) SelectOutbound(tag string) bool {
+func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {
 	if b.selector != nil {
 		return b.selector.SelectOutbound(tag)
 	}
