@@ -38,6 +38,7 @@ import moe.matsuri.nb4a.utils.listByLineOrComma
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 const val TAG_MIXED = "mixed-in"
+const val TAG_TUN = "tun-in"
 
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
@@ -46,9 +47,13 @@ const val TAG_BLOCK = "block"
 
 const val TAG_DNS_IN = "dns-in"
 const val TAG_DNS_OUT = "dns-out"
+const val TAG_DNS_REMOTE = "dns-remote"
+const val TAG_DNS_DIRECT = "dns-direct"
 
 const val LOCALHOST = "127.0.0.1"
 const val LOCAL_DNS_SERVER = "local"
+
+val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
 
 // TODO kill this poop
 val externalAssets = SagerNet.application.externalAssets.absolutePath
@@ -212,7 +217,7 @@ fun buildConfig(
         if (!forTest) {
             if (isVPN) inbounds.add(Inbound_TunOptions().apply {
                 type = "tun"
-                tag = "tun-in"
+                tag = TAG_TUN
                 stack = when (DataStore.tunImplementation) {
                     TunImplementation.GVISOR -> "gvisor"
                     TunImplementation.SYSTEM -> "system"
@@ -246,7 +251,7 @@ fun buildConfig(
                 domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
-                if (!DataStore.inboundUsername.isNullOrEmpty() || !DataStore.inboundPassword.isNullOrEmpty()) {
+                if (DataStore.inboundUsername.isNotEmpty() || DataStore.inboundPassword.isNotEmpty()) {
                     users = listOf(
                         User().apply {
                             username = DataStore.inboundUsername
@@ -589,16 +594,17 @@ fun buildConfig(
 
                 when (rule.outbound) {
                     -1L -> {
-                        userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
+                        userDNSRuleList += makeDnsRuleObj().apply { server = TAG_DNS_DIRECT }
                     }
 
                     0L -> {
                         if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
                             server = "dns-fake"
-                            inbound = listOf("tun-in")
+                            inbound = listOf(TAG_TUN)
+                            query_type = FAKE_DNS_QUERY_TYPE
                         }
                         userDNSRuleList += makeDnsRuleObj().apply {
-                            server = "dns-remote"
+                            server = TAG_DNS_REMOTE
                         }
                     }
 
@@ -697,8 +703,8 @@ fun buildConfig(
         remoteDns.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
                 address = it ?: throw Exception("No remote DNS, check your settings!")
-                tag = "dns-remote"
-                address_resolver = "dns-direct"
+                tag = TAG_DNS_REMOTE
+                address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
@@ -707,7 +713,7 @@ fun buildConfig(
         directDNS.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
                 address = it ?: throw Exception("No direct DNS, check your settings!")
-                tag = "dns-direct"
+                tag = TAG_DNS_DIRECT
                 detour = TAG_DIRECT
                 address_resolver = "dns-local"
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
@@ -779,19 +785,21 @@ fun buildConfig(
                     tag = "dns-fake"
                 })
                 dns.rules.add(DNSRule_DefaultOptions().apply {
-                    inbound = listOf("tun-in")
+                    inbound = listOf(TAG_TUN)
                     server = "dns-fake"
                     disable_cache = true
+                    query_type = FAKE_DNS_QUERY_TYPE
                 })
             }
             // force bypass (always top DNS rule)
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(domainListDNSDirectForce.toHashSet().toList(), listOf())
-                    server = "dns-direct"
+                    server = TAG_DNS_DIRECT
                 })
             }
         }
+        dns.final_ = TAG_DNS_REMOTE
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {
