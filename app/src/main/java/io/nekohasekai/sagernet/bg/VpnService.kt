@@ -133,7 +133,7 @@ class VpnService : BaseVpnService(),
         // app route
         val packageName = packageName
         val proxyApps = DataStore.proxyApps
-        var bypass = DataStore.bypass
+        var bypass = DataStore.bypassMode
         val workaroundSYSTEM = false /* DataStore.tunImplementation == TunImplementation.SYSTEM */
         val needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficMap.values.any {
             it[0].nekoBean?.needBypassRootUid() == true || it[0].hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
