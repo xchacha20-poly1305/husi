@@ -1,0 +1,40 @@
+name: Bug report
+description: "Report husi bug"
+body:
+  - type: textarea
+    attributes:
+      label: Version
+      description: Find it in "About"
+      render: text
+  - type: textarea
+    attributes:
+      label: Description
+      description: Please provide a detailed description of the error.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Please provide the steps to reproduce the error.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: |-
+        If you can open "log" dashboard, export the log there.
+        If the crash make you can't open software, check the path `/data/user/0/fr.husi/cache/neko.log` to export your log.
+      render: shell
+  - type: checkboxes
+    attributes:
+      label: Integrity requirements
+      description: |-
+        Please check all of the following options to prove that you have read and understood the requirements, otherwise this issue will be closed.
+        Husi is not a project aimed to please users who can't make any meaningful contributions and gain unethical influence, or a client which serve dark industry of 'airport' services, nor is it an advertising drainage too. If you deceive here to deliberately waste the time of the developers, you will be permanently blocked.
+      options:
+        - label: I confirm that my problem is the bug of husi, but not the problem of my own network environment or my server.
+          required: true
+        - label: I confirm that I have provided the simplest configuration that can be used to reproduce the error I reported.
+          required: true
+        - label: I confirm that I have provided the complete configuration files and logs, rather than just providing parts I think are useful out of confidence in my own intelligence.
+          required: true
