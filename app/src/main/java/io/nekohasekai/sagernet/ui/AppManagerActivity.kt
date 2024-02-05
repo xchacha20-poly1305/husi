@@ -205,7 +205,7 @@ class AppManagerActivity : ThemedActivity() {
             DataStore.proxyApps = true
         }
 
-        binding.bypassGroup.check(if (DataStore.bypass) R.id.appProxyModeBypass else R.id.appProxyModeOn)
+        binding.bypassGroup.check(if (DataStore.bypassMode) R.id.appProxyModeBypass else R.id.appProxyModeOn)
         binding.bypassGroup.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.appProxyModeDisable -> {
@@ -213,8 +213,8 @@ class AppManagerActivity : ThemedActivity() {
                     finish()
                 }
 
-                R.id.appProxyModeOn -> DataStore.bypass = false
-                R.id.appProxyModeBypass -> DataStore.bypass = true
+                R.id.appProxyModeOn -> DataStore.bypassMode = false
+                R.id.appProxyModeBypass -> DataStore.bypassMode = true
             }
         }
 
@@ -287,7 +287,7 @@ class AppManagerActivity : ThemedActivity() {
 
             R.id.action_export_clipboard -> {
                 val success =
-                    SagerNet.trySetPrimaryClip("${DataStore.bypass}\n${DataStore.individual}")
+                    SagerNet.trySetPrimaryClip("${DataStore.bypassMode}\n${DataStore.individual}")
                 Snackbar.make(
                     binding.list,
                     if (success) R.string.action_export_msg else R.string.action_export_err,
@@ -377,7 +377,7 @@ class AppManagerActivity : ThemedActivity() {
                 "cn.nubia"
             ).joinToString("|") { "${it.replace(".", "\\.")}\\." } + ").*").toRegex()
 
-            val bypass = DataStore.bypass
+            val bypass = DataStore.bypassMode
             val cachedApps = cachedApps
 
             apps = cachedApps.map { (packageName, packageInfo) ->
