@@ -396,7 +396,7 @@
     <string name="hysteria_obfs">Contraseña de ofuscación</string>
     <string name="hysteria_auth_type">Tipo de autenticación</string>
     <string name="hysteria_auth_payload">Payload de autenticación</string>
-    <string name="hysteria_upload_mbps">Velocidad máxima de carga (en Mbps)</string>
+    <string name="hysteria_upload_mbps">Velocidad máxima de subida (en Mbps) (Hysteria)</string>
     <string name="hysteria_download_mbps">Velocidad máxima de descarga (en Mbps)</string>
     <string name="experimental_settings">Experimental</string>
     <string name="hysteria_stream_receive_window">Ventana de recepción de transmisión QUIC</string>
@@ -494,7 +494,7 @@
     <string name="backup_not_file">No es un archivo de respaldo: excepto .json, pero %s</string>
     <string name="invalid_backup_file">Archivo de respaldo no válido</string>
     <string name="backup_import">Importar</string>
-    <string name="backup_import_summary">La importación sobrescribirá los datos existentes.</string>
+    <string name="backup_import_summary">Importar sobrescribe los datos existentes.</string>
     <string name="backup_importing">Importando…</string>
     <string name="packet_encoding">Codificación de paquetes</string>
     <string name="acquire_wake_lock">Adquirir WakeLock</string>
