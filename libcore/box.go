@@ -16,6 +16,7 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/common/urltest"
+	_ "github.com/sagernet/sing-box/include"
 	boxlog "github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
@@ -47,6 +48,7 @@ type BoxInstance struct {
 	v2api        *api.SbV2rayServer
 	selector     *outbound.Selector
 	pauseManager pause.Manager
+	servicePauseFields
 }
 
 func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error) {
@@ -146,13 +148,8 @@ func (b *BoxInstance) Close() (err error) {
 	return err
 }
 
-func (b *BoxInstance) Sleep() {
-	b.pauseManager.DevicePause()
-	b.Box.Router().ResetNetwork()
-}
-
-func (b *BoxInstance) Wake() {
-	b.pauseManager.DeviceWake()
+func (b *BoxInstance) NeedWIFIState() bool {
+	return b.Router().NeedWIFIState()
 }
 
 func (b *BoxInstance) SetAsMain() {

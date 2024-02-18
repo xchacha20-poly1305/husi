@@ -54,7 +54,7 @@ class BaseService {
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (SagerNet.power.isDeviceIdleMode) {
-                            proxy?.box?.sleep()
+                            proxy?.box?.pause()
                         } else {
                             proxy?.box?.wake()
                         }
