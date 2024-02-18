@@ -9,10 +9,13 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.os.RemoteException
+import android.util.Log
 import android.view.KeyEvent
 import android.view.MenuItem
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.IdRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -121,19 +124,7 @@ class MainActivity : ThemedActivity(),
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(
-                    this, Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            ) {
-                ActivityCompat.requestPermissions(
-                    this@MainActivity,
-                    arrayOf(
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                    ),
-                    0
-                )
-            }
+            requestLocationPermission0()
         }
 
         // consent
@@ -154,6 +145,49 @@ class MainActivity : ThemedActivity(),
         } catch (e: Exception) {
             Logs.w(e)
         }
+    }
+
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
+    private fun requestLocationPermission0() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            openPermissionSettings()
+        }
+    }
+
+    private fun openPermissionSettings() {
+        if (!getSystemProperty("ro.miui.ui.version.name").isNullOrBlank()) {
+            val intent = Intent("miui.intent.action.APP_PERM_EDITOR")
+            intent.putExtra("extra_package_uid", Process.myUid())
+            intent.putExtra("extra_pkgname", packageName)
+            try {
+                startActivity(intent)
+                return
+            } catch (ignored: Exception) {
+            }
+        }
+
+        try {
+            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.data = Uri.parse("package:$packageName")
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("permission", e.toString())
+            snackbar(e.toString())
+        }
+    }
+
+    @SuppressLint("PrivateApi")
+    fun getSystemProperty(key: String?): String? {
+        try {
+            return Class.forName("android.os.SystemProperties").getMethod("get", String::class.java)
+                .invoke(null, key) as String
+        } catch (ignored: Exception) {
+        }
+        return null
     }
 
     fun refreshNavMenu(clashApi: Boolean) {
