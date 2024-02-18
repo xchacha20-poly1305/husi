@@ -4,9 +4,9 @@ set -e
 
 cd $PWD/build
 
-curl -Lo node.tar.xz https://nodejs.org/dist/latest/node-v21.6.0-linux-x64.tar.xz
+curl -Lo node.tar.xz https://nodejs.org/dist/latest/node-v21.6.2-linux-x64.tar.xz
 
-echo "d940589762748bdbfc1a39132d27a16455b9d283ac3d8a84c3415005269effe4 node.tar.xz" | sha256sum -c -
+echo "593dd28f5c78d797e76b730937b95fcdfc594f053a8756b1d0860a4555bed58e node.tar.xz" | sha256sum -c -
 
 rm -rf node
 mkdir -p node
