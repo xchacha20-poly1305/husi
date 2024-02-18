@@ -111,7 +111,7 @@ func (b *BoxInstance) Start() (err error) {
 const closeTimeout = time.Second * 2
 
 func (b *BoxInstance) Close() (err error) {
-	defer device.DeferPanicToError("box.Close", func(err_ error) { err = err_ })
+	defer device.DeferPanicToError("BoxInstance.Close", func(err_ error) { err = err_ })
 
 	// no double close
 	if b.state == 2 {
@@ -126,14 +126,15 @@ func (b *BoxInstance) Close() (err error) {
 	}
 
 	// close box
-	chClosed := make(chan struct{}, 1)
+	chClosed := make(chan struct{})
 	ctx, cancel := context.WithTimeout(context.Background(), closeTimeout)
 	defer cancel()
 	start := time.Now()
 	go func() {
+		defer device.DeferPanicToError("box.Close", func(err_ error) { err = err_ })
 		b.cancel()
-		b.Box.Close()
-		chClosed <- struct{}{}
+		err = b.Box.Close()
+		close(chClosed)
 	}()
 	select {
 	case <-ctx.Done():
@@ -142,7 +143,7 @@ func (b *BoxInstance) Close() (err error) {
 		boxlog.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
 	}
 
-	return nil
+	return err
 }
 
 func (b *BoxInstance) Sleep() {
