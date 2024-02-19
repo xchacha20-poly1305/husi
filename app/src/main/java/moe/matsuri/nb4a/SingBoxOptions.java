@@ -78,7 +78,10 @@ public class SingBoxOptions {
 
         public String cache_id;
 
-        public Boolean store_fake_ip;
+        public Boolean store_fakeip;
+
+        public Boolean store_rdrc;
+
     }
 
     public static class SelectorOutboundOptions extends SingBoxOption {
