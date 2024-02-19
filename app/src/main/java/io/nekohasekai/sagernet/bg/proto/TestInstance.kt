@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg.proto
 
+import android.util.Log
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
 import io.nekohasekai.sagernet.database.ProxyEntity
@@ -33,6 +34,7 @@ class TestInstance(profile: ProxyEntity, val link: String, val timeout: Int) :
                         c.tryResume(Libcore.urlTest(box, link, timeout))
                     } catch (e: Exception) {
                         c.tryResumeWithException(e)
+                        Log.e("URL test", e.toString())
                     }
                 }
             }
