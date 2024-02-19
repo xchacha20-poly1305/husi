@@ -799,7 +799,7 @@ fun buildConfig(
                 })
             }
         }
-        dns.final_ = TAG_DNS_REMOTE
+        if (!forTest) dns.final_ = TAG_DNS_REMOTE
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {

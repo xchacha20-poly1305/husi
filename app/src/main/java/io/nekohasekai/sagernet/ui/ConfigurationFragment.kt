@@ -10,6 +10,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.format.Formatter
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.*
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -753,6 +754,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 }
                             }
                         } catch (e: Exception) {
+                            Log.e("Test", e.toString())
                             if (!isActive) break
                             val message = e.readableMessage
 

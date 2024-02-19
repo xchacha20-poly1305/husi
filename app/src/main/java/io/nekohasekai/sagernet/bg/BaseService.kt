@@ -205,7 +205,6 @@ class BaseService {
         }
 
         suspend fun startProcesses() {
-            DefaultNetworkMonitor.start()
             data.proxy!!.launch()
         }
 
@@ -267,6 +266,7 @@ class BaseService {
         var upstreamInterfaceName: String?
 
         suspend fun preInit() {
+            DefaultNetworkMonitor.start()
             DataStore.vpnService?.updateUnderlyingNetwork()
         }
 
