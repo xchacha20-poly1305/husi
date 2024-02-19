@@ -198,6 +198,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverALPN by profileCacheStore.string(Key.SERVER_ALPN)
     var serverCertificates by profileCacheStore.string(Key.SERVER_CERTIFICATES)
     var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU)
+    var serverBrutal by profileCacheStore.boolean(Key.SERVER_BRUTAL)
     var serverHeaders by profileCacheStore.string(Key.SERVER_HEADERS)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
 

@@ -13,6 +13,7 @@ public abstract class AbstractBean extends Serializable {
 
     public String serverAddress;
     public Integer serverPort;
+    public Boolean enabledBrutal;
 
     public String name;
 
@@ -40,6 +41,10 @@ public abstract class AbstractBean extends Serializable {
 
     public String network() {
         return "tcp,udp";
+    }
+
+    public boolean canBrutal() {
+        return false;
     }
 
     public boolean canICMPing() {
@@ -71,19 +76,21 @@ public abstract class AbstractBean extends Serializable {
 
         if (customOutboundJson == null) customOutboundJson = "";
         if (customConfigJson == null) customConfigJson = "";
-        // if (enabledBrutal == null) enabledBrutal = false;
+        if (enabledBrutal == null) enabledBrutal = false;
     }
 
     @Override
     public void serializeToBuffer(@NonNull ByteBufferOutput output) {
         serialize(output);
 
-        output.writeInt(1);
+        output.writeInt(2);
         if (!serializeWithoutName) {
             output.writeString(name);
         }
         output.writeString(customOutboundJson);
         output.writeString(customConfigJson);
+
+        output.writeBoolean(enabledBrutal);
     }
 
     @Override
@@ -95,6 +102,8 @@ public abstract class AbstractBean extends Serializable {
         name = input.readString();
         customOutboundJson = input.readString();
         customConfigJson = input.readString();
+
+        if (extraVersion >= 2) enabledBrutal = input.readBoolean();
     }
 
     public void serialize(ByteBufferOutput output) {
