@@ -529,4 +529,6 @@
     </string>
     <string name="sekai">世界</string>
     <string name="test_timeout">测试超时 (ms)</string>
+    <string name="enable_brutal">启用 TCP Brutal 拥塞控制算法</string>
+    <string name="direct_dns_client_subnet">直连 EDNS client subnet</string>
 </resources>

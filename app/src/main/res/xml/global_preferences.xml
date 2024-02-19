@@ -188,7 +188,11 @@
                 app:title="@string/domain_strategy_for_remote"
                 app:useSimpleSummaryProvider="true"/>
         <EditTextPreference
-                app:defaultValue="local"
+                app:icon="@drawable/ic_baseline_push_pin_24"
+                app:key="directDnsClientSubnet"
+                app:title="@string/direct_dns_client_subnet"
+                app:useSimpleSummaryProvider="true"/>
+        <EditTextPreference
                 app:icon="@drawable/ic_action_dns"
                 app:key="directDns"
                 app:title="@string/direct_dns"
