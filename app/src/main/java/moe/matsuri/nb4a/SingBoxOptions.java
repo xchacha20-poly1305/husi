@@ -288,6 +288,8 @@ public class SingBoxOptions {
 
         public String detour;
 
+        public String client_subnet;
+
     }
 
     public static class DNSClientOptions extends SingBoxOption {

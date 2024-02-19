@@ -596,4 +596,7 @@
     </string>
     <string name="sekai">nekohasekai</string>
     <string name="test_timeout">Test timeout (ms)</string>
+    <string name="enable_brutal">Enabled TCP Brutal congestion controler</string>
+    <string name="brutal" translatable="false">TCP Brutal</string>
+    <string name="direct_dns_client_subnet">Direct EDNS client subnet</string>
 </resources>
