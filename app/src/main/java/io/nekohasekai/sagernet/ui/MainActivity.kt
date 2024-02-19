@@ -124,7 +124,20 @@ class MainActivity : ThemedActivity(),
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            requestLocationPermission0()
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    arrayOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                    ),
+                    0
+                )
+            }
+//            requestLocationPermission0()
         }
 
         // consent
@@ -147,6 +160,7 @@ class MainActivity : ThemedActivity(),
         }
     }
 
+    /*
     private val locationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
@@ -179,6 +193,7 @@ class MainActivity : ThemedActivity(),
             snackbar(e.toString())
         }
     }
+     */
 
     @SuppressLint("PrivateApi")
     fun getSystemProperty(key: String?): String? {
