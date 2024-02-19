@@ -772,9 +772,8 @@ object RawUpdater : GroupUpdater() {
             for ((keyName, keyValue) in peer) {
                 when (keyName.lowercase()) {
                     "endpoint" -> {
+                        peerBean.serverPort = keyValue.substringAfterLast(":").toIntOrNull() ?: continue@loopPeer
                         peerBean.serverAddress = keyValue.substringBeforeLast(":")
-                        peerBean.serverPort =
-                            keyValue.substringAfterLast(":").toIntOrNull() ?: continue@loopPeer
                     }
 
                     "publickey" -> peerBean.peerPublicKey = keyValue ?: continue@loopPeer
