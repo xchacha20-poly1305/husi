@@ -13,7 +13,6 @@ local.properties
 jniLibs/
 /library/libcore_build/
 .idea/deploymentTargetDropDown.xml
-/nkmr
 go.work*
 /Dash-*
 
