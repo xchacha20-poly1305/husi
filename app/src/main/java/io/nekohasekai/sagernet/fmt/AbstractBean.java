@@ -71,7 +71,7 @@ public abstract class AbstractBean extends Serializable {
 
         if (customOutboundJson == null) customOutboundJson = "";
         if (customConfigJson == null) customConfigJson = "";
-        if (enabledBrutal == null) enabledBrutal = false;
+        // if (enabledBrutal == null) enabledBrutal = false;
     }
 
     @Override
