@@ -10,7 +10,7 @@
 [![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
 [![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
 
-* Android API 34 & Gradle 8.2 & NDK 26.1.10909125.
+* Android API 34 & Gradle 8.6 & NDK 26.1.10909125.
 * sing-box rule_set instead of geosite and geoip.
 * Route based on WIFI status. 
 * Trust the certificate list trusted by Mozilla to prevent certain hijacks.
