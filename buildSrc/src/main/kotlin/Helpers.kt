@@ -137,11 +137,8 @@ fun Project.setupCommon() {
         (this as? AbstractAppExtension)?.apply {
             buildTypes {
                 getByName("release") {
+                    isMinifyEnabled = true
                     isShrinkResources = true
-                    if (System.getenv("nkmr_minify") == "0") {
-                        isShrinkResources = false
-                        isMinifyEnabled = false
-                    }
                 }
                 getByName("debug") {
                     applicationIdSuffix = "debug"
