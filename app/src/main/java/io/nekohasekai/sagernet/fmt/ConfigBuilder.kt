@@ -176,7 +176,7 @@ fun buildConfig(
             }
             cache_file = CacheFileOptions().apply {
                 enabled = true
-                store_fake_ip = true
+                store_fakeip = true
                 path = "../cache/cache.db"
             }
         }
