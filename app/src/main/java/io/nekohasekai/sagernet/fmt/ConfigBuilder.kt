@@ -707,7 +707,9 @@ fun buildConfig(
                 tag = TAG_DNS_REMOTE
                 address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-                client_subnet = DataStore.directDnsClientSubnet
+                if (DataStore.directDnsClientSubnet.isNotBlank()) {
+                    client_subnet = DataStore.directDnsClientSubnet
+                }
             })
         }
 
