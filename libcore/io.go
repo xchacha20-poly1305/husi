@@ -1,7 +1,9 @@
 package libcore
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,43 +13,89 @@ import (
 	//"github.com/ulikunitz/xz"
 )
 
-func Unzip(archive string, path string) error {
-	r, err := zip.OpenReader(archive)
+func Untar(archive, path string) (err error) {
+	file, err := os.Open(archive)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	_ = os.MkdirAll(path, os.ModePerm)
+
+	gReader, err := gzip.NewReader(file)
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	tReader := tar.NewReader(gReader)
 
-	os.MkdirAll(path, os.ModePerm)
+	for {
+		header, err := tReader.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+		}
 
-	for _, file := range r.File {
-		filePath := filepath.Join(path, file.Name)
-
-		if file.FileInfo().IsDir() {
-			os.MkdirAll(filePath, os.ModePerm)
+		fileInfo := header.FileInfo()
+		if fileInfo.IsDir() {
+			_ = os.MkdirAll(filepath.Join(path, fileInfo.Name()), os.ModePerm)
 			continue
 		}
 
-		// Don't forget to close it.
-		newFile, err := os.Create(filePath)
+		err = copyToFile(filepath.Join(path, fileInfo.Name()), tReader)
 		if err != nil {
 			return err
-		}
-
-		zipFile, err := file.Open()
-		if err != nil {
-			newFile.Close()
-			return err
-		}
-
-		_, err = io.Copy(newFile, zipFile)
-		errs := E.Errors(err, common.Close(zipFile, newFile))
-		if errs != nil {
-			return errs
 		}
 	}
 
 	return nil
+}
+
+func UntargzWihoutDir(archive, path string) (err error) {
+	file, err := os.Open(archive)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	_ = os.MkdirAll(path, os.ModePerm)
+
+	gReader, err := gzip.NewReader(file)
+	if err != nil {
+		return
+	}
+	tReader := tar.NewReader(gReader)
+
+	for {
+		header, err := tReader.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if header.FileInfo().IsDir() {
+			continue
+		}
+
+		err = copyToFile(filepath.Join(path, filepath.Base(header.FileInfo().Name())), tReader)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func copyToFile(path string, reader io.Reader) error {
+	newFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer newFile.Close()
+
+	_, err = io.Copy(newFile, reader)
+	return err
 }
 
 // UnzipWithoutDir
@@ -59,7 +107,7 @@ func UnzipWithoutDir(archive, path string) error {
 	}
 	defer r.Close()
 
-	os.MkdirAll(path, os.ModePerm)
+	_ = os.MkdirAll(path, os.ModePerm)
 
 	for _, file := range r.File {
 		if file.FileInfo().IsDir() {
@@ -71,7 +119,7 @@ func UnzipWithoutDir(archive, path string) error {
 
 		filePath := filepath.Join(path, fileName)
 
-		os.Remove(filePath)
+		_ = os.Remove(filePath)
 		// Don't forget to close it.
 		newFile, err := os.Create(filePath)
 		if err != nil {
@@ -80,7 +128,7 @@ func UnzipWithoutDir(archive, path string) error {
 
 		zipFile, err := file.Open()
 		if err != nil {
-			newFile.Close()
+			_ = newFile.Close()
 			return err
 		}
 

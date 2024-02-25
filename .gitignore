@@ -15,6 +15,10 @@ jniLibs/
 .idea/deploymentTargetDropDown.xml
 go.work*
 /Dash-*
+*.srs
+*.zip
+*.tar.*
+*.tar
 
 # submodules
 /external
