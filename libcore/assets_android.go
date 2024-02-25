@@ -71,26 +71,26 @@ func extractGeo() error {
 	}
 
 	// Prepare directory
-	os.RemoveAll(targetDir)
-	os.MkdirAll(targetDir, os.ModePerm)
+	_ = os.RemoveAll(targetDir)
+	_ = os.MkdirAll(targetDir, os.ModePerm)
 
 	// Unzip geoip and geosite
 	for _, name := range names {
-		file, err := asset.Open(filepath.Join(assetsDir, name) + ".zip")
+		file, err := asset.Open(filepath.Join(assetsDir, name) + ".tar") // ??
 		if err != nil {
-			return E.Cause(err, "open asset", name)
+			return E.Cause(err, " open asset ", name)
 		}
 
-		tmpZipName := filepath.Join(targetDir, name) + ".zip"
+		tmpZipName := filepath.Join(targetDir, name) + ".tar.gz"
 		err = extractAsset(file, tmpZipName)
 		if err != nil {
-			return E.Cause(err, "extract:", name)
+			return E.Cause(err, " extract:", name)
 		}
 
-		err = UnzipWithoutDir(tmpZipName, targetDir)
-		os.Remove(tmpZipName)
+		err = UntargzWihoutDir(tmpZipName, targetDir)
+		_ = os.Remove(tmpZipName)
 		if err != nil {
-			return E.Cause(err, "unzip:", name)
+			return E.Cause(err, "tar:", name)
 		}
 	}
 
@@ -128,19 +128,19 @@ func extractDash() error {
 		}
 	}
 
-	os.RemoveAll(dstName)
+	_ = os.RemoveAll(dstName)
 
 	// unzip file
 	file, err := asset.Open(dashArchive)
 	if err != nil {
-		return E.Cause(err, "can't open", dashArchive)
+		return E.Cause(err, "can't open ", dashArchive)
 	}
-	tmpZipName := dstName + ".zip"
+	tmpZipName := dstName + ".tar.gz"
 	err = extractAsset(file, tmpZipName)
 	if err != nil {
-		return E.Cause(err, "extract:", tmpZipName)
+		return E.Cause(err, "extract: ", tmpZipName)
 	}
-	err = Unzip(tmpZipName, dir)
+	err = Untar(tmpZipName, dir)
 	if err != nil {
 		return E.Cause(err, "unzip")
 	}
@@ -150,9 +150,12 @@ func extractDash() error {
 	if err != nil {
 		return E.Cause(err, "glob dashboard")
 	}
+	if len(multiFile) == 0 {
+		return E.New("not find any dashboard")
+	}
 	// delete more dashboards
 	for i := 1; i < len(multiFile); i++ {
-		os.RemoveAll(multiFile[i])
+		_ = os.RemoveAll(multiFile[i])
 	}
 	err = os.Rename(multiFile[0], dstName)
 	if err != nil {
@@ -191,14 +194,14 @@ func versionLess(localVersion, assetsVersion []byte) bool {
 
 // Write version to version file
 func writeVersion(version []byte, versionPath string) error {
-	os.Remove(versionPath)
+	_ = os.Remove(versionPath)
 
 	versionFile, err := os.Create(versionPath)
 	if err != nil {
 		return E.Cause(err, "create version file:", versionPath)
 	}
 	_, err = versionFile.Write(version)
-	versionFile.Close()
+	_ = versionFile.Close()
 	if err != nil {
 		return E.Cause(err, "write version:", version)
 	}

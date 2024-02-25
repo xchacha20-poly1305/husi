@@ -11,9 +11,9 @@ const (
 )
 
 const (
-	geoipArchive   = "geoip.zip"
-	geositeArchive = "geosite.zip"
-	dashArchive    = "dashboard.zip"
+	geoipArchive   = "geoip.tar.gz"
+	geositeArchive = "geosite.tar.gz"
+	dashArchive    = "dashboard.tar" // ??
 )
 
 var apkAssetPrefixSingBox = "sing-box/"
