@@ -6,6 +6,8 @@ import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
 
+import java.util.Objects;
+
 public abstract class StandardV2RayBean extends AbstractBean {
 
     public String uuid;
@@ -221,6 +223,21 @@ public abstract class StandardV2RayBean extends AbstractBean {
             return aid != null && aid == -1;
         }
         return false;
+    }
+
+    @Override
+    public boolean canTCPing() {
+        return !Objects.equals(type, "quic");
+    }
+
+    @Override
+    public boolean canBrutal() {
+        return switch (type) {
+            case "quic", "grpc" -> false;
+            // If using TLS, http will upgrade to http2, which not supports mux.
+            case "http" -> !Objects.equals(security, "tls");
+            default -> true;
+        };
     }
 
 }

@@ -25,6 +25,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         pbm.add(PreferenceBinding(Type.Text, "pluginName").apply { disable = true })
     private val pluginConfig =
         pbm.add(PreferenceBinding(Type.Text, "pluginConfig").apply { disable = true })
+    private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, "serverBrutal"))
     private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
 
     override fun ShadowsocksBean.init() {

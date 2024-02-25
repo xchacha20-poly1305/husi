@@ -99,6 +99,7 @@ object Key {
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
     const val SERVER_MTU = "serverMTU"
+    const val SERVER_BRUTAL = "serverBrutal"
 
     const val SERVER_CONFIG = "serverConfig"
     const val SERVER_CUSTOM = "serverCustom"
@@ -109,6 +110,7 @@ object Key {
     const val SERVER_ECH_CATEGORY = "serverEchCategory"
     const val SERVER_WS_CATEGORY = "serverWsCategory"
     const val SERVER_SS_CATEGORY = "serverSsCategory"
+    const val SERVER_BRUTAL_CATEGORY = "serverBrutalCategory"
     const val SERVER_HEADERS = "serverHeaders"
     const val SERVER_ALLOW_INSECURE = "serverAllowInsecure"
 
@@ -116,8 +118,6 @@ object Key {
     const val ECH_CFG = "echCfg"
 
     const val SERVER_AUTH_TYPE = "serverAuthType"
-    const val SERVER_UPLOAD_SPEED = "serverUploadSpeed"
-    const val SERVER_DOWNLOAD_SPEED = "serverDownloadSpeed"
     const val SERVER_STREAM_RECEIVE_WINDOW = "serverStreamReceiveWindow"
     const val SERVER_CONNECTION_RECEIVE_WINDOW = "serverConnectionReceiveWindow"
     const val SERVER_DISABLE_MTU_DISCOVERY = "serverDisableMtuDiscovery"

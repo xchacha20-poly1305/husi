@@ -372,7 +372,7 @@
     <string name="hysteria_auth_payload">Identitetbekreftelses-nyttelast</string>
     <string name="experimental_settings">Eksperimentelt</string>
     <string name="hysteria_download_mbps">Maks. nedlastingshastighet (i Mbps)</string>
-    <string name="hysteria_upload_mbps">Maks. opplastingshastighet (i Mbps)</string>
+    <string name="hysteria_upload_mbps">Maks. opplastingshastighet (i Mbps) (Brutal)</string>
     <string name="hysteria_auth_type">Identitetbekreftelsestype</string>
     <string name="menu_traffic">Trafikk</string>
     <string name="hysteria_connection_receive_window">Mottaksvindu for QUIC-tilkobling</string>
