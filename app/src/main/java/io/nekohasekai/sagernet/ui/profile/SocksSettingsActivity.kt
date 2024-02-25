@@ -22,7 +22,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         DataStore.serverUsername = username
         DataStore.serverPassword = password
 
-        DataStore.serverBrutal = enabledBrutal
+        DataStore.serverBrutal = serverBrutal
 
         DataStore.profileCacheStore.putBoolean("sUoT", sUoT)
     }
@@ -36,7 +36,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         username = DataStore.serverUsername
         password = DataStore.serverPassword
 
-        enabledBrutal = DataStore.serverBrutal
+        serverBrutal = DataStore.serverBrutal
 
         sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
     }

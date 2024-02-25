@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -26,7 +25,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         pbm.add(PreferenceBinding(Type.Text, "pluginName").apply { disable = true })
     private val pluginConfig =
         pbm.add(PreferenceBinding(Type.Text, "pluginConfig").apply { disable = true })
-    private val enaledBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
+    private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, "serverBrutal"))
     private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
 
     override fun ShadowsocksBean.init() {

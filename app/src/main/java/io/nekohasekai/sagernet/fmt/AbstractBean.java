@@ -13,7 +13,7 @@ public abstract class AbstractBean extends Serializable {
 
     public String serverAddress;
     public Integer serverPort;
-    public Boolean enabledBrutal;
+    public Boolean serverBrutal;
 
     public String name;
 
@@ -76,7 +76,7 @@ public abstract class AbstractBean extends Serializable {
 
         if (customOutboundJson == null) customOutboundJson = "";
         if (customConfigJson == null) customConfigJson = "";
-        if (enabledBrutal == null) enabledBrutal = false;
+        if (serverBrutal == null) serverBrutal = false;
     }
 
     @Override
@@ -90,7 +90,7 @@ public abstract class AbstractBean extends Serializable {
         output.writeString(customOutboundJson);
         output.writeString(customConfigJson);
 
-        output.writeBoolean(enabledBrutal);
+        output.writeBoolean(serverBrutal);
     }
 
     @Override
@@ -103,7 +103,7 @@ public abstract class AbstractBean extends Serializable {
         customOutboundJson = input.readString();
         customConfigJson = input.readString();
 
-        if (extraVersion >= 2) enabledBrutal = input.readBoolean();
+        if (extraVersion >= 2) serverBrutal = input.readBoolean();
     }
 
     public void serialize(ByteBufferOutput output) {

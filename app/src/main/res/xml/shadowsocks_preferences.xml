@@ -32,7 +32,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-            app:key="serverBrutalCategory"
             app:title="@string/brutal">
         <SwitchPreference
                 app:key="serverBrutal"
