@@ -4,4 +4,3 @@ binary*.go
 .vscode
 /debug.go
 inited
-ruleset/
