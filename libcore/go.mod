@@ -6,8 +6,8 @@ require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.3.3-beta.2
-	github.com/sagernet/sing-box v1.9.0-alpha.13 // Bump core version here.
-	github.com/sagernet/sing-dns v0.2.0-beta.7
+	github.com/sagernet/sing-box v1.9.0-alpha.14 // Bump core version here.
+	github.com/sagernet/sing-dns v0.2.0-beta.8
 	github.com/sagernet/sing-tun v0.2.2-beta.3
 	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
 	github.com/xchacha20-poly1305/cazilla v0.2.1
@@ -31,7 +31,7 @@ require (
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
-	github.com/go-chi/chi/v5 v5.0.11 // indirect
+	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.26.0 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3 // indirect
@@ -89,11 +89,11 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
-	google.golang.org/grpc v1.60.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/grpc v1.62.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.13
+replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.14
 
 replace github.com/sagernet/sing-quic => github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1
