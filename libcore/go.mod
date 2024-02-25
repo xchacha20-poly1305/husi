@@ -4,13 +4,13 @@ go 1.20
 
 require (
 	github.com/miekg/dns v1.1.58
-	github.com/sagernet/sing v0.3.1-beta.1
-	github.com/sagernet/sing-box v1.9.0-alpha.9 // Bump core version here.
-	github.com/sagernet/sing-dns v0.2.0-beta.5
+	github.com/sagernet/gomobile v0.1.3
+	github.com/sagernet/sing v0.3.3-beta.2
+	github.com/sagernet/sing-box v1.9.0-alpha.13 // Bump core version here.
+	github.com/sagernet/sing-dns v0.2.0-beta.7
 	github.com/sagernet/sing-tun v0.2.2-beta.3
 	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
 	github.com/xchacha20-poly1305/cazilla v0.2.1
-	golang.org/x/mobile v0.0.0-20240213143359-d1f7d3436075
 )
 
 require (
@@ -87,6 +87,6 @@ require (
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.9
+replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.13
 
 replace github.com/sagernet/sing-quic => github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1

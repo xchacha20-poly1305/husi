@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/sagernet/gomobile/asset"
 	E "github.com/sagernet/sing/common/exceptions"
-	"golang.org/x/mobile/asset"
 )
 
 // 支持非官方源的，放 Android 目录 (dashboard)
