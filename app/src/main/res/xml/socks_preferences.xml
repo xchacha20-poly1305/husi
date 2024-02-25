@@ -38,6 +38,15 @@
                 app:title="@string/password_opt"/>
     </PreferenceCategory>
 
+    <PreferenceCategory
+            app:key="serverBrutalCategory"
+            app:title="@string/brutal">
+        <SwitchPreference
+                app:key="serverBrutal"
+                app:icon="@drawable/ic_baseline_bolt"
+                app:title="@string/enable_brutal"/>
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="sing-box server">
         <SwitchPreference
                 app:key="sUoT"

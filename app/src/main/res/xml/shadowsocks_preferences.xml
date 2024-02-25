@@ -31,6 +31,14 @@
                 app:title="@string/password"/>
     </PreferenceCategory>
 
+    <PreferenceCategory
+            app:title="@string/brutal">
+        <SwitchPreference
+                app:key="serverBrutal"
+                app:icon="@drawable/ic_baseline_bolt"
+                app:title="@string/enable_brutal"/>
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/plugin">
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue=""

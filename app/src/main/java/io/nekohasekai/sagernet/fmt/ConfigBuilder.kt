@@ -396,16 +396,29 @@ fun buildConfig(
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
 
-                        if (!muxApplied && proxyEntity.needCoreMux()) {
+                        val useBrutal = bean.serverBrutal && bean.canBrutal()
+                        if (
+                            (!muxApplied && proxyEntity.needCoreMux()) ||
+                            useBrutal
+                        ) {
                             muxApplied = true
                             currentOutbound["multiplex"] = MultiplexOptions().apply {
                                 enabled = true
                                 padding = Protocols.shouldEnableMux("padding")
-                                max_streams = DataStore.muxConcurrency
                                 protocol = when (DataStore.muxType) {
                                     1 -> "smux"
                                     2 -> "yamux"
                                     else -> "h2mux"
+                                }
+                                if (useBrutal) {
+                                    max_connections = 1
+                                    brutal = BrutalOptions().apply {
+                                        enabled = true
+                                        up_mbps = -1 // need kernel module
+                                        down_mbps = DataStore.downloadSpeed
+                                    }
+                                } else {
+                                    max_streams = DataStore.muxConcurrency
                                 }
                             }.asMap()
                         }

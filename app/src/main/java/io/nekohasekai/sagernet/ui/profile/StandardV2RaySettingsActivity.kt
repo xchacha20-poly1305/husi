@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -43,6 +44,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val utlsFingerprint = pbm.add(PreferenceBinding(Type.Text, "utlsFingerprint"))
     private val realityPubKey = pbm.add(PreferenceBinding(Type.Text, "realityPubKey"))
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
+    private val brutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val ech = pbm.add(PreferenceBinding(Type.Bool, "ech"))
     private val echCfg = pbm.add(PreferenceBinding(Type.Text, "echCfg"))
 
@@ -64,6 +66,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     lateinit var tlsCamouflageCategory: PreferenceCategory
     lateinit var echCategory: PreferenceCategory
     lateinit var wsCategory: PreferenceCategory
+    lateinit var brutalCategory: PreferenceCategory
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -75,6 +78,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         tlsCamouflageCategory = findPreference(Key.SERVER_TLS_CAMOUFLAGE_CATEGORY)!!
         echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
         wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
+        brutalCategory = findPreference(Key.SERVER_BRUTAL_CATEGORY)!!
 
 
         // vmess/vless/http/trojan
@@ -122,28 +126,31 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         // menu with listener
 
         type.preference.apply {
-            updateView(type.readStringFromCache())
+            val s = security.readStringFromCache()
+            updateView(type.readStringFromCache(), s)
             this as SimpleMenuPreference
             setOnPreferenceChangeListener { _, newValue ->
-                updateView(newValue as String)
+                updateView(network = newValue as String, tls = s)
                 true
             }
         }
 
         security.preference.apply {
-            updateTle(security.readStringFromCache())
+            updateTls(security.readStringFromCache())
             this as SimpleMenuPreference
+
             setOnPreferenceChangeListener { _, newValue ->
-                updateTle(newValue as String)
+                updateTls(newValue as String)
                 true
             }
         }
     }
 
-    private fun updateView(network: String) {
+    private fun updateView(network: String, tls: String) {
         host.preference.isVisible = false
         path.preference.isVisible = false
         wsCategory.isVisible = false
+        brutalCategory.isVisible = true
 
         when (network) {
             "tcp" -> {
@@ -156,6 +163,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 path.preference.setTitle(R.string.http_path)
                 host.preference.isVisible = true
                 path.preference.isVisible = true
+
+                if (tls == "tls") brutalCategory.isVisible = false
             }
 
             "ws" -> {
@@ -169,6 +178,12 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             "grpc" -> {
                 path.preference.setTitle(R.string.grpc_service_name)
                 path.preference.isVisible = true
+
+                brutalCategory.isVisible = false
+            }
+
+            "quic" -> {
+                brutalCategory.isVisible = false
             }
 
             "httpupgrade" -> {
@@ -180,8 +195,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         }
     }
 
-    fun updateTle(tle: String) {
-        val isTLS = tle == "tls"
+    fun updateTls(tls: String) {
+        val isTLS = tls == "tls"
         securityCategory.isVisible = isTLS
         tlsCamouflageCategory.isVisible = isTLS
         echCategory.isVisible = isTLS
