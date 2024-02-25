@@ -397,7 +397,7 @@
     <string name="hysteria_auth_type">Tipo de autenticación</string>
     <string name="hysteria_auth_payload">Payload de autenticación</string>
     <string name="hysteria_upload_mbps">Velocidad máxima de subida (en Mbps) (Hysteria)</string>
-    <string name="hysteria_download_mbps">Velocidad máxima de descarga (en Mbps)</string>
+    <string name="hysteria_download_mbps">Velocidad máxima de descarga (en Mbps) (Brutal)</string>
     <string name="experimental_settings">Experimental</string>
     <string name="hysteria_stream_receive_window">Ventana de recepción de transmisión QUIC</string>
     <string name="hysteria_connection_receive_window">Ventana de recepción de conexión QUIC</string>
