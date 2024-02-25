@@ -6,7 +6,7 @@ source buildScript/init/version.sh
 
 DIR="app/src/main/assets/sing-box"
 GENERATER="libcore/cmd/ruleset_generate"
-rm -rf $DIR
+rm -rf $DIR || true
 mkdir -p $DIR
 
 # get_latest_release() {
@@ -23,9 +23,9 @@ function pack() {
 echo "GEOIP: $GEOIP_VERSION"
 echo "GEOSITE: $GEOSITE_VERSION"
 pushd $GENERATER
-rm -rf ruleset
-rm *.zip
-go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION || exit 1
+rm -rf ruleset || true
+rm *.zip || true
+go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION
 pack "geoip"
 pack "geosite"
 popd
