@@ -28,11 +28,17 @@ jobs:
           path: |
             app/libs/libcore.aar
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+      - name: Golang Version
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: version
+        run: |
+          source buildScript/init/version.sh
+          echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v5
         with:
-          go-version: ^1.22
+          go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
       - uses: goto-bus-stop/setup-zig@v2
         if: steps.cache.outputs.cache-hit != 'true'
