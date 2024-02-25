@@ -17,6 +17,7 @@ go.work*
 /Dash-*
 *.srs
 *.zip
+*.tar.gz
 
 # submodules
 /external

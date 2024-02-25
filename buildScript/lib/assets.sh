@@ -17,21 +17,21 @@ mkdir -p $DIR
 
 function pack() {
   local name=$1
-  zip -r -q -X "${name}.zip" "ruleset/$name"
+  tar --mtime='1970-01-01' -czf "${name}.tar.gz" "ruleset/$name"
 }
 
 echo "GEOIP: $GEOIP_VERSION"
 echo "GEOSITE: $GEOSITE_VERSION"
 pushd $GENERATER
 rm -rf ruleset || true
-rm *.zip || true
+rm *.tar.gz || true
 go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION
 pack "geoip"
 pack "geosite"
 popd
 
-cp -r "$GENERATER/geoip.zip" "$DIR"
-cp -r "$GENERATER/geosite.zip" "$DIR"
+cp -r "$GENERATER/geoip.tar.gz" "$DIR"
+cp -r "$GENERATER/geosite.tar.gz" "$DIR"
 
 cd $DIR
 echo -n $GEOIP_VERSION >geoip.version.txt
