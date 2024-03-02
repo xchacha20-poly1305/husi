@@ -748,7 +748,7 @@ fun buildConfig(
         }
 
         // final DNS
-        if (!forTest) {
+        if (!useFakeDns) {
             dns.servers.add(DNSServerOptions().apply {
                 tag = TAG_DNS_FINAL
                 address_resolver = TAG_DNS_LOCAL
