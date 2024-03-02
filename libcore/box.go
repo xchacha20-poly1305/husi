@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"libcore/api"
-	"libcore/device"
 	"libcore/protectserver"
 
 	box "github.com/sagernet/sing-box"
@@ -49,7 +48,7 @@ type BoxInstance struct {
 }
 
 func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error) {
-	defer device.DeferPanicToError("NewSingBoxInstance", func(err_ error) { err = err_ })
+	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 
 	// parse options
 	var options option.Options
@@ -98,7 +97,7 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 }
 
 func (b *BoxInstance) Start() (err error) {
-	defer device.DeferPanicToError("box.Start", func(err_ error) { err = err_ })
+	defer catchPanic("box.Start", func(panicErr error) { err = panicErr })
 
 	if b.state == 0 {
 		b.state = 1
@@ -110,7 +109,7 @@ func (b *BoxInstance) Start() (err error) {
 const closeTimeout = time.Second * 2
 
 func (b *BoxInstance) Close() (err error) {
-	defer device.DeferPanicToError("BoxInstance.Close", func(err_ error) { err = err_ })
+	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
 
 	// no double close
 	if b.state == 2 {
@@ -130,7 +129,7 @@ func (b *BoxInstance) Close() (err error) {
 	defer cancel()
 	start := time.Now()
 	go func() {
-		defer device.DeferPanicToError("box.Close", func(err_ error) { err = err_ })
+		defer catchPanic("box.Close", func(panicErr error) { err = panicErr })
 		b.cancel()
 		err = b.Box.Close()
 		close(chClosed)

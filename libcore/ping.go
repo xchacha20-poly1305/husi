@@ -5,8 +5,6 @@ import (
 	"net"
 	"time"
 
-	"libcore/device"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -34,7 +32,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 }
 
 func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err error) {
-	defer device.DeferPanicToError("box.UrlTest", func(err_ error) { err = err_ })
+	defer catchPanic("box.UrlTest", func(panicErr error) { err = panicErr })
 
 	var router adapter.Router
 	if i == nil {
