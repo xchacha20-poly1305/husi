@@ -596,4 +596,8 @@
     <string name="enable_brutal">Enabled TCP Brutal congestion controler</string>
     <string name="brutal" translatable="false">TCP Brutal</string>
     <string name="direct_dns_client_subnet">Direct EDNS client subnet</string>
+    <string name="dns_mode">DNS mode</string>
+    <string name="fake_dns" translatable="false">Fake DNS</string>
+    <string name="dns_mode_leak">Precise query with leak</string>
+    <string name="dns_mode_precise">Precise query with low speed</string>
 </resources>

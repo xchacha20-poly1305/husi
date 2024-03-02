@@ -223,11 +223,14 @@
                 app:key="enableDnsRouting"
                 app:summary="@string/dns_routing_message"
                 app:title="@string/enable_dns_routing"/>
-        <SwitchPreference
-                app:icon="@drawable/ic_action_lock"
-                app:key="enableFakeDns"
-                app:summary="@string/fakedns_message"
-                app:title="@string/enable_fakedns"/>
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:defaultValue="0"
+                app:entries="@array/dns_modes"
+                app:entryValues="@array/int_array_4"
+                app:icon="@drawable/ic_baseline_manage_search_24"
+                app:key="dnsMode"
+                app:title="@string/dns_mode"
+                app:useSimpleSummaryProvider="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/inbound_settings">

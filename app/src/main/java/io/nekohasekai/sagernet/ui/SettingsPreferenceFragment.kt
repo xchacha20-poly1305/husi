@@ -105,7 +105,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val directDnsClientSubnet = findPreference<EditTextPreference>(Key.DIRECT_DNS_CLIENT_SUBNET)!!
         val underlyingDns = findPreference<EditTextPreference>(Key.UNDERLYING_DNS)!!
         val enableDnsRouting = findPreference<SwitchPreference>(Key.ENABLE_DNS_ROUTING)!!
-        val enableFakeDns = findPreference<SwitchPreference>(Key.ENABLE_FAKEDNS)!!
+        val dnsMode = findPreference<SimpleMenuPreference>(Key.DNS_MODE)!!
 
         val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
@@ -192,7 +192,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         inboundPassword.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
 
-        enableFakeDns.onPreferenceChangeListener = reloadListener
+        dnsMode.onPreferenceChangeListener = reloadListener
         remoteDns.onPreferenceChangeListener = reloadListener
         directDns.onPreferenceChangeListener = reloadListener
         directDnsClientSubnet.onPreferenceChangeListener = reloadListener

@@ -104,7 +104,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var underlyingDns by configurationStore.string(Key.UNDERLYING_DNS) { "local" }
     var directDnsClientSubnet by configurationStore.string(Key.DIRECT_DNS_CLIENT_SUBNET) { "" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
-    var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKEDNS)
+    var dnsMode by configurationStore.stringToInt(Key.DNS_MODE) { 0 }
 
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
     var logLevel by configurationStore.stringToInt(Key.LOG_LEVEL)

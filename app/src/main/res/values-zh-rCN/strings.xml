@@ -528,4 +528,7 @@
     <string name="test_timeout">测试超时 (ms)</string>
     <string name="enable_brutal">启用 TCP Brutal 拥塞控制算法</string>
     <string name="direct_dns_client_subnet">直连 EDNS client subnet</string>
+    <string name="dns_mode">DNS 模式</string>
+    <string name="dns_mode_leak">精准查询 （DNS 泄漏）</string>
+    <string name="dns_mode_precise">精准查询（高查询耗时）</string>
 </resources>
