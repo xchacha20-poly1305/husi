@@ -4,7 +4,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -67,8 +66,6 @@ import moe.matsuri.nb4a.proxy.neko.canShare
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import okhttp3.internal.closeQuietly
 import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.Socket
 import java.net.UnknownHostException
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -718,7 +715,8 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                         profile.status = 0
                         test.insert(profile)
-                        var address = profile.requireBean().serverAddress
+                        val bean = profile.requireBean()
+                        var address = bean.serverAddress
                         if (!address.isIpAddress()) {
                             try {
                                 InetAddress.getAllByName(address).apply {
@@ -738,33 +736,26 @@ class ConfigurationFragment @JvmOverloads constructor(
                         }
                         try {
                             if (icmpPing) {
-                                val result = Libcore.icmpPing(address, 5000)
-                                if (!isActive) break
-                                if (result != -1) {
+                                try {
+                                    val result = Libcore.icmpPing(address, 5000)
+                                    if (!isActive) break
                                     profile.status = 1
                                     profile.ping = result
-                                } else {
+                                    test.update(profile)
+                                } catch (_: Exception) {
                                     profile.status = 2
                                     profile.error = getString(R.string.connection_test_unreachable)
                                 }
-                                test.update(profile)
                             } else {
-                                val socket = Socket()
                                 try {
-                                    socket.soTimeout = 3000
-                                    socket.bind(InetSocketAddress(0))
-                                    val start = SystemClock.elapsedRealtime()
-                                    socket.connect(
-                                        InetSocketAddress(
-                                            address, profile.requireBean().serverPort
-                                        ), 3000
-                                    )
+                                    val result = Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
                                     if (!isActive) break
                                     profile.status = 1
-                                    profile.ping = (SystemClock.elapsedRealtime() - start).toInt()
+                                    profile.ping = result
                                     test.update(profile)
-                                } finally {
-                                    socket.closeQuietly()
+                                } catch (_: Exception) {
+                                    profile.status = 2
+                                    profile.error = getString(R.string.connection_test_unreachable)
                                 }
                             }
                         } catch (e: Exception) {
@@ -1635,11 +1626,15 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                                 if (!proxyEntity.haveStandardLink()) {
                                     popup.menu.findItem(R.id.action_group_qr)
-                                        .subMenu?.removeItem(R.id
-                                        .action_standard_qr)
+                                        .subMenu?.removeItem(
+                                            R.id
+                                                .action_standard_qr
+                                        )
 
-                                    popup.menu.findItem(R.id
-                                        .action_group_clipboard)
+                                    popup.menu.findItem(
+                                        R.id
+                                            .action_group_clipboard
+                                    )
                                         .subMenu?.removeItem(
                                             R.id.action_standard_clipboard
                                         )
