@@ -5,10 +5,10 @@ go 1.20
 require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.3.3-beta.2
-	github.com/sagernet/sing-box v1.9.0-alpha.14 // Bump core version here.
-	github.com/sagernet/sing-dns v0.2.0-beta.8
-	github.com/sagernet/sing-tun v0.2.2-beta.3
+	github.com/sagernet/sing v0.3.4-beta.1
+	github.com/sagernet/sing-box v1.9.0-beta.6 // Bump core version here.
+	github.com/sagernet/sing-dns v0.2.0-beta.14
+	github.com/sagernet/sing-tun v0.2.4-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
 	github.com/xchacha20-poly1305/cazilla v0.2.1
 )
@@ -82,7 +82,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.19.0 // indirect
-	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3 // indirect
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
@@ -94,6 +94,6 @@ require (
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.14
+replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-beta.6
 
 replace github.com/sagernet/sing-quic => github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1
