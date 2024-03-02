@@ -4,29 +4,32 @@
     height="80">
 </a>
 
-## Features
+## 💰 Selling Point
 
 [![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
 [![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
 [![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
+[![Pull Request](https://img.shields.io/github/issues-pr-closed/xchacha20-poly1305/husi)](https://github.com/xchacha20-poly1305/husi/pulls)
 
 * Android API 34 & Gradle 8.6 & NDK 26.2.11394342.
-* sing-box rule_set instead of geosite and geoip.
+* Rich DNS modes, you can choose conservatively, safely or fastly.
+* Many ways to test connectivity, including ICMP, TCP ping and URL test.
+* Powerful [TCP Brutal](https://github.com/apernet/tcp-brutal) congestion control algorithm provides fast speed.
 * Route based on WI-FI status. 
 * Trust the certificate list trusted by Mozilla to prevent certain hijacks.
 
-## Contribution
+## 🛠️ Contribution
 
-### Localization
+### 📚 Localization
 
 Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the 
 translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
 
 [![Translation status](https://hosted.weblate.org/widgets/husi/-/horizontal-auto.svg)](https://hosted.weblate.org/engage/husi/)
 
-### Learn to Compilation
+### 🔨 Learn to Compilation
 
-#### Get the Source Code
+#### 🧰 Get the Source Code
 
 ```shell
 git clone https://github.com/xchacha20-poly1305/husi.git --depth=1
@@ -34,7 +37,7 @@ cd husi/
 ./run lib source # Will help you to get submodules
 ```
 
-#### libcore
+#### ⚖️ libcore
 
 Environment:
 
@@ -52,7 +55,7 @@ If gomobile is not in the GOPATH, it will be automatically downloaded and compil
 
 If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
-#### Dashboard
+#### 🎗️ Dashboard
 
 Ensure that the Node environment is set up correctly (with bun, etc.).
 
@@ -60,7 +63,7 @@ Ensure that the Node environment is set up correctly (with bun, etc.).
 ./run lib dashboard
 ```
 
-#### APK
+#### 🎁 APK
 
 Environment:
 
@@ -95,22 +98,21 @@ Compile the release version:
 
 The APK file will be located in `app/build/outputs/apk`.
 
-## License
+## 📖 License
 
 [GPL-3.0](./LICENSE)
 
-## Credits
+## 🛡️ Credits
 
 Core:
+
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
-- ~~[Matsuridayo/sing-box-extra](https://github.com/MatsuriDayo/sing-box-extra)~~
-- ~~[xchacha20-poly1305/dun](https://github.com/xchacha20-poly1305/dun)~~
 
 Android GUI:
+
 - [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)
 - [SagerNet/SagerNet](https://github.com/SagerNet/SagerNet)
 - [XTLS/AnXray](https://github.com/XTLS/AnXray)
-- [Matsuridayo/Matsuri](https://github.com/MatsuriDayo/Matsuri)
 - [MatsuriDayo/NekoBoxForAndroid](https://github.com/MatsuriDayo/NekoBoxForAndroid)
 - [SagerNet/sing-box-for-android](https://github.com/SagerNet/sing-box-for-android)
 - [AntiNeko/CatBoxForAndroid](https://github.com/AntiNeko/CatBoxForAndroid)
