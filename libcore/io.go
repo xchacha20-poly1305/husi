@@ -10,7 +10,6 @@ import (
 
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
-	//"github.com/ulikunitz/xz"
 )
 
 func Untar(archive, path string) (err error) {

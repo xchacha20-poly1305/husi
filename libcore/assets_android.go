@@ -76,12 +76,12 @@ func extractGeo() error {
 
 	// Unzip geoip and geosite
 	for _, name := range names {
-		file, err := asset.Open(filepath.Join(assetsDir, name) + ".tar") // ??
+		file, err := asset.Open(filepath.Join(assetsDir, name) + ".tgz")
 		if err != nil {
 			return E.Cause(err, " open asset ", name)
 		}
 
-		tmpZipName := filepath.Join(targetDir, name) + ".tar.gz"
+		tmpZipName := filepath.Join(targetDir, name) + ".tgz"
 		err = extractAsset(file, tmpZipName)
 		if err != nil {
 			return E.Cause(err, " extract:", name)
@@ -135,7 +135,7 @@ func extractDash() error {
 	if err != nil {
 		return E.Cause(err, "can't open ", dashArchive)
 	}
-	tmpZipName := dstName + ".tar.gz"
+	tmpZipName := dstName + ".tgz"
 	err = extractAsset(file, tmpZipName)
 	if err != nil {
 		return E.Cause(err, "extract: ", tmpZipName)
