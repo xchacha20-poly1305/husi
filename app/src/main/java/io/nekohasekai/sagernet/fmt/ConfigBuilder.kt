@@ -152,7 +152,7 @@ fun buildConfig(
     val underlyingDns = DataStore.underlyingDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val enableDnsRouting = DataStore.enableDnsRouting
-    val useFakeDns = DataStore.enableFakeDns && !forTest
+    val useFakeDns = (DataStore.dnsMode == DNSMode.FAKE_DNS) && !forTest
     val needSniff = DataStore.trafficSniffing > 0
     val needSniffOverride = DataStore.trafficSniffing == 2
     val externalIndexMap = ArrayList<IndexEntity>()
