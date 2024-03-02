@@ -74,7 +74,7 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
-    implementation("com.jakewharton:process-phoenix:2.1.2")
+    implementation("com.jakewharton:process-phoenix:2.2.0")
     implementation("com.esotericsoftware:kryo:5.6.0")
     implementation("com.google.guava:guava:33.0.0-android")
     implementation("org.ini4j:ini4j:0.5.4")
