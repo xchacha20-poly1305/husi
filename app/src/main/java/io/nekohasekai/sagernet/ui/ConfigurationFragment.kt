@@ -56,6 +56,7 @@ import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.Protocols.getProtocolColor
 import moe.matsuri.nb4a.plugin.NekoPluginManager
@@ -572,6 +573,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
 
+            R.id.action_connection_icmp_ping -> {
+                pingTest(true)
+            }
+
             R.id.action_connection_tcp_ping -> {
                 pingTest(false)
             }
@@ -733,7 +738,16 @@ class ConfigurationFragment @JvmOverloads constructor(
                         }
                         try {
                             if (icmpPing) {
-                                // removed
+                                val result = Libcore.icmpPing(address, 5000)
+                                if (!isActive) break
+                                if (result != -1) {
+                                    profile.status = 1
+                                    profile.ping = result
+                                } else {
+                                    profile.status = 2
+                                    profile.error = getString(R.string.connection_test_unreachable)
+                                }
+                                test.update(profile)
                             } else {
                                 val socket = Socket()
                                 try {

@@ -11,6 +11,7 @@ require (
 	github.com/sagernet/sing-tun v0.2.4-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
 	github.com/xchacha20-poly1305/cazilla v0.2.1
+	github.com/xchacha20-poly1305/libping v0.1.1
 )
 
 // cmd
