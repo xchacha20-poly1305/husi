@@ -536,4 +536,11 @@
         <item>@string/sniff_override</item>
     </string-array>
 
+    <string-array name="dns_modes">
+        <item>@string/raw</item>
+        <item>@string/dns_mode_leak</item>
+        <item>@string/dns_mode_precise</item>
+        <item>@string/fake_dns</item>
+    </string-array>
+
 </resources>

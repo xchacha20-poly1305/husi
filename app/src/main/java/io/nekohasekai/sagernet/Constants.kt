@@ -21,7 +21,7 @@ object Key {
     const val UNDERLYING_DNS = "underlyingDns"
     const val DIRECT_DNS_CLIENT_SUBNET = "directDnsClientSubnet"
     const val ENABLE_DNS_ROUTING = "enableDnsRouting"
-    const val ENABLE_FAKEDNS = "enableFakeDns"
+    const val DNS_MODE = "dnsMode"
 
     const val IPV6_MODE = "ipv6Mode"
 
@@ -192,6 +192,13 @@ object GroupOrder {
     const val ORIGIN = 0
     const val BY_NAME = 1
     const val BY_DELAY = 2
+}
+
+object DNSMode {
+    const val RAW = 0
+    const val LEAK = 1
+    const val PRECISE = 2
+    const val FAKE_DNS = 3
 }
 
 object Action {

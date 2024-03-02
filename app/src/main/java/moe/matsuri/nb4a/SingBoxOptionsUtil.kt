@@ -1,5 +1,6 @@
 package moe.matsuri.nb4a
 
+import io.nekohasekai.sagernet.DNSMode
 import io.nekohasekai.sagernet.database.DataStore
 import moe.matsuri.nb4a.SingBoxOptions.Rule_SetOptions
 
@@ -30,6 +31,7 @@ object SingBoxOptionsUtil {
 fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(
     basicList: List<String>,
     ruleSetList: List<String>,
+    dnsMode: Int = 0,
 ) {
     domain = mutableListOf<String>()
     domain_suffix = mutableListOf<String>()
@@ -39,7 +41,12 @@ fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(
     wifi_ssid = mutableListOf<String>()
     wifi_bssid = mutableListOf<String>()
     ruleSetList.forEach {
-        if (it.startsWith("geosite-")) rule_set.plusAssign(it)
+        if (it.startsWith("geosite") ||
+            dnsMode == DNSMode.LEAK ||
+            dnsMode == DNSMode.PRECISE
+        ) {
+            rule_set.plusAssign(it)
+        }
     }
     basicList.forEach {
         if (it.startsWith("full:")) {
