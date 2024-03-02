@@ -1,4 +1,4 @@
-package device
+package libcore
 
 import (
 	"runtime/debug"
@@ -8,15 +8,15 @@ import (
 
 var DebugFunc func(interface{})
 
-func GoDebug(any interface{}) {
+func GoDebug(a interface{}) {
 	if DebugFunc != nil {
-		go DebugFunc(any)
+		go DebugFunc(a)
 	}
 }
 
-func DeferPanicToError(name string, err func(error)) {
+func catchPanic(name string, handlePanic func(panicErr error)) {
 	if r := recover(); r != nil {
 		s := E.New(name, "panic: ", r, "\n", string(debug.Stack()))
-		err(s)
+		handlePanic(s)
 	}
 }

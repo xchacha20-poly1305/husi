@@ -9,7 +9,6 @@ import (
 	_ "unsafe"
 
 	"github.com/sagernet/sing-box/nekoutils"
-	"libcore/device"
 )
 
 //go:linkname resourcePaths github.com/sagernet/sing-box/constant.resourcePaths
@@ -32,7 +31,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	if1 NB4AInterface, if2 BoxPlatformInterface,
 	enabledCazilla bool,
 ) {
-	defer device.DeferPanicToError("InitCore", func(err error) { log.Println(err) })
+	defer catchPanic("InitCore", func(panicErr error) { log.Println(panicErr) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
 
 	intfNB4A = if1
@@ -60,8 +59,8 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 
 	// Set up some component
 	go func() {
-		defer device.DeferPanicToError("InitCore-go", func(err error) { log.Println(err) })
-		device.GoDebug(process)
+		defer catchPanic("InitCore-go", func(panicErr error) { log.Println(panicErr) })
+		GoDebug(process)
 
 		externalAssetsPath = externalAssets
 		internalAssetsPath = internalAssets
