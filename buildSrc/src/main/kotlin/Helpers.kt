@@ -6,15 +6,8 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.getByName
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
-import java.security.MessageDigest
 import java.util.*
 import kotlin.system.exitProcess
-
-fun sha256Hex(bytes: ByteArray): String {
-    val md = MessageDigest.getInstance("SHA-256")
-    val digest = md.digest(bytes)
-    return digest.fold("") { str, it -> str + "%02x".format(it) }
-}
 
 private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
 
@@ -194,7 +187,7 @@ fun Project.setupAppCommon() {
 fun Project.setupApp() {
     val pkgName = requireMetadata().getProperty("PACKAGE_NAME")
     val verName = requireMetadata().getProperty("VERSION_NAME")
-    val verCode = (requireMetadata().getProperty("VERSION_CODE").toInt()) * 5
+    val verCode = (requireMetadata().getProperty("VERSION_CODE").toInt())
     android.apply {
         defaultConfig {
             applicationId = pkgName
