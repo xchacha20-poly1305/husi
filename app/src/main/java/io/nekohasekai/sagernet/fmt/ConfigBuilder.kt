@@ -49,11 +49,17 @@ const val TAG_DNS_IN = "dns-in"
 const val TAG_DNS_OUT = "dns-out"
 const val TAG_DNS_REMOTE = "dns-remote"
 const val TAG_DNS_DIRECT = "dns-direct"
+const val TAG_DNS_LOCAL = "dns-local"
+const val TAG_DNS_FINAL = "dns-final"
 
 const val LOCALHOST = "127.0.0.1"
 const val LOCAL_DNS_SERVER = "local"
 
 val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
+
+val ERR_NO_REMOTE_DNS = Exception("No remote DNS, check your settings!")
+val ERR_NO_DIRECT_DNS = Exception("No direct DNS, check your settings!")
+val ERR_NO_SUBNET = Exception("Your DNS mode requires set direct DNS client subnet.")
 
 // TODO kill this poop
 val externalAssets = SagerNet.application.externalAssets.absolutePath
@@ -602,7 +608,11 @@ fun buildConfig(
                 fun makeDnsRuleObj(): DNSRule_DefaultOptions {
                     return DNSRule_DefaultOptions().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
-                        makeSingBoxRule(domainList ?: listOf(), rule.ruleSet.listByLineOrComma())
+                        makeSingBoxRule(
+                            domainList ?: listOf(),
+                            rule.ruleSet.listByLineOrComma(),
+                            DataStore.dnsMode
+                        )
                     }
                 }
 
@@ -716,7 +726,7 @@ fun buildConfig(
         // remote dns obj
         remoteDns.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No remote DNS, check your settings!")
+                address = it ?: throw ERR_NO_REMOTE_DNS
                 tag = TAG_DNS_REMOTE
                 address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
@@ -729,11 +739,38 @@ fun buildConfig(
         // add directDNS objects here
         directDNS.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No direct DNS, check your settings!")
+                address = it ?: throw ERR_NO_DIRECT_DNS
                 tag = TAG_DNS_DIRECT
                 detour = TAG_DIRECT
-                address_resolver = "dns-local"
+                address_resolver = TAG_DNS_LOCAL
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
+            })
+        }
+
+        // final DNS
+        if (!forTest) {
+            dns.servers.add(DNSServerOptions().apply {
+                tag = TAG_DNS_FINAL
+                address_resolver = TAG_DNS_LOCAL
+                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(TAG_DNS_DIRECT))
+                if (DataStore.directDnsClientSubnet.isNotBlank()) {
+                    client_subnet = DataStore.directDnsClientSubnet
+                }
+                when (DataStore.dnsMode) {
+                    DNSMode.LEAK -> {
+                        if (client_subnet.isNullOrBlank()) throw ERR_NO_SUBNET
+                        address = directDNS.firstOrNull() ?: throw ERR_NO_DIRECT_DNS
+                    }
+
+                    DNSMode.PRECISE -> {
+                        if (client_subnet.isNullOrBlank()) throw ERR_NO_SUBNET
+                        address = remoteDns.firstOrNull() ?: throw ERR_NO_REMOTE_DNS
+                    }
+
+                    else -> {
+                        address = remoteDns.firstOrNull() ?: throw ERR_NO_REMOTE_DNS
+                    }
+                }
             })
         }
 
@@ -741,7 +778,7 @@ fun buildConfig(
         underlyingDns.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
                 address = it ?: "local"
-                tag = "dns-local"
+                tag = TAG_DNS_LOCAL
                 detour = TAG_DIRECT
             })
         }
@@ -763,7 +800,7 @@ fun buildConfig(
             dns.servers = listOf(
                 DNSServerOptions().apply {
                     address = LOCAL_DNS_SERVER
-                    tag = "dns-local"
+                    tag = TAG_DNS_LOCAL
                     detour = TAG_DIRECT
                 }
             )
@@ -816,7 +853,7 @@ fun buildConfig(
                 })
             }
         }
-        if (!forTest) dns.final_ = TAG_DNS_REMOTE
+        if (!forTest && !useFakeDns) dns.final_ = TAG_DNS_FINAL
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {

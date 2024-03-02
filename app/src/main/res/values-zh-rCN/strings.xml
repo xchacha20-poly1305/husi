@@ -530,5 +530,5 @@
     <string name="direct_dns_client_subnet">直连 EDNS client subnet</string>
     <string name="dns_mode">DNS 模式</string>
     <string name="dns_mode_leak">精准查询 （DNS 泄漏）</string>
-    <string name="dns_mode_precise">精准查询（速度慢）</string>
+    <string name="dns_mode_precise">精准查询（高查询耗时）</string>
 </resources>
