@@ -10,16 +10,6 @@ RESET_GIT() {
 
 git submodule update --remote
 
-pushd libcore/
-
-pushd sing-box/
-RESET_GIT def
-popd
-
-pushd sing-quic
-RESET_GIT dev
-popd
-
-go mod tidy
-
+pushd metacubexd
+RESET_GIT main
 popd

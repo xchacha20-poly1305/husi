@@ -10,9 +10,9 @@
 [![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
 [![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
 
-* Android API 34 & Gradle 8.6 & NDK 26.1.10909125.
+* Android API 34 & Gradle 8.6 & NDK 26.2.11394342.
 * sing-box rule_set instead of geosite and geoip.
-* Route based on WIFI status. 
+* Route based on WI-FI status. 
 * Trust the certificate list trusted by Mozilla to prevent certain hijacks.
 
 ## Contribution
@@ -65,7 +65,7 @@ Ensure that the Node environment is set up correctly (with bun, etc.).
 Environment:
 
 * jdk-17-openjdk
-* ndk 26.1.10909125
+* ndk 26.2.11394342
 
 If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script `buildScript/init/env_ndk.sh`:
 

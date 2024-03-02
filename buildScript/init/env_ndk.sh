@@ -10,7 +10,7 @@ if [ -z "$ANDROID_HOME" ]; then
   fi
 fi
 
-_NDK="$ANDROID_HOME/ndk/26.1.10909125"
+_NDK="$ANDROID_HOME/ndk/26.2.11394342"
 [ -f "$_NDK/source.properties" ] || _NDK="$ANDROID_NDK_HOME"
 [ -f "$_NDK/source.properties" ] || _NDK="$NDK"
 [ -f "$_NDK/source.properties" ] || _NDK="$ANDROID_HOME/ndk-bundle"

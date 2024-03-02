@@ -103,10 +103,10 @@ github.com/sagernet/quic-go v0.41.0-beta.2/go.mod h1:X10Mf9DVHuSEReOLov/XuflD13M
 github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 h1:5Th31OC6yj8byLGkEnIYp6grlXfo1QYUfiYFGjewIdc=
 github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4WkQ1PwNnrVMM6KyuFR20pU8jYBD+A4EhJovEXU=
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
-github.com/sagernet/sing v0.3.3-beta.2 h1:ZQkONX/Vwu0p3qxWMlQDDABwAxdH8jVD3rKUB/o1f1o=
-github.com/sagernet/sing v0.3.3-beta.2/go.mod h1:qHySJ7u8po9DABtMYEkNBcOumx7ZZJf/fbv2sfTkNHE=
-github.com/sagernet/sing-dns v0.2.0-beta.8 h1:br1m5rKXu0+jWPh0KZx0Sw6uS2UCPgV2uYQZ7D8sy74=
-github.com/sagernet/sing-dns v0.2.0-beta.8/go.mod h1:IxOqfSb6Zt6UVCy8fJpDxb2XxqzHUytNqeOuJfaiLu8=
+github.com/sagernet/sing v0.3.4-beta.1 h1:y1jKu9u11drNO00ycJ6KOZd1axQdozU92MdhWuAmWnU=
+github.com/sagernet/sing v0.3.4-beta.1/go.mod h1:qHySJ7u8po9DABtMYEkNBcOumx7ZZJf/fbv2sfTkNHE=
+github.com/sagernet/sing-dns v0.2.0-beta.14 h1:/lelsvJa5S/BWokuYyeCkYdi3hf7DlKGdgsKuamJ9V8=
+github.com/sagernet/sing-dns v0.2.0-beta.14/go.mod h1:gfs585rEu+ZgsXJJiecEIK5avrF5SYlCAbFfZ1B66hs=
 github.com/sagernet/sing-mux v0.2.0 h1:4C+vd8HztJCWNYfufvgL49xaOoOHXty2+EAjnzN3IYo=
 github.com/sagernet/sing-mux v0.2.0/go.mod h1:khzr9AOPocLa+g53dBplwNDz4gdsyx/YM3swtAhlkHQ=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
@@ -115,8 +115,8 @@ github.com/sagernet/sing-shadowsocks2 v0.2.0 h1:wpZNs6wKnR7mh1wV9OHwOyUr21VkS3wK
 github.com/sagernet/sing-shadowsocks2 v0.2.0/go.mod h1:RnXS0lExcDAovvDeniJ4IKa2IuChrdipolPYWBv9hWQ=
 github.com/sagernet/sing-shadowtls v0.1.4 h1:aTgBSJEgnumzFenPvc+kbD9/W0PywzWevnVpEx6Tw3k=
 github.com/sagernet/sing-shadowtls v0.1.4/go.mod h1:F8NBgsY5YN2beQavdgdm1DPlhaKQlaL6lpDdcBglGK4=
-github.com/sagernet/sing-tun v0.2.2-beta.3 h1:LEzxRkn10iicWdZAlIKtc0/G9hgzrt/WMZSkRtsbzCw=
-github.com/sagernet/sing-tun v0.2.2-beta.3/go.mod h1:TaUYOzyBWK43Si6TadJ4gc7fj2iYZ7kxcp6CzzKey3E=
+github.com/sagernet/sing-tun v0.2.4-beta.1 h1:npx/TwmVqsGZxw5aX08oRHpFBaIw3VSgR/CVfz1BA1A=
+github.com/sagernet/sing-tun v0.2.4-beta.1/go.mod h1:lkefC8gty7FTuzz9ZoNASueutIhClEz7LHjFK3BLGco=
 github.com/sagernet/sing-vmess v0.1.8 h1:XVWad1RpTy9b5tPxdm5MCU8cGfrTGdR8qCq6HV2aCNc=
 github.com/sagernet/sing-vmess v0.1.8/go.mod h1:vhx32UNzTDUkNwOyIjcZQohre1CaytquC5mPplId8uA=
 github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7 h1:DImB4lELfQhplLTxeq2z31Fpv8CQqqrUwTbrIRumZqQ=
@@ -146,8 +146,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.3.0 h1:T7DA+FwvJUXKmkdP+WOJdjmA8FqHh
 github.com/xchacha20-poly1305/TLS-scribe v0.3.0/go.mod h1:ENx8TkXHuzwUMAvNw8EW06v6RtRH0hh/kpIWEdeVQuw=
 github.com/xchacha20-poly1305/cazilla v0.2.1 h1:GuKdZWIS7Wrka+vm11TJXCS/Nbmzgn9Undip+KLE9Y0=
 github.com/xchacha20-poly1305/cazilla v0.2.1/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
-github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.14 h1:i9sbaDstHwnfoisRKx3YxI/2LUy3gKe8c0iOGte9MFA=
-github.com/xchacha20-poly1305/sing-box v1.9.0-alpha.14/go.mod h1:fLTvZ1pLdxnEcFEDmcsaU6TuNICmRRCpMzHAPKwjvy4=
+github.com/xchacha20-poly1305/sing-box v1.9.0-beta.6 h1:J30tXt6yuCDICDyz6gaOadcfa7B61KOeXnUM5Q0q7nM=
+github.com/xchacha20-poly1305/sing-box v1.9.0-beta.6/go.mod h1:TEV3H2ivUuTsRwvQ2eC8FEVM3lufO402eDE3OthCWo8=
 github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1 h1:5owbZfeP5nBkSOZ4v2vyZ4JJpI0e8PkZzD79nwcxWp4=
 github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1/go.mod h1:F4AXCZiwtRtYdLUTjVMO6elTpA/lLJe17sFlHhHmDVw=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
@@ -167,8 +167,8 @@ golang.org/x/crypto v0.0.0-20190404164418-38d8ce5564a5/go.mod h1:WFFai1msRO1wXaE
 golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a/go.mod h1:P+XmwS30IXTQdn5tA2iutPOUgjI07+tq3H3K9MVA1s8=
 golang.org/x/crypto v0.19.0 h1:ENy+Az/9Y1vSrlrvBSyna3PITt4tiZLf7sgCjZBX7Wo=
 golang.org/x/crypto v0.19.0/go.mod h1:Iy9bg/ha4yyC70EfRS8jz+B6ybOBKMaSxLj6P6oBDfU=
-golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3 h1:/RIbNt/Zr7rVhIkQhooTxCxFcdWLGIKnZA4IXNFSrvo=
-golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3/go.mod h1:idGWGoKP1toJGkd5/ig9ZLuPcZBC3ewk7SzmH0uou08=
+golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 h1:LfspQV/FYTatPTr/3HzIcmiUFH7PGP+OQ6mgDYo3yuQ=
+golang.org/x/exp v0.0.0-20240222234643-814bf88cf225/go.mod h1:CxmFvTBINI24O/j8iY7H1xHzx2i4OsyguNBmN/uPtqc=
 golang.org/x/mod v0.15.0 h1:SernR4v+D55NyBH2QiEQrlBAnj1ECL6AGrA5+dPaMY8=
 golang.org/x/mod v0.15.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
 golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
