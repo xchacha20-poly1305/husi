@@ -18,10 +18,9 @@ import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import libcore.Libcore
+import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class AssetsActivity : ThemedActivity() {
 
@@ -108,10 +107,6 @@ class AssetsActivity : ThemedActivity() {
                         .let(cursor::getString)
                 }?.takeIf { it.isNotBlank() } ?: fileUri.path
             if (fileName == null) return@registerForActivityResult
-            if (!fileName.endsWith(".zip")) {
-                alert(getString(R.string.route_not_asset, fileName)).show()
-                return@registerForActivityResult
-            }
 
             runOnDefaultDispatcher {
                 val filesDir = getExternalFilesDir(null) ?: filesDir
@@ -127,11 +122,15 @@ class AssetsActivity : ThemedActivity() {
 
                 try {
                     Libcore.unzipWithoutDir(outFile.absolutePath, geoDir.absolutePath)
-                } catch (e: Exception) {
-                    onMainDispatcher {
-                        e.message?.let { snackbar(it).show() }
+                } catch (_: Exception) {
+                    try {
+                        Libcore.untargzWihoutDir(outFile.absolutePath, geoDir.absolutePath)
+                    } catch (e: Exception) {
+                        onMainDispatcher {
+                            e.message?.let { snackbar(it).show() }
+                        }
+                        return@runOnDefaultDispatcher
                     }
-                    return@runOnDefaultDispatcher
                 } finally {
                     outFile.delete()
                 }
@@ -255,7 +254,8 @@ class AssetsActivity : ThemedActivity() {
     private suspend fun updateAsset() {
         val filesDir = getExternalFilesDir(null) ?: filesDir
         var progress = 0
-        fun setProgress() {
+        fun setProgress(p: Int) {
+            progress += p
             updating.setProgressCompat(progress, true)
         }
 
@@ -265,27 +265,58 @@ class AssetsActivity : ThemedActivity() {
             2 -> listOf("Chocolate4U/Iran-sing-box-rules")
             else -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
         }
-        progress = 15
+
         onMainDispatcher {
             updating.visibility = View.VISIBLE
-            setProgress()
+            setProgress(15)
         }
+
+        val client = Libcore.newHttpClient().apply {
+            modernTLS()
+            keepAlive()
+            trySocks5(DataStore.mixedPort)
+        }
+
+
+        val versionFileList: List<File> = listOf(
+            File(filesDir, "geoip.version.txt"),
+            File(filesDir, "geosite.version.txt")
+        )
+
+        fun getVersion(repo: String): String {
+            try {
+                val response = client.newRequest().apply {
+                    setURL("https://api.github.com/repos/$repo/releases/latest")
+                }.execute()
+                return JSONObject(response.contentString).optString("tag_name")
+            } catch (e: Exception) {
+                return ""
+            }
+        }
+
+        val remoteVersionList = listOf(
+            getVersion(repos[0]),
+            getVersion(repos[1])
+        )
+        if (remoteVersionList[0] == versionFileList[0].readText() &&
+            remoteVersionList[1] == versionFileList[1].readText()
+        ) {
+            onMainDispatcher {
+                updating.visibility = View.GONE
+                snackbar(R.string.route_asset_no_update).show()
+            }
+            return
+        }
+
 
         val geoDir = File(filesDir, "geo")
         var cacheFiles: Array<File> = arrayOf()
 
-        for ((i, repo) in repos.withIndex()) {
-
-            val client = Libcore.newHttpClient().apply {
-                modernTLS()
-                keepAlive()
-                trySocks5(DataStore.mixedPort)
-            }
-
+        repos.forEachIndexed { i, repo ->
             try {
-                // https://codeload.github.com/SagerNet/sing-geosite/zip/refs/heads/rule-set
+                // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
                 val response = client.newRequest().apply {
-                    setURL("https://codeload.github.com/$repo/zip/refs/heads/rule-set")
+                    setURL("https://codeload.github.com/$repo/tar.gz/refs/heads/rule-set")
                 }.execute()
 
                 val cacheFile = File(filesDir.parentFile, filesDir.name + i + ".tmp")
@@ -301,43 +332,30 @@ class AssetsActivity : ThemedActivity() {
                 client.close()
             }
 
-            progress += 20
             onMainDispatcher {
-                setProgress()
+                setProgress(20)
             }
 
         }
 
         for (cacheFile in cacheFiles) {
-            progress += 15
             onMainDispatcher {
-                setProgress()
+                setProgress(15)
             }
-            Libcore.unzipWithoutDir(cacheFile.absolutePath, geoDir.absolutePath)
+            Libcore.untargzWihoutDir(cacheFile.absolutePath, geoDir.absolutePath)
             cacheFile.delete()
         }
 
-        val versionFileList: List<File> = listOf(
-            File(filesDir, "geoip.version.txt"),
-            File(filesDir, "geosite.version.txt")
-        )
-        for (versionFile in versionFileList) {
-            progress += 5
+        versionFileList.forEachIndexed { i, versionFile ->
             onMainDispatcher {
-                setProgress()
+                setProgress(5)
             }
-            versionFile.writeText(
-                LocalDate.now()
-                    .format(
-                        DateTimeFormatter
-                            .ofPattern("yyyyMMdd")
-                    )
-            )
+            versionFile.writeText(remoteVersionList[i])
         }
 
         progress = 100
         onMainDispatcher {
-            setProgress()
+            setProgress(0)
             updating.visibility = View.GONE
             adapter.reloadAssets()
             snackbar(R.string.route_asset_updated).show()

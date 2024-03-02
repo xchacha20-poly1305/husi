@@ -38,93 +38,92 @@ var (
 
 func init() {
 	flag.Parse()
-
-	if *geoipDate == "" || *geositeDate == "" {
-		log.Fatalln("Please set date!")
-		return
-	}
 }
 
 func main() {
 	initDir(*output)
 
-	geositeData, err := fetch(geositeRepo, *geositeDate, siteName)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	domainMap, err := generateGeosite(geositeData)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	for code, domains := range domainMap {
-		var headlessRule option.DefaultHeadlessRule
-		defaultRule := geosite.Compile(domains)
-		headlessRule.Domain = defaultRule.Domain
-		headlessRule.DomainSuffix = defaultRule.DomainSuffix
-		headlessRule.DomainKeyword = defaultRule.DomainKeyword
-		headlessRule.DomainRegex = defaultRule.DomainRegex
-		var plainRuleSet option.PlainRuleSet
-		plainRuleSet.Rules = []option.HeadlessRule{
-			{
-				Type:           C.RuleTypeDefault,
-				DefaultOptions: headlessRule,
-			},
-		}
-		srsPath, _ := filepath.Abs(filepath.Join(geositeDir, "geosite-"+code+".srs"))
-		//os.Stderr.WriteString("write " + srsPath + "\n")
-		outputRuleSet, err := os.Create(srsPath)
+	if *geositeDate != "" {
+		geositeData, err := fetch(geositeRepo, *geositeDate, siteName)
 		if err != nil {
 			log.Fatalln(err)
 			return
 		}
-		err = srs.Write(outputRuleSet, plainRuleSet)
+		domainMap, err := generateGeosite(geositeData)
 		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+		for code, domains := range domainMap {
+			var headlessRule option.DefaultHeadlessRule
+			defaultRule := geosite.Compile(domains)
+			headlessRule.Domain = defaultRule.Domain
+			headlessRule.DomainSuffix = defaultRule.DomainSuffix
+			headlessRule.DomainKeyword = defaultRule.DomainKeyword
+			headlessRule.DomainRegex = defaultRule.DomainRegex
+			var plainRuleSet option.PlainRuleSet
+			plainRuleSet.Rules = []option.HeadlessRule{
+				{
+					Type:           C.RuleTypeDefault,
+					DefaultOptions: headlessRule,
+				},
+			}
+			srsPath, _ := filepath.Abs(filepath.Join(geositeDir, "geosite-"+code+".srs"))
+			//os.Stderr.WriteString("write " + srsPath + "\n")
+			outputRuleSet, err := os.Create(srsPath)
+			if err != nil {
+				log.Fatalln(err)
+				return
+			}
+			err = srs.Write(outputRuleSet, plainRuleSet)
+			if err != nil {
+				_ = outputRuleSet.Close()
+				log.Fatalln(err)
+				return
+			}
 			_ = outputRuleSet.Close()
-			log.Fatalln(err)
-			return
 		}
-		_ = outputRuleSet.Close()
 	}
 
-	geoipData, err := fetch(geoipRepo, *geoipDate, ipName)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	/*metadata*/ _, countryMap, err := generateGeoip(geoipData)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	for countryCode, ipNets := range countryMap {
-		var headlessRule option.DefaultHeadlessRule
-		headlessRule.IPCIDR = make([]string, 0, len(ipNets))
-		for _, cidr := range ipNets {
-			headlessRule.IPCIDR = append(headlessRule.IPCIDR, cidr.String())
-		}
-		var plainRuleSet option.PlainRuleSet
-		plainRuleSet.Rules = []option.HeadlessRule{
-			{
-				Type:           C.RuleTypeDefault,
-				DefaultOptions: headlessRule,
-			},
-		}
-		srsPath, _ := filepath.Abs(filepath.Join(geoipDir, "geoip-"+countryCode+".srs"))
-		//_, _ = os.Stderr.WriteString("write " + srsPath + "\n")
-		outputRuleSet, err := os.Create(srsPath)
+	if *geoipDate != "" {
+		geoipData, err := fetch(geoipRepo, *geoipDate, ipName)
 		if err != nil {
 			log.Fatalln(err)
 			return
 		}
-		err = srs.Write(outputRuleSet, plainRuleSet)
+		/*metadata*/ _, countryMap, err := generateGeoip(geoipData)
 		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+		for countryCode, ipNets := range countryMap {
+			var headlessRule option.DefaultHeadlessRule
+			headlessRule.IPCIDR = make([]string, 0, len(ipNets))
+			for _, cidr := range ipNets {
+				headlessRule.IPCIDR = append(headlessRule.IPCIDR, cidr.String())
+			}
+			var plainRuleSet option.PlainRuleSet
+			plainRuleSet.Rules = []option.HeadlessRule{
+				{
+					Type:           C.RuleTypeDefault,
+					DefaultOptions: headlessRule,
+				},
+			}
+			srsPath, _ := filepath.Abs(filepath.Join(geoipDir, "geoip-"+countryCode+".srs"))
+			//_, _ = os.Stderr.WriteString("write " + srsPath + "\n")
+			outputRuleSet, err := os.Create(srsPath)
+			if err != nil {
+				log.Fatalln(err)
+				return
+			}
+			err = srs.Write(outputRuleSet, plainRuleSet)
+			if err != nil {
+				_ = outputRuleSet.Close()
+				log.Fatalln(err)
+				return
+			}
 			_ = outputRuleSet.Close()
-			log.Fatalln(err)
-			return
 		}
-		_ = outputRuleSet.Close()
 	}
 
 }

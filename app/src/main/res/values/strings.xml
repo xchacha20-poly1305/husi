@@ -160,7 +160,6 @@
     <string name="route_asset_status">Local version: %s</string>
     <string name="route_asset_no_update">No update</string>
     <string name="route_asset_updated">Updated</string>
-    <string name="route_not_asset">Not an asset file: excepted .zip, but %s</string>
     <string name="route_opt_bypass_lan">Bypass LAN</string>
     <string name="route_opt_block_ads">Block ADs</string>
     <string name="route_opt_block_analysis">Block analysis</string>

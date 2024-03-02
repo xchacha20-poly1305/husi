@@ -17,6 +17,7 @@ go.work*
 /Dash-*
 *.srs
 *.zip
+*.tgz
 *.tar.*
 *.tar
 

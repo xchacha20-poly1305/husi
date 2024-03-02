@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// TODO: reproducible build for geosite
 func generateGeosite(data []byte) (map[string][]geosite.Item, error) {
 	domainMap, err := parseGeosite(data)
 	if err != nil {
