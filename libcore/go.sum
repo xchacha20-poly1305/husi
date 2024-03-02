@@ -146,6 +146,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.3.0 h1:T7DA+FwvJUXKmkdP+WOJdjmA8FqHh
 github.com/xchacha20-poly1305/TLS-scribe v0.3.0/go.mod h1:ENx8TkXHuzwUMAvNw8EW06v6RtRH0hh/kpIWEdeVQuw=
 github.com/xchacha20-poly1305/cazilla v0.2.1 h1:GuKdZWIS7Wrka+vm11TJXCS/Nbmzgn9Undip+KLE9Y0=
 github.com/xchacha20-poly1305/cazilla v0.2.1/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
+github.com/xchacha20-poly1305/libping v0.1.1 h1:dVAX1oaBr+xYwlX4phBu4z2OPFOUHDY7O4rrx3SMyt8=
+github.com/xchacha20-poly1305/libping v0.1.1/go.mod h1:6nudHCYwr+1S2ptMloM/t+ciK2ITD2ild76g+6HTvOA=
 github.com/xchacha20-poly1305/sing-box v1.9.0-beta.6 h1:J30tXt6yuCDICDyz6gaOadcfa7B61KOeXnUM5Q0q7nM=
 github.com/xchacha20-poly1305/sing-box v1.9.0-beta.6/go.mod h1:TEV3H2ivUuTsRwvQ2eC8FEVM3lufO402eDE3OthCWo8=
 github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1 h1:5owbZfeP5nBkSOZ4v2vyZ4JJpI0e8PkZzD79nwcxWp4=
