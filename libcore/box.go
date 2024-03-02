@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"libcore/api"
 	"libcore/protectserver"
+	"libcore/v2rayapilite"
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/conntrack"
@@ -41,7 +41,7 @@ type BoxInstance struct {
 	// 2: closed
 	state int
 
-	v2api        *api.SbV2rayServer
+	v2api        *v2rayapilite.V2RayServerLite
 	selector     *outbound.Selector
 	pauseManager pause.Manager
 	servicePauseFields
@@ -158,7 +158,7 @@ func (b *BoxInstance) SetConnectionPoolEnabled(enable bool) {
 }
 
 func (b *BoxInstance) SetV2rayStats(outbounds string) {
-	b.v2api = api.NewSbV2rayServer(option.V2RayStatsServiceOptions{
+	b.v2api = v2rayapilite.NewSbV2rayServer(option.V2RayStatsServiceOptions{
 		Enabled:   true,
 		Outbounds: strings.Split(outbounds, "\n"),
 	})
