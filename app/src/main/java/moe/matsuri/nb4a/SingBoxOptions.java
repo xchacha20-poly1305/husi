@@ -4537,6 +4537,12 @@ public class SingBoxOptions {
         // Generate note: Listable
         public List<String> source_ip_cidr;
 
+        public Boolean source_ip_is_private;
+
+        public List<String> ip_cidr;
+
+        public Boolean ip_is_private;
+
         // Generate note: Listable
         public List<Integer> source_port;
 
