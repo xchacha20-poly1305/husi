@@ -237,7 +237,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         }.onFailure {
                             Logs.w(it)
                             onMainDispatcher {
-                                alert(it.readableMessage).tryToShow()
+                                alert(it.readableMessage).show()
                             }
                         }
 
