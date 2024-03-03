@@ -212,12 +212,12 @@ object ProfileManager {
                     outbound = -2,
                 )
             )
-            val fuckedCountry = mutableListOf("cn:中国")
+            val wallCountry = mutableListOf("cn:中国")
             if (Locale.getDefault().country == Locale.US.country) {
-                // 英文用户
-                fuckedCountry += "ir:Iran"
+                // English users
+                wallCountry += "ir:Iran"
             }
-            for (c in fuckedCountry) {
+            for (c in wallCountry) {
                 val country = c.substringBefore(":")
                 val displayCountry = c.substringAfter(":")
                 //
@@ -243,6 +243,9 @@ object ProfileManager {
                 )
             }
             rules = SagerDatabase.rulesDao.allRules()
+        }
+        rules.forEach {
+            it.packages = listOf()
         }
         return rules
     }
