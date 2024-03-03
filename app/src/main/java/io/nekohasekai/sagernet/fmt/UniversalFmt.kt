@@ -6,12 +6,12 @@ import moe.matsuri.nb4a.utils.Util
 
 fun parseUniversal(link: String): AbstractBean {
     return if (link.contains("?")) {
-        val type = link.substringAfter("sn://").substringBefore("?")
+        val type = link.substringAfter("husi://").substringBefore("?")
         ProxyEntity(type = TypeMap[type] ?: error("Type $type not found")).apply {
             putByteArray(Util.zlibDecompress(Util.b64Decode(link.substringAfter("?"))))
         }.requireBean()
     } else {
-        val type = link.substringAfter("sn://").substringBefore(":")
+        val type = link.substringAfter("husi://").substringBefore(":")
         ProxyEntity(type = TypeMap[type] ?: error("Type $type not found")).apply {
             putByteArray(Util.b64Decode(link.substringAfter(":").substringAfter(":")))
         }.requireBean()
@@ -19,7 +19,7 @@ fun parseUniversal(link: String): AbstractBean {
 }
 
 fun AbstractBean.toUniversalLink(): String {
-    var link = "sn://"
+    var link = "husi://"
     link += TypeMap.reversed[ProxyEntity().putBean(this).type]
     link += "?"
     link += Util.b64EncodeUrlSafe(Util.zlibCompress(KryoConverters.serialize(this), 9))
@@ -28,7 +28,7 @@ fun AbstractBean.toUniversalLink(): String {
 
 
 fun ProxyGroup.toUniversalLink(): String {
-    var link = "sn://subscription?"
+    var link = "husi://subscription?"
     export = true
     link += Util.b64EncodeUrlSafe(Util.zlibCompress(KryoConverters.serialize(this), 9))
     export = false

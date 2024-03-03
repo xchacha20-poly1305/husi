@@ -105,7 +105,7 @@
 
                 <data
                         android:host="subscription"
-                        android:scheme="sn"/>
+                        android:scheme="husi"/>
 
             </intent-filter>
 
@@ -126,7 +126,7 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:scheme="sn"/>
+                <data android:scheme="husi"/>
                 <data android:scheme="ss"/>
                 <data android:scheme="ssr"/>
                 <data android:scheme="socks"/>

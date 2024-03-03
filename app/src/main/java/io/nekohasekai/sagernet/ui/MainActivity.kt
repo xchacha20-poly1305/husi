@@ -217,7 +217,7 @@ class MainActivity : ThemedActivity(),
         val uri = intent.data ?: return
 
         runOnDefaultDispatcher {
-            if (uri.scheme == "sn" && uri.host == "subscription" || uri.scheme == "sing-box") {
+            if (uri.scheme == "husi" && uri.host == "subscription" || uri.scheme == "sing-box") {
                 importSubscription(uri)
             } else {
                 importProfile(uri)
