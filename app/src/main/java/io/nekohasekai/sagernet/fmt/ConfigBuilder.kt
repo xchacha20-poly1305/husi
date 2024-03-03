@@ -618,7 +618,14 @@ fun buildConfig(
 
                 when (rule.outbound) {
                     -1L -> {
-                        userDNSRuleList += makeDnsRuleObj().apply { server = TAG_DNS_DIRECT }
+                        userDNSRuleList += makeDnsRuleObj().apply {
+                            server = if (rule_set.any { it.startsWith("geoip-") }
+                                && DataStore.dnsMode == DNSMode.PRECISE) {
+                                TAG_DNS_FINAL
+                            } else {
+                                TAG_DNS_DIRECT
+                            }
+                        }
                     }
 
                     0L -> {
@@ -758,7 +765,6 @@ fun buildConfig(
                 }
                 when (DataStore.dnsMode) {
                     DNSMode.LEAK -> {
-                        if (client_subnet.isNullOrBlank()) throw ERR_NO_SUBNET
                         address = directDNS.firstOrNull() ?: throw ERR_NO_DIRECT_DNS
                     }
 
