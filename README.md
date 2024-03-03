@@ -4,7 +4,7 @@
     height="80">
 </a>
 
-## 💰 Selling Point
+## 💰 Selling Points
 
 [![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
 [![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
@@ -97,6 +97,10 @@ Compile the release version:
 ```
 
 The APK file will be located in `app/build/outputs/apk`.
+
+## ☠️ End users
+
+[Wiki](https://github.com/xchacha20-poly1305/husi/wiki)
 
 ## 📖 License
 
