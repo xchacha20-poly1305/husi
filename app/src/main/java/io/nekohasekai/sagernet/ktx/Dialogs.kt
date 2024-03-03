@@ -16,13 +16,3 @@ fun Context.alert(text: String): AlertDialog {
 
 fun Fragment.alert(text: String) = requireContext().alert(text)
 
-fun AlertDialog.tryToShow() {
-    try {
-        val activity = context as Activity
-        if (!activity.isFinishing) {
-            show()
-        }
-    } catch (e: Exception) {
-        Logs.e(e)
-    }
-}

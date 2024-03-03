@@ -1571,7 +1571,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     val msg = Protocols.genFriendlyMsg(err)
                     profileStatus.text = if (msg != err) msg else getString(R.string.unavailable)
                     profileStatus.setOnClickListener {
-                        alert(err).tryToShow()
+                        alert(err).show()
                     }
                 } else {
                     profileStatus.setOnClickListener(null)
