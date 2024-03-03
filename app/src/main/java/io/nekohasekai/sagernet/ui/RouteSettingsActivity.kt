@@ -95,7 +95,9 @@ class RouteSettingsActivity(
             2 -> -2L
             else -> DataStore.routeOutboundRule
         }
-        packages = DataStore.routePackages.split("\n").filter { it.isNotBlank() }
+        if (DataStore.routePackages.isNotBlank()) {
+            packages = DataStore.routePackages.split("\n").filter { it.isNotBlank() }
+        }
 
         if (DataStore.editingId == 0L) {
             enabled = true

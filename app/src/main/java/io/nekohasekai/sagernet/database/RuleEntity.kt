@@ -42,7 +42,7 @@ data class RuleEntity(
         if (port.isNotBlank()) summary += "port: $port\n"
         if (network.isNotBlank()) summary += "network: $network\n"
         if (protocol.isNotBlank()) summary += "protocol: $protocol\n"
-        if (packages.isNotEmpty() && !packages.all { it.isBlank() }) summary += app.getString(
+        if (packages.isNotEmpty()) summary += app.getString(
             R.string.apps_message, packages.size
         ) + "\n"
         if (ssid.isNotBlank()) summary += "ssid: $ssid"
