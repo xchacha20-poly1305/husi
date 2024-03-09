@@ -26,6 +26,14 @@ object DefaultNetworkMonitor {
         DefaultNetworkListener.stop(this)
     }
 
+    suspend fun require(): Network {
+        val network = defaultNetwork
+        if (network != null) {
+            return network
+        }
+        return DefaultNetworkListener.get()
+    }
+
     fun setListener(listener: InterfaceUpdateListener?) {
         this.listener = listener
         checkDefaultInterfaceUpdate(defaultNetwork)

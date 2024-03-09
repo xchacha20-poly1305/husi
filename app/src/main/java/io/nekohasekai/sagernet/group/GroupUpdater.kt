@@ -70,7 +70,7 @@ abstract class GroupUpdater {
                         DataStore.serviceMode == Key.MODE_VPN
                     ) {
                         // FakeDNS
-                        DefaultNetworkMonitor.defaultNetwork!!
+                        DefaultNetworkMonitor.require()
                             .getAllByName(profile.serverAddress)
                             .filterNotNull()
                     } else {
