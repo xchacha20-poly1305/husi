@@ -30,6 +30,7 @@ object LocalResolverImpl : LocalDNSTransport {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun exchange(ctx: ExchangeContext, message: ByteArray) {
         return runBlocking {
+            val defaultNetwork = DefaultNetworkMonitor.require()
             suspendCoroutine { continuation ->
                 val signal = CancellationSignal()
                 ctx.onCancel(signal::cancel)
@@ -52,7 +53,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     }
                 }
                 DnsResolver.getInstance().rawQuery(
-                    DefaultNetworkMonitor.defaultNetwork,
+                    defaultNetwork,
                     message,
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
@@ -64,8 +65,9 @@ object LocalResolverImpl : LocalDNSTransport {
     }
 
     override fun lookup(ctx: ExchangeContext, network: String, domain: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return runBlocking {
+        return runBlocking {
+            val defaultNetwork = DefaultNetworkMonitor.require()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 suspendCoroutine { continuation ->
                     val signal = CancellationSignal()
                     ctx.onCancel(signal::cancel)
@@ -98,7 +100,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     }
                     if (type != null) {
                         DnsResolver.getInstance().query(
-                            DefaultNetworkMonitor.defaultNetwork,
+                            defaultNetwork,
                             domain,
                             type,
                             DnsResolver.FLAG_NO_RETRY,
@@ -108,7 +110,7 @@ object LocalResolverImpl : LocalDNSTransport {
                         )
                     } else {
                         DnsResolver.getInstance().query(
-                            DefaultNetworkMonitor.defaultNetwork,
+                            defaultNetwork,
                             domain,
                             DnsResolver.FLAG_NO_RETRY,
                             Dispatchers.IO.asExecutor(),
@@ -117,21 +119,15 @@ object LocalResolverImpl : LocalDNSTransport {
                         )
                     }
                 }
-            }
-        } else {
-            val answer = try {
-                val u = DefaultNetworkMonitor.defaultNetwork
-                if (u != null) {
-                    u.getAllByName(domain)
-                } else {
-                    InetAddress.getAllByName(domain)
+            } else {
+                val answer = try {
+                    defaultNetwork.getAllByName(domain)
+                } catch (e: UnknownHostException) {
+                    ctx.errorCode(RCODE_NXDOMAIN)
+                    return@runBlocking
                 }
-            } catch (e: UnknownHostException) {
-                ctx.errorCode(RCODE_NXDOMAIN)
-                return
+                ctx.success(answer.mapNotNull { it.hostAddress }.joinToString("\n"))
             }
-            ctx.success(answer.mapNotNull { it.hostAddress }.joinToString("\n"))
         }
     }
-
 }

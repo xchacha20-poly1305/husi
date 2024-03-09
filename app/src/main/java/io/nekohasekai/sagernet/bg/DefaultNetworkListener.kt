@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.runBlocking
-import java.net.UnknownHostException
 
 object DefaultNetworkListener {
     private sealed class NetworkMessage {
@@ -84,7 +83,7 @@ object DefaultNetworkListener {
 
     suspend fun get() = if (fallback) @TargetApi(23) {
         SagerNet.connectivity.activeNetwork
-            ?: throw UnknownHostException() // failed to listen, return current if available
+            ?: error("missing default network") // failed to listen, return current if available
     } else NetworkMessage.Get().run {
         networkActor.send(this)
         response.await()
