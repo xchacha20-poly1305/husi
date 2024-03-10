@@ -27,25 +27,25 @@ func setupLog(maxSize int64, path string) (err error) {
 	if err == nil {
 		fd := int(f.Fd())
 		if truncateOnStart {
-			syscall.Flock(fd, syscall.LOCK_EX)
+			_ = syscall.Flock(fd, syscall.LOCK_EX)
 			// Check if need truncate
 			if size, _ := f.Seek(0, io.SeekEnd); size > maxSize {
 				// read oldBytes for maxSize
-				f.Seek(-maxSize, io.SeekCurrent)
+				_, _ = f.Seek(-maxSize, io.SeekCurrent)
 				oldBytes, err := io.ReadAll(f)
 				if err == nil {
 					// truncate file
 					err = f.Truncate(0)
 					// write oldBytes
 					if err == nil {
-						f.Write(oldBytes)
+						_, _ = f.Write(oldBytes)
 					}
 				}
 			}
-			syscall.Flock(fd, syscall.LOCK_UN)
+			_ = syscall.Flock(fd, syscall.LOCK_UN)
 		}
 		// redirect stderr
-		syscall.Dup3(fd, int(os.Stderr.Fd()), 0)
+		_ = syscall.Dup3(fd, int(os.Stderr.Fd()), 0)
 	}
 
 	if err != nil {
@@ -61,7 +61,7 @@ func setupLog(maxSize int64, path string) (err error) {
 
 	// setup box default log
 	boxlog.SetStdLogger(boxlog.NewDefaultFactory(context.Background(),
-		boxlog.Formatter{BaseTime: time.Now(), DisableColors: true},
+		boxlog.Formatter{BaseTime: time.Now(), DisableColors: false},
 		os.Stderr,
 		"",
 		platformLogWrapper,
@@ -77,11 +77,11 @@ type logWriter struct {
 }
 
 func (w *logWriter) DisableColors() bool {
-	return true
+	return false
 }
 
 func (w *logWriter) WriteMessage(level boxlog.Level, message string) {
-	io.WriteString(w, fmt.Sprintf("%s\n", message))
+	_, _ = io.WriteString(w, fmt.Sprintf("%s\n", message))
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -96,11 +96,11 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 			f, isFile := w.(*os.File)
 			if isFile {
 				fd = int(f.Fd())
-				syscall.Flock(fd, syscall.LOCK_EX)
+				_ = syscall.Flock(fd, syscall.LOCK_EX)
 			}
-			w.Write(p)
+			_, _ = w.Write(p)
 			if isFile {
-				syscall.Flock(fd, syscall.LOCK_UN)
+				_ = syscall.Flock(fd, syscall.LOCK_UN)
 			}
 		}
 	}
@@ -119,11 +119,11 @@ func (w *logWriter) WriteString(s string) (n int, err error) {
 			f, isFile := w.(*os.File)
 			if isFile {
 				fd = int(f.Fd())
-				syscall.Flock(fd, syscall.LOCK_EX)
+				_ = syscall.Flock(fd, syscall.LOCK_EX)
 			}
-			io.WriteString(w, s)
+			_, _ = io.WriteString(w, s)
 			if isFile {
-				syscall.Flock(fd, syscall.LOCK_UN)
+				_ = syscall.Flock(fd, syscall.LOCK_UN)
 			}
 		}
 	}

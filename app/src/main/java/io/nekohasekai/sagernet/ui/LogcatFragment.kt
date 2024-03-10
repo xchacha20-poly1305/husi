@@ -1,12 +1,8 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.view.View
 import android.widget.ScrollView
@@ -17,6 +13,7 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
+import io.nekohasekai.sfa.utils.ColorUtils
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.SendLog
 
@@ -40,40 +37,13 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
 
         reloadSession()
-        // TODO new logcat
-    }
-
-    private fun getColorForLine(line: String): ForegroundColorSpan {
-        var color = ForegroundColorSpan(Color.GRAY)
-        when {
-            line.contains(" INFO[") || line.contains(" [Info]") -> {
-                color = ForegroundColorSpan((0xFF86C166).toInt())
-            }
-
-            line.contains(" ERROR[") || line.contains(" [Error]") -> {
-                color = ForegroundColorSpan(Color.RED)
-            }
-
-            line.contains(" WARN[") || line.contains(" [Warning]") -> {
-                color = ForegroundColorSpan(Color.RED)
-            }
-        }
-        return color
     }
 
     private fun reloadSession() {
-        val span = SpannableString(
-            String(SendLog.getNekoLog(50 * 1024))
+        binding.textview.text = ColorUtils.ansiEscapeToSpannable(
+            binding.root.context, String
+                (SendLog.getNekoLog(50 * 1024))
         )
-        var offset = 0
-        for (line in span.lines()) {
-            val color = getColorForLine(line)
-            span.setSpan(
-                color, offset, offset + line.length, SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            offset += line.length + 1
-        }
-        binding.textview.text = span
 
         binding.scroolview.post {
             binding.scroolview.fullScroll(ScrollView.FOCUS_DOWN)

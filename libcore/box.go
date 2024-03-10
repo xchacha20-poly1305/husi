@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	C "github.com/sagernet/sing-box/constant"
 	"libcore/protectserver"
 	"libcore/v2rayapilite"
 
@@ -106,8 +107,6 @@ func (b *BoxInstance) Start() (err error) {
 	return E.New("already started")
 }
 
-const closeTimeout = time.Second * 2
-
 func (b *BoxInstance) Close() (err error) {
 	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
 
@@ -125,7 +124,7 @@ func (b *BoxInstance) Close() (err error) {
 
 	// close box
 	chClosed := make(chan struct{})
-	ctx, cancel := context.WithTimeout(context.Background(), closeTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), C.DefaultStopTimeout)
 	defer cancel()
 	start := time.Now()
 	go func() {
