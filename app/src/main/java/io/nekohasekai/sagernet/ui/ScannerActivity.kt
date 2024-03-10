@@ -1,25 +1,52 @@
+/******************************************************************************
+ *                                                                            *
+ * Copyright (C) 2021 by nekohasekai <contact-sagernet@sekai.icu>             *
+ *                                                                            *
+ * This program is free software: you can redistribute it and/or modify       *
+ * it under the terms of the GNU General Public License as published by       *
+ * the Free Software Foundation, either version 3 of the License, or          *
+ *  (at your option) any later version.                                       *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
+ *                                                                            *
+ ******************************************************************************/
+
+
 package io.nekohasekai.sagernet.ui
 
-import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.ShortcutManager
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.getSystemService
-import com.google.zxing.Result
-import com.king.zxing.CameraScan
-import com.king.zxing.DefaultCameraScan
-import com.king.zxing.analyze.QRCodeAnalyzer
-import com.king.zxing.util.CodeUtils
-import com.king.zxing.util.LogUtils
-import com.king.zxing.util.PermissionUtils
+import androidx.core.view.isGone
+import com.google.android.material.snackbar.Snackbar
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.NotFoundException
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.common.GlobalHistogramBinarizer
+import com.google.zxing.qrcode.QRCodeReader
+import com.journeyapps.barcodescanner.BarcodeCallback
+import com.journeyapps.barcodescanner.BarcodeResult
+import com.journeyapps.barcodescanner.CaptureManager
+import com.journeyapps.barcodescanner.MixedDecoder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -27,19 +54,20 @@ import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListHolderListener
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 
 class ScannerActivity : ThemedActivity(),
-    CameraScan.OnScanResultCallback {
+    BarcodeCallback {
 
+    lateinit var capture: CaptureManager
     lateinit var binding: LayoutScannerBinding
-    lateinit var cameraScan: CameraScan
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         if (Build.VERSION.SDK_INT >= 25) getSystemService<ShortcutManager>()!!.reportShortcutUsed("scan")
         binding = LayoutScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -50,10 +78,18 @@ class ScannerActivity : ThemedActivity(),
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
-        // 二维码库
-        initCameraScan()
-        startCamera()
-        binding.ivFlashlight.setOnClickListener { toggleTorchState() }
+        binding.barcodeScanner.statusView.isGone = true
+        binding.barcodeScanner.viewFinder.isGone = true
+        binding.barcodeScanner.barcodeView.setDecoderFactory {
+            MixedDecoder(QRCodeReader())
+        }
+
+        capture = CaptureManager(this, binding.barcodeScanner)
+        binding.barcodeScanner.decodeSingle(this)
+    }
+
+    override fun snackbarInternal(text: CharSequence): Snackbar {
+        return Snackbar.make(binding.barcodeScanner, text, Snackbar.LENGTH_LONG)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -79,14 +115,61 @@ class ScannerActivity : ThemedActivity(),
                             contentResolver, uri
                         )
                     }
-                    val result = CodeUtils.parseCodeResult(bitmap)
-                    onMainDispatcher {
-                        onScanResultCallback(result, true)
+                    val intArray = IntArray(bitmap.width * bitmap.height)
+                    bitmap.getPixels(intArray, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+
+                    val source = RGBLuminanceSource(bitmap.width, bitmap.height, intArray)
+                    val qrReader = QRCodeReader()
+                    try {
+                        val result = try {
+                            qrReader.decode(
+                                BinaryBitmap(GlobalHistogramBinarizer(source)),
+                                mapOf(DecodeHintType.TRY_HARDER to true)
+                            )
+                        } catch (e: NotFoundException) {
+                            qrReader.decode(
+                                BinaryBitmap(GlobalHistogramBinarizer(source.invert())),
+                                mapOf(DecodeHintType.TRY_HARDER to true)
+                            )
+                        }
+
+                        val results = RawUpdater.parseRaw(result.text ?: "")
+
+                        if (!results.isNullOrEmpty()) {
+                            onMainDispatcher {
+                                finish()
+                                runOnDefaultDispatcher {
+                                    val currentGroupId = DataStore.selectedGroupForImport()
+                                    if (DataStore.selectedGroup != currentGroupId) {
+                                        DataStore.selectedGroup = currentGroupId
+                                    }
+
+                                    for (profile in results) {
+                                        ProfileManager.createProfile(currentGroupId, profile)
+                                    }
+                                }
+                            }
+                        } else {
+                            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    } catch (e: SubscriptionFoundException) {
+                        startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
+                            action = Intent.ACTION_VIEW
+                            data = Uri.parse(e.link)
+                        })
+                        finish()
+                    } catch (e: Throwable) {
+                        Logs.w(e)
+                        onMainDispatcher {
+                            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
+                                .show()
+                        }
                     }
                 }
-                finish()
             } catch (e: Exception) {
                 Logs.w(e)
+
                 onMainDispatcher {
                     Toast.makeText(app, e.readableMessage, Toast.LENGTH_LONG).show()
                 }
@@ -103,24 +186,50 @@ class ScannerActivity : ThemedActivity(),
         }
     }
 
-    var finished = AtomicBoolean(false)
-    var importedN = AtomicInteger(0)
-
     /**
-     * 接收扫码结果回调
-     * @param result 扫码结果
-     * @return 返回true表示拦截，将不自动执行后续逻辑，为false表示不拦截，默认不拦截
+     * See also: https://stackoverflow.com/a/31350642/2245107
      */
-    override fun onScanResultCallback(result: Result?): Boolean {
-        return onScanResultCallback(result, false)
+    override fun shouldUpRecreateTask(targetIntent: Intent?) =
+        super.shouldUpRecreateTask(targetIntent) || isTaskRoot
+
+    override fun onResume() {
+        super.onResume()
+        capture.onResume()
     }
 
-    fun onScanResultCallback(result: Result?, multi: Boolean): Boolean {
-        if (!multi && finished.getAndSet(true)) return true
-        if (!multi) finish()
+    override fun onPause() {
+        super.onPause()
+        capture.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        capture.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        capture.onSaveInstanceState(outState)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        capture.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return binding.barcodeScanner.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    }
+
+    override fun barcodeResult(result: BarcodeResult) {
+        finish()
+        val text = result.result.text
         runOnDefaultDispatcher {
             try {
-                val text = result?.text ?: throw Exception("QR code not found")
                 val results = RawUpdater.parseRaw(text)
                 if (!results.isNullOrEmpty()) {
                     val currentGroupId = DataStore.selectedGroupForImport()
@@ -130,12 +239,9 @@ class ScannerActivity : ThemedActivity(),
 
                     for (profile in results) {
                         ProfileManager.createProfile(currentGroupId, profile)
-                        importedN.addAndGet(1)
                     }
                 } else {
-                    onMainDispatcher {
-                        Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
-                    }
+                    Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: SubscriptionFoundException) {
                 startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
@@ -145,89 +251,10 @@ class ScannerActivity : ThemedActivity(),
             } catch (e: Throwable) {
                 Logs.w(e)
                 onMainDispatcher {
-                    var text = getString(R.string.action_import_err)
-                    text += "\n" + e.readableMessage
-                    Toast.makeText(app, text, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
                 }
             }
         }
-        return true
     }
 
-    /**
-     * 初始化CameraScan
-     */
-    fun initCameraScan() {
-        cameraScan = DefaultCameraScan(this, binding.previewView)
-        cameraScan.setAnalyzer(QRCodeAnalyzer())
-        cameraScan.setOnScanResultCallback(this)
-        cameraScan.setNeedAutoZoom(true)
-    }
-
-    /**
-     * 启动相机预览
-     */
-    fun startCamera() {
-        if (PermissionUtils.checkPermission(this, Manifest.permission.CAMERA)) {
-            cameraScan.startCamera()
-        } else {
-            LogUtils.d("checkPermissionResult != PERMISSION_GRANTED")
-            PermissionUtils.requestPermission(
-                this, Manifest.permission.CAMERA, CAMERA_PERMISSION_REQUEST_CODE
-            )
-        }
-    }
-
-    /**
-     * 释放相机
-     */
-    private fun releaseCamera() {
-        cameraScan.release()
-    }
-
-    /**
-     * 切换闪光灯状态（开启/关闭）
-     */
-    protected fun toggleTorchState() {
-        val isTorch = cameraScan.isTorchEnabled
-        cameraScan.enableTorch(!isTorch)
-        binding.ivFlashlight.isSelected = !isTorch
-    }
-
-    val CAMERA_PERMISSION_REQUEST_CODE = 0X86
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            requestCameraPermissionResult(permissions, grantResults)
-        }
-    }
-
-    /**
-     * 请求Camera权限回调结果
-     * @param permissions
-     * @param grantResults
-     */
-    fun requestCameraPermissionResult(permissions: Array<String>, grantResults: IntArray) {
-        if (PermissionUtils.requestPermissionsResult(
-                Manifest.permission.CAMERA, permissions, grantResults
-            )
-        ) {
-            startCamera()
-        } else {
-            finish()
-        }
-    }
-
-    override fun onDestroy() {
-        releaseCamera()
-        super.onDestroy()
-        if (importedN.get() > 0) {
-            var text = getString(R.string.action_import_msg)
-            text += "\n" + importedN.get() + " profile(s)"
-            Toast.makeText(app, text, Toast.LENGTH_LONG).show()
-        }
-    }
 }
