@@ -179,6 +179,7 @@ fun buildConfig(
             clash_api = ClashAPIOptions().apply {
                 external_controller = DataStore.clashAPIListen
                 external_ui = "../files/dashboard"
+                external_ui_download_url = "http://www.gstatic.com/generate_204"
             }
             cache_file = CacheFileOptions().apply {
                 enabled = true
