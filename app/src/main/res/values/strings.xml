@@ -600,4 +600,5 @@
     <string name="fake_dns" translatable="false">Fake DNS</string>
     <string name="dns_mode_leak">Precise query with leak</string>
     <string name="dns_mode_precise">Precise query with low speed</string>
+    <string name="blurred_address">Make the server address blurred</string>
 </resources>

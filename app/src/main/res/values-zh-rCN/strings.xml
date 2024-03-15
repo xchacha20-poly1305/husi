@@ -531,4 +531,5 @@
     <string name="dns_mode">DNS 模式</string>
     <string name="dns_mode_leak">精准查询 （DNS 泄漏）</string>
     <string name="dns_mode_precise">精准查询（高查询耗时）</string>
+    <string name="blurred_address">使服务器地址模糊</string>
 </resources>
