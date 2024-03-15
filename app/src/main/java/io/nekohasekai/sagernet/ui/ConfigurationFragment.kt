@@ -64,6 +64,7 @@ import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.proxy.neko.NekoSettingActivity
 import moe.matsuri.nb4a.proxy.neko.canShare
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
+import moe.matsuri.nb4a.utils.blur
 import okhttp3.internal.closeQuietly
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -90,6 +91,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     lateinit var groupPager: ViewPager2
 
     val alwaysShowAddress by lazy { DataStore.alwaysShowAddress }
+    val blurredAddress by lazy { DataStore.blurredAddress }
 
     fun getCurrentGroupFragment(): GroupFragment? {
         return try {
@@ -748,7 +750,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 }
                             } else {
                                 try {
-                                    val result = Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
+                                    val result =
+                                        Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
                                     if (!isActive) break
                                     profile.status = 1
                                     profile.ping = result
@@ -1535,7 +1538,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                     )
                 }
 
-                var address = proxyEntity.displayAddress()
+                var address = if (pf.blurredAddress) {
+                    proxyEntity.displayAddress().blur()
+                } else {
+                    proxyEntity.displayAddress()
+                }
                 if (showTraffic && address.length >= 30) {
                     address = address.substring(0, 27) + "..."
                 }

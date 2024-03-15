@@ -62,3 +62,16 @@ fun Long.toBytesString(): String {
 fun String.listByLineOrComma(): List<String> {
     return this.split(",", "\n").map { it.trim() }.filter { it.isNotEmpty() }
 }
+
+// Address
+
+// blur used to make server address blurred.
+fun String.blur(): String {
+    val l = this.length
+    return if (l < 20) {
+        val halfLength = this.length / 2
+        this.substring(0, halfLength) + "*".repeat(this.length - halfLength)
+    } else {
+        this.substring(0, 15) + "*".repeat(3)
+    }
+}
