@@ -6,7 +6,7 @@ require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.4.0-beta.3
-	github.com/sagernet/sing-box v1.9.0-beta.13 // Bump core version here.
+	github.com/sagernet/sing-box v1.9.0-beta.14 // Bump core version here.
 	github.com/sagernet/sing-dns v0.2.0-beta.15
 	github.com/sagernet/sing-tun v0.2.5-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
@@ -95,6 +95,6 @@ require (
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-beta.13
+replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-beta.14
 
 replace github.com/sagernet/sing-quic => github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1
