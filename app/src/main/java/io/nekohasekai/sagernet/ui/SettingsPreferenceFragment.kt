@@ -102,13 +102,16 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
-        val directDnsClientSubnet = findPreference<EditTextPreference>(Key.DIRECT_DNS_CLIENT_SUBNET)!!
+        val directDnsClientSubnet =
+            findPreference<EditTextPreference>(Key.DIRECT_DNS_CLIENT_SUBNET)!!
         val underlyingDns = findPreference<EditTextPreference>(Key.UNDERLYING_DNS)!!
         val enableDnsRouting = findPreference<SwitchPreference>(Key.ENABLE_DNS_ROUTING)!!
         val dnsMode = findPreference<SimpleMenuPreference>(Key.DNS_MODE)!!
 
         val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
+        val alwaysShowAddress = findPreference<SwitchPreference>(Key.ALWAYS_SHOW_ADDRESS)!!
+        val blurredAddress = findPreference<SwitchPreference>(Key.BLURRED_ADDRESS)!!
 
         logLevel.dialogLayoutResource = R.layout.layout_loglevel_help
         logLevel.onPreferenceChangeListener = restartListener
@@ -161,11 +164,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             findPreference<SwitchPreference>(Key.PROFILE_TRAFFIC_STATISTICS)!!
         val speedInterval = findPreference<SimpleMenuPreference>(Key.SPEED_INTERVAL)!!
         profileTrafficStatistics.isEnabled = speedInterval.value.toString() != "0"
+        showDirectSpeed.isEnabled = speedInterval.value.toString() != "0"
         speedInterval.setOnPreferenceChangeListener { _, newValue ->
             profileTrafficStatistics.isEnabled = newValue.toString() != "0"
+            showDirectSpeed.isEnabled = newValue.toString() != "0"
             needReload()
             true
         }
+        showDirectSpeed.onPreferenceChangeListener = reloadListener
 
         serviceMode.setOnPreferenceChangeListener { _, _ ->
             if (DataStore.serviceState.started) SagerNet.stopService()
@@ -180,17 +186,29 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         mixedPort.onPreferenceChangeListener = reloadListener
         appendHttpProxy.onPreferenceChangeListener = reloadListener
-        showDirectSpeed.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener
         uploadSpeed.onPreferenceChangeListener = reloadListener
         downloadSpeed.onPreferenceChangeListener = reloadListener
         muxConcurrency.onPreferenceChangeListener = reloadListener
         tcpKeepAliveInterval.onPreferenceChangeListener = reloadListener
-        bypassLan.onPreferenceChangeListener = reloadListener
+
+        bypassLanInCore.isEnabled = bypassLan.isChecked
         bypassLanInCore.onPreferenceChangeListener = reloadListener
+        bypassLan.setOnPreferenceChangeListener { _, newValue ->
+            bypassLanInCore.isEnabled = newValue as Boolean
+            needReload()
+            true
+        }
+
         inboundUsername.onPreferenceChangeListener = reloadListener
         inboundPassword.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
+
+        blurredAddress.isEnabled = alwaysShowAddress.isChecked
+        alwaysShowAddress.setOnPreferenceChangeListener { _, newValue ->
+            blurredAddress.isEnabled = newValue as Boolean
+            true
+        }
 
         dnsMode.onPreferenceChangeListener = reloadListener
         remoteDns.onPreferenceChangeListener = reloadListener

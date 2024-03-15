@@ -61,6 +61,13 @@
                 app:summary="@string/profile_traffic_statistics_summary"
                 app:title="@string/profile_traffic_statistics"/>
         <SwitchPreference
+                app:defaultValue="true"
+                app:icon="@drawable/ic_baseline_speed_24"
+                app:key="showDirectSpeed"
+                app:summary="@string/show_direct_speed_sum"
+                app:title="@string/show_direct_speed"
+                app:useSimpleSummaryProvider="true"/>
+        <SwitchPreference
                 app:key="showGroupInNotification"
                 app:title="@string/show_group_in_notification"/>
         <SwitchPreference
@@ -77,13 +84,6 @@
                 app:key="meteredNetwork"
                 app:summary="@string/metered_summary"
                 app:title="@string/metered"/>
-        <SwitchPreference
-                app:defaultValue="true"
-                app:icon="@drawable/ic_baseline_speed_24"
-                app:key="showDirectSpeed"
-                app:summary="@string/show_direct_speed_sum"
-                app:title="@string/show_direct_speed"
-                app:useSimpleSummaryProvider="true"/>
         <moe.matsuri.nb4a.ui.LongClickListPreference
                 app:defaultValue="0"
                 app:entries="@array/log_level"
