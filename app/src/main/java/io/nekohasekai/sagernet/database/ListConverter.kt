@@ -7,13 +7,21 @@ class ListConverter {
         @TypeConverter
         @JvmStatic
         fun fromList(list: List<String>): String {
-            return list.joinToString(",")
+            return if (list.isEmpty()) {
+                ""
+            } else {
+                list.joinToString(",")
+            }
         }
 
         @TypeConverter
         @JvmStatic
-        fun toList(string: String): List<String> {
-            return string.split(",")
+        fun toList(str: String): List<String> {
+            return if (str.isBlank()) {
+                listOf()
+            } else {
+                str.split(",")
+            }
         }
     }
 }
