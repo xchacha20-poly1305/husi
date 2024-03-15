@@ -5,10 +5,10 @@ go 1.20
 require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.4.0-beta.2
-	github.com/sagernet/sing-box v1.9.0-beta.8 // Bump core version here.
+	github.com/sagernet/sing v0.4.0-beta.3
+	github.com/sagernet/sing-box v1.9.0-beta.13 // Bump core version here.
 	github.com/sagernet/sing-dns v0.2.0-beta.15
-	github.com/sagernet/sing-tun v0.2.4-beta.1
+	github.com/sagernet/sing-tun v0.2.5-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
 	github.com/xchacha20-poly1305/cazilla v0.2.1
 	github.com/xchacha20-poly1305/libping v0.1.1
@@ -19,7 +19,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/oschwald/maxminddb-golang v1.12.0
 	github.com/v2fly/v2ray-core/v5 v5.13.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
@@ -82,19 +82,19 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.20.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/mod v0.15.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
-	google.golang.org/grpc v1.62.0 // indirect
+	google.golang.org/grpc v1.62.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-beta.8
+replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-beta.13
 
 replace github.com/sagernet/sing-quic => github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.1
