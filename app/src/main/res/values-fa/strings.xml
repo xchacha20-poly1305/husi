@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_desc">زنجیره ابزار پروکسی جهانی برای اندروید، نوشته شده در کاتولین.</string>
+    <string name="app_desc">زنجیره ابزار پروکسی جهانی برای اندروید، نوشته شده در کاتلین.</string>
     <string name="project">پروژه</string>
     <string name="github">کد منبع</string>
-    <string name="telegram">کانال آپدیت تلگرام</string>
+    <string name="telegram">کانال به‌روزرسانی تلگرام</string>
     <string name="oss_licenses">مجوزهای منبع باز</string>
     <string name="app_version">نسخه</string>
     <string name="version_x">نسخه (%s)</string>
-    <string name="logcat">صادر اطلاعات اشکال زدایی</string>
+    <string name="logcat">صادر کردن اطلاعات اشکال زدایی</string>
     <string name="menu_configuration">پیکربندی</string>
     <string name="menu_group">گروه</string>
-    <string name="menu_about">در باره</string>
+    <string name="menu_about">درباره</string>
     <string name="theme">تم</string>
     <string name="document">مستندات</string>
     <string name="group_default">گروه بندی نشده</string>
@@ -22,32 +22,33 @@
     <string name="action_open">باز کردن</string>
     <!-- group -->
     <string name="group_name">اسم گروه</string>
-    <string name="group_update">به روز رسانی</string>
+    <string name="group_update">به‌روزرسانی</string>
     <string name="group_subscription_link">لینک اشتراک</string>
     <string name="group_name_required">نام گروه مورد نیاز است</string>
     <string name="group_create">ایجاد گروه</string>
     <string name="group_create_subscription">ایجاد اشتراک</string>
-    <string name="update_all_subscription">به روز رسانی تمام اشتراک ها</string>
+    <string name="update_all_subscription">به‌روزرسانی تمام اشتراک ها</string>
     <string name="group_edit">ویرایش گروه</string>
     <string name="group_edit_subscription">ویرایش اشتراک</string>
     <string name="group_status_empty">گروه خالی</string>
-    <string name="group_status_empty_subscription">هنوز آپدیت نشده</string>
-    <string name="group_status_proxies">%d پراکسی ها</string>
-    <string name="group_status_proxies_subscription">%d پراگسی ها | اپدیت شدند در %s</string>
+    <string name="group_status_empty_subscription">هنوز به‌روزرسانی نشده</string>
+    <string name="group_status_proxies">%d پروکسی ها</string>
+    <string name="group_status_proxies_subscription">%d پروکسی ها | به‌روزرسانی شدند در %s</string>
     <string name="group_no_difference">%s: بدون تغییر</string>
-    <string name="group_updated">%s: اپدیت شد %d پراکسی ها</string>
+    <string name="group_updated">%s: به‌روزرسانی شد %d پروکسی ها</string>
     <string name="group_show_diff">تفاوت</string>
     <string name="group_diff">تفاوت (%s)</string>
-    <string name="group_delete_confirm_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید?
-    </string>
+    <string name="group_delete_confirm_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید؟</string>
     <string name="group_added">اضافه شده:\n%s</string>
-    <string name="group_changed">اپدیت شد: \n%s</string>
-    <string name="group_deleted">حذف شد\n%s</string>
+    <string name="group_changed">به‌روزرسانی شد:
+\n%s</string>
+    <string name="group_deleted">حذف شد:
+\n%s</string>
     <string name="group_duplicate">تکراری: \n%s</string>
     <!-- misc -->
     <string name="service_mode">حالت سرویس</string>
     <string name="service_mode_proxy">فقط پروکسی</string>
-    <string name="port_proxy">پورت پروکسی SOCKS5</string>
+    <string name="port_proxy">پورت پروکسی</string>
     <string name="port_http">پورت پروکسی HTTP</string>
     <string name="cag_route">تنظیمات مسیر</string>
     <string name="allow_access">اتصالات از LAN را مجاز کنید</string>
@@ -59,17 +60,15 @@
     <string name="ws_browser_forwarding">ارسال مرورگر</string>
     <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.
     </string>
-    <string name="speed_interval">فاصله به روز رسانی اعلان سرعت</string>
+    <string name="speed_interval">فاصله به‌روزرسانی اعلان سرعت</string>
     <string name="cag_misc">تنظیمات متفرقه</string>
     <string name="show_stop">نمایش دکمه توقف</string>
     <string name="show_stop_sum">اگر نمی خواهید از Quick Tile به عنوان سوئیچ استفاده کنید</string>
     <string name="show_direct_speed">نمایش سرعت مستقیم</string>
     <string name="show_direct_speed_sum">سرعت ترافیک را بدون پروکسی نیز در اعلان نشان دهید</string>
-    <string name="security_settings">تنظیمات امنیتی</string>
+    <string name="security_settings">تنظیمات امنیتی TLS</string>
     <string name="allow_insecure">اجازه ناامن</string>
-    <string name="allow_insecure_sum">غیرفعال کردن بررسی گواهی وقتی فعال باشد، این پیکربندی به
-        اندازه متن ساده ایمن است
-    </string>
+    <string name="allow_insecure_sum">غیرفعال کردن بررسی گواهی. وقتی فعال باشد، این پیکربندی به اندازه متن ساده ایمن است</string>
     <string name="speed_detail">پروکسی：%1$s↑%2$s↓\nمستقیم：%3$s↑%4$s↓</string>
     <string name="speed">%s/ثانیه</string>
     <string name="connection_test_testing">آزمایش کردن…</string>
@@ -81,15 +80,11 @@
     <string name="cag_dns">تنظیمات DNS</string>
     <string name="remote_dns">DNS از راه دور</string>
     <string name="direct_dns">DNS مستقیم</string>
-    <string name="underlying_dns">Underlying DNS</string>
-    <string name="enable_dns_routing">مسیریابی DNS را فعال کنید</string>
-    <string name="dns_routing_message">حل دامنه ها در مسیرهای بای پس با Direct DNS. از نشت های
-        احتمالی DNS آگاه باشید
-    </string>
-    <string name="enable_fakedns">FakeDNS را فعال کنید</string>
-    <string name="fakedns_message">ممکن است باعث شود پس از توقف پراکسی، برنامه‌های دیگر برای اتصال
-        مجدد به شبکه مجدداً راه‌اندازی شوند
-    </string>
+    <string name="underlying_dns">DNS اساسی</string>
+    <string name="enable_dns_routing">فعال کردن مسیریابی DNS</string>
+    <string name="dns_routing_message">حل دامنه‌ها در مسیرهای بای‌پس با DNS مستقیم. از نشت های احتمالی DNS آگاه باشید</string>
+    <string name="enable_fakedns">فعال کردن FakeDNS</string>
+    <string name="fakedns_message">ممکن است باعث شود پس از توقف پروکسی، برنامه‌های دیگر برای اتصال مجدد به شبکه مجدداً راه‌اندازی شوند</string>
     <string name="dns_hosts">بازنویسی دامنه</string>
     <string name="port_local_dns">پورت DNS محلی</string>
     <string name="connection_test_url">URL تست اتصال</string>
@@ -484,4 +479,7 @@
     <string name="hop_interval">فاصله پرش بندر (ثانیه)</string>
     <string name="show_bottom_bar">نمایش نوار پایین مانند SagerNet</string>
     <string name="utls_fingerprint">اثر انگشت uTLS</string>
+    <string name="app_name">husi</string>
+    <string name="app_name_long">husi برای اندروید</string>
+    <string name="menu_dashboard">داشبورد sing-box</string>
 </resources>
