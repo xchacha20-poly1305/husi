@@ -58,7 +58,7 @@ func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err err
 	}()
 	select {
 	case <-ctx.Done():
-		return 0, E.New("Url test timeout")
+		return 0, ctx.Err()
 	case t := <-chLatency:
 		if err != nil {
 			return 0, err
