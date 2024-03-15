@@ -244,9 +244,6 @@ object ProfileManager {
             }
             rules = SagerDatabase.rulesDao.allRules()
         }
-        rules.forEach {
-            it.packages = listOf()
-        }
         return rules
     }
 
