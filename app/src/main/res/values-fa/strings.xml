@@ -108,11 +108,11 @@
     <string name="network">شبکه</string>
     <string name="header_type">نوع هدر</string>
     <string name="ws_host">میزبان وب سوکت</string>
-    <string name="ws_path">میزبان وب سوکت</string>
+    <string name="ws_path">مسیر وب سوکت</string>
     <string name="http_host">میزبان HTTP</string>
     <string name="http_path">مسیر HTTP</string>
     <string name="grpc_service_name">نام سرویس gRPC</string>
-    <string name="tls">از TLS استفاده کنید</string>
+    <string name="tls">استفاده از TLS</string>
     <string name="sni">نشانگر نام سرور</string>
     <string name="alpn">سطح کاربردی مذاکرات پروتکل</string>
     <string name="certificates">گواهینامه ها</string>
@@ -130,7 +130,7 @@
     </string>
     <string name="menu_route">مسیر</string>
     <string name="route_add">ایجاد مسیر</string>
-    <string name="delete_route_prompt">آیا مطمئن هستید که می خواهید این مسیر را حذف کنید?</string>
+    <string name="delete_route_prompt">آیا مطمئن هستید که می خواهید این مسیر را حذف کنید؟</string>
     <string name="route_name">نام مسیر</string>
     <string name="route_proxy">پروکسی</string>
     <string name="route_bypass">بایپس</string>
@@ -142,29 +142,29 @@
     <string name="route_play_store">قانون فروشگاه Play برای %s</string>
     <string name="route_bypass_ip">قانون IP برای %s</string>
     <string name="route_reset">بازنشانی کنید</string>
-    <string name="route_manage_assets">مدیریت مسیر</string>
-    <string name="route_assets">دارایی</string>
-    <string name="route_rules_provider">ارائه دهنده دارایی های قانون</string>
+    <string name="route_manage_assets">مدیریت دارایی‌های مسیر</string>
+    <string name="route_assets">دارایی‌ها</string>
+    <string name="route_rules_provider">ارائه دهنده دارایی‌های قانون</string>
     <string name="route_rules_official">رسمی</string>
     <string name="route_asset_status">نسخه محلی: %s</string>
-    <string name="route_asset_no_update">بدون آپدیت</string>
-    <string name="route_asset_updated">به روز رسانی</string>
+    <string name="route_asset_no_update">بدون به‌روزرسانی</string>
+    <string name="route_asset_updated">به‌روزرسانی شد</string>
     <string name="route_opt_bypass_lan">دور زدن LAN</string>
     <string name="route_opt_block_ads">مسدود کردن تبلیغات</string>
     <string name="route_opt_block_analysis">بلاک کردن انالیز ها</string>
     <string name="route_opt_block_quic">QUIC را مسدود کنید</string>
     <string name="domain_strategy">استراتژی حل و فصل دامنه</string>
-    <string name="traffic_sniffing">بو کشیدن ترافیک را فعال کنید</string>
-    <string name="enable_mux">مولتی پلکسر را فعال کنید</string>
-    <string name="mux_concurrency">Mux اتصالات همزمان</string>
+    <string name="traffic_sniffing">فعال کردن بو کشیدن ترافیک</string>
+    <string name="enable_mux">فعال کردن مولتی پلکسر</string>
+    <string name="mux_concurrency">اتصالات همزمان Mux</string>
     <string name="tcp_keep_alive_interval">TCP بازه تحویل بسته را فعال نگه می دارد</string>
-    <string name="proxied_apps">حالت VPN برنامه ها</string>
+    <string name="proxied_apps">حالت VPN برنامه‌ها</string>
     <string name="proxied_apps_summary">حالت VPN را برای برنامه های انتخابی پیکربندی کنید</string>
     <string name="on">روشن</string>
     <string name="off">خاموش</string>
     <string name="search_apps">جستجو کردن…</string>
     <string name="scanning">اسکن کردن…</string>
-    <string name="invert_selections">انتخاب ها را معکوس کنید</string>
+    <string name="invert_selections">معکوس کردن انتخاب ها</string>
     <string name="clear_selections">پاک کردن انتخاب ها</string>
     <string name="bypass_apps">بایپس</string>
     <string name="show_system_apps">نمایش برنامه های سیستم</string>
@@ -190,7 +190,7 @@
     <!-- alert category -->
     <string name="profile_empty">لطفا یک پروفایل انتخاب کنید</string>
     <string name="connect">اتصال</string>
-    <string name="clipboard_empty">کلیپ برد خالی است</string>
+    <string name="clipboard_empty">کلیپ بورد خالی است</string>
     <!-- menu category -->
     <string name="settings">تنظیمات</string>
     <string name="edit">ویرایش</string>
@@ -211,79 +211,76 @@
     <string name="action_create_group">گروه خالی</string>
     <string name="action_from_link">از اشتراک</string>
     <string name="action_scan_china_apps">اسکن برنامه های چین</string>
-    <string name="action_export_file">صادر به فایل</string>
-    <string name="action_export_clipboard">صادر به کلیپ بورد</string>
-    <string name="action_export">صادر</string>
+    <string name="action_export_file">صادر کردن به فایل</string>
+    <string name="action_export_clipboard">صادر کردن به کلیپ بورد</string>
+    <string name="action_export">صادر کردن</string>
     <string name="action_import">وارد کردن از کلیپ بورد</string>
     <string name="action_import_file">وارد کردن از فایل</string>
-    <string name="action_export_msg">صادر با موفقیت انجام شد!</string>
+    <string name="action_export_msg">صادر کردن با موفقیت انجام شد!</string>
     <string name="action_export_err">صادر نشد.</string>
     <string name="action_import_msg">با موفقیت وارد شد!</string>
     <string name="action_import_err">وارد کردن ناموفق بود.</string>
-    <string name="file_manager_missing">دستگاه شما فاقد انتخابگر فایل استاندارد Android است، لطفاً
-        یکی مانند Material Files را نصب کنید.
-    </string>
+    <string name="file_manager_missing">دستگاه شما فاقد انتخابگر فایل استاندارد اندروید است، لطفاً یکی مانند Material Files را نصب کنید.</string>
     <!-- share -->
     <!-- profile -->
     <string name="profile_config">پیکربندی پروفایل</string>
     <string name="delete">حذف</string>
     <string name="delete_confirm_prompt">آیا مطمئنید که می خواهید این پروفایل را حذف کنید؟</string>
     <string name="share_qr_nfc">کد QR</string>
-    <string name="add_profile_methods_scan_qr_code">کد QR را اسکن کنید</string>
+    <string name="add_profile_methods_scan_qr_code">اسکن کد QR</string>
     <string name="add_profile_methods_manual_settings">تنظیمات دستی</string>
     <plurals name="removed">
-        <item quantity="one">Removed</item>
-        <item quantity="other">%d موارد حذف شدند</item>
+        <item quantity="one">حذف شد</item>
+        <item quantity="other">%d مورد حذف شد</item>
     </plurals>
     <plurals name="added">
-        <item quantity="one">Added</item>
+        <item quantity="one">اضافه شد</item>
         <item quantity="other">%d پروکسی اضافه شد</item>
     </plurals>
     <string name="undo">واگرد</string>
     <string name="insecure">ناامن</string>
-    <string name="deprecated">Deprecated</string>
+    <string name="deprecated">منسوخ شده</string>
     <!-- tasker -->
     <!-- status -->
-    <string name="connecting">برقراری ارتباط…</string>
+    <string name="connecting">درحال اتصال…</string>
     <string name="vpn_connected">متصل است، برای بررسی اتصال ضربه بزنید</string>
-    <string name="not_connected">Not connected</string>
+    <string name="not_connected">متصل نیست</string>
     <!-- subscriptions -->
     <string name="subscriptions">اشتراک ها</string>
-    <string name="cleartext_http_warning">ترافیک HTTP Cleartext ناامن است</string>
+    <string name="cleartext_http_warning">ترافیک متن ساده HTTP ناامن است</string>
     <string name="error_title">خطا</string>
-    <string name="no_proxies_found">هیچ پروکسی در پیوند یافت نشد</string>
+    <string name="no_proxies_found">هیچ پروکسی در لینک یافت نشد</string>
     <string name="no_proxies_found_in_subscription">هیچ پروکسی در اشتراک یافت نشد</string>
     <string name="no_proxies_found_in_file">هیچ پروکسی در فایل یافت نشد</string>
     <string name="no_proxies_found_in_clipboard">هیچ پروکسی در کلیپ بورد یافت نشد</string>
     <string name="deduplication">کپی برداری</string>
-    <string name="ignore_battery_optimizations">بهینه سازی باتری را نادیده بگیرید</string>
-    <string name="ignore_battery_optimizations_sum">برخی محدودیت ها را بردارید</string>
+    <string name="ignore_battery_optimizations">نادیده گیری بهینه سازی باتری</string>
+    <string name="ignore_battery_optimizations_sum">برداشتن برخی محدودیت ها</string>
     <!-- plugin -->
     <string name="plugin">پلاگین</string>
     <string name="plugin_configure">پیکربندی…</string>
-    <string name="plugin_disabled">غیر فعال شده</string>
-    <string name="plugin_unknown">افزونه ناشناخته %s</string>
+    <string name="plugin_disabled">غیرفعال شده</string>
+    <string name="plugin_unknown">%s افزونه ناشناخته است</string>
     <string name="plugin_untrusted">هشدار: به نظر نمی رسد این افزونه از یک منبع معتبر شناخته شده
         باشد.
     </string>
-    <string name="plugin_auto_connect_unlock_only">این افزونه ممکن است با Auto Connect کار نکند
-    </string>
+    <string name="plugin_auto_connect_unlock_only">این افزونه ممکن است با اتصال خودکار کار نکند</string>
     <string name="proxy_cat">تنظیمات سرور</string>
-    <string name="ss_cat">تنظیمات Shadowsocks</string>
+    <string name="ss_cat">تنظیمات شدوساکس</string>
     <string name="unsaved_changes_prompt">تغییرات ذخیره نشد. آیا می خواهید ذخیره کنید؟</string>
     <string name="yes">آره</string>
     <string name="no">نه</string>
     <string name="apply">اعمال کردن</string>
-    <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگیری کنید</string>
+    <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگذاری کنید</string>
     <string name="license">مجوز</string>
     <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در
         غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.
     </string>
-    <string name="lines">%d خطوط</string>
+    <string name="lines">%d خط</string>
     <string name="night_mode">حالت شب</string>
-    <string name="follow_system">سیستم را دنبال کنید</string>
+    <string name="follow_system">دنبال کردن سیستم</string>
     <string name="enable">فعال کردن</string>
-    <string name="disable">غیر فعال</string>
+    <string name="disable">غیرفعال کردن</string>
     <string name="auto">خودکار</string>
     <string name="enable_log">Log را فعال کنید</string>
     <string name="enable_log_sum">برای اهداف اشکال زدایی</string>
@@ -482,4 +479,5 @@
     <string name="app_name">husi</string>
     <string name="app_name_long">husi برای اندروید</string>
     <string name="menu_dashboard">داشبورد sing-box</string>
+    <string name="mux_sum">Mux برای کاهش تأخیر در ارتباط TCP طراحی شده است، نه برای افزایش توان اتصال. استفاده از Mux برای تماشای فیلم، دانلود یا تست سرعت معمولاً نتیجه‌ای ندارد. اگر سرور از آن پشتیبانی نکند، نمی توانید به اینترنت دسترسی داشته باشید.</string>
 </resources>
