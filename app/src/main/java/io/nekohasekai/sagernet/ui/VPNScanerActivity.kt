@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutVpnScanerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
@@ -19,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import libcore.Libcore
-import org.jf.dexlib2.dexbacked.DexBackedDexFile
 import java.io.File
 import java.util.zip.ZipFile
 import kotlin.math.roundToInt
