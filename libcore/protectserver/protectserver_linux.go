@@ -1,15 +1,14 @@
 package protectserver
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
-	"reflect"
 	"syscall"
 
 	"github.com/sagernet/sing/common/debug"
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
 func getOneFd(socket int) (int, error) {
@@ -25,24 +24,31 @@ func getOneFd(socket int) (int, error) {
 	msgs, _ = syscall.ParseSocketControlMessage(buf)
 
 	if len(msgs) != 1 {
-		return 0, fmt.Errorf("invaild msgs count: %d", len(msgs))
+		return 0, E.New("invalid msgs count: ", len(msgs))
 	}
 
 	var fds []int
 	fds, _ = syscall.ParseUnixRights(&msgs[0])
 	if len(fds) != 1 {
-		return 0, fmt.Errorf("invaild fds count: %d", len(fds))
+		return 0, E.New("invalid fds count: ", len(fds))
 	}
 	return fds[0], nil
 }
 
+type fileGetter interface {
+	File() (*os.File, error)
+}
+
 // GetFdFromConn get net.Conn's file descriptor.
-func GetFdFromConn(l net.Conn) int {
-	v := reflect.ValueOf(l)
-	netFD := reflect.Indirect(reflect.Indirect(v).FieldByName("fd"))
-	pfd := reflect.Indirect(netFD.FieldByName("pfd"))
-	fd := int(pfd.FieldByName("Sysfd").Int())
-	return fd
+func GetFdFromConn(conn net.Conn) int {
+	if f, ok := conn.(fileGetter); ok {
+		file, err := f.File()
+		if err == nil {
+			return int(file.Fd())
+		}
+	}
+
+	return -1
 }
 
 func ServeProtect(path string, fwmark int, protectCtl func(fd int)) io.Closer {
@@ -50,16 +56,16 @@ func ServeProtect(path string, fwmark int, protectCtl func(fd int)) io.Closer {
 		log.Println("ServeProtect", path, fwmark)
 	}
 
-	os.Remove(path)
+	_ = os.Remove(path)
 	l, err := net.ListenUnix("unix", &net.UnixAddr{Name: path, Net: "unix"})
 	if err != nil {
 		log.Fatal(err)
 	}
-	os.Chmod(path, 0777)
+	_ = os.Chmod(path, 0777)
 
 	go func(ctl func(fd int)) {
 		for {
-			c, err := l.Accept()
+			conn, err := l.Accept()
 			if err != nil {
 				if debug.Enabled {
 					log.Println("protect server accept:", err)
@@ -68,8 +74,14 @@ func ServeProtect(path string, fwmark int, protectCtl func(fd int)) io.Closer {
 			}
 
 			go func() {
-				socket := GetFdFromConn(c)
-				defer c.Close()
+				socket := GetFdFromConn(conn)
+				defer conn.Close()
+				if socket < 0 {
+					if debug.Enabled {
+						log.Println("didn't find socket fd")
+					}
+					return
+				}
 
 				fd, err := getOneFd(socket)
 				if err != nil {
@@ -82,7 +94,8 @@ func ServeProtect(path string, fwmark int, protectCtl func(fd int)) io.Closer {
 
 				if ctl == nil {
 					// linux
-					if err := syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_MARK, fwmark); err != nil {
+					err := syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_MARK, fwmark)
+					if debug.Enabled && err != nil {
 						log.Println("protect server syscall.SetsockoptInt:", err)
 					}
 				} else {
@@ -91,9 +104,9 @@ func ServeProtect(path string, fwmark int, protectCtl func(fd int)) io.Closer {
 				}
 
 				if err == nil {
-					c.Write([]byte{1})
+					_, _ = conn.Write([]byte{1})
 				} else {
-					c.Write([]byte{0})
+					_, _ = conn.Write([]byte{0})
 				}
 			}()
 		}
