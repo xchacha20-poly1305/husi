@@ -50,9 +50,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	if maxLogSizeKb < 50 {
 		maxLogSizeKb = 50
 	}
-	logWriterDisable = !logEnable
-	truncateOnStart = isBgProcess
-	setupLog(int64(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"))
+	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"), logEnable, isBgProcess)
 
 	// nekoutils
 	nekoutils.Selector_OnProxySelected = intfNB4A.Selector_OnProxySelected
