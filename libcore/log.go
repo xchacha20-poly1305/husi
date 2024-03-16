@@ -13,6 +13,22 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
+func LogDebug(l string) {
+	boxlog.Debug(l)
+}
+
+func LogInfo(l string) {
+	boxlog.Info(l)
+}
+
+func LogWarning(l string) {
+	boxlog.Warn(l)
+}
+
+func LogError(l string) {
+	boxlog.Error(l)
+}
+
 var platformLogWrapper *logWriter
 
 func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (err error) {
@@ -82,7 +98,7 @@ func (w *logWriter) DisableColors() bool {
 }
 
 func (w *logWriter) WriteMessage(level boxlog.Level, message string) {
-	_, _ = io.WriteString(w, fmt.Sprintf("%s\n", message))
+	_, _ = io.WriteString(w.writer, fmt.Sprintf("%s\n", message))
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -98,7 +114,7 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 		_ = syscall.Flock(fd, syscall.LOCK_EX)
 		defer syscall.Flock(fd, syscall.LOCK_UN)
 	}
-	return w.Write(p)
+	return w.writer.Write(p)
 }
 
 func (w *logWriter) truncate() {
