@@ -324,6 +324,61 @@ class AppManagerActivity : ThemedActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    private val skipPrefixList = listOf(
+        "com.google",
+        "com.android.chrome",
+        "com.android.vending",
+        "com.microsoft",
+        "com.apple",
+        "com.zhiliaoapp.musically", // Banned by China
+    )
+
+    private val chinaAppPrefixList = listOf(
+        "com.tencent",
+        "com.alibaba",
+        "com.umeng",
+        "com.qihoo",
+        "com.ali",
+        "com.alipay",
+        "com.amap",
+        "com.sina",
+        "com.weibo",
+        "com.vivo",
+        "com.xiaomi",
+        "com.huawei",
+        "com.taobao",
+        "com.secneo",
+        "s.h.e.l.l",
+        "com.stub",
+        "com.kiwisec",
+        "com.secshell",
+        "com.wrapper",
+        "cn.securitystack",
+        "com.mogosec",
+        "com.secoen",
+        "com.netease",
+        "com.mx",
+        "com.qq.e",
+        "com.baidu",
+        "com.bytedance",
+        "com.bugly",
+        "com.miui",
+        "com.oppo",
+        "com.coloros",
+        "com.iqoo",
+        "com.meizu",
+        "com.gionee",
+        "cn.nubia",
+        "com.oplus",
+        "andes.oplus",
+        "com.unionpay",
+        "cn.wps"
+    )
+
+    private val chinaAppRegex by lazy {
+        ("(" + chinaAppPrefixList.joinToString("|").replace(".", "\\.") + ").*").toRegex()
+    }
+
     @SuppressLint("SetTextI18n")
     private fun scanChinaApps() {
 
@@ -339,55 +394,6 @@ class AppManagerActivity : ThemedActivity() {
 
         runOnDefaultDispatcher {
             val chinaApps = ArrayList<Pair<PackageInfo, String>>()
-            val skipPrefixList = listOf(
-                "com.google",
-                "com.android.chrome",
-                "com.android.vending",
-                "com.microsoft",
-                "com.apple",
-                "com.zhiliaoapp.musically", // tiktok is banned by China
-            )
-            val chinaRegex = ("(" + arrayOf(
-                "com.tencent",
-                "com.alibaba",
-                "com.umeng",
-                "com.qihoo",
-                "com.ali",
-                "com.alipay",
-                "com.amap",
-                "com.sina",
-                "com.weibo",
-                "com.vivo",
-                "com.xiaomi",
-                "com.huawei",
-                "com.taobao",
-                "com.secneo",
-                "s.h.e.l.l",
-                "com.stub",
-                "com.kiwisec",
-                "com.secshell",
-                "com.wrapper",
-                "cn.securitystack",
-                "com.mogosec",
-                "com.secoen",
-                "com.netease",
-                "com.mx",
-                "com.qq.e",
-                "com.baidu",
-                "com.bytedance",
-                "com.bugly",
-                "com.miui",
-                "com.oppo",
-                "com.coloros",
-                "com.iqoo",
-                "com.meizu",
-                "com.gionee",
-                "cn.nubia",
-                "com.oplus",
-                "andes.oplus",
-                "com.unionpay",
-                "cn.wps"
-            ).joinToString("|") { "${it.replace(".", "\\.")}\\." } + ").*").toRegex()
 
             val bypass = DataStore.bypassMode
             val cachedApps = cachedApps
@@ -432,7 +438,7 @@ class AppManagerActivity : ThemedActivity() {
                                     .replace("/", ".")
                                     .replace("$", ".")
 
-                                if (clazzName.matches(chinaRegex)) {
+                                if (clazzName.matches(chinaAppRegex)) {
                                     chinaApps.add(
                                         app to app.applicationInfo.loadLabel(packageManager)
                                             .toString()
