@@ -531,4 +531,5 @@
     <string name="dns_mode_precise">精準查詢（高查詢耗時）</string>
     <string name="test_timeout">測試逾時 (毫秒)</string>
     <string name="direct_dns_client_subnet">直接 EDNS 客戶端子網</string>
+    <string name="blurred_address">讓伺服器位址變得模糊</string>
 </resources>
