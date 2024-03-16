@@ -21,6 +21,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.iface.DexFile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
@@ -43,8 +45,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.internal.closeQuietly
-import org.jf.dexlib2.dexbacked.DexBackedDexFile
-import org.jf.dexlib2.iface.DexFile
 import java.io.File
 import java.util.zip.ZipException
 import java.util.zip.ZipFile
