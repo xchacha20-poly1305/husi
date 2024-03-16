@@ -6,7 +6,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.SparseBooleanArray
 import android.view.*
 import android.widget.Filter
@@ -21,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
@@ -31,7 +34,6 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAppsBinding
 import io.nekohasekai.sagernet.databinding.LayoutAppsItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutLoadingBinding
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.crossFadeFrom
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -42,11 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import okhttp3.internal.closeQuietly
-import org.jf.dexlib2.dexbacked.DexBackedDexFile
-import org.jf.dexlib2.iface.DexFile
 import java.io.File
-import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import kotlin.coroutines.coroutineContext
 
@@ -339,45 +337,8 @@ class AppManagerActivity : ThemedActivity() {
 
         runOnDefaultDispatcher {
             val chinaApps = ArrayList<Pair<PackageInfo, String>>()
-            val chinaRegex = ("(" + arrayOf(
-                "com.tencent",
-                "com.alibaba",
-                "com.umeng",
-                "com.qihoo",
-                "com.ali",
-                "com.alipay",
-                "com.amap",
-                "com.sina",
-                "com.weibo",
-                "com.vivo",
-                "com.xiaomi",
-                "com.huawei",
-                "com.taobao",
-                "com.secneo",
-                "s.h.e.l.l",
-                "com.stub",
-                "com.kiwisec",
-                "com.secshell",
-                "com.wrapper",
-                "cn.securitystack",
-                "com.mogosec",
-                "com.secoen",
-                "com.netease",
-                "com.mx",
-                "com.qq.e",
-                "com.baidu",
-                "com.bytedance",
-                "com.bugly",
-                "com.miui",
-                "com.oppo",
-                "com.coloros",
-                "com.iqoo",
-                "com.meizu",
-                "com.gionee",
-                "cn.nubia"
-            ).joinToString("|") { "${it.replace(".", "\\.")}\\." } + ").*").toRegex()
 
-            val bypass = DataStore.bypassMode
+            val bypass by lazy { DataStore.bypassMode }
             val cachedApps = cachedApps
 
             apps = cachedApps.map { (packageName, packageInfo) ->
@@ -390,9 +351,8 @@ class AppManagerActivity : ThemedActivity() {
                     continue
                 }*/
 
-                val index =
-                    appsAdapter.filteredApps.indexOfFirst { it.uid == app.applicationInfo.uid }
-                var changed = false
+                // val index = appsAdapter.filteredApps.indexOfFirst { it.uid == app.applicationInfo.uid }
+                // var changed = false
 
                 onMainDispatcher {
                     text.text = (txt + " " + app.packageName + "\n\n" + chinaApps.map { it.second }
@@ -400,57 +360,16 @@ class AppManagerActivity : ThemedActivity() {
                         .joinToString("\n", postfix = "\n")).trim()
                 }
 
-                try {
-
-                    val dex = File(app.applicationInfo.publicSourceDir)
-                    val zipFile = ZipFile(dex)
-                    var dexFile: DexFile
-
-                    for (entry in zipFile.entries()) {
-                        if (entry.name.startsWith("classes") && entry.name.endsWith(".dex")) {
-                            val input = zipFile.getInputStream(entry).readBytes()
-                            dexFile = try {
-                                DexBackedDexFile.fromInputStream(null, input.inputStream())
-                            } catch (e: Exception) {
-                                Logs.w(e)
-                                break
-                            }
-                            for (clazz in dexFile.classes) {
-                                val clazzName = clazz.type.substring(1, clazz.type.length - 1)
-                                    .replace("/", ".")
-                                    .replace("$", ".")
-
-                                if (clazzName.matches(chinaRegex)) {
-                                    chinaApps.add(
-                                        app to app.applicationInfo.loadLabel(packageManager)
-                                            .toString()
-                                    )
-                                    zipFile.closeQuietly()
-
-                                    if (bypass) {
-                                        changed = !proxiedUids[app.applicationInfo.uid]
-                                        proxiedUids[app.applicationInfo.uid] = true
-                                    } else {
-                                        proxiedUids.delete(app.applicationInfo.uid)
-                                    }
-
-                                    continue@scan
-                                }
-                            }
-                        }
-                    }
-                    zipFile.closeQuietly()
-
+                if (isChinaApp(app.packageName)) {
+                    chinaApps.add(
+                        app to app.applicationInfo.loadLabel(packageManager).toString()
+                    )
                     if (bypass) {
-                        proxiedUids.delete(app.applicationInfo.uid)
-                    } else {
-                        changed = !proxiedUids[index]
+                        // changed = !proxiedUids[app.applicationInfo.uid]
                         proxiedUids[app.applicationInfo.uid] = true
+                    } else {
+                        proxiedUids.delete(app.applicationInfo.uid)
                     }
-
-                } catch (e: ZipException) {
-                    Logs.w("Error in pkg ${app.packageName}:${app.versionName}", e)
-                    continue
                 }
 
             }
@@ -469,6 +388,156 @@ class AppManagerActivity : ThemedActivity() {
         }
 
 
+    }
+
+    private val skipPrefixList by lazy {
+        listOf(
+            "com.google",
+            "com.android.chrome",
+            "com.android.vending",
+            "com.microsoft",
+            "com.apple",
+            "com.zhiliaoapp.musically", // Banned by China
+        )
+    }
+
+    private val chinaAppPrefixList by lazy {
+        listOf(
+            "com.tencent",
+            "com.alibaba",
+            "com.umeng",
+            "com.qihoo",
+            "com.ali",
+            "com.alipay",
+            "com.amap",
+            "com.sina",
+            "com.weibo",
+            "com.vivo",
+            "com.xiaomi",
+            "com.huawei",
+            "com.taobao",
+            "com.secneo",
+            "s.h.e.l.l",
+            "com.stub",
+            "com.kiwisec",
+            "com.secshell",
+            "com.wrapper",
+            "cn.securitystack",
+            "com.mogosec",
+            "com.secoen",
+            "com.netease",
+            "com.mx",
+            "com.qq.e",
+            "com.baidu",
+            "com.bytedance",
+            "com.bugly",
+            "com.miui",
+            "com.oppo",
+            "com.coloros",
+            "com.iqoo",
+            "com.meizu",
+            "com.gionee",
+            "cn.nubia",
+            "com.oplus",
+            "andes.oplus",
+            "com.unionpay",
+            "cn.wps"
+        )
+    }
+
+    private val chinaAppRegex by lazy {
+        ("(" + chinaAppPrefixList.joinToString("|").replace(".", "\\.") + ").*").toRegex()
+    }
+
+    private fun isChinaApp(packageName: String): Boolean {
+        skipPrefixList.forEach {
+            if (packageName == it || packageName.startsWith("$it.")) return false
+        }
+
+        val packageManagerFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
+        } else {
+            @Suppress("DEPRECATION") PackageManager.GET_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
+        }
+        if (packageName.matches(chinaAppRegex)) {
+            Log.d("PerAppProxyActivity", "Match package name: $packageName")
+            return true
+        }
+        try {
+            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                SagerNet.application.packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.PackageInfoFlags.of(packageManagerFlags.toLong())
+                )
+            } else {
+                @Suppress("DEPRECATION") SagerNet.application.packageManager.getPackageInfo(
+                    packageName, packageManagerFlags
+                )
+            }
+            packageInfo.services?.forEach {
+                if (it.name.matches(chinaAppRegex)) {
+                    Log.d("PerAppProxyActivity", "Match service ${it.name} in $packageName")
+                    return true
+                }
+            }
+            packageInfo.activities?.forEach {
+                if (it.name.matches(chinaAppRegex)) {
+                    Log.d("PerAppProxyActivity", "Match activity ${it.name} in $packageName")
+                    return true
+                }
+            }
+            packageInfo.receivers?.forEach {
+                if (it.name.matches(chinaAppRegex)) {
+                    Log.d("PerAppProxyActivity", "Match receiver ${it.name} in $packageName")
+                    return true
+                }
+            }
+            packageInfo.providers?.forEach {
+                if (it.name.matches(chinaAppRegex)) {
+                    Log.d("PerAppProxyActivity", "Match provider ${it.name} in $packageName")
+                    return true
+                }
+            }
+            ZipFile(File(packageInfo.applicationInfo.publicSourceDir)).use {
+                for (packageEntry in it.entries()) {
+                    if (packageEntry.name.startsWith("firebase-")) return false
+                }
+                for (packageEntry in it.entries()) {
+                    if (!(packageEntry.name.startsWith("classes") && packageEntry.name.endsWith(
+                            ".dex"
+                        ))
+                    ) {
+                        continue
+                    }
+                    if (packageEntry.size > 15000000) {
+                        Log.d(
+                            "PerAppProxyActivity",
+                            "Confirm $packageName due to large dex file"
+                        )
+                        return true
+                    }
+                    val input = it.getInputStream(packageEntry).buffered()
+                    val dexFile = try {
+                        DexBackedDexFile.fromInputStream(null, input)
+                    } catch (e: Exception) {
+                        Log.e("PerAppProxyActivity", "Error reading dex file", e)
+                        return false
+                    }
+                    for (clazz in dexFile.classes) {
+                        val clazzName =
+                            clazz.type.substring(1, clazz.type.length - 1).replace("/", ".")
+                                .replace("$", ".")
+                        if (clazzName.matches(chinaAppRegex)) {
+                            Log.d("PerAppProxyActivity", "Match $clazzName in $packageName")
+                            return true
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PerAppProxyActivity", "Error scanning package $packageName", e)
+        }
+        return false
     }
 
     override fun supportNavigateUpTo(upIntent: Intent) =
