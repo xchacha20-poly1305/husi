@@ -339,6 +339,14 @@ class AppManagerActivity : ThemedActivity() {
 
         runOnDefaultDispatcher {
             val chinaApps = ArrayList<Pair<PackageInfo, String>>()
+            val skipPrefixList = listOf(
+                "com.google",
+                "com.android.chrome",
+                "com.android.vending",
+                "com.microsoft",
+                "com.apple",
+                "com.zhiliaoapp.musically", // tiktok is banned by China
+            )
             val chinaRegex = ("(" + arrayOf(
                 "com.tencent",
                 "com.alibaba",
@@ -374,7 +382,11 @@ class AppManagerActivity : ThemedActivity() {
                 "com.iqoo",
                 "com.meizu",
                 "com.gionee",
-                "cn.nubia"
+                "cn.nubia",
+                "com.oplus",
+                "andes.oplus",
+                "com.unionpay",
+                "cn.wps"
             ).joinToString("|") { "${it.replace(".", "\\.")}\\." } + ").*").toRegex()
 
             val bypass = DataStore.bypassMode
