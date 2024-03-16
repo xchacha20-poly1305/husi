@@ -418,6 +418,10 @@ class AppManagerActivity : ThemedActivity() {
                         .joinToString("\n", postfix = "\n")).trim()
                 }
 
+                for (sp in skipPrefixList) {
+                    if (app.packageName == sp || app.packageName.startsWith("$sp.")) continue@scan
+                }
+
                 try {
 
                     val dex = File(app.applicationInfo.publicSourceDir)
