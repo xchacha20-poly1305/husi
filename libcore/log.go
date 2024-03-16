@@ -14,10 +14,8 @@ import (
 )
 
 var platformLogWrapper *logWriter
-var logWriterDisable = false
-var truncateOnStart = true
 
-func setupLog(maxSize int64, path string) (err error) {
+func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (err error) {
 	if platformLogWrapper != nil {
 		return
 	}
@@ -26,7 +24,7 @@ func setupLog(maxSize int64, path string) (err error) {
 	f, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
 	if err == nil {
 		fd := int(f.Fd())
-		if truncateOnStart {
+		if !notTruncateOnStart {
 			_ = syscall.Flock(fd, syscall.LOCK_EX)
 			// Check if need truncate
 			if size, _ := f.Seek(0, io.SeekEnd); size > maxSize {
@@ -53,8 +51,10 @@ func setupLog(maxSize int64, path string) (err error) {
 	}
 
 	//
-	platformLogWrapper = &logWriter{}
-	platformLogWrapper.writers = []io.Writer{f}
+	platformLogWrapper = &logWriter{
+		disable: !enableLog,
+		writer:  f,
+	}
 	// setup std log
 	log.SetFlags(log.LstdFlags | log.LUTC)
 	log.SetOutput(platformLogWrapper)
@@ -73,7 +73,8 @@ func setupLog(maxSize int64, path string) (err error) {
 var _ boxlog.PlatformWriter = (*logWriter)(nil)
 
 type logWriter struct {
-	writers []io.Writer
+	disable bool
+	writer  io.Writer
 }
 
 func (w *logWriter) DisableColors() bool {
@@ -87,68 +88,29 @@ func (w *logWriter) WriteMessage(level boxlog.Level, message string) {
 var _ io.Writer = (*logWriter)(nil)
 
 func (w *logWriter) Write(p []byte) (n int, err error) {
-	if !logWriterDisable {
-		for _, w := range w.writers {
-			if w == nil {
-				continue
-			}
-			var fd int
-			f, isFile := w.(*os.File)
-			if isFile {
-				fd = int(f.Fd())
-				_ = syscall.Flock(fd, syscall.LOCK_EX)
-			}
-			_, _ = w.Write(p)
-			if isFile {
-				_ = syscall.Flock(fd, syscall.LOCK_UN)
-			}
-		}
+	if w.disable || w.writer == nil {
+		return len(p), nil
 	}
-	return len(p), nil
-}
 
-var _ io.StringWriter = (*logWriter)(nil)
-
-func (w *logWriter) WriteString(s string) (n int, err error) {
-	if !logWriterDisable {
-		for _, w := range w.writers {
-			if w == nil {
-				continue
-			}
-			var fd int
-			f, isFile := w.(*os.File)
-			if isFile {
-				fd = int(f.Fd())
-				_ = syscall.Flock(fd, syscall.LOCK_EX)
-			}
-			_, _ = io.WriteString(w, s)
-			if isFile {
-				_ = syscall.Flock(fd, syscall.LOCK_UN)
-			}
-		}
+	f, isFile := w.writer.(*os.File)
+	if isFile {
+		fd := int(f.Fd())
+		_ = syscall.Flock(fd, syscall.LOCK_EX)
+		defer syscall.Flock(fd, syscall.LOCK_UN)
 	}
-	return len(s), nil
+	return w.Write(p)
 }
 
 func (w *logWriter) truncate() {
-	for _, w := range w.writers {
-		if w == nil {
-			continue
-		}
-		if f, ok := w.(*os.File); ok {
-			_ = f.Truncate(0)
-		}
+	if f, ok := w.writer.(*os.File); ok {
+		_ = f.Truncate(0)
 	}
 }
 
 func (w *logWriter) Close() error {
-	for _, w := range w.writers {
-		if w == nil {
-			continue
-		}
-		if f, ok := w.(*os.File); ok {
-			_ = f.Close()
-		}
+	if f, ok := w.writer.(*os.File); ok {
+		return f.Close()
 	}
+
 	return nil
 }
