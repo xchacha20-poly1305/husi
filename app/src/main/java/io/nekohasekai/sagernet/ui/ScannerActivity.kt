@@ -316,12 +316,11 @@ class ScannerActivity : ThemedActivity() {
 
             // Switch front or back camera.
             R.id.action_camera_switch -> {
+                useFront = !useFront
                 val cameraSelector = if (useFront) {
-                    useFront = false
-                    CameraSelector.DEFAULT_BACK_CAMERA
-                } else {
-                    useFront = true
                     CameraSelector.DEFAULT_FRONT_CAMERA
+                } else {
+                    CameraSelector.DEFAULT_BACK_CAMERA
                 }
                 cameraProvider.unbindAll()
                 try {
