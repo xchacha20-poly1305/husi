@@ -70,7 +70,8 @@ class TileService : BaseTileService(), SagerConnection.Callback {
                     state = Tile.STATE_UNAVAILABLE
                 }
 
-                BaseService.State.Stopped -> {
+                // Stopped
+                else -> {
                     icon = iconIdle
                     state = Tile.STATE_INACTIVE
                 }

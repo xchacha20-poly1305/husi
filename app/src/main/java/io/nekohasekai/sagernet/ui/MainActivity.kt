@@ -9,14 +9,14 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import android.os.RemoteException
-import android.util.Log
+import android.text.Html
 import android.view.KeyEvent
 import android.view.MenuItem
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.IdRes
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -43,6 +43,7 @@ import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListHolderListener
+import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
 
@@ -120,26 +121,6 @@ class MainActivity : ThemedActivity(),
             }
         }
 
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(
-                    this, Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            ) {
-                ActivityCompat.requestPermissions(
-                    this@MainActivity,
-                    arrayOf(
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                    ),
-                    0
-                )
-            }
-//            requestLocationPermission0()
-        }
-
         // consent
         try {
             val f = File(application.filesDir, "consent")
@@ -160,50 +141,7 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    /*
-    private val locationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
-    private fun requestLocationPermission0() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            openPermissionSettings()
-        }
-    }
-
-    private fun openPermissionSettings() {
-        if (!getSystemProperty("ro.miui.ui.version.name").isNullOrBlank()) {
-            val intent = Intent("miui.intent.action.APP_PERM_EDITOR")
-            intent.putExtra("extra_package_uid", Process.myUid())
-            intent.putExtra("extra_pkgname", packageName)
-            try {
-                startActivity(intent)
-                return
-            } catch (ignored: Exception) {
-            }
-        }
-
-        try {
-            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = Uri.parse("package:$packageName")
-            startActivity(intent)
-        } catch (e: Exception) {
-            Log.e("permission", e.toString())
-            snackbar(e.toString())
-        }
-    }
-     */
-
-    @SuppressLint("PrivateApi")
-    fun getSystemProperty(key: String?): String? {
-        try {
-            return Class.forName("android.os.SystemProperties").getMethod("get", String::class.java)
-                .invoke(null, key) as String
-        } catch (ignored: Exception) {
-        }
-        return null
-    }
 
     fun refreshNavMenu(clashApi: Boolean) {
         if (::navigation.isInitialized) {
@@ -437,6 +375,7 @@ class MainActivity : ThemedActivity(),
         animate: Boolean = false,
     ) {
         DataStore.serviceState = state
+        if (state == BaseService.State.RequiredLocation) requestLocationPermission()
 
         binding.fab.changeState(state, DataStore.serviceState, animate)
         binding.stats.changeState(state)
@@ -549,4 +488,93 @@ class MainActivity : ThemedActivity(),
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
+
+    // 入口
+    private fun requestLocationPermission() {
+        Logs.d("start getting location")
+        if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            requestFineLocationPermission()
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            requestBackgroundLocationPermission()
+        }
+    }
+
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            if (it) {
+                if (it && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    requestBackgroundLocationPermission()
+                }
+            }
+        }
+
+    private val backgroundLocationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
+    private fun requestFineLocationPermission() {
+        val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Html.fromHtml(
+                getString(R.string.location_permission_description),
+                Html.FROM_HTML_MODE_LEGACY
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            Html.fromHtml(getString(R.string.location_permission_description))
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.location_permission_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                requestFineLocationPermission0()
+            }
+            .setNegativeButton(R.string.no_thanks, null)
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun requestFineLocationPermission0() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            openPermissionSettings()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun requestBackgroundLocationPermission() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.location_permission_title)
+            .setMessage(
+                Html.fromHtml(
+                    getString(R.string.location_permission_background_description),
+                    Html.FROM_HTML_MODE_LEGACY
+                )
+            )
+            .setPositiveButton(R.string.ok) { _, _ ->
+                backgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            }
+            .setNegativeButton(R.string.no_thanks, null)
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun openPermissionSettings() {
+        if (MIUIUtils.isMIUI) {
+            try {
+                MIUIUtils.openPermissionSettings(this)
+                return
+            } catch (ignored: Exception) {
+            }
+        }
+
+        try {
+            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.data = Uri.parse("package:$packageName")
+            startActivity(intent)
+        } catch (e: Exception) {
+            Logs.e(e.readableMessage)
+            snackbarInternal(e.readableMessage)
+        }
+    }
+
 }

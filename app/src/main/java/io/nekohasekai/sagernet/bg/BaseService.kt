@@ -36,7 +36,12 @@ class BaseService {
         /**
          * Idle state is only used by UI and will never be returned by BaseService.
          */
-        Idle, Connecting(true, true, false), Connected(true, true, true), Stopping, Stopped,
+        Idle,
+        Connecting(true, true, false),
+        Connected(true, true, true),
+        Stopping,
+        Stopped,
+        RequiredLocation
     }
 
     interface ExpectedException
@@ -162,6 +167,8 @@ class BaseService {
         }
     }
 
+    public class LocationException(message: String) : Exception(message)
+
     interface Interface {
         val data: Data
         val tag: String
@@ -206,6 +213,17 @@ class BaseService {
 
         suspend fun startProcesses() {
             data.proxy!!.launch()
+            if (data.proxy!!.box.needWIFIState()) {
+                val wifiPermission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                } else {
+                    android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                }
+                if (!(this as Context).hasPermission(wifiPermission)) {
+                    data.proxy!!.close()
+                    throw LocationException("not have location permission")
+                }
+            }
         }
 
         fun startRunner() {
@@ -362,6 +380,10 @@ class BaseService {
                     data.changeState(State.Connected)
 
                     lateInit()
+                } catch (e: LocationException) {
+                    Logs.e(e.readableMessage)
+                    stopRunner(false, e.readableMessage)
+                    data.changeState(State.RequiredLocation)
                 } catch (_: CancellationException) { // if the job was cancelled, it is canceller's responsibility to call stopRunner
                 } catch (_: UnknownHostException) {
                     stopRunner(false, getString(R.string.invalid_server))
