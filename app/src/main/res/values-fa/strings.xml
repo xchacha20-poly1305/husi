@@ -337,52 +337,46 @@
     <string name="ooc_warning">هشدار</string>
     <string name="ooc_missing_protocol">اشتراک به پشتیبانی از پروتکل %s نیاز دارد، اما پیدا نمی شود. نمایه های پشتیبانی نشده نادیده گرفته می شوند.</string>
     <string name="service_subscription">سرویس به‌روزرسانی اشتراک</string>
-    <string name="subscription_update">به روز رسانی اشتراک</string>
-    <string name="subscription_update_message">در حال بروز رسانی %s …</string>
+    <string name="subscription_update">به‌روزرسانی اشتراک</string>
+    <string name="subscription_update_message">در حال به‌روزرسانی %s …</string>
     <string name="group_filter">فیلتر</string>
     <string name="subscription_used">%s استفاده شده</string>
     <string name="subscription_traffic">%s استفاده شده / %s باقی مانده است</string>
     <string name="subscription_expire">انقضا: %s</string>
     <string name="subscription_import">وارد کردن اشتراک</string>
-    <string name="subscription_import_message">تأیید کنید که می خواهید اشتراک را وارد کنید %s? اگر
-        از یک منبع نامعتبر وارد می شوید، انجام این کار ممکن است منجر به لو رفتن IP شما و این رفتار
-        شود.
-    </string>
+    <string name="subscription_import_message">تأیید کنید که می خواهید اشتراک %s را وارد کنید؟ اگر از یک منبع نامعتبر وارد می کنید، انجام این کار ممکن است منجر به لو رفتن IP شما و این رفتار شود.</string>
     <string name="profile_import">وارد کردن پروفایل</string>
-    <string name="profile_import_message">تأیید کنید که می‌خواهید پروفایل را وارد کنید%s؟</string>
+    <string name="profile_import_message">تأیید کنید که می‌خواهید پروفایل %s را وارد کنید؟</string>
     <string name="clear_profiles_message">آیا مطمئن هستید که می خواهید این گروه را پاک کنید؟
     </string>
-    <string name="apps">برنامه ها</string>
-    <string name="select_apps">برنامه ها را انتخاب کنید</string>
-    <string name="apps_message">%d برنامه ها</string>
-    <string name="hysteria_obfs">رمز عبور مبهم</string>
+    <string name="apps">برنامه‌ها</string>
+    <string name="select_apps">انتخاب برنامه‌ها</string>
+    <string name="apps_message">%d برنامه</string>
+    <string name="hysteria_obfs">رمز عبور مبهم‌ساز</string>
     <string name="hysteria_auth_type">نوع احراز هویت</string>
-    <string name="hysteria_auth_payload">احراز هویت ظرفیت ترابری</string>
-    <string name="hysteria_upload_mbps">حداکثر سرعت آپلود (به مگابیت بر ثانیه)</string>
-    <string name="hysteria_download_mbps">حداکثر سرعت دانلود (به مگابیت بر ثانیه)</string>
+    <string name="hysteria_auth_payload">احراز هویت Payload</string>
+    <string name="hysteria_upload_mbps">حداکثر سرعت آپلود (به مگابیت بر ثانیه) (Hysteria)</string>
+    <string name="hysteria_download_mbps">حداکثر سرعت دانلود (به مگابیت بر ثانیه) (Brutal)</string>
     <string name="experimental_settings">تجربی</string>
     <string name="hysteria_stream_receive_window">پنجره دریافت جریان QUIC</string>
     <string name="hysteria_connection_receive_window">پنجره دریافت اتصال QUIC</string>
-    <string name="hysteria_disable_mtu_discovery">Path MTU Discovery را غیرفعال کنید</string>
-    <string name="group_order">سفارش</string>
+    <string name="hysteria_disable_mtu_discovery">غیرفعال کردن مسیر کشف MTU</string>
+    <string name="group_order">ترتیب</string>
     <string name="group_order_origin">مبدا</string>
-    <string name="group_order_by_name">بر اساس اسم</string>
-    <string name="group_order_by_delay">با تاخیر</string>
-    <string name="plugin_exists_but_on_shit_system">پروفایل %s نیاز دارد %s افزونه، اما فروشنده
-        تجهیزات اختصاصی شما (معمولا غول های سرمایه نظارتی و سازنده بدافزار) اندروید شما را دستکاری
-        کرده و باعث غیرقابل استفاده شدن افزونه شده است.
-    </string>
-    <string name="shadowsocks_plugin_simple_obfs">Obfs ساده (افزونه اندروید Shadowsocks)</string>
-    <string name="shadowsocks_plugin_v2ray">V2Ray (افزونه Shadowsocks Android)</string>
-    <string name="tcp_connections">%d اتصالات TCP</string>
-    <string name="udp_connections">%d اتصالات UDP</string>
+    <string name="group_order_by_name">براساس اسم</string>
+    <string name="group_order_by_delay">براساس تاخیر</string>
+    <string name="plugin_exists_but_on_shit_system">پروفایل %s به %s افزونه نیاز دارد، اما فروشنده تجهیزات اختصاصی شما (معمولا غول های سرمایه نظارتی و سازنده بدافزار) اندروید شما را دستکاری کرده و باعث غیرقابل استفاده شدن افزونه شده است.</string>
+    <string name="shadowsocks_plugin_simple_obfs">Obfs ساده (افزونه اندروید شدوساکس)</string>
+    <string name="shadowsocks_plugin_v2ray">V2Ray (افزونه اندروید شدوساکس)</string>
+    <string name="tcp_connections">%d اتصال TCP</string>
+    <string name="udp_connections">%d اتصال UDP</string>
     <string name="copy_label">کپی نام</string>
     <string name="copy_package_name">کپی نام بسته</string>
-    <string name="open_app">اپلیکیشن را باز کن</string>
-    <string name="open_settings">تنظیمات را باز کنید</string>
+    <string name="open_app">باز کردن اپ</string>
+    <string name="open_settings">باز کردن تنظیمات</string>
     <string name="open_market">بازکردن مارکت</string>
     <string name="create_rule">ایجاد قانون</string>
-    <string name="copy_success">کپی موفق!</string>
+    <string name="copy_success">کپی موفق بود!</string>
     <string name="copy_failed">کپی ناموفق بود.</string>
     <string name="app_no_launcher">برنامه هیچ رابطی ندارد.</string>
     <string name="route_for">قانون برای %s</string>
@@ -401,22 +395,18 @@
     <string name="ssh_private_key_passphrase">کلمه عبور کلید خصوصی</string>
     <string name="translate_platform">پلتفرم ترجمه</string>
     <string name="menu_tools">ابزار</string>
-    <string name="menu_log">لاگ ها</string>
-    <string name="clear_logcat">Logcat را پاک کنید</string>
+    <string name="menu_log">لاگ‌ها</string>
+    <string name="clear_logcat">پاک کردن Logcat</string>
     <string name="wireguard_local_address">آدرس محلی</string>
     <string name="wireguard_public_key">کلید عمومی همتا</string>
     <string name="wireguard_psk">کلید از پیش مشترک همتا</string>
-    <string name="warp_license">CloudFlare Warp یک ارائه دهنده رایگان WireGuard VPN است. با استفاده
-        از آن، با TOS موافقت می کنید.
-    </string>
+    <string name="warp_license">CloudFlare Warp یک ارائه دهنده رایگان VPN وایرگارد است. با استفاده از آن، با TOS موافقت می کنید.</string>
     <string name="warp_generate">ایجاد پیکربندی</string>
     <string name="generating">در حال تولید…</string>
     <string name="tun_implementation">پیاده سازی TUN</string>
     <string name="destination_override">لغو مقصد</string>
-    <string name="destination_override_summary">از دامنه sniffed برای بازنویسی آدرس مقصد استفاده
-        کنید، نه فقط برای مسیریابی
-    </string>
-    <string name="resolve_destination">مقصد را حل کنید</string>
+    <string name="destination_override_summary">از دامنه sniff شده برای بازنویسی آدرس مقصد استفاده کنید، نه فقط برای مسیریابی</string>
+    <string name="resolve_destination">حل کردن مقصد</string>
     <string name="resolve_destination_summary">اگر آدرس مقصد یک دامنه باشد، بر اساس استراتژی IPv6
         (تعارض با FakeDNS) از بین می‌رود.
     </string>
@@ -472,6 +462,8 @@
     <string name="app_name">husi</string>
     <string name="app_name_long">husi برای اندروید</string>
     <string name="menu_dashboard">داشبورد sing-box</string>
-    <string name="mux_sum">Mux برای کاهش تأخیر در ارتباط TCP طراحی شده است، نه برای افزایش توان اتصال. استفاده از Mux برای تماشای فیلم، دانلود یا تست سرعت معمولاً نتیجه‌ای ندارد. اگر سرور از آن پشتیبانی نکند، نمی توانید به اینترنت دسترسی داشته باشید.</string>
+    <string name="mux_sum">موکس برای کاهش تأخیر در ارتباط TCP طراحی شده است، نه برای افزایش توان اتصال. استفاده از موکس برای تماشای فیلم، دانلود یا تست سرعت معمولاً نتیجه‌ای ندارد. اگر سرور از آن پشتیبانی نکند، نمی توانید به اینترنت دسترسی داشته باشید.</string>
     <string name="bypass_lan_in_core">دور زدن LAN در هسته</string>
+    <string name="dns_mode">حالت DNS</string>
+    <string name="mux_type">پروتکل Mux</string>
 </resources>
