@@ -253,8 +253,7 @@ class ScannerActivity : ThemedActivity() {
                                     }
                                 }
                             } else {
-                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
                             }
                         } catch (e: SubscriptionFoundException) {
                             startActivity(
@@ -269,8 +268,7 @@ class ScannerActivity : ThemedActivity() {
                         } catch (e: Throwable) {
                             Logs.w(e)
                             onMainDispatcher {
-                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -300,20 +298,47 @@ class ScannerActivity : ThemedActivity() {
         return true
     }
 
+    // Every time camera.cameraInfo.cameraSelector will get different value,
+    // so useFront used to record it.
+    // sfa use select to resolve it.
+    private var useFront = false
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
+        when (item.itemId) {
             R.id.action_import_file -> {
                 startFilesForResult(importCodeFile, "image/*")
-                true
             }
 
             R.id.action_flash -> {
                 val enableFlash = camera.cameraInfo.torchState.value == TorchState.ON
                 camera.cameraControl.enableTorch(!enableFlash)
-                true
             }
 
-            else -> super.onOptionsItemSelected(item)
+            // Switch front or back camera.
+            R.id.action_camera_switch -> {
+                val cameraSelector = if (useFront) {
+                    useFront = false
+                    CameraSelector.DEFAULT_BACK_CAMERA
+                } else {
+                    useFront = true
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                }
+                cameraProvider.unbindAll()
+                try {
+                    camera = cameraProvider.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        cameraPreview,
+                        imageAnalysis
+                    )
+                } catch (e: Exception) {
+                    fatalError(e)
+                }
+            }
+
+            else -> return super.onOptionsItemSelected(item)
         }
+
+        return true
     }
 }

@@ -11,4 +11,9 @@
           android:icon="@drawable/ic_baseline_camera_24"
           android:alphabeticShortcut="o"
           app:showAsAction="always"/>
+    <item android:id="@+id/action_camera_switch"
+          android:title="@string/action_camera_switch"
+          android:icon="@drawable/ic_baseline_refresh_24"
+          android:alphabeticShortcut="o"
+          app:showAsAction="always"/>
 </menu>
