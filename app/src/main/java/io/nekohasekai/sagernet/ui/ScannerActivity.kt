@@ -20,33 +20,30 @@
 
 package io.nekohasekai.sagernet.ui
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.content.Intent
-import android.content.pm.ActivityInfo
-import android.content.pm.ShortcutManager
+import android.content.pm.PackageManager
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.KeyEvent
-import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.getSystemService
-import androidx.core.view.isGone
-import com.google.android.material.snackbar.Snackbar
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.qrcode.QRCodeReader
-import com.journeyapps.barcodescanner.BarcodeCallback
-import com.journeyapps.barcodescanner.BarcodeResult
-import com.journeyapps.barcodescanner.CaptureManager
-import com.journeyapps.barcodescanner.MixedDecoder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -54,22 +51,22 @@ import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListHolderListener
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 
-class ScannerActivity : ThemedActivity(),
-    BarcodeCallback {
+class ScannerActivity : ThemedActivity() {
 
-    lateinit var capture: CaptureManager
-    lateinit var binding: LayoutScannerBinding
+    private lateinit var analysisExecutor: ExecutorService
+    private lateinit var binding: LayoutScannerBinding
 
-    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
-        if (Build.VERSION.SDK_INT >= 25) getSystemService<ShortcutManager>()!!.reportShortcutUsed("scan")
+
         binding = LayoutScannerBinding.inflate(layoutInflater)
+
+        setTitle(R.string.add_profile_methods_scan_qr_code)
+
         setContentView(binding.root)
         ListHolderListener.setup(this)
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -78,26 +75,114 @@ class ScannerActivity : ThemedActivity(),
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
-        binding.barcodeScanner.statusView.isGone = true
-        binding.barcodeScanner.viewFinder.isGone = true
-        binding.barcodeScanner.barcodeView.setDecoderFactory {
-            MixedDecoder(QRCodeReader())
+        analysisExecutor = Executors.newSingleThreadExecutor()
+        binding.previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        binding.previewView.previewStreamState.observe(this) {
+            if (it === PreviewView.StreamState.STREAMING) {
+                binding.previewView.implementationMode = PreviewView.ImplementationMode.PERFORMANCE
+            }
+        }
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            startCamera()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                startCamera()
+            } else {
+                setResult(RESULT_CANCELED)
+                finish()
+            }
         }
 
-        capture = CaptureManager(this, binding.barcodeScanner)
-        binding.barcodeScanner.decodeSingle(this)
+    private lateinit var imageAnalysis: ImageAnalysis
+    private lateinit var imageAnalyzer: ImageAnalysis.Analyzer
+    private val onSuccess: (String) -> Unit = { rawValue: String ->
+        imageAnalysis.clearAnalyzer()
+        onSuccess(rawValue)
+
     }
 
-    override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(binding.barcodeScanner, text, Snackbar.LENGTH_LONG)
+    private lateinit var cameraProvider: ProcessCameraProvider
+    private lateinit var cameraPreview: Preview
+    private lateinit var camera: Camera
+
+    private fun startCamera() {
+        val cameraProviderFuture = try {
+            ProcessCameraProvider.getInstance(this)
+        } catch (e: Exception) {
+            fatalError(e)
+            return
+        }
+        cameraProviderFuture.addListener({
+            cameraProvider = try {
+                cameraProviderFuture.get()
+            } catch (e: Exception) {
+                fatalError(e)
+                return@addListener
+            }
+
+            cameraPreview = Preview.Builder().build()
+                .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
+            imageAnalysis = ImageAnalysis.Builder().build()
+            imageAnalyzer = ZxingQRCodeAnalyzer(onSuccess, fatalError)
+            imageAnalysis.setAnalyzer(analysisExecutor, imageAnalyzer)
+            cameraProvider.unbindAll()
+
+            try {
+                camera = cameraProvider.bindToLifecycle(
+                    this, CameraSelector.DEFAULT_BACK_CAMERA, cameraPreview, imageAnalysis
+                )
+            } catch (e: Exception) {
+                fatalError(e)
+            }
+        }, ContextCompat.getMainExecutor(this))
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.scanner_menu, menu)
+    private val fatalError: (Exception?) -> Unit = {
+        if (it != null) Logs.w(it)
+        runOnMainDispatcher {
+            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun onSuccess(value: String): Boolean {
+        finish()
+        runOnDefaultDispatcher {
+            try {
+                val results = RawUpdater.parseRaw(value)
+                if (results.isNullOrEmpty()) {
+                    fatalError(null)
+                } else {
+                    val currentGroupId = DataStore.selectedGroupForImport()
+                    if (DataStore.selectedGroup != currentGroupId) {
+                        DataStore.selectedGroup = currentGroupId
+                    }
+
+                    for (profile in results) {
+                        ProfileManager.createProfile(currentGroupId, profile)
+                    }
+                }
+            } catch (e: SubscriptionFoundException) {
+                startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = Uri.parse(e.link)
+                })
+            } catch (e: Exception) {
+               fatalError(e)
+            }
+        }
         return true
     }
 
-    val importCodeFile = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
+    private val importCodeFile = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
         runOnDefaultDispatcher {
             try {
                 it.forEachTry { uri ->
@@ -150,8 +235,7 @@ class ScannerActivity : ThemedActivity(),
                                 }
                             }
                         } else {
-                            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
-                                .show()
+                            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: SubscriptionFoundException) {
                         startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
@@ -178,83 +262,22 @@ class ScannerActivity : ThemedActivity(),
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.action_import_file) {
-            startFilesForResult(importCodeFile, "image/*")
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
-    }
-
-    /**
-     * See also: https://stackoverflow.com/a/31350642/2245107
-     */
-    override fun shouldUpRecreateTask(targetIntent: Intent?) =
-        super.shouldUpRecreateTask(targetIntent) || isTaskRoot
-
-    override fun onResume() {
-        super.onResume()
-        capture.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        capture.onPause()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        capture.onDestroy()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        capture.onSaveInstanceState(outState)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        capture.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return binding.barcodeScanner.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
-    }
-
-    override fun barcodeResult(result: BarcodeResult) {
-        finish()
-        val text = result.result.text
-        runOnDefaultDispatcher {
-            try {
-                val results = RawUpdater.parseRaw(text)
-                if (!results.isNullOrEmpty()) {
-                    val currentGroupId = DataStore.selectedGroupForImport()
-                    if (DataStore.selectedGroup != currentGroupId) {
-                        DataStore.selectedGroup = currentGroupId
-                    }
-
-                    for (profile in results) {
-                        ProfileManager.createProfile(currentGroupId, profile)
-                    }
-                } else {
-                    Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: SubscriptionFoundException) {
-                startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = Uri.parse(e.link)
-                })
-            } catch (e: Throwable) {
-                Logs.w(e)
-                onMainDispatcher {
-                    Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
-                }
+        return when (item.itemId) {
+             R.id.action_import_file -> {
+                startFilesForResult(importCodeFile, "image/*")
+                true
             }
+            /*
+            R.id.action_flash -> {
+                camera.cameraInfo.torchState.observe(this) { torchState ->
+                    val enableFlash = torchState == TorchState.ON
+                    camera.cameraControl.enableTorch(!enableFlash)
+                }
+                camera.cameraInfo.torchState.removeObservers(this)
+                true
+            }
+             */
+            else -> super.onOptionsItemSelected(item)
         }
     }
-
 }
