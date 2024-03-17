@@ -312,6 +312,11 @@ class ScannerActivity : ThemedActivity() {
             R.id.action_flash -> {
                 val enableFlash = camera.cameraInfo.torchState.value == TorchState.ON
                 camera.cameraControl.enableTorch(!enableFlash)
+                item.setIcon(if (enableFlash) {
+                    R.drawable.ic_action_flight_on
+                } else {
+                    R.drawable.ic_action_flight_off
+                })
             }
 
             // Switch front or back camera.
