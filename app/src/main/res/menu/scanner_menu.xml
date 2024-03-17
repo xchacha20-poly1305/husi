@@ -7,7 +7,7 @@
           android:alphabeticShortcut="o"
           app:showAsAction="always"/>
     <item android:id="@+id/action_flash"
-          android:title="@string/action_flash"
+          android:title="@string/action_flash_on"
           android:icon="@drawable/ic_action_flight_on"
           android:alphabeticShortcut="l"
           app:showAsAction="always"/>

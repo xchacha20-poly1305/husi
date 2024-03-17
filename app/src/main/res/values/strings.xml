@@ -601,6 +601,7 @@
     <string name="dns_mode_leak">Precise query with leak</string>
     <string name="dns_mode_precise">Precise query with low speed</string>
     <string name="blurred_address">Make the server address blurred</string>
-    <string name="action_flash">Turn on flash</string>
+    <string name="action_flash_on">Turn on flash</string>
     <string name="action_camera_switch">Switch camera</string>
+    <string name="action_flash_off">Turn of flash</string>
 </resources>
