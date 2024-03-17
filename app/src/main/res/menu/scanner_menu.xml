@@ -6,9 +6,9 @@
           android:icon="@drawable/ic_image_photo"
           android:alphabeticShortcut="o"
           app:showAsAction="always"/>
-<!--    <item android:id="@+id/action_flash"-->
-<!--          android:title="@string/action_import_file"-->
-<!--          android:icon="@drawable/ic_baseline_camera_24"-->
-<!--          android:alphabeticShortcut="o"-->
-<!--          app:showAsAction="always"/>-->
+    <item android:id="@+id/action_flash"
+          android:title="@string/action_flash"
+          android:icon="@drawable/ic_baseline_camera_24"
+          android:alphabeticShortcut="o"
+          app:showAsAction="always"/>
 </menu>

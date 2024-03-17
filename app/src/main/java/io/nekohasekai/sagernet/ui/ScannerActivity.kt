@@ -185,90 +185,104 @@ class ScannerActivity : ThemedActivity() {
                     data = Uri.parse(e.link)
                 })
             } catch (e: Exception) {
-               fatalError(e)
+                fatalError(e)
             }
         }
         return true
     }
 
-    private val importCodeFile = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
-        runOnDefaultDispatcher {
-            try {
-                it.forEachTry { uri ->
-                    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        ImageDecoder.decodeBitmap(
-                            ImageDecoder.createSource(
-                                contentResolver, uri
-                            )
-                        ) { decoder, _, _ ->
-                            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                            decoder.isMutableRequired = true
-                        }
-                    } else {
-                        @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
-                            contentResolver, uri
-                        )
-                    }
-                    val intArray = IntArray(bitmap.width * bitmap.height)
-                    bitmap.getPixels(intArray, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-
-                    val source = RGBLuminanceSource(bitmap.width, bitmap.height, intArray)
-                    val qrReader = QRCodeReader()
-                    try {
-                        val result = try {
-                            qrReader.decode(
-                                BinaryBitmap(GlobalHistogramBinarizer(source)),
-                                mapOf(DecodeHintType.TRY_HARDER to true)
-                            )
-                        } catch (e: NotFoundException) {
-                            qrReader.decode(
-                                BinaryBitmap(GlobalHistogramBinarizer(source.invert())),
-                                mapOf(DecodeHintType.TRY_HARDER to true)
-                            )
-                        }
-
-                        val results = RawUpdater.parseRaw(result.text ?: "")
-
-                        if (!results.isNullOrEmpty()) {
-                            onMainDispatcher {
-                                finish()
-                                runOnDefaultDispatcher {
-                                    val currentGroupId = DataStore.selectedGroupForImport()
-                                    if (DataStore.selectedGroup != currentGroupId) {
-                                        DataStore.selectedGroup = currentGroupId
-                                    }
-
-                                    for (profile in results) {
-                                        ProfileManager.createProfile(currentGroupId, profile)
-                                    }
-                                }
+    private val importCodeFile =
+        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
+            runOnDefaultDispatcher {
+                try {
+                    it.forEachTry { uri ->
+                        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            ImageDecoder.decodeBitmap(
+                                ImageDecoder.createSource(
+                                    contentResolver, uri
+                                )
+                            ) { decoder, _, _ ->
+                                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                                decoder.isMutableRequired = true
                             }
                         } else {
-                            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
+                            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
+                                contentResolver, uri
+                            )
                         }
-                    } catch (e: SubscriptionFoundException) {
-                        startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
-                            action = Intent.ACTION_VIEW
-                            data = Uri.parse(e.link)
-                        })
-                        finish()
-                    } catch (e: Throwable) {
-                        Logs.w(e)
-                        onMainDispatcher {
-                            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
-                                .show()
+                        val intArray = IntArray(bitmap.width * bitmap.height)
+                        bitmap.getPixels(
+                            intArray,
+                            0,
+                            bitmap.width,
+                            0,
+                            0,
+                            bitmap.width,
+                            bitmap.height
+                        )
+
+                        val source = RGBLuminanceSource(bitmap.width, bitmap.height, intArray)
+                        val qrReader = QRCodeReader()
+                        try {
+                            val result = try {
+                                qrReader.decode(
+                                    BinaryBitmap(GlobalHistogramBinarizer(source)),
+                                    mapOf(DecodeHintType.TRY_HARDER to true)
+                                )
+                            } catch (e: NotFoundException) {
+                                qrReader.decode(
+                                    BinaryBitmap(GlobalHistogramBinarizer(source.invert())),
+                                    mapOf(DecodeHintType.TRY_HARDER to true)
+                                )
+                            }
+
+                            val results = RawUpdater.parseRaw(result.text ?: "")
+
+                            if (!results.isNullOrEmpty()) {
+                                onMainDispatcher {
+                                    finish()
+                                    runOnDefaultDispatcher {
+                                        val currentGroupId = DataStore.selectedGroupForImport()
+                                        if (DataStore.selectedGroup != currentGroupId) {
+                                            DataStore.selectedGroup = currentGroupId
+                                        }
+
+                                        for (profile in results) {
+                                            ProfileManager.createProfile(currentGroupId, profile)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        } catch (e: SubscriptionFoundException) {
+                            startActivity(
+                                Intent(
+                                    this@ScannerActivity,
+                                    MainActivity::class.java
+                                ).apply {
+                                    action = Intent.ACTION_VIEW
+                                    data = Uri.parse(e.link)
+                                })
+                            finish()
+                        } catch (e: Throwable) {
+                            Logs.w(e)
+                            onMainDispatcher {
+                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     }
-                }
-            } catch (e: Exception) {
-                Logs.w(e)
+                } catch (e: Exception) {
+                    Logs.w(e)
 
-                onMainDispatcher {
-                    Toast.makeText(app, e.readableMessage, Toast.LENGTH_LONG).show()
+                    onMainDispatcher {
+                        Toast.makeText(app, e.readableMessage, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
-    }
 
     /**
      * See also: https://stackoverflow.com/a/31350642/2245107
@@ -288,20 +302,17 @@ class ScannerActivity : ThemedActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-             R.id.action_import_file -> {
+            R.id.action_import_file -> {
                 startFilesForResult(importCodeFile, "image/*")
                 true
             }
-            /*
+
             R.id.action_flash -> {
-                camera.cameraInfo.torchState.observe(this) { torchState ->
-                    val enableFlash = torchState == TorchState.ON
-                    camera.cameraControl.enableTorch(!enableFlash)
-                }
-                camera.cameraInfo.torchState.removeObservers(this)
+                val enableFlash = camera.cameraInfo.torchState.value == TorchState.ON
+                camera.cameraControl.enableTorch(!enableFlash)
                 true
             }
-             */
+
             else -> super.onOptionsItemSelected(item)
         }
     }
