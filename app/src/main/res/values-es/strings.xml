@@ -523,4 +523,19 @@
     <string name="hop_interval">Intervalo de salto de puerto (segundos)</string>
     <string name="app_name">husi</string>
     <string name="menu_dashboard">Panel de control de Singbox</string>
+    <string name="show_bottom_bar">Mostrar barra inferior como SagerNet</string>
+    <string name="custom_outbound_json">JSON saliente personalizado</string>
+    <string name="custom_config_json">Configuración personalizada JSON</string>
+    <string name="is_outbound_only">Hacer JSON saliente</string>
+    <string name="save">Guardar</string>
+    <string name="set_panel_url">Establecer URL del panel</string>
+    <string name="log_level">Nivel de registro</string>
+    <string name="xtls_flow">Flujo (Subprotocolo VLESS)</string>
+    <string name="utls_fingerprint">huella digital uTLS</string>
+    <string name="use_selector">Usar selector</string>
+    <string name="domain_strategy_for_remote">Política de nombres de dominio (remota)</string>
+    <string name="domain_strategy_for_direct">Estrategia de nombre de dominio (conexión directa)</string>
+    <string name="domain_strategy_for_server">Política de nombres de dominio (dirección del servidor)</string>
+    <string name="bypass_lan_in_core">Omitir LAN en el núcleo</string>
+    <string name="need_restart">Reinicie la aplicación para aplicar los cambios</string>
 </resources>
