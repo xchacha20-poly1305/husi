@@ -9,11 +9,11 @@
     <item android:id="@+id/action_flash"
           android:title="@string/action_flash"
           android:icon="@drawable/ic_action_flight_on"
-          android:alphabeticShortcut="o"
+          android:alphabeticShortcut="l"
           app:showAsAction="always"/>
     <item android:id="@+id/action_camera_switch"
           android:title="@string/action_camera_switch"
-          android:icon="@drawable/ic_baseline_refresh_24"
-          android:alphabeticShortcut="o"
+          android:icon="@drawable/ic_baseline_cached"
+          android:alphabeticShortcut="s"
           app:showAsAction="always"/>
 </menu>
