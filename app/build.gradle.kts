@@ -67,10 +67,14 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.blacksquircle.ui:editorkit:2.9.0")
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
+
+    implementation("androidx.camera:camera-view:1.3.2")
+    implementation("androidx.camera:camera-lifecycle:1.3.2")
+    implementation("androidx.camera:camera-camera2:1.3.2")
+    implementation("com.google.zxing:core:3.5.2")
 
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
