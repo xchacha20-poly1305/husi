@@ -21,23 +21,26 @@
 package io.nekohasekai.sagernet.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.pm.ShortcutManager
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.KeyEvent
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.NotFoundException
@@ -60,13 +63,19 @@ class ScannerActivity : ThemedActivity() {
     private lateinit var analysisExecutor: ExecutorService
     private lateinit var binding: LayoutScannerBinding
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutScannerBinding.inflate(layoutInflater)
 
         setTitle(R.string.add_profile_methods_scan_qr_code)
 
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        if (Build.VERSION.SDK_INT >= 25) getSystemService<ShortcutManager>()!!.reportShortcutUsed("scan")
+
+        binding = LayoutScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ListHolderListener.setup(this)
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -259,6 +268,22 @@ class ScannerActivity : ThemedActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * See also: https://stackoverflow.com/a/31350642/2245107
+     */
+    override fun shouldUpRecreateTask(targetIntent: Intent?): Boolean {
+        return super.shouldUpRecreateTask(targetIntent) || isTaskRoot
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return binding.previewView.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.scanner_menu, menu)
+        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
