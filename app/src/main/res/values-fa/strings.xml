@@ -410,7 +410,7 @@
     <string name="resolve_destination_summary">اگر آدرس مقصد یک دامنه باشد، بر اساس استراتژی IPv6
         (تعارض با FakeDNS) از بین می‌رود.
     </string>
-    <string name="pcap_notice">فایل های Pcap در ذخیره می شوند%s</string>
+    <string name="pcap_notice">فایل های Pcap در %s ذخیره می شوند</string>
     <string name="naive_insecure_concurrency">همزمانی ناامن</string>
     <string name="naive_insecure_concurrency_summary">از N اتصال تونل همزمان برای قوی تر بودن در
         شرایط بد شبکه استفاده کنید. اتصالات بیشتر تشخیص تونل را آسان تر و ایمن تر می کند. این پروژه
