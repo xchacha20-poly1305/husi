@@ -101,14 +101,8 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
     }
 
     override fun readWIFIState(): WIFIState? {
-        val wifiInfo = if (SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // 34
-            // didn't test
-            val network = SagerNet.connectivity.activeNetwork
-            val caps = SagerNet.connectivity.getNetworkCapabilities(network)
-            caps?.transportInfo as? WifiInfo
-        } else {
-            SagerNet.wifiManager.connectionInfo
-        } ?: return null
+        // TODO API 34
+        val wifiInfo = SagerNet.wifiManager.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
             ssid = ssid.substring(1, ssid.length - 1)
