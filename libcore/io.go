@@ -37,11 +37,11 @@ func Untar(archive, path string) (err error) {
 
 		fileInfo := header.FileInfo()
 		if fileInfo.IsDir() {
-			_ = os.MkdirAll(filepath.Join(path, fileInfo.Name()), os.ModePerm)
+			_ = os.MkdirAll(filepath.Join(path, header.Name), os.ModePerm)
 			continue
 		}
 
-		err = copyToFile(filepath.Join(path, fileInfo.Name()), tReader)
+		err = copyToFile(filepath.Join(path, header.Name), tReader)
 		if err != nil {
 			return err
 		}
