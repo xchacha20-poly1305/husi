@@ -674,7 +674,7 @@ fun buildConfig(
                 route.makeSingBoxRuleSet(rule.ruleSet.listByLineOrComma(), "$externalAssets/geo")
             }
         }
-        route.rule_set.distinctByTag()
+        route.rule_set = route.rule_set.distinctByTag()
 
         for (freedom in arrayOf(TAG_DIRECT, TAG_BYPASS)) outbounds.add(Outbound().apply {
             tag = freedom
