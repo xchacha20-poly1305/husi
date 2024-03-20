@@ -534,4 +534,14 @@
     <string name="inbound_username">Имя пользователя SOCKS5</string>
     <string name="mtu_help">Удерживайте для настройки своего MTU.</string>
     <string name="route_opt_block_quic">Блокировать QUIC</string>
+    <string name="get_cert">Получение сертификатов</string>
+    <string name="global_allow_insecure">Всегда разрешать небезопасные</string>
+    <string name="dns_mode">Режим DNS</string>
+    <string name="get_cert_summary">Получение сертификатов TLS серверов. Поддержка https и QUIC.</string>
+    <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена!</string>
+    <string name="get_cert_fail">Не удалось получить сертификат!</string>
+    <string name="group_not_subscription">Группа не содержит подписку</string>
+    <string name="scan_vpn_app_introduce">Показать программы VPN, установленные на устройстве.</string>
+    <string name="scan_vpn_app">Поиск VPN-приложений</string>
+    <string name="enable_brutal">Включить контроль перегрузки TCP Brutal</string>
 </resources>
