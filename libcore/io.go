@@ -33,6 +33,7 @@ func Untar(archive, path string) (err error) {
 			if err == io.EOF {
 				break
 			}
+			return err
 		}
 
 		fileInfo := header.FileInfo()
