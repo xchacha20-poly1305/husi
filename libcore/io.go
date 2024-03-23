@@ -12,7 +12,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-func Untar(archive, path string) (err error) {
+func Untargz(archive, path string) (err error) {
 	file, err := os.Open(archive)
 	if err != nil {
 		return
@@ -21,10 +21,12 @@ func Untar(archive, path string) (err error) {
 
 	_ = os.MkdirAll(path, os.ModePerm)
 
+	// gReader is a gzip.Reader
 	gReader, err := gzip.NewReader(file)
 	if err != nil {
 		return err
 	}
+	// tReader is a tar.Reader
 	tReader := tar.NewReader(gReader)
 
 	for {
@@ -37,6 +39,7 @@ func Untar(archive, path string) (err error) {
 		}
 
 		fileInfo := header.FileInfo()
+
 		if fileInfo.IsDir() {
 			_ = os.MkdirAll(filepath.Join(path, header.Name), os.ModePerm)
 			continue
@@ -74,11 +77,14 @@ func UntargzWihoutDir(archive, path string) (err error) {
 			}
 			return err
 		}
-		if header.FileInfo().IsDir() {
+
+		fileInfo := header.FileInfo()
+
+		if fileInfo.IsDir() {
 			continue
 		}
 
-		err = copyToFile(filepath.Join(path, filepath.Base(header.FileInfo().Name())), tReader)
+		err = copyToFile(filepath.Join(path, fileInfo.Name()), tReader)
 		if err != nil {
 			return err
 		}
@@ -87,6 +93,7 @@ func UntargzWihoutDir(archive, path string) (err error) {
 	return nil
 }
 
+// copyToFile will try to open path as an *os.File, then use io.Copy to copy reader into it.
 func copyToFile(path string, reader io.Reader) error {
 	newFile, err := os.Create(path)
 	if err != nil {
@@ -98,8 +105,7 @@ func copyToFile(path string, reader io.Reader) error {
 	return err
 }
 
-// UnzipWithoutDir
-// Ignore the directory in the zip file.
+// UnzipWithoutDir unzip zipfile buy ignore the directory in the zip file.
 func UnzipWithoutDir(archive, path string) error {
 	r, err := zip.OpenReader(archive)
 	if err != nil {
@@ -110,17 +116,15 @@ func UnzipWithoutDir(archive, path string) error {
 	_ = os.MkdirAll(path, os.ModePerm)
 
 	for _, file := range r.File {
-		if file.FileInfo().IsDir() {
+		fileInfo := file.FileInfo()
+
+		if fileInfo.IsDir() {
 			continue
 		}
 
-		// 获取文件基本名称而非全路径
-		fileName := filepath.Base(file.Name)
-
-		filePath := filepath.Join(path, fileName)
+		filePath := filepath.Join(path, fileInfo.Name())
 
 		_ = os.Remove(filePath)
-		// Don't forget to close it.
 		newFile, err := os.Create(filePath)
 		if err != nil {
 			return err

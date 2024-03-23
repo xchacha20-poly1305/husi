@@ -140,7 +140,7 @@ func extractDash() error {
 	if err != nil {
 		return E.Cause(err, "extract: ", tmpZipName)
 	}
-	err = Untar(tmpZipName, dir)
+	err = Untargz(tmpZipName, dir)
 	if err != nil {
 		return E.Cause(err, "unzip")
 	}
