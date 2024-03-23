@@ -2,13 +2,13 @@ package io.nekohasekai.sagernet.bg.proto
 
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.bg.LocalResolver
 import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.runBlocking
 import libcore.Libcore
-import moe.matsuri.nb4a.net.LocalResolverImpl
 import moe.matsuri.nb4a.utils.JavaUtil
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
@@ -45,7 +45,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     }
 
     override suspend fun loadConfig() {
-        Libcore.registerLocalDNSTransport(LocalResolverImpl)
+        Libcore.registerLocalDNSTransport(LocalResolver)
         super.loadConfig()
     }
 
