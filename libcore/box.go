@@ -130,7 +130,7 @@ func (b *BoxInstance) Close() (err error) {
 	go func() {
 		defer catchPanic("box.Close", func(panicErr error) { err = panicErr })
 		b.cancel()
-		err = b.Box.Close()
+		_ = b.Box.Close()
 		close(chClosed)
 	}()
 	select {
@@ -140,7 +140,7 @@ func (b *BoxInstance) Close() (err error) {
 		boxlog.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
 	}
 
-	return err
+	return nil
 }
 
 func (b *BoxInstance) NeedWIFIState() bool {
