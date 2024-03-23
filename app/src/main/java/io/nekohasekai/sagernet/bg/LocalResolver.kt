@@ -1,11 +1,10 @@
-package moe.matsuri.nb4a.net
+package io.nekohasekai.sagernet.bg
 
 import android.net.DnsResolver
 import android.os.Build
 import android.os.CancellationSignal
 import android.system.ErrnoException
 import androidx.annotation.RequiresApi
-import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.ktx.tryResumeWithException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -17,9 +16,7 @@ import java.net.UnknownHostException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-object LocalResolverImpl : LocalDNSTransport {
-
-    // new local
+object LocalResolver : LocalDNSTransport {
 
     private const val RCODE_NXDOMAIN = 3
 
@@ -36,8 +33,11 @@ object LocalResolverImpl : LocalDNSTransport {
                 ctx.onCancel(signal::cancel)
                 val callback = object : DnsResolver.Callback<ByteArray> {
                     override fun onAnswer(answer: ByteArray, rcode: Int) {
-                        // exchange don't generate rcode error
-                        ctx.rawSuccess(answer)
+                        if (rcode == 0) {
+                            ctx.rawSuccess(answer)
+                        } else {
+                            ctx.errorCode(rcode)
+                        }
                         continuation.resume(Unit)
                     }
 
@@ -72,6 +72,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     val signal = CancellationSignal()
                     ctx.onCancel(signal::cancel)
                     val callback = object : DnsResolver.Callback<Collection<InetAddress>> {
+                        @Suppress("ThrowableNotThrown")
                         override fun onAnswer(answer: Collection<InetAddress>, rcode: Int) {
                             if (rcode == 0) {
                                 ctx.success((answer as Collection<InetAddress?>).mapNotNull { it?.hostAddress }
