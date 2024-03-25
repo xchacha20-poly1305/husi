@@ -544,4 +544,9 @@
     <string name="scan_vpn_app_introduce">Показать программы VPN, установленные на устройстве.</string>
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
     <string name="enable_brutal">Включить контроль перегрузки TCP Brutal</string>
+    <string name="release_wake_lock">Отключить WakeLock</string>
+    <string name="acquire_wake_lock_summary">Сохранять CPU включенным</string>
+    <string name="action_switch">Переключить</string>
+    <string name="nat_result_hint">Провести проверку NAT</string>
+    <string name="acquire_wake_lock">Включить WakeLock</string>
 </resources>
