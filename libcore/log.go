@@ -2,31 +2,30 @@ package libcore
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"log"
+	stdlog "log"
 	"os"
 	"syscall"
 	"time"
 
-	boxlog "github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
 func LogDebug(l string) {
-	boxlog.Debug(l)
+	log.Debug(l)
 }
 
 func LogInfo(l string) {
-	boxlog.Info(l)
+	log.Info(l)
 }
 
 func LogWarning(l string) {
-	boxlog.Warn(l)
+	log.Warn(l)
 }
 
 func LogError(l string) {
-	boxlog.Error(l)
+	log.Error(l)
 }
 
 var platformLogWrapper *logWriter
@@ -36,23 +35,23 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 		return
 	}
 
-	var f *os.File
-	f, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
+	var file *os.File
+	file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
 	if err == nil {
-		fd := int(f.Fd())
+		fd := int(file.Fd())
 		if !notTruncateOnStart {
 			_ = syscall.Flock(fd, syscall.LOCK_EX)
 			// Check if need truncate
-			if size, _ := f.Seek(0, io.SeekEnd); size > maxSize {
+			if size, _ := file.Seek(0, io.SeekEnd); size > maxSize {
 				// read oldBytes for maxSize
-				_, _ = f.Seek(-maxSize, io.SeekCurrent)
-				oldBytes, err := io.ReadAll(f)
+				_, _ = file.Seek(-maxSize, io.SeekCurrent)
+				oldBytes, err := io.ReadAll(file)
 				if err == nil {
 					// truncate file
-					err = f.Truncate(0)
+					err = file.Truncate(0)
 					// write oldBytes
 					if err == nil {
-						_, _ = f.Write(oldBytes)
+						_, _ = file.Write(oldBytes)
 					}
 				}
 			}
@@ -63,21 +62,20 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 	}
 
 	if err != nil {
-		log.Println(E.Cause(err, "open log"))
+		stdlog.Println(E.Cause(err, "open log"))
 	}
 
-	//
 	platformLogWrapper = &logWriter{
 		disable: !enableLog,
-		writer:  f,
+		writer:  file,
 	}
 	// setup std log
-	log.SetFlags(log.LstdFlags | log.LUTC)
-	log.SetOutput(platformLogWrapper)
+	stdlog.SetFlags(stdlog.LstdFlags | stdlog.LUTC)
+	stdlog.SetOutput(platformLogWrapper)
 
 	// setup box default log
-	boxlog.SetStdLogger(boxlog.NewDefaultFactory(context.Background(),
-		boxlog.Formatter{BaseTime: time.Now(), DisableColors: false},
+	log.SetStdLogger(log.NewDefaultFactory(context.Background(),
+		log.Formatter{BaseTime: time.Now(), DisableColors: false},
 		os.Stderr,
 		"",
 		platformLogWrapper,
@@ -86,7 +84,7 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 	return
 }
 
-var _ boxlog.PlatformWriter = (*logWriter)(nil)
+var _ log.PlatformWriter = (*logWriter)(nil)
 
 type logWriter struct {
 	disable bool
@@ -97,8 +95,8 @@ func (w *logWriter) DisableColors() bool {
 	return false
 }
 
-func (w *logWriter) WriteMessage(level boxlog.Level, message string) {
-	_, _ = io.WriteString(w.writer, fmt.Sprintf("%s\n", message))
+func (w *logWriter) WriteMessage(_ log.Level, _ string) {
+	//_, _ = io.WriteString(w.writer, fmt.Sprintf("%s\n", message))
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -108,9 +106,9 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 		return len(p), nil
 	}
 
-	f, isFile := w.writer.(*os.File)
+	file, isFile := w.writer.(*os.File)
 	if isFile {
-		fd := int(f.Fd())
+		fd := int(file.Fd())
 		_ = syscall.Flock(fd, syscall.LOCK_EX)
 		defer syscall.Flock(fd, syscall.LOCK_UN)
 	}
@@ -118,14 +116,14 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 }
 
 func (w *logWriter) truncate() {
-	if f, ok := w.writer.(*os.File); ok {
-		_ = f.Truncate(0)
+	if file, isFile := w.writer.(*os.File); isFile {
+		_ = file.Truncate(0)
 	}
 }
 
 func (w *logWriter) Close() error {
-	if f, ok := w.writer.(*os.File); ok {
-		return f.Close()
+	if file, isFile := w.writer.(*os.File); isFile {
+		return file.Close()
 	}
 
 	return nil
