@@ -1,4 +1,4 @@
-package moe.matsuri.nb4a.plugin
+package io.nekohasekai.sagernet.plugin
 
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -15,6 +15,7 @@ object Plugins {
     const val AUTHORITIES_PREFIX_SEKAI_EXE = "io.nekohasekai.sagernet.plugin."
     const val AUTHORITIES_PREFIX_NEKO_EXE = "moe.matsuri.exe."
     const val AUTHORITIES_PREFIX_NEKO_PLUGIN = "moe.matsuri.plugin."
+    const val AUTHORITIES_PREFIX_HUSI_EXE = "fr.husi.plugin."
 
     const val ACTION_NATIVE_PLUGIN = "io.nekohasekai.sagernet.plugin.ACTION_NATIVE_PLUGIN"
 
@@ -44,12 +45,11 @@ object Plugins {
     }
 
     fun displayExeProvider(pkgName: String): String {
-        return if (pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)) {
-            "SagerNet"
-        } else if (pkgName.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)) {
-            "Matsuri"
-        } else {
-            "Unknown"
+        return when {
+            pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"
+            pkgName.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) -> "Advertisement"
+            pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> "Unknown"
+            else -> "Unknown"
         }
     }
 

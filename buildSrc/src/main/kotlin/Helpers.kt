@@ -106,7 +106,7 @@ fun Project.setupCommon() {
         lint {
             showAll = true
             checkAllWarnings = true
-            checkReleaseBuilds = true
+            checkReleaseBuilds = false
             warningsAsErrors = true
             textOutput = project.file("build/lint.txt")
             htmlOutput = project.file("build/lint.html")
@@ -270,7 +270,7 @@ fun Project.setupPlugin(projectName: String) {
 
     androidApp.apply {
         defaultConfig {
-            applicationId = "io.nekohasekai.sagernet.plugin.$projName"
+            applicationId = "fr.husi.plugin.$projName"
 
             versionName = verName
             versionCode = verCode

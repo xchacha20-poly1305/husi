@@ -39,7 +39,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import moe.matsuri.nb4a.plugin.NekoPluginManager
-import moe.matsuri.nb4a.plugin.Plugins
+import io.nekohasekai.sagernet.plugin.Plugins
 import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.ui.Dialogs
 import kotlin.coroutines.coroutineContext

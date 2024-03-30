@@ -22,5 +22,4 @@ update:
 	npm update -g
 
 hysteria2:
-	./run plugin hysteria2
-	/gradlew :plugin:hysteria2:assembleFossRelease
+	./gradlew :plugin:hysteria2:assembleFossRelease
