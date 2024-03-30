@@ -1,12 +1,9 @@
-package moe.matsuri.nb4a
+package io.nekohasekai.sagernet.bg
 
-import android.net.wifi.WifiInfo
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
-import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
@@ -21,7 +18,7 @@ import java.net.InterfaceAddress
 import java.net.NetworkInterface
 import java.util.*
 
-class NativeInterface : BoxPlatformInterface, NB4AInterface {
+class NativeInterface : BoxPlatformInterface, GUIInterface {
 
     //  libbox interface
 
@@ -75,7 +72,7 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
         return DataStore.rulesProvider == 0
     }
 
-    override fun selector_OnProxySelected(selectorTag: String, tag: String) {
+    override fun selectorCallback(selectorTag: String, tag: String) {
         if (selectorTag != "proxy") {
             Logs.d("other selector: $selectorTag")
             return
@@ -102,7 +99,7 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
 
     override fun readWIFIState(): WIFIState? {
         // TODO API 34
-        val wifiInfo = SagerNet.wifiManager.connectionInfo ?: return null
+        @Suppress("DEPRECATION") val wifiInfo = SagerNet.wifiManager.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
             ssid = ssid.substring(1, ssid.length - 1)

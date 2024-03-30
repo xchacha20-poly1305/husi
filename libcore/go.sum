@@ -105,10 +105,14 @@ github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4Wk
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
 github.com/sagernet/sing v0.4.0-beta.6 h1:z7plSB0lWX2vt3e5UYYNQi1+bNqfxU9uh1nWlPZFwj8=
 github.com/sagernet/sing v0.4.0-beta.6/go.mod h1:+60H3Cm91RnL9dpVGWDPHt0zTQImO9Vfqt9a4rSambI=
+github.com/sagernet/sing-box v1.9.0-rc.3 h1:TU2LpPnsRyMWHFKTuBZTCezynw7UyjUx1CGfHX4oGn0=
+github.com/sagernet/sing-box v1.9.0-rc.3/go.mod h1:eMBuV7pfcXSqYPbdS8ZneWm+gQF6QO8PLk1IevhxyFo=
 github.com/sagernet/sing-dns v0.2.0-beta.16 h1:bzd4B8eHD7/WO3HrYknvgE8A56/R3n5oXBjNF97iPzQ=
 github.com/sagernet/sing-dns v0.2.0-beta.16/go.mod h1:XU6Vqr6aHcMz/34Fcv8jmXpRCEuShzW+B7Qg1Xe1nxY=
 github.com/sagernet/sing-mux v0.2.0 h1:4C+vd8HztJCWNYfufvgL49xaOoOHXty2+EAjnzN3IYo=
 github.com/sagernet/sing-mux v0.2.0/go.mod h1:khzr9AOPocLa+g53dBplwNDz4gdsyx/YM3swtAhlkHQ=
+github.com/sagernet/sing-quic v0.1.9-beta.3 h1:turuRtN6xfAxWMseZEzwNOA6EO2ZAW82BrfPJUrtN3Q=
+github.com/sagernet/sing-quic v0.1.9-beta.3/go.mod h1:oXe0g8T7edh2Xxl0QcpTO4Tret8M478LpMcr3CPuqWE=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
 github.com/sagernet/sing-shadowsocks v0.2.6/go.mod h1:j2YZBIpWIuElPFL/5sJAj470bcn/3QQ5lxZUNKLDNAM=
 github.com/sagernet/sing-shadowsocks2 v0.2.0 h1:wpZNs6wKnR7mh1wV9OHwOyUr21VkS3wKFHi+8XwgADg=
@@ -146,10 +150,6 @@ github.com/xchacha20-poly1305/cazilla v0.2.1 h1:GuKdZWIS7Wrka+vm11TJXCS/Nbmzgn9U
 github.com/xchacha20-poly1305/cazilla v0.2.1/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.1.1 h1:dVAX1oaBr+xYwlX4phBu4z2OPFOUHDY7O4rrx3SMyt8=
 github.com/xchacha20-poly1305/libping v0.1.1/go.mod h1:6nudHCYwr+1S2ptMloM/t+ciK2ITD2ild76g+6HTvOA=
-github.com/xchacha20-poly1305/sing-box v1.9.0-rc.3 h1:Qrp8WyUB0+iSELwhHbibbSK042d9FI7uAmXCqja5WdQ=
-github.com/xchacha20-poly1305/sing-box v1.9.0-rc.3/go.mod h1:pHjzUk2TYZbUtEMrKE09cMYGx9/d8qYsrfcSPwRyNHQ=
-github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.3 h1:q7uBHCG9nY6yNZhQJK5BsZutPDI90xqAfJOMoQXh0i8=
-github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.3/go.mod h1:oXe0g8T7edh2Xxl0QcpTO4Tret8M478LpMcr3CPuqWE=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
 github.com/zeebo/assert v1.1.0/go.mod h1:Pq9JiuJQpG8JLJdtkwrJESF0Foym2/D9XMU5ciN/wJ0=
 github.com/zeebo/blake3 v0.2.3 h1:TFoLXsjeXqRNFxSbk35Dk4YtszE/MQQGK10BH4ptoTg=

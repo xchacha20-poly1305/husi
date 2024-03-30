@@ -7,8 +7,6 @@ import (
 	"runtime"
 	"strings"
 	_ "unsafe"
-
-	"github.com/sagernet/sing-box/nekoutils"
 )
 
 //go:linkname resourcePaths github.com/sagernet/sing-box/constant.resourcePaths
@@ -28,20 +26,19 @@ func ForceGc() {
 
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
-	if1 NB4AInterface, if2 BoxPlatformInterface,
+	if1 GUIInterface, if2 BoxPlatformInterface,
 	enabledCazilla bool,
 ) {
 	defer catchPanic("InitCore", func(panicErr error) { log.Println(panicErr) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
 
-	intfNB4A = if1
+	intfGUI = if1
 	intfBox = if2
 	useProcfs = intfBox.UseProcFS()
 
-	// Working dir
-	tmp := filepath.Join(cachePath, "../no_backup")
-	os.MkdirAll(tmp, 0755)
-	os.Chdir(tmp)
+	workDir := filepath.Join(cachePath, "../no_backup")
+	_ = os.MkdirAll(workDir, 0755)
+	_ = os.Chdir(workDir)
 
 	// sing-box fs
 	resourcePaths = append(resourcePaths, externalAssets)
@@ -51,9 +48,6 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 		maxLogSizeKb = 50
 	}
 	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"), logEnable, isBgProcess)
-
-	// nekoutils
-	nekoutils.Selector_OnProxySelected = intfNB4A.Selector_OnProxySelected
 
 	// Set up some component
 	go func() {

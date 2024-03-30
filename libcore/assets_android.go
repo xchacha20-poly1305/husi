@@ -18,7 +18,7 @@ import (
 // 不支持非官方源的，就放 file 目录 (geo)
 // 解压的是 apk 里面的 assets
 func extractAssets() {
-	useOfficialAssets := intfNB4A.UseOfficialAssets()
+	useOfficialAssets := intfGUI.UseOfficialAssets()
 
 	if useOfficialAssets {
 		err := extractGeo()

@@ -30,7 +30,7 @@ import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
-import moe.matsuri.nb4a.NativeInterface
+import io.nekohasekai.sagernet.bg.NativeInterface
 import moe.matsuri.nb4a.utils.JavaUtil
 import moe.matsuri.nb4a.utils.cleanWebview
 import androidx.work.Configuration as WorkConfiguration
