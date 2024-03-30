@@ -20,3 +20,7 @@ build: libcore dashboard assets apk
 update:
 	./run lib update
 	npm update -g
+
+hysteria2:
+	./run plugin hysteria2
+	/gradlew :plugin:hysteria2:assembleFossRelease

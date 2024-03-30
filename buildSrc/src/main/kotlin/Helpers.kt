@@ -1,15 +1,21 @@
-import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.*
 import com.android.build.gradle.AbstractAppExtension
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.kotlin.dsl.getByName
+import org.gradle.api.tasks.Exec
+import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import java.util.*
 import kotlin.system.exitProcess
 
-private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
+
+private val Project.android
+    get() = extensions.getByName<CommonExtension<BuildFeatures, BuildType, DefaultConfig, ProductFlavor, AndroidResources>>(
+        "android"
+    )
+private val Project.androidApp get() = android as ApplicationExtension
 
 private lateinit var metadata: Properties
 private lateinit var localProperties: Properties
@@ -87,7 +93,6 @@ fun Project.setupCommon() {
         compileSdk = 34
         defaultConfig {
             minSdk = 21
-            targetSdk = 34
         }
         buildTypes {
             getByName("release") {
@@ -97,9 +102,6 @@ fun Project.setupCommon() {
         compileOptions {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
-        }
-        (android as ExtensionAware).extensions.getByName<KotlinJvmOptions>("kotlinOptions").apply {
-            jvmTarget = JavaVersion.VERSION_17.toString()
         }
         lint {
             showAll = true
@@ -149,17 +151,29 @@ fun Project.setupCommon() {
             }
         }
     }
+    (android as? ApplicationExtension)?.apply {
+        defaultConfig {
+            targetSdk = 34
+        }
+    }
+}
+
+fun Project.setupKotlinCommon() {
+    setupCommon()
+    (android as ExtensionAware).extensions.getByName<KotlinJvmOptions>("kotlinOptions").apply {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
 }
 
 fun Project.setupAppCommon() {
-    setupCommon()
+    setupKotlinCommon()
 
     val lp = requireLocalProperties()
     val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
     val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
     val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
 
-    android.apply {
+    androidApp.apply {
         if (keystorePwd != null) {
             signingConfigs {
                 create("release") {
@@ -188,7 +202,7 @@ fun Project.setupApp() {
     val pkgName = requireMetadata().getProperty("PACKAGE_NAME")
     val verName = requireMetadata().getProperty("VERSION_NAME")
     val verCode = (requireMetadata().getProperty("VERSION_CODE").toInt())
-    android.apply {
+    androidApp.apply {
         defaultConfig {
             applicationId = pkgName
             versionCode = verCode
@@ -199,7 +213,7 @@ fun Project.setupApp() {
 
     val targetAbi = requireTargetAbi()
 
-    android.apply {
+    androidApp.apply {
         this as AbstractAppExtension
 
         buildTypes {
@@ -246,4 +260,110 @@ fun Project.setupApp() {
             jniLibs.srcDir("executableSo")
         }
     }
+}
+
+fun Project.setupPlugin(projectName: String) {
+    val propPrefix = projectName.uppercase(Locale.ROOT)
+    val projName = projectName.lowercase(Locale.ROOT)
+    val verName = requireMetadata().getProperty("${propPrefix}_VERSION_NAME").trim()
+    val verCode = requireMetadata().getProperty("${propPrefix}_VERSION").trim().toInt()
+
+    androidApp.apply {
+        defaultConfig {
+            applicationId = "io.nekohasekai.sagernet.plugin.$projName"
+
+            versionName = verName
+            versionCode = verCode
+        }
+    }
+
+    apply(plugin = "kotlin-android")
+
+    setupAppCommon()
+
+    val targetAbi = requireTargetAbi()
+
+    androidApp.apply {
+        this as AbstractAppExtension
+
+        buildTypes {
+            getByName("release") {
+                proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    project(":plugin:api").file("proguard-rules.pro")
+                )
+            }
+        }
+
+        splits.abi {
+            isEnable = true
+            isUniversalApk = false
+
+            if (targetAbi.isNotBlank()) {
+                reset()
+                include(targetAbi)
+            } else {
+                reset()
+                include("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
+            }
+        }
+
+        flavorDimensions.add("vendor")
+        productFlavors {
+            create("foss")
+        }
+
+        if (System.getenv("SKIP_BUILD") != "on" && System.getProperty("SKIP_BUILD_$propPrefix") != "on") {
+            if (targetAbi.isBlank()) {
+                tasks.register<Exec>("externalBuild") {
+                    executable(rootProject.file("run"))
+                    args("plugin", projName)
+                    workingDir(rootProject.projectDir)
+                }
+
+                tasks.configureEach {
+                    if (name.startsWith("merge") && name.endsWith("JniLibFolders")) {
+                        dependsOn("externalBuild")
+                    }
+                }
+            } else {
+                tasks.register<Exec>("externalBuildInit") {
+                    executable(rootProject.file("run"))
+                    args("plugin", projName, "init")
+                    workingDir(rootProject.projectDir)
+                }
+                tasks.register<Exec>("externalBuild") {
+                    executable(rootProject.file("run"))
+                    args("plugin", projName, targetAbi)
+                    workingDir(rootProject.projectDir)
+                    dependsOn("externalBuildInit")
+                }
+                tasks.register<Exec>("externalBuildEnd") {
+                    executable(rootProject.file("run"))
+                    args("plugin", projName, "end")
+                    workingDir(rootProject.projectDir)
+                    dependsOn("externalBuild")
+                }
+                tasks.configureEach {
+                    if (name.startsWith("merge") && name.endsWith("JniLibFolders")) {
+                        dependsOn("externalBuildEnd")
+                    }
+                }
+            }
+        }
+
+        applicationVariants.all {
+
+            outputs.all {
+                this as BaseVariantOutputImpl
+                outputFileName = outputFileName.replace(
+                    project.name, "${project.name}-plugin-$versionName"
+                ).replace("-release", "").replace("-foss", "")
+
+            }
+        }
+    }
+
+    dependencies.add("implementation", project(":plugin:api"))
+
 }
