@@ -549,4 +549,5 @@
     <string name="action_switch">Переключить</string>
     <string name="nat_result_hint">Провести проверку NAT</string>
     <string name="acquire_wake_lock">Включить WakeLock</string>
+    <string name="domain_strategy_for_remote">Стратегия домена для Удаленного</string>
 </resources>
