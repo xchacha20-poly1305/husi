@@ -1,12 +1,11 @@
 package libcore
 
 import (
-	"context"
+	"fmt"
 	"io"
 	stdlog "log"
 	"os"
 	"syscall"
-	"time"
 
 	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -73,14 +72,6 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 	stdlog.SetFlags(stdlog.LstdFlags | stdlog.LUTC)
 	stdlog.SetOutput(platformLogWrapper)
 
-	// setup box default log
-	log.SetStdLogger(log.NewDefaultFactory(context.Background(),
-		log.Formatter{BaseTime: time.Now(), DisableColors: false},
-		os.Stderr,
-		"",
-		platformLogWrapper,
-		false).Logger())
-
 	return
 }
 
@@ -95,8 +86,8 @@ func (w *logWriter) DisableColors() bool {
 	return false
 }
 
-func (w *logWriter) WriteMessage(_ log.Level, _ string) {
-	//_, _ = io.WriteString(w.writer, fmt.Sprintf("%s\n", message))
+func (w *logWriter) WriteMessage(_ log.Level, message string) {
+	_, _ = io.WriteString(w.writer, fmt.Sprintf("%s\n", message))
 }
 
 var _ io.Writer = (*logWriter)(nil)

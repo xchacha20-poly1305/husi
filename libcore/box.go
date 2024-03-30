@@ -48,7 +48,7 @@ type BoxInstance struct {
 	servicePauseFields
 }
 
-func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
+func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error) {
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 
 	// parse options
@@ -66,7 +66,12 @@ func NewSingBoxInstance(config string) (b *BoxInstance, err error) {
 		Options:           options,
 		Context:           ctx,
 		PlatformInterface: platformWrapper,
-		PlatformLogWriter: nil, // Added in log.go
+	}
+
+	// If set PlatformLogWrapper, box will set something about cache file,
+	// which will panic with simple configuration (when URL test).
+	if !forTest {
+		boxOption.PlatformLogWriter = platformLogWrapper
 	}
 
 	instance, err := box.New(boxOption)
