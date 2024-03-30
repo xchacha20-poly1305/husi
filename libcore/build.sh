@@ -16,6 +16,7 @@ TAGS=(
 
 IFS="," BUILD_TAGS="${TAGS[*]}"
 
+# -buildvcs require: https://github.com/SagerNet/gomobile/commit/6bc27c2027e816ac1779bf80058b1a7710dad260
 gomobile bind -v -androidapi 21 -trimpath -buildvcs=false -ldflags='-s -w -buildid=' \
  -tags="$BUILD_TAGS" . || exit 1
 
