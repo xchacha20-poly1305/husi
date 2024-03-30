@@ -2,9 +2,9 @@ package libcore
 
 import (
 	"crypto/x509"
-	"log"
 	_ "unsafe" // for go:linkname
 
+	"github.com/sagernet/sing-box/log"
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/cazilla"
 )
@@ -15,7 +15,7 @@ var systemRoots *x509.CertPool
 func updateRootCACerts(pem []byte, enabledCazilla bool) {
 	roots := func(useMozilla bool) *x509.CertPool {
 		if useMozilla {
-			log.Println("Using cazilla.")
+			log.Info("Using cazilla.")
 			return cazilla.CA
 		}
 
@@ -25,9 +25,9 @@ func updateRootCACerts(pem []byte, enabledCazilla bool) {
 
 	if len(pem) > 0 {
 		if roots.AppendCertsFromPEM(pem) {
-			log.Println("external ca.pem was loaded")
+			log.Info("external ca.pem was loaded")
 		} else {
-			log.Println("failed to append certificates from pem")
+			log.Warn("failed to append certificates from pem")
 		}
 	}
 	systemRoots = roots
