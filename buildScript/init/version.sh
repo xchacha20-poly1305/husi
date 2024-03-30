@@ -1,9 +1,9 @@
 #!/bin/bash
 
-GO_VERSION=1.22.1
+GO_VERSION="1.22.1"
 
 # https://github.com/Dreamacro/maxmind-geoip
-GEOIP_VERSION=20240312
+GEOIP_VERSION="20240312"
 
 # https://github.com/v2fly/domain-list-community
-GEOSITE_VERSION=20240316051411
+GEOSITE_VERSION="20240324094850"
