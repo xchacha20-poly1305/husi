@@ -65,7 +65,7 @@ require (
 	github.com/sagernet/quic-go v0.42.0-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
-	github.com/sagernet/sing-quic v1.0.0 // indirect
+	github.com/sagernet/sing-quic v0.1.9-beta.3 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.6 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
@@ -93,7 +93,3 @@ require (
 	google.golang.org/grpc v1.62.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
-
-replace github.com/sagernet/sing-box => github.com/xchacha20-poly1305/sing-box v1.9.0-rc.3
-
-replace github.com/sagernet/sing-quic => github.com/xchacha20-poly1305/sing-quic v0.1.9-beta.3

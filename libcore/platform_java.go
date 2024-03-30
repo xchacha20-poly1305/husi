@@ -1,13 +1,13 @@
 package libcore
 
 var intfBox BoxPlatformInterface
-var intfNB4A NB4AInterface
+var intfGUI GUIInterface
 
 var useProcfs bool
 
-type NB4AInterface interface {
+type GUIInterface interface {
 	UseOfficialAssets() bool
-	Selector_OnProxySelected(selectorTag string, tag string)
+	SelectorCallback(selectorTag, tag string)
 }
 
 // iif

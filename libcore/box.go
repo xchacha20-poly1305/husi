@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 	"time"
 
-	C "github.com/sagernet/sing-box/constant"
 	"libcore/protectserver"
 	"libcore/v2rayapilite"
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/conntrack"
+	C "github.com/sagernet/sing-box/constant"
 	_ "github.com/sagernet/sing-box/include"
 	boxlog "github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
@@ -28,12 +27,13 @@ var mainInstance *BoxInstance
 func ResetAllConnections(system bool) {
 	if system {
 		conntrack.Close()
-		log.Println("[Debug] Reset system connections done.")
+		boxlog.Debug("[Debug] Reset system connections done.")
 	}
 }
 
 type BoxInstance struct {
 	*box.Box
+
 	cancel context.CancelFunc
 
 	// state is sing-box state
@@ -42,8 +42,10 @@ type BoxInstance struct {
 	// 2: closed
 	state int
 
-	v2api        *v2rayapilite.V2RayServerLite
-	selector     *outbound.Selector
+	v2api *v2rayapilite.V2RayServerLite
+
+	selector *outbound.Selector
+
 	pauseManager pause.Manager
 	servicePauseFields
 }
@@ -86,12 +88,9 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
 
-	// TODO: remove
 	// selector
-	proxy, outboundHasProxy := b.Router().Outbound("proxy")
-	if outboundHasProxy {
-		selector, enabledSelector := proxy.(*outbound.Selector)
-		if enabledSelector {
+	if proxy, haveProxyOutbound := b.Router().Outbound("proxy"); haveProxyOutbound {
+		if selector, isSelector := proxy.(*outbound.Selector); isSelector {
 			b.selector = selector
 		}
 	}
@@ -104,6 +103,11 @@ func (b *BoxInstance) Start() (err error) {
 
 	if b.state == 0 {
 		b.state = 1
+		defer func() {
+			if b.selector != nil && intfGUI != nil {
+				go b.listenSelectorChange(context.Background(), intfGUI.SelectorCallback)
+			}
+		}()
 		return b.Box.Start()
 	}
 	return E.New("already started")
