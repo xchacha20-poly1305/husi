@@ -156,7 +156,7 @@ fun HysteriaBean.toUri(): String {
 }
 
 fun JSONObject.parseHysteria1Json(): HysteriaBean {
-    // TODO parse HY2 JSON+YAML
+    // TODO parse HY2 JSON
     return HysteriaBean().apply {
         protocolVersion = 1
         serverAddress = optString("server").substringBeforeLast(":")
@@ -191,66 +191,118 @@ fun JSONObject.parseHysteria1Json(): HysteriaBean {
     }
 }
 
-fun HysteriaBean.buildHysteria1Config(port: Int, cacheFile: (() -> File)?): String {
-    if (protocolVersion != 1) {
-        throw Exception("error version: $protocolVersion")
-    }
-    return JSONObject().apply {
-        put("server", displayAddress())
-        when (protocol) {
-            HysteriaBean.PROTOCOL_FAKETCP -> {
-                put("protocol", "faketcp")
-            }
+fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): String {
+    return when (protocolVersion) {
+        1 -> JSONObject().apply {
+            put("server", displayAddress())
+            when (protocol) {
+                HysteriaBean.PROTOCOL_FAKETCP -> {
+                    put("protocol", "faketcp")
+                }
 
-            HysteriaBean.PROTOCOL_WECHAT_VIDEO -> {
-                put("protocol", "wechat-video")
+                HysteriaBean.PROTOCOL_WECHAT_VIDEO -> {
+                    put("protocol", "wechat-video")
+                }
             }
-        }
-        put(
-            "socks5", JSONObject(
-                mapOf(
-                    "listen" to "$LOCALHOST:$port",
+            put(
+                "socks5", JSONObject(
+                    mapOf(
+                        "listen" to "$LOCALHOST:$port",
+                    )
                 )
             )
-        )
-        put("retry", 5)
-        put("fast_open", true)
-        put("lazy_start", true)
-        put("obfs", obfuscation)
-        when (authPayloadType) {
-            HysteriaBean.TYPE_BASE64 -> put("auth", authPayload)
-            HysteriaBean.TYPE_STRING -> put("auth_str", authPayload)
-        }
-        if (sni.isBlank() && finalAddress == LOCALHOST && !serverAddress.isIpAddress()) {
-            sni = serverAddress
-        }
-        if (sni.isNotBlank()) {
-            put("server_name", sni)
-        }
-        if (alpn.isNotBlank()) put("alpn", alpn)
-        if (caText.isNotBlank() && cacheFile != null) {
-            val caFile = cacheFile()
-            caFile.writeText(caText)
-            put("ca", caFile.absolutePath)
-        }
+            put("retry", 5)
+            put("fast_open", true)
+            put("lazy_start", true)
+            put("obfs", obfuscation)
+            when (authPayloadType) {
+                HysteriaBean.TYPE_BASE64 -> put("auth", authPayload)
+                HysteriaBean.TYPE_STRING -> put("auth_str", authPayload)
+            }
+            if (sni.isBlank() && finalAddress == LOCALHOST && !serverAddress.isIpAddress()) {
+                sni = serverAddress
+            }
+            if (sni.isNotBlank()) {
+                put("server_name", sni)
+            }
+            if (alpn.isNotBlank()) put("alpn", alpn)
+            if (caText.isNotBlank() && cacheFile != null) {
+                val caFile = cacheFile()
+                caFile.writeText(caText)
+                put("ca", caFile.absolutePath)
+            }
 
-        if (allowInsecure) put("insecure", true)
-        if (streamReceiveWindow > 0) put("recv_window_conn", streamReceiveWindow)
-        if (connectionReceiveWindow > 0) put("recv_window", connectionReceiveWindow)
-        if (disableMtuDiscovery) put("disable_mtu_discovery", true)
+            if (allowInsecure) put("insecure", true)
+            if (streamReceiveWindow > 0) put("recv_window_conn", streamReceiveWindow)
+            if (connectionReceiveWindow > 0) put("recv_window", connectionReceiveWindow)
+            if (disableMtuDiscovery) put("disable_mtu_discovery", true)
 
-        // hy 1.2.0 （不兼容）
-        put("resolver", "udp://127.0.0.1:" + DataStore.localDNSPort)
+            // hy 1.2.0 （不兼容）
+            put("resolver", "udp://127.0.0.1:" + DataStore.localDNSPort)
 
-        put("hop_interval", hopInterval)
-    }.toStringPretty()
+            put("hop_interval", hopInterval)
+        }.toStringPretty()
+
+        2 -> JSONObject().apply {
+            put("server", displayAddress())
+            put("auth", authPayload)
+            put("fastOpen", true)
+            put("lazy", true)
+
+            put("quic", JSONObject().apply {
+                    // TODO constant protect path
+                    put("sockopts", JSONObject().apply {
+                            put("fdControlUnixSocket", "protect_path")
+                        }
+                    )
+                }
+            )
+
+            put(
+                "socks5", JSONObject().apply {
+                    put("listen", "$LOCALHOST:$port")
+                }
+            )
+
+            put(
+                "tls", JSONObject().apply {
+                    put("sni", sni)
+                    put("insecure", allowInsecure)
+
+                    if (caText.isNotBlank() && cacheFile != null) {
+                        val caFile = cacheFile()
+                        caFile.writeText(caText)
+                        put("ca", caFile.absolutePath)
+                    }
+                }
+            )
+
+            put(
+                "transport", JSONObject().apply {
+                    put("type", "udp")
+                    put("udp", JSONObject().apply {
+                        if (hopInterval > 0) put("hopInterval", "${hopInterval}s")
+                    })
+                }
+            )
+
+            if (DataStore.uploadSpeed > 0 || DataStore.downloadSpeed > 0) {
+                put("bandwidth", JSONObject().apply {
+                    if (DataStore.uploadSpeed > 0) put("up", "${DataStore.uploadSpeed} mbps")
+                    if (DataStore.downloadSpeed > 0) put("down", "${DataStore.downloadSpeed} mbps")
+                })
+            }
+
+        }.toStringPretty()
+
+        else -> throw Exception("error version: $protocolVersion")
+    }
 }
 
 fun isMultiPort(hyAddr: String): Boolean {
     if (!hyAddr.contains(":")) return false
     val p = hyAddr.substringAfterLast(":")
-    if (p.contains("-") || p.contains(",")) return true
-    return false
+    return p.contains("-") || p.contains(",")
 }
 
 fun getFirstPort(portStr: String): Int {
@@ -258,8 +310,11 @@ fun getFirstPort(portStr: String): Int {
 }
 
 fun HysteriaBean.canUseSingBox(): Boolean {
-    if (protocol != HysteriaBean.PROTOCOL_UDP) return false
-    return true
+    return when {
+        protocol != HysteriaBean.PROTOCOL_UDP -> false
+        serverPorts.toIntOrNull() == null -> false
+        else -> true
+    }
 }
 
 fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any> {
@@ -267,23 +322,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
         1 -> SingBoxOptions.Outbound_HysteriaOptions().apply {
             type = "hysteria"
             server = bean.serverAddress
-            val port = bean.serverPorts.toIntOrNull()
-            if (port != null) {
-                server_port = port
-            } else {
-                hop_ports = bean.serverPorts
-            }
-            up_mbps = if (DataStore.uploadSpeed > 0) {
-                DataStore.uploadSpeed
-            } else {
-                10
-            }
-            down_mbps = if (DataStore.downloadSpeed > 0) {
-                DataStore.uploadSpeed
-            } else {
-                10
-            }
-            hop_interval = bean.hopInterval
+            server_port = bean.serverPorts.toIntOrNull()
+            up_mbps = bean.getUploadSpeed()
+            down_mbps = bean.getDownloadSpeed()
             obfs = bean.obfuscation
             disable_mtu_discovery = bean.disableMtuDiscovery
             when (bean.authPayloadType) {
@@ -323,13 +364,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
         2 -> SingBoxOptions.Outbound_Hysteria2Options().apply {
             type = "hysteria2"
             server = bean.serverAddress
-            val port = bean.serverPorts.toIntOrNull()
-            if (port != null) {
-                server_port = port
-            } else {
-                hop_ports = bean.serverPorts
-            }
-            hop_interval = bean.hopInterval
+            server_port = bean.serverPorts.toIntOrNull()
             up_mbps = DataStore.uploadSpeed
             down_mbps = DataStore.downloadSpeed
             if (bean.obfuscation.isNotBlank()) {
@@ -369,5 +404,34 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
         }.asMap()
 
         else -> mutableMapOf("error_version" to bean.protocolVersion)
+    }
+}
+
+
+const val DEFAULT_SPEED = 10
+
+// Just use for Hy1
+
+fun HysteriaBean.getDownloadSpeed(): Int {
+    return if (protocolVersion == 1) {
+        if (DataStore.downloadSpeed <= 0) {
+            DEFAULT_SPEED
+        } else {
+            DataStore.downloadSpeed
+        }
+    } else {
+        DataStore.downloadSpeed
+    }
+}
+
+fun HysteriaBean.getUploadSpeed(): Int {
+    return if (protocolVersion == 1) {
+        if (DataStore.uploadSpeed <= 0) {
+            DEFAULT_SPEED
+        } else {
+            DataStore.uploadSpeed
+        }
+    } else {
+        DataStore.uploadSpeed
     }
 }

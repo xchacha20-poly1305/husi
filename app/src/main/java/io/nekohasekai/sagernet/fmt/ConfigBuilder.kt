@@ -473,7 +473,7 @@ fun buildConfig(
                             is HysteriaBean -> if (bean.protocolVersion == 1) "hysteria-plugin" else "hysteria2-plugin"
                             else -> ""
                         }
-                        if (Plugins.isUsingMatsuriExe(pluginId)) {
+                        if (Plugins.canProtect(pluginId)) {
                             needExternal = false
                         }
                     }

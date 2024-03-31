@@ -7,6 +7,7 @@ import android.content.pm.ProviderInfo
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -27,28 +28,32 @@ object Plugins {
         val provider = pkg.providers[0] ?: return false
         val auth = provider.authority ?: return false
         return auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)
+                || auth.startsWith(AUTHORITIES_PREFIX_HUSI_EXE)
                 || auth.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)
                 || auth.startsWith(AUTHORITIES_PREFIX_NEKO_PLUGIN)
     }
 
     fun preferExePrefix(): String {
-        return AUTHORITIES_PREFIX_NEKO_EXE
+        return AUTHORITIES_PREFIX_HUSI_EXE
     }
 
-    fun isUsingMatsuriExe(pluginId: String): Boolean {
+    fun canProtect(pluginId: String): Boolean {
         getPlugin(pluginId)?.apply {
-            if (authority.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)) {
+            if (
+                authority.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) ||
+                authority.startsWith(AUTHORITIES_PREFIX_HUSI_EXE)
+            ) {
                 return true
             }
         }
-        return false;
+        return false
     }
 
     fun displayExeProvider(pkgName: String): String {
         return when {
             pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"
+            pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> SagerNet.application.getString(R.string.app_name)
             pkgName.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) -> "Advertisement"
-            pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> "Unknown"
             else -> "Unknown"
         }
     }

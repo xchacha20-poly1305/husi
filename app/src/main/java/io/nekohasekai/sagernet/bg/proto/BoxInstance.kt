@@ -9,7 +9,7 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
-import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
+import io.nekohasekai.sagernet.fmt.hysteria.buildHysteriaConfig
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
@@ -82,8 +82,11 @@ abstract class BoxInstance(
                     }
 
                     is HysteriaBean -> {
-                        initPlugin("hysteria-plugin")
-                        pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
+                        when (bean.protocolVersion) {
+                            1 -> initPlugin("hysteria-plugin")
+                            2 -> initPlugin("hysteria2-plugin")
+                        }
+                        pluginConfigs[port] = profile.type to bean.buildHysteriaConfig(port) {
                             File(
                                 app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
                             ).apply {
@@ -187,17 +190,25 @@ abstract class BoxInstance(
                         configFile.writeText(config)
                         cacheFiles.add(configFile)
 
-                        val commands = mutableListOf(
-                            initPlugin("hysteria-plugin").path,
-                            "--no-check",
-                            "--config",
-                            configFile.absolutePath,
-                            "--log-level",
-                            if (DataStore.logLevel > 0) "trace" else "warn",
-                            "client"
-                        )
+                        val commands = if (bean.protocolVersion == 1) {
+                            mutableListOf(
+                                initPlugin("hysteria-plugin").path,
+                                "--no-check",
+                                "--config",
+                                configFile.absolutePath,
+                                "--log-level",
+                                if (DataStore.logLevel > 0) "trace" else "warn",
+                                "client"
+                            )
+                        } else {
+                            mutableListOf(
+                                initPlugin("hysteria2-plugin").path, "client",
+                                "--config", configFile.absolutePath,
+                                "--log-level", if (DataStore.logLevel > 0) "warn" else "error"
+                            )
+                        }
 
-                        if (bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
+                        if (bean.protocolVersion == 1 && bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
                             commands.addAll(0, listOf("su", "-c"))
                         }
 

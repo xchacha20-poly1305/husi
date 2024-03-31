@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.plugin.Plugins
 import java.io.File
 import java.io.FileNotFoundException
 
