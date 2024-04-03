@@ -448,10 +448,10 @@
     <string name="tuic_udp_relay_mode">حالت رله UDP</string>
     <string name="tuic_congestion_controller">کنترل کننده ازدحام</string>
     <string name="tuic_disable_sni">غیرفعال کردن SNI</string>
-    <string name="tuic_reduce_rtt">UDP کاهش RTT</string>
-    <string name="connection_test_delete_unavailable">پاک کردن در دسترس نیست</string>
+    <string name="tuic_reduce_rtt">فعال‌سازی 0-RTT ارتباط QUIC</string>
+    <string name="connection_test_delete_unavailable">پاک‌سازی غیرقابل دسترس‌ها</string>
     <string name="neko_plugin">افزونه پیشرفته</string>
-    <string name="neko_plugin_internal_error">%s خطای داخلی</string>
+    <string name="neko_plugin_internal_error">خطای داخلی %s</string>
     <string name="move">حرکت</string>
     <string name="exe_prefer_provider">ارائه دهنده برگزیده پلاگین</string>
     <string name="create_shortcut">ایجاد میانبر</string>
@@ -503,8 +503,8 @@
     <string name="action_camera_switch">عوض کردن دوربین</string>
     <string name="location_permission_title">اجازه دادن موقعیت مکانی</string>
     <string name="location_permission_description">قوانین route شما شامل قوانین مسیریابی Wi-Fi SSID و Wi-Fi BSSID می باشد. برای اینکه کار کنند، husi مجوز موقعیت یابی را در پس زمینه میخواهد تا اطلاعاتی درباره شبکه ی وای فای بدست آورد. این اطلاعات فقط برای اهداف مسیریابی استفاده خواهد شد.</string>
-    <string name="neko_plugin_summary">افزونه های پیشرفته می تواند پروتکل هایی که به صورت رسمی پشتیبانی نمیشوند را فراهم کنند.
-\n 
+    <string name="neko_plugin_summary">افزونه های پیشرفته می‌تواند پروتکل‌هایی که به صورت رسمی پشتیبانی نمی‌شوند را فراهم کنند.
+\n
 \nهر کسی می تواند افزونه های پیشرفته را بنویسد، که توانایی کنترل husi را دارد. لطفاً این افزونه ها را از منابع قابل اعتماد دانلود و نصب کنید.</string>
     <string name="domain_strategy_for_remote">استراتژی دامنه برای اتصال Remote</string>
     <string name="domain_strategy_for_direct">استراتژی دامنه برای اتصال مستقیم</string>
