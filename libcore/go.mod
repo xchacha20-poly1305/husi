@@ -6,12 +6,12 @@ require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.4.0-beta.6
-	github.com/sagernet/sing-box v1.9.0-rc.3 // Bump core version here.
+	github.com/sagernet/sing-box v1.9.0-rc.4 // Bump core version here.
 	github.com/sagernet/sing-dns v0.2.0-beta.16
 	github.com/sagernet/sing-tun v0.2.6-beta.1
-	github.com/xchacha20-poly1305/TLS-scribe v0.3.0
-	github.com/xchacha20-poly1305/cazilla v0.2.1
-	github.com/xchacha20-poly1305/libping v0.1.1
+	github.com/xchacha20-poly1305/TLS-scribe v0.4.0
+	github.com/xchacha20-poly1305/cazilla v0.2.2
+	github.com/xchacha20-poly1305/libping v0.2.0
 )
 
 // cmd
@@ -49,8 +49,8 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/libdns/alidns v1.0.3 // indirect
-	github.com/libdns/cloudflare v0.1.0 // indirect
-	github.com/libdns/libdns v0.2.1 // indirect
+	github.com/libdns/cloudflare v0.1.1 // indirect
+	github.com/libdns/libdns v0.2.2 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mholt/acmez v1.2.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.10.0 // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/sagernet/quic-go v0.42.0-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
-	github.com/sagernet/sing-quic v0.1.9-beta.3 // indirect
+	github.com/sagernet/sing-quic v0.1.10-beta.2 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.6 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
@@ -82,9 +82,9 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81 // indirect
+	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	golang.org/x/mod v0.16.0 // indirect
-	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect

@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"context"
+	"crypto/rand"
 	"net"
 	"time"
 
@@ -14,7 +15,15 @@ import (
 )
 
 func IcmpPing(address string, timeout int32) (latency int32, err error) {
-	return libping.IcmpPing(address, timeout)
+	payload := make([]byte, 20)
+	_, _ = rand.Read(payload)
+
+	t, err := libping.IcmpPing(address, (time.Duration)(timeout)*time.Millisecond, payload)
+	if err != nil {
+		return -1, err
+	}
+
+	return int32(t.Milliseconds()), nil
 }
 
 func TcpPing(host, port string, timeout int32) (latency int32, err error) {
