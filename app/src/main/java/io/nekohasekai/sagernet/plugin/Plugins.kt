@@ -1,12 +1,7 @@
 package io.nekohasekai.sagernet.plugin
 
-import android.content.Intent
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
-import android.net.Uri
-import android.os.Build
-import android.widget.Toast
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
@@ -37,23 +32,11 @@ object Plugins {
         return AUTHORITIES_PREFIX_HUSI_EXE
     }
 
-    fun canProtect(pluginId: String): Boolean {
-        getPlugin(pluginId)?.apply {
-            if (
-                authority.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) ||
-                authority.startsWith(AUTHORITIES_PREFIX_HUSI_EXE)
-            ) {
-                return true
-            }
-        }
-        return false
-    }
-
     fun displayExeProvider(pkgName: String): String {
         return when {
             pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"
             pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> SagerNet.application.getString(R.string.app_name)
-            pkgName.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) -> "Advertisement"
+            pkgName.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) -> "Matsuri"
             else -> "Unknown"
         }
     }
@@ -68,32 +51,17 @@ object Plugins {
     fun getPluginExternal(pluginId: String): ProviderInfo? {
         if (pluginId.isBlank()) return null
 
-        // try queryIntentContentProviders
-        var providers = getExtPluginOld(pluginId)
+        val providers = getExtPlugin(pluginId)
 
-        // try PackageCache
-        if (providers.isEmpty()) providers = getExtPluginNew(pluginId)
-
-        // not found
-        if (providers.isEmpty()) return null
-
-        if (providers.size > 1) {
-            val prefer = providers.filter {
-                it.authority.startsWith(preferExePrefix())
-            }
-            if (prefer.size == 1) providers = prefer
+        val preferProvider = providers.find {
+            it.authority.startsWith(preferExePrefix())
         }
+        if (preferProvider != null) return preferProvider
 
-        if (providers.size > 1) {
-            val message =
-                "Conflicting plugins found from: ${providers.joinToString { it.packageName }}"
-            Toast.makeText(SagerNet.application, message, Toast.LENGTH_LONG).show()
-        }
-
-        return providers[0]
+        return providers.randomOrNull()
     }
 
-    private fun getExtPluginNew(pluginId: String): List<ProviderInfo> {
+    private fun getExtPlugin(pluginId: String): List<ProviderInfo> {
         PackageCache.awaitLoadSync()
         val pkgs = PackageCache.installedPluginPackages
             .map { it.value }
@@ -101,26 +69,4 @@ object Plugins {
         return pkgs.map { it.providers[0] }
     }
 
-    private fun buildUri(id: String, auth: String) = Uri.Builder()
-        .scheme("plugin")
-        .authority(auth)
-        .path("/$id")
-        .build()
-
-    private fun getExtPluginOld(pluginId: String): List<ProviderInfo> {
-        var flags = PackageManager.GET_META_DATA
-        if (Build.VERSION.SDK_INT >= 24) {
-            flags =
-                flags or PackageManager.MATCH_DIRECT_BOOT_UNAWARE or PackageManager.MATCH_DIRECT_BOOT_AWARE
-        }
-        val list1 = SagerNet.application.packageManager.queryIntentContentProviders(
-            Intent(ACTION_NATIVE_PLUGIN, buildUri(pluginId, "io.nekohasekai.sagernet")), flags
-        )
-        val list2 = SagerNet.application.packageManager.queryIntentContentProviders(
-            Intent(ACTION_NATIVE_PLUGIN, buildUri(pluginId, "moe.matsuri.lite")), flags
-        )
-        return (list1 + list2).mapNotNull {
-            it.providerInfo
-        }.filter { it.exported }
-    }
 }
