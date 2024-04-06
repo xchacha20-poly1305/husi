@@ -152,9 +152,10 @@ abstract class BoxInstance(
                         configFile.writeText(config)
                         cacheFiles.add(configFile)
 
-                        val envMap = mutableMapOf<String, String>()
-                        envMap["MIERU_CONFIG_JSON_FILE"] = configFile.absolutePath
-                        envMap["MIERU_PROTECT_PATH"] = "protect_path"
+                        val envMap = mutableMapOf(
+                            "MIERU_CONFIG_JSON_FILE" to configFile.absolutePath,
+                            "MIERU_PROTECT_PATH" to "protect_path",
+                        )
 
                         val commands = mutableListOf(
                             initPlugin("mieru-plugin").path, "run",
@@ -190,6 +191,8 @@ abstract class BoxInstance(
                         configFile.writeText(config)
                         cacheFiles.add(configFile)
 
+                        val envMap = mutableMapOf("HYSTERIA_DISABLE_UPDATE_CHECK" to "1")
+
                         val commands = if (bean.protocolVersion == 1) {
                             mutableListOf(
                                 initPlugin("hysteria-plugin").path,
@@ -212,7 +215,7 @@ abstract class BoxInstance(
                             commands.addAll(0, listOf("su", "-c"))
                         }
 
-                        processes.start(commands)
+                        processes.start(commands, envMap)
                     }
 
                     bean is NekoBean -> {
