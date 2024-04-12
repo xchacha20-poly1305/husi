@@ -284,10 +284,6 @@ func (u *netURL) GetFragment() string {
 	return u.Fragment
 }
 
-func (u *netURL) SetFragment(fragment string) {
-	u.Fragment = fragment
-}
-
 func (u *netURL) SetRawFragment(rawFragment string) error {
 	return setFragment(&u.URL, rawFragment)
 }
