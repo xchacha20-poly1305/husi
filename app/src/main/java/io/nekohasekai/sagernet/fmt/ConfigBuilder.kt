@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
+import libcore.Libcore
 import moe.matsuri.nb4a.*
 import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.proxy.config.ConfigBean
@@ -34,7 +35,6 @@ import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 const val TAG_MIXED = "mixed-in"
 const val TAG_TUN = "tun-in"
@@ -710,10 +710,13 @@ fun buildConfig(
             if (address.contains("://")) {
                 address = address.substringAfter("://")
             }
-            "https://$address".toHttpUrlOrNull()?.apply {
-                if (!host.isIpAddress()) {
-                    domainListDNSDirectForce.add("full:$host")
+            try {
+                Libcore.parseURL("https://$address").apply {
+                    if (!host.isIpAddress()) {
+                        domainListDNSDirectForce.add("full:$host")
+                    }
                 }
+            } catch (_: Exception) {
             }
         }
 

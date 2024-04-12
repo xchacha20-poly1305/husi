@@ -4,31 +4,30 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
+import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
-fun parseTrojanGo(server: String): TrojanGoBean {
-    val link = server.replace("trojan-go://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid trojan-link link $server"
-    )
+fun parseTrojanGo(rawUrl: String): TrojanGoBean {
+    val url = Libcore.parseURL(rawUrl)
+
     return TrojanGoBean().apply {
-        serverAddress = link.host
-        serverPort = link.port
-        password = link.username
-        link.queryParameter("sni")?.let {
+        serverAddress = url.host
+        serverPort = url.ports.toIntOrNull() ?: 443
+        password = url.username
+        url.queryParameterNotBlank("sni").let {
             sni = it
         }
-        link.queryParameter("type")?.let { lType ->
+        url.queryParameterNotBlank("type").let { lType ->
             type = lType
 
             when (type) {
                 "ws" -> {
-                    link.queryParameter("host")?.let {
+                    url.queryParameterNotBlank("host").let {
                         host = it
                     }
-                    link.queryParameter("path")?.let {
+                    url.queryParameterNotBlank("path").let {
                         path = it
                     }
                 }
@@ -37,20 +36,24 @@ fun parseTrojanGo(server: String): TrojanGoBean {
                 }
             }
         }
-        link.queryParameter("encryption")?.let {
+        url.queryParameterNotBlank("encryption").let {
             encryption = it
         }
-        link.queryParameter("plugin")?.let {
+        url.queryParameterNotBlank("plugin").let {
             plugin = it
         }
-        link.fragment.takeIf { !it.isNullOrBlank() }?.let {
+        url.fragment.takeIf { !it.isNullOrBlank() }.let {
             name = it
         }
     }
 }
 
 fun TrojanGoBean.toUri(): String {
-    val builder = linkBuilder().username(password).host(serverAddress).port(serverPort)
+    val builder = Libcore.newURL("trojan-go").apply {
+        username = password
+        host = serverAddress
+        ports = serverPort.toString()
+    }
     if (sni.isNotBlank()) {
         builder.addQueryParameter("sni", sni)
     }
@@ -76,10 +79,10 @@ fun TrojanGoBean.toUri(): String {
     }
 
     if (name.isNotBlank()) {
-        builder.encodedFragment(name.urlSafe())
+        builder.setRawFragment(name)
     }
 
-    return builder.toLink("trojan-go")
+    return builder.string
 }
 
 fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {

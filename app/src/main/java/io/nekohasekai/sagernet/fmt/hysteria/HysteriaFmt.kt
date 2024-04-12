@@ -7,42 +7,36 @@ import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONObject
 import java.io.File
 
 
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
-fun parseHysteria1(url: String): HysteriaBean {
-    val link = url.replace("hysteria://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid hysteria link $url"
-    )
+fun parseHysteria1(rawUrl: String): HysteriaBean {
+    val url = Libcore.parseURL(rawUrl)
     return HysteriaBean().apply {
         protocolVersion = 1
-        serverAddress = link.host
-        serverPorts = link.port.toString()
-        name = link.fragment
+        serverAddress = url.host
+        serverPorts = url.ports
+        name = url.fragment
 
-        link.queryParameter("mport")?.also {
-            serverPorts = it
-        }
-        link.queryParameter("peer")?.also {
+        url.queryParameterNotBlank("peer").also {
             sni = it
         }
-        link.queryParameter("auth")?.takeIf { it.isNotBlank() }?.also {
+        url.queryParameterNotBlank("auth").takeIf { it.isNotBlank() }.also {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
         }
-        link.queryParameter("insecure")?.also {
+        url.queryParameterNotBlank("insecure").also {
             allowInsecure = it == "1" || it == "true"
         }
-        link.queryParameter("alpn")?.also {
+        url.queryParameterNotBlank("alpn").also {
             alpn = it
         }
-        link.queryParameter("obfsParam")?.also {
+        url.queryParameterNotBlank("obfsParam").also {
             obfuscation = it
         }
-        link.queryParameter("protocol")?.also {
+        url.queryParameterNotBlank("protocol")?.also {
             when (it) {
                 "faketcp" -> {
                     protocol = HysteriaBean.PROTOCOL_FAKETCP
@@ -57,35 +51,35 @@ fun parseHysteria1(url: String): HysteriaBean {
 }
 
 // hysteria2://[auth@]hostname[:port]/?[key=value]&[key=value]...
-fun parseHysteria2(url: String): HysteriaBean {
-    val link = url
-        .replace("hysteria2://", "https://")
-        .replace("hy2://", "https://")
-        .toHttpUrlOrNull() ?: error("invalid hysteria link $url")
+fun parseHysteria2(rawUrl: String): HysteriaBean {
+    val url = Libcore.parseURL(rawUrl)
     return HysteriaBean().apply {
         protocolVersion = 2
-        serverAddress = link.host
-        serverPorts = link.port.toString()
-        authPayload = if (link.password.isNotBlank()) {
-            link.username + ":" + link.password
-        } else {
-            link.username
-        }
-        name = link.fragment
+        serverAddress = url.host
+        serverPorts = url.ports
 
-        link.queryParameter("mport")?.also {
-            serverPorts = it
+        var ps:String? = null
+        try {
+            ps = url.password
+        } catch (_: Exception) {}
+        authPayload = if (ps.isNullOrBlank()) {
+            url.username
+        } else {
+            url.username + ":" + url.password
         }
-        link.queryParameter("sni")?.also {
+
+        name = url.fragment
+
+        url.queryParameterNotBlank("sni").also {
             sni = it
         }
-        link.queryParameter("insecure")?.also {
+        url.queryParameterNotBlank("insecure").also {
             allowInsecure = it == "1" || it == "true"
         }
-        link.queryParameter("obfs-password")?.also {
+        url.queryParameterNotBlank("obfs-password").also {
             obfuscation = it
         }
-        link.queryParameter("pinSHA256")?.also {
+        url.queryParameterNotBlank("pinSHA256").also {
             // TODO your box do not support it
         }
     }
@@ -103,56 +97,59 @@ fun HysteriaBean.toUri(): String {
         }
     }
     //
-    val builder = linkBuilder()
-        .host(serverAddress.wrapIPV6Host())
-        .port(getFirstPort(serverPorts))
-        .username(un)
-        .password(pw)
-    if (isMultiPort(displayAddress())) {
-        builder.addQueryParameter("mport", serverPorts)
+    val url = Libcore.newURL(when(protocolVersion) {
+        2 -> "hysteria2"
+        else -> "hysteria"
+    }).apply {
+        host = serverAddress.wrapIPV6Host()
+        ports = serverPorts
+        username = un
+        password = pw
     }
+
     if (name.isNotBlank()) {
-        builder.encodedFragment(name.urlSafe())
+        url.setRawFragment(name)
     }
     if (allowInsecure) {
-        builder.addQueryParameter("insecure", "1")
+        url.addQueryParameter("insecure", "1")
     }
     if (protocolVersion == 1) {
         if (sni.isNotBlank()) {
-            builder.addQueryParameter("peer", sni)
+            url.addQueryParameter("peer", sni)
         }
         if (authPayload.isNotBlank()) {
-            builder.addQueryParameter("auth", authPayload)
+            url.addQueryParameter("auth", authPayload)
         }
         if (alpn.isNotBlank()) {
-            builder.addQueryParameter("alpn", alpn)
+            url.addQueryParameter("alpn", alpn)
         }
         if (obfuscation.isNotBlank()) {
-            builder.addQueryParameter("obfs", "xplus")
-            builder.addQueryParameter("obfsParam", obfuscation)
+            url.addQueryParameter("obfs", "xplus")
+            url.addQueryParameter("obfsParam", obfuscation)
         }
         when (protocol) {
             HysteriaBean.PROTOCOL_FAKETCP -> {
-                builder.addQueryParameter("protocol", "faketcp")
+                url.addQueryParameter("protocol", "faketcp")
             }
 
             HysteriaBean.PROTOCOL_WECHAT_VIDEO -> {
-                builder.addQueryParameter("protocol", "wechat-video")
+                url.addQueryParameter("protocol", "wechat-video")
             }
         }
     } else {
         if (sni.isNotBlank()) {
-            builder.addQueryParameter("sni", sni)
+            url.addQueryParameter("sni", sni)
         }
         if (obfuscation.isNotBlank()) {
-            builder.addQueryParameter("obfs", "salamander")
-            builder.addQueryParameter("obfs-password", obfuscation)
+            url.addQueryParameter("obfs", "salamander")
+            url.addQueryParameter("obfs-password", obfuscation)
         }
         if (caText.isNotBlank()) {
-            builder.addQueryParameter("pinSHA256", Libcore.sha256OpenSSL(caText.toByteArray()))
+            url.addQueryParameter("pinSHA256", Libcore.sha256OpenSSL(caText.toByteArray()))
         }
     }
-    return builder.toLink(if (protocolVersion == 2) "hy2" else "hysteria")
+
+    return url.string
 }
 
 fun JSONObject.parseHysteria1Json(): HysteriaBean {
@@ -299,6 +296,7 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
     }
 }
 
+/*
 fun isMultiPort(hyAddr: String): Boolean {
     if (!hyAddr.contains(":")) return false
     val p = hyAddr.substringAfterLast(":")
@@ -308,6 +306,7 @@ fun isMultiPort(hyAddr: String): Boolean {
 fun getFirstPort(portStr: String): Int {
     return portStr.substringBefore(":").substringBefore(",").toIntOrNull() ?: 443
 }
+ */
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     return when {

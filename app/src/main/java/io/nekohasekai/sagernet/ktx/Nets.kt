@@ -5,25 +5,9 @@ package io.nekohasekai.sagernet.ktx
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import moe.matsuri.nb4a.utils.NGUtil
-import okhttp3.HttpUrl
 import java.net.InetSocketAddress
 import java.net.Socket
 import libcore.Libcore
-
-fun linkBuilder() = HttpUrl.Builder().scheme("https")
-
-fun HttpUrl.Builder.toLink(scheme: String, appendDefaultPort: Boolean = true): String {
-    var url = build()
-    val defaultPort = HttpUrl.defaultPort(url.scheme)
-    var replace = false
-    if (appendDefaultPort && url.port == defaultPort) {
-        url = url.newBuilder().port(14514).build()
-        replace = true
-    }
-    return url.toString().replace("${url.scheme}://", "$scheme://").let {
-        if (replace) it.replace(":14514", ":$defaultPort") else it
-    }
-}
 
 fun String.isIpAddress(): Boolean {
     return NGUtil.isIpv4Address(this) || NGUtil.isIpv6Address(this)

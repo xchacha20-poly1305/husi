@@ -12,26 +12,38 @@ import (
 type URL interface {
 	GetScheme() string
 	SetScheme(scheme string)
+
 	GetOpaque() string
 	SetOpaque(opaque string)
+
 	GetUsername() string
 	SetUsername(username string)
+
 	GetPassword() string
 	SetPassword(password string) error
+
 	GetHost() string
 	SetHost(host string)
+
 	GetFullHost() string
 	SetFullHost(host string)
+
 	GetPorts() string
 	SetPorts(port string)
+
 	GetPath() string
 	SetPath(path string)
+
 	GetRawPath() string
 	SetRawPath(rawPath string) error
+
 	QueryParameterNotBlank(key string) string
 	AddQueryParameter(key, value string)
+	SetQueryParameter(key, value string)
+
 	GetFragment() string
 	SetRawFragment(rawFragment string) error
+
 	GetString() string
 }
 
@@ -264,8 +276,16 @@ func (u *netURL) AddQueryParameter(key, value string) {
 	u.Add(key, value)
 }
 
+func (u *netURL) SetQueryParameter(key, value string) {
+	u.SetQueryParameter(key, value)
+}
+
 func (u *netURL) GetFragment() string {
 	return u.Fragment
+}
+
+func (u *netURL) SetFragment(fragment string) {
+	u.Fragment = fragment
 }
 
 func (u *netURL) SetRawFragment(rawFragment string) error {
