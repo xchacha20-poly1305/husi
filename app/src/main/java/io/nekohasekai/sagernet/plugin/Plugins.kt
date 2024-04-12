@@ -19,7 +19,7 @@ object Plugins {
     const val METADATA_KEY_EXECUTABLE_PATH = "io.nekohasekai.sagernet.plugin.executable_path"
 
     fun isExeOrPlugin(pkg: PackageInfo): Boolean {
-        if (pkg.providers == null || pkg.providers.isEmpty()) return false
+        if (pkg.providers.isNullOrEmpty()) return false
         val provider = pkg.providers[0] ?: return false
         val auth = provider.authority ?: return false
         return auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)
@@ -45,7 +45,7 @@ object Plugins {
         if (pluginId.isBlank()) return null
         getPluginExternal(pluginId)?.let { return it }
         // internal so
-        return ProviderInfo().apply { authority = AUTHORITIES_PREFIX_NEKO_EXE }
+        return ProviderInfo().apply { authority = AUTHORITIES_PREFIX_HUSI_EXE }
     }
 
     fun getPluginExternal(pluginId: String): ProviderInfo? {
