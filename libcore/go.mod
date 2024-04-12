@@ -1,24 +1,25 @@
 module libcore
 
-go 1.20
+go 1.21
 
 require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.4.0-beta.6
-	github.com/sagernet/sing-box v1.9.0-rc.4 // Bump core version here.
+	github.com/sagernet/sing v0.4.0-beta.14
+	github.com/sagernet/sing-box v1.9.0-rc.7 // Bump core version here.
 	github.com/sagernet/sing-dns v0.2.0-beta.16
-	github.com/sagernet/sing-tun v0.2.6-beta.1
+	github.com/sagernet/sing-tun v0.2.7-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.4.0
 	github.com/xchacha20-poly1305/cazilla v0.2.2
 	github.com/xchacha20-poly1305/libping v0.2.0
+	golang.org/x/sys v0.19.0
 )
 
 // cmd
 require (
 	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/oschwald/maxminddb-golang v1.12.0
-	github.com/v2fly/v2ray-core/v5 v5.13.0
+	github.com/v2fly/v2ray-core/v5 v5.15.1
 	google.golang.org/protobuf v1.33.0
 )
 
@@ -40,7 +41,7 @@ require (
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gofrs/uuid/v5 v5.0.0 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/pprof v0.0.0-20231101202521-4ca4178f5c7a // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
@@ -65,7 +66,7 @@ require (
 	github.com/sagernet/quic-go v0.42.0-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
-	github.com/sagernet/sing-quic v0.1.10-beta.2 // indirect
+	github.com/sagernet/sing-quic v0.1.12-beta.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.6 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
@@ -81,15 +82,14 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	golang.org/x/mod v0.16.0 // indirect
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
-	google.golang.org/grpc v1.62.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
+	google.golang.org/grpc v1.63.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )

@@ -130,7 +130,7 @@ func (b *BoxInstance) Close() (err error) {
 
 	// close box
 	chClosed := make(chan struct{})
-	ctx, cancel := context.WithTimeout(context.Background(), C.DefaultStopTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), C.StopTimeout)
 	defer cancel()
 	start := time.Now()
 	go func() {
