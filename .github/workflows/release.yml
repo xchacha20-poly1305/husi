@@ -40,10 +40,6 @@ jobs:
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
-      - uses: goto-bus-stop/setup-zig@v2
-        if: steps.cache.outputs.cache-hit != 'true'
-        with:
-          version: 0.11.0
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |

@@ -65,7 +65,7 @@ import moe.matsuri.nb4a.proxy.neko.NekoSettingActivity
 import moe.matsuri.nb4a.proxy.neko.canShare
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import moe.matsuri.nb4a.utils.blur
-import okhttp3.internal.closeQuietly
+import moe.matsuri.nb4a.utils.closeQuietly
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.*

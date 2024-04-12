@@ -191,9 +191,13 @@ func goServeProtect(start bool) {
 		_ = protectCloser.Close()
 		protectCloser = nil
 	}
+
 	if start {
-		protectCloser = protectserver.ServeProtect("protect_path", 0, func(fd int) {
-			_ = intfBox.AutoDetectInterfaceControl(int32(fd))
+		protectCloser = protectserver.ServerProtect(protectserver.DefaultPath, func(fd int) error {
+			if intfBox == nil {
+				return E.New("not init intfBox")
+			}
+			return intfBox.AutoDetectInterfaceControl(int32(fd))
 		})
 	}
 }

@@ -297,10 +297,6 @@ class MainActivity : ThemedActivity(),
         var fdroidIndex = -1
 
         val items = mutableListOf<String>()
-        if (pluginEntry.downloadSource.playStore) {
-            items.add(getString(R.string.install_from_play_store))
-            playIndex = index++
-        }
         if (pluginEntry.downloadSource.fdroid) {
             items.add(getString(R.string.install_from_fdroid))
             fdroidIndex = index++

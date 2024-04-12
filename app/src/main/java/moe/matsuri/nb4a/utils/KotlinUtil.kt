@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.ktx.Logs
+import java.io.Closeable
 import java.io.File
 
 // SagerNet Class
@@ -73,5 +74,15 @@ fun String.blur(): String {
         this.substring(0, halfLength) + "*".repeat(this.length - halfLength)
     } else {
         this.substring(0, 15) + "*".repeat(3)
+    }
+}
+
+
+fun Closeable.closeQuietly() {
+    try {
+        close()
+    } catch (rethrown: RuntimeException) {
+        throw rethrown
+    } catch (_: Exception) {
     }
 }

@@ -12,14 +12,17 @@ enum class PluginEntry(
     TrojanGo(
         "trojan-go-plugin",
         SagerNet.application.getString(R.string.action_trojan_go),
-        "io.nekohasekai.sagernet.plugin.trojan_go"
+        "io.nekohasekai.sagernet.plugin.trojan_go",
+        DownloadSource(
+            fdroid = false,
+            downloadLink = "https://github.com/SagerNet/SagerNet/releases?q=trojan-go"
+        )
     ),
     MieruProxy(
         "mieru-plugin",
         SagerNet.application.getString(R.string.action_mieru),
         "moe.matsuri.exe.mieru",
         DownloadSource(
-            playStore = false,
             fdroid = false,
             downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=mieru"
         )
@@ -29,7 +32,6 @@ enum class PluginEntry(
         SagerNet.application.getString(R.string.action_naive),
         "io.nekohasekai.sagernet.plugin.naive",
         DownloadSource(
-            playStore = false,
             fdroid = false,
             downloadLink = "https://github.com/AntiNeko/sing-plugin/releases?q=naive"
         )
@@ -39,17 +41,24 @@ enum class PluginEntry(
         SagerNet.application.getString(R.string.action_hysteria),
         "moe.matsuri.exe.hysteria",
         DownloadSource(
-            playStore = false,
             fdroid = false,
             downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=Hysteria"
+        )
+    ),
+    Hysteria2(
+        "hysteria2-plugin",
+        SagerNet.application.getString(R.string.action_hysteria)+"2",
+        "fr.husi.plugin.hysteria2",
+        DownloadSource(
+            fdroid = false,
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=Hysteria2"
         )
     ),
     ;
 
     data class DownloadSource(
-        val playStore: Boolean = true,
         val fdroid: Boolean = true,
-        val downloadLink: String = "https://AntiNeko.github.io/"
+        val downloadLink: String = "https://github.com/xchacha20-poly1305/husi/releases"
     )
 
     companion object {

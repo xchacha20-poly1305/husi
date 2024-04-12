@@ -26,16 +26,15 @@ import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
+import libcore.Libcore
 import moe.matsuri.nb4a.*
 import moe.matsuri.nb4a.SingBoxOptions.*
-import moe.matsuri.nb4a.plugin.Plugins
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 const val TAG_MIXED = "mixed-in"
 const val TAG_TUN = "tun-in"
@@ -461,47 +460,34 @@ fun buildConfig(
 
                 currentOutbound["tag"] = tagOut
 
-                // External proxy need a dokodemo-door inbound to forward the traffic
-                // For external proxy software, their traffic must goes to v2ray-core to use protected fd.
+                // External proxy need a direct inbound to forward the traffic
+                // For external proxy software, their traffic must goes to sing-box to use protected fd.
                 bean.finalAddress = bean.serverAddress
                 bean.finalPort = bean.serverPort
                 if (bean.canMapping() && proxyEntity.needExternal()) {
-                    // With ss protect, don't use mapping
-                    var needExternal = true
-                    if (index == profileList.lastIndex) {
-                        val pluginId = when (bean) {
-                            is HysteriaBean -> if (bean.protocolVersion == 1) "hysteria-plugin" else "hysteria2-plugin"
-                            else -> ""
+                    val mappingPort = mkPort()
+                    bean.finalAddress = LOCALHOST
+                    bean.finalPort = mappingPort
+
+                    inbounds.add(Inbound_DirectOptions().apply {
+                        type = "direct"
+                        listen = LOCALHOST
+                        listen_port = mappingPort
+                        tag = "$chainTag-mapping-${proxyEntity.id}"
+
+                        override_address = bean.serverAddress
+                        override_port = bean.serverPort
+
+                        pastInboundTag = tag
+
+                        // no chain rule and not outbound, so need to set to direct
+                        if (index == profileList.lastIndex) {
+                            route.rules.add(Rule_DefaultOptions().apply {
+                                inbound = listOf(tag)
+                                outbound = TAG_DIRECT
+                            })
                         }
-                        if (Plugins.isUsingMatsuriExe(pluginId)) {
-                            needExternal = false
-                        }
-                    }
-                    if (needExternal) {
-                        val mappingPort = mkPort()
-                        bean.finalAddress = LOCALHOST
-                        bean.finalPort = mappingPort
-
-                        inbounds.add(Inbound_DirectOptions().apply {
-                            type = "direct"
-                            listen = LOCALHOST
-                            listen_port = mappingPort
-                            tag = "$chainTag-mapping-${proxyEntity.id}"
-
-                            override_address = bean.serverAddress
-                            override_port = bean.serverPort
-
-                            pastInboundTag = tag
-
-                            // no chain rule and not outbound, so need to set to direct
-                            if (index == profileList.lastIndex) {
-                                route.rules.add(Rule_DefaultOptions().apply {
-                                    inbound = listOf(tag)
-                                    outbound = TAG_DIRECT
-                                })
-                            }
-                        })
-                    }
+                    })
                 }
 
                 outbounds.add(currentOutbound)
@@ -724,10 +710,13 @@ fun buildConfig(
             if (address.contains("://")) {
                 address = address.substringAfter("://")
             }
-            "https://$address".toHttpUrlOrNull()?.apply {
-                if (!host.isIpAddress()) {
-                    domainListDNSDirectForce.add("full:$host")
+            try {
+                Libcore.parseURL("https://$address").apply {
+                    if (!host.isIpAddress()) {
+                        domainListDNSDirectForce.add("full:$host")
+                    }
                 }
+            } catch (_: Exception) {
             }
         }
 

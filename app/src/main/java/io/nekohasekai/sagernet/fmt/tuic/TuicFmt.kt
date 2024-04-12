@@ -1,49 +1,49 @@
 package io.nekohasekai.sagernet.fmt.tuic
 
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.linkBuilder
-import io.nekohasekai.sagernet.ktx.toLink
-import io.nekohasekai.sagernet.ktx.urlSafe
+import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
-fun parseTuic(url: String): TuicBean {
+fun parseTuic(rawUrl: String): TuicBean {
     // https://github.com/daeuniverse/dae/discussions/182
-    val link = url.replace("tuic://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid tuic link $url"
-    )
+    val url = Libcore.parseURL(rawUrl)
     return TuicBean().apply {
-        name = link.fragment
-        uuid = link.username
-        token = link.password
-        serverAddress = link.host
-        serverPort = link.port
+        name = url.fragment
+        uuid = url.username
+        token = url.password
+        serverAddress = url.host
+        serverPort = url.ports.toIntOrNull() ?: 443
 
-        link.queryParameter("sni")?.let {
+        url.queryParameterNotBlank("sni").let {
             sni = it
         }
-        link.queryParameter("congestion_control")?.let {
+        url.queryParameterNotBlank("congestion_control").let {
             congestionController = it
         }
-        link.queryParameter("udp_relay_mode")?.let {
+        url.queryParameterNotBlank("udp_relay_mode").let {
             udpRelayMode = it
         }
-        link.queryParameter("alpn")?.let {
+        url.queryParameterNotBlank("alpn").let {
             alpn = it
         }
-        link.queryParameter("allow_insecure")?.let {
+        url.queryParameterNotBlank("allow_insecure").let {
             if (it == "1") allowInsecure = true
         }
-        link.queryParameter("disable_sni")?.let {
+        url.queryParameterNotBlank("disable_sni").let {
             if (it == "1") disableSNI = true
         }
     }
 }
 
 fun TuicBean.toUri(): String {
-    val builder = linkBuilder().username(uuid).password(token).host(serverAddress).port(serverPort)
+    val builder = Libcore.newURL("tuic").apply {
+        username = uuid
+        password = token
+        host = serverAddress
+        ports = serverPort.toString()
+    }
 
     builder.addQueryParameter("congestion_control", congestionController)
     var udpMode = udpRelayMode
@@ -54,9 +54,9 @@ fun TuicBean.toUri(): String {
     if (alpn.isNotBlank()) builder.addQueryParameter("alpn", alpn)
     if (allowInsecure) builder.addQueryParameter("allow_insecure", "1")
     if (disableSNI) builder.addQueryParameter("disable_sni", "1")
-    if (name.isNotBlank()) builder.encodedFragment(name.urlSafe())
+    if (name.isNotBlank()) builder.setRawFragment(name)
 
-    return builder.toLink("tuic")
+    return builder.string
 }
 
 fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOptions {

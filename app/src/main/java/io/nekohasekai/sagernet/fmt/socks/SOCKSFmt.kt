@@ -1,26 +1,23 @@
 package io.nekohasekai.sagernet.fmt.socks
 
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
-import io.nekohasekai.sagernet.ktx.toLink
 import io.nekohasekai.sagernet.ktx.urlSafe
+import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.NGUtil
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
-fun parseSOCKS(link: String): SOCKSBean {
-    val url = ("http://" + link.substringAfter("://")).toHttpUrlOrNull()
-        ?: error("Not supported: $link")
+fun parseSOCKS(rawUrl: String): SOCKSBean {
+    val url = Libcore.parseURL(rawUrl)
 
     return SOCKSBean().apply {
-        protocol = when {
-            link.startsWith("socks4://") -> SOCKSBean.PROTOCOL_SOCKS4
-            link.startsWith("socks4a://") -> SOCKSBean.PROTOCOL_SOCKS4A
+        protocol = when (url.scheme) {
+            "socks4" -> SOCKSBean.PROTOCOL_SOCKS4
+            "socks4a" -> SOCKSBean.PROTOCOL_SOCKS4A
             else -> SOCKSBean.PROTOCOL_SOCKS5
         }
         name = url.fragment
         serverAddress = url.host
-        serverPort = url.port
+        serverPort = url.ports.toIntOrNull() ?: 1080
         username = url.username
         password = url.password
         // v2rayN fmt
@@ -37,14 +34,18 @@ fun parseSOCKS(link: String): SOCKSBean {
 
 fun SOCKSBean.toUri(): String {
 
-    val builder = HttpUrl.Builder().scheme("http").host(serverAddress).port(serverPort)
-    if (!username.isNullOrBlank()) builder.username(username)
-    if (!password.isNullOrBlank()) builder.password(password)
-    if (!name.isNullOrBlank()) builder.encodedFragment(name.urlSafe())
-    return builder.toLink("socks${protocolVersion()}")
+    val builder = Libcore.newURL("socks${protocolVersion()}").apply {
+        host = serverAddress
+        ports = serverPort.toString()
+    }
+    if (!username.isNullOrBlank()) builder.username = username
+    if (!password.isNullOrBlank()) builder.password = password
+    if (!name.isNullOrBlank()) builder.setRawFragment(name)
+    return builder.string
 
 }
 
+// TODO share v2rayN
 fun SOCKSBean.toV2rayN(): String {
 
     var link = ""
