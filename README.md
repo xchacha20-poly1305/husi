@@ -11,7 +11,7 @@
 [![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
 [![Pull Request](https://img.shields.io/github/issues-pr-closed/xchacha20-poly1305/husi)](https://github.com/xchacha20-poly1305/husi/pulls)
 
-* Android API 34 & Gradle 8.6 & NDK 26.2.11394342.
+* Android API 34 & Gradle 8.7 & NDK 26.2.11394342.
 * Rich DNS modes, you can choose conservatively, safely or fastly.
 * Many ways to test connectivity, including ICMP, TCP ping and URL test.
 * Powerful [TCP Brutal](https://github.com/apernet/tcp-brutal) congestion control algorithm provides fast speed.
