@@ -101,7 +101,7 @@ fun HysteriaBean.toUri(): String {
         2 -> "hysteria2"
         else -> "hysteria"
     }).apply {
-        host = serverAddress.wrapIPV6Host()
+        host = serverAddress
         ports = serverPorts
         username = un
         password = pw
