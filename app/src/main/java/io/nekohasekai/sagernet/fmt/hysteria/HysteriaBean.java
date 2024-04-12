@@ -15,7 +15,6 @@ public class HysteriaBean extends AbstractBean {
     public static final int TYPE_BASE64 = 2;
     public static final int PROTOCOL_UDP = 0;
 
-    // HY1 & 2
     public static final int PROTOCOL_FAKETCP = 1;
     public static final int PROTOCOL_WECHAT_VIDEO = 2;
     public static final Creator<HysteriaBean> CREATOR = new CREATOR<HysteriaBean>() {
@@ -159,4 +158,5 @@ public class HysteriaBean extends AbstractBean {
     public HysteriaBean clone() {
         return KryoConverters.deserialize(new HysteriaBean(), KryoConverters.serialize(this));
     }
+
 }

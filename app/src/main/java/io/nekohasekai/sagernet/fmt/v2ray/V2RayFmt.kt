@@ -6,11 +6,11 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.*
+import libcore.Libcore
+import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.utils.NGUtil
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 
 data class VmessQRCode(
@@ -22,7 +22,7 @@ data class VmessQRCode(
     var aid: String = "0",
     var scy: String = "",
     var net: String = "",
-    var packet_encoding: String = "",
+    var packetEncoding: String = "",
     var type: String = "",
     var host: String = "",
     var path: String = "",
@@ -40,32 +40,32 @@ fun StandardV2RayBean.setTLS(boolean: Boolean) {
     security = if (boolean) "tls" else ""
 }
 
-fun parseV2Ray(link: String): StandardV2RayBean {
+fun parseV2Ray(rawUrl: String): StandardV2RayBean {
     // Try parse stupid formats first
 
-    if (!link.contains("?")) {
+    if (!rawUrl.contains("?")) {
         try {
-            return parseV2RayN(link)
+            return parseV2RayN(rawUrl)
         } catch (e: Exception) {
             Logs.i("try v2rayN: " + e.readableMessage)
         }
     }
 
     try {
-        return tryResolveVmess4Kitsunebi(link)
+        return tryResolveVmess4Kitsunebi(rawUrl)
     } catch (e: Exception) {
         Logs.i("try Kitsunebi: " + e.readableMessage)
     }
 
-    // "std" format
+    // old V2Ray "std" format
 
-    val bean = VMessBean().apply { if (link.startsWith("vless://")) alterId = -1 }
-    val url = link.replace("vmess://", "https://").replace("vless://", "https://").toHttpUrl()
+    val bean = VMessBean().apply { if (rawUrl.startsWith("vless://")) alterId = -1 }
+    val url = Libcore.parseURL(rawUrl)
 
     if (url.password.isNotBlank()) {
         // https://github.com/v2fly/v2fly-github-io/issues/26 (rarely use)
         bean.serverAddress = url.host
-        bean.serverPort = url.port
+        bean.serverPort = url.ports.toIntOrNull()
         bean.name = url.fragment
 
         var protocol = url.username
@@ -77,7 +77,7 @@ fun parseV2Ray(link: String): StandardV2RayBean {
             bean.security = "tls"
             protocol = protocol.substring(0, protocol.length - 4)
 
-            url.queryParameter("tlsServerName")?.let {
+            url.queryParameterNotBlank("tlsServerName").let {
                 if (it.isNotBlank()) {
                     bean.sni = it
                 }
@@ -96,40 +96,40 @@ fun parseV2Ray(link: String): StandardV2RayBean {
 //                }
 //            }
             "http" -> {
-                url.queryParameter("path")?.let {
+                url.queryParameterNotBlank("path").let {
                     bean.path = it
                 }
-                url.queryParameter("host")?.let {
+                url.queryParameterNotBlank("host").let {
                     bean.host = it.split("|").joinToString(",")
                 }
             }
 
             "ws" -> {
-                url.queryParameter("path")?.let {
+                url.queryParameterNotBlank("path").let {
                     bean.path = it
                 }
-                url.queryParameter("host")?.let {
+                url.queryParameterNotBlank("host").let {
                     bean.host = it
                 }
             }
 
             "grpc" -> {
-                url.queryParameter("serviceName")?.let {
+                url.queryParameterNotBlank("serviceName").let {
                     bean.path = it
                 }
             }
 
             "httpupgrade" -> {
-                url.queryParameter("path")?.let {
+                url.queryParameterNotBlank("path").let {
                     bean.path = it
                 }
-                url.queryParameter("host")?.let {
+                url.queryParameterNotBlank("host").let {
                     bean.host = it
                 }
             }
         }
 
-        bean.packetEncoding = 1 // It is comes from V2Ray!
+        bean.packetEncoding = 1 // It comes from V2Ray!
     } else {
         // also vless format
         bean.parseDuckSoft(url)
@@ -139,9 +139,9 @@ fun parseV2Ray(link: String): StandardV2RayBean {
 }
 
 // https://github.com/XTLS/Xray-core/issues/91
-fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
+fun StandardV2RayBean.parseDuckSoft(url: URL) {
     serverAddress = url.host
-    serverPort = url.port
+    serverPort = url.ports.toIntOrNull() ?: 443
     name = url.fragment
 
     if (this is TrojanBean) {
@@ -150,15 +150,11 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
         uuid = url.username
     }
 
-    // not ducksoft fmt path
-    if (url.pathSegments.size > 1 || url.pathSegments[0].isNotBlank()) {
-        path = url.pathSegments.joinToString("/")
-    }
-
-    type = url.queryParameter("type") ?: "tcp"
+    type = url.queryParameterNotBlank("type")
+    if (type.isNullOrBlank()) type = "tcp"
     if (type == "h2") type = "http"
 
-    security = url.queryParameter("security")
+    security = url.queryParameterNotBlank("security")
     if (security.isNullOrBlank()) {
         security = if (this is TrojanBean) "tls" else "none"
     }
@@ -166,22 +162,22 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
     when (security) {
         "tls", "reality" -> {
             security = "tls"
-            url.queryParameter("sni")?.let {
+            url.queryParameterNotBlank("sni").let {
                 sni = it
             }
-            url.queryParameter("host")?.let {
+            url.queryParameterNotBlank("host").let {
                 if (sni.isNullOrBlank()) sni = it
             }
-            url.queryParameter("alpn")?.let {
+            url.queryParameterNotBlank("alpn").let {
                 alpn = it
             }
-            url.queryParameter("cert")?.let {
+            url.queryParameterNotBlank("cert").let {
                 certificates = it
             }
-            url.queryParameter("pbk")?.let {
+            url.queryParameterNotBlank("pbk").let {
                 realityPubKey = it
             }
-            url.queryParameter("sid")?.let {
+            url.queryParameterNotBlank("sid").let {
                 realityShortId = it
             }
         }
@@ -190,8 +186,8 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
     when (type) {
         "tcp" -> {
             // v2rayNG
-            if (url.queryParameter("headerType") == "http") {
-                url.queryParameter("host")?.let {
+            if (url.queryParameterNotBlank("headerType") == "http") {
+                url.queryParameterNotBlank("host").let {
                     type = "http"
                     host = it
                 }
@@ -199,55 +195,55 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
         }
 
         "http" -> {
-            url.queryParameter("host")?.let {
+            url.queryParameterNotBlank("host").let {
                 host = it
             }
-            url.queryParameter("path")?.let {
+            url.queryParameterNotBlank("path").let {
                 path = it
             }
         }
 
         "ws" -> {
-            url.queryParameter("host")?.let {
+            url.queryParameterNotBlank("host").let {
                 host = it
             }
-            url.queryParameter("path")?.let {
+            url.queryParameterNotBlank("path").let {
                 path = it
             }
-            url.queryParameter("ed")?.let { ed ->
+            url.queryParameterNotBlank("ed").let { ed ->
                 wsMaxEarlyData = ed.toInt()
 
-                url.queryParameter("eh")?.let {
+                url.queryParameterNotBlank("eh").let {
                     earlyDataHeaderName = it
                 }
             }
         }
 
         "grpc" -> {
-            url.queryParameter("serviceName")?.let {
+            url.queryParameterNotBlank("serviceName").let {
                 path = it
             }
         }
 
         "httpupgrade" -> {
-            url.queryParameter("host")?.let {
+            url.queryParameterNotBlank("host").let {
                 host = it
             }
-            url.queryParameter("path")?.let {
+            url.queryParameterNotBlank("path").let {
                 path = it
             }
         }
     }
 
-    // maybe from matsuri vmess exoprt
+    // maybe from Matsuri vmess export
     if (this is VMessBean && !isVLESS) {
-        url.queryParameter("encryption")?.let {
+        url.queryParameterNotBlank("encryption").let {
             encryption = it
         }
     }
 
     if (isVLESS) {
-        url.queryParameter("packetEncoding")?.let {
+        url.queryParameterNotBlank("packetEncoding").let {
             when (it) {
                 "packetaddr" -> packetEncoding = 1
                 "xudp" -> packetEncoding = 2
@@ -255,13 +251,13 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
         }
     }
 
-    url.queryParameter("flow")?.let {
+    url.queryParameterNotBlank("flow").let {
         if (isVLESS) {
             encryption = it.removeSuffix("-udp443")
         }
     }
 
-    url.queryParameter("fp")?.let {
+    url.queryParameterNotBlank("fp").let {
         utlsFingerprint = it
     }
 }
@@ -295,17 +291,17 @@ private fun tryResolveVmess4Kitsunebi(server: String): VMessBean {
         encryption = arr21[0]
         if (indexSplit < 0) return@apply
 
-        val url = ("https://localhost/path?" + server.substringAfter("?")).toHttpUrl()
-        url.queryParameter("remarks")?.apply { name = this }
-        url.queryParameter("alterId")?.apply { alterId = this.toInt() }
-        url.queryParameter("path")?.apply { path = this }
-        url.queryParameter("tls")?.apply { security = "tls" }
-        url.queryParameter("allowInsecure")
-            ?.apply { if (this == "1" || this == "true") allowInsecure = true }
-        url.queryParameter("obfs")?.apply {
+        val url = Libcore.parseURL("https://localhost/path?" + server.substringAfter("?"))
+        url.queryParameterNotBlank("remarks").apply { name = this }
+        url.queryParameterNotBlank("alterId").apply { alterId = this.toInt() }
+        url.queryParameterNotBlank("path").apply { path = this }
+        url.queryParameterNotBlank("tls").apply { security = "tls" }
+        url.queryParameterNotBlank("allowInsecure")
+            .apply { if (this == "1" || this == "true") allowInsecure = true }
+        url.queryParameterNotBlank("obfs").apply {
             type = this.replace("websocket", "ws").replace("none", "tcp")
             if (type == "ws") {
-                url.queryParameter("obfsParam")?.apply {
+                url.queryParameterNotBlank("obfsParam").apply {
                     if (this.startsWith("{")) {
                         host = JSONObject(this).getStr("Host")
                     } else if (security == "tls") {
@@ -347,7 +343,7 @@ fun parseV2RayN(link: String): VMessBean {
     bean.path = vmessQRCode.path
     val headerType = vmessQRCode.type
 
-    when (vmessQRCode.packet_encoding) {
+    when (vmessQRCode.packetEncoding) {
         "packetaddr" -> {
             bean.packetEncoding = 1
         }
@@ -424,9 +420,9 @@ fun VMessBean.toV2rayN(): String {
         net = bean.type
 
         when (bean.packetEncoding) {
-            0 -> packet_encoding = ""
-            1 -> packet_encoding = "packetaddr"
-            2 -> packet_encoding = "xudp"
+            0 -> packetEncoding = ""
+            1 -> packetEncoding = "packetaddr"
+            2 -> packetEncoding = "xudp"
         }
 
         host = bean.host
@@ -468,11 +464,12 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
     }
 
     // ducksoft fmt
-    val builder = linkBuilder()
-        .username(if (this is TrojanBean) password else uuid)
-        .host(serverAddress)
-        .port(serverPort)
-        .addQueryParameter("type", type)
+    val builder = Libcore.newURL(protocol).apply {
+        username = if (isTrojan) password else uuid
+        host = serverAddress
+        ports = serverPort.toString()
+        addQueryParameter("type", type)
+    }
 
     if (!isTrojan) {
         if (isVLESS) {
@@ -549,10 +546,10 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
     }
 
     if (name.isNotBlank()) {
-        builder.encodedFragment(name.urlSafe())
+        builder.setRawFragment(name.urlSafe())
     }
 
-    return builder.toLink(protocol)
+    return builder.string
 }
 
 fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportOptions? {

@@ -27,7 +27,7 @@ import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.ListHolderListener
 import libcore.Libcore
-import moe.matsuri.nb4a.plugin.Plugins
+import io.nekohasekai.sagernet.plugin.Plugins
 
 class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 

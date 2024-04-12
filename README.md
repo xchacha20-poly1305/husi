@@ -98,6 +98,16 @@ Compile the release version:
 
 The APK file will be located in `app/build/outputs/apk`.
 
+#### 🌈 Plugins
+
+```shell
+make <Plugin name>
+```
+
+Plugin name list:
+
+* `hysteria2`
+
 ## ☠️ End users
 
 [Wiki](https://github.com/xchacha20-poly1305/husi/wiki)

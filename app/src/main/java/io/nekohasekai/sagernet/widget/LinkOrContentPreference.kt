@@ -10,7 +10,7 @@ import com.google.android.material.textfield.TextInputLayout
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.readableMessage
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import libcore.Libcore
 
 class LinkOrContentPreference
 @JvmOverloads
@@ -41,7 +41,7 @@ constructor(
                         linkLayout.isErrorEnabled = false
                         return
                     }
-                    val url = link.toString().toHttpUrl()
+                    val url = Libcore.parseURL(link.toString())
                     if ("http".equals(url.scheme, true)) {
                         linkLayout.error = app.getString(R.string.cleartext_http_warning)
                         linkLayout.isErrorEnabled = true

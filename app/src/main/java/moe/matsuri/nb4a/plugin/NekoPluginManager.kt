@@ -7,7 +7,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.utils.PackageCache
 import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
-import okhttp3.internal.closeQuietly
+import moe.matsuri.nb4a.utils.closeQuietly
 import org.json.JSONObject
 import java.io.File
 import java.util.zip.CRC32

@@ -3,35 +3,37 @@ package io.nekohasekai.sagernet.fmt.naive
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import libcore.Libcore
 import org.json.JSONObject
 
-fun parseNaive(link: String): NaiveBean {
-    val proto = link.substringAfter("+").substringBefore(":")
-    val url = ("https://" + link.substringAfter("://")).toHttpUrlOrNull()
-        ?: error("Invalid naive link: $link")
+fun parseNaive(rawUrl: String): NaiveBean {
+    val url = Libcore.parseURL(rawUrl)
     return NaiveBean().also {
-        it.proto = proto
+        it.proto = url.scheme.substringAfter("+").substringBefore(":")
     }.apply {
         serverAddress = url.host
-        serverPort = url.port
+        serverPort = url.ports.toIntOrNull() ?: 443
         username = url.username
         password = url.password
-        sni = url.queryParameter("sni")
-        extraHeaders = url.queryParameter("extra-headers")?.unUrlSafe()?.replace("\r\n", "\n")
-        insecureConcurrency = url.queryParameter("insecure-concurrency")?.toIntOrNull()
+        sni = url.queryParameterNotBlank("sni")
+        extraHeaders =
+            url.queryParameterNotBlank("extra-headers")?.unUrlSafe()?.replace("\r\n", "\n")
+        insecureConcurrency = url.queryParameterNotBlank("insecure-concurrency")?.toIntOrNull()
         name = url.fragment
         initializeDefaultValues()
     }
 }
 
 fun NaiveBean.toUri(proxyOnly: Boolean = false): String {
-    val builder = linkBuilder().host(finalAddress).port(finalPort)
+    val builder = Libcore.newURL(if (proxyOnly) proto else "naive+$proto").apply {
+        host = finalAddress
+        ports = finalPort.toString()
+    }
     if (username.isNotBlank()) {
-        builder.username(username)
+        builder.username = username
     }
     if (password.isNotBlank()) {
-        builder.password(password)
+        builder.password = password
     }
     if (!proxyOnly) {
         if (sni.isNotBlank()) {
@@ -41,13 +43,13 @@ fun NaiveBean.toUri(proxyOnly: Boolean = false): String {
             builder.addQueryParameter("extra-headers", extraHeaders)
         }
         if (name.isNotBlank()) {
-            builder.encodedFragment(name.urlSafe())
+            builder.setRawFragment(name)
         }
         if (insecureConcurrency > 0) {
             builder.addQueryParameter("insecure-concurrency", "$insecureConcurrency")
         }
     }
-    return builder.toLink(if (proxyOnly) proto else "naive+$proto", false)
+    return builder.string
 }
 
 fun NaiveBean.buildNaiveConfig(port: Int): String {

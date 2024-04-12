@@ -2,45 +2,45 @@ package io.nekohasekai.sagernet.fmt.http
 
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
-import io.nekohasekai.sagernet.ktx.urlSafe
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import libcore.Libcore
 
-fun parseHttp(link: String): HttpBean {
-    val httpUrl = link.toHttpUrlOrNull() ?: error("Invalid http(s) link: $link")
+fun parseHttp(rawUrl: String): HttpBean {
+    val url = Libcore.parseURL(rawUrl)
 
-    if (httpUrl.encodedPath != "/") error("Not http proxy")
+    if (url.rawPath != "/") error("Not http proxy")
 
     return HttpBean().apply {
-        serverAddress = httpUrl.host
-        serverPort = httpUrl.port
-        username = httpUrl.username
-        password = httpUrl.password
-        sni = httpUrl.queryParameter("sni")
-        name = httpUrl.fragment
-        setTLS(httpUrl.scheme == "https")
+        serverAddress = url.host
+        serverPort = url.ports.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
+        username = url.username
+        password = url.password
+        sni = url.queryParameterNotBlank("sni")
+        name = url.fragment
+        setTLS(url.scheme == "https")
     }
 }
 
 fun HttpBean.toUri(): String {
-    val builder = HttpUrl.Builder().scheme(if (isTLS()) "https" else "http").host(serverAddress)
+    val url = Libcore.newURL(if (isTLS()) "https" else "http").apply {
+        host = serverAddress
+    }
 
     if (serverPort in 1..65535) {
-        builder.port(serverPort)
+        url.ports = serverPort.toString()
     }
 
     if (username.isNotBlank()) {
-        builder.username(username)
+        url.username = username
     }
     if (password.isNotBlank()) {
-        builder.password(password)
+        url.password = password
     }
     if (sni.isNotBlank()) {
-        builder.addQueryParameter("sni", sni)
+        url.addQueryParameter("sni", sni)
     }
     if (name.isNotBlank()) {
-        builder.encodedFragment(name.urlSafe())
+        url.setRawFragment(name)
     }
 
-    return builder.toString()
+    return url.string
 }
