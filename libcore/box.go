@@ -24,11 +24,9 @@ import (
 
 var mainInstance *BoxInstance
 
-func ResetAllConnections(system bool) {
-	if system {
-		conntrack.Close()
-		boxlog.Debug("[Debug] Reset system connections done.")
-	}
+func ResetAllConnections() {
+	conntrack.Close()
+	boxlog.Debug("Reset system connections done.")
 }
 
 type BoxInstance struct {

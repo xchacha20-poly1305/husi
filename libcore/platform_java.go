@@ -7,7 +7,7 @@ var useProcfs bool
 
 type GUIInterface interface {
 	UseOfficialAssets() bool
-	SelectorCallback(selectorTag, tag string)
+	SelectorCallback(tag string)
 }
 
 // iif

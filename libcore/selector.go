@@ -7,7 +7,7 @@ import (
 	"github.com/sagernet/sing-box/log"
 )
 
-type selectorCallback func(selectorTag, tag string)
+type selectorCallback func(tag string)
 
 /*
 listenSelectorChange check the change of the main selector once in a while and use callback.
@@ -54,7 +54,6 @@ func (b *BoxInstance) listenSelectorChange(ctx context.Context, callback selecto
 		durationLevel++
 	}
 
-	selectorTag := b.selector.Tag() // const
 	oldTag := b.selector.Now()
 	log.Trace("Started selector change listener")
 
@@ -73,7 +72,7 @@ func (b *BoxInstance) listenSelectorChange(ctx context.Context, callback selecto
 		newTag := b.selector.Now()
 		changed := oldTag != newTag
 		if changed {
-			callback(selectorTag, newTag)
+			callback(newTag)
 			oldTag = newTag
 		}
 		updateTicker(changed)
