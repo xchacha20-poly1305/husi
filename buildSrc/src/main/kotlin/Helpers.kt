@@ -270,8 +270,6 @@ fun Project.setupPlugin(projectName: String) {
 
     androidApp.apply {
         defaultConfig {
-            applicationId = "fr.husi.plugin.$projName"
-
             versionName = verName
             versionCode = verCode
         }

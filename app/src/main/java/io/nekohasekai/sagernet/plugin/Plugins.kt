@@ -12,6 +12,8 @@ object Plugins {
     const val AUTHORITIES_PREFIX_NEKO_EXE = "moe.matsuri.exe."
     const val AUTHORITIES_PREFIX_NEKO_PLUGIN = "moe.matsuri.plugin."
     const val AUTHORITIES_PREFIX_HUSI_EXE = "fr.husi.plugin."
+    // Package name and authorities is becoming confused......
+    const val AUTHORITIES_PREFIX_DYHKWONG = "com.github.dyhkwong.plugin."
 
     const val ACTION_NATIVE_PLUGIN = "io.nekohasekai.sagernet.plugin.ACTION_NATIVE_PLUGIN"
 
@@ -20,11 +22,11 @@ object Plugins {
 
     fun isExeOrPlugin(pkg: PackageInfo): Boolean {
         if (pkg.providers.isNullOrEmpty()) return false
-        val provider = pkg.providers[0] ?: return false
-        val auth = provider.authority ?: return false
-        return auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)
-                || auth.startsWith(AUTHORITIES_PREFIX_HUSI_EXE)
+        val auth = pkg.providers[0].authority ?: return false
+        return auth.startsWith(AUTHORITIES_PREFIX_HUSI_EXE)
+                || auth.startsWith(AUTHORITIES_PREFIX_DYHKWONG)
                 || auth.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)
+                || auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)
                 || auth.startsWith(AUTHORITIES_PREFIX_NEKO_PLUGIN)
     }
 
@@ -34,8 +36,8 @@ object Plugins {
 
     fun displayExeProvider(pkgName: String): String {
         return when {
-            pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"
             pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> SagerNet.application.getString(R.string.app_name)
+            pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"
             pkgName.startsWith(AUTHORITIES_PREFIX_NEKO_EXE) -> "Matsuri"
             else -> "Unknown"
         }

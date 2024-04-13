@@ -3,6 +3,9 @@ plugins {
 }
 
 android {
+    defaultConfig {
+        applicationId = "fr.husi.plugin.hysteria2"
+    }
     namespace = "fr.husi.plugin.hysteria2"
 }
 
