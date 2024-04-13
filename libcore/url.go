@@ -277,7 +277,7 @@ func (u *netURL) AddQueryParameter(key, value string) {
 }
 
 func (u *netURL) SetQueryParameter(key, value string) {
-	u.SetQueryParameter(key, value)
+	u.Set(key, value)
 }
 
 func (u *netURL) GetFragment() string {
