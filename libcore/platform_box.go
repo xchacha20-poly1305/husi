@@ -5,8 +5,6 @@ import (
 	"net/netip"
 	"syscall"
 
-	"libcore/procfs"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/process"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
@@ -18,6 +16,8 @@ import (
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/logger"
 	N "github.com/sagernet/sing/common/network"
+
+	"libcore/procfs"
 )
 
 type boxPlatformInterfaceWrapper struct {

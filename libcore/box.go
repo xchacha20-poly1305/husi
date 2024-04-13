@@ -7,9 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"libcore/protectserver"
-	"libcore/v2rayapilite"
-
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
@@ -20,6 +17,9 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
+
+	"libcore/protectserver"
+	"libcore/v2rayapilite"
 )
 
 var mainInstance *BoxInstance
@@ -87,7 +87,7 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 	}
 
 	// selector
-	if proxy, haveProxyOutbound := b.Router().Outbound("proxy"); haveProxyOutbound {
+	if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
 		if selector, isSelector := proxy.(*outbound.Selector); isSelector {
 			b.selector = selector
 		}
@@ -148,7 +148,7 @@ func (b *BoxInstance) Close() (err error) {
 }
 
 func (b *BoxInstance) NeedWIFIState() bool {
-	return b.Router().NeedWIFIState()
+	return b.Box.Router().NeedWIFIState()
 }
 
 func (b *BoxInstance) SetAsMain() {

@@ -13,7 +13,7 @@ type StunResult struct {
 }
 
 func StunTest(server string) *StunResult {
-	//note: this library doesn't support stun1.l.google.com:19302
+	// note: this library doesn't support stun1.l.google.com:19302
 	ret := &StunResult{}
 	var text string
 

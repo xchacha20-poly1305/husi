@@ -1,0 +1,44 @@
+name: Lint Go
+
+on:
+  push:
+    branches:
+      - dev*
+    paths:
+      - "**.go"
+      - ".github/workflows/lint.yml"
+  pull_request:
+    branches:
+      - dev*
+    paths:
+      - "**.go"
+      - ".github/workflows/lint.yml"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Golang Version
+        id: version
+        run: |
+          source buildScript/init/version.sh
+          echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.version.outputs.go_version }}
+          cache-dependency-path: libcore/go.sum
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        env:
+          GOOS: android
+        with:
+          working-directory: libcore/
+          version: latest
+          args: --timeout=30m
+          install-mode: binary

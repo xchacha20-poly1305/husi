@@ -35,7 +35,7 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 	}
 
 	var file *os.File
-	file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
+	file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0o644)
 	if err == nil {
 		fd := int(file.Fd())
 		if !notTruncateOnStart {

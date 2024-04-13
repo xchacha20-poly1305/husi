@@ -61,9 +61,11 @@ const (
 	BehaviorTypeAddrAndPort
 )
 
-var natStr map[NATType]string
-var natBehaviorTypeStr map[BehaviorType]string
-var natNormalTypeStr map[NATBehavior]string
+var (
+	natStr             map[NATType]string
+	natBehaviorTypeStr map[BehaviorType]string
+	natNormalTypeStr   map[NATBehavior]string
+)
 
 func init() {
 	natStr = map[NATType]string{
@@ -86,10 +88,10 @@ func init() {
 
 	// Defined in RFC 3489
 	natNormalTypeStr = map[NATBehavior]string{
-		NATBehavior{BehaviorTypeEndpoint, BehaviorTypeEndpoint}:       "Full cone NAT",
-		NATBehavior{BehaviorTypeEndpoint, BehaviorTypeAddr}:           "Restricted cone NAT",
-		NATBehavior{BehaviorTypeEndpoint, BehaviorTypeAddrAndPort}:    "Port Restricted cone NAT",
-		NATBehavior{BehaviorTypeAddrAndPort, BehaviorTypeAddrAndPort}: "Symmetric NAT",
+		{BehaviorTypeEndpoint, BehaviorTypeEndpoint}:       "Full cone NAT",
+		{BehaviorTypeEndpoint, BehaviorTypeAddr}:           "Restricted cone NAT",
+		{BehaviorTypeEndpoint, BehaviorTypeAddrAndPort}:    "Port Restricted cone NAT",
+		{BehaviorTypeAddrAndPort, BehaviorTypeAddrAndPort}: "Symmetric NAT",
 	}
 }
 
@@ -135,6 +137,7 @@ const (
 	errorServerError                  = 500
 	errorInsufficientCapacity         = 508
 )
+
 const (
 	attributeFamilyIPv4 = 0x01
 	attributeFamilyIPV6 = 0x02

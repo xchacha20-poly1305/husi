@@ -1,7 +1,9 @@
 package libcore
 
-var intfBox BoxPlatformInterface
-var intfGUI GUIInterface
+var (
+	intfBox BoxPlatformInterface
+	intfGUI GUIInterface
+)
 
 var useProcfs bool
 

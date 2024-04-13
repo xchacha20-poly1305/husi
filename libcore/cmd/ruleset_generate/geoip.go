@@ -9,7 +9,8 @@ import (
 )
 
 func generateGeoip(data []byte) (metadata maxminddb.Metadata, countryMap map[string][]*net.IPNet,
-	err error) {
+	err error,
+) {
 	metadata, countryMap, err = parseGeoip(data)
 	if err != nil {
 		return
@@ -23,7 +24,8 @@ func generateGeoip(data []byte) (metadata maxminddb.Metadata, countryMap map[str
 }
 
 func parseGeoip(binary []byte) (metadata maxminddb.Metadata, countryMap map[string][]*net.IPNet,
-	err error) {
+	err error,
+) {
 	database, err := maxminddb.FromBytes(binary)
 	if err != nil {
 		return

@@ -1,0 +1,28 @@
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - gci
+    - staticcheck
+
+run:
+  build-tags:
+    - "with_conntrack"
+    - "with_gvisor"
+    - "with_quic"
+    - "with_wireguard"
+    - "with_utls"
+    - "with_clash_api"
+    - "with_ech"
+  go: "1.20"
+
+issues:
+  exclude-dirs:
+    - "cmd/"
+
+linters-settings:
+  gci:
+    custom-order: true
+    sections:
+      - standard
+      - default

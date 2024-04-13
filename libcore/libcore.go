@@ -37,7 +37,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	useProcfs = intfBox.UseProcFS()
 
 	workDir := filepath.Join(cachePath, "../no_backup")
-	_ = os.MkdirAll(workDir, 0755)
+	_ = os.MkdirAll(workDir, 0o755)
 	_ = os.Chdir(workDir)
 
 	// sing-box fs
