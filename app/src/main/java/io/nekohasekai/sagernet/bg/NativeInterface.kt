@@ -11,7 +11,6 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.*
 import libcore.NetworkInterface as LibcoreNetworkInterface
-import moe.matsuri.nb4a.utils.LibcoreUtil
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
@@ -66,18 +65,13 @@ class NativeInterface : BoxPlatformInterface, GUIInterface {
         return PackageCache[packageName] ?: 0
     }
 
-    // nb4a interface
+    // GUI interface
 
     override fun useOfficialAssets(): Boolean {
         return DataStore.rulesProvider == 0
     }
 
-    override fun selectorCallback(selectorTag: String, tag: String) {
-        if (selectorTag != "proxy") {
-            Logs.d("other selector: $selectorTag")
-            return
-        }
-        LibcoreUtil.resetAllConnections(true)
+    override fun selectorCallback(tag: String) {
         DataStore.baseService?.apply {
             runOnDefaultDispatcher {
                 val id = data.proxy!!.config.profileTagMap
