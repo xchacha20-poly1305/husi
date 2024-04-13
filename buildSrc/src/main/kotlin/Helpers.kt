@@ -12,7 +12,7 @@ import kotlin.system.exitProcess
 
 
 private val Project.android
-    get() = extensions.getByName<CommonExtension<BuildFeatures, BuildType, DefaultConfig, ProductFlavor, AndroidResources, Installation>>(
+    get() = extensions.getByName<CommonExtension<BuildFeatures, BuildType, DefaultConfig, ProductFlavor, AndroidResources>>(
         "android"
     )
 private val Project.androidApp get() = android as ApplicationExtension
