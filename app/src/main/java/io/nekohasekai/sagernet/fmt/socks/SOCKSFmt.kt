@@ -1,14 +1,11 @@
 package io.nekohasekai.sagernet.fmt.socks
 
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
-import io.nekohasekai.sagernet.ktx.urlSafe
 import libcore.Libcore
+import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions
-import moe.matsuri.nb4a.utils.NGUtil
 
-fun parseSOCKS(rawUrl: String): SOCKSBean {
-    val url = Libcore.parseURL(rawUrl)
-
+fun parseSOCKS(url: URL): SOCKSBean {
     return SOCKSBean().apply {
         protocol = when (url.scheme) {
             "socks4" -> SOCKSBean.PROTOCOL_SOCKS4
@@ -19,7 +16,10 @@ fun parseSOCKS(rawUrl: String): SOCKSBean {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 1080
         username = url.username
-        password = url.password
+        try {
+            password = url.password
+        } catch (_: Exception) {
+        }
         // v2rayN fmt
         if (password.isNullOrBlank() && !username.isNullOrBlank()) {
             try {
@@ -42,23 +42,6 @@ fun SOCKSBean.toUri(): String {
     if (!password.isNullOrBlank()) builder.password = password
     if (!name.isNullOrBlank()) builder.setRawFragment(name)
     return builder.string
-
-}
-
-// TODO share v2rayN
-fun SOCKSBean.toV2rayN(): String {
-
-    var link = ""
-    if (username.isNotBlank()) {
-        link += username.urlSafe() + ":" + password.urlSafe() + "@"
-    }
-    link += "$serverAddress:$serverPort"
-    link = "socks://" + NGUtil.encode(link)
-    if (name.isNotBlank()) {
-        link += "#" + name.urlSafe()
-    }
-
-    return link
 
 }
 

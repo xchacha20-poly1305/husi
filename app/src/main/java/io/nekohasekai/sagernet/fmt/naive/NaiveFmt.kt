@@ -4,17 +4,20 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
+import libcore.URL
 import org.json.JSONObject
 
-fun parseNaive(rawUrl: String): NaiveBean {
-    val url = Libcore.parseURL(rawUrl)
+fun parseNaive(url: URL): NaiveBean {
     return NaiveBean().also {
         it.proto = url.scheme.substringAfter("+").substringBefore(":")
     }.apply {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
         username = url.username
-        password = url.password
+        try {
+            password = url.password
+        } catch (_: Exception) {
+        }
         sni = url.queryParameterNotBlank("sni")
         extraHeaders =
             url.queryParameterNotBlank("extra-headers")?.unUrlSafe()?.replace("\r\n", "\n")

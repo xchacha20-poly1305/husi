@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.fmt.trojan.parseTrojan
 import io.nekohasekai.sagernet.fmt.trojan_go.parseTrojanGo
 import io.nekohasekai.sagernet.fmt.tuic.parseTuic
 import io.nekohasekai.sagernet.fmt.v2ray.parseV2Ray
+import libcore.Libcore
 import moe.matsuri.nb4a.plugin.NekoPluginManager
 import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
 import moe.matsuri.nb4a.proxy.neko.parseShareLink
@@ -116,105 +117,119 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             throw SubscriptionFoundException(this)
         }
 
-        if (startsWith("husi://")) {
-            Logs.d("Try parse universal link: $this")
-            runCatching {
-                entities.add(parseUniversal(this))
-            }.onFailure {
-                Logs.w(it)
+        val url = Libcore.parseURL(this)
+        when (url.scheme) {
+            "husi" -> {
+                Logs.d("Try parse universal link: $this")
+                runCatching {
+                    entities.add(parseUniversal(this))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("socks://") || startsWith("socks4://") || startsWith("socks4a://") || startsWith(
-                "socks5://"
-            )
-        ) {
-            Logs.d("Try parse socks link: $this")
-            runCatching {
-                entities.add(parseSOCKS(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "socks", "socks4", "socks4a", "socks5" -> {
+                Logs.d("Try parse socks link: $this")
+                runCatching {
+                    entities.add(parseSOCKS(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (matches("(http|https)://.*".toRegex())) {
-            Logs.d("Try parse http link: $this")
-            runCatching {
-                entities.add(parseHttp(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "http", "https" -> {
+                Logs.d("Try parse http link: $this")
+                runCatching {
+                    entities.add(parseHttp(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("vmess://")) {
-            Logs.d("Try parse v2ray link: $this")
-            runCatching {
-                entities.add(parseV2Ray(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "vmess", "vless" -> {
+                Logs.d("Try parse v2ray link: $this")
+                runCatching {
+                    entities.add(parseV2Ray(this))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("vless://")) {
-            Logs.d("Try parse vless link: $this")
-            runCatching {
-                entities.add(parseV2Ray(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "trojan" -> {
+                Logs.d("Try parse trojan link: $this")
+                runCatching {
+                    entities.add(parseTrojan(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("trojan://")) {
-            Logs.d("Try parse trojan link: $this")
-            runCatching {
-                entities.add(parseTrojan(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "trojan-go" -> {
+                runCatching {
+                    entities.add(parseTrojanGo(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("trojan-go://")) {
-            Logs.d("Try parse trojan-go link: $this")
-            runCatching {
-                entities.add(parseTrojanGo(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "ss" -> {
+                Logs.d("Try parse shadowsocks link: $this")
+                runCatching {
+                    entities.add(parseShadowsocks(this))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("ss://")) {
-            Logs.d("Try parse shadowsocks link: $this")
-            runCatching {
-                entities.add(parseShadowsocks(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "naive+https", "naive+quic" -> {
+                Logs.d("Try parse naive link: $this")
+                runCatching {
+                    entities.add(parseNaive(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("naive+")) {
-            Logs.d("Try parse naive link: $this")
-            runCatching {
-                entities.add(parseNaive(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "hysteria1" -> {
+                Logs.d("Try parse hysteria1 link: $this")
+                runCatching {
+                    entities.add(parseHysteria1(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("hysteria://")) {
-            Logs.d("Try parse hysteria1 link: $this")
-            runCatching {
-                entities.add(parseHysteria1(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "hysteria2", "hy2" -> {
+                Logs.d("Try parse hysteria2 link: $this")
+                runCatching {
+                    entities.add(parseHysteria2(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("hysteria2://") || startsWith("hy2://")) {
-            Logs.d("Try parse hysteria2 link: $this")
-            runCatching {
-                entities.add(parseHysteria2(this))
-            }.onFailure {
-                Logs.w(it)
+
+            "tuic" -> {
+                Logs.d("Try parse TUIC link: $this")
+                runCatching {
+                    entities.add(parseTuic(url))
+                }.onFailure {
+                    Logs.w(it)
+                }
             }
-        } else if (startsWith("tuic://")) {
-            Logs.d("Try parse TUIC link: $this")
-            runCatching {
-                entities.add(parseTuic(this))
-            }.onFailure {
-                Logs.w(it)
-            }
-        } else { // Neko Plugins
-            NekoPluginManager.getProtocols().forEach { obj ->
-                obj.protocolConfig.optJSONArray("links")?.forEach { _, any ->
-                    if (any is String && startsWith(any)) {
-                        runCatching {
-                            entities.add(
-                                parseShareLink(
-                                    obj.plgId, obj.protocolId, this@parseLink
+
+            else -> { // Neko plugins
+                NekoPluginManager.getProtocols().forEach { obj ->
+                    obj.protocolConfig.optJSONArray("links")?.forEach { _, any ->
+                        if (any is String && startsWith(any)) {
+                            runCatching {
+                                entities.add(
+                                    parseShareLink(
+                                        obj.plgId, obj.protocolId, this@parseLink
+                                    )
                                 )
-                            )
-                        }.onFailure {
-                            Logs.w(it)
+                            }.onFailure {
+                                Logs.w(it)
+                            }
                         }
                     }
                 }
