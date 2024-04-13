@@ -205,10 +205,16 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
                 path = it
             }
             url.queryParameterNotBlank("ed").let { ed ->
-                wsMaxEarlyData = ed.toInt()
+                if (ed.isNotBlank()) {
+                    wsMaxEarlyData = ed.toIntOrNull() ?: 443
 
-                url.queryParameterNotBlank("eh").let {
-                    earlyDataHeaderName = it
+                    url.queryParameterNotBlank("eh").let { eh ->
+                        if (eh.isNotBlank()) {
+                            earlyDataHeaderName = eh
+                        } else {
+                            earlyDataHeaderName = "Sec-WebSocket-Protocol"
+                          }
+                    }
                 }
             }
         }
@@ -277,10 +283,10 @@ fun parseV2RayN(link: String): VMessBean {
 
     bean.name = vmessQRCode.ps
     bean.serverAddress = vmessQRCode.add
-    bean.serverPort = vmessQRCode.port.toIntOrNull()
+    bean.serverPort = vmessQRCode.port.toIntOrNull() ?: 10086
     bean.encryption = vmessQRCode.scy
     bean.uuid = vmessQRCode.id
-    bean.alterId = vmessQRCode.aid.toIntOrNull()
+    bean.alterId = vmessQRCode.aid.toIntOrNull() ?: 0
     bean.type = vmessQRCode.net
     bean.host = vmessQRCode.host
     bean.path = vmessQRCode.path
