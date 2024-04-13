@@ -176,6 +176,7 @@ class BaseService {
         fun onBind(intent: Intent): IBinder? =
             if (intent.action == Action.SERVICE) data.binder else null
 
+        // FIXME apply config change should not use this! ("这个实现得比较扭曲")
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
                 stopRunner(false, (this as Context).getString(R.string.profile_empty))
@@ -187,7 +188,7 @@ class BaseService {
                     // select from GUI
                     data.proxy!!.box.selectOutbound(tag)
                     // or select from webui
-                    // => selector_OnProxySelected
+                    // => SelectorCallback
                 }
                 return
             }
@@ -221,6 +222,15 @@ class BaseService {
                 if (!(this as Context).hasPermission(wifiPermission)) {
                     data.proxy!!.close()
                     throw LocationException("not have location permission")
+                }
+            }
+
+            // override cache in cache file
+            if (canReloadSelector()) {
+                val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                val tag = data.proxy!!.config.profileTagMap[ent?.id] ?: ""
+                if (tag.isNotBlank() && ent != null) {
+                    data.proxy!!.box.selectOutbound(tag)
                 }
             }
         }
