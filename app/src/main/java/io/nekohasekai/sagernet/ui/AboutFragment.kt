@@ -146,7 +146,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                             .icon(R.drawable.ic_baseline_card_giftcard_24)
                             .text(R.string.sekai)
                             .setOnClickAction {
-                                requireContext().launchCustomTab("https://sekai.icu/sponsor/")
+                                requireContext().launchCustomTab("https://sekai.icu/sponsors/")
                             }
                             .build()
                         )
