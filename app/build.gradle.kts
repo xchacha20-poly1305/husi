@@ -20,7 +20,7 @@ android {
                 "x86"
             )
         }
-        ndkVersion = "26.2.11394342"
+        ndkVersion = "26.3.11579264"
     }
     dependenciesInfo {
         includeInApk = false
