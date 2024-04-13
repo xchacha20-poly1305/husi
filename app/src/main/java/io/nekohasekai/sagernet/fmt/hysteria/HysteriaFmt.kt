@@ -4,16 +4,15 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
+import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
 
-
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
-fun parseHysteria1(rawUrl: String): HysteriaBean {
-    val url = Libcore.parseURL(rawUrl)
+fun parseHysteria1(url: URL): HysteriaBean {
     return HysteriaBean().apply {
         protocolVersion = 1
         serverAddress = url.host
@@ -51,8 +50,7 @@ fun parseHysteria1(rawUrl: String): HysteriaBean {
 }
 
 // hysteria2://[auth@]hostname[:port]/?[key=value]&[key=value]...
-fun parseHysteria2(rawUrl: String): HysteriaBean {
-    val url = Libcore.parseURL(rawUrl)
+fun parseHysteria2(url: URL): HysteriaBean {
     return HysteriaBean().apply {
         protocolVersion = 2
         serverAddress = url.host

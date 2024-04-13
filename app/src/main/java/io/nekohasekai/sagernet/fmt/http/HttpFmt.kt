@@ -3,17 +3,19 @@ package io.nekohasekai.sagernet.fmt.http
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import libcore.Libcore
+import libcore.URL
 
-fun parseHttp(rawUrl: String): HttpBean {
-    val url = Libcore.parseURL(rawUrl)
-
+fun parseHttp(url: URL): HttpBean {
     if (url.rawPath != "/") error("Not http proxy")
 
     return HttpBean().apply {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
         username = url.username
-        password = url.password
+        try {
+            password = url.password
+        } catch (_: Exception) {
+        }
         sni = url.queryParameterNotBlank("sni")
         name = url.fragment
         setTLS(url.scheme == "https")

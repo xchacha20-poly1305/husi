@@ -5,17 +5,19 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
+import libcore.URL
 import moe.matsuri.nb4a.Protocols
 import org.json.JSONArray
 import org.json.JSONObject
 
-fun parseTrojanGo(rawUrl: String): TrojanGoBean {
-    val url = Libcore.parseURL(rawUrl)
-
+fun parseTrojanGo(url: URL): TrojanGoBean {
     return TrojanGoBean().apply {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
-        password = url.username
+        try {
+            password = url.username
+        } catch (_: Exception) {
+        }
         url.queryParameterNotBlank("sni").let {
             sni = it
         }

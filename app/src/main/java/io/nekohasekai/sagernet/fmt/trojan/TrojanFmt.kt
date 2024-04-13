@@ -1,17 +1,14 @@
 package io.nekohasekai.sagernet.fmt.trojan
 
 import io.nekohasekai.sagernet.fmt.v2ray.parseDuckSoft
-import libcore.Libcore
+import libcore.URL
 
-fun parseTrojan(rawUrl: String): TrojanBean {
-
-    val link = Libcore.parseURL(rawUrl)
-
+fun parseTrojan(url: URL): TrojanBean {
     return TrojanBean().apply {
-        parseDuckSoft(link)
-        link.queryParameterNotBlank("allowInsecure")
+        parseDuckSoft(url)
+        url.queryParameterNotBlank("allowInsecure")
             .apply { if (this == "1" || this == "true") allowInsecure = true }
-        link.queryParameterNotBlank("peer").apply { if (this.isNotBlank()) sni = this }
+        url.queryParameterNotBlank("peer").apply { if (this.isNotBlank()) sni = this }
     }
 
 }

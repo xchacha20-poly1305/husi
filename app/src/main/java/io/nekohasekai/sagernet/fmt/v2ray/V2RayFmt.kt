@@ -51,12 +51,6 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
         }
     }
 
-    try {
-        return tryResolveVmess4Kitsunebi(rawUrl)
-    } catch (e: Exception) {
-        Logs.i("try Kitsunebi: " + e.readableMessage)
-    }
-
     // old V2Ray "std" format
 
     val bean = VMessBean().apply { if (rawUrl.startsWith("vless://")) alterId = -1 }
@@ -259,57 +253,6 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
 
     url.queryParameterNotBlank("fp").let {
         utlsFingerprint = it
-    }
-}
-
-//https://github.com/eycorsican/kitsunebi-android/
-private fun tryResolveVmess4Kitsunebi(server: String): VMessBean {
-    // vmess://YXV0bzo1YWY1ZDBlYy02ZWEwLTNjNDMtOTNkYi1jYTMwMDg1MDNiZGJAMTgzLjIzMi41Ni4xNjE6MTIwMg
-    // ?remarks=*%F0%9F%87%AF%F0%9F%87%B5JP%20-355%20TG@moon365free&obfsParam=%7B%22Host%22:%22183.232.56.161%22%7D&path=/v2ray&obfs=websocket&alterId=0
-
-    var result = server.replace("vmess://", "")
-    val indexSplit = result.indexOf("?")
-    if (indexSplit > 0) {
-        result = result.substring(0, indexSplit)
-    }
-    result = NGUtil.decode(result)
-
-    val arr1 = result.split('@')
-    if (arr1.count() != 2) {
-        throw IllegalStateException("invalid kitsunebi format")
-    }
-    val arr21 = arr1[0].split(':')
-    val arr22 = arr1[1].split(':')
-    if (arr21.count() != 2) {
-        throw IllegalStateException("invalid kitsunebi format")
-    }
-
-    return VMessBean().apply {
-        serverAddress = arr22[0]
-        serverPort = NGUtil.parseInt(arr22[1])
-        uuid = arr21[1]
-        encryption = arr21[0]
-        if (indexSplit < 0) return@apply
-
-        val url = Libcore.parseURL("https://localhost/path?" + server.substringAfter("?"))
-        url.queryParameterNotBlank("remarks").apply { name = this }
-        url.queryParameterNotBlank("alterId").apply { alterId = this.toInt() }
-        url.queryParameterNotBlank("path").apply { path = this }
-        url.queryParameterNotBlank("tls").apply { security = "tls" }
-        url.queryParameterNotBlank("allowInsecure")
-            .apply { if (this == "1" || this == "true") allowInsecure = true }
-        url.queryParameterNotBlank("obfs").apply {
-            type = this.replace("websocket", "ws").replace("none", "tcp")
-            if (type == "ws") {
-                url.queryParameterNotBlank("obfsParam").apply {
-                    if (this.startsWith("{")) {
-                        host = JSONObject(this).getStr("Host")
-                    } else if (security == "tls") {
-                        sni = this
-                    }
-                }
-            }
-        }
     }
 }
 

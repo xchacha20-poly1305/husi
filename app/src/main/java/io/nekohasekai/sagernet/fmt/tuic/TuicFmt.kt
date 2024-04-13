@@ -2,17 +2,20 @@ package io.nekohasekai.sagernet.fmt.tuic
 
 import io.nekohasekai.sagernet.database.DataStore
 import libcore.Libcore
+import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
-fun parseTuic(rawUrl: String): TuicBean {
+fun parseTuic(url: URL): TuicBean {
     // https://github.com/daeuniverse/dae/discussions/182
-    val url = Libcore.parseURL(rawUrl)
     return TuicBean().apply {
         name = url.fragment
         uuid = url.username
-        token = url.password
+        try {
+            token = url.password
+        } catch (_: Exception) {
+        }
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
 
