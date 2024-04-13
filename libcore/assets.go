@@ -16,6 +16,8 @@ const (
 	dashArchive    = "dashboard.tgz"
 )
 
-var apkAssetPrefixSingBox = "sing-box/"
-var internalAssetsPath string
-var externalAssetsPath string
+var (
+	apkAssetPrefixSingBox = "sing-box/"
+	internalAssetsPath    string
+	externalAssetsPath    string
+)

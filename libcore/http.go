@@ -115,6 +115,7 @@ func (c *httpClient) TrySocks5(port int32) {
 			if err != nil {
 				break
 			}
+			//nolint:staticcheck
 			return socksConn, err
 		}
 		return dialer.DialContext(ctx, network, addr)
@@ -207,22 +208,22 @@ type httpResponse struct {
 func (h *httpResponse) errorString() string {
 	content, err := h.GetContentString()
 	if err != nil {
-		return fmt.Sprint("HTTP ", h.Status)
+		return fmt.Sprint("HTTP ", h.Response.Status)
 	}
 	if len(content) > 100 {
 		content = content[:100] + " ..."
 	}
-	return fmt.Sprint("HTTP ", h.Status, ": ", content)
+	return fmt.Sprint("HTTP ", h.Response.Status, ": ", content)
 }
 
 func (h *httpResponse) GetHeader(key string) string {
-	return h.Header.Get(key)
+	return h.Response.Header.Get(key)
 }
 
 func (h *httpResponse) GetContent() ([]byte, error) {
 	h.getContentOnce.Do(func() {
-		defer h.Body.Close()
-		h.content, h.contentError = io.ReadAll(h.Body)
+		defer h.Response.Body.Close()
+		h.content, h.contentError = io.ReadAll(h.Response.Body)
 	})
 	return h.content, h.contentError
 }
@@ -236,12 +237,12 @@ func (h *httpResponse) GetContentString() (string, error) {
 }
 
 func (h *httpResponse) WriteTo(path string) error {
-	defer h.Body.Close()
+	defer h.Response.Body.Close()
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	_, err = io.Copy(file, h.Body)
+	_, err = io.Copy(file, h.Response.Body)
 	return err
 }

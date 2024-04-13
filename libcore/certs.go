@@ -5,6 +5,7 @@ import (
 	_ "unsafe" // for go:linkname
 
 	"github.com/sagernet/sing-box/log"
+
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/cazilla"
 )

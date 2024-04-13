@@ -9,6 +9,7 @@ import (
 
 	"github.com/sagernet/sing/common/debug"
 	E "github.com/sagernet/sing/common/exceptions"
+
 	"golang.org/x/sys/unix"
 )
 
@@ -71,7 +72,7 @@ func ServerProtect(path string, protectCtl Protect) io.Closer {
 		log.Println(err)
 		return nil
 	}
-	_ = os.Chmod(path, 0777)
+	_ = os.Chmod(path, 0o777)
 
 	go func(ctl Protect) {
 		for {

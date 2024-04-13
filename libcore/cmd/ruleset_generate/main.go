@@ -69,7 +69,7 @@ func main() {
 				},
 			}
 			srsPath, _ := filepath.Abs(filepath.Join(geositeDir, "geosite-"+code+".srs"))
-			//os.Stderr.WriteString("write " + srsPath + "\n")
+			// os.Stderr.WriteString("write " + srsPath + "\n")
 			outputRuleSet, err := os.Create(srsPath)
 			if err != nil {
 				log.Fatalln(err)
@@ -125,7 +125,6 @@ func main() {
 			_ = outputRuleSet.Close()
 		}
 	}
-
 }
 
 func initDir(dir string) {

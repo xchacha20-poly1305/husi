@@ -26,12 +26,12 @@ func (b *BoxInstance) pause() {
 	defer b.pauseAccess.Unlock()
 
 	b.pauseManager.DevicePause()
-	_ = b.Router().ResetNetwork()
+	_ = b.Box.Router().ResetNetwork()
 	b.pauseTimer = nil
 }
 
 func (b *BoxInstance) Wake() {
-	_ = b.Router().ResetNetwork()
+	_ = b.Box.Router().ResetNetwork()
 	b.pauseAccess.Lock()
 	defer b.pauseAccess.Unlock()
 

@@ -46,9 +46,9 @@ func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err err
 	var router adapter.Router
 	if i == nil {
 		// test current
-		router = mainInstance.Router()
+		router = mainInstance.Box.Router()
 	} else {
-		router = i.Router()
+		router = i.Box.Router()
 	}
 
 	defOutbound, err := router.DefaultOutbound(N.NetworkTCP)
