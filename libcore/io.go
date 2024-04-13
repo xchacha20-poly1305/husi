@@ -7,7 +7,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
@@ -42,6 +44,12 @@ func Untargz(archive, path string) (err error) {
 
 		if fileInfo.IsDir() {
 			_ = os.MkdirAll(filepath.Join(path, header.Name), os.ModePerm)
+			continue
+		}
+
+		// Zip flip
+		if strings.Contains(header.Name, "..") {
+			log.Warn("Found zip flip when untargz: ", header.Name)
 			continue
 		}
 
