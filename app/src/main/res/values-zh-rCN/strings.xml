@@ -67,6 +67,7 @@
     <string name="connection_test_error">失败: %s</string>
     <string name="connection_test_fail">网络不可用</string>
     <string name="connection_test_error_status_code">错误代码: #%d</string>
+    <string name="connection_test_mux">服务端不支持该多路复用协议</string>
     <!-- proxy category -->
     <string name="profile_name">配置名称</string>
     <string name="server_address">服务器</string>
@@ -212,8 +213,7 @@
     <string name="chain_settings">链设置</string>
     <string name="circular_reference">循环引用</string>
     <string name="circular_reference_sum">路由中不能包含自己.</string>
-    <string name="mux_sum">多路复用是为了减少 TCP 的握手延迟而设计, 而非提高连接的吞吐量.
-        用于看视频、下载或者测速通常都有反效果。如果服务器不支持，则无法上网。
+    <string name="mux_sum">多路复用是为了减少与服务器的握手延迟而设计, 而非提高连接的吞吐量. 用于看视频、下载或者测速通常都有反效果。如果服务器不支持，则无法上网。
     </string>
     <string name="tcp_keep_alive_interval">TCP 保持活跃数据包发送间隔</string>
     <string name="route_add">新建路由规则</string>
