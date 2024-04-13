@@ -25,10 +25,10 @@ import org.json.JSONObject
 fun MieruBean.buildMieruConfig(port: Int): String {
     val serverInfo = JSONArray().apply {
         put(JSONObject().apply {
-            put("ipAddress", finalAddress)
+            put("ipAddress", serverAddress)
             put("portBindings", JSONArray().apply {
                 put(JSONObject().apply {
-                    put("port", finalPort)
+                    put("port", serverPort)
                     put("protocol", protocol)
                 })
             })
