@@ -5,7 +5,12 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.forEach
+import org.json.JSONArray
 import java.io.Closeable
 import java.io.File
 
@@ -85,4 +90,22 @@ fun Closeable.closeQuietly() {
         throw rethrown
     } catch (_: Exception) {
     }
+}
+
+
+// ProxyEntity
+
+fun ProxyEntity.findGroup(): ProxyGroup? {
+    return SagerDatabase.groupDao.getById(groupId)
+}
+
+// JSON
+
+fun <T> JSONArray.toList(): MutableList<T> {
+    var list = mutableListOf<T>()
+    this.forEach { _, any ->
+        @Suppress("UNCHECKED_CAST")
+        list.add(any as T)
+    }
+    return list
 }

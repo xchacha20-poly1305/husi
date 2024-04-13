@@ -35,8 +35,12 @@ import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.*
 import moe.matsuri.nb4a.utils.NGUtil
+import moe.matsuri.nb4a.utils.findGroup
 import java.io.FileDescriptor
-import java.net.*
+import java.net.HttpURLConnection
+import java.net.InetAddress
+import java.net.Socket
+import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -233,6 +237,14 @@ fun Fragment.startFilesForResult(
 fun Fragment.needReload() {
     if (DataStore.serviceState.started) {
         snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
+            // When enabled selector, reload will not restart core.
+            if (SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                    ?.findGroup()?.isSelector == true
+            ) {
+                SagerNet.stopService()
+                SagerNet.startService()
+                return@setAction
+            }
             SagerNet.reloadService()
         }.show()
     }
