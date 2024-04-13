@@ -84,8 +84,12 @@ object Protocols {
                 app.getString(R.string.connection_test_timeout)
             }
 
-            msgL.contains("refused") || msgL.contains("closed pipe") -> {
+            msgL.contains("refused") || msgL.contains("closed pipe") || msgL.contains("reset") -> {
                 app.getString(R.string.connection_test_refused)
+            }
+
+            msgL.contains("via clientconn.close") || msgL.contains("eof") -> {
+                app.getString(R.string.connection_test_mux)
             }
 
             else -> msg
