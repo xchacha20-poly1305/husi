@@ -42,7 +42,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     private fun reloadSession() {
         binding.textview.text = ColorUtils.ansiEscapeToSpannable(
             binding.root.context, String
-                (SendLog.getNekoLog(50 * 1024))
+                (SendLog.getCoreLog(50 * 1024))
         )
 
         binding.scroolview.post {

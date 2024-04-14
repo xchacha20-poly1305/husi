@@ -23,7 +23,7 @@ body:
       label: 日志
       description: |-
         如果您可以进入 “日志” 界面，请在该界面选择分享日志。
-        如果崩溃导致您无法进入软件，请检查 `/data/user/0/fr.husi/cache/neko.log` 文件以导出崩溃日志。
+        如果崩溃导致您无法进入软件，请检查 `/sdcard/Android/data/fr.husi/stderr.log` 文件以导出崩溃日志。
       render: shell
   - type: checkboxes
     attributes:

@@ -23,7 +23,7 @@ body:
       label: Logs
       description: |-
         If you can open "log" dashboard, export the log there.
-        If the crash make you can't open software, check the path `/data/user/0/fr.husi/cache/neko.log` to export your log.
+        If the crash make you can't open software, check the path `/sdcard/Android/data/fr.husi/stderr.log` to export your log.
       render: shell
   - type: checkboxes
     attributes:
