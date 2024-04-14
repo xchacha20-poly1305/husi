@@ -294,7 +294,6 @@ class BaseService {
 
         suspend fun preInit() {
             DefaultNetworkMonitor.start()
-            DataStore.vpnService?.updateUnderlyingNetwork()
         }
 
         var wakeLock: PowerManager.WakeLock?
