@@ -15,7 +15,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sfa.utils.ColorUtils
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.SendLog
+import io.nekohasekai.sagernet.utils.SendLog
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener {
