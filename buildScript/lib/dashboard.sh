@@ -5,15 +5,15 @@ set -e
 
 DIST_NAME="Dash-metacubexd"
 
-bun -v
+pnpm -v
 
 rm -rf ./${DIST_NAME}
 
 pushd metacubexd/
 DASH_VERSION=$(git log --pretty=format:"%ad" --graph --date=short HEAD -1 | tr -cd "[0-9]")
 echo "$DASH_VERSION"
-bun install
-bun run build
+pnpm install
+pnpm run build
 mv dist ../${DIST_NAME}
 popd
 
