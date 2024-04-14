@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import moe.matsuri.nb4a.proxy.neko.needBypassRootUid
@@ -207,9 +208,10 @@ class VpnService : BaseVpnService(),
 
     fun updateUnderlyingNetwork(builder: Builder? = null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            DefaultNetworkMonitor.defaultNetwork?.let {
-                builder?.setUnderlyingNetworks(arrayOf(DefaultNetworkMonitor.defaultNetwork))
-                    ?: setUnderlyingNetworks(arrayOf(DefaultNetworkMonitor.defaultNetwork))
+            runOnDefaultDispatcher {
+                val defaultNetwork = DefaultNetworkMonitor.require()
+                builder?.setUnderlyingNetworks(arrayOf(defaultNetwork))
+                    ?: setUnderlyingNetworks(arrayOf(defaultNetwork))
             }
         }
     }
