@@ -21,6 +21,8 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import moe.matsuri.nb4a.proxy.neko.needBypassRootUid
+import moe.matsuri.nb4a.utils.toList
+import org.json.JSONObject
 import android.net.VpnService as BaseVpnService
 
 class VpnService : BaseVpnService(),
@@ -95,6 +97,7 @@ class VpnService : BaseVpnService(),
 //        Logs.d(tunOptionsJson)
 //        Logs.d(tunPlatformOptionsJson)
 //        val tunOptions = JSONObject(tunOptionsJson)
+        val platformOptions = JSONObject(tunPlatformOptionsJson)
 
         // address & route & MTU ...... use NB4A GUI config
         val builder = Builder().setConfigureIntent(SagerNet.configureIntent(this))
@@ -194,9 +197,21 @@ class VpnService : BaseVpnService(),
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy &&
-            DataStore.inboundUsername.isNullOrEmpty() && DataStore.inboundPassword.isNullOrEmpty()
+            DataStore.inboundUsername.isEmpty() && DataStore.inboundPassword.isEmpty()
         ) {
-            builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort))
+            var bypassList = listOf<String>()
+            try {
+                bypassList = platformOptions.getJSONArray("bypass_domain").toList()
+            } catch (_: Exception) {
+            }
+
+            builder.setHttpProxy(
+                ProxyInfo.buildDirectProxy(
+                    LOCALHOST,
+                    DataStore.mixedPort,
+                    bypassList
+                )
+            )
         }
 
         metered = DataStore.meteredNetwork
