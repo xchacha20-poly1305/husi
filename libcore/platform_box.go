@@ -108,15 +108,15 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformInterfaceGetter() bool {
 	return false
 }
 
-func (w *boxPlatformInterfaceWrapper) Interfaces() ([]platform.NetworkInterface, error) {
+func (w *boxPlatformInterfaceWrapper) Interfaces() ([]control.Interface, error) {
 	if intfBox != nil {
 		interfaceIterator, err := intfBox.GetInterfaces()
 		if err != nil {
 			return nil, err
 		}
-		var interfaces []platform.NetworkInterface
+		var interfaces []control.Interface
 		for _, netInterface := range iteratorToArray[*NetworkInterface](interfaceIterator) {
-			interfaces = append(interfaces, platform.NetworkInterface{
+			interfaces = append(interfaces, control.Interface{
 				Index:     int(netInterface.Index),
 				MTU:       int(netInterface.MTU),
 				Name:      netInterface.Name,

@@ -5,8 +5,8 @@ go 1.21
 require (
 	github.com/miekg/dns v1.1.58
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.4.0-beta.14
-	github.com/sagernet/sing-box v1.9.0-rc.7 // Bump core version here.
+	github.com/sagernet/sing v0.4.0-beta.15
+	github.com/sagernet/sing-box v1.9.0-rc.9 // Bump core version here.
 	github.com/sagernet/sing-dns v0.2.0-beta.16
 	github.com/sagernet/sing-tun v0.2.7-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.4.0
@@ -40,7 +40,7 @@ require (
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gofrs/uuid/v5 v5.0.0 // indirect
+	github.com/gofrs/uuid/v5 v5.1.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/pprof v0.0.0-20231101202521-4ca4178f5c7a // indirect
@@ -90,6 +90,6 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
-	google.golang.org/grpc v1.63.0 // indirect
+	google.golang.org/grpc v1.63.2 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
