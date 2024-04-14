@@ -131,7 +131,6 @@ class VpnService : BaseVpnService(),
             }
         }
 
-        updateUnderlyingNetwork(builder)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
 
         // app route
@@ -219,16 +218,6 @@ class VpnService : BaseVpnService(),
         conn = builder.establish() ?: throw NullConnectionException()
 
         return conn!!.fd
-    }
-
-    fun updateUnderlyingNetwork(builder: Builder? = null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            runOnDefaultDispatcher {
-                val defaultNetwork = DefaultNetworkMonitor.require()
-                builder?.setUnderlyingNetworks(arrayOf(defaultNetwork))
-                    ?: setUnderlyingNetworks(arrayOf(defaultNetwork))
-            }
-        }
     }
 
     override fun onRevoke() = stopRunner()
