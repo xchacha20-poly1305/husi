@@ -47,7 +47,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	if maxLogSizeKb < 50 {
 		maxLogSizeKb = 50
 	}
-	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(cachePath, "neko.log"), logEnable, isBgProcess)
+	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(externalAssets, "stderr.log"), logEnable, isBgProcess)
 
 	// Set up some component
 	go func() {

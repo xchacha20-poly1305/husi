@@ -42,7 +42,7 @@ object SendLog {
         }
 
         logFile.appendText("\n")
-        logFile.appendBytes(getNekoLog(0))
+        logFile.appendBytes(getCoreLog(0))
 
         context.startActivity(
             Intent.createChooser(
@@ -57,12 +57,12 @@ object SendLog {
         )
     }
 
-    // Get log bytes from neko.log
-    fun getNekoLog(max: Long): ByteArray {
+    // Get log bytes from stderr.log
+    fun getCoreLog(max: Long): ByteArray {
         return try {
             val file = File(
-                SagerNet.application.cacheDir,
-                "neko.log"
+                SagerNet.application.externalAssets,
+                "stderr.log"
             )
             val len = file.length()
             val stream = FileInputStream(file)
