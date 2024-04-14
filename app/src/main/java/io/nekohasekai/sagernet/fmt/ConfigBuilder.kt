@@ -52,6 +52,7 @@ const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FINAL = "dns-final"
 
 const val LOCALHOST = "127.0.0.1"
+// Note: You shouldn't set strategy and detour for "local"
 const val LOCAL_DNS_SERVER = "local"
 
 val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
@@ -60,7 +61,6 @@ val ERR_NO_REMOTE_DNS = Exception("No remote DNS, check your settings!")
 val ERR_NO_DIRECT_DNS = Exception("No direct DNS, check your settings!")
 val ERR_NO_SUBNET = Exception("Your DNS mode requires set direct DNS client subnet.")
 
-// TODO kill this poop
 val externalAssets = SagerNet.application.externalAssets.absolutePath
 
 class ConfigBuildResult(
@@ -738,8 +738,10 @@ fun buildConfig(
             dns.servers.add(DNSServerOptions().apply {
                 address = it ?: throw ERR_NO_DIRECT_DNS
                 tag = TAG_DNS_DIRECT
-                detour = TAG_DIRECT
-                address_resolver = TAG_DNS_LOCAL
+                if (address != LOCAL_DNS_SERVER) {
+                    detour = TAG_DIRECT
+                    address_resolver = TAG_DNS_LOCAL
+                }
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
@@ -773,9 +775,9 @@ fun buildConfig(
         // underlyingDns
         underlyingDns.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
-                address = it ?: "local"
+                address = it ?: LOCAL_DNS_SERVER
                 tag = TAG_DNS_LOCAL
-                detour = TAG_DIRECT
+                if (address != LOCAL_DNS_SERVER) detour = TAG_DIRECT
             })
         }
 
@@ -797,7 +799,6 @@ fun buildConfig(
                 DNSServerOptions().apply {
                     address = LOCAL_DNS_SERVER
                     tag = TAG_DNS_LOCAL
-                    detour = TAG_DIRECT
                 }
             )
             dns.rules = listOf()
