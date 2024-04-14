@@ -64,7 +64,6 @@ abstract class GroupUpdater {
             lookupJobs.add(GlobalScope.launch(lookupPool) {
                 try {
                     val results = if (
-                        DefaultNetworkMonitor.defaultNetwork != null &&
                         DataStore.dnsMode == DNSMode.FAKE_DNS &&
                         DataStore.serviceState.started &&
                         DataStore.serviceMode == Key.MODE_VPN
