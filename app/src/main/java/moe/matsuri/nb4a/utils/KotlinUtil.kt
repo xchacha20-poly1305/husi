@@ -102,10 +102,16 @@ fun ProxyEntity.findGroup(): ProxyGroup? {
 // JSON
 
 fun <T> JSONArray.toList(): MutableList<T> {
-    var list = mutableListOf<T>()
-    this.forEach { _, any ->
+    return this.toList { any ->
         @Suppress("UNCHECKED_CAST")
-        list.add(any as T)
+        any as T
+    }
+}
+
+fun <T> JSONArray.toList(turn: (Any) -> T): MutableList<T> {
+    val list = mutableListOf<T>()
+    this.forEach { _, any ->
+        list.add(turn(any))
     }
     return list
 }
