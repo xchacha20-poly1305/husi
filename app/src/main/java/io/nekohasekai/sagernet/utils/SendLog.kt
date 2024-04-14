@@ -1,4 +1,4 @@
-package moe.matsuri.nb4a.utils
+package io.nekohasekai.sagernet.utils
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,6 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.use
-import io.nekohasekai.sagernet.utils.CrashHandler
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
