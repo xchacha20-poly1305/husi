@@ -14,7 +14,7 @@ tar xf node.tar.xz --strip-components=1 -C node
 
 rm node.tar.xz
 
-npm install -g bun
+npm install -g pnpm
 
 node -v
-bun -v
+pnpm -v
