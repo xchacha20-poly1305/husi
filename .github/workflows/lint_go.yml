@@ -6,13 +6,13 @@ on:
       - dev*
     paths:
       - "**.go"
-      - ".github/workflows/lint.yml"
+      - ".github/workflows/lint_go.yml"
   pull_request:
     branches:
       - dev*
     paths:
       - "**.go"
-      - ".github/workflows/lint.yml"
+      - ".github/workflows/lint_go.yml"
 
 jobs:
   build:
