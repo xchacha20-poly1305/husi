@@ -514,7 +514,7 @@
     <string name="exe_prefer_provider">Proveedor preferido de plugins</string>
     <string name="create_shortcut">Crear acceso directo</string>
     <string name="app_tls_version">Versión mínima de suscripción TLS</string>
-    <string name="mux_sum">Mux está diseñado para reducir la latencia del handshake TCP, no para aumentar el rendimiento de la conexión. Usar Mux para ver vídeos, descargar o hacer pruebas de velocidad suele ser contraproducente. Si el servidor no lo soporta, no podrás acceder a Internet.</string>
+    <string name="mux_sum">Mux está diseñado para reducir la latencia del handshake de conexión, no para aumentar el rendimiento de la conexión. Usar Mux para ver vídeos, descargar o hacer pruebas de velocidad suele ser contraproducente. Si el servidor no lo soporta, no podrás acceder a Internet.</string>
     <string name="tuic_udp_relay_mode">Modo de retransmisión UDP</string>
     <string name="tuic_congestion_controller">Controlador de congestión</string>
     <string name="neko_plugin_summary">Los plugins avanzados pueden proporcionar protocolos no soportados originalmente.
@@ -594,4 +594,5 @@
     <string name="no_thanks">No, gracias</string>
     <string name="location_permission_description">Sus reglas de enrutamiento contienen reglas de enrutamiento Wi-Fi SSID o Wi-Fi BSSID. Para que funcione correctamente, TigerSi utiliza permisos de ubicación en segundo plano para obtener información sobre las redes Wi-Fi conectadas. Esta información se utiliza únicamente con fines de enrutamiento.</string>
     <string name="location_permission_background_description">A partir de Android 10, se requiere permiso de ubicación en segundo plano. Seleccione Permitir siempre para otorgar el permiso.</string>
+    <string name="connection_test_mux">Servidor no compatible con este protocolo múltiplex</string>
 </resources>
