@@ -191,7 +191,7 @@ func goServeProtect(start bool) {
 	}
 
 	if start {
-		protectCloser = protectserver.ServerProtect(protectserver.DefaultPath, func(fd int) error {
+		protectCloser = protectserver.ServerProtect(ProtectPath, func(fd int) error {
 			if intfBox == nil {
 				return E.New("not init intfBox")
 			}

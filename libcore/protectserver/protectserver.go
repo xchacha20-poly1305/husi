@@ -13,8 +13,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-const DefaultPath = "protect_path"
-
 const (
 	ProtectFailed byte = iota
 	ProtectSuccess

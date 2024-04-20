@@ -829,10 +829,6 @@ class ConfigurationFragment @JvmOverloads constructor(
         val testJobs = mutableListOf<Job>()
 
         val mainJob = runOnDefaultDispatcher {
-            if (DataStore.serviceState.started) {
-                stopService()
-                delay(500) // wait for service stop
-            }
             val group = DataStore.currentGroup()
             val profilesUnfiltered = SagerDatabase.proxyDao.getByGroup(group.id)
             test.proxyN = profilesUnfiltered.size

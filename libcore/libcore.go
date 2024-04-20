@@ -9,6 +9,8 @@ import (
 	_ "unsafe"
 )
 
+const ProtectPath = "protect_path"
+
 //go:linkname resourcePaths github.com/sagernet/sing-box/constant.resourcePaths
 var resourcePaths []string
 
