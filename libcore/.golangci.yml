@@ -1,9 +1,11 @@
 linters:
   disable-all: true
   enable:
+    - gofumpt
     - govet
     - gci
     - staticcheck
+    - paralleltest
 
 run:
   build-tags:
@@ -25,4 +27,5 @@ linters-settings:
     custom-order: true
     sections:
       - standard
+      - prefix(github.com/sagernet/)
       - default
