@@ -731,7 +731,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         try {
                             if (icmpPing) {
                                 try {
-                                    val result = Libcore.icmpPing(address, 5000)
+                                    val result = Libcore.icmpPing(address, 5000, DataStore.serviceState.started)
                                     if (!isActive) break
                                     profile.status = 1
                                     profile.ping = result
@@ -743,7 +743,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             } else {
                                 try {
                                     val result =
-                                        Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
+                                        Libcore.tcpPing(address, bean.serverPort.toString(), 3000, DataStore.serviceState.started)
                                     if (!isActive) break
                                     profile.status = 1
                                     profile.ping = result

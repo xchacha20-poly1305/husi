@@ -4,34 +4,34 @@ import (
 	"context"
 	"crypto/rand"
 	"net"
-	"sync"
+	"strconv"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
+	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/xchacha20-poly1305/libping"
 	"libcore/protect"
+
+	"github.com/xchacha20-poly1305/libping"
+	"golang.org/x/sys/unix"
 )
 
-var (
-	initIcmpPingOnce sync.Once
-	pingPayload      = make([]byte, 20)
-)
-
-func initIcmpPing() {
-	libping.Protect = func(fd int) {
-		_ = protect.ClientProtect(fd, ProtectPath)
+func IcmpPing(address string, timeout int32, shouldProtect bool) (latency int32, err error) {
+	if shouldProtect {
+		libping.Protect = func(fd int) {
+			_ = protect.ClientProtect(fd, ProtectPath)
+		}
+	} else {
+		libping.Protect = nil
 	}
-	_, _ = rand.Read(pingPayload)
-}
 
-func IcmpPing(address string, timeout int32) (latency int32, err error) {
-	initIcmpPingOnce.Do(initIcmpPing)
+	payload := make([]byte, 20)
+	_, _ = rand.Read(payload)
 
-	t, err := libping.IcmpPing(address, (time.Duration)(timeout)*time.Millisecond, pingPayload)
+	t, err := libping.IcmpPing(address, (time.Duration)(timeout)*time.Millisecond, payload)
 	if err != nil {
 		return -1, err
 	}
@@ -39,18 +39,53 @@ func IcmpPing(address string, timeout int32) (latency int32, err error) {
 	return int32(t.Milliseconds()), nil
 }
 
-func TcpPing(host, port string, timeout int32) (latency int32, err error) {
-	address := net.JoinHostPort(host, port)
-
-	start := time.Now()
-	conn, err := net.DialTimeout("tcp", address, time.Duration(timeout)*time.Millisecond)
-	if err != nil {
-		return
+func TcpPing(host, port string, timeout int32, shouldProtect bool) (latency int32, err error) {
+	log.Trace(host)
+	ip := net.ParseIP(host)
+	if ip == nil {
+		return -1, E.New("failed to parse ip: ", host)
 	}
-	defer conn.Close()
+	isIPv6 := ip.To4() == nil
 
-	latency = int32(time.Since(start).Milliseconds())
-	return
+	var socketFd int
+	if isIPv6 {
+		socketFd, err = unix.Socket(unix.AF_INET6, unix.SOCK_STREAM, 0)
+	} else {
+		socketFd, err = unix.Socket(unix.AF_INET, unix.SOCK_STREAM, 0)
+	}
+	if err != nil {
+		return -1, err
+	}
+	defer unix.Close(socketFd)
+
+	if shouldProtect {
+		_ = protect.ClientProtect(socketFd, ProtectPath)
+	}
+
+	var sockAddr unix.Sockaddr
+	portInt, _ := strconv.Atoi(port)
+	if isIPv6 {
+		sockAddr = &unix.SockaddrInet6{Port: portInt, Addr: [16]byte(ip.To16())}
+	} else {
+		sockAddr = &unix.SockaddrInet4{Port: portInt, Addr: [4]byte(ip.To4())}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
+	defer cancel()
+	errCh := make(chan error, 1)
+	start := time.Now()
+	go func() {
+		errCh <- unix.Connect(socketFd, sockAddr)
+	}()
+	select {
+	case <-ctx.Done():
+		return -1, E.New("TCP ping timeout")
+	case err := <-errCh:
+		if err != nil {
+			return -1, err
+		}
+		return int32(time.Since(start).Milliseconds()), nil
+	}
 }
 
 func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err error) {
