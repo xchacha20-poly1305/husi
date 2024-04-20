@@ -84,16 +84,6 @@ fun parseHysteria2(url: URL): HysteriaBean {
 }
 
 fun HysteriaBean.toUri(): String {
-    var un = ""
-    var pw = ""
-    if (protocolVersion == 2) {
-        if (authPayload.contains(":")) {
-            un = authPayload.substringBefore(":")
-            pw = authPayload.substringAfter(":")
-        } else {
-            un = authPayload
-        }
-    }
     //
     val url = Libcore.newURL(when(protocolVersion) {
         2 -> "hysteria2"
@@ -101,8 +91,7 @@ fun HysteriaBean.toUri(): String {
     }).apply {
         host = serverAddress
         ports = serverPorts
-        username = un
-        password = pw
+        username = authPayload
     }
 
     if (name.isNotBlank()) {
