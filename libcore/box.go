@@ -18,7 +18,7 @@ import (
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 
-	"libcore/protectserver"
+	"libcore/protect"
 	"libcore/v2rayapilite"
 )
 
@@ -191,7 +191,7 @@ func goServeProtect(start bool) {
 	}
 
 	if start {
-		protectCloser = protectserver.ServerProtect(ProtectPath, func(fd int) error {
+		protectCloser = protect.ServerProtect(ProtectPath, func(fd int) error {
 			if intfBox == nil {
 				return E.New("not init intfBox")
 			}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -12,13 +13,25 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/xchacha20-poly1305/libping"
+	"libcore/protect"
 )
 
-func IcmpPing(address string, timeout int32) (latency int32, err error) {
-	payload := make([]byte, 20)
-	_, _ = rand.Read(payload)
+var (
+	initIcmpPingOnce sync.Once
+	pingPayload      = make([]byte, 20)
+)
 
-	t, err := libping.IcmpPing(address, (time.Duration)(timeout)*time.Millisecond, payload)
+func initIcmpPing() {
+	libping.Protect = func(fd int) {
+		_ = protect.ClientProtect(fd, ProtectPath)
+	}
+	_, _ = rand.Read(pingPayload)
+}
+
+func IcmpPing(address string, timeout int32) (latency int32, err error) {
+	initIcmpPingOnce.Do(initIcmpPing)
+
+	t, err := libping.IcmpPing(address, (time.Duration)(timeout)*time.Millisecond, pingPayload)
 	if err != nil {
 		return -1, err
 	}
