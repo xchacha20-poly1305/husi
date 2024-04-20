@@ -669,10 +669,6 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     }
 
-    fun stopService() {
-        if (DataStore.serviceState.started) SagerNet.stopService()
-    }
-
     @OptIn(DelicateCoroutinesApi::class)
     @Suppress("EXPERIMENTAL_API_USAGE")
     fun pingTest(icmpPing: Boolean) {
@@ -680,10 +676,6 @@ class ConfigurationFragment @JvmOverloads constructor(
         val testJobs = mutableListOf<Job>()
         val dialog = test.builder.show()
         val mainJob = runOnDefaultDispatcher {
-            if (DataStore.serviceState.started) {
-                stopService()
-                delay(500) // wait for service stop
-            }
             val group = DataStore.currentGroup()
             val profilesUnfiltered = SagerDatabase.proxyDao.getByGroup(group.id)
             test.proxyN = profilesUnfiltered.size
@@ -739,7 +731,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         try {
                             if (icmpPing) {
                                 try {
-                                    val result = Libcore.icmpPing(address, 5000)
+                                    val result = Libcore.icmpPing(address, 5000, DataStore.serviceState.started)
                                     if (!isActive) break
                                     profile.status = 1
                                     profile.ping = result
@@ -751,7 +743,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             } else {
                                 try {
                                     val result =
-                                        Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
+                                        Libcore.tcpPing(address, bean.serverPort.toString(), 3000, DataStore.serviceState.started)
                                     if (!isActive) break
                                     profile.status = 1
                                     profile.ping = result
@@ -829,10 +821,6 @@ class ConfigurationFragment @JvmOverloads constructor(
         val testJobs = mutableListOf<Job>()
 
         val mainJob = runOnDefaultDispatcher {
-            if (DataStore.serviceState.started) {
-                stopService()
-                delay(500) // wait for service stop
-            }
             val group = DataStore.currentGroup()
             val profilesUnfiltered = SagerDatabase.proxyDao.getByGroup(group.id)
             test.proxyN = profilesUnfiltered.size

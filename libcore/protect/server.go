@@ -1,19 +1,16 @@
-package protectserver
+package protect
 
 import (
 	"io"
 	"log"
 	"net"
 	"os"
-	"reflect"
 
 	"github.com/sagernet/sing/common/debug"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"golang.org/x/sys/unix"
 )
-
-const DefaultPath = "protect_path"
 
 const (
 	ProtectFailed byte = iota
@@ -42,15 +39,6 @@ func getOneFd(socketFd int) (int, error) {
 		return 0, E.New("invalid fds count: ", len(fds))
 	}
 	return fds[0], nil
-}
-
-// FdFromConn get net.Conn's file descriptor.
-func FdFromConn(conn net.Conn) int {
-	v := reflect.ValueOf(conn)
-	netFD := reflect.Indirect(reflect.Indirect(v).FieldByName("fd"))
-	pfd := reflect.Indirect(netFD.FieldByName("pfd"))
-	fd := int(pfd.FieldByName("Sysfd").Int())
-	return fd
 }
 
 // ServerProtect listen at path, and use protectCtl to implement VPN protect.
@@ -84,32 +72,35 @@ func ServerProtect(path string, protectCtl Protect) io.Closer {
 				return
 			}
 
-			go func() {
+			go func(conn *net.UnixConn) {
 				defer conn.Close()
-				socketFd := FdFromConn(conn)
-				if socketFd < 0 {
-					if debug.Enabled {
-						log.Println("didn't find socketFd")
-					}
-					return
-				}
 
-				fd, err := getOneFd(socketFd)
+				rawConn, err := conn.SyscallConn()
 				if err != nil {
-					if debug.Enabled {
-						log.Println("protect server getOneFd:", err)
-					}
 					return
 				}
-				defer unix.Close(fd)
 
-				err = ctl(fd)
+				// Get the fd of conn and receive fd.
+				var (
+					connFd int
+					recvFd int
+				)
+				err = rawConn.Control(func(fd uintptr) {
+					connFd = int(fd)
+					recvFd, err = getOneFd(connFd)
+				})
+				defer unix.Close(connFd)
+
+				err = ctl(recvFd)
 				if err != nil {
 					_, _ = conn.Write([]byte{ProtectFailed})
+					if debug.Enabled {
+						log.Println("Failed to control fd")
+					}
 					return
 				}
 				_, _ = conn.Write([]byte{ProtectSuccess})
-			}()
+			}(conn.(*net.UnixConn))
 		}
 	}(protectCtl)
 
