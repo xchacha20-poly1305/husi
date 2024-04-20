@@ -52,6 +52,7 @@ const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FINAL = "dns-final"
 
 const val LOCALHOST = "127.0.0.1"
+
 // Note: You shouldn't set strategy and detour for "local"
 const val LOCAL_DNS_SERVER = "local"
 
@@ -306,6 +307,10 @@ fun buildConfig(
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
 
+                // For: test but not interrupt VPN service
+                val outboundProtect =
+                    forTest && !proxyEntity.needExternal() && DataStore.serviceState.started
+
                 // tagOut: v2ray outbound tag for a profile
                 // profile2 (in) (global)   tag g-(id)
                 // profile1                 tag (chainTag)-(id)
@@ -401,6 +406,10 @@ fun buildConfig(
                     currentOutbound.apply {
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
+
+                        if (outboundProtect) {
+                            currentOutbound["protect_path"] = Libcore.ProtectPath
+                        }
 
                         val useBrutal = bean.serverBrutal && bean.canBrutal()
                         if (
