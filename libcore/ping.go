@@ -3,31 +3,25 @@ package libcore
 import (
 	"context"
 	"crypto/rand"
-	"net"
-	"strconv"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
-	"github.com/sagernet/sing-box/log"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
 
 	"libcore/protect"
 
 	"github.com/xchacha20-poly1305/libping"
-	"golang.org/x/sys/unix"
 )
 
-func IcmpPing(address string, timeout int32, shouldProtect bool) (latency int32, err error) {
-	if shouldProtect {
-		libping.Protect = func(fd int) {
-			_ = protect.ClientProtect(fd, ProtectPath)
-		}
-	} else {
-		libping.Protect = nil
+func init() {
+	libping.FdControl = func(fd int) {
+		_ = protect.ClientProtect(fd, ProtectPath)
 	}
+}
 
+func IcmpPing(address string, timeout int32) (latency int32, err error) {
 	payload := make([]byte, 20)
 	_, _ = rand.Read(payload)
 
@@ -39,53 +33,13 @@ func IcmpPing(address string, timeout int32, shouldProtect bool) (latency int32,
 	return int32(t.Milliseconds()), nil
 }
 
-func TcpPing(host, port string, timeout int32, shouldProtect bool) (latency int32, err error) {
-	log.Trace(host)
-	ip := net.ParseIP(host)
-	if ip == nil {
-		return -1, E.New("failed to parse ip: ", host)
-	}
-	isIPv6 := ip.To4() == nil
-
-	var socketFd int
-	if isIPv6 {
-		socketFd, err = unix.Socket(unix.AF_INET6, unix.SOCK_STREAM, 0)
-	} else {
-		socketFd, err = unix.Socket(unix.AF_INET, unix.SOCK_STREAM, 0)
-	}
+func TcpPing(host, port string, timeout int32) (latency int32, err error) {
+	l, err := libping.TcpPing(host, port, time.Duration(timeout)*time.Millisecond)
 	if err != nil {
-		return -1, err
-	}
-	defer unix.Close(socketFd)
-
-	if shouldProtect {
-		_ = protect.ClientProtect(socketFd, ProtectPath)
+		return -1, nil
 	}
 
-	var sockAddr unix.Sockaddr
-	portInt, _ := strconv.Atoi(port)
-	if isIPv6 {
-		sockAddr = &unix.SockaddrInet6{Port: portInt, Addr: [16]byte(ip.To16())}
-	} else {
-		sockAddr = &unix.SockaddrInet4{Port: portInt, Addr: [4]byte(ip.To4())}
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
-	defer cancel()
-	errCh := make(chan error, 1)
-	start := time.Now()
-	go func() {
-		errCh <- unix.Connect(socketFd, sockAddr)
-	}()
-	select {
-	case <-ctx.Done():
-		return -1, E.New("TCP ping timeout")
-	case err := <-errCh:
-		if err != nil {
-			return -1, err
-		}
-		return int32(time.Since(start).Milliseconds()), nil
-	}
+	return int32(l.Milliseconds()), nil
 }
 
 func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err error) {
