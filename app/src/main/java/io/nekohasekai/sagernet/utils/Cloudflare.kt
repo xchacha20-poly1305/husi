@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.utils
 
-import com.wireguard.crypto.KeyPair
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
@@ -10,7 +9,7 @@ import io.nekohasekai.sagernet.utils.cf.UpdateDeviceRequest
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 
-// kang from wgcf
+// from wgcf
 object Cloudflare {
 
     private const val API_URL = "https://api.cloudflareclient.com"
@@ -20,7 +19,7 @@ object Cloudflare {
     private const val CLIENT_VERSION = "a-6.3-1922"
 
     fun makeWireGuardConfiguration(): WireGuardBean {
-        val keyPair = KeyPair()
+        val keyPair = Libcore.newWireGuardKeyPair()
         val client = Libcore.newHttpClient().apply {
             pinnedTLS12()
             trySocks5(DataStore.mixedPort)
@@ -56,7 +55,7 @@ object Cloudflare {
             val localAddresses = device.config.interfaceX.addresses
             return WireGuardBean().apply {
                 name = "CloudFlare Warp ${device.account.id}"
-                privateKey = keyPair.privateKey.toBase64()
+                privateKey = keyPair.privateKey
                 peerPublicKey = peer.publicKey
                 serverAddress = peer.endpoint.host.substringBeforeLast(":")
                 serverPort = peer.endpoint.host.substringAfterLast(":").toInt()
