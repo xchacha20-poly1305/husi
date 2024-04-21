@@ -9,21 +9,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 )
 
-const SingBoxPath = "github.com/sagernet/sing-box"
-
-// There are some other place will read C.Version, such as Clash API.
-// So load it in init()
-func init() {
-	buildInfo, _ := debug.ReadBuildInfo()
-	for _, dep := range buildInfo.Deps {
-		switch dep.Path {
-		case SingBoxPath:
-			C.Version = dep.Version
-			return
-		}
-	}
-}
-
 // VersionBox returns sing-box version
 func VersionBox() string {
 	return C.Version
@@ -53,12 +38,14 @@ func loadDetailVersion() {
 	}
 
 	debugInfo, _ := debug.ReadBuildInfo()
+
+loop:
 	for _, setting := range debugInfo.Settings {
 		switch setting.Key {
 		case "-tags":
 			if setting.Value != "" {
 				detailVersionSli = append(detailVersionSli, setting.Value)
-				break
+				break loop
 			}
 		}
 	}
