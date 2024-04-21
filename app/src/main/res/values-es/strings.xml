@@ -88,7 +88,7 @@
     <string name="cag_dns">Ajustes de DNS</string>
     <string name="remote_dns">DNS remoto</string>
     <string name="direct_dns">DNS directo</string>
-    <string name="underlying_dns">Underlying DNS</string>
+    <string name="underlying_dns">DNS subyacente</string>
     <string name="enable_dns_routing">Activar enrutamiento DNS</string>
     <string name="dns_routing_message">Resuelve dominios en rutas de omisión con el DNS directo.
         Tenga en cuenta las posibles fugas de DNS
@@ -247,11 +247,13 @@
     <string name="add_profile_methods_manual_settings">Ajustes manuales</string>
     <plurals name="removed">
         <item quantity="one">Eliminado</item>
+        <item quantity="many">%d elementos eliminados</item>
         <item quantity="other">%d elementos eliminados</item>
     </plurals>
     <plurals name="added">
         <item quantity="one">Añadido</item>
-        <item quantity="other">%d proxys añadidos</item>
+        <item quantity="many">%d proxies añadidos</item>
+        <item quantity="other">%d proxies añadidos</item>
     </plurals>
     <string name="undo">Deshacer</string>
     <string name="insecure">Inseguro</string>
@@ -380,7 +382,7 @@
     <string name="subscription_update_message">Actualizando %s…</string>
     <string name="group_filter">Filtrar</string>
     <string name="subscription_used">%s usado</string>
-    <string name="subscription_traffic">%s usados ​​/ %s restantes</string>
+    <string name="subscription_traffic">%s Usados / %s restantes</string>
     <string name="subscription_import">Importar suscripción</string>
     <string name="subscription_import_message">¿Confirma que desea importar la suscripción %s? Si
         proviene de una fuente que no es de confianza, hacer esto puede provocar que se filtre su IP
@@ -460,9 +462,7 @@
         dirección de destino, no solo para el enrutamiento
     </string>
     <string name="resolve_destination">Resolver destino</string>
-    <string name="resolve_destination_summary">Si la dirección de destino es un dominio, se
-        distribuye según la estrategia IPv6.
-    </string>
+    <string name="resolve_destination_summary">Si la dirección de destino es un dominio, se pasa según la estrategia IPv6 (entra en conflicto con FakeDNS)</string>
     <string name="pcap" translatable="false">Pcap</string>
     <string name="pcap_notice">Los archivos Pcap se guardarán en %s</string>
     <string name="naive_insecure_concurrency">Concurrencia insegura</string>
