@@ -53,9 +53,9 @@ dependencies {
     implementation(fileTree("libs"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.core:core-ktx:1.13.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("androidx.activity:activity-ktx:1.9.0")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
@@ -74,9 +74,9 @@ dependencies {
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
 
-    implementation("androidx.camera:camera-view:1.3.2")
-    implementation("androidx.camera:camera-lifecycle:1.3.2")
-    implementation("androidx.camera:camera-camera2:1.3.2")
+    implementation("androidx.camera:camera-view:1.3.3")
+    implementation("androidx.camera:camera-lifecycle:1.3.3")
+    implementation("androidx.camera:camera-camera2:1.3.3")
     implementation("com.google.zxing:core:3.5.3")
 
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
