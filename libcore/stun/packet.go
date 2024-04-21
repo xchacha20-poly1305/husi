@@ -43,10 +43,10 @@ func newPacket() (*packet, error) {
 
 func newPacketFromBytes(packetBytes []byte) (*packet, error) {
 	if len(packetBytes) < 20 {
-		return nil, errors.New("Received data length too short.")
+		return nil, errors.New("received data length too short")
 	}
 	if len(packetBytes) > math.MaxUint16+20 {
-		return nil, errors.New("Received data length too long.")
+		return nil, errors.New("received data length too long")
 	}
 	pkt := new(packet)
 	pkt.types = binary.BigEndian.Uint16(packetBytes[0:2])
@@ -59,7 +59,7 @@ func newPacketFromBytes(packetBytes []byte) (*packet, error) {
 		length := binary.BigEndian.Uint16(packetBytes[pos+2 : pos+4])
 		end := pos + 4 + length
 		if end < pos+4 || end > uint16(len(packetBytes)) {
-			return nil, errors.New("Received data format mismatch.")
+			return nil, errors.New("received data format mismatch")
 		}
 		value := packetBytes[pos+4 : end]
 		attribute := newAttribute(types, value)
@@ -90,9 +90,11 @@ func (v *packet) bytes() []byte {
 	return packetBytes
 }
 
+/*
 func (v *packet) getSourceAddr() *Host {
 	return v.getRawAddr(attributeSourceAddress)
 }
+*/
 
 func (v *packet) getMappedAddr() *Host {
 	return v.getRawAddr(attributeMappedAddress)

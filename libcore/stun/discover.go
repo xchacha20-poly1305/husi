@@ -94,7 +94,7 @@ func (c *Client) discover(conn net.PacketConn, addr *net.UDPAddr) (_ NATType, _ 
 	}
 	// changedAddr shall not be nil
 	if changedAddr == nil {
-		return NATError, mappedAddr, errors.New("Server error: no changed address."), fakeFullCone
+		return NATError, mappedAddr, errors.New("server error: no changed address"), fakeFullCone
 	}
 	// Perform test2 to see if the client can receive packet sent from
 	// another IP and port.
@@ -178,7 +178,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 	}
 	// identical used to check if it is open Internet or not.
 	if resp1.identical {
-		return nil, errors.New("Not behind a NAT.")
+		return nil, errors.New("not behind a NAT")
 	}
 	// use otherAddr or changedAddr
 	otherAddr := resp1.otherAddr
@@ -186,7 +186,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 		if resp1.changedAddr != nil {
 			otherAddr = resp1.changedAddr
 		} else {
-			return nil, errors.New("Server error: no other address and changed address.")
+			return nil, errors.New("server error: no other address and changed address")
 		}
 	}
 

@@ -116,6 +116,7 @@ func (natBehavior NATBehavior) NormalType() string {
 	return "Undefined"
 }
 
+/*
 const (
 	errorTryAlternate                 = 300
 	errorBadRequest                   = 400
@@ -137,6 +138,7 @@ const (
 	errorServerError                  = 500
 	errorInsufficientCapacity         = 508
 )
+*/
 
 const (
 	attributeFamilyIPv4 = 0x01
