@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.RemoteException
-import android.text.Html
 import android.view.KeyEvent
 import android.view.MenuItem
 import androidx.activity.addCallback
@@ -105,7 +104,7 @@ class MainActivity : ThemedActivity(),
             onNewIntent(intent)
         }
 
-        refreshNavMenu(!DataStore.clashAPIListen.isNullOrBlank())
+        refreshNavMenu(DataStore.clashAPIListen.isNotBlank())
 
         // sdk 33 notification
         if (Build.VERSION.SDK_INT >= 33) {
@@ -140,7 +139,6 @@ class MainActivity : ThemedActivity(),
             Logs.w(e)
         }
     }
-
 
 
     fun refreshNavMenu(clashApi: Boolean) {
@@ -293,7 +291,6 @@ class MainActivity : ThemedActivity(),
 
     private fun showDownloadDialog(pluginEntry: PluginEntry) {
         var index = 0
-        var playIndex = -1
         var fdroidIndex = -1
 
         val items = mutableListOf<String>()
@@ -308,7 +305,6 @@ class MainActivity : ThemedActivity(),
         MaterialAlertDialogBuilder(this).setTitle(pluginEntry.name)
             .setItems(items.toTypedArray()) { _, which ->
                 when (which) {
-                    playIndex -> launchCustomTab("https://play.google.com/store/apps/details?id=${pluginEntry.packageName}")
                     fdroidIndex -> launchCustomTab("https://f-droid.org/packages/${pluginEntry.packageName}/")
                     downloadIndex -> launchCustomTab(pluginEntry.downloadSource.downloadLink)
                 }
@@ -508,18 +504,9 @@ class MainActivity : ThemedActivity(),
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
     private fun requestFineLocationPermission() {
-        val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(
-                getString(R.string.location_permission_description),
-                Html.FROM_HTML_MODE_LEGACY
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            Html.fromHtml(getString(R.string.location_permission_description))
-        }
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.location_permission_title)
-            .setMessage(message)
+            .setMessage(R.string.location_permission_description)
             .setPositiveButton(R.string.ok) { _, _ ->
                 requestFineLocationPermission0()
             }
@@ -541,10 +528,7 @@ class MainActivity : ThemedActivity(),
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.location_permission_title)
             .setMessage(
-                Html.fromHtml(
-                    getString(R.string.location_permission_background_description),
-                    Html.FROM_HTML_MODE_LEGACY
-                )
+                R.string.location_permission_background_description
             )
             .setPositiveButton(R.string.ok) { _, _ ->
                 backgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
