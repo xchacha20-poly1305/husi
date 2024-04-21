@@ -183,7 +183,7 @@ fun Project.setupAppCommon() {
                     keyPassword = pwd
                 }
             }
-        } else if (requireFlavor().contains("(Foss|Expert|Play)Release".toRegex())) {
+        } else if (requireFlavor().contains("FossRelease")) {
             exitProcess(0)
         }
         buildTypes {
