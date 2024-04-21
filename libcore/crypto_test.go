@@ -5,6 +5,7 @@ import (
 )
 
 func TestWireGuardKeyPair(t *testing.T) {
+	t.Parallel()
 	keyPair, err := NewWireGuardKeyPair()
 	if err != nil {
 		t.Errorf("Failed to generate key pair: %v", err)

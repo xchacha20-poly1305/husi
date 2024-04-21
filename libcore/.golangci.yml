@@ -3,7 +3,6 @@ linters:
   enable:
     - govet
     - staticcheck
-    - paralleltest
 
 run:
   build-tags:
