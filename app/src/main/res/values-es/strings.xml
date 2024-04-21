@@ -595,4 +595,5 @@
     <string name="location_permission_description">Sus reglas de enrutamiento contienen reglas de enrutamiento Wi-Fi SSID o Wi-Fi BSSID. Para que funcione correctamente, TigerSi utiliza permisos de ubicación en segundo plano para obtener información sobre las redes Wi-Fi conectadas. Esta información se utiliza únicamente con fines de enrutamiento.</string>
     <string name="location_permission_background_description">A partir de Android 10, se requiere permiso de ubicación en segundo plano. Seleccione Permitir siempre para otorgar el permiso.</string>
     <string name="connection_test_mux">Servidor no compatible con este protocolo múltiplex</string>
+    <string name="front_proxy">Proxy frontal</string>
 </resources>
