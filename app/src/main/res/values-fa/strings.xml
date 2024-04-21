@@ -470,10 +470,10 @@
     <string name="custom_config_json">پیکربندی سفارشی JSON</string>
     <string name="need_restart">راه اندازی مجدد برنامه برای اعمال تغییرات</string>
     <string name="protocol_version">نسخه پروتکل</string>
-    <string name="show_group_in_notification">نشان دادن اسم گروه در نوتیفیکیشن</string>
+    <string name="show_group_in_notification">نشان دادن اسم گروه در اعلان‌ها</string>
     <string name="reset_connections">راه اندازی مجدد اتصال ها</string>
     <string name="use_selector">استفاده از انتخابگر</string>
-    <string name="share_subscription">به اشتراک گذاری اشتراک ها</string>
+    <string name="share_subscription">به‌هم رسانی اشتراک‌ها</string>
     <string name="mtu_help">برای تنظیم MTU سفارشی، اولویت را طولانی فشار دهید.</string>
     <string name="remove_duplicate">حذف کردن سرور های تکراری</string>
     <string name="sniff_routing">نتیجه Sniff برای مسیریابی</string>
