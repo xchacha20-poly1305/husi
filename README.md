@@ -46,7 +46,7 @@ Environment:
 Run:
 
 ```shell
-./run lib core
+make libcore
 ```
 
 This will generate `app/libs/libcore.aar`.
@@ -60,7 +60,7 @@ If you don't want to build it, you can download then in [actions](https://github
 Ensure that the Node environment is set up correctly (with pnpm, etc.).
 
 ```shell
-./run lib dashboard
+make dashboard
 ```
 
 #### 🎁 APK
@@ -87,13 +87,13 @@ echo "ALIAS_PASS=" >> local.properties
 Download geo resource files:
 
 ```shell
-./run lib assets
+make assets
 ```
 
 Compile the release version:
 
 ```shell
-./gradlew app:assembleFossRelease
+make apk
 ```
 
 The APK file will be located in `app/build/outputs/apk`.

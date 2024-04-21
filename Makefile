@@ -7,10 +7,10 @@ dashboard:
 	./run lib dashboard
 
 apk:
-	./gradlew app:assembleFossRelease
+	BUILD_PLUGIN ./gradlew app:assembleFossRelease
 
 apk_debug:
-	./gradlew app:assembleFossDebug
+	BUILD_PLUGIN=none ./gradlew app:assembleFossDebug
 
 assets:
 	./run lib assets
