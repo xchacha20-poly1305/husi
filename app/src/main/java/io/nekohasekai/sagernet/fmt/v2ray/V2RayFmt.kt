@@ -11,7 +11,6 @@ import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.utils.NGUtil
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import org.json.JSONObject
 
 data class VmessQRCode(
     var v: String = "",
@@ -206,14 +205,12 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
             }
             url.queryParameterNotBlank("ed").let { ed ->
                 if (ed.isNotBlank()) {
-                    wsMaxEarlyData = ed.toIntOrNull() ?: 443
+                    wsMaxEarlyData = ed.toIntOrNull() ?: 2048
 
                     url.queryParameterNotBlank("eh").let { eh ->
-                        if (eh.isNotBlank()) {
-                            earlyDataHeaderName = eh
-                        } else {
-                            earlyDataHeaderName = "Sec-WebSocket-Protocol"
-                          }
+                        earlyDataHeaderName = eh.ifBlank {
+                            "Sec-WebSocket-Protocol"
+                        }
                     }
                 }
             }
@@ -359,7 +356,8 @@ private fun parseCsvVMess(csv: String): VMessBean {
 
 fun VMessBean.toV2rayN(): String {
     val bean = this
-    return "vmess://" + VmessQRCode().apply {
+    val protocol = if (isVLESS) "vless" else "vmess"
+    return "${protocol}://" + VmessQRCode().apply {
         v = "2"
         ps = bean.name
         add = bean.serverAddress
