@@ -1,4 +1,4 @@
-.PHONY: update libcore dashboard apk apk_debug assets lint
+.PHONY: update libcore dashboard apk apk_debug assets lint_go test_go
 
 libcore:
 	./run lib core
@@ -37,3 +37,6 @@ fmt_go:
 fmt_go_install:
 	go install -v mvdan.cc/gofumpt@latest
 	go install -v github.com/daixiang0/gci@latest
+
+test_go:
+	cd libcore/ && go test -v -count=1 ./...
