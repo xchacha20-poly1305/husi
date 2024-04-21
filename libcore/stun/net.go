@@ -67,7 +67,7 @@ func (c *Client) send(pkt *packet, conn net.PacketConn, addr net.Addr) (*respons
 			return nil, err
 		}
 		if length != len(pkt.bytes()) {
-			return nil, errors.New("Error in sending data.")
+			return nil, errors.New("error in sending data")
 		}
 		err = conn.SetReadDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
 		if err != nil {

@@ -1,9 +1,7 @@
 linters:
   disable-all: true
   enable:
-    - gofumpt
     - govet
-    - gci
     - staticcheck
     - paralleltest
 

@@ -30,9 +30,9 @@ lint_go_install:
 	go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 fmt_go:
-	@gofumpt -l -w ./libcore
-	@gofmt -s -w ./libcore
-	@gci write --custom-order -s standard -s "prefix(github.com/sagernet/)" -s "default" ./libcore
+	cd libcore/ && gofumpt -l -w .
+	cd libcore/ && gofmt -s -w .
+	cd libcore/ && gci write --custom-order -s standard -s "prefix(github.com/sagernet/)" -s "default" .
 
 fmt_go_install:
 	go install -v mvdan.cc/gofumpt@latest

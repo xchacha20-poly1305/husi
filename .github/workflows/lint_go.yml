@@ -32,13 +32,11 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ steps.version.outputs.go_version }}
-          cache-dependency-path: libcore/go.sum
+          cache: false
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4
-        env:
-          GOOS: android
         with:
-          working-directory: libcore/
+          working-directory: ./libcore/
           version: latest
-          args: --timeout=30m
+          args: --timeout=30m --config="./.golangci.yml"
           install-mode: binary
