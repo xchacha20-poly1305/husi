@@ -34,7 +34,7 @@ jobs:
           go-version: ${{ steps.version.outputs.go_version }}
           cache: false
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v5
         with:
           working-directory: ./libcore/
           version: latest
