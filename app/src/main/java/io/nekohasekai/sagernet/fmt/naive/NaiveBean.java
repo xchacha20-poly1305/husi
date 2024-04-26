@@ -61,6 +61,11 @@ public class NaiveBean extends AbstractBean {
     }
 
     @Override
+    public boolean canTCPing() {
+        return !proto.equals("quic");
+    }
+
+    @Override
     public void deserialize(ByteBufferInput input) {
         int version = input.readInt();
         super.deserialize(input);
