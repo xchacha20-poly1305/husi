@@ -15,6 +15,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 
@@ -52,8 +53,7 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 
 	// parse options
-	var options option.Options
-	err = options.UnmarshalJSON([]byte(config))
+	options, err := json.UnmarshalExtended[option.Options]([]byte(config))
 	if err != nil {
 		return nil, E.Cause(err, "decode config")
 	}
