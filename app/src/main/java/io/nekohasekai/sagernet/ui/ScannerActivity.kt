@@ -302,6 +302,12 @@ class ScannerActivity : ThemedActivity() {
     // so useFront used to record it.
     // sfa use select to resolve it.
     private var useFront = false
+    private lateinit var flash: MenuItem
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        flash = menu.findItem(R.id.action_flash)
+        return true
+    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -324,6 +330,10 @@ class ScannerActivity : ThemedActivity() {
             // Switch front or back camera.
             R.id.action_camera_switch -> {
                 useFront = !useFront
+                camera.cameraControl.enableTorch(false)
+                flash.setIcon(R.drawable.ic_action_flight_on)
+                flash.setTitle(R.string.action_flash_on)
+                flash.setVisible(!useFront)
                 val cameraSelector = if (useFront) {
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 } else {
