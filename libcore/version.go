@@ -1,8 +1,10 @@
 package libcore
 
 import (
+	"cmp"
 	"runtime"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 
@@ -39,15 +41,15 @@ func loadDetailVersion() {
 
 	debugInfo, _ := debug.ReadBuildInfo()
 
-loop:
-	for _, setting := range debugInfo.Settings {
-		switch setting.Key {
-		case "-tags":
-			if setting.Value != "" {
-				detailVersionSli = append(detailVersionSli, setting.Value)
-				break loop
-			}
-		}
+	tagsSettingIndex, found := slices.BinarySearchFunc(
+		debugInfo.Settings,
+		debug.BuildSetting{Key: "-tags"},
+		func(a, b debug.BuildSetting) int {
+			return cmp.Compare(a.Key, b.Key)
+		},
+	)
+	if found {
+		detailVersionSli = append(detailVersionSli, debugInfo.Settings[tagsSettingIndex].Value)
 	}
 
 	detailVersion = strings.Join(detailVersionSli, "\n")
