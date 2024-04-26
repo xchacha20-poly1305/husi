@@ -17,7 +17,6 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import moe.matsuri.nb4a.proxy.neko.needBypassRootUid
@@ -82,7 +81,9 @@ class VpnService : BaseVpnService(),
                         this, VpnRequestActivity::class.java
                     ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
-            } else return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
+            } else {
+                return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
+            }
         }
         stopRunner()
         return Service.START_NOT_STICKY

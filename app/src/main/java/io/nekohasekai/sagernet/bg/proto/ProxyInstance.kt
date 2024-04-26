@@ -45,12 +45,12 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     }
 
     override suspend fun loadConfig() {
-        Libcore.registerLocalDNSTransport(LocalResolver)
         super.loadConfig()
     }
 
     override fun launch() {
         box.setAsMain()
+        Libcore.registerLocalDNSTransport(LocalResolver)
         super.launch() // start box
         runOnDefaultDispatcher {
             looper = service?.let { TrafficLooper(it.data, this) }

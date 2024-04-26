@@ -139,7 +139,7 @@ type ExchangeContext struct {
 func (c *ExchangeContext) OnCancel(callback Func) {
 	go func() {
 		<-c.context.Done()
-		callback.Invoke()
+		_ = callback.Invoke()
 	}()
 }
 
