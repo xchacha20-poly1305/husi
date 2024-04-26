@@ -150,7 +150,10 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public boolean canTCPing() {
-        return false;
+        return switch (protocolVersion) {
+            case 1 -> protocol == PROTOCOL_FAKETCP;
+            default -> false;
+        };
     }
 
     @NotNull

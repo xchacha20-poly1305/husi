@@ -68,6 +68,11 @@ public class MieruBean extends AbstractBean {
         }
     }
 
+    @Override
+    public boolean canTCPing() {
+        return protocol.equals("TCP");
+    }
+
     @NotNull
     @Override
     public MieruBean clone() {
