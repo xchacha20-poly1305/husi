@@ -15,7 +15,7 @@ const boxPath = "github.com/sagernet/sing-box"
 func main() {
 	buildInfo, _ := debug.ReadBuildInfo()
 
-	m, ok := slices.BinarySearchFunc(
+	m, found := slices.BinarySearchFunc(
 		buildInfo.Deps,
 		&debug.Module{
 			Path: boxPath,
@@ -24,7 +24,7 @@ func main() {
 			return cmp.Compare(a.Path, b.Path)
 		},
 	)
-	if !ok {
+	if !found {
 		os.Exit(1)
 		return
 	}
