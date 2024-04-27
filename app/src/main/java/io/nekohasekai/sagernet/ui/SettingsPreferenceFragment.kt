@@ -81,6 +81,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         val mixedPort = findPreference<EditTextPreference>(Key.MIXED_PORT)!!
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
+        val memoryLimit = findPreference<SwitchPreference>(Key.MEMORY_LIMIT)!!
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
 
@@ -177,6 +178,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             if (DataStore.serviceState.started) SagerNet.stopService()
             true
         }
+
+        memoryLimit.onPreferenceChangeListener = restartListener
 
         val tunImplementation = findPreference<SimpleMenuPreference>(Key.TUN_IMPLEMENTATION)!!
         val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
