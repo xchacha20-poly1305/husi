@@ -607,4 +607,5 @@
     <string name="no_thanks">No, thanks</string>
     <string name="location_permission_description">Your route rule contains Wi-Fi SSID or Wi-Fi BSSID routing rules. To make them work, husi uses the location permission in the background to get information about the connected Wi-Fi network. The information will be used for routing purposes only.</string>
     <string name="location_permission_background_description">On Android 10 and up, background location permission is required. Select Allow all the time to grant the permission.</string>
+    <string name="memory_limit">Memory limit</string>
 </resources>

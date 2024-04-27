@@ -90,6 +90,10 @@ class SagerNet : Application(),
             }
         }
 
+        if (isBgProcess) {
+            if (DataStore.memoryLimit) Libcore.setMemoryLimit()
+        }
+
         if (BuildConfig.DEBUG) StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder()
                 .detectLeakedSqlLiteObjects()
