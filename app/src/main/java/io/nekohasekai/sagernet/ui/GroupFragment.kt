@@ -29,8 +29,8 @@ import io.nekohasekai.sagernet.widget.ListHolderListener
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.delay
+import libcore.Libcore
 import moe.matsuri.nb4a.utils.Util
-import moe.matsuri.nb4a.utils.toBytesString
 import java.util.*
 
 class GroupFragment : ToolbarFragment(R.layout.layout_group),
@@ -480,8 +480,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     if (used > 0 || total > 0) {
                         text += getString(
                             R.string.subscription_traffic,
-                            used.toBytesString(),
-                            (total - used).toBytesString()
+                            Libcore.formatBytes(used),
+                            Libcore.formatBytes(total - used)
                         )
                     }
                     get("expire=([0-9]+)")?.apply {

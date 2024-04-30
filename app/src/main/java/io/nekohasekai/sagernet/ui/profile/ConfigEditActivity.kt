@@ -18,10 +18,9 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import libcore.Libcore
 import moe.matsuri.nb4a.ui.ExtendedKeyboard
-import org.json.JSONObject
 
 class ConfigEditActivity : ThemedActivity() {
 
@@ -101,13 +100,13 @@ class ConfigEditActivity : ThemedActivity() {
         extendedKeyboard.setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
     }
 
-    fun formatText(): String? {
+    private fun formatText(): String? {
         try {
             val txt = binding.editor.text.toString()
             if (txt.isBlank()) {
                 return ""
             }
-            return JSONObject(txt).toStringPretty()
+            return Libcore.formatConfig(txt)
         } catch (e: Exception) {
             MaterialAlertDialogBuilder(this).setTitle(R.string.error_title)
                 .setMessage(e.readableMessage).show()
