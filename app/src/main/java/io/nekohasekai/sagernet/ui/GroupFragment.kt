@@ -64,7 +64,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
         ) {
             override fun getSwipeDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
+                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
             ): Int {
                 val proxyGroup = (viewHolder as GroupHolder).proxyGroup
                 if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
@@ -74,7 +74,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             override fun getDragDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
+                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
             ): Int {
                 val proxyGroup = (viewHolder as GroupHolder).proxyGroup
                 if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
@@ -165,7 +165,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
         val groupList = ArrayList<ProxyGroup>()
 
-        suspend fun reload() {
+        fun reload() {
             val groups = SagerDatabase.groupDao.allGroups().toMutableList()
             if (groups.size > 1 && SagerDatabase.proxyDao.countByGroup(groups.find { it.ungrouped }!!.id) == 0L) groups.removeAll { it.ungrouped }
             groupList.clear()
@@ -468,15 +468,16 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     }.firstOrNull()
                 }
 
+                var used: Long = 0
+                var total: Long = 0
                 try {
-                    var used: Long = 0
                     get("upload=([0-9]+)")?.apply {
                         used += toLong()
                     }
                     get("download=([0-9]+)")?.apply {
                         used += toLong()
                     }
-                    val total = get("total=([0-9]+)")?.toLong() ?: 0
+                    total = get("total=([0-9]+)")?.toLong() ?: 0
                     if (used > 0 || total > 0) {
                         text += getString(
                             R.string.subscription_traffic,
@@ -499,6 +500,15 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     groupTraffic.isVisible = true
                     groupTraffic.text = text
                     groupStatus.setPadding(0)
+
+                    if (proxyGroup.id !in GroupUpdater.updating) subscriptionUpdateProgress.apply {
+                        isVisible = true
+                        isIndeterminate = false
+                        setProgressCompat(
+                            ((used.toDouble() / total.toDouble()) * 100).toInt(),
+                            true
+                        )
+                    }
                 }
             } else {
                 groupTraffic.isVisible = false
