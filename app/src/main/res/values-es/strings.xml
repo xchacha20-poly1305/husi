@@ -591,4 +591,6 @@
     <string name="connection_test_mux">Servidor no compatible con este protocolo múltiplex</string>
     <string name="front_proxy">Proxy frontal</string>
     <string name="memory_limit">Memoria límite</string>
+    <string name="insecure_warn">Aviso de seguridad</string>
+    <string name="hysteria2_provider">Proveedor de Hysteria2</string>
 </resources>
