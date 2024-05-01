@@ -85,6 +85,11 @@
                 app:key="blurredAddress"
                 app:title="@string/blurred_address"/>
         <SwitchPreference
+                app:defaultValue="true"
+                app:icon="@drawable/ic_baseline_security_24"
+                app:key="securityAdvisory"
+                app:title="@string/insecure_warn" />
+        <SwitchPreference
                 app:icon="@drawable/ic_device_data_usage"
                 app:key="meteredNetwork"
                 app:summary="@string/metered_summary"

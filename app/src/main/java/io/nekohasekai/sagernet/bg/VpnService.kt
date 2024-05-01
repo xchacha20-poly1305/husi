@@ -14,7 +14,7 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.fmt.LOCALHOST
+import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -206,7 +206,7 @@ class VpnService : BaseVpnService(),
 
             builder.setHttpProxy(
                 ProxyInfo.buildDirectProxy(
-                    LOCALHOST,
+                    LOCALHOST4,
                     DataStore.mixedPort,
                     bypassList
                 )
