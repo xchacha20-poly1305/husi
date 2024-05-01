@@ -1,0 +1,3 @@
+This configuration (ShadowTLS with old version) is deprecated.
+
+Learn more: https://github.com/ihciah/shadow-tls/blob/master/docs/protocol-v3-en.md#version-evolution
