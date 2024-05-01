@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.fmt.naive
 
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.fmt.LOCALHOST
+import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
@@ -76,7 +76,7 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
             }
         }
 
-        put("listen", "socks://$LOCALHOST:$port")
+        put("listen", "socks://$LOCALHOST4:$port")
         put("proxy", toUri(true))
         if (extraHeaders.isNotBlank()) {
             put("extra-headers", extraHeaders.split("\n").joinToString("\r\n"))
