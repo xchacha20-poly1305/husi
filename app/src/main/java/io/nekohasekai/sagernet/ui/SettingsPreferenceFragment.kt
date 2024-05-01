@@ -96,6 +96,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val uploadSpeed = findPreference<EditTextPreference>(Key.UPLOAD_SPEED)!!
         val downloadSpeed = findPreference<EditTextPreference>(Key.DOWNLOAD_SPEED)!!
 
+        val providerHysteria2 = findPreference<SimpleMenuPreference>(Key.PROVIDER_HYSTERIA2)!!
+
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
         val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
         val inboundUsername = findPreference<EditTextPreference>(Key.INBOUND_USERNAME)!!
@@ -212,6 +214,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             blurredAddress.isEnabled = newValue as Boolean
             true
         }
+
+        providerHysteria2.onPreferenceChangeListener = reloadListener
 
         dnsMode.onPreferenceChangeListener = reloadListener
         remoteDns.onPreferenceChangeListener = reloadListener

@@ -88,7 +88,7 @@
                 app:defaultValue="true"
                 app:icon="@drawable/ic_baseline_security_24"
                 app:key="securityAdvisory"
-                app:title="@string/insecure_warn" />
+                app:title="@string/insecure_warn"/>
         <SwitchPreference
                 app:icon="@drawable/ic_device_data_usage"
                 app:key="meteredNetwork"
@@ -180,6 +180,14 @@
                 app:icon="@drawable/ic_baseline_download_24"
                 app:key="downloadSpeed"
                 app:title="@string/hysteria_download_mbps"
+                app:useSimpleSummaryProvider="true"/>
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:icon="@drawable/baseline_flight_takeoff_24"
+                app:defaultValue="0"
+                app:entries="@array/plugin_providers"
+                app:entryValues="@array/int_array_2"
+                app:key="providerHysteria2"
+                app:title="@string/hysteria2_provider"
                 app:useSimpleSummaryProvider="true"/>
         <SwitchPreference
                 app:key="globalAllowInsecure"

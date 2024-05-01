@@ -543,4 +543,9 @@
         <item>@string/fake_dns</item>
     </string-array>
 
+    <string-array name="plugin_providers">
+        <item>sing-box</item>
+        <item>@string/plugin</item>
+    </string-array>
+
 </resources>
