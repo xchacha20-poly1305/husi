@@ -8,7 +8,9 @@ import android.provider.OpenableColumns
 import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.format.Formatter
+import android.text.method.LinkMovementMethod
 import android.text.style.ForegroundColorSpan
+import android.text.util.Linkify
 import android.util.Log
 import android.view.*
 import android.widget.ImageView
@@ -75,7 +77,7 @@ import java.util.zip.ZipInputStream
 import kotlin.collections.set
 
 class ConfigurationFragment @JvmOverloads constructor(
-    val select: Boolean = false, val selectedItem: ProxyEntity? = null, val titleRes: Int = 0
+    val select: Boolean = false, val selectedItem: ProxyEntity? = null, val titleRes: Int = 0,
 ) : ToolbarFragment(R.layout.layout_group_list),
     PopupMenu.OnMenuItemClickListener,
     Toolbar.OnMenuItemClickListener,
@@ -89,6 +91,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     lateinit var adapter: GroupPagerAdapter
     lateinit var tabLayout: TabLayout
     lateinit var groupPager: ViewPager2
+    val securityAdvisory by lazy { DataStore.securityAdvisory }
 
     val alwaysShowAddress by lazy { DataStore.alwaysShowAddress }
     val blurredAddress by lazy { DataStore.blurredAddress }
@@ -104,7 +107,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     val updateSelectedCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageScrolled(
-            position: Int, positionOffset: Float, positionOffsetPixels: Int
+            position: Int, positionOffset: Float, positionOffsetPixels: Int,
         ) {
             if (adapter.groupList.size > position) {
                 DataStore.selectedGroup = adapter.groupList[position].id
@@ -1657,19 +1660,75 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
 
                     if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
-                        onMainDispatcher {
-                            shareLayer.setBackgroundColor(Color.TRANSPARENT)
-                            shareButton.setImageResource(R.drawable.ic_social_share)
-                            shareButton.setColorFilter(Color.GRAY)
-                            shareButton.isVisible = true
+                        val validateResult =
+                            if ((parentFragment as ConfigurationFragment).securityAdvisory) {
+                                proxyEntity.requireBean().isInsecure()
+                            } else ResultLocal
 
-                            shareLayout.setOnClickListener {
-                                showShare(it)
+                        when (validateResult) {
+                            is ResultInsecure -> onMainDispatcher {
+                                shareLayer.isVisible = true
+
+                                shareLayer.setBackgroundColor(Color.RED)
+                                shareButton.setImageResource(R.drawable.ic_baseline_warning_24)
+                                shareButton.setColorFilter(Color.WHITE)
+
+                                shareLayout.setOnClickListener {
+                                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.insecure)
+                                        .setMessage(resources.openRawResource(validateResult.textRes)
+                                            .bufferedReader()
+                                            .use { it.readText() })
+                                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                                            showShare(it)
+                                        }
+                                        .show()
+                                        .apply {
+                                            findViewById<TextView>(android.R.id.message)?.apply {
+                                                Linkify.addLinks(this, Linkify.WEB_URLS)
+                                                movementMethod = LinkMovementMethod.getInstance()
+                                            }
+                                        }
+                                }
+                            }
+
+                            is ResultDeprecated -> onMainDispatcher {
+                                shareLayout.isVisible = true
+
+                                shareLayer.setBackgroundColor(Color.YELLOW)
+                                shareButton.setImageResource(R.drawable.ic_baseline_warning_24)
+                                shareButton.setColorFilter(Color.GRAY)
+
+                                shareLayout.setOnClickListener {
+                                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.deprecated)
+                                        .setMessage(resources.openRawResource(validateResult.textRes)
+                                            .bufferedReader()
+                                            .use { it.readText() })
+                                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                                            showShare(it)
+                                        }
+                                        .show()
+                                        .apply {
+                                            findViewById<TextView>(android.R.id.message)?.apply {
+                                                Linkify.addLinks(this, Linkify.WEB_URLS)
+                                                movementMethod = LinkMovementMethod.getInstance()
+                                            }
+                                        }
+                                }
+                            }
+
+                            else -> onMainDispatcher {
+                                shareLayer.setBackgroundColor(Color.TRANSPARENT)
+                                shareButton.setImageResource(R.drawable.ic_social_share)
+                                shareButton.setColorFilter(Color.GRAY)
+                                shareButton.isVisible = true
+
+                                shareLayout.setOnClickListener {
+                                    showShare(it)
+                                }
                             }
                         }
                     }
                 }
-
             }
 
             var currentName = ""

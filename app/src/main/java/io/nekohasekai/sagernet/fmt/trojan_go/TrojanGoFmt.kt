@@ -2,7 +2,7 @@ package io.nekohasekai.sagernet.fmt.trojan_go
 
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.fmt.LOCALHOST
+import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
@@ -90,7 +90,7 @@ fun TrojanGoBean.toUri(): String {
 fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
     return JSONObject().apply {
         put("run_type", "client")
-        put("local_addr", LOCALHOST)
+        put("local_addr", LOCALHOST4)
         put("local_port", port)
         put("remote_addr", finalAddress)
         put("remote_port", finalPort)
@@ -117,7 +117,7 @@ fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
             })
         }
 
-        if (sni.isBlank() && finalAddress == LOCALHOST && !serverAddress.isIpAddress()) {
+        if (sni.isBlank() && finalAddress == LOCALHOST4 && !serverAddress.isIpAddress()) {
             sni = serverAddress
         }
 

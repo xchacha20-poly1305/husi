@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.fmt.hysteria
 
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.fmt.LOCALHOST
+import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
@@ -191,7 +191,7 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
             put(
                 "socks5", JSONObject(
                     mapOf(
-                        "listen" to "$LOCALHOST:$port",
+                        "listen" to "$LOCALHOST4:$port",
                     )
                 )
             )
@@ -203,7 +203,7 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
                 HysteriaBean.TYPE_BASE64 -> put("auth", authPayload)
                 HysteriaBean.TYPE_STRING -> put("auth_str", authPayload)
             }
-            if (sni.isBlank() && finalAddress == LOCALHOST && !serverAddress.isIpAddress()) {
+            if (sni.isBlank() && finalAddress == LOCALHOST4 && !serverAddress.isIpAddress()) {
                 sni = serverAddress
             }
             if (sni.isNotBlank()) {
@@ -244,7 +244,7 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
 
             put(
                 "socks5", JSONObject().apply {
-                    put("listen", "$LOCALHOST:$port")
+                    put("listen", "$LOCALHOST4:$port")
                 }
             )
 

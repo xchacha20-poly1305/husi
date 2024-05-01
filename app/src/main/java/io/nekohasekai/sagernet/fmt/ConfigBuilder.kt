@@ -51,7 +51,7 @@ const val TAG_DNS_DIRECT = "dns-direct"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FINAL = "dns-final"
 
-const val LOCALHOST = "127.0.0.1"
+const val LOCALHOST4 = "127.0.0.1"
 
 // Note: You shouldn't set strategy and detour for "local"
 const val LOCAL_DNS_SERVER = "local"
@@ -150,7 +150,7 @@ fun buildConfig(
     val domainListDNSDirectForce = mutableListOf<String>()
     val bypassDNSBeans = hashSetOf<AbstractBean>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
-    val bind = if (!forTest && DataStore.allowAccess) "::" else LOCALHOST
+    val bind = if (!forTest && DataStore.allowAccess) "::" else LOCALHOST4
     val remoteDns = DataStore.remoteDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
@@ -368,7 +368,7 @@ fun buildConfig(
                     externalChainMap[localPort] = proxyEntity
                     currentOutbound = Outbound_SocksOptions().apply {
                         type = "socks"
-                        server = LOCALHOST
+                        server = LOCALHOST4
                         server_port = localPort
                     }.asMap()
                 } else { // internal outbound
@@ -475,12 +475,12 @@ fun buildConfig(
                 bean.finalPort = bean.serverPort
                 if (bean.canMapping() && proxyEntity.needExternal()) {
                     val mappingPort = mkPort()
-                    bean.finalAddress = LOCALHOST
+                    bean.finalAddress = LOCALHOST4
                     bean.finalPort = mappingPort
 
                     inbounds.add(Inbound_DirectOptions().apply {
                         type = "direct"
-                        listen = LOCALHOST
+                        listen = LOCALHOST4
                         listen_port = mappingPort
                         tag = "$chainTag-mapping-${proxyEntity.id}"
 
