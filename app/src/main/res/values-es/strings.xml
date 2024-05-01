@@ -14,8 +14,8 @@
     <string name="menu_group">Grupo</string>
     <string name="menu_about">Acerca de</string>
     <string name="theme">Tema</string>
-    <string name="document">Documento</string>
-    <string name="group_default">Desagrupado</string>
+    <string name="document">Documentación</string>
+    <string name="group_default">Sin grupo</string>
     <string name="quick_toggle">Alternar</string>
     <string name="tile_title">Conmutador</string>
     <string name="menu_traffic">Tráfico</string>
@@ -33,13 +33,13 @@
     <string name="group_edit_subscription">Editar suscripción</string>
     <string name="group_status_empty">Grupo vacío</string>
     <string name="group_status_empty_subscription">Aún no actualizado</string>
-    <string name="group_status_proxies">%d proxys</string>
-    <string name="group_status_proxies_subscription">%d proxys | Actualizado el %s</string>
+    <string name="group_status_proxies">%d proxies</string>
+    <string name="group_status_proxies_subscription">%d proxies | Actualizado el %s</string>
     <string name="group_no_difference">%s: Sin diferencia</string>
-    <string name="group_updated">%s: %d proxys actualizados</string>
+    <string name="group_updated">%s: Actualizados %d proxies</string>
     <string name="group_show_diff">Diferencia</string>
     <string name="group_diff">Diferencia (%s)</string>
-    <string name="group_delete_confirm_prompt">¿Seguro que quieres eliminar este grupo?</string>
+    <string name="group_delete_confirm_prompt">¿Realmente quieres eliminar este grupo?</string>
     <string name="group_added">Añadido: \n%s</string>
     <string name="group_changed">Actualizado: \n%s</string>
     <string name="group_deleted">Eliminado: \n%s</string>
@@ -48,11 +48,11 @@
     <string name="service_mode">Modo de servicio</string>
     <string name="service_mode_proxy">Solo proxy</string>
     <string name="service_mode_vpn" translatable="false">VPN</string>
-    <string name="port_proxy">Puerto proxy SOCKS5</string>
+    <string name="port_proxy">Puerto proxy</string>
     <string name="port_http">Puerto proxy HTTP</string>
     <string name="cag_route">Ajustes de ruta</string>
     <string name="allow_access">Permitir conexiones desde la LAN</string>
-    <string name="allow_access_sum">Vincular servidores entrantes a 0.0.0.0</string>
+    <string name="allow_access_sum">Vincula los servidores de entrada a 0.0.0.0</string>
     <string name="inbound_settings">Ajustes de entrada</string>
     <string name="general_settings">Ajustes de la app</string>
     <string name="require_http">Activar HTTP entrante</string>
@@ -62,19 +62,17 @@
     <string name="ws_browser_forwarding_sum">Reenvía los WebSockets correspondientes a través del
         navegador.
     </string>
-    <string name="speed_interval">Intervalo de actualización de notificación de velocidad</string>
-    <string name="cag_misc">Ajustes misceláneos</string>
-    <string name="show_stop">Mostrar botón Detener</string>
-    <string name="show_stop_sum">Si no desea utilizar mosaico como interruptor</string>
+    <string name="speed_interval">Interv. de actu. de notificación de velocidad</string>
+    <string name="cag_misc">Otros ajustes</string>
+    <string name="show_stop">Mostrar botón de detener</string>
+    <string name="show_stop_sum">Si no quieres utilizar el acceso rápido como interruptor</string>
     <string name="show_direct_speed">Mostrar velocidad directa</string>
     <string name="show_direct_speed_sum">Muestra la velocidad del tráfico sin proxy en la
         notificación también
     </string>
-    <string name="security_settings">Ajustes de seguridad</string>
+    <string name="security_settings">Ajustes de seguridad TLS</string>
     <string name="allow_insecure">Permitir inseguro</string>
-    <string name="allow_insecure_sum">Desactiva la comprobación de certificados. Cuando está
-        activada, esta configuración es tan segura como el texto sin formato
-    </string>
+    <string name="allow_insecure_sum">Desactiva la comprobación de certificados. Cuando está activada, esta configuración es tan segura como el texto sin formato.</string>
     <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirecto： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
@@ -93,7 +91,7 @@
     <string name="dns_routing_message">Resuelve dominios en rutas de omisión con el DNS directo.
         Tenga en cuenta las posibles fugas de DNS
     </string>
-    <string name="enable_fakedns">Activar DNS falso</string>
+    <string name="enable_fakedns">Activar FakeDNS</string>
     <string name="fakedns_message">Puede hacer que sea necesario reiniciar otras aplicaciones para
         volver a conectarse a la red después de detener el proxy
     </string>
@@ -103,17 +101,17 @@
     <!-- proxy category -->
     <string name="profile_name">Nombre de perfil</string>
     <string name="server_address">Servidor</string>
-    <string name="server_port">Puerto remoto</string>
+    <string name="server_port">Puerto</string>
     <string name="username">Nombre de usuario</string>
-    <string name="username_opt">Nombre de usuario (Opcional)</string>
-    <string name="password_opt">Contraseña (Opcional)</string>
-    <string name="key_opt">Clave (Opcional)</string>
+    <string name="username_opt">Nombre de usuario (opcional)</string>
+    <string name="password_opt">Contraseña (opcional)</string>
+    <string name="key_opt">Clave (opcional)</string>
     <string name="password">Contraseña</string>
     <string name="enc_method">Método de cifrado</string>
     <string name="protocol">Protocolo</string>
     <string name="protocol_param">Parámetro de protocolo</string>
     <string name="obfs">Obfs</string>
-    <string name="obfs_param">Parámetro obfs</string>
+    <string name="obfs_param">Parámetro de obfs</string>
     <string name="uuid">ID de usuario</string>
     <string name="alter_id">ID alternativo</string>
     <string name="security">Cifrado de la capa de transporte</string>
@@ -124,24 +122,24 @@
     <string name="http_host">Host HTTP</string>
     <string name="http_path">Ruta HTTP</string>
     <string name="grpc_service_name">Nombre de servicio gRPC</string>
-    <string name="tls">Usar TLS</string>
+    <string name="tls">Utilizar TLS</string>
     <string name="sni">Indicación del nombre del servidor</string>
     <string name="alpn">Negociación de protocolo de capa de aplicación</string>
     <string name="certificates">Certificados</string>
-    <string name="early_data_header_name">Nombre de encabezado de datos tempranos</string>
+    <string name="early_data_header_name">Nombre de encabezado de datos iniciales</string>
     <string name="encryption">Cifrado</string>
     <string name="extra_headers">Encabezados adicionales</string>
-    <string name="config_type">Tipo de configuración</string>
-    <string name="edit_config">Editar configuración</string>
+    <string name="config_type">Tipo de config.</string>
+    <string name="edit_config">Editar config.</string>
     <!-- feature category -->
     <string name="ipv6">Ruta IPv6</string>
     <string name="prefer">Preferir</string>
     <string name="only">Solo</string>
     <string name="metered">Sugerencia medida</string>
-    <string name="metered_summary">Sistema de sugerencias para tratar la VPN como medida</string>
+    <string name="metered_summary">Sugiere al sistema tratar la VPN como medida</string>
     <string name="menu_route">Ruta</string>
     <string name="route_add">Crear ruta</string>
-    <string name="delete_route_prompt">¿Está seguro de que desea eliminar esta ruta?</string>
+    <string name="delete_route_prompt">¿Realmente quieres eliminar esta ruta?</string>
     <string name="route_name">Nombre de ruta</string>
     <string name="route_proxy">Proxy</string>
     <string name="route_bypass">Omitir</string>
@@ -152,10 +150,10 @@
     <string name="route_bypass_domain">Regla de dominio para %s</string>
     <string name="route_play_store">Regla de la Play Store para %s</string>
     <string name="route_bypass_ip">Regla de IP para %s</string>
-    <string name="route_reset">Reiniciar</string>
+    <string name="route_reset">Restablecer</string>
     <string name="route_manage_assets">Administrar activos de ruta</string>
     <string name="route_assets">Activos</string>
-    <string name="route_rules_provider">Proveedor de activos de reglas</string>
+    <string name="route_rules_provider">Proveedor de activos de regla</string>
     <string name="route_rules_official">Oficial</string>
     <string name="route_asset_status">Versión local: %s</string>
     <string name="route_asset_no_update">Sin actualización</string>
@@ -179,30 +177,26 @@
     <string name="invert_selections">Invertir selecciones</string>
     <string name="clear_selections">Borrar selecciones</string>
     <string name="bypass_apps">Omitir</string>
-    <string name="show_system_apps">Mostrar aplicaciones del sistema</string>
-    <string name="auto_connect">Autoconectar</string>
+    <string name="show_system_apps">Mostrar apps del sistema</string>
+    <string name="auto_connect">Conexión automática</string>
     <string name="auto_connect_summary">Activa el proxy en el inicio/actualización de la aplicación
         si se estaba ejecutando antes
     </string>
-    <string name="direct_boot_aware">Permitir alternar en la pantalla de bloqueo</string>
-    <string name="direct_boot_aware_summary">La información de su perfil seleccionado estará menos
-        protegida
-    </string>
+    <string name="direct_boot_aware">Permitir alternar en pantalla de bloqueo</string>
+    <string name="direct_boot_aware_summary">La información de tu perfil seleccionado estará menos protegida</string>
     <!-- notification category -->
     <string name="service_vpn">Servicio VPN</string>
     <string name="service_proxy">Servicio de proxy</string>
     <string name="forward_success">Proxy iniciado.</string>
     <string name="invalid_server">Nombre de servidor no válido</string>
-    <string name="service_failed">Fallido:</string>
+    <string name="service_failed">Error:</string>
     <string name="stop">Detener</string>
     <string name="stopping">Apagando…</string>
     <string name="vpn_error">%s</string>
     <string name="vpn_permission_denied">Permiso denegado para crear un servicio VPN</string>
-    <string name="reboot_required">No se pudo iniciar el servicio VPN. Es posible que deba reiniciar
-        su dispositivo.
-    </string>
+    <string name="reboot_required">No se ha podido iniciar el servicio VPN. Es posible que debas reiniciar tu dispositivo.</string>
     <!-- alert category -->
-    <string name="profile_empty">Por favor seleccione un perfil</string>
+    <string name="profile_empty">Selecciona un perfil</string>
     <string name="connect">Conectar</string>
     <string name="clipboard_empty">El portapapeles está vacío</string>
     <!-- menu category -->
@@ -504,7 +498,7 @@
     <string name="neko_plugin">Complemento avanzado</string>
     <string name="neko_plugin_internal_error">%s error interno</string>
     <string name="app_name_long">husi para Android</string>
-    <string name="update_all_subscription">Actualizar todas las suscripciones</string>
+    <string name="update_all_subscription">Actualizar suscripciones</string>
     <string name="route_opt_block_quic">Bloquear QUIC</string>
     <string name="subscription_expire">Caduca: %s</string>
     <string name="hysteria_disable_mtu_discovery">Desactivar la detección de MTU de ruta</string>
@@ -514,7 +508,7 @@
     <string name="exe_prefer_provider">Proveedor preferido de plugins</string>
     <string name="create_shortcut">Crear acceso directo</string>
     <string name="app_tls_version">Versión mínima de suscripción TLS</string>
-    <string name="mux_sum">Mux está diseñado para reducir la latencia del handshake de conexión, no para aumentar el rendimiento de la conexión. Usar Mux para ver vídeos, descargar o hacer pruebas de velocidad suele ser contraproducente. Si el servidor no lo soporta, no podrás acceder a Internet.</string>
+    <string name="mux_sum">Mux está diseñado para reducir la latencia del protocolo de enlace TCP, no para aumentar el rendimiento de la conexión. Usar Mux para ver vídeos, descargar o hacer pruebas de velocidad suele ser contraproducente. Si el servidor no lo soporta, no podrás acceder a Internet.</string>
     <string name="tuic_udp_relay_mode">Modo de retransmisión UDP</string>
     <string name="tuic_congestion_controller">Controlador de congestión</string>
     <string name="neko_plugin_summary">Los plugins avanzados pueden proporcionar protocolos no soportados originalmente.
@@ -522,7 +516,7 @@
 \n Cualquiera puede escribir plugins avanzados, que pueden controlar husi. por favor, descargue e instale desde fuentes de confianza.</string>
     <string name="hop_interval">Intervalo de salto de puerto (segundos)</string>
     <string name="app_name">husi</string>
-    <string name="menu_dashboard">Panel de control de Singbox</string>
+    <string name="menu_dashboard">Panel SingBox</string>
     <string name="show_bottom_bar">Mostrar barra inferior como SagerNet</string>
     <string name="custom_outbound_json">JSON saliente personalizado</string>
     <string name="custom_config_json">Configuración personalizada JSON</string>
