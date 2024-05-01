@@ -609,4 +609,5 @@
     <string name="location_permission_background_description">On Android 10 and up, background location permission is required. Select Allow all the time to grant the permission.</string>
     <string name="memory_limit">Memory limit</string>
     <string name="insecure_warn">Security Advisory</string>
+    <string name="hysteria2_provider">Hysteria2 provider</string>
 </resources>

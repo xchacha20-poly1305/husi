@@ -299,7 +299,7 @@ fun HysteriaBean.canUseSingBox(): Boolean {
     return when {
         protocol != HysteriaBean.PROTOCOL_UDP -> false
         serverPorts.toIntOrNull() == null -> false
-        else -> true
+        else -> DataStore.providerHysteria2 == 0
     }
 }
 
