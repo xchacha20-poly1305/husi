@@ -542,4 +542,5 @@
     <string name="location_permission_background_description">在 Android 10 及更高版本上，需要后台位置权限。选择“始终允许”以授予权限。</string>
     <string name="memory_limit">内存限制</string>
     <string name="insecure_warn">安全建议</string>
+    <string name="hysteria2_provider">Hysteria2 提供程序</string>
 </resources>
