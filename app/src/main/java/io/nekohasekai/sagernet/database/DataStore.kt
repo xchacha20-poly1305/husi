@@ -207,6 +207,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverHeaders by profileCacheStore.string(Key.SERVER_HEADERS)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
 
+    var authenticatedLength by profileCacheStore.boolean(Key.AUTHENTICATED_LENGTH)
+
     // ECH
     var ech by profileCacheStore.boolean(Key.ECH)
     var echCfg by profileCacheStore.string(Key.ECH_CFG)

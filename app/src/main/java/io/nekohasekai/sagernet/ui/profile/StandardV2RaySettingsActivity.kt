@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -23,8 +22,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
     private val pbm = PreferenceBindingManager()
     private val name = pbm.add(PreferenceBinding(Type.Text, "name"))
-    private val serverAddress = pbm.add(PreferenceBinding(Type.Text, "serverAddress"))
-    private val serverPort = pbm.add(PreferenceBinding(Type.TextToInt, "serverPort"))
+    private val serverAddress = pbm.add(PreferenceBinding(Type.Text, Key.SERVER_ADDRESS))
+    private val serverPort = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_PORT))
     private val uuid = pbm.add(PreferenceBinding(Type.Text, "uuid"))
     private val username = pbm.add(PreferenceBinding(Type.Text, "username"))
     private val password = pbm.add(PreferenceBinding(Type.Text, "password"))
@@ -45,8 +44,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val realityPubKey = pbm.add(PreferenceBinding(Type.Text, "realityPubKey"))
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
     private val brutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
-    private val ech = pbm.add(PreferenceBinding(Type.Bool, "ech"))
-    private val echCfg = pbm.add(PreferenceBinding(Type.Text, "echCfg"))
+    private val ech = pbm.add(PreferenceBinding(Type.Bool, Key.ECH))
+    private val echCfg = pbm.add(PreferenceBinding(Type.Text, Key.ECH_CFG))
+    private val authenticatedLength = pbm.add(PreferenceBinding(Type.Bool, Key.AUTHENTICATED_LENGTH))
 
     override fun StandardV2RayBean.init() {
         if (this is TrojanBean) {
@@ -67,6 +67,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     lateinit var echCategory: PreferenceCategory
     lateinit var wsCategory: PreferenceCategory
     lateinit var brutalCategory: PreferenceCategory
+    lateinit var experimentsCategory: PreferenceCategory
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -79,6 +80,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
         wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
         brutalCategory = findPreference(Key.SERVER_BRUTAL_CATEGORY)!!
+        experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
 
 
         // vmess/vless/http/trojan
@@ -105,6 +107,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         encryption.preference.isVisible = isVmess || isVless
         username.preference.isVisible = isHttp
         password.preference.isVisible = isHttp
+        experimentsCategory.isVisible = isVmess
 
         if (tmpBean is TrojanBean) {
             uuid.preference.title = resources.getString(R.string.password)

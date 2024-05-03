@@ -610,4 +610,6 @@
     <string name="memory_limit">Memory limit</string>
     <string name="insecure_warn">Security Advisory</string>
     <string name="hysteria2_provider">Hysteria2 provider</string>
+    <string name="authenticated_length">Authenticated length</string>
+    <string name="experimental_authenticated_length">Make the length of each payload segment no longer malleable. This experiment requires the server and client use the same version of v2ray-core. More breaking updates on this experiment is expected.</string>
 </resources>
