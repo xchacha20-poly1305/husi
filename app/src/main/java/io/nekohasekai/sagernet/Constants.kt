@@ -105,6 +105,9 @@ object Key {
     const val SERVER_MTU = "serverMTU"
     const val SERVER_BRUTAL = "serverBrutal"
 
+    const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
+    const val AUTHENTICATED_LENGTH = "authenticatedLength"
+
     const val SERVER_CONFIG = "serverConfig"
     const val SERVER_CUSTOM = "serverCustom"
     const val SERVER_CUSTOM_OUTBOUND = "serverCustomOutbound"

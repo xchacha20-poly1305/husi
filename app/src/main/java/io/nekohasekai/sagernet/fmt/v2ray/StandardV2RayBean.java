@@ -98,7 +98,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -149,6 +149,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
         }
 
         output.writeInt(packetEncoding);
+
+        if (this instanceof VMessBean) {
+            output.writeBoolean(((VMessBean) this).authenticatedLength);
+        }
     }
 
     @Override
@@ -202,6 +206,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
         }
 
         packetEncoding = input.readInt();
+
+        if (this instanceof VMessBean) {
+            if (version >= 1) ((VMessBean) this).authenticatedLength = input.readBoolean();
+        }
     }
 
     @Override

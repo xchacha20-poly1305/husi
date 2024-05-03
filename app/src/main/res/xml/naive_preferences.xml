@@ -56,7 +56,7 @@
                 app:useSimpleSummaryProvider="true"/>
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="sing-box server">
+    <PreferenceCategory app:title="@string/experimental_settings">
         <SwitchPreference
                 app:key="sUoT"
                 app:title="UDP over TCP"/>
