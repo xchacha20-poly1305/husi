@@ -1,8 +1,12 @@
 package io.nekohasekai.sagernet.fmt.v2ray;
 
 import androidx.annotation.NonNull;
+
+
+import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import moe.matsuri.nb4a.utils.JavaUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 public class VMessBean extends StandardV2RayBean {
@@ -20,14 +24,25 @@ public class VMessBean extends StandardV2RayBean {
         }
     };
     public Integer alterId; // alterID == -1 --> VLESS
+    public Boolean authenticatedLength; // Just VMess
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
 
         alterId = alterId != null ? alterId : 0;
-        if (!JavaUtil.isNotBlank(encryption))  {
+        if (!JavaUtil.isNotBlank(encryption)) {
             encryption = isVLESS() ? "" : "auto";
+        }
+        if (authenticatedLength == null) authenticatedLength = false;
+    }
+
+    @Override
+    public void applyFeatureSettings(AbstractBean other) {
+        if (!(other instanceof VMessBean)) return;
+        VMessBean bean = ((VMessBean) other);
+        if (authenticatedLength) {
+            bean.authenticatedLength = true;
         }
     }
 

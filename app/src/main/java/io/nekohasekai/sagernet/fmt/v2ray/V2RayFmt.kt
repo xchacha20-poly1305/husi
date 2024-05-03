@@ -653,6 +653,9 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
                 }
                 tls = buildSingBoxOutboundTLS(bean)
                 transport = buildSingBoxOutboundStreamSettings(bean)
+
+                global_padding = true
+                authenticated_length = bean.authenticatedLength
             }
         }
 
