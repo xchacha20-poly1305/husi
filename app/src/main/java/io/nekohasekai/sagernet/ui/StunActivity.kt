@@ -1,12 +1,10 @@
 package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutStunBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import libcore.Libcore
 
@@ -30,31 +28,10 @@ class StunActivity : ThemedActivity() {
         }
     }
 
-    fun doTest() {
+    private fun doTest() {
         binding.waitLayout.isVisible = true
         runOnDefaultDispatcher {
-            val result = try {
-                val _result = Libcore.stunTest(binding.natStunServer.text.toString())
-                if (_result!!.success) {
-                    _result.text
-                } else {
-                    throw Exception(_result.text)
-                }
-            } catch (e: Exception) {
-                onMainDispatcher {
-                    AlertDialog.Builder(this@StunActivity)
-                        .setTitle(R.string.error_title)
-                        .setMessage(e.readableMessage)
-                        .setPositiveButton(android.R.string.ok) { _, _ ->
-                            finish()
-                        }
-                        .setOnCancelListener {
-                            finish()
-                        }
-                        .runCatching { show() }
-                }
-                return@runOnDefaultDispatcher
-            }
+            val result = Libcore.stunTest(binding.natStunServer.text.toString())
             onMainDispatcher {
                 binding.waitLayout.isVisible = false
                 binding.natResult.text = result
