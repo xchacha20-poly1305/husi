@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import moe.matsuri.nb4a.proxy.PreferenceBinding
 import moe.matsuri.nb4a.proxy.PreferenceBindingManager
 import moe.matsuri.nb4a.proxy.Type
+import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
@@ -25,6 +26,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         pbm.add(PreferenceBinding(Type.Text, "pluginName").apply { disable = true })
     private val pluginConfig =
         pbm.add(PreferenceBinding(Type.Text, "pluginConfig").apply { disable = true })
+    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, "muxState"))
     private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, "serverBrutal"))
     private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
 
@@ -57,6 +59,24 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         password.preference.apply {
             this as EditTextPreference
             summaryProvider = PasswordSummaryProvider
+        }
+        muxState.preference.apply {
+            this as SimpleMenuPreference
+            setOnPreferenceChangeListener {_, newValue ->
+                updateBrutal(newValue as String)
+                true
+            }
+        }
+    }
+
+    private fun updateBrutal(muxState: String) {
+        when(muxState) {
+            "0", "1"-> {
+                serverBrutal.preference.isVisible = true
+            }
+            "2" -> {
+                serverBrutal.preference.isVisible = false
+            }
         }
     }
 

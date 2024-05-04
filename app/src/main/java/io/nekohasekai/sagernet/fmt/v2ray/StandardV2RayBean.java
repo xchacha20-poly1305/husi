@@ -57,6 +57,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public Integer packetEncoding; // 1:packetaddr 2:xudp
 
+    // --------------------------------------- //
+
+    public Integer muxState;
+
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
@@ -94,6 +98,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (ech == null) ech = false;
         if (echCfg == null) echCfg = "";
+
+        if (muxState == null) muxState = 0;
     }
 
     @Override
@@ -153,6 +159,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (this instanceof VMessBean) {
             output.writeBoolean(((VMessBean) this).authenticatedLength);
         }
+
+        output.writeInt(muxState);
     }
 
     @Override
@@ -210,6 +218,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (this instanceof VMessBean) {
             if (version >= 1) ((VMessBean) this).authenticatedLength = input.readBoolean();
         }
+
+        muxState = input.readInt();
     }
 
     @Override

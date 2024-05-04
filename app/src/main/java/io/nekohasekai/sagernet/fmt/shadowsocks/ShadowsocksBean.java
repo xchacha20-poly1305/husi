@@ -26,6 +26,7 @@ public class ShadowsocksBean extends AbstractBean {
     public String password;
     public String plugin;
     public Boolean sUoT;
+    public Integer muxState;
 
     @Override
     public void initializeDefaultValues() {
@@ -36,6 +37,7 @@ public class ShadowsocksBean extends AbstractBean {
         if (password == null) password = "";
         if (plugin == null) plugin = "";
         if (sUoT == null) sUoT = false;
+        if (muxState == null) muxState = 0;
     }
 
     @Override
@@ -46,6 +48,7 @@ public class ShadowsocksBean extends AbstractBean {
         output.writeString(password);
         output.writeString(plugin);
         output.writeBoolean(sUoT);
+        output.writeInt(muxState);
     }
 
     @Override
@@ -56,6 +59,7 @@ public class ShadowsocksBean extends AbstractBean {
         password = input.readString();
         plugin = input.readString();
         sUoT = input.readBoolean();
+        muxState = input.readInt();
     }
 
     @Override

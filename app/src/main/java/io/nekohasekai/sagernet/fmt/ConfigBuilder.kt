@@ -412,10 +412,19 @@ fun buildConfig(
                         }
 
                         val useBrutal = bean.serverBrutal && bean.canBrutal()
-                        if (
-                            (!muxApplied && proxyEntity.needCoreMux()) ||
-                            useBrutal
-                        ) {
+                        var useMux = (!muxApplied && proxyEntity.needCoreMux()) || useBrutal
+                        try {
+                            val outboundMuxState = bean.javaClass.getField("muxState").get(bean)
+                            if (outboundMuxState is Int) {
+                                // prioritize profile mux state to overall setting
+                                when(outboundMuxState) {
+                                    1 -> useMux = true
+                                    2 -> useMux = false
+                                }
+                            }
+                        } catch (_: Exception) {}
+
+                        if (useMux) {
                             muxApplied = true
                             currentOutbound["multiplex"] = MultiplexOptions().apply {
                                 enabled = true

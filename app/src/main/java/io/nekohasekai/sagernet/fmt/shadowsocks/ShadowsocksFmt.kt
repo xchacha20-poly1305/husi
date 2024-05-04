@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
+import io.nekohasekai.sagernet.ktx.getBool
 import io.nekohasekai.sagernet.ktx.getIntNya
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.unUrlSafe
@@ -36,6 +37,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
                 } catch (_: Exception) {
                 }
                 plugin = url.queryParameterNotBlank("plugin")
+                muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
                 name = url.fragment
                 fixPluginName()
             }
@@ -49,6 +51,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
             method = methodAndPswd.substringBefore(":")
             password = methodAndPswd.substringAfter(":")
             plugin = url.queryParameterNotBlank("plugin")
+            muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
             name = url.fragment
             fixPluginName()
         }
@@ -88,6 +91,10 @@ fun ShadowsocksBean.toUri(): String {
         builder.addQueryParameter("plugin", plugin)
     }
 
+    if (muxState != 0) {
+        builder.addQueryParameter("mux", if (muxState==1) "true" else "false")
+    }
+
     if (name.isNotBlank()) {
         builder.setRawFragment(name)
     }
@@ -102,6 +109,7 @@ fun JSONObject.parseShadowsocks(): ShadowsocksBean {
         serverPort = getIntNya("server_port")
         password = getStr("password")
         method = getStr("method")
+        muxState = getBool("mux") ?.let { if (it) 1 else 2 } ?: 0
         name = optString("remarks", "")
 
         val pId = getStr("plugin")

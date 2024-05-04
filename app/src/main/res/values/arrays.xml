@@ -548,4 +548,10 @@
         <item>@string/plugin</item>
     </string-array>
 
+    <string-array name="mux_states">
+        <item>Keep Default</item>
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+
 </resources>

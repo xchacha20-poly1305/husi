@@ -43,6 +43,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val utlsFingerprint = pbm.add(PreferenceBinding(Type.Text, "utlsFingerprint"))
     private val realityPubKey = pbm.add(PreferenceBinding(Type.Text, "realityPubKey"))
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
+    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, "muxState"))
     private val brutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val ech = pbm.add(PreferenceBinding(Type.Bool, Key.ECH))
     private val echCfg = pbm.add(PreferenceBinding(Type.Text, Key.ECH_CFG))
@@ -147,6 +148,14 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 true
             }
         }
+
+        muxState.preference.apply {
+            this as SimpleMenuPreference
+            setOnPreferenceChangeListener {_, newValue ->
+                updateBrutal(newValue as String)
+                true
+            }
+        }
     }
 
     private fun updateView(network: String, tls: String) {
@@ -194,6 +203,17 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 path.preference.setTitle(R.string.http_upgrade_path)
                 host.preference.isVisible = true
                 path.preference.isVisible = true
+            }
+        }
+    }
+
+    private fun updateBrutal(muxState: String) {
+        when(muxState) {
+            "0", "1"-> {
+                brutal.preference.isVisible = true
+            }
+            "2" -> {
+                brutal.preference.isVisible = false
             }
         }
     }

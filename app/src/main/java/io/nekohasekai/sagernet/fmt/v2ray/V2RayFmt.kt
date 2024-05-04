@@ -29,6 +29,7 @@ data class VmessQRCode(
     var sni: String = "",
     var alpn: String = "",
     var fp: String = "",
+    var mux: String = "",
 )
 
 fun StandardV2RayBean.isTLS(): Boolean {
@@ -121,6 +122,8 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
                 }
             }
         }
+
+        bean.muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
 
         bean.packetEncoding = 1 // It comes from V2Ray!
     } else {
@@ -257,6 +260,8 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     url.queryParameterNotBlank("fp").let {
         utlsFingerprint = it
     }
+
+    muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
 }
 
 // SagerNet's
@@ -287,6 +292,7 @@ fun parseV2RayN(link: String): VMessBean {
     bean.type = vmessQRCode.net
     bean.host = vmessQRCode.host
     bean.path = vmessQRCode.path
+    bean.muxState = vmessQRCode.mux.toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
     val headerType = vmessQRCode.type
 
     when (vmessQRCode.packetEncoding) {
@@ -395,6 +401,9 @@ fun VMessBean.toV2rayN(): String {
         sni = bean.sni
         alpn = bean.alpn.replace("\n", ",")
         fp = bean.utlsFingerprint
+        if (muxState != 0 ) {
+            mux = if (muxState == 1) "true" else "false"
+        }
     }.let {
         NGUtil.encode(Gson().toJson(it))
     }
@@ -490,6 +499,10 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                 }
             }
         }
+    }
+
+    if (muxState != 0) {
+        builder.setQueryParameter("mux", if (muxState == 1) "true" else "false")
     }
 
     if (name.isNotBlank()) {

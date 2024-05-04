@@ -591,7 +591,9 @@
     <string name="cazilla_long">May be can avoid attack from who can control CA. And can let old device use new certificate.</string>
     <string name="sekai">nekohasekai</string>
     <string name="test_timeout">Test timeout (ms)</string>
-    <string name="enable_brutal">Enabled TCP Brutal congestion controler</string>
+    <string name="mux_preference">Multiplex Settings</string>
+    <string name="mux_state">Multiplex</string>
+    <string name="enable_brutal">Enable TCP Brutal congestion controller</string>
     <string name="brutal" translatable="false">TCP Brutal</string>
     <string name="direct_dns_client_subnet">Direct EDNS client subnet</string>
     <string name="dns_mode">DNS mode</string>
