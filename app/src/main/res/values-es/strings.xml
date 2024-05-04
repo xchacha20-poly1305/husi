@@ -134,7 +134,7 @@
     <!-- feature category -->
     <string name="ipv6">Ruta IPv6</string>
     <string name="prefer">Preferir</string>
-    <string name="only">Solo</string>
+    <string name="only">Solamente</string>
     <string name="metered">Sugerencia medida</string>
     <string name="metered_summary">Sugiere al sistema tratar la VPN como medida</string>
     <string name="menu_route">Ruta</string>
@@ -511,7 +511,7 @@
     <string name="http_upgrade_host">Host HTTPUpgrade</string>
     <string name="http_upgrade_path">Ruta HTTPUpgrade</string>
     <string name="group_not_subscription">El tipo de grupo no es suscripción</string>
-    <string name="allow_insecure_on_request_sum">Desactiva la comprobación de certificados al actualizar las suscripciones</string>
+    <string name="allow_insecure_on_request_sum">Desactivar comprobación de certificados al actualizar suscripciones</string>
     <string name="scan_vpn_app_introduce">Comprueba la VPN instalada en el dispositivo y su tipo.</string>
     <string name="vpn_app_type">Tipo de app</string>
     <string name="vpn_core_path">Ruta detectada</string>
@@ -539,7 +539,7 @@
     <string name="vpn_golang_version">Versión Go</string>
     <string name="assets_update">Actualizar activos geográficos</string>
     <string name="cazilla_long">Se puede evitar el ataque de quien pueda controlar CA. Y puede permitir que el dispositivo antiguo utilice un certificado nuevo.</string>
-    <string name="enable_brutal">Controlador de congestión TCP Brutal activado</string>
+    <string name="enable_brutal">Activar controlador de congestión TCP Brutal</string>
     <string name="blurred_address">Difuminar la dirección del servidor</string>
     <string name="action_camera_switch">Cambiar de cámara</string>
     <string name="action_flash_off">Apagar el flash</string>
@@ -554,4 +554,6 @@
     <string name="memory_limit">Limitar memoria</string>
     <string name="insecure_warn">Aviso de seguridad</string>
     <string name="hysteria2_provider">Proveedor de Hysteria2</string>
+    <string name="authenticated_length">Longitud autenticada</string>
+    <string name="experimental_authenticated_length">Hace que la longitud de cada segmento de payload no sea modificable. Este experimento requiere que el servidor y el cliente utilicen la misma versión de v2ray-core. Se esperan más actualizaciones importantes sobre este experimento.</string>
 </resources>
