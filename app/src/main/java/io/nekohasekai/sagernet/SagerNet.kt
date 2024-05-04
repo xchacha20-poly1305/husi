@@ -7,12 +7,14 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.inputmethodservice.InputMethodService
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.os.StrictMode
 import android.os.UserManager
+import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
@@ -151,6 +153,7 @@ class SagerNet : Application(),
         val uiMode by lazy { application.getSystemService<UiModeManager>()!! }
         val power by lazy { application.getSystemService<PowerManager>()!! }
         val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
+        val inputMethodManager by lazy { application.getSystemService<InputMethodManager>()!! }
 
         fun getClipboardText(): String {
             return clipboard.primaryClip?.takeIf { it.itemCount > 0 }
