@@ -1,7 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-//import io.nekohasekai.sagernet.ktx.snackbar
-//import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.os.Bundle
@@ -9,6 +7,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -30,11 +29,12 @@ class GetCertActivity : ThemedActivity() {
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
         binding.getCert.setOnClickListener {
+            SagerNet.inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken,0)
             copyCert()
         }
     }
 
-    fun copyCert() {
+    private fun copyCert() {
         binding.waitLayout.isVisible = true
 
         val server = binding.pinCertServer.text.toString()
