@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sagernet/gomobile/asset"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
@@ -200,7 +201,7 @@ func writeVersion(version []byte, versionPath string) error {
 	if err != nil {
 		return E.Cause(err, "create version file:", versionPath)
 	}
-	_, err = versionFile.Write(version)
+	err = common.Error(versionFile.Write(version))
 	_ = versionFile.Close()
 	if err != nil {
 		return E.Cause(err, "write version:", version)
