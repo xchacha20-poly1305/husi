@@ -76,7 +76,7 @@ class ConfigBuildResult(
 }
 
 fun buildConfig(
-    proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false
+    proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false,
 ): ConfigBuildResult {
 
     if (proxy.type == TYPE_CONFIG) {
@@ -281,7 +281,7 @@ fun buildConfig(
 
         // returns outbound tag
         fun buildChain(
-            chainId: Long, entity: ProxyEntity
+            chainId: Long, entity: ProxyEntity,
         ): String {
             val profileList = entity.resolveChain()
             val chainTrafficSet = HashSet<ProxyEntity>().apply {
@@ -413,16 +413,18 @@ fun buildConfig(
 
                         val useBrutal = bean.serverBrutal && bean.canBrutal()
                         var useMux = (!muxApplied && proxyEntity.needCoreMux()) || useBrutal
-                        try {
-                            val outboundMuxState = bean.javaClass.getField("muxState").get(bean)
-                            if (outboundMuxState is Int) {
-                                // prioritize profile mux state to overall setting
-                                when(outboundMuxState) {
-                                    MuxState.ENABLED -> useMux = true
-                                    MuxState.DISABLED -> useMux = false
-                                }
-                            }
-                        } catch (_: Exception) {}
+
+                        val outboundMuxState = when (bean) {
+                            is StandardV2RayBean -> bean.muxState
+                            is ShadowsocksBean -> bean.muxState
+                            else -> MuxState.DEFAULT
+                        }
+                        // prioritize profile mux state to overall setting
+                        useMux = when (outboundMuxState) {
+                            MuxState.ENABLED -> true
+                            MuxState.DISABLED -> false
+                            else -> useMux
+                        }
 
                         if (useMux) {
                             muxApplied = true

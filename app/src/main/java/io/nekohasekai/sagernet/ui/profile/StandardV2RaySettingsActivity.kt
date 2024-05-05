@@ -46,7 +46,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val utlsFingerprint = pbm.add(PreferenceBinding(Type.Text, "utlsFingerprint"))
     private val realityPubKey = pbm.add(PreferenceBinding(Type.Text, "realityPubKey"))
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
-    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, "muxState"))
+    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, Key.MUX_STATE))
     private val brutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val ech = pbm.add(PreferenceBinding(Type.Bool, Key.ECH))
     private val echCfg = pbm.add(PreferenceBinding(Type.Text, Key.ECH_CFG))
@@ -70,7 +70,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     lateinit var tlsCamouflageCategory: PreferenceCategory
     lateinit var echCategory: PreferenceCategory
     lateinit var wsCategory: PreferenceCategory
-    lateinit var brutalCategory: PreferenceCategory
+    lateinit var muxCategory: PreferenceCategory
     lateinit var experimentsCategory: PreferenceCategory
 
     override fun PreferenceFragmentCompat.createPreferences(
@@ -83,7 +83,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         tlsCamouflageCategory = findPreference(Key.SERVER_TLS_CAMOUFLAGE_CATEGORY)!!
         echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
         wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
-        brutalCategory = findPreference(Key.SERVER_BRUTAL_CATEGORY)!!
+        muxCategory = findPreference(Key.SERVER_MUX_CATEGORY)!!
         experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
 
 
@@ -113,7 +113,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         password.preference.isVisible = isHttp
         experimentsCategory.isVisible = isVmess
 
-        brutal.preference.isEnabled = DataStore.profileCacheStore.getString(muxState.fieldName) != MuxState.DISABLED.toString()
+        brutal.preference.isEnabled = muxState.toString() != MuxState.DISABLED.toString()
 
         if (tmpBean is TrojanBean) {
             uuid.preference.title = resources.getString(R.string.password)
@@ -167,7 +167,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         host.preference.isVisible = false
         path.preference.isVisible = false
         wsCategory.isVisible = false
-        brutalCategory.isVisible = true
+        muxCategory.isVisible = true
 
         when (network) {
             "tcp" -> {
@@ -181,7 +181,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 host.preference.isVisible = true
                 path.preference.isVisible = true
 
-                if (tls == "tls") brutalCategory.isVisible = false
+                if (tls == "tls") muxCategory.isVisible = false
             }
 
             "ws" -> {
@@ -196,11 +196,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 path.preference.setTitle(R.string.grpc_service_name)
                 path.preference.isVisible = true
 
-                brutalCategory.isVisible = false
+                muxCategory.isVisible = false
             }
 
             "quic" -> {
-                brutalCategory.isVisible = false
+                muxCategory.isVisible = false
             }
 
             "httpupgrade" -> {
@@ -219,12 +219,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             }
             MuxState.DISABLED.toString() -> {
                 brutal.preference.isEnabled = false
-                (brutal.preference as SwitchPreference).isChecked = false
             }
         }
     }
 
-    fun updateTls(tls: String) {
+    private fun updateTls(tls: String) {
         val isTLS = tls == "tls"
         securityCategory.isVisible = isTLS
         tlsCamouflageCategory.isVisible = isTLS

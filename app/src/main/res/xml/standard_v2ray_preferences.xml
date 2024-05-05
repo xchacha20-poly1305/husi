@@ -144,7 +144,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-            app:key="serverBrutalCategory"
+            app:key="serverMuxCategory"
             app:title="@string/mux_preference">
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:entries="@array/mux_states"

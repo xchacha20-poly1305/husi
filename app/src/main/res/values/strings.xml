@@ -594,7 +594,6 @@
     <string name="mux_preference">Multiplex Settings</string>
     <string name="mux_state">Multiplex</string>
     <string name="enable_brutal">Enable TCP Brutal congestion controller</string>
-    <string name="brutal" translatable="false">TCP Brutal</string>
     <string name="direct_dns_client_subnet">Direct EDNS client subnet</string>
     <string name="dns_mode">DNS mode</string>
     <string name="fake_dns" translatable="false">Fake DNS</string>
