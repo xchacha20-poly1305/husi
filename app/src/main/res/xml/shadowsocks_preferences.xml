@@ -32,7 +32,14 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-            app:title="@string/brutal">
+            app:title="@string/mux_preference">
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:entries="@array/mux_states"
+            app:entryValues="@array/int_array_3"
+            app:key="muxState"
+            app:icon="@drawable/ic_baseline_compare_arrows_24"
+            app:title="@string/mux_state"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:key="serverBrutal"
                 app:icon="@drawable/ic_baseline_bolt"

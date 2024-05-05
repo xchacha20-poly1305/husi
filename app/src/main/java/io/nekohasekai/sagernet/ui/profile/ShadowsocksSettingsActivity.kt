@@ -3,6 +3,8 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
+import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -10,6 +12,7 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import moe.matsuri.nb4a.proxy.PreferenceBinding
 import moe.matsuri.nb4a.proxy.PreferenceBindingManager
 import moe.matsuri.nb4a.proxy.Type
+import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
@@ -25,6 +28,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         pbm.add(PreferenceBinding(Type.Text, "pluginName").apply { disable = true })
     private val pluginConfig =
         pbm.add(PreferenceBinding(Type.Text, "pluginConfig").apply { disable = true })
+    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, "muxState"))
     private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, "serverBrutal"))
     private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
 
@@ -50,6 +54,8 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         addPreferencesFromResource(R.xml.shadowsocks_preferences)
         pbm.setPreferenceFragment(this)
 
+        serverBrutal.preference.isEnabled = DataStore.profileCacheStore.getString(muxState.fieldName) != MuxState.DISABLED.toString()
+
         serverPort.preference.apply {
             this as EditTextPreference
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -57,6 +63,25 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         password.preference.apply {
             this as EditTextPreference
             summaryProvider = PasswordSummaryProvider
+        }
+        muxState.preference.apply {
+            this as SimpleMenuPreference
+            setOnPreferenceChangeListener {_, newValue ->
+                updateBrutal(newValue as String)
+                true
+            }
+        }
+    }
+
+    private fun updateBrutal(muxState: String) {
+        when(muxState) {
+            MuxState.DEFAULT.toString(), MuxState.ENABLED.toString()-> {
+                serverBrutal.preference.isEnabled = true
+            }
+            MuxState.DISABLED.toString() -> {
+                serverBrutal.preference.isEnabled = false
+                (serverBrutal.preference as SwitchPreference).isChecked = false
+            }
         }
     }
 

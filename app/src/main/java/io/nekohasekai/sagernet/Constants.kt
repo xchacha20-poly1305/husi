@@ -103,6 +103,8 @@ object Key {
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
     const val SERVER_MTU = "serverMTU"
+
+    const val MUX_STATE = "muxState"
     const val SERVER_BRUTAL = "serverBrutal"
 
     const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
@@ -117,7 +119,7 @@ object Key {
     const val SERVER_ECH_CATEGORY = "serverEchCategory"
     const val SERVER_WS_CATEGORY = "serverWsCategory"
     const val SERVER_SS_CATEGORY = "serverSsCategory"
-    const val SERVER_BRUTAL_CATEGORY = "serverBrutalCategory"
+    const val SERVER_MUX_CATEGORY = "serverMuxCategory"
     const val SERVER_HEADERS = "serverHeaders"
     const val SERVER_ALLOW_INSECURE = "serverAllowInsecure"
 
@@ -206,6 +208,12 @@ object DNSMode {
     const val LEAK = 1
     const val PRECISE = 2
     const val FAKE_DNS = 3
+}
+
+object MuxState {
+    const val DEFAULT = 0
+    const val ENABLED = 1
+    const val DISABLED = 2
 }
 
 object Action {

@@ -4,8 +4,11 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -43,6 +46,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val utlsFingerprint = pbm.add(PreferenceBinding(Type.Text, "utlsFingerprint"))
     private val realityPubKey = pbm.add(PreferenceBinding(Type.Text, "realityPubKey"))
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
+    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, Key.MUX_STATE))
     private val brutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val ech = pbm.add(PreferenceBinding(Type.Bool, Key.ECH))
     private val echCfg = pbm.add(PreferenceBinding(Type.Text, Key.ECH_CFG))
@@ -66,7 +70,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     lateinit var tlsCamouflageCategory: PreferenceCategory
     lateinit var echCategory: PreferenceCategory
     lateinit var wsCategory: PreferenceCategory
-    lateinit var brutalCategory: PreferenceCategory
+    lateinit var muxCategory: PreferenceCategory
     lateinit var experimentsCategory: PreferenceCategory
 
     override fun PreferenceFragmentCompat.createPreferences(
@@ -79,7 +83,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         tlsCamouflageCategory = findPreference(Key.SERVER_TLS_CAMOUFLAGE_CATEGORY)!!
         echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
         wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
-        brutalCategory = findPreference(Key.SERVER_BRUTAL_CATEGORY)!!
+        muxCategory = findPreference(Key.SERVER_MUX_CATEGORY)!!
         experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
 
 
@@ -108,6 +112,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         username.preference.isVisible = isHttp
         password.preference.isVisible = isHttp
         experimentsCategory.isVisible = isVmess
+
+        brutal.preference.isEnabled = muxState.toString() != MuxState.DISABLED.toString()
 
         if (tmpBean is TrojanBean) {
             uuid.preference.title = resources.getString(R.string.password)
@@ -147,13 +153,21 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 true
             }
         }
+
+        muxState.preference.apply {
+            this as SimpleMenuPreference
+            setOnPreferenceChangeListener {_, newValue ->
+                updateBrutal(newValue as String)
+                true
+            }
+        }
     }
 
     private fun updateView(network: String, tls: String) {
         host.preference.isVisible = false
         path.preference.isVisible = false
         wsCategory.isVisible = false
-        brutalCategory.isVisible = true
+        muxCategory.isVisible = true
 
         when (network) {
             "tcp" -> {
@@ -167,7 +181,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 host.preference.isVisible = true
                 path.preference.isVisible = true
 
-                if (tls == "tls") brutalCategory.isVisible = false
+                if (tls == "tls") muxCategory.isVisible = false
             }
 
             "ws" -> {
@@ -182,11 +196,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 path.preference.setTitle(R.string.grpc_service_name)
                 path.preference.isVisible = true
 
-                brutalCategory.isVisible = false
+                muxCategory.isVisible = false
             }
 
             "quic" -> {
-                brutalCategory.isVisible = false
+                muxCategory.isVisible = false
             }
 
             "httpupgrade" -> {
@@ -198,7 +212,18 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         }
     }
 
-    fun updateTls(tls: String) {
+    private fun updateBrutal(muxState: String) {
+        when(muxState) {
+            MuxState.DEFAULT.toString(), MuxState.ENABLED.toString()-> {
+                brutal.preference.isEnabled = true
+            }
+            MuxState.DISABLED.toString() -> {
+                brutal.preference.isEnabled = false
+            }
+        }
+    }
+
+    private fun updateTls(tls: String) {
         val isTLS = tls == "tls"
         securityCategory.isVisible = isTLS
         tlsCamouflageCategory.isVisible = isTLS

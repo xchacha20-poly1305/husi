@@ -31,8 +31,8 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        app:key="serverBrutalCategory"
-        app:title="@string/brutal">
+        app:key="serverMuxCategory"
+        app:title="@string/mux_preference">
         <SwitchPreference
                 app:key="serverBrutal"
                 app:icon="@drawable/ic_baseline_bolt"
