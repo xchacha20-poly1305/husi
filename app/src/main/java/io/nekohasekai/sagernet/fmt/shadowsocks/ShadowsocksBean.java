@@ -61,7 +61,7 @@ public class ShadowsocksBean extends AbstractBean {
         password = input.readString();
         plugin = input.readString();
         sUoT = input.readBoolean();
-        if ( version >= 1) {
+        if (version >= 1) {
             muxState = input.readInt();
         }
     }

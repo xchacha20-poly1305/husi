@@ -549,9 +549,9 @@
     </string-array>
 
     <string-array name="mux_states">
-        <item>Keep Default</item>
-        <item>On</item>
-        <item>Off</item>
+        <item>@string/keep_default</item>
+        <item>@string/on</item>
+        <item>@string/off</item>
     </string-array>
 
 </resources>

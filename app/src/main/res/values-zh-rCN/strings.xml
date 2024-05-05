@@ -547,4 +547,5 @@
     <string name="hysteria2_provider">Hysteria2 提供程序</string>
     <string name="authenticated_length">长度块加密</string>
     <string name="experimental_authenticated_length">让每个有效载荷段的长度不再具有可塑性。这个实验要求服务器和客户端使用相同版本的 v2ray-core。预计会有更多关于这个实验的破坏性更新。</string>
+    <string name="keep_default">保持默认</string>
 </resources>
