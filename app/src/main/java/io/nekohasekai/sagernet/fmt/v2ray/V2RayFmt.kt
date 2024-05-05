@@ -30,7 +30,6 @@ data class VmessQRCode(
     var sni: String = "",
     var alpn: String = "",
     var fp: String = "",
-    var mux: String = "",
 )
 
 fun StandardV2RayBean.isTLS(): Boolean {
@@ -293,7 +292,6 @@ fun parseV2RayN(link: String): VMessBean {
     bean.type = vmessQRCode.net
     bean.host = vmessQRCode.host
     bean.path = vmessQRCode.path
-    bean.muxState = vmessQRCode.mux.toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
     val headerType = vmessQRCode.type
 
     when (vmessQRCode.packetEncoding) {
@@ -402,9 +400,6 @@ fun VMessBean.toV2rayN(): String {
         sni = bean.sni
         alpn = bean.alpn.replace("\n", ",")
         fp = bean.utlsFingerprint
-        if (muxState != MuxState.DEFAULT ) {
-            mux = if (muxState == MuxState.ENABLED) "true" else "false"
-        }
     }.let {
         NGUtil.encode(Gson().toJson(it))
     }
