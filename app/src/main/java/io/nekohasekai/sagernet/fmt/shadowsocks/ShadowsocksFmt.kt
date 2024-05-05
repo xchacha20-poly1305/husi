@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
+import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.getBool
 import io.nekohasekai.sagernet.ktx.getIntNya
@@ -37,7 +38,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
                 } catch (_: Exception) {
                 }
                 plugin = url.queryParameterNotBlank("plugin")
-                muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
+                muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
                 name = url.fragment
                 fixPluginName()
             }
@@ -51,7 +52,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
             method = methodAndPswd.substringBefore(":")
             password = methodAndPswd.substringAfter(":")
             plugin = url.queryParameterNotBlank("plugin")
-            muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
+            muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
             name = url.fragment
             fixPluginName()
         }
@@ -91,8 +92,8 @@ fun ShadowsocksBean.toUri(): String {
         builder.addQueryParameter("plugin", plugin)
     }
 
-    if (muxState != 0) {
-        builder.addQueryParameter("mux", if (muxState==1) "true" else "false")
+    if (muxState != MuxState.DEFAULT) {
+        builder.addQueryParameter("mux", if (muxState==MuxState.ENABLED) "true" else "false")
     }
 
     if (name.isNotBlank()) {
@@ -109,7 +110,7 @@ fun JSONObject.parseShadowsocks(): ShadowsocksBean {
         serverPort = getIntNya("server_port")
         password = getStr("password")
         method = getStr("method")
-        muxState = getBool("mux") ?.let { if (it) 1 else 2 } ?: 0
+        muxState = getBool("mux") ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
         name = optString("remarks", "")
 
         val pId = getStr("plugin")

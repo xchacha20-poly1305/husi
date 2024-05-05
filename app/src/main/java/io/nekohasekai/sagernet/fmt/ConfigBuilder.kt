@@ -418,8 +418,8 @@ fun buildConfig(
                             if (outboundMuxState is Int) {
                                 // prioritize profile mux state to overall setting
                                 when(outboundMuxState) {
-                                    1 -> useMux = true
-                                    2 -> useMux = false
+                                    MuxState.ENABLED -> useMux = true
+                                    MuxState.DISABLED -> useMux = false
                                 }
                             }
                         } catch (_: Exception) {}

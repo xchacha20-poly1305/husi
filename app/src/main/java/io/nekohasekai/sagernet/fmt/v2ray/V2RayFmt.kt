@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.fmt.v2ray
 
 import android.text.TextUtils
 import com.google.gson.Gson
+import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -123,7 +124,7 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
             }
         }
 
-        bean.muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
+        bean.muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
 
         bean.packetEncoding = 1 // It comes from V2Ray!
     } else {
@@ -261,7 +262,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         utlsFingerprint = it
     }
 
-    muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
+    muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
 }
 
 // SagerNet's
@@ -292,7 +293,7 @@ fun parseV2RayN(link: String): VMessBean {
     bean.type = vmessQRCode.net
     bean.host = vmessQRCode.host
     bean.path = vmessQRCode.path
-    bean.muxState = vmessQRCode.mux.toBooleanStrictOrNull() ?.let { if (it) 1 else 2 } ?: 0
+    bean.muxState = vmessQRCode.mux.toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
     val headerType = vmessQRCode.type
 
     when (vmessQRCode.packetEncoding) {
@@ -401,8 +402,8 @@ fun VMessBean.toV2rayN(): String {
         sni = bean.sni
         alpn = bean.alpn.replace("\n", ",")
         fp = bean.utlsFingerprint
-        if (muxState != 0 ) {
-            mux = if (muxState == 1) "true" else "false"
+        if (muxState != MuxState.DEFAULT ) {
+            mux = if (muxState == MuxState.ENABLED) "true" else "false"
         }
     }.let {
         NGUtil.encode(Gson().toJson(it))
@@ -501,8 +502,8 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
         }
     }
 
-    if (muxState != 0) {
-        builder.setQueryParameter("mux", if (muxState == 1) "true" else "false")
+    if (muxState != MuxState.DEFAULT) {
+        builder.setQueryParameter("mux", if (muxState == MuxState.ENABLED) "true" else "false")
     }
 
     if (name.isNotBlank()) {

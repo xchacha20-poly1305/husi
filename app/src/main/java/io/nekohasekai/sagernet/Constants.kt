@@ -208,6 +208,12 @@ object DNSMode {
     const val FAKE_DNS = 3
 }
 
+object MuxState {
+    const val DEFAULT = 0
+    const val ENABLED = 1
+    const val DISABLED = 2
+}
+
 object Action {
     const val SERVICE = "io.nekohasekai.sagernet.SERVICE"
     const val CLOSE = "io.nekohasekai.sagernet.CLOSE"

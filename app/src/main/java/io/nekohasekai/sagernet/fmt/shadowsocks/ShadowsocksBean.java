@@ -3,6 +3,8 @@ package io.nekohasekai.sagernet.fmt.shadowsocks;
 import androidx.annotation.NonNull;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+
+import io.nekohasekai.sagernet.MuxState;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import moe.matsuri.nb4a.utils.JavaUtil;
@@ -37,12 +39,12 @@ public class ShadowsocksBean extends AbstractBean {
         if (password == null) password = "";
         if (plugin == null) plugin = "";
         if (sUoT == null) sUoT = false;
-        if (muxState == null) muxState = 0;
+        if (muxState == null) muxState = MuxState.DEFAULT;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(method);
         output.writeString(password);
@@ -59,7 +61,9 @@ public class ShadowsocksBean extends AbstractBean {
         password = input.readString();
         plugin = input.readString();
         sUoT = input.readBoolean();
-        muxState = input.readInt();
+        if ( version >= 1) {
+            muxState = input.readInt();
+        }
     }
 
     @Override

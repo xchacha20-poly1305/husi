@@ -4,8 +4,11 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -110,6 +113,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         password.preference.isVisible = isHttp
         experimentsCategory.isVisible = isVmess
 
+        brutal.preference.isEnabled = DataStore.profileCacheStore.getString(muxState.fieldName) != MuxState.DISABLED.toString()
+
         if (tmpBean is TrojanBean) {
             uuid.preference.title = resources.getString(R.string.password)
         }
@@ -209,11 +214,12 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
     private fun updateBrutal(muxState: String) {
         when(muxState) {
-            "0", "1"-> {
-                brutal.preference.isVisible = true
+            MuxState.DEFAULT.toString(), MuxState.ENABLED.toString()-> {
+                brutal.preference.isEnabled = true
             }
-            "2" -> {
-                brutal.preference.isVisible = false
+            MuxState.DISABLED.toString() -> {
+                brutal.preference.isEnabled = false
+                (brutal.preference as SwitchPreference).isChecked = false
             }
         }
     }

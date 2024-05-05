@@ -3,6 +3,8 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
+import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -52,6 +54,8 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         addPreferencesFromResource(R.xml.shadowsocks_preferences)
         pbm.setPreferenceFragment(this)
 
+        serverBrutal.preference.isEnabled = DataStore.profileCacheStore.getString(muxState.fieldName) != MuxState.DISABLED.toString()
+
         serverPort.preference.apply {
             this as EditTextPreference
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -71,11 +75,12 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
     private fun updateBrutal(muxState: String) {
         when(muxState) {
-            "0", "1"-> {
-                serverBrutal.preference.isVisible = true
+            MuxState.DEFAULT.toString(), MuxState.ENABLED.toString()-> {
+                serverBrutal.preference.isEnabled = true
             }
-            "2" -> {
-                serverBrutal.preference.isVisible = false
+            MuxState.DISABLED.toString() -> {
+                serverBrutal.preference.isEnabled = false
+                (serverBrutal.preference as SwitchPreference).isChecked = false
             }
         }
     }
