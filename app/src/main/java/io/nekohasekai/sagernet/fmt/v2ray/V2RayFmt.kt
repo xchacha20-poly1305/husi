@@ -123,8 +123,6 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
             }
         }
 
-        bean.muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
-
         bean.packetEncoding = 1 // It comes from V2Ray!
     } else {
         // also vless format
