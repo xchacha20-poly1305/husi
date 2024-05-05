@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.fmt.v2ray
 
 import android.text.TextUtils
 import com.google.gson.Gson
-import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -258,8 +257,6 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     url.queryParameterNotBlank("fp").let {
         utlsFingerprint = it
     }
-
-    muxState = url.queryParameterNotBlank("mux").toBooleanStrictOrNull() ?.let { if (it) MuxState.ENABLED else MuxState.DISABLED } ?: MuxState.DEFAULT
 }
 
 // SagerNet's
@@ -493,10 +490,6 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                 }
             }
         }
-    }
-
-    if (muxState != MuxState.DEFAULT) {
-        builder.setQueryParameter("mux", if (muxState == MuxState.ENABLED) "true" else "false")
     }
 
     if (name.isNotBlank()) {
