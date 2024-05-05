@@ -7,4 +7,9 @@ plugins {
 setupKotlinCommon()
 android {
     namespace = "io.nekohasekai.sagernet.plugin"
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+        }
+    }
 }
