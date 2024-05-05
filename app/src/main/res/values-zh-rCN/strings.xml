@@ -526,6 +526,8 @@
     <string name="cazilla_long">可能能防止能操纵 CA 机构的力量攻击。也可以让旧的设备得以使用新的证书。</string>
     <string name="sekai">世界</string>
     <string name="test_timeout">测试超时 (ms)</string>
+    <string name="mux_preference">多路复用设置</string>
+    <string name="mux_state">多路复用</string>
     <string name="enable_brutal">启用 TCP Brutal 拥塞控制算法</string>
     <string name="direct_dns_client_subnet">直连 EDNS client subnet</string>
     <string name="dns_mode">DNS 模式</string>
@@ -545,4 +547,5 @@
     <string name="hysteria2_provider">Hysteria2 提供程序</string>
     <string name="authenticated_length">长度块加密</string>
     <string name="experimental_authenticated_length">让每个有效载荷段的长度不再具有可塑性。这个实验要求服务器和客户端使用相同版本的 v2ray-core。预计会有更多关于这个实验的破坏性更新。</string>
+    <string name="keep_default">保持默认</string>
 </resources>
