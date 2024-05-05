@@ -7,49 +7,42 @@ import (
 	"libcore/stun"
 )
 
-type StunResult struct {
-	Text    string
-	Success bool
-}
-
-func StunTest(server string) *StunResult {
+func StunTest(server string) (result string) {
 	// note: this library doesn't support stun1.l.google.com:19302
-	ret := &StunResult{}
-	var text string
+
+	var resultBuilder strings.Builder
 
 	// Old NAT Type Test
 	client := stun.NewClient()
 	client.SetServerAddr(server)
 	nat, host, err, fakeFullCone := client.Discover()
 	if err != nil {
-		text += fmt.Sprintln("Discover Error:", err.Error())
+		_, _ = fmt.Fprintf(&resultBuilder, "Discover Error: %v\n", err)
 	}
 
 	if fakeFullCone {
-		text += fmt.Sprintln("Fake fullcone (no endpoint IP change) detected!!")
+		_, _ = resultBuilder.WriteString("Fake fullcone (no endpoint IP change) detected!!")
 	}
 
 	if host != nil {
-		text += fmt.Sprintln("NAT Type:", nat)
-		text += fmt.Sprintln("External IP Family:", host.Family())
-		text += fmt.Sprintln("External IP:", host.IP())
-		text += fmt.Sprintln("External Port:", host.Port())
+		_, _ = fmt.Fprintf(&resultBuilder, "NAT Type: %s\n", nat)
+		_, _ = fmt.Fprintf(&resultBuilder, "External IP Family: %d\n", host.Family())
+		_, _ = fmt.Fprintf(&resultBuilder, "External IP: %s\n", host.IP())
+		_, _ = fmt.Fprintf(&resultBuilder, "External Port: %d\n", host.Port())
 	}
 
 	// New NAT Test
 
 	natBehavior, err := client.BehaviorTest()
 	if err != nil {
-		text += fmt.Sprintln("BehaviorTest Error:", err)
+		_, _ = fmt.Fprintf(&resultBuilder, "Behavior Test Error: %v\n", err)
 	}
 
 	if natBehavior != nil {
-		text += fmt.Sprintln("Mapping Behavior:", natBehavior.MappingType)
-		text += fmt.Sprintln("Filtering Behavior:", natBehavior.FilteringType)
-		text += fmt.Sprintln("Normal NAT Type:", natBehavior.NormalType())
+		_, _ = fmt.Fprintf(&resultBuilder, "Mapping Behavior: %s\n", natBehavior.MappingType.String())
+		_, _ = fmt.Fprintf(&resultBuilder, "Filtering Behavior: %s\n", natBehavior.FilteringType.String())
+		_, _ = fmt.Fprintf(&resultBuilder, "Normal NAT Type: %s\n", natBehavior.NormalType())
 	}
 
-	ret.Success = true
-	ret.Text = strings.TrimRight(text, "\n")
-	return ret
+	return resultBuilder.String()
 }

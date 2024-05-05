@@ -109,8 +109,7 @@ func copyToFile(path string, reader io.Reader) error {
 	}
 	defer newFile.Close()
 
-	_, err = io.Copy(newFile, reader)
-	return err
+	return common.Error(io.Copy(newFile, reader))
 }
 
 // UnzipWithoutDir unzip zipfile buy ignore the directory in the zip file.
@@ -144,10 +143,12 @@ func UnzipWithoutDir(archive, path string) error {
 			return err
 		}
 
-		_, err = io.Copy(newFile, zipFile)
-		errs := E.Errors(err, common.Close(zipFile, newFile))
-		if errs != nil {
-			return errs
+		err = E.Errors(
+			common.Error(io.Copy(newFile, zipFile)),
+			common.Close(zipFile, newFile),
+		)
+		if err != nil {
+			return err
 		}
 	}
 
