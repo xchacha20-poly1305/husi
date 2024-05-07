@@ -90,6 +90,30 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)!!
 
+        val ntpEnable = findPreference<CheckBoxPreference>(Key.ENABLE_NTP)!!
+        val ntpAddress = findPreference<EditTextPreference>(Key.NTP_SERVER)!!
+        val ntpPort = findPreference<EditTextPreference>(Key.NTP_PORT)!!
+        val ntpInterval = findPreference<SimpleMenuPreference>(Key.NTP_INTERVAL)!!
+        ntpAddress.isEnabled = ntpEnable.isChecked
+        ntpPort.isEnabled = ntpEnable.isChecked
+        ntpInterval.isEnabled = ntpEnable.isChecked
+        ntpAddress.onPreferenceChangeListener = reloadListener
+        ntpPort.onPreferenceChangeListener = reloadListener
+        ntpInterval.onPreferenceChangeListener = reloadListener
+        ntpEnable.setOnPreferenceChangeListener { _, newValue ->
+            needReload()
+            if (newValue as Boolean) {
+                ntpAddress.isEnabled = true
+                ntpPort.isEnabled = true
+                ntpInterval.isEnabled = true
+            } else {
+                ntpAddress.isEnabled = false
+                ntpPort.isEnabled = false
+                ntpInterval.isEnabled = false
+            }
+            true
+        }
+
         val muxConcurrency = findPreference<EditTextPreference>(Key.MUX_CONCURRENCY)!!
         val tcpKeepAliveInterval = findPreference<EditTextPreference>(Key.TCP_KEEP_ALIVE_INTERVAL)!!
         tcpKeepAliveInterval.isVisible = false

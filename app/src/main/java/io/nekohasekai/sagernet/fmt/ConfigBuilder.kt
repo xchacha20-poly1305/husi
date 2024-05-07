@@ -201,6 +201,18 @@ fun buildConfig(
             }
         }
 
+        ntp = NTPOptions().apply {
+            enabled = DataStore.ntpEnable
+            server = DataStore.ntpAddress
+            server_port = DataStore.ntpPort
+            interval = DataStore.ntpInterval
+            detour = TAG_DIRECT
+
+            if (!server.isIpAddress()) {
+                domainListDNSDirectForce.add("full:$server")
+            }
+        }
+
         dns = DNSOptions().apply {
             servers = mutableListOf()
             rules = mutableListOf()
