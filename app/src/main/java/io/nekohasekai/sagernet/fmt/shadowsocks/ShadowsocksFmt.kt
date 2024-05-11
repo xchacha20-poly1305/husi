@@ -79,7 +79,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
 fun ShadowsocksBean.toUri(): String {
 
     val builder = Libcore.newURL("ss").apply {
-        username = Util.b64EncodeUrlSafe("$method:$password")
+        username = Util.b64EncodeUrlSafe(method + ":" + this@toUri.password)
         host = serverAddress
         ports = serverPort.toString()
     }

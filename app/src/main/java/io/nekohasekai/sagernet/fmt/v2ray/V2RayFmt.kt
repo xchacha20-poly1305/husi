@@ -412,7 +412,11 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
 
     // ducksoft fmt
     val builder = Libcore.newURL(protocol).apply {
-        username = if (isTrojan) password else uuid
+        username = if (isTrojan) {
+            (this@toUriVMessVLESSTrojan as TrojanBean).password
+        } else {
+            uuid
+        }
         host = serverAddress
         ports = serverPort.toString()
         addQueryParameter("type", type)
