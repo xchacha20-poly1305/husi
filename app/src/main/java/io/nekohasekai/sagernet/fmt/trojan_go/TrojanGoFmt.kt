@@ -52,7 +52,7 @@ fun parseTrojanGo(url: URL): TrojanGoBean {
 
 fun TrojanGoBean.toUri(): String {
     val builder = Libcore.newURL("trojan-go").apply {
-        username = password
+        username = this@toUri.password
         host = serverAddress
         ports = serverPort.toString()
     }
