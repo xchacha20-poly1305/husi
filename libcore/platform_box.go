@@ -125,12 +125,16 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]control.Interface, error) 
 		}
 		return interfaces, nil
 	}
-	return nil, E.New("")
+	return nil, E.New("not found intfBox")
 }
 
 // Android not using
 
 func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {
+	return false
+}
+func (w *boxPlatformInterfaceWrapper) IncludeAllNetworks() bool {
+	// https://sing-box.sagernet.org/manual/misc/tunnelvision/#android
 	return false
 }
 
