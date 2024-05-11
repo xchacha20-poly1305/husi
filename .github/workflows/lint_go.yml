@@ -31,7 +31,7 @@ jobs:
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
-      - uses: golangci/golangci-lint-action@v5
+      - uses: golangci/golangci-lint-action@v6
         with:
           skip-cache: true
           working-directory: ./libcore/
