@@ -435,9 +435,7 @@
     <string name="tun_implementation">Реализация TUN</string>
     <string name="wireguard_local_address">Частный адрес</string>
     <string name="destination_override">Переопределять адрес назначения</string>
-    <string name="resolve_destination_summary">Если адрес назначения является доменом, то он
-        передается в соответствии со стратегией IPv6.
-    </string>
+    <string name="resolve_destination_summary">Если адрес назначения является доменом, то он передается в соответствии со стратегией IPv6 (конфликтует с FakeDNS)</string>
     <string name="destination_override_summary">Использовать перехваченный домен для переопределения
         адреса назначения, а не только для маршрутизации
     </string>
@@ -458,17 +456,14 @@
     </string>
     <string name="resolve_destination">Резолвить адрес назначения</string>
     <string name="start">Старт</string>
-    <string name="stun_attest_loading">Пожалуйста, подождите…</string>
+    <string name="stun_attest_loading">Это может занять несколько минут…</string>
     <string name="stun_test">Обнаружение поведения NAT</string>
     <string name="stun_test_summary">Определить поведение сопоставления адресов NAT и поведение
         фильтрации NAT в соответствии с RFC 5780 при помощи STUN.
     </string>
-    <string name="warp_license">[CloudFlare Warp](https://blog.cloudflare.com/1111-warp-better-vpn/)
-        - это бесплатный провайдер WireGuard VPN. Используя его, вы соглашаетесь с [условиями
-        использования](https://www.cloudflare.com/application/terms/).
-    </string>
+    <string name="warp_license">[CloudFlare Warp](https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/) - это бесплатный провайдер WireGuard VPN. Используя его, вы соглашаетесь с [условиями использования](https://www.cloudflare.com/application/terms/).</string>
     <string name="tools_network">Сеть</string>
-    <string name="backup">Бэкап</string>
+    <string name="backup">Резервная копия</string>
     <string name="backup_rules">Правила маршрутизации</string>
     <string name="backup_settings">Настройки</string>
     <string name="backup_not_file">Не файл резервной копии: ожидался .json, а не %s</string>
@@ -489,7 +484,7 @@
     <string name="neko_plugin">Дополнительные плагины</string>
     <string name="neko_plugin_summary">Дополнительные плагины могут давать протоколы, которые изначально не поддерживаются.
 \n
-\nЛюбой может написать плагины, которые будут работать в Husi. Пожалуйста, загрузите и установите их из надежных источников.</string>
+\nЛюбой может написать плагины, которые будут работать в Husi. Пожалуйста, загружайте и устанавливайте их из надежных источников.</string>
     <string name="app_name_long">husi для Андроид</string>
     <string name="app_tls_version">Минимальная версия TLS протокола</string>
     <string name="assets_update">Обновить геоданные</string>
@@ -497,23 +492,23 @@
     <string name="log_level">Тип журнала</string>
     <string name="bypass_lan_in_core">Обход LAN в ядре</string>
     <string name="landing_proxy">Конечный прокси</string>
-    <string name="show_group_in_notification">Название группы в уведомлении</string>
+    <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
     <string name="menu_dashboard">Панель sing-box</string>
     <string name="action_copy">Копировать</string>
     <string name="mux_sum">Протокол Mux предназначен для уменьшения задержки соединения TCP, а не для увеличения пропускной способности. Использование Mux для просмотра видео, загрузки или проверки скорости обычно непродуктивно. Если сервер не поддерживает Mux, вы не сможете получить доступ к Интернету.</string>
-    <string name="log_level_help">Удерживайте для настройки размера буфера</string>
+    <string name="log_level_help">Удерживайте для настройки размера буфера.</string>
     <string name="allow_insecure_on_request_sum">Отключить проверку сертификатов при обновлении подписок</string>
     <string name="mux_type">Протокол мультиплексирования</string>
     <string name="subscription_expire">Истекает: %s</string>
-    <string name="sniff_override">Слушать адрес назначения</string>
+    <string name="sniff_override">Перехватывать результат для Назначения</string>
     <string name="tuic_disable_sni">Отключить SNI</string>
     <string name="neko_plugin_internal_error">%s внутренняя ошибка</string>
-    <string name="domain_strategy_for_direct">DNS для прямых запросов</string>
-    <string name="domain_strategy_for_server">DNS для адреса сервера</string>
-    <string name="utls_fingerprint">отпечаток uTLS</string>
+    <string name="domain_strategy_for_direct">Стратегия домена для Прямого</string>
+    <string name="domain_strategy_for_server">Стратегия домена для Адреса сервера</string>
+    <string name="utls_fingerprint">Отпечаток uTLS</string>
     <string name="set_panel_url">Изменить адрес панели</string>
     <string name="is_outbound_only">Сделать JSON исходящим</string>
-    <string name="enable_clash_api">Clash API адрес подключения</string>
+    <string name="enable_clash_api">Адрес подключения Clash API</string>
     <string name="need_restart">Перезапустите приложение для принятия изменений</string>
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>
@@ -521,13 +516,13 @@
     <string name="front_proxy">Внешний прокси</string>
     <string name="reset_connections">Сбросить соединения</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
-    <string name="sniff_routing">Слушать правило маршрута</string>
+    <string name="sniff_routing">Перехватывать результат для Маршрутизации</string>
     <string name="update_current_subscription">Обновить подписку группы</string>
     <string name="inbound_password">Пароль пользователя SOCKS5</string>
     <string name="vpn_app_type">Тип приложения</string>
     <string name="vpn_core_type">Тип ядра</string>
     <string name="vpn_core_path">Обнаруженный путь</string>
-    <string name="vpn_golang_version">Перейти к версии</string>
+    <string name="vpn_golang_version">Версия Go</string>
     <string name="vpn_app_type_other">Другой</string>
     <string name="nat_stun_server_hint">STUN сервер</string>
     <string name="vpn_core_type_unknown">Неизвестный</string>
@@ -537,13 +532,13 @@
     <string name="get_cert">Получение сертификатов</string>
     <string name="global_allow_insecure">Всегда разрешать небезопасные</string>
     <string name="dns_mode">Режим DNS</string>
-    <string name="get_cert_summary">Получение сертификатов TLS серверов. Поддержка https и QUIC.</string>
-    <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена!</string>
-    <string name="get_cert_fail">Не удалось получить сертификат!</string>
+    <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
+    <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена.</string>
+    <string name="get_cert_fail">Не удалось получить сертификаты!</string>
     <string name="group_not_subscription">Группа не содержит подписку</string>
-    <string name="scan_vpn_app_introduce">Показать программы VPN, установленные на устройстве.</string>
+    <string name="scan_vpn_app_introduce">Показать установленные на устройстве VPN-приложения и их тип.</string>
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
-    <string name="enable_brutal">Включить контроль перегрузки TCP Brutal</string>
+    <string name="enable_brutal">Включить контроллер перегрузки TCP Brutal</string>
     <string name="release_wake_lock">Отключить WakeLock</string>
     <string name="acquire_wake_lock_summary">Сохранять CPU включенным</string>
     <string name="action_switch">Переключить</string>
@@ -558,9 +553,9 @@
     <string name="tuic_congestion_controller">Контроллер перегрузок</string>
     <string name="custom_config_json">Своя конфигурация JSON</string>
     <string name="save">Сохранить</string>
-    <string name="ech_config">ECH конфигурация</string>
+    <string name="ech_config">Конфигурация ECH</string>
     <string name="http_upgrade_host">HTTPUpgrade Host</string>
-    <string name="blurred_address">Размыть адрес сервера</string>
+    <string name="blurred_address">Сделать адрес сервера размытым</string>
     <string name="connection_test_mux">Сервер не поддерживает этот протокол мультиплексирования</string>
     <string name="exe_prefer_provider">Предпочитаемый поставщик плагинов</string>
     <string name="create_shortcut">Создать ярлык</string>
@@ -570,12 +565,32 @@
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
     <string name="tuic_reduce_rtt">Включить рукопожатие 0-RTT QUIC</string>
     <string name="hop_interval">Интервал переключения портов(второй)</string>
-    <string name="test_timeout">Таймаут (ms)</string>
+    <string name="test_timeout">Таймаут (мс)</string>
     <string name="get_cert_server_hint">Целевой сервер</string>
-    <string name="cazilla_long">Возможно, это позволит избежать атаки со стороны того, кто может контролировать центр сертификации. И может позволить старому устройству использовать новый сертификат.</string>
+    <string name="cazilla_long">Возможно, это позволит избежать атаки со стороны того, кто может контролировать центр сертификации и может позволить старому устройству использовать новый сертификат.</string>
     <string name="sekai">nekohasekai</string>
     <string name="no_thanks">Нет, спасибо</string>
-    <string name="location_permission_description">"Ваше правило маршрутизации содержит правила маршрутизации Wi-Fi SSID или Wi-Fi BSSID.  Чтобы они работали, husi использует разрешение на определение местоположения в фоновом режиме, чтобы получать информацию о подключенной сети Wi-Fi.  Информация будет использоваться только для целей маршрутизации."</string>
+    <string name="location_permission_description">Ваше правило маршрутизации содержит правила маршрутизации Wi-Fi SSID или Wi-Fi BSSID. Чтобы они работали, husi использует разрешение на определение местоположения в фоновом режиме, чтобы получать информацию о подключенной сети Wi-Fi. Информация будет использоваться только для целей маршрутизации.</string>
     <string name="direct_dns_client_subnet">Прямая клиентская подсеть EDNS</string>
     <string name="location_permission_background_description">На Android 10 и выше требуется разрешение на определение местоположения в фоновом режиме. Выберите Разрешить все время, чтобы предоставить разрешение.</string>
+    <string name="mux_preference">Настройки мультиплексирования</string>
+    <string name="mux_state">Мультиплексирование</string>
+    <string name="location_permission_title">Разрешение геолокации</string>
+    <string name="ok">Ок</string>
+    <string name="hysteria2_provider">Провайдер Hysteria2</string>
+    <string name="authenticated_length">Аутентифицированнная длина</string>
+    <string name="insecure_warn">Советы по безопасности</string>
+    <string name="experimental_authenticated_length">Сделать длину каждого сегмента полезной нагрузки неизменяемым. Этот эксперимент требует, что бы клиент и сервер оба использовали одинаковую версию v2ray-core. Больше обновлений со временем.</string>
+    <string name="keep_default">Оставить по умолчанию</string>
+    <string name="action_camera_switch">Изменить камеру</string>
+    <string name="action_flash_on">Включить вспышку</string>
+    <string name="action_flash_off">Выключить вспышку</string>
+    <string name="http_upgrade_path">HTTPUpgrade Path</string>
+    <string name="memory_limit">Лимит памяти</string>
+    <string name="enable_ntp">Включить NTP</string>
+    <string name="ntp_server_address">Адрес сервера NTP</string>
+    <string name="ntp_server_port">Порт сервера NTP</string>
+    <string name="ntp_sync_interval">Интервал синхронизации NTP</string>
+    <string name="ntp_category">Настройки клиента NTP</string>
+    <string name="ntp_sum">Включить встроенный NTP-клиент и использовать предоставляемое им время вместо системного</string>
 </resources>
