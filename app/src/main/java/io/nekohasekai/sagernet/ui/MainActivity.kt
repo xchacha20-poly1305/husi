@@ -125,8 +125,8 @@ class MainActivity : ThemedActivity(),
             val f = File(application.filesDir, "consent")
             if (!f.exists()) {
                 MaterialAlertDialogBuilder(this@MainActivity)
-                    .setTitle("VpnService policy")
-                    .setMessage("Since the main function of this application is VPN, it must use VpnService.")
+                    .setTitle("LICENSE")
+                    .setMessage(this.assets.open("LICENSE").bufferedReader().readText())
                     .setPositiveButton(R.string.yes) { _, _ ->
                         f.createNewFile()
                     }
