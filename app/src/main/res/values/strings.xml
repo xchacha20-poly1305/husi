@@ -617,7 +617,7 @@
     <string name="ntp_category">NTP Client Settings</string>
     <string name="enable_ntp">Enable NTP</string>
     <string name="ntp_sum">Enables the built-in NTP client and uses its provided time instead of the system time</string>
-    <string name="ntp_server_address">Server Address</string>
-    <string name="ntp_server_port">Server Port</string>
-    <string name="ntp_sync_interval">Sync Interval</string>
+    <string name="ntp_server_address">NTP Server Address</string>
+    <string name="ntp_server_port">NTP Server Port</string>
+    <string name="ntp_sync_interval">NTP Sync Interval</string>
 </resources>

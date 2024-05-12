@@ -90,7 +90,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)!!
 
-        val ntpEnable = findPreference<CheckBoxPreference>(Key.ENABLE_NTP)!!
+        val ntpEnable = findPreference<SwitchPreference>(Key.ENABLE_NTP)!!
         val ntpAddress = findPreference<EditTextPreference>(Key.NTP_SERVER)!!
         val ntpPort = findPreference<EditTextPreference>(Key.NTP_PORT)!!
         val ntpInterval = findPreference<SimpleMenuPreference>(Key.NTP_INTERVAL)!!
