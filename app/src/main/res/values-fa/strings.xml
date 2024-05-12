@@ -475,7 +475,7 @@
     <string name="use_selector">استفاده از انتخابگر</string>
     <string name="share_subscription">به‌هم رسانی اشتراک‌ها</string>
     <string name="mtu_help">برای تنظیم MTU سفارشی، اولویت را طولانی فشار دهید.</string>
-    <string name="remove_duplicate">حذف کردن سرور های تکراری</string>
+    <string name="remove_duplicate">حذف سرورهای تکراری</string>
     <string name="sniff_routing">نتیجه Sniff برای مسیریابی</string>
     <string name="resolve_server">یافتن آدرس سرور مطابق خط مشی IPv6</string>
     <string name="get_cert_server_hint">سرور هدف</string>
@@ -517,7 +517,7 @@
     <string name="vpn_golang_version">نسخه زبان Go</string>
     <string name="cazilla">استفاده از Mozilla CA Certificate Program</string>
     <string name="log_level_help">برای تنظیم اندازه بافر اولویت را طولانی فشار دهید.</string>
-    <string name="tls_camouflage_settings">تنظیمات TLS Camouflage</string>
+    <string name="tls_camouflage_settings">تنظیمات استتار TLS</string>
     <string name="sniff_override">نتیجه Sniff برای مقصد</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>
     <string name="get_cert_success">با موفقیت انجام شد! گواهی ها در کلیپ بورد کپی شدند.</string>
