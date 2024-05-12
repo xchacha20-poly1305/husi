@@ -96,6 +96,7 @@ fun Project.setupCommon() {
         buildTypes {
             getByName("release") {
                 isMinifyEnabled = true
+                vcsInfo.include = false
             }
         }
         compileOptions {
@@ -133,6 +134,7 @@ fun Project.setupCommon() {
                 getByName("release") {
                     isMinifyEnabled = true
                     isShrinkResources = true
+                    vcsInfo.include = false
                 }
                 getByName("debug") {
                     applicationIdSuffix = "debug"
@@ -236,7 +238,6 @@ fun Project.setupApp() {
         flavorDimensions += "vendor"
         productFlavors {
             create("foss")
-            create("fdroid")
             create("play")
         }
 
