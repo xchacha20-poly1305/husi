@@ -201,8 +201,8 @@ fun buildConfig(
             }
         }
 
-        ntp = NTPOptions().apply {
-            enabled = DataStore.ntpEnable
+        if (DataStore.ntpEnable) ntp = NTPOptions().apply {
+            enabled = true
             server = DataStore.ntpAddress
             server_port = DataStore.ntpPort
             interval = DataStore.ntpInterval
