@@ -722,9 +722,7 @@ public class SingBoxOptions {
 
         public Boolean enabled;
 
-        public Long interval;
-
-        public Boolean write_to_system;
+        public String interval;
 
         // Generate note: nested type ServerOptions
         public String server;

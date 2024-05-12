@@ -167,6 +167,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var dashURL by configurationStore.string("dashURL") { "http://127.0.0.1:9090/ui" }
     var enabledCazilla by configurationStore.boolean(Key.ENABLED_CAZILLA) { false }
 
+    // ntp
+    var ntpEnable by configurationStore.boolean(Key.ENABLE_NTP) { false }
+    var ntpAddress by configurationStore.string(Key.NTP_SERVER) { "time.apple.com" }
+    var ntpPort by configurationStore.stringToInt(Key.NTP_PORT) { 123 }
+    var ntpInterval by configurationStore.string(Key.NTP_INTERVAL) { "30m" }
+
     // protocol
 
     var muxType by configurationStore.stringToInt(Key.MUX_TYPE)

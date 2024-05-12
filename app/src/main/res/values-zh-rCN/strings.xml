@@ -548,4 +548,10 @@
     <string name="authenticated_length">长度块加密</string>
     <string name="experimental_authenticated_length">让每个有效载荷段的长度不再具有可塑性。这个实验要求服务器和客户端使用相同版本的 v2ray-core。预计会有更多关于这个实验的破坏性更新。</string>
     <string name="keep_default">保持默认</string>
+    <string name="ntp_category">NTP 客户端设置</string>
+    <string name="enable_ntp">启用 NTP</string>
+    <string name="ntp_sum">启用内置 NTP 客户端并使用它提供的时间替代系统时间</string>
+    <string name="ntp_server_address">NTP 服务器地址</string>
+    <string name="ntp_server_port">NTP 服务器端口</string>
+    <string name="ntp_sync_interval">NTP 同步间隔</string>
 </resources>

@@ -330,4 +330,35 @@
                 app:key="allowInsecureOnRequest"
                 app:title="@string/allow_insecure_on_request_sum"/>
     </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/ntp_category"
+            app:icon="@drawable/ic_baseline_timelapse_24">
+        <SwitchPreference
+                app:key="ntpEnable"
+                app:title="@string/enable_ntp"
+                app:summary="@string/ntp_sum" />
+        <EditTextPreference
+                app:defaultValue="time.apple.com"
+                app:title="@string/ntp_server_address"
+                app:icon="@drawable/ic_hardware_router"
+                app:key="ntpAddress"
+                app:useSimpleSummaryProvider="true"
+                />
+        <EditTextPreference
+                app:defaultValue="123"
+                app:title="@string/ntp_server_port"
+                app:icon="@drawable/ic_maps_directions_boat"
+                app:key="ntpPort"
+                app:useSimpleSummaryProvider="true"
+                />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:defaultValue="30m"
+                app:entries="@array/ntp_intervals"
+                app:entryValues="@array/ntp_intervals"
+                app:key="ntpInterval"
+                app:title="@string/ntp_sync_interval"
+                app:icon="@drawable/ic_baseline_flip_camera_android_24"
+                app:useSimpleSummaryProvider="true"
+                />
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -60,6 +60,12 @@ object Key {
     const val ALWAYS_SHOW_ADDRESS = "alwaysShowAddress"
     const val BLURRED_ADDRESS = "blurredAddress"
 
+    // NTP Settings
+    const val ENABLE_NTP = "ntpEnable"
+    const val NTP_SERVER = "ntpAddress"
+    const val NTP_PORT = "ntpPort"
+    const val NTP_INTERVAL = "ntpInterval"
+
     // Protocol Settings
     const val MUX_TYPE = "muxType"
     const val MUX_PROTOCOLS = "mux"
