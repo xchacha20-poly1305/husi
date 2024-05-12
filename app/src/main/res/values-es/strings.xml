@@ -559,4 +559,10 @@
     <string name="mux_state">Multiplex</string>
     <string name="mux_preference">Ajustes del Multiplex</string>
     <string name="keep_default">Mantener por defecto</string>
+    <string name="ntp_category">Ajustes del cliente NTP</string>
+    <string name="enable_ntp">Activar NTP</string>
+    <string name="ntp_sum">Activa el cliente NTP integrado y utiliza la hora proporcionada en lugar de la hora del sistema</string>
+    <string name="ntp_server_address">Dirección del servidor NTP</string>
+    <string name="ntp_server_port">Puerto del servidor NTP</string>
+    <string name="ntp_sync_interval">Intervalo de sincronización NTP</string>
 </resources>
