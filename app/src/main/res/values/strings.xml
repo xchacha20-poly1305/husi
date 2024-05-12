@@ -614,4 +614,10 @@
     <string name="authenticated_length">Authenticated length</string>
     <string name="experimental_authenticated_length">Make the length of each payload segment no longer malleable. This experiment requires the server and client use the same version of v2ray-core. More breaking updates on this experiment is expected.</string>
     <string name="keep_default">Keep default</string>
+    <string name="ntp_category">NTP Client Settings</string>
+    <string name="enable_ntp">Enable NTP</string>
+    <string name="ntp_sum">Enables the built-in NTP client and uses its provided time instead of the system time</string>
+    <string name="ntp_server_address">NTP Server Address</string>
+    <string name="ntp_server_port">NTP Server Port</string>
+    <string name="ntp_sync_interval">NTP Sync Interval</string>
 </resources>
