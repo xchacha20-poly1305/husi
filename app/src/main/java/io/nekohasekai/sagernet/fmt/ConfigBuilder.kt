@@ -201,18 +201,6 @@ fun buildConfig(
             }
         }
 
-        ntp = NTPOptions().apply {
-            enabled = DataStore.ntpEnable
-            server = DataStore.ntpAddress
-            server_port = DataStore.ntpPort
-            interval = DataStore.ntpInterval
-            detour = TAG_DIRECT
-
-            if (!server.isIpAddress()) {
-                domainListDNSDirectForce.add("full:$server")
-            }
-        }
-
         dns = DNSOptions().apply {
             servers = mutableListOf()
             rules = mutableListOf()
@@ -550,6 +538,25 @@ fun buildConfig(
         // build outbounds from route item
         extraProxies.forEach { (key, p) ->
             tagMap[key] = buildChain(key, p)
+        }
+
+        // ntp section
+        val needNTP = proxy.requireBean().needTimeSync()
+        extraProxies.forEach { (t, u) ->
+            needNTP.or(u.requireBean().needTimeSync())
+        }
+        if ((!forTest || needNTP) && DataStore.ntpEnable) {
+            ntp = NTPOptions().apply {
+                enabled = DataStore.ntpEnable
+                server = DataStore.ntpAddress
+                server_port = DataStore.ntpPort
+                interval = DataStore.ntpInterval
+                detour = TAG_DIRECT
+
+                if (!server.isIpAddress()) {
+                    domainListDNSDirectForce.add("full:$server")
+                }
+            }
         }
 
         // apply user rules
