@@ -260,9 +260,4 @@ public abstract class StandardV2RayBean extends AbstractBean {
         };
     }
 
-    @Override
-    public boolean needTimeSync() {
-        return type.equals("vmess") || security.equals("reality");
-    }
-
 }

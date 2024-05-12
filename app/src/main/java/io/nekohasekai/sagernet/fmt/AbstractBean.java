@@ -59,8 +59,6 @@ public abstract class AbstractBean extends Serializable {
         return true;
     }
 
-    public boolean needTimeSync() { return false; }
-
     @Override
     public void initializeDefaultValues() {
         if (JavaUtil.isNullOrBlank(serverAddress)) {

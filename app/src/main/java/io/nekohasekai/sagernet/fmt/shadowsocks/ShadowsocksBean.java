@@ -78,11 +78,6 @@ public class ShadowsocksBean extends AbstractBean {
         return true;
     }
 
-    @Override
-    public boolean needTimeSync() {
-        return method.contains("2022");
-    }
-
     @NotNull
     @Override
     public ShadowsocksBean clone() {
