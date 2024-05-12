@@ -43,6 +43,10 @@ jobs:
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
