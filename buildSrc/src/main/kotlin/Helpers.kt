@@ -250,12 +250,6 @@ fun Project.setupApp() {
             }
         }
 
-        for (abi in listOf("Arm64", "Arm", "X64", "X86")) {
-            tasks.create("assemble" + abi + "FdroidRelease") {
-                dependsOn("assembleFdroidRelease")
-            }
-        }
-
         sourceSets.getByName("main").apply {
             jniLibs.srcDir("executableSo")
         }
