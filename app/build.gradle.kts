@@ -56,7 +56,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.activity:activity-ktx:1.9.0")
-    implementation("androidx.fragment:fragment-ktx:1.7.0")
+    implementation("androidx.fragment:fragment-ktx:1.7.1")
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -89,7 +89,7 @@ dependencies {
         exclude(group = "androidx.appcompat")
     }
 
-    implementation("com.android.tools.smali:smali-dexlib2:3.0.5") {
+    implementation("com.android.tools.smali:smali-dexlib2:3.0.7") {
         exclude(group = "com.google.guava", module = "guava")
     }
     implementation("com.google.guava:guava:33.2.0-android")
