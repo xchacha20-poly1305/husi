@@ -209,7 +209,7 @@ fun buildConfig(
             detour = TAG_DIRECT
 
             if (!server.isIpAddress()) {
-                domainListDNSDirectForce.add("full:$server")
+                domainListDNSDirectForce.add(server)
             }
         }
 
@@ -477,7 +477,7 @@ fun buildConfig(
                     pastEntity?.requireBean()?.apply {
                         // don't loopback
                         if (defaultServerDomainStrategy != "" && !serverAddress.isIpAddress()) {
-                            domainListDNSDirectForce.add("full:$serverAddress")
+                            domainListDNSDirectForce.add(serverAddress)
                         }
                     }
                     // domain_strategy
@@ -733,7 +733,7 @@ fun buildConfig(
             }
 
             if (!serverAddr.isIpAddress()) {
-                domainListDNSDirectForce.add("full:${serverAddr}")
+                domainListDNSDirectForce.add(serverAddr)
             }
         }
 
@@ -745,7 +745,7 @@ fun buildConfig(
             try {
                 Libcore.parseURL("https://$address").apply {
                     if (!host.isIpAddress()) {
-                        domainListDNSDirectForce.add("full:$host")
+                        domainListDNSDirectForce.add(host)
                     }
                 }
             } catch (_: Exception) {
