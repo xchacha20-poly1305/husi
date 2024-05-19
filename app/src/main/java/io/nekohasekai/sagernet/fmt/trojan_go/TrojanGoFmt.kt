@@ -81,7 +81,7 @@ fun TrojanGoBean.toUri(): String {
     }
 
     if (name.isNotBlank()) {
-        builder.setRawFragment(name)
+        builder.fragment = name
     }
 
     return builder.string

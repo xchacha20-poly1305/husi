@@ -497,7 +497,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
     }
 
     if (name.isNotBlank()) {
-        builder.setRawFragment(name.urlSafe())
+        builder.fragment = name
     }
 
     return builder.string

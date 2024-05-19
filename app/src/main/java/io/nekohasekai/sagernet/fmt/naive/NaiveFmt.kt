@@ -46,7 +46,7 @@ fun NaiveBean.toUri(proxyOnly: Boolean = false): String {
             builder.addQueryParameter("extra-headers", extraHeaders)
         }
         if (name.isNotBlank()) {
-            builder.setRawFragment(name)
+            builder.fragment = name
         }
         if (insecureConcurrency > 0) {
             builder.addQueryParameter("insecure-concurrency", "$insecureConcurrency")
