@@ -8,6 +8,8 @@ import android.os.IBinder
 import android.os.RemoteException
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.aidl.Connection
+import io.nekohasekai.sagernet.aidl.ConnectionList
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
@@ -52,6 +54,7 @@ class SagerConnection(
          */
         fun onServiceDisconnected() {}
         fun onBinderDied() {}
+        fun connectionUpdate(connectionList: List<Connection>) {}
     }
 
     private var connectionActive = false
@@ -87,6 +90,13 @@ class SagerConnection(
             val callback = callback ?: return
             runOnMainDispatcher {
                 callback.cbSelectorUpdate(id)
+            }
+        }
+
+        override fun connectionUpdate(connectionList: ConnectionList) {
+            val callback = callback ?: return
+            runOnMainDispatcher {
+                callback.connectionUpdate(connectionList.connections)
             }
         }
 

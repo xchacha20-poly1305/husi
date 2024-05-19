@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        style="?attr/materialCardViewElevatedStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:orientation="horizontal">
+
+        <LinearLayout
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:layout_weight="2"
+                android:orientation="vertical"
+                android:layout_width="0dp">
+
+            <TextView
+                    style="?attr/textAppearanceBodySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="UUID (TCP)"
+                    android:id="@+id/connectionID" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/traffic"
+                    android:id="@+id/connectionTraffic" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/start_time"
+                    android:id="@+id/connectionStart" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/outbound_rule"
+                    android:id="@+id/connectionOutbound" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/menuIcon"
+                android:layout_weight="0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_baseline_more_vert_24" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

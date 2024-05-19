@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
@@ -101,6 +102,7 @@ class BaseService {
         val callbackIdMap = mutableMapOf<ISagerNetServiceCallback, Int>()
 
         override val coroutineContext = Dispatchers.Main.immediate + Job()
+        private var connectionLooper: Job? = null
 
         override fun getState(): Int = (data?.state ?: State.Idle).ordinal
         override fun getProfileName(): String = data?.proxy?.displayProfileName ?: "Idle"
@@ -130,6 +132,8 @@ class BaseService {
                 }
             }
         }
+
+        val connections = ArrayList<Connection>()
 
         override fun unregisterCallback(cb: ISagerNetServiceCallback) {
             callbackIdMap.remove(cb)
