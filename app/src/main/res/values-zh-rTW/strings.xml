@@ -505,7 +505,7 @@
     <string name="action_open">打開</string>
     <string name="enable_fakedns">啟用 FakeDNS</string>
     <string name="fakedns_message">可能導致其他應用程式在代理停止後需要重新啟動以重新連接到網絡</string>
-    <string name="mux_sum">多路復用是為了減少 TCP 的握手延遲而設計, 而非提高連接的吞吐量. 用於看視頻、下載或測速通常都有反效果。如果伺服器不支持，則無法上網。</string>
+    <string name="mux_sum">Mux 的設計目的是減少連線握手延遲，而不是增加連線吞吐量。使用 Mux 觀看影片、下載或測試速度通常會適得其反。如果伺服器不支援它，你將無法連接到網際網路。</string>
     <string name="nat_result_hint">NAT 測試結果</string>
     <string name="tuic_reduce_rtt">啟用 0-RTT QUIC 握手</string>
     <string name="neko_plugin_internal_error">%s 內部錯誤</string>
@@ -540,4 +540,19 @@
     <string name="action_flash_on">開啟閃光燈</string>
     <string name="location_permission_title">位置許可</string>
     <string name="location_permission_description">您的路由規則包含 Wi-Fi SSID 或 Wi-Fi BSSID 路由規則。為使其正常運作，虎兕 使用後台位置權限來取得已連接 Wi-Fi 網路的資訊。此資訊僅用於路由目的。</string>
+    <string name="insecure_warn">安全建議</string>
+    <string name="hysteria2_provider">Hysteria2 提供者</string>
+    <string name="mux_preference">多工設定</string>
+    <string name="mux_state">多工</string>
+    <string name="authenticated_length">驗證長度</string>
+    <string name="experimental_authenticated_length">使每個有效負載段的長度不再可變。此實驗要求伺服器和客戶端使用相同版本的 v2ray-core。預計此實驗將有更多重大更新。</string>
+    <string name="keep_default">保持預設</string>
+    <string name="connection_test_mux">伺服器不支援此多工協定</string>
+    <string name="memory_limit">記憶體限制</string>
+    <string name="ntp_category">NTP 客戶端設定</string>
+    <string name="enable_ntp">啟用 NTP</string>
+    <string name="ntp_sum">啟用內建的 NTP 客戶端，並使用其提供的時間取代系統時間。</string>
+    <string name="ntp_server_address">NTP 伺服器地址</string>
+    <string name="ntp_server_port">NTP 伺服器埠</string>
+    <string name="ntp_sync_interval">NTP 同步間隔</string>
 </resources>
