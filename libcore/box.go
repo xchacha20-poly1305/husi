@@ -154,10 +154,6 @@ func (b *BoxInstance) SetAsMain() {
 	goServeProtect(true)
 }
 
-func (b *BoxInstance) SetConnectionPoolEnabled(enable bool) {
-	// TODO api
-}
-
 func (b *BoxInstance) SetV2rayStats(outbounds string) {
 	b.v2api = v2rayapilite.NewSbV2rayServer(option.V2RayStatsServiceOptions{
 		Enabled:   true,

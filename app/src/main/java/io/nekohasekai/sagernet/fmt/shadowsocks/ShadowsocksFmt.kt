@@ -23,7 +23,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
 
         if (url.username.isBlank()) { // fix justmysocks' shit link
             url = Libcore.parseURL(rawUrl.substringBefore("#").decodeBase64UrlSafe())
-            url.setRawFragment(rawUrl.substringAfter("#"))
+            url.fragment = rawUrl.substringAfter("#")
         }
 
         if (url.password.isNotBlank()) {
@@ -89,7 +89,7 @@ fun ShadowsocksBean.toUri(): String {
     }
 
     if (name.isNotBlank()) {
-        builder.setRawFragment(name)
+        builder.fragment = name
     }
 
     return builder.string.replace("$serverPort/", "$serverPort")
