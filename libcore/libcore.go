@@ -11,9 +11,6 @@ import (
 
 const ProtectPath = "protect_path"
 
-//go:linkname resourcePaths github.com/sagernet/sing-box/constant.resourcePaths
-var resourcePaths []string
-
 func LogPrintln(s string) {
 	log.Println(s)
 }
@@ -41,9 +38,6 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	workDir := filepath.Join(cachePath, "../no_backup")
 	_ = os.MkdirAll(workDir, 0o755)
 	_ = os.Chdir(workDir)
-
-	// sing-box fs
-	resourcePaths = append(resourcePaths, externalAssets)
 
 	// Set up log
 	if maxLogSizeKb < 50 {

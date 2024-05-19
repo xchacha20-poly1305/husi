@@ -40,7 +40,7 @@ fun SOCKSBean.toUri(): String {
     }
     if (!username.isNullOrBlank()) builder.username = username
     if (!password.isNullOrBlank()) builder.password = password
-    if (!name.isNullOrBlank()) builder.setRawFragment(name)
+    if (!name.isNullOrBlank()) builder.fragment = name
     return builder.string
 
 }

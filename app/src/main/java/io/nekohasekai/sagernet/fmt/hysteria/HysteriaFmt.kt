@@ -95,7 +95,7 @@ fun HysteriaBean.toUri(): String {
     }
 
     if (name.isNotBlank()) {
-        url.setRawFragment(name)
+        url.fragment = name
     }
     if (allowInsecure) {
         url.addQueryParameter("insecure", "1")

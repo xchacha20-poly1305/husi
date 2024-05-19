@@ -42,7 +42,7 @@ type URL interface {
 	SetQueryParameter(key, value string)
 
 	GetFragment() string
-	SetRawFragment(rawFragment string) error
+	SetFragment(fragment string)
 
 	GetString() string
 }
@@ -61,101 +61,30 @@ func NewURL(scheme string) URL {
 	return u
 }
 
-//go:linkname getScheme net/url.getScheme
-func getScheme(rawURL string) (scheme, path string, err error)
-
-//go:linkname setFragment net/url.(*URL).setFragment
-func setFragment(u *url.URL, fragment string) error
-
 //go:linkname setPath net/url.(*URL).setPath
 func setPath(u *url.URL, fragment string) error
 
-// parse parses a URL from a string in one of two contexts. If
-// viaRequest is true, the URL is assumed to have arrived via an HTTP request,
-// in which case only absolute URLs or path-absolute relative URLs are allowed.
-// If viaRequest is false, all forms of relative URLs are allowed.
-func parse(rawURL string) (*url.URL, error) {
-	var rest string
-	var err error
-
-	newUrl := new(url.URL)
-
-	if rawURL == "*" {
-		newUrl.Path = "*"
-		return newUrl, nil
-	}
-
-	// Split off possible leading "http:", "mailto:", etc.
-	// Cannot contain escaped characters.
-	if newUrl.Scheme, rest, err = getScheme(rawURL); err != nil {
-		return nil, err
-	}
-	newUrl.Scheme = strings.ToLower(newUrl.Scheme)
-
-	if strings.HasSuffix(rest, "?") && strings.Count(rest, "?") == 1 {
-		newUrl.ForceQuery = true
-		rest = rest[:len(rest)-1]
-	} else {
-		rest, newUrl.RawQuery, _ = strings.Cut(rest, "?")
-	}
-
-	if !strings.HasPrefix(rest, "/") {
-		if newUrl.Scheme != "" {
-			// We consider rootless paths per RFC 3986 as opaque.
-			newUrl.Opaque = rest
-			return newUrl, nil
-		}
-
-		// Avoid confusion with malformed schemes, like cache_object:foo/bar.
-		// See golang.org/issue/16822.
-		//
-		// RFC 3986, §3.3:
-		// In addition, a URI reference (Section 4.1) may be a relative-path reference,
-		// in which case the first path segment cannot contain a colon (":") character.
-		if segment, _, _ := strings.Cut(rest, "/"); strings.Contains(segment, ":") {
-			// First path segment has colon. Not allowed in relative URL.
-			return nil, E.New("first path segment in URL cannot contain colon")
-		}
-	}
-
-	if (newUrl.Scheme != "" || !strings.HasPrefix(rest, "///")) && strings.HasPrefix(rest, "//") {
-		var authority string
-		authority, rest = rest[2:], ""
-		if i := strings.Index(authority, "/"); i >= 0 {
-			authority, rest = authority[:i], authority[i:]
-		}
-		newUrl.User, newUrl.Host, err = parseAuthority(authority)
-		if err != nil {
-			return nil, err
-		}
-	}
-	// Set Path and, optionally, RawPath.
-	// RawPath is a hint of the encoding of Path. We don't want to set it if
-	// the default escaping of Path is equivalent, to help make sure that people
-	// don't rely on it in general.
-	if err := setPath(newUrl, rest); err != nil {
-		return nil, err
-	}
-	return newUrl, nil
-}
-
 func ParseURL(rawURL string) (URL, error) {
 	u := &netURL{}
-	ru, frag, _ := strings.Cut(rawURL, "#")
-	uu, err := parse(ru)
+	uu, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, E.New("failed to parse url: ", rawURL)
+		// For Hysteria port hop non-standard format
+		errStr := err.Error()
+		if !strings.Contains(errStr, "invalid port") {
+			return nil, E.Cause(err, "pause rawURL")
+		}
+		multiplePort := stringBetween(errStr, "invalid port \"", "\" after host")
+		noPort := strings.Replace(rawURL, multiplePort, "", 1)
+		uu, err = url.Parse(noPort)
+		if err != nil {
+			return nil, E.Cause(err, "parse rawURL with invalid port")
+		}
+		uu.Host = net.JoinHostPort(uu.Host, strings.TrimPrefix(multiplePort, ":"))
 	}
 	u.URL = *uu
 	u.Values = u.Query()
 	if u.Values == nil {
 		u.Values = make(url.Values)
-	}
-	if frag == "" {
-		return u, nil
-	}
-	if err = u.SetRawFragment(frag); err != nil {
-		return nil, err
 	}
 	return u, nil
 }
@@ -284,123 +213,12 @@ func (u *netURL) GetFragment() string {
 	return u.Fragment
 }
 
-func (u *netURL) SetRawFragment(rawFragment string) error {
-	return setFragment(&u.URL, rawFragment)
+func (u *netURL) SetFragment(fragment string) {
+	u.Fragment = fragment
+	u.RawFragment = ""
 }
 
 func (u *netURL) GetString() string {
 	u.RawQuery = u.Encode()
 	return u.String()
-}
-
-// https://github.com/apernet/hysteria/blob/d9346f6c2482d34d876c55ff7228ea26445ee2a2/app/internal/url/url.go
-
-// validOptionalPort reports whether port is either an empty string
-// or matches /^:\d*$/
-func validOptionalPort(port string) bool {
-	if port == "" {
-		return true
-	}
-	if port[0] != ':' {
-		return false
-	}
-	for _, b := range port[1:] {
-		if (b < '0' || b > '9') && (b != '-' && b != ',') {
-			// Neither a digit nor a valid separator character.
-			return false
-		}
-	}
-	return true
-}
-
-//go:linkname unescape net/url.unescape
-func unescape(s string, mode int) (string, error)
-
-// parseHost parses host as an authority without user
-// information. That is, as host[:port].
-func parseHost(host string) (string, error) {
-	if strings.HasPrefix(host, "[") {
-		// Parse an IP-Literal in RFC 3986 and RFC 6874.
-		// E.g., "[fe80::1]", "[fe80::1%25en0]", "[fe80::1]:80".
-		i := strings.LastIndex(host, "]")
-		if i < 0 {
-			return "", E.New("missing ']' in host")
-		}
-		colonPort := host[i+1:]
-		if !validOptionalPort(colonPort) {
-			return "", E.New("invalid port ", colonPort, " after host")
-		}
-
-		// RFC 6874 defines that %25 (%-encoded percent) introduces
-		// the zone identifier, and the zone identifier can use basically
-		// any %-encoding it likes. That's different from the host, which
-		// can only %-encode non-ASCII bytes.
-		// We do impose some restrictions on the zone, to avoid stupidity
-		// like newlines.
-		zone := strings.Index(host[:i], "%25")
-		if zone >= 0 {
-			host1, err := unescape(host[:zone], 3) // encodeHost
-			if err != nil {
-				return "", err
-			}
-			host2, err := unescape(host[zone:i], 4) // encodeZone
-			if err != nil {
-				return "", err
-			}
-			host3, err := unescape(host[i:], 3) // encodeHost
-			if err != nil {
-				return "", err
-			}
-			return host1 + host2 + host3, nil
-		}
-	} else if i := strings.LastIndex(host, ":"); i != -1 {
-		colonPort := host[i:]
-		if !validOptionalPort(colonPort) {
-			return "", E.New("invalid port ", colonPort, " after host")
-		}
-	}
-
-	var err error
-	if host, err = unescape(host, 3); /*encodeHost*/ err != nil {
-		return "", err
-	}
-	return host, nil
-}
-
-//go:linkname validUserinfo net/url.validUserinfo
-func validUserinfo(s string) bool
-
-func parseAuthority(authority string) (user *url.Userinfo, host string, err error) {
-	i := strings.LastIndex(authority, "@")
-	if i < 0 {
-		host, err = parseHost(authority)
-	} else {
-		host, err = parseHost(authority[i+1:])
-	}
-	if err != nil {
-		return nil, "", err
-	}
-	if i < 0 {
-		return nil, host, nil
-	}
-	userinfo := authority[:i]
-	if !validUserinfo(userinfo) {
-		return nil, "", E.New("net/url: invalid userinfo")
-	}
-	if !strings.Contains(userinfo, ":") {
-		if userinfo, err = unescape(userinfo, 5); /*encodeUserPassword*/ err != nil {
-			return nil, "", err
-		}
-		user = url.User(userinfo)
-	} else {
-		username, password, _ := strings.Cut(userinfo, ":")
-		if username, err = unescape(username, 5); /*encodeUserPassword*/ err != nil {
-			return nil, "", err
-		}
-		if password, err = unescape(password, 5); /*encodeUserPassword*/ err != nil {
-			return nil, "", err
-		}
-		user = url.UserPassword(username, password)
-	}
-	return user, host, nil
 }

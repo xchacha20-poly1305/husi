@@ -57,7 +57,7 @@ fun TuicBean.toUri(): String {
     if (alpn.isNotBlank()) builder.addQueryParameter("alpn", alpn)
     if (allowInsecure) builder.addQueryParameter("allow_insecure", "1")
     if (disableSNI) builder.addQueryParameter("disable_sni", "1")
-    if (name.isNotBlank()) builder.setRawFragment(name)
+    if (name.isNotBlank()) builder.fragment = name
 
     return builder.string
 }
