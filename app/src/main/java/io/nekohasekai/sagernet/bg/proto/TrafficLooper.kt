@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg.proto
 
+import io.nekohasekai.sagernet.aidl.ConnectionList
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
@@ -10,6 +11,7 @@ import io.nekohasekai.sagernet.fmt.TAG_BYPASS
 import io.nekohasekai.sagernet.fmt.TAG_PROXY
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.toConnectionList
 import kotlinx.coroutines.*
 
 class TrafficLooper
@@ -172,6 +174,13 @@ class TrafficLooper
                                 )
                             }
                         }
+
+                        try {
+                            b.connectionUpdate(ConnectionList(data.proxy!!.box.trackerInfos.toConnectionList()))
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                        }
+
                     }
                 }
             }

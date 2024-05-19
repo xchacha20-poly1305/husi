@@ -154,6 +154,7 @@ class SagerNet : Application(),
         val power by lazy { application.getSystemService<PowerManager>()!! }
         val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
         val inputMethodManager by lazy { application.getSystemService<InputMethodManager>()!! }
+        val clipboardManager by lazy { application.getSystemService<ClipboardManager>()!! }
 
         fun getClipboardText(): String {
             return clipboard.primaryClip?.takeIf { it.itemCount > 0 }

@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/protocol/socks"
@@ -74,16 +75,16 @@ func NewHttpClient() HTTPClient {
 
 func (c *httpClient) ModernTLS() {
 	c.tls.MinVersion = tls.VersionTLS12
-	// c.tls.CipherSuites = nekoutils.Map(tls.CipherSuites(), func(it *tls.CipherSuite) uint16 { return it.ID })
+	c.tls.CipherSuites = common.Map(tls.CipherSuites(), func(it *tls.CipherSuite) uint16 { return it.ID })
 }
 
 func (c *httpClient) RestrictedTLS() {
 	c.tls.MinVersion = tls.VersionTLS13
-	// c.tls.CipherSuites = nekoutils.Map(nekoutils.Filter(tls.CipherSuites(), func(it *tls.CipherSuite) bool {
-	// 	return nekoutils.Contains(it.SupportedVersions, uint16(tls.VersionTLS13))
-	// }), func(it *tls.CipherSuite) uint16 {
-	// 	return it.ID
-	// })
+	c.tls.CipherSuites = common.Map(common.Filter(tls.CipherSuites(), func(it *tls.CipherSuite) bool {
+		return common.Contains(it.SupportedVersions, uint16(tls.VersionTLS13))
+	}), func(it *tls.CipherSuite) uint16 {
+		return it.ID
+	})
 }
 
 func (c *httpClient) PinnedTLS12() {
