@@ -7,20 +7,30 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.core.app.ActivityCompat
-import androidx.preference.*
+import androidx.preference.EditTextPreference
+import androidx.preference.MultiSelectListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceScreen
+import androidx.preference.SwitchPreference
+import androidx.preference.forEach
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
+import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.needReload
+import io.nekohasekai.sagernet.ktx.needRestart
+import io.nekohasekai.sagernet.ktx.remove
 import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.AppListPreference
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
-import moe.matsuri.nb4a.ui.MTUPreference
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
@@ -49,56 +59,171 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
-        DataStore.routePackages = DataStore.nekoPlugins
-        nekoPlugins = findPreference(Key.NEKO_PLUGIN_MANAGED)!!
-        nekoPlugins.setOnPreferenceClickListener {
-            // borrow from route app settings
-            startActivity(Intent(
-                context, AppListActivity::class.java
-            ).apply { putExtra(Key.NEKO_PLUGIN_MANAGED, true) })
-            true
-        }
 
-        val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
-        appTheme.setOnPreferenceChangeListener { _, newTheme ->
-            if (DataStore.serviceState.started) {
-                SagerNet.reloadService()
+        lateinit var ntpEnable: SwitchPreference
+        lateinit var ntpAddress: EditTextPreference
+        lateinit var ntpPort: EditTextPreference
+        lateinit var ntpInterval: SimpleMenuPreference
+
+        lateinit var bypassLan: SwitchPreference
+        lateinit var bypassLanInCore: SwitchPreference
+
+        lateinit var logLevel: LongClickListPreference
+        lateinit var alwaysShowAddress: SwitchPreference
+        lateinit var blurredAddress: SwitchPreference
+
+        lateinit var profileTrafficStatistics: SwitchPreference
+        lateinit var speedInterval: SimpleMenuPreference
+        lateinit var showDirectSpeed: SwitchPreference
+
+
+        val globalPreferences = findPreference<PreferenceScreen>(Key.GLOBAL_PREFERENCES)!!
+        globalPreferences.forEach { preferenceCategory ->
+            preferenceCategory as PreferenceCategory
+            when (preferenceCategory.key) {
+                Key.GENERAL_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.NEKO_PLUGIN_MANAGED -> {
+                            DataStore.routePackages = DataStore.nekoPlugins
+                            preference.setOnPreferenceClickListener {
+                                // borrow from route app settings
+                                startActivity(Intent(
+                                    context, AppListActivity::class.java
+                                ).apply { putExtra(Key.NEKO_PLUGIN_MANAGED, true) })
+                                true
+                            }
+
+                        }
+
+                        Key.APP_THEME -> {
+                            preference as ColorPickerPreference
+                            preference.setOnPreferenceChangeListener { _, newTheme ->
+                                if (DataStore.serviceState.started) {
+                                    SagerNet.reloadService()
+                                }
+                                val theme = Theme.getTheme(newTheme as Int)
+                                app.setTheme(theme)
+                                requireActivity().apply {
+                                    setTheme(theme)
+                                    ActivityCompat.recreate(this)
+                                }
+                                true
+                            }
+                        }
+
+
+                        Key.NIGHT_THEME -> preference.setOnPreferenceChangeListener { _, newTheme ->
+                            Theme.currentNightMode = (newTheme as String).toInt()
+                            Theme.applyNightTheme()
+                            true
+                        }
+
+                        Key.METERED_NETWORK -> if (Build.VERSION.SDK_INT < 28) {
+                            preference.remove()
+                        }
+
+                        Key.SERVICE_MODE -> preference.setOnPreferenceChangeListener { _, _ ->
+                            if (DataStore.serviceState.started) SagerNet.stopService()
+                            true
+                        }
+
+                        Key.MEMORY_LIMIT -> {
+                            preference.onPreferenceChangeListener = restartListener
+                        }
+
+                        Key.LOG_LEVEL -> logLevel = preference as LongClickListPreference
+
+                        Key.ALWAYS_SHOW_ADDRESS -> alwaysShowAddress =
+                            preference as SwitchPreference
+
+                        Key.BLURRED_ADDRESS -> blurredAddress = preference as SwitchPreference
+
+                        Key.PROFILE_TRAFFIC_STATISTICS -> profileTrafficStatistics =
+                            preference as SwitchPreference
+
+                        Key.SPEED_INTERVAL -> speedInterval = preference as SimpleMenuPreference
+
+                        Key.SHOW_DIRECT_SPEED -> showDirectSpeed = preference as SwitchPreference
+
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
+
+                Key.ROUTE_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.PROXY_APPS -> {
+                            isProxyApps = preference as SwitchPreference
+                            isProxyApps.setOnPreferenceChangeListener { _, newValue ->
+                                startActivity(Intent(activity, AppManagerActivity::class.java))
+                                if (newValue as Boolean) DataStore.dirty = true
+                                newValue
+                            }
+                        }
+
+                        Key.BYPASS_LAN -> bypassLan = preference as SwitchPreference
+                        Key.BYPASS_LAN_IN_CORE -> bypassLanInCore = preference as SwitchPreference
+
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
+
+                Key.PROTOCOL_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.MUX_PROTOCOLS -> {
+                            preference as MultiSelectListPreference
+                            preference.apply {
+                                val e = Protocols.getCanMuxList().toTypedArray()
+                                entries = e
+                                entryValues = e
+                            }
+                        }
+
+                        Key.MUX_CONCURRENCY, Key.UPLOAD_SPEED, Key.DOWNLOAD_SPEED -> (preference as EditTextPreference).setPortEdit()
+
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
+
+                Key.INBOUND_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.MIXED_PORT, Key.LOCAL_DNS_PORT -> (preference as EditTextPreference).setPortEdit()
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
+
+                Key.MISC_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.TCP_KEEP_ALIVE_INTERVAL -> {
+                            preference.onPreferenceChangeListener = reloadListener
+                            preference.isVisible = false
+                        }
+
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
+
+                Key.NTP_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.ENABLE_NTP -> ntpEnable = preference as SwitchPreference
+                        Key.NTP_SERVER -> ntpAddress = preference as EditTextPreference
+                        Key.NTP_PORT -> ntpPort = preference as EditTextPreference
+                        Key.NTP_INTERVAL -> ntpInterval = preference as SimpleMenuPreference
+                    }
+                }
+
+                else -> preferenceCategory.forEach { preference ->
+                    preference.onPreferenceChangeListener = reloadListener
+                }
+
             }
-            val theme = Theme.getTheme(newTheme as Int)
-            app.setTheme(theme)
-            requireActivity().apply {
-                setTheme(theme)
-                ActivityCompat.recreate(this)
-            }
-            true
         }
 
-        val nightTheme = findPreference<SimpleMenuPreference>(Key.NIGHT_THEME)!!
-        nightTheme.setOnPreferenceChangeListener { _, newTheme ->
-            Theme.currentNightMode = (newTheme as String).toInt()
-            Theme.applyNightTheme()
-            true
-        }
-        val mixedPort = findPreference<EditTextPreference>(Key.MIXED_PORT)!!
-        val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
-        val memoryLimit = findPreference<SwitchPreference>(Key.MEMORY_LIMIT)!!
-        val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
-        val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
-
-        val portLocalDns = findPreference<EditTextPreference>(Key.LOCAL_DNS_PORT)!!
-        val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
-        val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
-        val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)!!
-
-        val ntpEnable = findPreference<SwitchPreference>(Key.ENABLE_NTP)!!
-        val ntpAddress = findPreference<EditTextPreference>(Key.NTP_SERVER)!!
-        val ntpPort = findPreference<EditTextPreference>(Key.NTP_PORT)!!
-        val ntpInterval = findPreference<SimpleMenuPreference>(Key.NTP_INTERVAL)!!
         ntpAddress.isEnabled = ntpEnable.isChecked
         ntpPort.isEnabled = ntpEnable.isChecked
         ntpInterval.isEnabled = ntpEnable.isChecked
         ntpAddress.onPreferenceChangeListener = reloadListener
         ntpPort.onPreferenceChangeListener = reloadListener
+        ntpPort.setPortEdit()
         ntpInterval.onPreferenceChangeListener = reloadListener
         ntpEnable.setOnPreferenceChangeListener { _, newValue ->
             needReload()
@@ -113,32 +238,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
             true
         }
-
-        val muxConcurrency = findPreference<EditTextPreference>(Key.MUX_CONCURRENCY)!!
-        val tcpKeepAliveInterval = findPreference<EditTextPreference>(Key.TCP_KEEP_ALIVE_INTERVAL)!!
-        tcpKeepAliveInterval.isVisible = false
-        val uploadSpeed = findPreference<EditTextPreference>(Key.UPLOAD_SPEED)!!
-        val downloadSpeed = findPreference<EditTextPreference>(Key.DOWNLOAD_SPEED)!!
-
-        val providerHysteria2 = findPreference<SimpleMenuPreference>(Key.PROVIDER_HYSTERIA2)!!
-
-        val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
-        val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
-        val inboundUsername = findPreference<EditTextPreference>(Key.INBOUND_USERNAME)!!
-        val inboundPassword = findPreference<EditTextPreference>(Key.INBOUND_PASSWORD)!!
-
-        val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
-        val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
-        val directDnsClientSubnet =
-            findPreference<EditTextPreference>(Key.DIRECT_DNS_CLIENT_SUBNET)!!
-        val underlyingDns = findPreference<EditTextPreference>(Key.UNDERLYING_DNS)!!
-        val enableDnsRouting = findPreference<SwitchPreference>(Key.ENABLE_DNS_ROUTING)!!
-        val dnsMode = findPreference<SimpleMenuPreference>(Key.DNS_MODE)!!
-
-        val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
-        val mtu = findPreference<MTUPreference>(Key.MTU)!!
-        val alwaysShowAddress = findPreference<SwitchPreference>(Key.ALWAYS_SHOW_ADDRESS)!!
-        val blurredAddress = findPreference<SwitchPreference>(Key.BLURRED_ADDRESS)!!
 
         logLevel.dialogLayoutResource = R.layout.layout_loglevel_help
         logLevel.onPreferenceChangeListener = restartListener
@@ -164,32 +263,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val muxProtocols = findPreference<MultiSelectListPreference>(Key.MUX_PROTOCOLS)!!
-
-        muxProtocols.apply {
-            val e = Protocols.getCanMuxList().toTypedArray()
-            entries = e
-            entryValues = e
-        }
-
-        portLocalDns.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-        muxConcurrency.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-        mixedPort.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-
-        val metedNetwork = findPreference<Preference>(Key.METERED_NETWORK)!!
-        if (Build.VERSION.SDK_INT < 28) {
-            metedNetwork.remove()
-        }
-        isProxyApps = findPreference(Key.PROXY_APPS)!!
-        isProxyApps.setOnPreferenceChangeListener { _, newValue ->
-            startActivity(Intent(activity, AppManagerActivity::class.java))
-            if (newValue as Boolean) DataStore.dirty = true
-            newValue
-        }
-
-        val profileTrafficStatistics =
-            findPreference<SwitchPreference>(Key.PROFILE_TRAFFIC_STATISTICS)!!
-        val speedInterval = findPreference<SimpleMenuPreference>(Key.SPEED_INTERVAL)!!
         profileTrafficStatistics.isEnabled = speedInterval.value.toString() != "0"
         showDirectSpeed.isEnabled = speedInterval.value.toString() != "0"
         speedInterval.setOnPreferenceChangeListener { _, newValue ->
@@ -200,27 +273,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         showDirectSpeed.onPreferenceChangeListener = reloadListener
 
-        serviceMode.setOnPreferenceChangeListener { _, _ ->
-            if (DataStore.serviceState.started) SagerNet.stopService()
-            true
-        }
-
-        memoryLimit.onPreferenceChangeListener = restartListener
-
-        val tunImplementation = findPreference<SimpleMenuPreference>(Key.TUN_IMPLEMENTATION)!!
-        val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
-        val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)!!
-        val clashAPIListen = findPreference<EditTextPreference>(Key.CLASH_API_LISTEN)!!
-        val enabledCazilla = findPreference<SwitchPreference>(Key.ENABLED_CAZILLA)!!
-
-        mixedPort.onPreferenceChangeListener = reloadListener
-        appendHttpProxy.onPreferenceChangeListener = reloadListener
-        trafficSniffing.onPreferenceChangeListener = reloadListener
-        uploadSpeed.onPreferenceChangeListener = reloadListener
-        downloadSpeed.onPreferenceChangeListener = reloadListener
-        muxConcurrency.onPreferenceChangeListener = reloadListener
-        tcpKeepAliveInterval.onPreferenceChangeListener = reloadListener
-
         bypassLanInCore.isEnabled = bypassLan.isChecked
         bypassLanInCore.onPreferenceChangeListener = reloadListener
         bypassLan.setOnPreferenceChangeListener { _, newValue ->
@@ -229,35 +281,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        inboundUsername.onPreferenceChangeListener = reloadListener
-        inboundPassword.onPreferenceChangeListener = reloadListener
-        mtu.onPreferenceChangeListener = reloadListener
-
         blurredAddress.isEnabled = alwaysShowAddress.isChecked
         alwaysShowAddress.setOnPreferenceChangeListener { _, newValue ->
             blurredAddress.isEnabled = newValue as Boolean
             true
         }
-
-        providerHysteria2.onPreferenceChangeListener = reloadListener
-
-        dnsMode.onPreferenceChangeListener = reloadListener
-        remoteDns.onPreferenceChangeListener = reloadListener
-        directDns.onPreferenceChangeListener = reloadListener
-        directDnsClientSubnet.onPreferenceChangeListener = reloadListener
-        underlyingDns.onPreferenceChangeListener = reloadListener
-        enableDnsRouting.onPreferenceChangeListener = reloadListener
-
-        portLocalDns.onPreferenceChangeListener = reloadListener
-        ipv6Mode.onPreferenceChangeListener = reloadListener
-        allowAccess.onPreferenceChangeListener = reloadListener
-
-        resolveDestination.onPreferenceChangeListener = reloadListener
-        tunImplementation.onPreferenceChangeListener = reloadListener
-        acquireWakeLock.onPreferenceChangeListener = reloadListener
-
-        clashAPIListen.onPreferenceChangeListener = reloadListener
-        enabledCazilla.onPreferenceChangeListener = restartListener
 
     }
 
@@ -270,6 +298,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         if (::nekoPlugins.isInitialized) {
             nekoPlugins.postUpdate()
         }
+    }
+
+    private fun EditTextPreference.setPortEdit() {
+        setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
+        onPreferenceChangeListener = reloadListener
     }
 
 }

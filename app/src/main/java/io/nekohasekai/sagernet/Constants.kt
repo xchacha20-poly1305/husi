@@ -7,6 +7,15 @@ object Key {
     const val DB_PUBLIC = "configuration.db"
     const val DB_PROFILE = "sager_net.db"
 
+    const val GLOBAL_PREFERENCES = "globalPreferences"
+    const val GENERAL_SETTINGS = "generalSettings"
+    const val ROUTE_SETTINGS = "routeSettings"
+    const val PROTOCOL_SETTINGS = "protocolSettings"
+    const val DNS_SETTINGS = "dnsSettings"
+    const val INBOUND_SETTINGS = "inboundSettings"
+    const val MISC_SETTINGS = "miscSettings"
+    const val NTP_SETTINGS = "ntpSettings"
+
     const val PERSIST_ACROSS_REBOOT = "isAutoConnect"
 
     const val APP_EXPERT = "isExpert"
