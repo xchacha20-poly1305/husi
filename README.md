@@ -4,20 +4,6 @@
     height="80">
 </a>
 
-## 💰 Selling Points
-
-[![Android API](https://img.shields.io/badge/API-34-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=34)
-[![Nightly build](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml/badge.svg)](https://github.com/xchacha20-poly1305/husi/actions/workflows/nightly.yml)
-[![License: GPL-3.0(nekohasekai)](https://img.shields.io/badge/license-GPL--3.0(nekohasekai)-orange.svg)](https://sing-box.sagernet.org/#license)
-[![Pull Request](https://img.shields.io/github/issues-pr-closed/xchacha20-poly1305/husi)](https://github.com/xchacha20-poly1305/husi/pulls)
-
-* Android API 34 & Gradle 8.7 & NDK 26.3.11579264.
-* Rich DNS modes, you can choose conservatively, safely or fastly.
-* Many ways to test connectivity, including ICMP, TCP ping and URL test.
-* Powerful [TCP Brutal](https://github.com/apernet/tcp-brutal) congestion control algorithm provides fast speed.
-* Route based on WI-FI status. 
-* Trust the certificate list trusted by Mozilla to prevent certain hijacks.
-
 ## 🛠️ Contribution
 
 ### 📚 Localization
@@ -41,7 +27,8 @@ cd husi/
 
 Environment:
 
-* go (should be as up-to-date as possible)
+* Go (should be as up-to-date as possible)
+* Openjdk-17 (Other version is ok. But require version 17 to build the same file as action.)
 
 Run:
 
