@@ -46,7 +46,6 @@ import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.fmt.v2ray.toV2rayN
-import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.plugin.PluginManager
@@ -435,18 +434,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 dialog = MaterialAlertDialogBuilder(context).setTitle(R.string.neko_plugin)
                     .setView(linearLayout)
                     .show()
-            }
-
-            R.id.action_update_subscription -> {
-                val group = DataStore.currentGroup()
-                if (group.type != GroupType.SUBSCRIPTION) {
-                    snackbar(R.string.group_not_subscription).show()
-                    Logs.e("onMenuItemClick: Group(${group.displayName()}) is not subscription")
-                } else {
-                    runOnLifecycleDispatcher {
-                        GroupUpdater.startUpdate(group, true)
-                    }
-                }
             }
 
             R.id.action_clear_traffic_statistics -> {
