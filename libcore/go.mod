@@ -5,10 +5,10 @@ go 1.21
 require (
 	github.com/miekg/dns v1.1.59
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.4.0-beta.19
-	github.com/sagernet/sing-box v1.9.0-rc.19
+	github.com/sagernet/sing v0.4.0-beta.20
+	github.com/sagernet/sing-box v1.9.0-rc.22.0.20240525033043-5ff7006326e8
 	github.com/sagernet/sing-dns v0.2.0-beta.18
-	github.com/sagernet/sing-tun v0.3.0-beta.2
+	github.com/sagernet/sing-tun v0.3.0-beta.6
 	github.com/xchacha20-poly1305/TLS-scribe v0.4.0
 	github.com/xchacha20-poly1305/cazilla v0.2.2
 	github.com/xchacha20-poly1305/libping v0.4.1-beta.0
@@ -63,7 +63,7 @@ require (
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1 // indirect
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
-	github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 // indirect
+	github.com/sagernet/netlink v0.0.0-20240523065131-45e60152f9ba // indirect
 	github.com/sagernet/quic-go v0.43.1-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect

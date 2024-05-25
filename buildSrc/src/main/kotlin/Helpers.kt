@@ -3,10 +3,8 @@ import com.android.build.gradle.AbstractAppExtension
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Exec
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -86,6 +84,7 @@ fun Project.requireTargetAbi(): String {
     return targetAbi
 }
 
+@Suppress("UnstableApiUsage")
 fun Project.setupCommon() {
     android.apply {
         buildToolsVersion = "34.0.0"
@@ -161,9 +160,6 @@ fun Project.setupCommon() {
 
 fun Project.setupKotlinCommon() {
     setupCommon()
-    (android as ExtensionAware).extensions.getByName<KotlinJvmOptions>("kotlinOptions").apply {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
 }
 
 fun Project.setupAppCommon() {
