@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto">
-    <PreferenceCategory app:title="@string/general_settings">
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+            app:title="@string/general_settings"
+            app:key="generalSettings">
         <io.nekohasekai.sagernet.widget.AppListPreference
                 app:icon="@drawable/ic_baseline_android_24"
                 app:key="nekoPlugins"
-                app:title="@string/neko_plugin"/>
+                app:title="@string/neko_plugin" />
         <SwitchPreference
                 app:defaultValue="false"
                 app:icon="@drawable/ic_communication_phonelink_ring"
                 app:key="isAutoConnect"
                 app:summary="@string/auto_connect_summary"
-                app:title="@string/auto_connect"/>
+                app:title="@string/auto_connect" />
         <moe.matsuri.nb4a.ui.ColorPickerPreference
                 android:title="@string/theme"
                 app:icon="@drawable/ic_baseline_color_lens_24"
-                app:key="appTheme"/>
+                app:key="appTheme" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/night_mode"
@@ -23,7 +25,7 @@
                 app:icon="@drawable/ic_baseline_wb_sunny_24"
                 app:key="nightTheme"
                 app:title="@string/night_mode"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="vpn"
                 app:entries="@array/service_modes"
@@ -31,12 +33,12 @@
                 app:icon="@drawable/ic_device_developer_mode"
                 app:key="serviceMode"
                 app:title="@string/service_mode"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:defaultValue="false"
                 app:icon="@drawable/ic_baseline_local_bar_24"
                 app:key="memoryLimit"
-                app:title="@string/memory_limit"/>
+                app:title="@string/memory_limit" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="2"
                 app:entries="@array/tun_implementation"
@@ -44,14 +46,14 @@
                 app:icon="@drawable/ic_baseline_flip_camera_android_24"
                 app:key="tunImplementation"
                 app:title="@string/tun_implementation"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.MTUPreference
                 app:defaultValue="9000"
                 app:entries="@array/mtu_select"
                 app:entryValues="@array/mtu_select"
                 app:icon="@drawable/baseline_public_24"
                 app:key="mtu"
-                app:title="@string/mtu"/>
+                app:title="@string/mtu" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="1000"
                 app:entries="@array/notification_entry"
@@ -59,41 +61,41 @@
                 app:icon="@drawable/ic_baseline_shutter_speed_24"
                 app:key="speedInterval"
                 app:title="@string/speed_interval"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:defaultValue="true"
                 app:key="profileTrafficStatistics"
                 app:summary="@string/profile_traffic_statistics_summary"
-                app:title="@string/profile_traffic_statistics"/>
+                app:title="@string/profile_traffic_statistics" />
         <SwitchPreference
                 app:defaultValue="true"
                 app:icon="@drawable/ic_baseline_speed_24"
                 app:key="showDirectSpeed"
                 app:summary="@string/show_direct_speed_sum"
                 app:title="@string/show_direct_speed"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:key="showGroupInNotification"
-                app:title="@string/show_group_in_notification"/>
+                app:title="@string/show_group_in_notification" />
         <SwitchPreference
                 app:icon="@drawable/ic_baseline_center_focus_weak_24"
                 app:key="alwaysShowAddress"
                 app:summary="@string/always_show_address_sum"
-                app:title="@string/always_show_address"/>
+                app:title="@string/always_show_address" />
         <SwitchPreference
                 app:icon="@drawable/ic_baseline_transgender_24"
                 app:key="blurredAddress"
-                app:title="@string/blurred_address"/>
+                app:title="@string/blurred_address" />
         <SwitchPreference
                 app:defaultValue="true"
                 app:icon="@drawable/ic_baseline_security_24"
                 app:key="securityAdvisory"
-                app:title="@string/insecure_warn"/>
+                app:title="@string/insecure_warn" />
         <SwitchPreference
                 app:icon="@drawable/ic_device_data_usage"
                 app:key="meteredNetwork"
                 app:summary="@string/metered_summary"
-                app:title="@string/metered"/>
+                app:title="@string/metered" />
         <moe.matsuri.nb4a.ui.LongClickListPreference
                 app:defaultValue="0"
                 app:entries="@array/log_level"
@@ -101,23 +103,25 @@
                 app:icon="@drawable/ic_baseline_bug_report_24"
                 app:key="logLevel"
                 app:title="@string/log_level"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cag_route">
+    <PreferenceCategory
+            app:title="@string/cag_route"
+            app:key="routeSettings">
         <SwitchPreference
                 app:icon="@drawable/ic_navigation_apps"
                 app:key="proxyApps"
                 app:summary="@string/proxied_apps_summary"
-                app:title="@string/proxied_apps"/>
+                app:title="@string/proxied_apps" />
         <SwitchPreference
                 app:icon="@drawable/ic_baseline_legend_toggle_24"
                 app:defaultValue="true"
                 app:key="bypassLan"
-                app:title="@string/route_opt_bypass_lan"/>
+                app:title="@string/route_opt_bypass_lan" />
         <SwitchPreference
                 app:key="bypassLanInCore"
-                app:title="@string/bypass_lan_in_core"/>
+                app:title="@string/bypass_lan_in_core" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="1"
                 app:entries="@array/traffic_sniffing_values"
@@ -125,12 +129,12 @@
                 app:icon="@drawable/ic_baseline_manage_search_24"
                 app:key="trafficSniffing"
                 app:title="@string/traffic_sniffing"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:icon="@drawable/baseline_wrap_text_24"
                 app:key="resolveDestination"
                 app:summary="@string/resolve_destination_summary"
-                app:title="@string/resolve_destination"/>
+                app:title="@string/resolve_destination" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="1"
                 app:entries="@array/ipv6_mode"
@@ -138,7 +142,7 @@
                 app:icon="@drawable/ic_image_looks_6"
                 app:key="ipv6Mode"
                 app:title="@string/ipv6"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/rules_dat_provider"
@@ -146,10 +150,12 @@
                 app:icon="@drawable/ic_baseline_rule_folder_24"
                 app:key="rulesProvider"
                 app:title="@string/route_rules_provider"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/protocol_settings">
+    <PreferenceCategory
+            app:title="@string/protocol_settings"
+            app:key="protocolSettings">
         <MultiSelectListPreference
                 app:defaultValue="@array/mux_select_init"
                 app:entries="@array/mux_select_init"
@@ -157,30 +163,30 @@
                 app:icon="@drawable/ic_baseline_compare_arrows_24"
                 app:key="mux"
                 app:summary="@string/mux_sum"
-                app:title="@string/enable_mux"/>
+                app:title="@string/enable_mux" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/mux_type"
                 app:entryValues="@array/int_array_3"
                 app:key="muxType"
                 app:title="@string/mux_type"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:defaultValue="8"
                 app:icon="@drawable/ic_baseline_low_priority_24"
                 app:key="muxConcurrency"
                 app:title="@string/mux_concurrency"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_file_file_upload"
                 app:key="uploadSpeed"
                 app:title="@string/hysteria_upload_mbps"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_baseline_download_24"
                 app:key="downloadSpeed"
                 app:title="@string/hysteria_download_mbps"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:icon="@drawable/baseline_flight_takeoff_24"
                 app:defaultValue="0"
@@ -188,63 +194,65 @@
                 app:entryValues="@array/int_array_2"
                 app:key="providerHysteria2"
                 app:title="@string/hysteria2_provider"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:key="globalAllowInsecure"
                 app:icon="@drawable/ic_action_lock_open"
-                app:title="@string/global_allow_insecure"/>
+                app:title="@string/global_allow_insecure" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cag_dns">
+    <PreferenceCategory
+            app:title="@string/cag_dns"
+            app:key="dnsSettings">
         <EditTextPreference
                 app:defaultValue="tcp://dns.google"
                 app:icon="@drawable/ic_action_dns"
                 app:key="remoteDns"
                 app:title="@string/remote_dns"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="auto"
                 app:entries="@array/dns_network_select"
                 app:entryValues="@array/dns_network_select"
                 app:key="domain_strategy_for_remote"
                 app:title="@string/domain_strategy_for_remote"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_baseline_push_pin_24"
                 app:key="directDnsClientSubnet"
                 app:title="@string/direct_dns_client_subnet"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_action_dns"
                 app:key="directDns"
                 app:title="@string/direct_dns"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:defaultValue="local"
                 app:icon="@drawable/ic_action_dns"
                 app:key="underlyingDns"
                 app:title="@string/underlying_dns"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="auto"
                 app:entries="@array/dns_network_select"
                 app:entryValues="@array/dns_network_select"
                 app:key="domain_strategy_for_direct"
                 app:title="@string/domain_strategy_for_direct"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="auto"
                 app:entries="@array/dns_network_select"
                 app:entryValues="@array/dns_network_select"
                 app:key="domain_strategy_for_server"
                 app:title="@string/domain_strategy_for_server"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:defaultValue="true"
                 app:icon="@drawable/ic_baseline_camera_24"
                 app:key="enableDnsRouting"
                 app:summary="@string/dns_routing_message"
-                app:title="@string/enable_dns_routing"/>
+                app:title="@string/enable_dns_routing" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/dns_modes"
@@ -252,86 +260,92 @@
                 app:icon="@drawable/ic_baseline_manage_search_24"
                 app:key="dnsMode"
                 app:title="@string/dns_mode"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/inbound_settings">
+    <PreferenceCategory
+            app:title="@string/inbound_settings"
+            app:key="inboundSettings">
         <EditTextPreference
                 app:icon="@drawable/ic_maps_directions_boat"
                 app:key="mixedPort"
                 app:title="@string/port_proxy"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:key="portLocalDns"
                 app:title="@string/port_local_dns"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:defaultValue="false"
                 app:key="appendHttpProxy"
                 app:summary="@string/append_http_proxy_sum"
-                app:title="@string/append_http_proxy"/>
+                app:title="@string/append_http_proxy" />
         <SwitchPreference
                 app:icon="@drawable/ic_baseline_nat_24"
                 app:key="allowAccess"
                 app:summary="@string/allow_access_sum"
-                app:title="@string/allow_access"/>
+                app:title="@string/allow_access" />
         <EditTextPreference
                 app:icon="@drawable/ic_baseline_person_24"
                 app:key="inboundUsername"
                 app:title="@string/inbound_username"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:dialogLayout="@layout/layout_password_dialog"
                 app:icon="@drawable/ic_settings_password"
                 app:key="inboundPassword"
-                app:title="@string/inbound_password"/>
+                app:title="@string/inbound_password" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/cag_misc">
+    <PreferenceCategory
+            app:title="@string/cag_misc"
+            app:key="miscSettings">
         <moe.matsuri.nb4a.ui.UrlTestPreference
                 app:defaultValue="http://cp.cloudflare.com/"
                 app:icon="@drawable/ic_baseline_cast_connected_24"
                 app:key="connectionTestURL"
                 app:title="@string/connection_test_url"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:icon="@drawable/baseline_developer_board_24"
                 app:key="acquireWakeLock"
                 app:summary="@string/acquire_wake_lock_summary"
-                app:title="@string/acquire_wake_lock"/>
+                app:title="@string/acquire_wake_lock" />
         <SwitchPreference
                 app:icon="@drawable/ic_baseline_multiline_chart_24"
                 app:key="enabledCazilla"
                 app:summary="@string/cazilla_long"
-                app:title="@string/cazilla"/>
+                app:title="@string/cazilla" />
         <EditTextPreference
                 app:defaultValue="127.0.0.1:9090"
                 app:icon="@drawable/baseline_construction_24"
                 app:key="clashAPIListen"
                 app:title="@string/enable_clash_api"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:defaultValue="15"
                 app:icon="@drawable/ic_baseline_flip_camera_android_24"
                 app:key="tcpKeepAliveInterval"
                 app:title="@string/tcp_keep_alive_interval"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="1.2"
                 app:entries="@array/app_tls_version"
                 app:entryValues="@array/app_tls_version"
                 app:key="appTLSVersion"
                 app:title="@string/app_tls_version"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:key="showBottomBar"
-                app:title="@string/show_bottom_bar"/>
+                app:title="@string/show_bottom_bar" />
         <SwitchPreference
                 app:key="allowInsecureOnRequest"
-                app:title="@string/allow_insecure_on_request_sum"/>
+                app:title="@string/allow_insecure_on_request_sum" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/ntp_category"
+    <PreferenceCategory
+            app:title="@string/ntp_category"
+            app:key="ntpSettings"
             app:icon="@drawable/ic_baseline_timelapse_24">
         <SwitchPreference
                 app:key="ntpEnable"
@@ -342,15 +356,13 @@
                 app:title="@string/ntp_server_address"
                 app:icon="@drawable/ic_hardware_router"
                 app:key="ntpAddress"
-                app:useSimpleSummaryProvider="true"
-                />
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:defaultValue="123"
                 app:title="@string/ntp_server_port"
                 app:icon="@drawable/ic_maps_directions_boat"
                 app:key="ntpPort"
-                app:useSimpleSummaryProvider="true"
-                />
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="30m"
                 app:entries="@array/ntp_intervals"
@@ -358,7 +370,6 @@
                 app:key="ntpInterval"
                 app:title="@string/ntp_sync_interval"
                 app:icon="@drawable/ic_baseline_flip_camera_android_24"
-                app:useSimpleSummaryProvider="true"
-                />
+                app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 </PreferenceScreen>
