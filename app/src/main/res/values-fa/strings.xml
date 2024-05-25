@@ -487,7 +487,6 @@
     <string name="scan_vpn_app">اسکن کردن اپلیکیشن های وی پی ان</string>
     <string name="vpn_app_type">نوع برنامه</string>
     <string name="vpn_core_type">نوع هسته</string>
-    <string name="update_current_subscription">بروزرسانی اشتراک این گروه</string>
     <string name="vpn_app_type_other">دیگر</string>
     <string name="vpn_core_type_unknown">ناشناخته</string>
     <string name="assets_update">به روزرسانی داده های جغرافیایی</string>
@@ -521,7 +520,6 @@
     <string name="sniff_override">نتیجه Sniff برای مقصد</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>
     <string name="get_cert_success">با موفقیت انجام شد! گواهی ها در کلیپ بورد کپی شدند.</string>
-    <string name="group_not_subscription">نوع گروه براساس اشتراک نیست</string>
     <string name="blurred_address">آدرس سرور را تار کن</string>
     <string name="action_flash_off">خاموش کردن فلاش</string>
     <string name="action_flash_on">روشن کردن فلاش</string>

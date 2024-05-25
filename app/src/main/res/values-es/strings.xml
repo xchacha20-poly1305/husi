@@ -510,7 +510,6 @@
     <string name="inbound_username">Nombre de usuario entrante</string>
     <string name="http_upgrade_host">Host HTTPUpgrade</string>
     <string name="http_upgrade_path">Ruta HTTPUpgrade</string>
-    <string name="group_not_subscription">El tipo de grupo no es suscripción</string>
     <string name="allow_insecure_on_request_sum">Desactivar comprobación de certificados al actualizar suscripciones</string>
     <string name="scan_vpn_app_introduce">Comprueba la VPN instalada en el dispositivo y su tipo.</string>
     <string name="vpn_app_type">Tipo de app</string>
@@ -533,7 +532,6 @@
     <string name="resolve_server">Resolver dirección del servidor según política IPv6</string>
     <string name="get_cert_success">¡Obtenido correctamente! Certificados copiados en el portapapeles.</string>
     <string name="inbound_password">Contraseña entrante</string>
-    <string name="update_current_subscription">Actualizar suscripción del grupo actual</string>
     <string name="global_allow_insecure">Permitir siempre inseguras</string>
     <string name="vpn_core_type">Tipo de núcleo</string>
     <string name="vpn_golang_version">Versión Go</string>

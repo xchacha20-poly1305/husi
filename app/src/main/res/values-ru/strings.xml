@@ -517,7 +517,6 @@
     <string name="reset_connections">Сбросить соединения</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
     <string name="sniff_routing">Перехватывать результат для Маршрутизации</string>
-    <string name="update_current_subscription">Обновить подписку группы</string>
     <string name="inbound_password">Пароль пользователя SOCKS5</string>
     <string name="vpn_app_type">Тип приложения</string>
     <string name="vpn_core_type">Тип ядра</string>
@@ -535,7 +534,6 @@
     <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
     <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена.</string>
     <string name="get_cert_fail">Не удалось получить сертификаты!</string>
-    <string name="group_not_subscription">Группа не содержит подписку</string>
     <string name="scan_vpn_app_introduce">Показать установленные на устройстве VPN-приложения и их тип.</string>
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
     <string name="enable_brutal">Включить контроллер перегрузки TCP Brutal</string>

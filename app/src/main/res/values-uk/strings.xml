@@ -247,7 +247,6 @@
     <string name="test_concurrency">Тестування паралелізму</string>
     <string name="mux_type">Протокол мультиплексування</string>
     <string name="sniff_routing">Перехоплювати результат для Маршрутизації</string>
-    <string name="update_current_subscription">Оновити підписку групи</string>
     <string name="allow_insecure_on_request_sum">Вимкнути перевірку сертифікатів під час оновлення підписок</string>
     <string name="assets_update">Оновити геодані</string>
     <string name="sekai">nekohasekai</string>
@@ -449,7 +448,6 @@
     <string name="inbound_password">Пароль користувача SOCKS5</string>
     <string name="http_upgrade_host">HTTPUpgrade Host</string>
     <string name="http_upgrade_path">HTTPUpgrade Path</string>
-    <string name="group_not_subscription">Група не містить підписки</string>
     <string name="scan_vpn_app">Пошук VPN-застосунків</string>
     <string name="global_allow_insecure">Завжди дозволювати небезпечні</string>
     <string name="vpn_app_type">Тип застосунку</string>

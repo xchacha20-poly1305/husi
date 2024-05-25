@@ -498,8 +498,6 @@
     <string name="inbound_username">入站用戶名</string>
     <string name="inbound_password">入站密碼</string>
     <string name="http_upgrade_path">HTTPUpgrade 路徑</string>
-    <string name="update_current_subscription">更新目前組的訂閱</string>
-    <string name="group_not_subscription">群組類型不是訂閱</string>
     <string name="cazilla_long">可能能防止能操縱 CA 機構的力量攻擊。也可以讓舊的設備得以使用新的憑證。</string>
     <string name="nat_stun_server_hint">STUN 伺服器</string>
     <string name="action_open">打開</string>
