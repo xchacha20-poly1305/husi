@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.database
 import android.os.Binder
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener

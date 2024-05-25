@@ -24,8 +24,6 @@ import (
 	"github.com/sagernet/sing/protocol/socks/socks5"
 )
 
-// TODO: ws
-
 type HTTPClient interface {
 	RestrictedTLS()
 	ModernTLS()

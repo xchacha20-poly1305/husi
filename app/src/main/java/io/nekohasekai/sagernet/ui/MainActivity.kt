@@ -27,6 +27,7 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
@@ -425,6 +426,10 @@ class MainActivity : ThemedActivity(),
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(id, true)
         }
+    }
+
+    override fun connectionUpdate(connectionList: List<Connection>) {
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)?.emitStats(connectionList)
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
