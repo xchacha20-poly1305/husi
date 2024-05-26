@@ -31,6 +31,21 @@
                     android:text="UUID (TCP)"
                     android:id="@+id/connectionID" />
 
+
+            <TextView
+                    style="?attr/textAppearanceBodySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="[::1]:1"
+                    android:id="@+id/connectionSrc" />
+
+            <TextView
+                    style="?attr/textAppearanceBodySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="sekai.icu:443"
+                    android:id="@+id/connectionDst" />
+
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

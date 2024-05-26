@@ -621,4 +621,6 @@
     <string name="start_time">Started at: %s</string>
     <string name="outbound_rule">Outbound rule: %s</string>
     <string name="detail">Detail</string>
+    <string name="source_address">Source Address: %s</string>
+    <string name="destination_address">Destination Address: %s</string>
 </resources>

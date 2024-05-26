@@ -555,4 +555,6 @@
     <string name="start_time">开始于：%s</string>
     <string name="outbound_rule">出站规则：%s</string>
     <string name="detail">详细</string>
+    <string name="source_address">源地址: %s</string>
+    <string name="destination_address">目标地址: %s</string>
 </resources>

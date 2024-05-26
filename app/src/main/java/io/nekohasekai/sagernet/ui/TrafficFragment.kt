@@ -101,6 +101,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
             binding.connectionID.text = "${connection.uuid} (${connection.network})"
+            binding.connectionSrc.text = getString(R.string.source_address,connection.src)
+            binding.connectionDst.text = getString(R.string.destination_address, connection.dst)
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
                 Libcore.formatBytes(connection.uploadTotal),
