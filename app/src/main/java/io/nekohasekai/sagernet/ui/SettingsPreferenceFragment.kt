@@ -102,7 +102,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.onPreferenceChangeListener = restartListener
                         }
 
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
 
+                Key.ROUTE_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
                         Key.PROXY_APPS -> {
                             isProxyApps = preference as SwitchPreference
                             isProxyApps.setOnPreferenceChangeListener { _, newValue ->
