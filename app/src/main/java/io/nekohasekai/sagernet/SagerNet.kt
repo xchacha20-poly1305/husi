@@ -7,7 +7,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.inputmethodservice.InputMethodService
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build

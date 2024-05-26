@@ -75,12 +75,6 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-      - name: Set Up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "latest"
-      - name: Set Up pnpm 
-        run: npm install -g pnpm
       - name: Gradle cache
         uses: actions/cache@v4
         with:
@@ -102,7 +96,6 @@ jobs:
         env:
           BUILD_PLUGIN: none
         run: |
-          ./run lib dashboard
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           # export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
