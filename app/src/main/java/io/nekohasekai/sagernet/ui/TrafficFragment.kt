@@ -5,16 +5,15 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
@@ -38,6 +37,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
             adapter = it
         }
 
+        ItemTouchHelper(SwipeToDeleteCallback(adapter)).attachToRecyclerView(binding.connections)
+
     }
 
     fun emitStats(list: List<Connection>) {
@@ -55,7 +56,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         }
 
         binding.connections.post {
-            adapter.data = list
+            adapter.data = list.toMutableList()
             adapter.notifyDataSetChanged()
         }
     }
@@ -65,7 +66,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
             setHasStableIds(true)
         }
 
-        lateinit var data: List<Connection>
+        lateinit var data: MutableList<Connection>
         private var idStore = linkedSetOf<String>()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
@@ -134,5 +135,33 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
             }
         }
     }
+
+    inner class SwipeToDeleteCallback(private val adapter: TrafficAdapter) : ItemTouchHelper.Callback() {
+        override fun getMovementFlags(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder
+        ): Int {
+            val swipeFlags = ItemTouchHelper.LEFT
+            return makeMovementFlags(0, swipeFlags)
+        }
+
+        override fun onMove(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder
+        ): Boolean {
+            // No move action
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            (requireActivity() as MainActivity)
+                .connection
+                .service?.closeConnection(adapter.data[viewHolder.absoluteAdapterPosition].uuid)
+            adapter.data.removeAt(viewHolder.absoluteAdapterPosition)
+            adapter.notifyDataSetChanged()
+        }
+    }
+
 
 }

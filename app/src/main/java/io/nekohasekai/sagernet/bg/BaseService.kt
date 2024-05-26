@@ -149,6 +149,10 @@ class BaseService {
             }
         }
 
+        override fun closeConnection(id: String) {
+            data?.proxy?.box?.closeConnection(id)
+        }
+
         fun stateChanged(s: State, msg: String?) = launch {
             val profileName = profileName
             broadcast { it.stateChanged(s.ordinal, profileName, msg) }

@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"bytes"
+	"cmp"
 	"net"
 	"net/netip"
 	"reflect"
@@ -55,6 +56,46 @@ func addressFromMetadata(ip netip.Addr, port, host string) string {
 		return net.JoinHostPort(ip.String(), port)
 	}
 	return net.JoinHostPort(host, port)
+}
+
+func (b *BoxInstance) CloseConnection(id string) {
+	clash, isClashServer := b.Router().ClashServer().(*clashapi.Server)
+	if !isClashServer {
+		return
+	}
+
+	// common.Map
+	trackerList := clash.TrafficManager().Snapshot().Connections
+	interfaceList := make([]interface{}, 0, len(trackerList))
+	for _, tracker := range trackerList {
+		interfaceList = append(interfaceList, tracker)
+	}
+
+	index, found := slices.BinarySearchFunc[[]interface{}, interface{}, interface{}](
+		interfaceList,
+		fakeTracker{id},
+		func(a, b interface{}) int {
+			return cmp.Compare(a.(idGetter).ID(), b.(idGetter).ID())
+		},
+	)
+	if found {
+		_ = trackerList[index].Close()
+	}
+
+}
+
+type idGetter interface {
+	ID() string
+}
+
+var _ idGetter = fakeTracker{}
+
+type fakeTracker struct {
+	id string
+}
+
+func (f fakeTracker) ID() string {
+	return f.id
 }
 
 var _ TrackerInfoIterator = (*iterator[*TrackerInfo])(nil)
