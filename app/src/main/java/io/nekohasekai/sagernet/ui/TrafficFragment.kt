@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.BuildConfig
@@ -74,13 +73,11 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
 
         override fun getItemCount(): Int {
             if (!::data.isInitialized) return 0
-            Logs.d("${data.size}")
             return data.size
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
             checkID(position)
-            Logs.d("bind: ${data[position]}")
             holder.bind(data[position])
         }
 
@@ -101,7 +98,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
-            Logs.d("bind ${connection.uuid}")
+            if (BuildConfig.DEBUG) Logs.d("bind ${connection.uuid}")
             binding.connectionID.text = "${connection.uuid} (${connection.network})"
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
