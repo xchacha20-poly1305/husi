@@ -164,7 +164,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
 
-    var dashURL by configurationStore.string("dashURL") { "http://127.0.0.1:9090/ui" }
     var enabledCazilla by configurationStore.boolean(Key.ENABLED_CAZILLA) { false }
 
     // ntp
