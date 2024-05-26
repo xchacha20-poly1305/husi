@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 
@@ -98,7 +99,6 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
-            if (BuildConfig.DEBUG) Logs.d("bind ${connection.uuid}")
             binding.connectionID.text = "${connection.uuid} (${connection.network})"
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
@@ -115,17 +115,19 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
             )
             binding.root.setOnClickListener {
                 context?.let { ctx ->
+                    val detail = gson.toJson(connection)
                     MaterialAlertDialogBuilder(ctx)
                         .setTitle(R.string.detail)
-                        .setMessage(gson.toJson(connection))
+                        .setMessage(detail)
                         .setPositiveButton(R.string.ok) { _, _ -> }
                         .setPositiveButton(R.string.action_copy) { _, _ ->
                             clipboardManager.setPrimaryClip(
                                 ClipData.newPlainText(
                                     "connection",
-                                    gson.toJson(connection),
+                                    detail,
                                 )
                             )
+                            snackbar(R.string.copy_success)
                         }
                         .show()
                 }
