@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.aidl.ConnectionList
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
@@ -177,9 +176,7 @@ class TrafficLooper
                         }
 
                         try {
-                            val l = data.proxy!!.box.trackerInfos.toConnectionList()
-                            if (BuildConfig.DEBUG) Logs.d(l.toString())
-                            b.connectionUpdate(ConnectionList(l))
+                            b.connectionUpdate(ConnectionList(data.proxy!!.box.trackerInfos.toConnectionList()))
                         } catch (e: Exception) {
                             Logs.w(e)
                         }

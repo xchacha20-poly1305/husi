@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.aidl
 
-import android.os.Parcel
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
@@ -14,4 +13,5 @@ data class Connection(
     var src: String = "",
     var dst: String = "",
     var host: String = "",
+    var rule: String = "",
 ) : Parcelable

@@ -49,6 +49,7 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
                     src = trackerInfo.src,
                     dst = trackerInfo.dst,
                     host = trackerInfo.host,
+                    rule = trackerInfo.rule,
                 )
             )
         }

@@ -73,10 +73,10 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
                 R.string.start_time,
                 connection.start,
             )
-//            binding.connectionOutbound.text = getString(
-//                R.string.outbound_rule,
-//                connection.ru,
-//            )
+            binding.connectionOutbound.text = getString(
+                R.string.outbound_rule,
+                connection.rule,
+            )
         }
     }
 
