@@ -554,6 +554,5 @@
     <string name="ntp_sync_interval">NTP 同步间隔</string>
     <string name="start_time">开始于：%s</string>
     <string name="outbound_rule">出站规则：%s</string>
-    <string name="close">关闭</string>
     <string name="detail">详细</string>
 </resources>

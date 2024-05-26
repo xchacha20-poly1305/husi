@@ -620,7 +620,5 @@
     <string name="ntp_sync_interval">NTP Sync Interval</string>
     <string name="start_time">Started at: %s</string>
     <string name="outbound_rule">Outbound rule: %s</string>
-    <string name="close">Close</string>
     <string name="detail">Detail</string>
-    <!-- TODO: Remove or change this placeholder text -->
 </resources>

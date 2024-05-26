@@ -9,6 +9,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+
+    <LinearLayout
+            android:id="@+id/connection_not_found"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:visibility="gone">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/no_statistics"
+                android:textAppearance="@style/AppearanceFoundation.Title"/>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/connections"
             android:layout_width="match_parent"

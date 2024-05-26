@@ -1,23 +1,27 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.ClipData
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import libcore.Libcore
+import moe.matsuri.nb4a.utils.JavaUtil.gson
 
 class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
 
     private lateinit var binding: LayoutTrafficBinding
-    private var connections = mutableListOf<Connection>()
     private lateinit var adapter: TrafficAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -33,27 +37,53 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         binding.connections.layoutManager = LinearLayoutManager(context)
     }
 
-    fun emitStats(conns: List<Connection>) {
-        if (BuildConfig.DEBUG) Logs.d(conns.toString())
-        val diffCallback = ConnectionDiffCallback(connections, conns)
-        val diffResult = DiffUtil.calculateDiff(diffCallback)
-        diffResult.dispatchUpdatesTo(adapter)
+    fun emitStats(list: List<Connection>) {
+        if (BuildConfig.DEBUG) Logs.d(list.toString())
 
-        connections.clear()
-        connections.addAll(conns)
+        if (list.isEmpty()) {
+            runOnMainDispatcher {
+                binding.connectionNotFound.isVisible = true
+                binding.connections.isVisible = false
+            }
+            return
+        }
+
+        runOnMainDispatcher {
+            binding.connectionNotFound.isVisible = false
+            binding.connections.isVisible = true
+        }
+
+        binding.connections.post {
+            adapter.data = list
+        }
     }
 
     inner class TrafficAdapter : RecyclerView.Adapter<Holder>() {
+        init {
+            setHasStableIds(true)
+        }
+
+        lateinit var data: List<Connection>
+        private var idStore = linkedSetOf<String>()
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
             return Holder(ViewConnectionItemBinding.inflate(layoutInflater, parent, false))
         }
 
         override fun getItemCount(): Int {
-            return connections.size
+            if (!::data.isInitialized) return 0
+            return data.size
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
-            holder.bind(connections[position])
+            if (idStore.contains(data[position].uuid)) {
+                idStore.add(data[position].uuid)
+            }
+            holder.bind(data[position])
+        }
+
+        override fun getItemId(position: Int): Long {
+            return idStore.indexOf(data[position].uuid).toLong()
         }
 
     }
@@ -77,24 +107,23 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
                 R.string.outbound_rule,
                 connection.rule,
             )
-        }
-    }
-
-    inner class ConnectionDiffCallback(
-        private val oldList: List<Connection>,
-        private val newList: List<Connection>,
-    ) : DiffUtil.Callback() {
-
-        override fun getOldListSize(): Int = oldList.size
-
-        override fun getNewListSize(): Int = newList.size
-
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldList[oldItemPosition].uuid == newList[newItemPosition].uuid
-        }
-
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldList[oldItemPosition] == newList[newItemPosition]
+            binding.root.setOnClickListener {
+                context?.let { ctx ->
+                    MaterialAlertDialogBuilder(ctx)
+                        .setTitle(R.string.detail)
+                        .setMessage(gson.toJson(connection))
+                        .setPositiveButton(R.string.ok) { _, _ -> }
+                        .setPositiveButton(R.string.action_copy) { _, _ ->
+                            clipboardManager.setPrimaryClip(
+                                ClipData.newPlainText(
+                                    "connection",
+                                    gson.toJson(connection),
+                                )
+                            )
+                        }
+                        .show()
+                }
+            }
         }
     }
 

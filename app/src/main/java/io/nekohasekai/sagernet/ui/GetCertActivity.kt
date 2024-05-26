@@ -1,13 +1,13 @@
 package io.nekohasekai.sagernet.ui
 
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -46,16 +46,14 @@ class GetCertActivity : ThemedActivity() {
 
 
                 // 复制到剪贴板
-                val clipboardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                 val clipData = ClipData.newPlainText("Certificate", certificate)
                 clipboardManager.setPrimaryClip(clipData)
 
-                val snackbar = Snackbar.make(
+                Snackbar.make(
                     binding.root,
                     R.string.get_cert_success,
                     Snackbar.LENGTH_SHORT
-                )
-                snackbar.show()
+                ).show()
 
                 onMainDispatcher {
                     binding.waitLayout.isVisible = false

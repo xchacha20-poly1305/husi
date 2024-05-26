@@ -13,6 +13,7 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:baselineAligned="false"
             android:padding="16dp"
             android:orientation="horizontal">
 
@@ -49,13 +50,6 @@
                     android:id="@+id/connectionOutbound" />
 
         </LinearLayout>
-
-        <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/menuIcon"
-                android:layout_weight="0"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_baseline_more_vert_24" />
 
     </LinearLayout>
 
