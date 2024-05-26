@@ -1,9 +1,11 @@
 package libcore
 
 import (
+	"bytes"
 	"net"
 	"net/netip"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/sagernet/sing-box/experimental/clashapi"
@@ -40,6 +42,10 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 			Rule:          field.Field(6).String(),
 		})
 	}
+
+	slices.SortFunc(trackerInfos, func(a, b *TrackerInfo) int {
+		return bytes.Compare(a.UUID.Bytes(), b.UUID.Bytes())
+	})
 
 	return &iterator[*TrackerInfo]{trackerInfos}, nil
 }
@@ -82,5 +88,5 @@ func (t TrackerInfo) GetDownloadTotal() int64 {
 }
 
 func (t TrackerInfo) GetStart() string {
-	return t.Start.String()
+	return t.Start.Format(time.DateTime)
 }
