@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
+import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import libcore.Libcore
@@ -27,19 +28,19 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutTrafficBinding.inflate(layoutInflater)
+        binding = LayoutTrafficBinding.bind(view)
         toolbar.setTitle(R.string.menu_dashboard)
 
+        binding.connectionNotFound.isVisible = true
+
+        binding.connections.layoutManager = FixedLinearLayoutManager(binding.connections)
         binding.connections.adapter = TrafficAdapter().also {
             adapter = it
         }
 
-        binding.connections.layoutManager = LinearLayoutManager(context)
     }
 
     fun emitStats(list: List<Connection>) {
-        if (BuildConfig.DEBUG) Logs.d(list.toString())
-
         if (list.isEmpty()) {
             runOnMainDispatcher {
                 binding.connectionNotFound.isVisible = true
@@ -55,6 +56,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
 
         binding.connections.post {
             adapter.data = list
+            adapter.notifyDataSetChanged()
         }
     }
 
@@ -72,18 +74,25 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
 
         override fun getItemCount(): Int {
             if (!::data.isInitialized) return 0
+            Logs.d("${data.size}")
             return data.size
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
-            if (idStore.contains(data[position].uuid)) {
-                idStore.add(data[position].uuid)
-            }
+            checkID(position)
+            Logs.d("bind: ${data[position]}")
             holder.bind(data[position])
         }
 
         override fun getItemId(position: Int): Long {
+            checkID(position)
             return idStore.indexOf(data[position].uuid).toLong()
+        }
+
+        private fun checkID(position: Int) {
+            if (!idStore.contains(data[position].uuid)) {
+                idStore.add(data[position].uuid)
+            }
         }
 
     }
