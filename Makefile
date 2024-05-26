@@ -1,10 +1,7 @@
-.PHONY: update libcore dashboard apk apk_debug assets lint_go test_go
+.PHONY: update libcore apk apk_debug assets lint_go test_go
 
 libcore:
 	./run lib core
-
-dashboard:
-	./run lib dashboard
 
 apk:
 	BUILD_PLUGIN ./gradlew app:assembleFossRelease
@@ -15,7 +12,7 @@ apk_debug:
 assets:
 	./run lib assets
 
-build: libcore dashboard assets apk
+build: libcore assets apk
 
 update:
 	./run lib update
