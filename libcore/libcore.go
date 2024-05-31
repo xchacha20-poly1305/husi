@@ -23,6 +23,10 @@ func ForceGc() {
 	go runtime.GC()
 }
 
+func Kill() {
+    os.Exit(0)
+}
+
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
 	if1 GUIInterface, if2 BoxPlatformInterface,

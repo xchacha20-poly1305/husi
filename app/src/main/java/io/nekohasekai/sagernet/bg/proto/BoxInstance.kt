@@ -275,7 +275,11 @@ abstract class BoxInstance(
         if (::processes.isInitialized) processes.close(GlobalScope + Dispatchers.IO)
 
         if (::box.isInitialized) {
-            box.close()
+            try {
+                box.close()
+            } catch (_ : Exception) {
+                Libcore.kill()
+            }
         }
     }
 
