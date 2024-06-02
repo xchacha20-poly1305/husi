@@ -2,8 +2,10 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.ClipData
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -19,7 +21,8 @@ import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 
-class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
+class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
+    Toolbar.OnMenuItemClickListener {
 
     private lateinit var binding: LayoutTrafficBinding
     private lateinit var adapter: TrafficAdapter
@@ -29,6 +32,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
 
         binding = LayoutTrafficBinding.bind(view)
         toolbar.setTitle(R.string.menu_dashboard)
+        toolbar.inflateMenu(R.menu.traffic_menu)
+        toolbar.setOnMenuItemClickListener(this)
 
         binding.connectionNotFound.isVisible = true
 
@@ -47,6 +52,40 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         (requireActivity() as MainActivity).connection.service?.setConnection(false)
     }
 
+    private var descending = false
+    private var sortMode = SortMode.ModeTime
+
+    enum class SortMode {
+        ModeTime, ModeID
+    }
+
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_sort_ascending -> {
+                descending = false
+                item.isChecked = true
+            }
+
+            R.id.action_sort_descending -> {
+                descending = true
+                item.isChecked = true
+            }
+
+            R.id.action_sort_time -> {
+                sortMode = SortMode.ModeTime
+                item.isChecked = true
+            }
+
+            R.id.action_sort_id -> {
+                sortMode = SortMode.ModeID
+                item.isChecked = true
+            }
+
+            else -> return false
+        }
+        return true
+    }
+
     fun emitStats(list: List<Connection>) {
         if (list.isEmpty()) {
             runOnMainDispatcher {
@@ -56,13 +95,29 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
             return
         }
 
+        val newList = if (descending) {
+            list.sortedByDescending {
+                when (sortMode) {
+                    SortMode.ModeTime -> it.start
+                    SortMode.ModeID -> it.uuid
+                }
+            }
+        } else {
+            list.sortedBy {
+                when (sortMode) {
+                    SortMode.ModeTime -> it.start
+                    SortMode.ModeID -> it.uuid
+                }
+            }
+        }.toMutableList()
+
         runOnMainDispatcher {
             binding.connectionNotFound.isVisible = false
             binding.connections.isVisible = true
         }
 
         binding.connections.post {
-            adapter.data = list.toMutableList()
+            adapter.data = newList
             adapter.notifyDataSetChanged()
         }
     }
@@ -107,7 +162,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
             binding.connectionID.text = "${connection.uuid} (${connection.network})"
-            binding.connectionSrc.text = getString(R.string.source_address,connection.src)
+            binding.connectionSrc.text = getString(R.string.source_address, connection.src)
             binding.connectionDst.text = getString(R.string.destination_address, connection.dst)
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
@@ -144,10 +199,11 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         }
     }
 
-    inner class SwipeToDeleteCallback(private val adapter: TrafficAdapter) : ItemTouchHelper.Callback() {
+    inner class SwipeToDeleteCallback(private val adapter: TrafficAdapter) :
+        ItemTouchHelper.Callback() {
         override fun getMovementFlags(
             recyclerView: RecyclerView,
-            viewHolder: RecyclerView.ViewHolder
+            viewHolder: RecyclerView.ViewHolder,
         ): Int {
             val swipeFlags = ItemTouchHelper.LEFT
             return makeMovementFlags(0, swipeFlags)
@@ -156,7 +212,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,
-            target: RecyclerView.ViewHolder
+            target: RecyclerView.ViewHolder,
         ): Boolean {
             // No move action
             return false

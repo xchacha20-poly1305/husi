@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+            android:id="@+id/action_misc"
+            android:icon="@drawable/ic_baseline_more_vert_24"
+            android:title=""
+            app:showAsAction="always">
+
+        <menu>
+            <item
+                    android:id="@+id/action_sort"
+                    android:title="@string/sort">
+
+                <menu>
+                    <group android:checkableBehavior="single">
+                        <item
+                                android:id="@+id/action_sort_ascending"
+                                android:checked="true"
+                                android:title="@string/ascending" />
+                        <item
+                                android:id="@+id/action_sort_descending"
+                                android:title="@string/descending" />
+                    </group>
+                </menu>
+            </item>
+
+
+            <item
+                    android:id="@+id/action_sort_method"
+                    android:title="@string/sort_mode">
+
+                <menu>
+                    <group android:checkableBehavior="single">
+                        <item
+                                android:id="@+id/action_sort_time"
+                                android:checked="true"
+                                android:title="@string/sort_time" />
+                        <item
+                                android:id="@+id/action_sort_id"
+                                android:title="@string/sort_id" />
+                    </group>
+                </menu>
+            </item>
+
+        </menu>
+    </item>
+
+</menu>
