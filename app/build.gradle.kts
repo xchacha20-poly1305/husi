@@ -63,7 +63,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.work:work-multiprocess:2.9.0")
 
@@ -92,7 +92,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.7") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.2.0-android")
+    implementation("com.google.guava:guava:33.2.1-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
