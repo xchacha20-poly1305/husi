@@ -4,10 +4,10 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
-import libcore.URL
 import org.json.JSONObject
 
-fun parseNaive(url: URL): NaiveBean {
+fun parseNaive(link: String): NaiveBean {
+    val url = Libcore.parseURL(link)
     return NaiveBean().also {
         it.proto = url.scheme.substringAfter("+").substringBefore(":")
     }.apply {

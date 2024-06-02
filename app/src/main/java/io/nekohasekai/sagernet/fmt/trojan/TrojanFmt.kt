@@ -1,9 +1,10 @@
 package io.nekohasekai.sagernet.fmt.trojan
 
 import io.nekohasekai.sagernet.fmt.v2ray.parseDuckSoft
-import libcore.URL
+import libcore.Libcore
 
-fun parseTrojan(url: URL): TrojanBean {
+fun parseTrojan(link: String): TrojanBean {
+    val url = Libcore.parseURL(link)
     return TrojanBean().apply {
         parseDuckSoft(url)
         url.queryParameterNotBlank("allowInsecure")

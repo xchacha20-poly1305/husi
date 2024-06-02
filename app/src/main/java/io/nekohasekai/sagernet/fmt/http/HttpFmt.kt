@@ -3,9 +3,10 @@ package io.nekohasekai.sagernet.fmt.http
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import libcore.Libcore
-import libcore.URL
 
-fun parseHttp(url: URL): HttpBean {
+fun parseHttp(link: String): HttpBean {
+    val url = Libcore.parseURL(link)
+
     if (url.rawPath != "/") error("Not http proxy")
 
     return HttpBean().apply {

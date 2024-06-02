@@ -2,10 +2,10 @@ package io.nekohasekai.sagernet.fmt.socks
 
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import libcore.Libcore
-import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions
 
-fun parseSOCKS(url: URL): SOCKSBean {
+fun parseSOCKS(link: String): SOCKSBean {
+    val url = Libcore.parseURL(link)
     return SOCKSBean().apply {
         protocol = when (url.scheme) {
             "socks4" -> SOCKSBean.PROTOCOL_SOCKS4
