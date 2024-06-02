@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import io.nekohasekai.sagernet.aidl.ConnectionList
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
@@ -11,12 +10,14 @@ import io.nekohasekai.sagernet.fmt.TAG_BYPASS
 import io.nekohasekai.sagernet.fmt.TAG_PROXY
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.toConnectionList
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
-class TrafficLooper
-    (
-    val data: BaseService.Data, private val sc: CoroutineScope
+class TrafficLooper(
+    val data: BaseService.Data, private val sc: CoroutineScope,
 ) {
 
     private var job: Job? = null
@@ -173,12 +174,6 @@ class TrafficLooper
                                     TrafficData(id = id, rx = item.rx, tx = item.tx) // display
                                 )
                             }
-                        }
-
-                        try {
-                            b.connectionUpdate(ConnectionList(data.proxy!!.box.trackerInfos.toConnectionList()))
-                        } catch (e: Exception) {
-                            Logs.w(e)
                         }
 
                     }

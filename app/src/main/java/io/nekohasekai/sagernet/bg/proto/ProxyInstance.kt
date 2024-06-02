@@ -19,8 +19,8 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     var lastSelectorGroupId = -1L
     var displayProfileName = ServiceNotification.genTitle(profile)
 
-    // for TrafficLooper
-    var looper: TrafficLooper? = null
+    var trafficLooper: TrafficLooper? = null
+    var connectionLooper: ConnectionLooper? = null
 
     override fun buildConfig() {
         super.buildConfig()
@@ -53,8 +53,11 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         box.setAsMain()
         super.launch() // start box
         runOnDefaultDispatcher {
-            looper = service?.let { TrafficLooper(it.data, this) }
-            looper?.start()
+            service?.let {
+                trafficLooper = TrafficLooper(it.data, this)
+                connectionLooper = ConnectionLooper(it.data, this)
+            }
+            trafficLooper?.start()
         }
     }
 
@@ -62,8 +65,11 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         Libcore.registerLocalDNSTransport(null)
         super.close()
         runBlocking {
-            looper?.stop()
-            looper = null
+            trafficLooper?.stop()
+            trafficLooper = null
+
+            connectionLooper?.stop()
+            connectionLooper = null
         }
     }
 }
