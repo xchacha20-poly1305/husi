@@ -101,8 +101,8 @@ func extractAssetToFile(assetFile asset.File, path string) error {
 
 // deleteLocalDashboard deletes the dashboard of old user.
 func deleteLocalDashboard() {
-	const dashboard = "dashboard"
-	_ = os.RemoveAll(filepath.Join(internalAssetsPath, dashboard))
-	_ = os.Remove(filepath.Join(internalAssetsPath, dashboard+tgzSuffix))
-	_ = os.Remove(filepath.Join(internalAssetsPath, dashboard+versionSuffix))
+	dashboardPath := filepath.Join(internalAssetsPath, "dashboard")
+	_ = os.RemoveAll(dashboardPath)
+	_ = os.Remove(dashboardPath + tgzSuffix)
+	_ = os.Remove(dashboardPath + versionSuffix)
 }
