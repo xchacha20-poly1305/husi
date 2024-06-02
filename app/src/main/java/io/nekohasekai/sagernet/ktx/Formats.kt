@@ -117,8 +117,8 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             throw SubscriptionFoundException(this)
         }
 
-        val url = Libcore.parseURL(this)
-        when (url.scheme) {
+        val scheme = this.substringBefore("://")
+        when (scheme) {
             "husi" -> {
                 Logs.d("Try parse universal link: $this")
                 runCatching {
@@ -131,7 +131,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "socks", "socks4", "socks4a", "socks5" -> {
                 Logs.d("Try parse socks link: $this")
                 runCatching {
-                    entities.add(parseSOCKS(url))
+                    entities.add(parseSOCKS(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -140,7 +140,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "http", "https" -> {
                 Logs.d("Try parse http link: $this")
                 runCatching {
-                    entities.add(parseHttp(url))
+                    entities.add(parseHttp(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -158,7 +158,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "trojan" -> {
                 Logs.d("Try parse trojan link: $this")
                 runCatching {
-                    entities.add(parseTrojan(url))
+                    entities.add(parseTrojan(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -166,7 +166,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
 
             "trojan-go" -> {
                 runCatching {
-                    entities.add(parseTrojanGo(url))
+                    entities.add(parseTrojanGo(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -184,7 +184,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "naive+https", "naive+quic" -> {
                 Logs.d("Try parse naive link: $this")
                 runCatching {
-                    entities.add(parseNaive(url))
+                    entities.add(parseNaive(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -193,7 +193,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "hysteria1" -> {
                 Logs.d("Try parse hysteria1 link: $this")
                 runCatching {
-                    entities.add(parseHysteria1(url))
+                    entities.add(parseHysteria1(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -202,7 +202,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "hysteria2", "hy2" -> {
                 Logs.d("Try parse hysteria2 link: $this")
                 runCatching {
-                    entities.add(parseHysteria2(url))
+                    entities.add(parseHysteria2(this))
                 }.onFailure {
                     Logs.w(it)
                 }
@@ -211,7 +211,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             "tuic" -> {
                 Logs.d("Try parse TUIC link: $this")
                 runCatching {
-                    entities.add(parseTuic(url))
+                    entities.add(parseTuic(this))
                 }.onFailure {
                     Logs.w(it)
                 }

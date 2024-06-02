@@ -2,13 +2,13 @@ package io.nekohasekai.sagernet.fmt.tuic
 
 import io.nekohasekai.sagernet.database.DataStore
 import libcore.Libcore
-import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
-fun parseTuic(url: URL): TuicBean {
-    // https://github.com/daeuniverse/dae/discussions/182
+// https://github.com/daeuniverse/dae/discussions/182
+fun parseTuic(link: String): TuicBean {
+    val url = Libcore.parseURL(link)
     return TuicBean().apply {
         name = url.fragment
         uuid = url.username

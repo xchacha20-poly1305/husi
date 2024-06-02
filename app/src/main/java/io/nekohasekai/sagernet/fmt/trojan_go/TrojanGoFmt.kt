@@ -5,12 +5,12 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
-import libcore.URL
 import moe.matsuri.nb4a.Protocols
 import org.json.JSONArray
 import org.json.JSONObject
 
-fun parseTrojanGo(url: URL): TrojanGoBean {
+fun parseTrojanGo(link: String): TrojanGoBean {
+    val url = Libcore.parseURL(link)
     return TrojanGoBean().apply {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
