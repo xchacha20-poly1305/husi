@@ -39,6 +39,12 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
 
         ItemTouchHelper(SwipeToDeleteCallback(adapter)).attachToRecyclerView(binding.connections)
 
+        (requireActivity() as MainActivity).connection.service?.setConnection(true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (requireActivity() as MainActivity).connection.service?.setConnection(false)
     }
 
     fun emitStats(list: List<Connection>) {
@@ -160,8 +166,6 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic) {
             (requireActivity() as MainActivity)
                 .connection
                 .service?.closeConnection(adapter.data[viewHolder.absoluteAdapterPosition].uuid)
-            adapter.data.removeAt(viewHolder.absoluteAdapterPosition)
-            adapter.notifyDataSetChanged()
         }
     }
 
