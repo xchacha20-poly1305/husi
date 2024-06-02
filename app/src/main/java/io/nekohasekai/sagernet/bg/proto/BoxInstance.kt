@@ -277,7 +277,8 @@ abstract class BoxInstance(
         if (::box.isInitialized) {
             try {
                 box.close()
-            } catch (_ : Exception) {
+            } catch (e : Exception) {
+                Logs.w(e)
                 Libcore.kill()
             }
         }

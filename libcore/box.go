@@ -137,8 +137,7 @@ func (b *BoxInstance) Close() (err error) {
 	}()
 	select {
 	case <-ctx.Done():
-		boxlog.Warn("Closing sing-box takes longer than expected.")
-		return E.New("Sing-box did not close in time")
+		return E.New("sing-box did not close in time")
 	case <-chClosed:
 		boxlog.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
 		return nil
