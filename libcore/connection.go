@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"bytes"
-	"cmp"
 	"net"
 	"net/netip"
 	"reflect"
@@ -21,7 +20,7 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 	defer catchPanic("GetTrackerInfos", func(panicErr error) { err = panicErr })
 
 	clash, isClashServer := b.Router().ClashServer().(*clashapi.Server)
-	if !isClashServer {
+	if clash == nil || !isClashServer {
 		return nil, E.New("failed to get clash server")
 	}
 
@@ -37,6 +36,7 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 			Network:       metadata.NetWork,
 			Src:           addressFromMetadata(metadata.SrcIP, metadata.SrcPort, "::1"),
 			Dst:           addressFromMetadata(metadata.DstIP, metadata.DstPort, metadata.Host),
+			Host:          metadata.Host,
 			UploadTotal:   field.Field(2).Interface().(*atomic.Int64),
 			DownloadTotal: field.Field(3).Interface().(*atomic.Int64),
 			Start:         field.Field(4).Interface().(time.Time),
@@ -60,42 +60,21 @@ func addressFromMetadata(ip netip.Addr, port, host string) string {
 
 func (b *BoxInstance) CloseConnection(id string) {
 	clash, isClashServer := b.Router().ClashServer().(*clashapi.Server)
-	if !isClashServer {
+	if clash == nil || !isClashServer {
 		return
 	}
 
-	// common.Map
 	trackerList := clash.TrafficManager().Snapshot().Connections
-	interfaceList := make([]interface{}, 0, len(trackerList))
 	for _, tracker := range trackerList {
-		interfaceList = append(interfaceList, tracker)
+		if tracker.ID() == id {
+			_ = tracker.Close()
+			break
+		}
 	}
-
-	index, found := slices.BinarySearchFunc[[]interface{}, interface{}, interface{}](
-		interfaceList,
-		fakeTracker{id},
-		func(a, b interface{}) int {
-			return cmp.Compare(a.(idGetter).ID(), b.(idGetter).ID())
-		},
-	)
-	if found {
-		_ = trackerList[index].Close()
-	}
-
 }
 
 type idGetter interface {
 	ID() string
-}
-
-var _ idGetter = fakeTracker{}
-
-type fakeTracker struct {
-	id string
-}
-
-func (f fakeTracker) ID() string {
-	return f.id
 }
 
 var _ TrackerInfoIterator = (*iterator[*TrackerInfo])(nil)
