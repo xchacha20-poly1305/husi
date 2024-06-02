@@ -5,8 +5,8 @@ go 1.21
 require (
 	github.com/miekg/dns v1.1.59
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.4.0-beta.20
-	github.com/sagernet/sing-box v1.9.0-rc.22.0.20240525033043-5ff7006326e8
+	github.com/sagernet/sing v0.5.0-alpha.7
+	github.com/sagernet/sing-box v1.9.0
 	github.com/sagernet/sing-dns v0.2.0-beta.18
 	github.com/sagernet/sing-tun v0.3.0-beta.6
 	github.com/xchacha20-poly1305/TLS-scribe v0.4.0
