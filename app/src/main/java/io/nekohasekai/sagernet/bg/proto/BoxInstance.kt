@@ -18,6 +18,7 @@ import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.Dispatchers
@@ -248,7 +249,12 @@ abstract class BoxInstance(
         if (::processes.isInitialized) processes.close(GlobalScope + Dispatchers.IO)
 
         if (::box.isInitialized) {
-            box.close()
+            try {
+                box.close()
+            } catch (e : Exception) {
+                Logs.w(e)
+                Libcore.kill()
+            }
         }
     }
 
