@@ -557,4 +557,10 @@
     <string name="detail">详细</string>
     <string name="source_address">源地址: %s</string>
     <string name="destination_address">目标地址: %s</string>
+    <string name="ascending">升序</string>
+    <string name="descending">降序</string>
+    <string name="sort">排序</string>
+    <string name="sort_mode">排序方式</string>
+    <string name="sort_time">根据时间排序</string>
+    <string name="sort_id">根据 ID 排序</string>
 </resources>
