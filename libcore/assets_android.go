@@ -22,12 +22,11 @@ func extractAssets() {
 	if intfGUI.UseOfficialAssets() {
 		// Prepare directory
 		targetDir := filepath.Join(externalAssetsPath, "geo")
-		_ = os.RemoveAll(targetDir)
 		_ = os.MkdirAll(targetDir, os.ModePerm)
 
 		for _, name := range []string{geoipDat, geositeDat} {
 			if err := extractGeo(name, targetDir); err != nil {
-				log.Warn("failed to extract geo ", err)
+				log.Warn("failed to extract geo: ", err)
 			}
 		}
 	}
@@ -41,10 +40,9 @@ func extractGeo(name, targetDir string) error {
 	if err != nil || len(assetsVersion) < 1 {
 		assetsVersion = []byte(time.Now().Format("20060102"))
 	}
-	localVersion, err := os.ReadFile(filepath.Join(externalAssetsPath, versionPath))
+	localVersion, err := os.ReadFile(versionPath)
 	if err == nil {
 		if bytes.Compare(assetsVersion, localVersion) <= 0 {
-			log.Info("Skip update [", name, "]: ", string(assetsVersion))
 			return nil
 		}
 	}
@@ -59,6 +57,7 @@ func extractGeo(name, targetDir string) error {
 		return E.Cause(err, "copy tmp file of ", name)
 	}
 
+	_ = removePrefix(targetDir, name+"-")
 	err = UntargzWihoutDir(tmpPackName, targetDir)
 	_ = os.Remove(tmpPackName)
 	if err != nil {

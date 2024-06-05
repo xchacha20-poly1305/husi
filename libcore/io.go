@@ -5,8 +5,10 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -103,4 +105,17 @@ func UnzipWithoutDir(archive, path string) error {
 	}
 
 	return nil
+}
+
+// removePrefix removes all files which starts with prefix in dir. But it will ignore any error.
+func removePrefix(dir, prefix string) error {
+	return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return nil
+		}
+		if strings.HasPrefix(info.Name(), prefix) {
+			_ = os.Remove(path)
+		}
+		return nil
+	})
 }
