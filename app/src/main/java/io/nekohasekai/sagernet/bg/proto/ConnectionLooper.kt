@@ -22,7 +22,9 @@ class ConnectionLooper(
     }
 
     private suspend fun loop() {
-        val interval = DataStore.speedInterval.toLong()
+        val interval = DataStore.speedInterval.let {
+            if (it <= 0) 1000L else it.toLong()
+        }
 
         while (scope.isActive) {
             try {
