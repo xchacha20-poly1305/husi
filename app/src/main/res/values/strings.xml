@@ -627,6 +627,10 @@
     <string name="descending">descending</string>
     <string name="sort">Sort</string>
     <string name="sort_mode">Sort Mode</string>
-    <string name="sort_time">Sort by Time</string>
-    <string name="sort_id">Sort by ID</string>
+    <string name="by_time">By Time</string>
+    <string name="by_id">By ID</string>
+    <string name="by_source">By Source</string>
+    <string name="by_destination">By Destination</string>
+    <string name="by_upload">By Upload</string>
+    <string name="by_download">By Download</string>
 </resources>
