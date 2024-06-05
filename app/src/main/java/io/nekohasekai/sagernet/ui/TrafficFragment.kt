@@ -53,10 +53,22 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
     }
 
     private var descending = false
-    private var sortMode = SortMode.ModeTime
+    private var sortMode = SortMode.START
 
     enum class SortMode {
-        ModeTime, ModeID
+        START, ID, SRC, DST, UPLOAD, DOWNLOAD
+    }
+
+    private val connectionComparator = Comparator<Connection> { a, b ->
+        val result = when (sortMode) {
+            SortMode.START -> compareValues(a.start, b.start)
+            SortMode.ID -> compareValues(a.uuid, b.uuid)
+            SortMode.SRC -> compareValues(a.src, b.src)
+            SortMode.DST -> compareValues(a.dst, b.dst)
+            SortMode.UPLOAD -> compareValues(a.uploadTotal, b.uploadTotal)
+            SortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
+        }
+        if (descending) -result else result
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -72,12 +84,32 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             }
 
             R.id.action_sort_time -> {
-                sortMode = SortMode.ModeTime
+                sortMode = SortMode.START
                 item.isChecked = true
             }
 
             R.id.action_sort_id -> {
-                sortMode = SortMode.ModeID
+                sortMode = SortMode.ID
+                item.isChecked = true
+            }
+
+            R.id.action_sort_source -> {
+                sortMode = SortMode.SRC
+                item.isChecked = true
+            }
+
+            R.id.action_sort_destination -> {
+                sortMode = SortMode.DST
+                item.isChecked = true
+            }
+
+            R.id.action_sort_upload -> {
+                sortMode = SortMode.UPLOAD
+                item.isChecked = true
+            }
+
+            R.id.action_sort_download -> {
+                sortMode = SortMode.DOWNLOAD
                 item.isChecked = true
             }
 
@@ -95,21 +127,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             return
         }
 
-        val newList = if (descending) {
-            list.sortedByDescending {
-                when (sortMode) {
-                    SortMode.ModeTime -> it.start
-                    SortMode.ModeID -> it.uuid
-                }
-            }
-        } else {
-            list.sortedBy {
-                when (sortMode) {
-                    SortMode.ModeTime -> it.start
-                    SortMode.ModeID -> it.uuid
-                }
-            }
-        }.toMutableList()
+        val newList = list.sortedWith(connectionComparator).toMutableList()
 
         runOnMainDispatcher {
             binding.connectionNotFound.isVisible = false
@@ -128,6 +146,9 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
 
         lateinit var data: MutableList<Connection>
+
+        // Upstream uses UUID as ID, when Adapter use Long.
+        // LinkedHashSet mark an unique index for each uuid string.
         private var idStore = linkedSetOf<String>()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
@@ -140,19 +161,13 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
-            checkID(position)
+            idStore.add(data[position].uuid)
             holder.bind(data[position])
         }
 
         override fun getItemId(position: Int): Long {
-            checkID(position)
+            idStore.add(data[position].uuid)
             return idStore.indexOf(data[position].uuid).toLong()
-        }
-
-        private fun checkID(position: Int) {
-            if (!idStore.contains(data[position].uuid)) {
-                idStore.add(data[position].uuid)
-            }
         }
 
     }

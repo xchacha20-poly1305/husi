@@ -561,6 +561,10 @@
     <string name="descending">降序</string>
     <string name="sort">排序</string>
     <string name="sort_mode">排序方式</string>
-    <string name="sort_time">根据时间排序</string>
-    <string name="sort_id">根据 ID 排序</string>
+    <string name="by_time">根据时间</string>
+    <string name="by_id">根据 ID</string>
+    <string name="by_source">根据源</string>
+    <string name="by_destination">根据目标</string>
+    <string name="by_upload">根据上行</string>
+    <string name="by_download">根据下行</string>
 </resources>
