@@ -17,7 +17,6 @@
                     <group android:checkableBehavior="single">
                         <item
                                 android:id="@+id/action_sort_ascending"
-                                android:checked="true"
                                 android:title="@string/ascending" />
                         <item
                                 android:id="@+id/action_sort_descending"
@@ -35,7 +34,6 @@
                     <group android:checkableBehavior="single">
                         <item
                                 android:id="@+id/action_sort_time"
-                                android:checked="true"
                                 android:title="@string/by_time" />
                         <item
                                 android:id="@+id/action_sort_id"

@@ -12,7 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
+import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
@@ -35,6 +37,28 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         toolbar.inflateMenu(R.menu.traffic_menu)
         toolbar.setOnMenuItemClickListener(this)
 
+        if (DataStore.trafficDescending) {
+            toolbar.menu.findItem(R.id.action_sort_descending)!!.isChecked = true
+        } else {
+            toolbar.menu.findItem(R.id.action_sort_ascending)!!.isChecked = true
+        }
+        when (DataStore.trafficSortMode) {
+            TrafficSortMode.START -> toolbar.menu.findItem(R.id.action_sort_time)!!.isChecked = true
+            TrafficSortMode.ID -> toolbar.menu.findItem(R.id.action_sort_id)!!.isChecked = true
+            TrafficSortMode.SRC -> toolbar.menu.findItem(R.id.action_sort_source)!!.isChecked = true
+            TrafficSortMode.DST -> {
+                toolbar.menu.findItem(R.id.action_sort_destination)!!.isChecked = true
+            }
+
+            TrafficSortMode.UPLOAD -> {
+                toolbar.menu.findItem(R.id.action_sort_upload)!!.isChecked = true
+            }
+
+            TrafficSortMode.DOWNLOAD -> {
+                toolbar.menu.findItem(R.id.action_sort_download)!!.isChecked = true
+            }
+        }
+
         binding.connectionNotFound.isVisible = true
 
         binding.connections.layoutManager = FixedLinearLayoutManager(binding.connections)
@@ -52,64 +76,58 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         (requireActivity() as MainActivity).connection.service?.setConnection(false)
     }
 
-    private var descending = false
-    private var sortMode = SortMode.START
-
-    enum class SortMode {
-        START, ID, SRC, DST, UPLOAD, DOWNLOAD
-    }
-
     private val connectionComparator = Comparator<Connection> { a, b ->
-        val result = when (sortMode) {
-            SortMode.START -> compareValues(a.start, b.start)
-            SortMode.ID -> compareValues(a.uuid, b.uuid)
-            SortMode.SRC -> compareValues(a.src, b.src)
-            SortMode.DST -> compareValues(a.dst, b.dst)
-            SortMode.UPLOAD -> compareValues(a.uploadTotal, b.uploadTotal)
-            SortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
+        val result = when (DataStore.trafficSortMode) {
+            TrafficSortMode.START -> compareValues(a.start, b.start)
+            TrafficSortMode.ID -> compareValues(a.uuid, b.uuid)
+            TrafficSortMode.SRC -> compareValues(a.src, b.src)
+            TrafficSortMode.DST -> compareValues(a.dst, b.dst)
+            TrafficSortMode.UPLOAD -> compareValues(a.uploadTotal, b.uploadTotal)
+            TrafficSortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
+            else -> throw IllegalArgumentException()
         }
-        if (descending) -result else result
+        if (DataStore.trafficDescending) -result else result
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_sort_ascending -> {
-                descending = false
+                DataStore.trafficDescending = false
                 item.isChecked = true
             }
 
             R.id.action_sort_descending -> {
-                descending = true
+                DataStore.trafficDescending = true
                 item.isChecked = true
             }
 
             R.id.action_sort_time -> {
-                sortMode = SortMode.START
+                DataStore.trafficSortMode = TrafficSortMode.START
                 item.isChecked = true
             }
 
             R.id.action_sort_id -> {
-                sortMode = SortMode.ID
+                DataStore.trafficSortMode = TrafficSortMode.ID
                 item.isChecked = true
             }
 
             R.id.action_sort_source -> {
-                sortMode = SortMode.SRC
+                DataStore.trafficSortMode = TrafficSortMode.SRC
                 item.isChecked = true
             }
 
             R.id.action_sort_destination -> {
-                sortMode = SortMode.DST
+                DataStore.trafficSortMode = TrafficSortMode.DST
                 item.isChecked = true
             }
 
             R.id.action_sort_upload -> {
-                sortMode = SortMode.UPLOAD
+                DataStore.trafficSortMode = TrafficSortMode.UPLOAD
                 item.isChecked = true
             }
 
             R.id.action_sort_download -> {
-                sortMode = SortMode.DOWNLOAD
+                DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
                 item.isChecked = true
             }
 
