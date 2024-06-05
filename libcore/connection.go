@@ -17,8 +17,8 @@ import (
 func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator, err error) {
 	defer catchPanic("GetTrackerInfos", func(panicErr error) { err = panicErr })
 
-	clash, isClashServer := b.Router().ClashServer().(*clashapi.Server)
-	if clash == nil || !isClashServer {
+	clash := b.Router().ClashServer().(*clashapi.Server)
+	if clash == nil {
 		return nil, E.New("failed to get clash server")
 	}
 
@@ -35,8 +35,8 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 			Src:           addressFromMetadata(metadata.SrcIP, metadata.SrcPort, "::1"),
 			Dst:           addressFromMetadata(metadata.DstIP, metadata.DstPort, metadata.Host),
 			Host:          metadata.Host,
-			UploadTotal:   field.Field(2).Interface().(*atomic.Int64),
-			DownloadTotal: field.Field(3).Interface().(*atomic.Int64),
+			UploadTotal:   field.Field(2).Interface().(*atomic.Int64).Load(),
+			DownloadTotal: field.Field(3).Interface().(*atomic.Int64).Load(),
 			Start:         field.Field(4).Interface().(time.Time),
 			Rule:          field.Field(6).String(),
 		})
@@ -53,8 +53,8 @@ func addressFromMetadata(ip netip.Addr, port, host string) string {
 }
 
 func (b *BoxInstance) CloseConnection(id string) {
-	clash, isClashServer := b.Router().ClashServer().(*clashapi.Server)
-	if clash == nil || !isClashServer {
+	clash := b.Router().ClashServer().(*clashapi.Server)
+	if clash == nil {
 		return
 	}
 
@@ -65,10 +65,6 @@ func (b *BoxInstance) CloseConnection(id string) {
 			break
 		}
 	}
-}
-
-type idGetter interface {
-	ID() string
 }
 
 var _ TrackerInfoIterator = (*iterator[*TrackerInfo])(nil)
@@ -83,22 +79,14 @@ type TrackerInfo struct {
 	Network       string
 	Src, Dst      string
 	Host          string
-	UploadTotal   *atomic.Int64
-	DownloadTotal *atomic.Int64
+	UploadTotal   int64
+	DownloadTotal int64
 	Start         time.Time
 	Rule          string
 }
 
 func (t TrackerInfo) GetUUID() string {
 	return t.UUID.String()
-}
-
-func (t TrackerInfo) GetUploadTotal() int64 {
-	return t.UploadTotal.Load()
-}
-
-func (t TrackerInfo) GetDownloadTotal() int64 {
-	return t.DownloadTotal.Load()
 }
 
 func (t TrackerInfo) GetStart() string {
