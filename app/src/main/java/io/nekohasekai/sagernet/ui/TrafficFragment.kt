@@ -2,11 +2,15 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.ClipData
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat.getColor
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -31,9 +35,6 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
     private lateinit var binding: LayoutTrafficBinding
     private lateinit var adapter: TrafficAdapter
-
-    private lateinit var searchView: SearchView
-    private var searchString: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -190,8 +191,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
         lateinit var data: MutableList<Connection>
 
-        // Upstream uses UUID as ID, when Adapter use Long.
-        // LinkedHashSet mark an unique index for each uuid string.
+        // Upstream uses UUID (String) as ID, when Adapter use Long.
+        // LinkedHashSet marks an unique index for each uuid.
         private var idStore = linkedSetOf<String>()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
@@ -219,13 +220,29 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
-            binding.connectionID.text = "${connection.uuid} (${connection.network})"
-            binding.connectionSrc.text = getString(R.string.source_address, connection.src)
-            binding.connectionDst.text = getString(R.string.destination_address, connection.dst)
+            binding.connectionID.text = textWithColor(
+                "${connection.uuid} ",
+                getColor(R.color.log_red),
+                connection.network,
+            )
+            binding.connectionSrc.text = textWithColor(
+                getString(R.string.source_address) + ": ",
+                getColor(R.color.design_default_color_secondary_variant),
+                connection.src,
+            )
+            binding.connectionDst.text = textWithColor(
+                getString(R.string.destination_address) + ": ",
+                getColor(R.color.color_pink_ssr),
+                connection.dst,
+            )
             binding.connectionHost.apply {
                 if (connection.host.isNotBlank()) {
                     isVisible = true
-                    text = "Host: ${connection.host}"
+                    text = textWithColor(
+                        "Host: ",
+                        getColor(R.color.log_purple),
+                        connection.host,
+                    )
                 } else isVisible = false
             }
             binding.connectionTraffic.text = getString(
@@ -233,12 +250,14 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 Libcore.formatBytes(connection.uploadTotal),
                 Libcore.formatBytes(connection.downloadTotal),
             )
-            binding.connectionStart.text = getString(
-                R.string.start_time,
-                connection.start,
+            binding.connectionStart.text = textWithColor(
+                getString(R.string.start) + ": ",
+                getColor(R.color.design_default_color_secondary),
+                connection.start
             )
-            binding.connectionOutbound.text = getString(
-                R.string.outbound_rule,
+            binding.connectionOutbound.text = textWithColor(
+                getString(R.string.outbound_rule) + ": ",
+                getColor(R.color.log_blue),
                 connection.rule,
             )
             binding.root.setOnClickListener {
@@ -260,6 +279,26 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                         .show()
                 }
             }
+        }
+
+        private fun textWithColor(
+            tagStr: String,
+            color: Int,
+            colorStr: String,
+        ): SpannableStringBuilder {
+            return SpannableStringBuilder(tagStr).apply {
+                append(colorStr)
+                setSpan(
+                    ForegroundColorSpan(color),
+                    tagStr.length,
+                    tagStr.length + colorStr.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+        }
+
+        private fun getColor(id: Int): Int {
+            return getColor(binding.root.context, id)
         }
     }
 
@@ -288,6 +327,10 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 .service?.closeConnection(adapter.data[viewHolder.absoluteAdapterPosition].uuid)
         }
     }
+
+
+    private lateinit var searchView: SearchView
+    private var searchString: String? = null
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         searchString = query
