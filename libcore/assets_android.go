@@ -57,7 +57,7 @@ func extractGeo(name, targetDir string) error {
 		return E.Cause(err, "copy tmp file of ", name)
 	}
 
-	_ = removePrefix(targetDir, name+"-")
+	_ = removeIfHasPrefix(targetDir, name+"-")
 	err = UntargzWihoutDir(tmpPackName, targetDir)
 	_ = os.Remove(tmpPackName)
 	if err != nil {

@@ -107,8 +107,8 @@ func UnzipWithoutDir(archive, path string) error {
 	return nil
 }
 
-// removePrefix removes all files which starts with prefix in dir. But it will ignore any error.
-func removePrefix(dir, prefix string) error {
+// removeIfHasPrefix removes all files which starts with prefix in dir. But it will ignore any error.
+func removeIfHasPrefix(dir, prefix string) error {
 	return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
