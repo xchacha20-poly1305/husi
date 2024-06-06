@@ -618,4 +618,19 @@
     <string name="ntp_server_address">NTP Server Address</string>
     <string name="ntp_server_port">NTP Server Port</string>
     <string name="ntp_sync_interval">NTP Sync Interval</string>
+    <string name="start_time">Started at</string>
+    <string name="outbound_rule">Outbound rule</string>
+    <string name="detail">Detail</string>
+    <string name="source_address">Source Address</string>
+    <string name="destination_address">Destination Address</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">descending</string>
+    <string name="sort">Sort</string>
+    <string name="sort_mode">Sort Mode</string>
+    <string name="by_time">By Time</string>
+    <string name="by_id">By ID</string>
+    <string name="by_source">By Source</string>
+    <string name="by_destination">By Destination</string>
+    <string name="by_upload">By Upload</string>
+    <string name="by_download">By Download</string>
 </resources>

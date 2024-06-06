@@ -5,62 +5,14 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
-
-func Untargz(archive, path string) (err error) {
-	file, err := os.Open(archive)
-	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	_ = os.MkdirAll(path, os.ModePerm)
-
-	// gReader is a gzip.Reader
-	gReader, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	// tReader is a tar.Reader
-	tReader := tar.NewReader(gReader)
-
-	for {
-		header, err := tReader.Next()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
-
-		fileInfo := header.FileInfo()
-
-		if fileInfo.IsDir() {
-			_ = os.MkdirAll(filepath.Join(path, header.Name), os.ModePerm)
-			continue
-		}
-
-		// Zip flip
-		if strings.Contains(header.Name, "..") {
-			log.Warn("Found zip flip when untargz: ", header.Name)
-			continue
-		}
-
-		err = copyToFile(filepath.Join(path, header.Name), tReader)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func UntargzWihoutDir(archive, path string) (err error) {
 	file, err := os.Open(archive)
@@ -153,4 +105,17 @@ func UnzipWithoutDir(archive, path string) error {
 	}
 
 	return nil
+}
+
+// removePrefix removes all files which starts with prefix in dir. But it will ignore any error.
+func removePrefix(dir, prefix string) error {
+	return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return nil
+		}
+		if strings.HasPrefix(info.Name(), prefix) {
+			_ = os.Remove(path)
+		}
+		return nil
+	})
 }

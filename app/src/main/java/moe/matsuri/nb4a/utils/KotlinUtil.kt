@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.widget.SearchView
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -98,4 +99,15 @@ fun <T> JSONArray.toList(turn: (Any) -> T): MutableList<T> {
         list.add(turn(any))
     }
     return list
+}
+
+// View
+
+fun SearchView.setOnFocusCancel() {
+    setOnQueryTextFocusChangeListener { _, hasFocus ->
+        if (!hasFocus) {
+            onActionViewCollapsed()
+            clearFocus()
+        }
+    }
 }

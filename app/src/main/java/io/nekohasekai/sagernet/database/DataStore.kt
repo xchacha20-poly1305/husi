@@ -2,13 +2,25 @@ package io.nekohasekai.sagernet.database
 
 import android.os.Binder
 import androidx.preference.PreferenceDataStore
-import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.CONNECTION_TEST_URL
+import io.nekohasekai.sagernet.GroupType
+import io.nekohasekai.sagernet.IPv6Mode
+import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.TrafficSortMode
+import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.database.preference.RoomPreferenceDataStore
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.boolean
+import io.nekohasekai.sagernet.ktx.int
+import io.nekohasekai.sagernet.ktx.long
+import io.nekohasekai.sagernet.ktx.parsePort
+import io.nekohasekai.sagernet.ktx.string
+import io.nekohasekai.sagernet.ktx.stringSet
+import io.nekohasekai.sagernet.ktx.stringToInt
+import io.nekohasekai.sagernet.ktx.stringToIntIfExists
 import moe.matsuri.nb4a.TempDatabase
 
 object DataStore : OnPreferenceDataStoreChangeListener {
@@ -164,7 +176,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
 
-    var dashURL by configurationStore.string("dashURL") { "http://127.0.0.1:9090/ui" }
+    var trafficDescending by configurationStore.boolean("trafficDescending") { false }
+    var trafficSortMode by configurationStore.int("trafficSortMode") { TrafficSortMode.START }
     var enabledCazilla by configurationStore.boolean(Key.ENABLED_CAZILLA) { false }
 
     // ntp

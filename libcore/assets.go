@@ -1,23 +1,22 @@
 package libcore
 
 const (
+	versionSuffix  = ".version.txt"
 	geoipDat       = "geoip"
 	geositeDat     = "geosite"
-	geoipVersion   = "geoip.version.txt"
-	geositeVersion = "geosite.version.txt"
+	geoipVersion   = geoipDat + versionSuffix
+	geositeVersion = geositeDat + versionSuffix
 
-	dashDstFolder = "dashboard"
-	dashVersion   = "dashboard.version.txt"
+	apkAssetPrefixSingBox = "sing-box/"
 )
 
 const (
-	geoipArchive   = "geoip.tgz"
-	geositeArchive = "geosite.tgz"
-	dashArchive    = "dashboard.tgz"
+	tgzSuffix      = ".tgz"
+	geoipArchive   = geoipDat + tgzSuffix
+	geositeArchive = geositeDat + tgzSuffix
 )
 
 var (
-	apkAssetPrefixSingBox = "sing-box/"
-	internalAssetsPath    string
-	externalAssetsPath    string
+	internalAssetsPath string
+	externalAssetsPath string
 )

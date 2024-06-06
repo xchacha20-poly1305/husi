@@ -67,6 +67,7 @@ import moe.matsuri.nb4a.proxy.neko.canShare
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import moe.matsuri.nb4a.utils.blur
 import moe.matsuri.nb4a.utils.closeQuietly
+import moe.matsuri.nb4a.utils.setOnFocusCancel
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.*
@@ -151,13 +152,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         if (searchView != null) {
             searchView.setOnQueryTextListener(this)
             searchView.maxWidth = Int.MAX_VALUE
-
-            searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
-                    // 失去焦点时取消搜索
-                    cancelSearch(searchView)
-                }
-            }
+            searchView.setOnFocusCancel()
 
         }
 
@@ -1787,10 +1782,5 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
         }
-
-    private fun cancelSearch(searchView: SearchView) {
-        searchView.onActionViewCollapsed()
-        searchView.clearFocus()
-    }
 
 }

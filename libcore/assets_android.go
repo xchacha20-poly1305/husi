@@ -3,224 +3,105 @@
 package libcore
 
 import (
+	"bytes"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/sagernet/gomobile/asset"
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-// 支持非官方源的，放 Android 目录 (dashboard)
-// 不支持非官方源的，就放 file 目录 (geo)
-// 解压的是 apk 里面的 assets
+// extractAssets extract assets in apk.
 func extractAssets() {
-	useOfficialAssets := intfGUI.UseOfficialAssets()
+	deleteLocalDashboard()
 
-	if useOfficialAssets {
-		err := extractGeo()
-		if err != nil {
-			log.Println(err)
+	if intfGUI.UseOfficialAssets() {
+		// Prepare directory
+		targetDir := filepath.Join(externalAssetsPath, "geo")
+		_ = os.MkdirAll(targetDir, os.ModePerm)
+
+		for _, name := range []string{geoipDat, geositeDat} {
+			if err := extractGeo(name, targetDir); err != nil {
+				log.Warn("failed to extract geo: ", err)
+			}
 		}
-	}
-
-	err := extractDash()
-	if err != nil {
-		log.Println(err)
 	}
 }
 
-// extract geo files.
-func extractGeo() error {
-	names := []string{geoipDat, geositeDat}
-	versionPaths := []string{geoipVersion, geositeVersion}
-	dir := externalAssetsPath
-	targetDir := filepath.Join(dir, "geo")
-	assetsDir := apkAssetPrefixSingBox
+func extractGeo(name, targetDir string) error {
+	versionPath := filepath.Join(externalAssetsPath, name+versionSuffix)
 
-	// load assets version
-	var assetsVersions [][]byte
-	for _, versionPath := range versionPaths {
-		assetsVersion, err := readAssetsVersion(filepath.Join(assetsDir, versionPath))
-		if err != nil || len(assetsVersion) < 1 {
-			assetsVersions = append(assetsVersions,
-				[]byte(time.Now().Format("20060102")))
-			continue
-		}
-		assetsVersions = append(assetsVersions, assetsVersion)
-	}
-
-	// compare version
-	needUpdate := true
-	for i, assetsVersion := range assetsVersions {
-		localVersion, err := readLocalVersion(filepath.Join(dir, versionPaths[i]))
-		if err != nil {
-			// miss local versionPath
-			break
-		}
-		// needn't update
-		if !versionLess(localVersion, assetsVersion) {
-			needUpdate = false
-		}
-	}
-	if !needUpdate {
-		return nil
-	}
-
-	// Prepare directory
-	_ = os.RemoveAll(targetDir)
-	_ = os.MkdirAll(targetDir, os.ModePerm)
-
-	// Unzip geoip and geosite
-	for _, name := range names {
-		file, err := asset.Open(filepath.Join(assetsDir, name) + ".tgz")
-		if err != nil {
-			return E.Cause(err, " open asset ", name)
-		}
-
-		tmpZipName := filepath.Join(targetDir, name) + ".tgz"
-		err = extractAsset(file, tmpZipName)
-		if err != nil {
-			return E.Cause(err, " extract:", name)
-		}
-
-		err = UntargzWihoutDir(tmpZipName, targetDir)
-		_ = os.Remove(tmpZipName)
-		if err != nil {
-			return E.Cause(err, "tar:", name)
-		}
-	}
-
-	// write version
-	for i, version := range versionPaths {
-		err := writeVersion(assetsVersions[i],
-			filepath.Join(dir, version))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Extract dashboard
-func extractDash() error {
-	name := dashDstFolder
-	versionPath := dashVersion
-	dir := internalAssetsPath
-	dstName := filepath.Join(dir, name)
-
-	// load assets version
-	assetsVersion, err := readAssetsVersion(versionPath)
+	// Compare version
+	assetsVersion, err := readAssetsVersion(filepath.Join(apkAssetPrefixSingBox, name+versionSuffix))
 	if err != nil || len(assetsVersion) < 1 {
 		assetsVersion = []byte(time.Now().Format("20060102"))
 	}
-
-	// compare version
-	localVersion, err := readLocalVersion(filepath.Join(dir, versionPath))
+	localVersion, err := os.ReadFile(versionPath)
 	if err == nil {
-		// needn't update
-		if !versionLess(localVersion, assetsVersion) {
+		if bytes.Compare(assetsVersion, localVersion) <= 0 {
 			return nil
 		}
 	}
 
-	_ = os.RemoveAll(dstName)
-
-	// unzip file
-	file, err := asset.Open(dashArchive)
+	// Unpack
+	assetFile, err := asset.Open(filepath.Join(apkAssetPrefixSingBox, name) + tgzSuffix)
 	if err != nil {
-		return E.Cause(err, "can't open ", dashArchive)
+		return E.Cause(err, "open asset file ", name)
 	}
-	tmpZipName := dstName + ".tgz"
-	err = extractAsset(file, tmpZipName)
-	if err != nil {
-		return E.Cause(err, "extract: ", tmpZipName)
-	}
-	err = Untargz(tmpZipName, dir)
-	if err != nil {
-		return E.Cause(err, "unzip")
+	tmpPackName := filepath.Join(targetDir, name) + tgzSuffix
+	if err = extractAssetToFile(assetFile, tmpPackName); err != nil {
+		return E.Cause(err, "copy tmp file of ", name)
 	}
 
-	// find multiplex files
-	multiFile, err := filepath.Glob(filepath.Join(dir, "Dash-*"))
+	_ = removePrefix(targetDir, name+"-")
+	err = UntargzWihoutDir(tmpPackName, targetDir)
+	_ = os.Remove(tmpPackName)
 	if err != nil {
-		return E.Cause(err, "glob dashboard")
-	}
-	if len(multiFile) == 0 {
-		return E.New("not find any dashboard")
-	}
-	// delete more dashboards
-	for i := 1; i < len(multiFile); i++ {
-		_ = os.RemoveAll(multiFile[i])
-	}
-	err = os.Rename(multiFile[0], dstName)
-	if err != nil {
-		return E.Cause(err, "rename dashboard")
+		return E.Cause(err, "untargz ", name)
 	}
 
-	err = writeVersion(assetsVersion, filepath.Join(dir, versionPath))
-	if err != nil {
-		return err
+	_ = os.Remove(versionPath)
+	if err = os.WriteFile(versionPath, assetsVersion, os.ModePerm); err != nil {
+		return E.Cause(err, "write version ", name)
 	}
 
 	return nil
 }
 
-// Read the version file in assets
-func readAssetsVersion(path string) ([]byte, error) {
-	av, err := asset.Open(path)
+// readAssetsVersion read the version from file in assets.
+func readAssetsVersion(name string) ([]byte, error) {
+	assetFile, err := asset.Open(name)
 	if err != nil {
 		return nil, err
 	}
-	defer av.Close()
-	return io.ReadAll(av)
+	defer assetFile.Close()
+	return io.ReadAll(assetFile)
 }
 
-// Read the local assets name
-func readLocalVersion(path string) ([]byte, error) {
-	return os.ReadFile(path)
-}
+func extractAssetToFile(assetFile asset.File, path string) error {
+	defer assetFile.Close()
 
-// Compare version
-func versionLess(localVersion, assetsVersion []byte) bool {
-	localInt, _ := strconv.Atoi(string(localVersion))
-	assetsInt, _ := strconv.Atoi(string(assetsVersion))
-	return localInt < assetsInt
-}
-
-// Write version to version file
-func writeVersion(version []byte, versionPath string) error {
-	_ = os.Remove(versionPath)
-
-	versionFile, err := os.Create(versionPath)
-	if err != nil {
-		return E.Cause(err, "create version file:", versionPath)
-	}
-	err = common.Error(versionFile.Write(version))
-	_ = versionFile.Close()
-	if err != nil {
-		return E.Cause(err, "write version:", version)
-	}
-
-	return nil
-}
-
-// Extract the file in asset
-func extractAsset(i asset.File, path string) error {
-	defer i.Close()
-	o, err := os.Create(path)
+	targetFile, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer o.Close()
-	_, err = io.Copy(o, i)
+	defer targetFile.Close()
+
+	err = common.Error(io.Copy(targetFile, assetFile))
 	if err == nil {
-		log.Println("Extract >>", path)
+		log.Info("Extract >>", path)
 	}
 	return err
+}
+
+// deleteLocalDashboard deletes the dashboard of old user.
+func deleteLocalDashboard() {
+	dashboardPath := filepath.Join(internalAssetsPath, "dashboard")
+	_ = os.RemoveAll(dashboardPath)
+	_ = os.Remove(dashboardPath + tgzSuffix)
+	_ = os.Remove(dashboardPath + versionSuffix)
 }
