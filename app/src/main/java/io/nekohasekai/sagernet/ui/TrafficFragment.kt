@@ -77,7 +77,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
     }
 
     private val connectionComparator = Comparator<Connection> { a, b ->
-        val result = when (DataStore.trafficSortMode) {
+        var result = when (DataStore.trafficSortMode) {
             TrafficSortMode.START -> compareValues(a.start, b.start)
             TrafficSortMode.ID -> compareValues(a.uuid, b.uuid)
             TrafficSortMode.SRC -> compareValues(a.src, b.src)
@@ -86,6 +86,10 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             TrafficSortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
             else -> throw IllegalArgumentException()
         }
+
+        // If same, sort by uuid
+        if (result == 0) result = compareValues(a.uuid, b.uuid)
+
         if (DataStore.trafficDescending) -result else result
     }
 
