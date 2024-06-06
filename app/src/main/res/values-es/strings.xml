@@ -563,4 +563,19 @@
     <string name="ntp_server_address">Dirección del servidor NTP</string>
     <string name="ntp_server_port">Puerto del servidor NTP</string>
     <string name="ntp_sync_interval">Intervalo de sincronización NTP</string>
+    <string name="sort_mode">Modo de ordenación</string>
+    <string name="by_time">Por tiempo</string>
+    <string name="by_upload">Por subido</string>
+    <string name="outbound_rule">regla de salida</string>
+    <string name="start_time">Empezó a las</string>
+    <string name="detail">Detalle</string>
+    <string name="by_id">Por ID</string>
+    <string name="source_address">Dirección de la fuente</string>
+    <string name="destination_address">Dirección de destino</string>
+    <string name="ascending">Ascendente</string>
+    <string name="descending">Descendente</string>
+    <string name="sort">Ordenar</string>
+    <string name="by_source">Por fuente</string>
+    <string name="by_destination">Por destino</string>
+    <string name="by_download">Por descarga</string>
 </resources>
