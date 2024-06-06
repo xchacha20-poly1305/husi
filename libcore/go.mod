@@ -12,7 +12,7 @@ require (
 	github.com/sagernet/sing-tun v0.3.0-beta.6
 	github.com/xchacha20-poly1305/TLS-scribe v0.5.0
 	github.com/xchacha20-poly1305/cazilla v0.2.2
-	github.com/xchacha20-poly1305/libping v0.4.1-beta.0
+	github.com/xchacha20-poly1305/libping v0.5.1
 	golang.org/x/crypto v0.23.0
 	golang.org/x/sys v0.20.0
 )

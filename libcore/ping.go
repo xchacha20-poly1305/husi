@@ -8,10 +8,12 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/xchacha20-poly1305/libping"
 	"libcore/protect"
+
+	"github.com/xchacha20-poly1305/libping"
 )
 
 func init() {
@@ -24,7 +26,10 @@ func IcmpPing(address string, timeout int32) (latency int32, err error) {
 	payload := make([]byte, 20)
 	_, _ = rand.Read(payload)
 
-	t, err := libping.IcmpPing(address, (time.Duration)(timeout)*time.Millisecond, payload)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
+	defer cancel()
+
+	t, err := libping.IcmpPing(ctx, M.ParseSocksaddr(address), payload)
 	if err != nil {
 		return -1, err
 	}
@@ -33,7 +38,10 @@ func IcmpPing(address string, timeout int32) (latency int32, err error) {
 }
 
 func TcpPing(host, port string, timeout int32) (latency int32, err error) {
-	l, err := libping.TcpPing(host, port, time.Duration(timeout)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
+	defer cancel()
+
+	l, err := libping.TcpPing(ctx, M.ParseSocksaddrHostPortStr(host, port))
 	if err != nil {
 		return -1, nil
 	}
@@ -60,6 +68,7 @@ func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err err
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
+	// Canceling context can't interrupt it.
 	chLatency := make(chan uint16, 1)
 	go func() {
 		var t uint16
