@@ -1,10 +1,16 @@
 package libcore
 
 import (
+	"context"
 	"crypto/x509"
+	"encoding/pem"
+	"strings"
 	_ "unsafe" // for go:linkname
 
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing/common"
+	E "github.com/sagernet/sing/common/exceptions"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/cazilla"
@@ -34,9 +40,35 @@ func updateRootCACerts(pem []byte, enabledCazilla bool) {
 	systemRoots = roots
 }
 
-//go:linkname initSystemRoots crypto/x509.initSystemRoots
-func initSystemRoots()
+const (
+	ScribeTLS int32 = iota
+	ScribeQUIC
+)
 
-func PinCert(target, serverName string) (cert string, err error) {
-	return scribe.Execute(target, serverName)
+func GetCert(address, serverName string, mode int32) (cert string, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), C.QUICTimeout)
+	defer cancel()
+
+	var certs []*x509.Certificate
+	switch mode {
+	case ScribeTLS:
+		certs, err = scribe.GetCert(ctx, address, serverName)
+	case ScribeQUIC:
+		certs, err = scribe.GetCertQuic(ctx, address, serverName)
+	default:
+		err = E.New("unknown mode: ", mode)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	var builder strings.Builder
+	for _, cert := range certs {
+		common.Must(pem.Encode(&builder, &pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert.Raw,
+		}))
+	}
+
+	return builder.String(), nil
 }

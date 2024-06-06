@@ -146,8 +146,8 @@ github.com/v2fly/v2ray-core/v5 v5.15.3 h1:yqBJcPKMJmjB1AjQT89gTog64GSNupvmZwn2cv
 github.com/v2fly/v2ray-core/v5 v5.15.3/go.mod h1:n2GHApi7EzlMf7703qsy2jEH/yTJQ2fBRnWQ/nblO2U=
 github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74 h1:gga7acRE695APm9hlsSMoOoE65U4/TcqNj90mc69Rlg=
 github.com/vishvananda/netns v0.0.0-20211101163701-50045581ed74/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
-github.com/xchacha20-poly1305/TLS-scribe v0.4.0 h1:ifcEYuHOZiBOJPEu8KsF+dqAZhaZ3+i0xAWUJggtBro=
-github.com/xchacha20-poly1305/TLS-scribe v0.4.0/go.mod h1:vXF1qmnvc9jAMlc7WJovIEGYqjaeQofRSOs16Yjfn3o=
+github.com/xchacha20-poly1305/TLS-scribe v0.5.0 h1:PcPdA4rwVYOK0Wnry3LYQBTYN9kLohCj6DZooyOjWkQ=
+github.com/xchacha20-poly1305/TLS-scribe v0.5.0/go.mod h1:iCX0Q65Y7+E3QwjOjqbGh5J5C+cTW/FwOgCUloqBEGE=
 github.com/xchacha20-poly1305/cazilla v0.2.2 h1:tGe/sR/5J/dv4LOKJCJipfuBNurP/lDuuUGqr0iHn6I=
 github.com/xchacha20-poly1305/cazilla v0.2.2/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.4.1-beta.0 h1:7izWqz6WoD/dNZr/GcPQMyigfEFebEczolykAX/2I0A=

@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.ClipData
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
@@ -9,6 +10,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import libcore.Libcore
@@ -22,30 +24,33 @@ class GetCertActivity : ThemedActivity() {
 
         binding = LayoutGetCertBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
             setTitle(R.string.get_cert)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
+
         binding.getCert.setOnClickListener {
-            SagerNet.inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken,0)
+            SagerNet.inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
             copyCert()
         }
     }
+
 
     private fun copyCert() {
         binding.waitLayout.isVisible = true
 
         val server = binding.pinCertServer.text.toString()
         val serverName = binding.pinCertServerName.text.toString()
+        val protocol = binding.pinCertProtocol.selectedItemPosition
 
         runOnDefaultDispatcher {
             try {
-                val certificate = Libcore.pinCert(server, serverName)
+                val certificate = Libcore.getCert(server, serverName, protocol)
+                Logs.i(certificate)
 
-
-                // 复制到剪贴板
                 val clipData = ClipData.newPlainText("Certificate", certificate)
                 clipboardManager.setPrimaryClip(clipData)
 
@@ -59,17 +64,13 @@ class GetCertActivity : ThemedActivity() {
                     binding.waitLayout.isVisible = false
                 }
             } catch (e: Exception) {
+                Logs.w(e)
                 onMainDispatcher {
                     binding.waitLayout.isVisible = false
                     AlertDialog.Builder(this@GetCertActivity)
                         .setTitle(R.string.error_title)
                         .setMessage(e.toString())
-                        .setPositiveButton(android.R.string.ok) { _, _ ->
-//                                finish()
-                        }
-                        .setOnCancelListener {
-//                                finish()
-                        }
+                        .setPositiveButton(android.R.string.ok) { _, _ -> }
                         .runCatching { show() }
                 }
             }
