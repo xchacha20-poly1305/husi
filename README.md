@@ -42,14 +42,6 @@ If gomobile is not in the GOPATH, it will be automatically downloaded and compil
 
 If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
-#### 🎗️ Dashboard
-
-Ensure that the Node environment is set up correctly (with pnpm, etc.).
-
-```shell
-make dashboard
-```
-
 #### 🎁 APK
 
 Environment:
@@ -118,7 +110,3 @@ Android GUI:
 - [SagerNet/sing-box-for-android](https://github.com/SagerNet/sing-box-for-android)
 - [AntiNeko/CatBoxForAndroid](https://github.com/AntiNeko/CatBoxForAndroid)
 - [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
-
-Web Dashboard:
-
-- [MetaCubeX/metacubexd](https://github.com/MetaCubeX/metacubexd)

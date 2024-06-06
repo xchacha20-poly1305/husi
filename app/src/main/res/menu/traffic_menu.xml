@@ -1,7 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
-            android:id="@+id/action_clear_traffic_statistics"
-            android:title="@string/clear_traffic_statistics"/>
+            android:id="@+id/action_traffic_search"
+            android:title="@android:string/search_go"
+            app:actionViewClass="androidx.appcompat.widget.SearchView"
+            app:showAsAction="always" />
+
+    <item
+            android:id="@+id/action_misc"
+            android:icon="@drawable/ic_baseline_more_vert_24"
+            android:title=""
+            app:showAsAction="ifRoom">
+
+        <menu>
+            <item
+                    android:id="@+id/action_sort"
+                    android:title="@string/sort">
+
+                <menu>
+                    <group android:checkableBehavior="single">
+                        <item
+                                android:id="@+id/action_sort_ascending"
+                                android:title="@string/ascending" />
+                        <item
+                                android:id="@+id/action_sort_descending"
+                                android:title="@string/descending" />
+                    </group>
+                </menu>
+            </item>
+
+
+            <item
+                    android:id="@+id/action_sort_method"
+                    android:title="@string/sort_mode">
+
+                <menu>
+                    <group android:checkableBehavior="single">
+                        <item
+                                android:id="@+id/action_sort_time"
+                                android:title="@string/by_time" />
+                        <item
+                                android:id="@+id/action_sort_id"
+                                android:title="@string/by_id" />
+                        <item
+                                android:id="@+id/action_sort_upload"
+                                android:title="@string/by_upload" />
+                        <item
+                                android:id="@+id/action_sort_download"
+                                android:title="@string/by_download" />
+                        <item
+                                android:id="@+id/action_sort_source"
+                                android:title="@string/by_source" />
+                        <item
+                                android:id="@+id/action_sort_destination"
+                                android:title="@string/by_destination" />
+                    </group>
+                </menu>
+            </item>
+
+        </menu>
+    </item>
 
 </menu>

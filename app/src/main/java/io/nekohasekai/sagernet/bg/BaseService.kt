@@ -4,7 +4,11 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.*
+import android.os.Build
+import android.os.IBinder
+import android.os.PowerManager
+import android.os.RemoteCallbackList
+import android.os.RemoteException
 import android.widget.Toast
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
@@ -15,9 +19,21 @@ import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.broadcastReceiver
+import io.nekohasekai.sagernet.ktx.hasPermission
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
@@ -147,6 +163,18 @@ class BaseService {
             } catch (e: Exception) {
                 error(Protocols.genFriendlyMsg(e.readableMessage))
             }
+        }
+
+        override fun setConnection(enable: Boolean) {
+            if (enable) {
+                data?.proxy?.connectionLooper?.start()
+            } else {
+                data?.proxy?.connectionLooper?.stop()
+            }
+        }
+
+        override fun closeConnection(id: String) {
+            data?.proxy?.box?.closeConnection(id)
         }
 
         fun stateChanged(s: State, msg: String?) = launch {

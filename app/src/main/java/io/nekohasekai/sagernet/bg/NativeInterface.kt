@@ -6,7 +6,6 @@ import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.*
@@ -79,7 +78,7 @@ class NativeInterface : BoxPlatformInterface, GUIInterface {
                 val ent = SagerDatabase.proxyDao.getById(id) ?: return@runOnDefaultDispatcher
                 // traffic & title
                 data.proxy?.apply {
-                    looper?.selectMain(id)
+                    trafficLooper?.selectMain(id)
                     displayProfileName = ServiceNotification.genTitle(ent)
                     data.notification?.postNotificationTitle(displayProfileName)
                 }

@@ -12,8 +12,3 @@ buildScript/init/action/gradle.sh
 
 # Build libcore
 buildScript/lib/core.sh
-
-# Setup Node.js & Build dashboard
-export PATH=$PWD/build/node/bin:$PATH
-buildScript/init/action/node.sh
-buildScript/lib/dashboard.sh

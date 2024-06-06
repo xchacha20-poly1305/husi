@@ -10,11 +10,14 @@ import io.nekohasekai.sagernet.fmt.TAG_BYPASS
 import io.nekohasekai.sagernet.fmt.TAG_PROXY
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
-class TrafficLooper
-    (
-    val data: BaseService.Data, private val sc: CoroutineScope
+class TrafficLooper(
+    val data: BaseService.Data, private val sc: CoroutineScope,
 ) {
 
     private var job: Job? = null
@@ -172,6 +175,7 @@ class TrafficLooper
                                 )
                             }
                         }
+
                     }
                 }
             }

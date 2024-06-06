@@ -27,6 +27,7 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
@@ -345,7 +346,7 @@ class MainActivity : ThemedActivity(),
             R.id.nav_group -> displayFragment(GroupFragment())
             R.id.nav_route -> displayFragment(RouteFragment())
             R.id.nav_settings -> displayFragment(SettingsFragment())
-            R.id.nav_traffic -> displayFragment(WebviewFragment())
+            R.id.nav_traffic -> displayFragment(TrafficFragment())
             R.id.nav_tools -> displayFragment(ToolsFragment())
             R.id.nav_logcat -> displayFragment(LogcatFragment())
             R.id.nav_faq -> {
@@ -425,6 +426,10 @@ class MainActivity : ThemedActivity(),
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(id, true)
         }
+    }
+
+    override fun connectionUpdate(connectionList: List<Connection>) {
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)?.emitStats(connectionList)
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {

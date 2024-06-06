@@ -238,3 +238,12 @@ object Action {
     // const val SWITCH_WAKE_LOCK = "io.nekohasekai.sagernet.SWITCH_WAKELOCK"
     const val RESET_UPSTREAM_CONNECTIONS = "moe.nb4a.RESET_UPSTREAM_CONNECTIONS"
 }
+
+object TrafficSortMode {
+    const val START = 0
+    const val ID = 1
+    const val SRC = 2
+    const val DST = 3
+    const val UPLOAD = 4
+    const val DOWNLOAD = 5
+}

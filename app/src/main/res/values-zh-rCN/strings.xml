@@ -552,4 +552,19 @@
     <string name="ntp_server_address">NTP 服务器地址</string>
     <string name="ntp_server_port">NTP 服务器端口</string>
     <string name="ntp_sync_interval">NTP 同步间隔</string>
+    <string name="start_time">开始于</string>
+    <string name="outbound_rule">出站规则</string>
+    <string name="detail">详细</string>
+    <string name="source_address">源地址</string>
+    <string name="destination_address">目标地址</string>
+    <string name="ascending">升序</string>
+    <string name="descending">降序</string>
+    <string name="sort">排序</string>
+    <string name="sort_mode">排序方式</string>
+    <string name="by_time">根据时间</string>
+    <string name="by_id">根据 ID</string>
+    <string name="by_source">根据源</string>
+    <string name="by_destination">根据目标</string>
+    <string name="by_upload">根据上行</string>
+    <string name="by_download">根据下行</string>
 </resources>

@@ -10,4 +10,7 @@ interface ISagerNetService {
   oneway void unregisterCallback(in ISagerNetServiceCallback cb);
 
   int urlTest();
+
+  oneway void setConnection(boolean enable);
+  oneway void closeConnection(String id);
 }

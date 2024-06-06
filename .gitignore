@@ -1,5 +1,6 @@
 *.iml
 .gradle
+.kotlin
 .idea
 .vscode
 .DS_Store
@@ -14,7 +15,6 @@ jniLibs/
 /library/libcore_build/
 .idea/deploymentTargetDropDown.xml
 go.work*
-/Dash-*
 *.srs
 *.zip
 *.tgz
