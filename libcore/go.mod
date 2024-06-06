@@ -3,13 +3,14 @@ module libcore
 go 1.21
 
 require (
+	github.com/gofrs/uuid/v5 v5.2.0
 	github.com/miekg/dns v1.1.59
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.5.0-alpha.7
 	github.com/sagernet/sing-box v1.9.0
 	github.com/sagernet/sing-dns v0.2.0-beta.18
 	github.com/sagernet/sing-tun v0.3.0-beta.6
-	github.com/xchacha20-poly1305/TLS-scribe v0.4.0
+	github.com/xchacha20-poly1305/TLS-scribe v0.5.0
 	github.com/xchacha20-poly1305/cazilla v0.2.2
 	github.com/xchacha20-poly1305/libping v0.4.1-beta.0
 	golang.org/x/crypto v0.23.0
@@ -41,7 +42,6 @@ require (
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gofrs/uuid/v5 v5.2.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/pprof v0.0.0-20231101202521-4ca4178f5c7a // indirect

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/coordinator"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,7 +15,7 @@
         <include
                 layout="@layout/layout_appbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
         <LinearLayout
                 android:id="@+id/wait_layout"
@@ -29,7 +29,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="@string/stun_attest_loading"
-                    android:textAppearance="@style/AppearanceFoundation.Title"/>
+                    android:textAppearance="@style/AppearanceFoundation.Title" />
         </LinearLayout>
 
         <androidx.core.widget.NestedScrollView
@@ -62,7 +62,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/get_cert_server_hint"
-                                android:textAppearance="?attr/textAppearanceSubtitle2"/>
+                                android:textAppearance="?attr/textAppearanceSubtitle2" />
 
                         <EditText
                                 android:id="@+id/pin_cert_server"
@@ -70,13 +70,14 @@
                                 android:layout_height="wrap_content"
                                 android:ems="10"
                                 android:inputType="text"
-                                android:text="https://www.microsoft.com:443"/>
+                                android:text="www.microsoft.com:443"
+                                tools:ignore="LabelFor" />
 
                         <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/sni"
-                                android:textAppearance="?attr/textAppearanceSubtitle2"/>
+                                android:textAppearance="?attr/textAppearanceSubtitle2" />
 
                         <EditText
                                 android:id="@+id/pin_cert_server_name"
@@ -84,8 +85,20 @@
                                 android:layout_height="wrap_content"
                                 android:ems="10"
                                 android:inputType="text"
-                                android:text=""/>
+                                android:text=""
+                                tools:ignore="LabelFor" />
 
+                        <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/protocol"
+                                android:textAppearance="?attr/textAppearanceSubtitle2" />
+
+                        <Spinner
+                                android:id="@+id/pin_cert_protocol"
+                                android:layout_width="match_parent"
+                                android:entries="@array/naive_proto_entry"
+                                android:layout_height="wrap_content" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -97,7 +110,7 @@
                         android:layout_marginRight="16dp"
                         android:clickable="true"
                         android:focusable="true"
-                        app:cardElevation="2dp"/>
+                        app:cardElevation="2dp" />
 
                 <LinearLayout
                         android:layout_width="match_parent"
@@ -114,7 +127,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
                             android:text="@string/start"
-                            android:textColor="?primaryOrTextPrimary"/>
+                            android:textColor="?primaryOrTextPrimary" />
                 </LinearLayout>
 
             </LinearLayout>
