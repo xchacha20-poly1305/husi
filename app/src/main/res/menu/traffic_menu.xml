@@ -3,10 +3,16 @@
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+            android:id="@+id/action_traffic_search"
+            android:title="@android:string/search_go"
+            app:actionViewClass="androidx.appcompat.widget.SearchView"
+            app:showAsAction="always" />
+
+    <item
             android:id="@+id/action_misc"
             android:icon="@drawable/ic_baseline_more_vert_24"
             android:title=""
-            app:showAsAction="always">
+            app:showAsAction="ifRoom">
 
         <menu>
             <item
