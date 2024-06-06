@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -22,12 +23,17 @@ import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.JavaUtil.gson
+import moe.matsuri.nb4a.utils.setOnFocusCancel
 
 class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
-    Toolbar.OnMenuItemClickListener {
+    Toolbar.OnMenuItemClickListener,
+    SearchView.OnQueryTextListener {
 
     private lateinit var binding: LayoutTrafficBinding
     private lateinit var adapter: TrafficAdapter
+
+    private lateinit var searchView: SearchView
+    private var searchString: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -36,6 +42,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         toolbar.setTitle(R.string.menu_dashboard)
         toolbar.inflateMenu(R.menu.traffic_menu)
         toolbar.setOnMenuItemClickListener(this)
+
+        binding.connectionNotFound.isVisible = true
 
         if (DataStore.trafficDescending) {
             toolbar.menu.findItem(R.id.action_sort_descending)!!.isChecked = true
@@ -58,8 +66,11 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 toolbar.menu.findItem(R.id.action_sort_download)!!.isChecked = true
             }
         }
-
-        binding.connectionNotFound.isVisible = true
+        searchView = toolbar.findViewById<SearchView?>(R.id.action_traffic_search).apply {
+            setOnQueryTextListener(this@TrafficFragment)
+            maxWidth = Int.MAX_VALUE
+            setOnFocusCancel()
+        }
 
         binding.connections.layoutManager = FixedLinearLayoutManager(binding.connections)
         binding.connections.adapter = TrafficAdapter().also {
@@ -149,7 +160,17 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             return
         }
 
-        val newList = list.sortedWith(connectionComparator).toMutableList()
+        val newList = list.filter {
+            searchString?.let { str ->
+                it.uuid.contains(str) ||
+                        it.network.contains(str) ||
+                        it.start.contains(str) ||
+                        it.src.contains(str) ||
+                        it.dst.contains(str) ||
+                        it.host.contains(str) ||
+                        it.rule.contains(str)
+            } ?: true
+        }.sortedWith(connectionComparator).toMutableList()
 
         runOnMainDispatcher {
             binding.connectionNotFound.isVisible = false
@@ -266,6 +287,16 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 .connection
                 .service?.closeConnection(adapter.data[viewHolder.absoluteAdapterPosition].uuid)
         }
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        searchString = query
+        return false
+    }
+
+    override fun onQueryTextChange(query: String?): Boolean {
+        searchString = query
+        return false
     }
 
 
