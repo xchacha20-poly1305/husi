@@ -573,4 +573,5 @@
     <string name="by_source">Por fuente</string>
     <string name="by_destination">Por destino</string>
     <string name="by_download">Por descarga</string>
+    <string name="pinned_peer_certificate_chain_sha256">Hash de la cadena del certificado anclado</string>
 </resources>
