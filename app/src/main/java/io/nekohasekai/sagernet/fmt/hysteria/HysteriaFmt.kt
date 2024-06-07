@@ -235,9 +235,8 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
             put("lazy", true)
 
             put("quic", JSONObject().apply {
-                    // TODO constant protect path
                     put("sockopts", JSONObject().apply {
-                            put("fdControlUnixSocket", "protect_path")
+                            put("fdControlUnixSocket", Libcore.ProtectPath)
                         }
                     )
                 }

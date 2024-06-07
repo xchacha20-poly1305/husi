@@ -215,7 +215,6 @@
     <string name="action_socks" translatable="false">SOCKS</string>
     <string name="action_http" translatable="false">HTTP</string>
     <string name="action_shadowsocks" translatable="false">Shadowsocks</string>
-    <string name="action_shadowsocksr" translatable="false">ShadowsocksR</string>
     <string name="action_vmess" translatable="false">VMess</string>
     <string name="action_trojan" translatable="false">Trojan</string>
     <string name="action_trojan_go" translatable="false">Trojan Go</string>
@@ -226,6 +225,7 @@
     <string name="action_ssh" translatable="false">SSH</string>
     <string name="action_wireguard" translatable="false">WireGuard</string>
     <string name="action_tuic" translatable="false">TUIC</string>
+    <string name="action_juicity" translatable="false">Juicity</string>
     <string name="proxy_chain">Proxy Chain</string>
     <string name="custom_config">Custom Config</string>
     <string name="balancer">Balancer</string>
@@ -633,4 +633,5 @@
     <string name="by_destination">By Destination</string>
     <string name="by_upload">By Upload</string>
     <string name="by_download">By Download</string>
+    <string name="pinned_peer_certificate_chain_sha256">Pinned certificate chain hash</string>
 </resources>

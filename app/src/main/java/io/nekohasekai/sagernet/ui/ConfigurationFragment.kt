@@ -379,6 +379,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                 startActivity(Intent(requireActivity(), TuicSettingsActivity::class.java))
             }
 
+            R.id.action_new_juicity -> {
+                startActivity(Intent(requireActivity(),JuicitySettingsActivity::class.java))
+            }
+
             R.id.action_new_ssh -> {
                 startActivity(Intent(requireActivity(), SSHSettingsActivity::class.java))
             }

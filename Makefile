@@ -4,7 +4,7 @@ libcore:
 	./run lib core
 
 apk:
-	BUILD_PLUGIN ./gradlew app:assembleFossRelease
+	BUILD_PLUGIN=none ./gradlew app:assembleFossRelease
 
 apk_debug:
 	BUILD_PLUGIN=none ./gradlew app:assembleFossDebug
@@ -16,9 +16,6 @@ build: libcore assets apk
 
 update:
 	./run lib update
-
-hysteria2:
-	./gradlew :plugin:hysteria2:assembleFossRelease
 
 lint_go:
 	cd libcore/ && GOOS=android golangci-lint run ./...
@@ -37,3 +34,9 @@ fmt_go_install:
 
 test_go:
 	cd libcore/ && go test -v -count=1 ./...
+
+hysteria2:
+	./gradlew :plugin:hysteria2:assembleFossRelease
+
+juicity:
+	./gradlew :plugin:juicity:assembleFossRelease

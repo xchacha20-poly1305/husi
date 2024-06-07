@@ -567,4 +567,5 @@
     <string name="by_destination">根据目标</string>
     <string name="by_upload">根据上行</string>
     <string name="by_download">根据下行</string>
+    <string name="pinned_peer_certificate_chain_sha256">固定证书链散列</string>
 </resources>
