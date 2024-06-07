@@ -16,7 +16,7 @@ enum class PluginEntry(
         DownloadSource(
             fdroid = false,
             downloadLink = "https://github.com/SagerNet/SagerNet/releases?q=trojan-go"
-        )
+        ),
     ),
     MieruProxy(
         "mieru-plugin",
@@ -25,7 +25,7 @@ enum class PluginEntry(
         DownloadSource(
             fdroid = false,
             downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=mieru"
-        )
+        ),
     ),
     NaiveProxy(
         "naive-plugin",
@@ -34,7 +34,7 @@ enum class PluginEntry(
         DownloadSource(
             fdroid = false,
             downloadLink = "https://github.com/AntiNeko/sing-plugin/releases?q=naive"
-        )
+        ),
     ),
     Hysteria(
         "hysteria-plugin",
@@ -43,7 +43,7 @@ enum class PluginEntry(
         DownloadSource(
             fdroid = false,
             downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=Hysteria"
-        )
+        ),
     ),
     Hysteria2(
         "hysteria2-plugin",
@@ -52,8 +52,17 @@ enum class PluginEntry(
         DownloadSource(
             fdroid = false,
             downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=Hysteria2"
-        )
+        ),
     ),
+    Juicity(
+        "juicity-plugin",
+        SagerNet.application.getString(R.string.action_juicity),
+        "fr.husi.plugin.juicity",
+        DownloadSource(
+            fdroid = false,
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=juicity"
+        ),
+    )
     ;
 
     data class DownloadSource(
