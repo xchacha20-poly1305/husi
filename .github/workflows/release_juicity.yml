@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release Tag'
+        description: "Release Tag"
         required: true
       publish:
-        description: 'Publish: If want ignore'
+        description: "Publish: If want ignore"
         required: false
 jobs:
   native:
@@ -62,7 +62,7 @@ jobs:
         with:
           path: |
             plugin/juicity/src/main/jniLibs
-          key: ${{ hashFiles('.github/workflows/*', 'bin/lib/juicity/*', `juicity_status') }}
+          key: ${{ hashFiles('.github/workflows/*', 'bin/lib/juicity/*', 'juicity_status') }}
       - name: Gradle cache
         uses: actions/cache@v4
         with:
