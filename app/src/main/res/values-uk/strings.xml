@@ -518,4 +518,20 @@
     <string name="select_apps">Оберіть застосунки</string>
     <string name="plugin_exists_but_on_shit_system">Профіль %s потребує плагін %s, але постачальник вашого пропрієтарного обладнання (зазвичай це великі компанії, що займаються стеженням та розробники шкідливого ПЗ) змінив ваш Android, зробивши плагін непридатним до використання.</string>
     <string name="location_permission_background_description">На Android 10 та вище потрібно надати дозвіл на визначення місцерозташування у фоновому режимі. Оберіть Дозволити постійно, аби надати дозвіл.</string>
+    <string name="source_address">Вихідна адреса</string>
+    <string name="sort">Сортувати</string>
+    <string name="by_upload">За завантаженням</string>
+    <string name="start_time">Час початку</string>
+    <string name="outbound_rule">Правило вихідного з\'єднання</string>
+    <string name="detail">Подробиці</string>
+    <string name="ascending">За зростанням</string>
+    <string name="destination_address">Адреса призначення</string>
+    <string name="descending">За зменшенням</string>
+    <string name="sort_mode">Режим сортування</string>
+    <string name="by_destination">За адресою призначення</string>
+    <string name="by_time">За часом</string>
+    <string name="by_id">За ID</string>
+    <string name="by_source">За вихідною адресою</string>
+    <string name="by_download">За скачуванням</string>
+    <string name="pinned_peer_certificate_chain_sha256">Хеш ланцюжка закріпленого сертифіката</string>
 </resources>
