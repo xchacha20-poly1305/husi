@@ -4,6 +4,7 @@ val buildPlugin = System.getenv("BUILD_PLUGIN")
 when {
     buildPlugin.isNullOrBlank() -> {
         include(":plugin:hysteria2")
+        include(":plugin:juicity")
     }
     buildPlugin == "none" -> {
     }

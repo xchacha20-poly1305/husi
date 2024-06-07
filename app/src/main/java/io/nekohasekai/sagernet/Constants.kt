@@ -116,6 +116,7 @@ object Key {
     const val SERVER_ENCRYPTION = "serverEncryption"
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
+    const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"
     const val SERVER_MTU = "serverMTU"
 
     const val MUX_STATE = "muxState"

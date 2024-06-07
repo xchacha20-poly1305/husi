@@ -144,11 +144,6 @@ public class HysteriaBean extends AbstractBean {
     }
 
     @Override
-    public String displayAddress() {
-        return NetsKt.wrapIPV6Host(serverAddress) + ":" + serverPorts;
-    }
-
-    @Override
     public boolean canTCPing() {
         return switch (protocolVersion) {
             case 1 -> protocol == PROTOCOL_FAKETCP;

@@ -10,6 +10,8 @@ import io.nekohasekai.sagernet.fmt.ConfigBuildResult
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildHysteriaConfig
+import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
+import io.nekohasekai.sagernet.fmt.juicity.buildJuicityConfig
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
@@ -33,7 +35,7 @@ import org.json.JSONObject
 import java.io.File
 
 abstract class BoxInstance(
-    val profile: ProxyEntity
+    val profile: ProxyEntity,
 ) : AbstractInstance {
 
     lateinit var config: ConfigBuildResult
@@ -94,6 +96,11 @@ abstract class BoxInstance(
                                 cacheFiles.add(this)
                             }
                         }
+                    }
+
+                    is JuicityBean -> {
+                        initPlugin("juicity-plugin")
+                        pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port)
                     }
 
                     is NekoBean -> {
@@ -214,6 +221,28 @@ abstract class BoxInstance(
                         if (bean.protocolVersion == 1 && bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
                             commands.addAll(0, listOf("su", "-c"))
                         }
+
+                        processes.start(commands, envMap)
+                    }
+
+                    bean is JuicityBean -> {
+                        val configFile = File(
+                            cacheDir, "juicity_" + SystemClock.elapsedRealtime() + ".json"
+                        )
+
+                        configFile.parentFile?.mkdirs()
+                        configFile.writeText(config)
+                        cacheFiles.add(configFile)
+
+                        val envMap = mutableMapOf(
+                            "QUIC_GO_DISABLE_GSO" to "1"
+                        )
+
+                        val commands = mutableListOf(
+                            initPlugin("juicity-plugin").path,
+                            "run",
+                            "-c", configFile.absolutePath,
+                        )
 
                         processes.start(commands, envMap)
                     }
