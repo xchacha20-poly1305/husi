@@ -586,4 +586,20 @@
     <string name="ntp_sync_interval">Интервал синхронизации NTP</string>
     <string name="ntp_category">Настройки клиента NTP</string>
     <string name="ntp_sum">Включить встроенный NTP-клиент и использовать предоставляемое им время вместо системного</string>
+    <string name="start_time">Время начала</string>
+    <string name="outbound_rule">Правило исходящего соединения</string>
+    <string name="source_address">Исходный адрес</string>
+    <string name="descending">По убыванию</string>
+    <string name="detail">Подробности</string>
+    <string name="sort">Сортировать</string>
+    <string name="destination_address">Адрес назначения</string>
+    <string name="ascending">По возрастанию</string>
+    <string name="sort_mode">Режим сортировки</string>
+    <string name="by_time">По времени</string>
+    <string name="by_id">По ID</string>
+    <string name="by_source">По исходящему адресу</string>
+    <string name="by_destination">По адресу назначения</string>
+    <string name="by_upload">По загрузке</string>
+    <string name="by_download">По скачиванию</string>
+    <string name="pinned_peer_certificate_chain_sha256">Хэш цепочки закрепленного сертификата</string>
 </resources>
