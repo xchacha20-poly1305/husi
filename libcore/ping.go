@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"time"
 
-	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
@@ -52,15 +51,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err error) {
 	defer catchPanic("box.UrlTest", func(panicErr error) { err = panicErr })
 
-	var router adapter.Router
-	if i == nil {
-		// test current
-		router = mainInstance.Box.Router()
-	} else {
-		router = i.Box.Router()
-	}
-
-	defOutbound, err := router.DefaultOutbound(N.NetworkTCP)
+	defOutbound, err := i.Router().DefaultOutbound(N.NetworkTCP)
 	if err != nil {
 		return 0, E.Cause(err, "find default outbound")
 	}
@@ -68,7 +59,7 @@ func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err err
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
-	// Canceling context can't interrupt it.
+	// cancel context can't interrupt it.
 	chLatency := make(chan uint16, 1)
 	go func() {
 		var t uint16

@@ -22,8 +22,6 @@ import (
 	"libcore/v2rayapilite"
 )
 
-var mainInstance *BoxInstance
-
 func ResetAllConnections() {
 	conntrack.Close()
 	boxlog.Debug("Reset system connections done.")
@@ -38,7 +36,8 @@ type BoxInstance struct {
 	// 0: never started
 	// 1: running
 	// 2: closed
-	state int
+	state          int
+	isMainInstance bool
 
 	v2api *v2rayapilite.V2RayServerLite
 
@@ -118,9 +117,7 @@ func (b *BoxInstance) Close() (err error) {
 	}
 	b.state = 2
 
-	// clear main instance
-	if mainInstance == b {
-		mainInstance = nil
+	if b.isMainInstance {
 		goServeProtect(false)
 	}
 
@@ -150,7 +147,7 @@ func (b *BoxInstance) NeedWIFIState() bool {
 }
 
 func (b *BoxInstance) SetAsMain() {
-	mainInstance = b
+	b.isMainInstance = true
 	goServeProtect(true)
 }
 
