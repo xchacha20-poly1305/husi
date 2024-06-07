@@ -548,7 +548,7 @@
     <string name="dns_mode_leak">Точный запрос с утечкой</string>
     <string name="dns_mode_precise">Точный запрос с низкой скоростью</string>
     <string name="app_name">husi</string>
-    <string name="tuic_congestion_controller">Контроллер перегрузок</string>
+    <string name="tuic_congestion_controller">Контроллер перегруженности</string>
     <string name="custom_config_json">Своя конфигурация JSON</string>
     <string name="save">Сохранить</string>
     <string name="ech_config">Конфигурация ECH</string>
