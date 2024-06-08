@@ -22,7 +22,11 @@ import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.launchCustomTab
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.plugin.Plugins
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -95,7 +99,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         for ((_, pkg) in PackageCache.installedPluginPackages) {
                             try {
                                 val pluginId = pkg.providers[0].loadString(Plugins.METADATA_KEY_ID)
-                                if (pluginId.isNullOrBlank() || pluginId.startsWith(Plugins.AUTHORITIES_PREFIX_NEKO_PLUGIN)) continue
+                                if (pluginId.isNullOrBlank()) continue
                                 addItem(MaterialAboutActionItem.Builder()
                                     .icon(R.drawable.ic_baseline_nfc_24)
                                     .text(

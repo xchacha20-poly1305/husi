@@ -82,7 +82,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         return groups.find { it.type == GroupType.BASIC }!!.id
     }
 
-    var nekoPlugins by configurationStore.string(Key.NEKO_PLUGIN_MANAGED)
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
     var clashAPIListen by configurationStore.string(Key.CLASH_API_LISTEN)
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)

@@ -481,10 +481,6 @@
     <string name="connection_test_delete_unavailable">Удалить недоступные</string>
     <string name="custom_outbound_json">Свой исходящий JSON</string>
     <string name="move">Переместить</string>
-    <string name="neko_plugin">Дополнительные плагины</string>
-    <string name="neko_plugin_summary">Дополнительные плагины могут давать протоколы, которые изначально не поддерживаются.
-\n
-\nЛюбой может написать плагины, которые будут работать в Husi. Пожалуйста, загружайте и устанавливайте их из надежных источников.</string>
     <string name="app_name_long">husi для Андроид</string>
     <string name="app_tls_version">Минимальная версия TLS протокола</string>
     <string name="assets_update">Обновить геоданные</string>
@@ -555,7 +551,6 @@
     <string name="http_upgrade_host">HTTPUpgrade Host</string>
     <string name="blurred_address">Сделать адрес сервера размытым</string>
     <string name="connection_test_mux">Сервер не поддерживает этот протокол мультиплексирования</string>
-    <string name="exe_prefer_provider">Предпочитаемый поставщик плагинов</string>
     <string name="create_shortcut">Создать ярлык</string>
     <string name="xtls_flow">Flow (подпротокол VLESS)</string>
     <string name="tls_camouflage_settings">Настройки камуфляжа TLS</string>

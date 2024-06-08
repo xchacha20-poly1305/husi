@@ -14,7 +14,6 @@ import androidx.annotation.UiThread
 import androidx.core.util.contains
 import androidx.core.util.set
 import androidx.core.view.ViewCompat
-import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
@@ -24,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
@@ -38,10 +36,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import moe.matsuri.nb4a.plugin.NekoPluginManager
-import io.nekohasekai.sagernet.plugin.Plugins
-import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
-import moe.matsuri.nb4a.ui.Dialogs
 import kotlin.coroutines.coroutineContext
 
 class AppListActivity : ThemedActivity() {
@@ -73,30 +67,7 @@ class AppListActivity : ThemedActivity() {
             item = app
             binding.itemicon.setImageDrawable(app.icon)
             binding.title.text = app.name
-            if (forNeko) {
-                val packageName = app.packageName
-                val ver = getCachedApps()[packageName]?.versionName ?: ""
-                binding.desc.text = "$packageName ($ver)"
-                //
-                binding.button.isVisible = true
-                binding.button.setImageDrawable(getDrawable(R.drawable.ic_baseline_info_24))
-                binding.button.setOnClickListener {
-                    runOnIoDispatcher {
-                        val jsi = NekoJSInterface(packageName)
-                        jsi.init()
-                        val about = jsi.getAbout()
-                        jsi.destorySuspend()
-                        Dialogs.message(
-                            this@AppListActivity, app.name as String,
-                            "PackageName: ${packageName}\n" +
-                                    "Version: ${ver}\n" +
-                                    "--------\n" + about
-                        )
-                    }
-                }
-            } else {
-                binding.desc.text = "${app.packageName} (${app.uid})"
-            }
+            binding.desc.text = "${app.packageName} (${app.uid})"
             handlePayload(listOf(SWITCH))
         }
 
@@ -104,7 +75,7 @@ class AppListActivity : ThemedActivity() {
             if (payloads.contains(SWITCH)) {
                 val selected = isProxiedApp(item)
                 binding.itemcheck.isChecked = selected
-                binding.button.isVisible = forNeko && selected
+                binding.button.isVisible = selected
             }
         }
 
@@ -112,22 +83,6 @@ class AppListActivity : ThemedActivity() {
             if (isProxiedApp(item)) proxiedUids.delete(item.uid) else proxiedUids[item.uid] = true
             DataStore.routePackages = apps.filter { isProxiedApp(it) }
                 .joinToString("\n") { it.packageName }
-
-            if (forNeko) {
-                if (isProxiedApp(item)) {
-                    runOnIoDispatcher {
-                        try {
-                            NekoPluginManager.installPlugin(item.packageName)
-                        } catch (e: Exception) {
-                            // failed UI
-                            runOnUiThread { onClick(v) }
-                            Dialogs.logExceptionAndShow(this@AppListActivity, e) { }
-                        }
-                    }
-                } else {
-                    NekoPluginManager.removeManagedPlugin(item.packageName)
-                }
-            }
 
             appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
         }
@@ -218,19 +173,14 @@ class AppListActivity : ThemedActivity() {
         }
     }
 
-    private var forNeko = false
-
     fun getCachedApps(): MutableMap<String, PackageInfo> {
-        val packages =
-            if (forNeko) PackageCache.installedPluginPackages else PackageCache.installedPackages
-        return packages.toMutableMap().apply {
+        return PackageCache.installedPackages.toMutableMap().apply {
             remove(BuildConfig.APPLICATION_ID)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        forNeko = intent?.hasExtra(Key.NEKO_PLUGIN_MANAGED) == true
 
         binding = LayoutAppListBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -260,28 +210,13 @@ class AppListActivity : ThemedActivity() {
             appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
         }
 
-        if (forNeko) {
-            DataStore.routePackages = DataStore.nekoPlugins
-            binding.search.setText(Plugins.AUTHORITIES_PREFIX_NEKO_PLUGIN)
-        }
-
-        binding.searchLayout.isGone = forNeko
-        binding.hintNekoPlugin.isGone = !forNeko
-        binding.actionLearnMore.setOnClickListener {
-            launchCustomTab("https://AntiNeko.github.io/m-plugin/")
-        }
-
         loadApps()
     }
 
     private var sysApps = false
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        if (forNeko) {
-            menuInflater.inflate(R.menu.app_list_neko_menu, menu)
-        } else {
-            menuInflater.inflate(R.menu.app_list_menu, menu)
-        }
+        menuInflater.inflate(R.menu.app_list_menu, menu)
         return true
     }
 
@@ -347,20 +282,6 @@ class AppListActivity : ThemedActivity() {
                 }
                 Snackbar.make(binding.list, R.string.action_import_err, Snackbar.LENGTH_LONG).show()
             }
-
-            R.id.uninstall_all -> {
-                runOnDefaultDispatcher {
-                    proxiedUids.clear()
-                    DataStore.routePackages = ""
-                    apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
-                    NekoPluginManager.plugins.forEach {
-                        NekoPluginManager.removeManagedPlugin(it)
-                    }
-                    onMainDispatcher {
-                        appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
-                    }
-                }
-            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -379,7 +300,6 @@ class AppListActivity : ThemedActivity() {
 
     override fun onDestroy() {
         loader?.cancel()
-        if (forNeko) DataStore.nekoPlugins = DataStore.routePackages
         super.onDestroy()
     }
 }
