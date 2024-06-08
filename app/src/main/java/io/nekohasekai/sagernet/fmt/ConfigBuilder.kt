@@ -177,7 +177,9 @@ fun buildConfig(
     return MyOptions().apply {
         if (!forTest) experimental = ExperimentalOptions().apply {
             clash_api = ClashAPIOptions().apply {
-                external_controller = DataStore.clashAPIListen
+                external_controller = DataStore.clashAPIListen.ifBlank {
+                    "$LOCALHOST4:${mkPort()}"
+                }
             }
             cache_file = CacheFileOptions().apply {
                 enabled = true
