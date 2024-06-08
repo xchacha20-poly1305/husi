@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.fmt.juicity
 
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
@@ -50,5 +51,9 @@ fun JuicityBean.buildJuicityConfig(port: Int): String {
         if (pinSHA256.isNotBlank()) put("pinned_certchain_sha256", pinSHA256)
         // TODO remove protect_path when VPN service not start but testing. Also for Hysteria
         put("protect_path", Libcore.ProtectPath)
+        put(
+            "log_level",
+            if (DataStore.logLevel > 0) "debug" else "error",
+        )
     }.toStringPretty()
 }

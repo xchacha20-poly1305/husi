@@ -72,6 +72,7 @@ object PluginManager {
         return when (pluginId) {
             "hysteria-plugin" -> soIfExist("libhysteria.so")
             "hysteria2-plugin" -> soIfExist("libhysteria2.so")
+            "juicity-plugin" -> soIfExist("libjuicity.so")
             else -> null
         }
     }
