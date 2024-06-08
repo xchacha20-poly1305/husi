@@ -18,20 +18,13 @@ import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
-import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.plus
 import libcore.BoxInstance
 import libcore.Libcore
-import moe.matsuri.nb4a.plugin.NekoPluginManager
-import moe.matsuri.nb4a.proxy.neko.NekoBean
-import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
-import moe.matsuri.nb4a.proxy.neko.updateAllConfig
-import org.json.JSONObject
 import java.io.File
 
 abstract class BoxInstance(
@@ -59,7 +52,6 @@ abstract class BoxInstance(
     }
 
     protected open suspend fun loadConfig() {
-        NekoJSInterface.Default.destroyAllJsi()
         box = Libcore.newSingBoxInstance(config.config, false)
     }
 
@@ -101,17 +93,6 @@ abstract class BoxInstance(
                     is JuicityBean -> {
                         initPlugin("juicity-plugin")
                         pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port)
-                    }
-
-                    is NekoBean -> {
-                        // check if plugin binary can be loaded
-                        initPlugin(bean.plgId)
-
-                        // build config and check if succeed
-                        bean.updateAllConfig(port)
-                        if (bean.allConfig == null) {
-                            throw NekoPluginManager.PluginInternalException(bean.protocolId)
-                        }
                     }
                 }
             }
@@ -247,43 +228,6 @@ abstract class BoxInstance(
                         processes.start(commands, envMap)
                     }
 
-                    bean is NekoBean -> {
-                        // config built from JS
-                        val nekoRunConfigs = bean.allConfig.optJSONArray("nekoRunConfigs")
-                        val configs = mutableMapOf<String, String>()
-
-                        nekoRunConfigs?.forEach { _, any ->
-                            any as JSONObject
-
-                            val name = any.getString("name")
-                            val configFile = File(cacheDir, name)
-                            configFile.parentFile?.mkdirs()
-                            val content = any.getString("content")
-                            configFile.writeText(content)
-
-                            cacheFiles.add(configFile)
-                            configs[name] = configFile.absolutePath
-
-                            Logs.d(name + "\n\n" + content)
-                        }
-
-                        val nekoCommands = bean.allConfig.getJSONArray("nekoCommands")
-                        val commands = mutableListOf<String>()
-
-                        nekoCommands.forEach { _, any ->
-                            if (any is String) {
-                                if (configs.containsKey(any)) {
-                                    commands.add(configs[any]!!)
-                                } else if (any == "%exe%") {
-                                    commands.add(initPlugin(bean.plgId).path)
-                                } else {
-                                    commands.add(any)
-                                }
-                            }
-                        }
-
-                        processes.start(commands)
-                    }
                 }
             }
         }

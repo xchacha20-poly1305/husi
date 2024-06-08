@@ -448,11 +448,6 @@
     <string name="action_copy">复制</string>
     <string name="action_open">打开</string>
     <string name="connection_test_delete_unavailable">清理不可用配置</string>
-    <string name="neko_plugin">高级插件</string>
-    <string name="neko_plugin_summary">高级插件可以提供原本不支持的协议。\n\n
-        任何人都可以编写高级插件，开启相当于给予其控制 husi 的权限，请从信任的来源下载安装。\n\n
-        普通插件在关于页面显示，无需手动开启。
-    </string>
     <string name="packet_encoding">包编码</string>
     <string name="action_switch">切换</string>
     <string name="acquire_wake_lock">获取唤醒锁</string>
@@ -462,7 +457,6 @@
     <string name="move">移动</string>
     <string name="subscription_expire">过期: %s</string>
     <string name="update_all_subscription">更新所有订阅</string>
-    <string name="exe_prefer_provider">首选插件提供者</string>
     <string name="create_shortcut">创建快捷方式</string>
     <string name="app_tls_version">订阅最低 TLS 版本</string>
     <string name="hop_interval">端口跳跃间隔（秒）</string>

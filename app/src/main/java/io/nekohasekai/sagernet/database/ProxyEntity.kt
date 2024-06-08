@@ -68,10 +68,6 @@ import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
-import moe.matsuri.nb4a.proxy.neko.NekoBean
-import moe.matsuri.nb4a.proxy.neko.NekoSettingActivity
-import moe.matsuri.nb4a.proxy.neko.haveStandardLink
-import moe.matsuri.nb4a.proxy.neko.shareLink
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 
@@ -104,7 +100,6 @@ data class ProxyEntity(
     var wgBean: WireGuardBean? = null,
     var shadowTLSBean: ShadowTLSBean? = null,
     var chainBean: ChainBean? = null,
-    var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
 ) : Serializable() {
 
@@ -126,7 +121,6 @@ data class ProxyEntity(
         const val TYPE_JUICITY = 22
 
         const val TYPE_CONFIG = 998
-        const val TYPE_NEKO = 999
 
 
         val chainName by lazy { app.getString(R.string.proxy_chain) }
@@ -210,7 +204,6 @@ data class ProxyEntity(
             TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
             TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
-            TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
         }
     }
@@ -231,7 +224,6 @@ data class ProxyEntity(
         TYPE_JUICITY -> "Juicity"
         TYPE_SHADOWTLS -> "ShadowTLS"
         TYPE_CHAIN -> chainName
-        TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
         else -> "Undefined type $type"
     }
@@ -256,7 +248,6 @@ data class ProxyEntity(
             TYPE_JUICITY -> juicityBean
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_CHAIN -> chainBean
-            TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
             else -> error("Undefined type $type")
         } ?: error("Null ${displayType()} profile")
@@ -274,7 +265,6 @@ data class ProxyEntity(
             is SSHBean -> false
             is WireGuardBean -> false
             is ShadowTLSBean -> false
-            is NekoBean -> nekoBean!!.haveStandardLink()
             is ConfigBean -> false
             else -> true
         }
@@ -292,7 +282,6 @@ data class ProxyEntity(
             is HysteriaBean -> toUri()
             is TuicBean -> toUri()
             is JuicityBean -> toUri()
-            is NekoBean -> shareLink()
             else -> toUniversalLink()
         }
     }
@@ -350,7 +339,6 @@ data class ProxyEntity(
             TYPE_NAIVE -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
             TYPE_JUICITY -> true
-            TYPE_NEKO -> true
             else -> false
         }
     }
@@ -388,7 +376,6 @@ data class ProxyEntity(
         shadowTLSBean = null
         chainBean = null
         configBean = null
-        nekoBean = null
 
         when (bean) {
             is SOCKSBean -> {
@@ -466,11 +453,6 @@ data class ProxyEntity(
                 chainBean = bean
             }
 
-            is NekoBean -> {
-                type = TYPE_NEKO
-                nekoBean = bean
-            }
-
             is ConfigBean -> {
                 type = TYPE_CONFIG
                 configBean = bean
@@ -499,7 +481,6 @@ data class ProxyEntity(
                 TYPE_JUICITY -> JuicitySettingsActivity::class.java
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
-                TYPE_NEKO -> NekoSettingActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 else -> throw IllegalArgumentException()
             }

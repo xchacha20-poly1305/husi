@@ -1,15 +1,11 @@
 package moe.matsuri.nb4a
 
-import android.content.Context
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_NEKO
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.ktx.app
-import io.nekohasekai.sagernet.ktx.getColorAttr
-import moe.matsuri.nb4a.plugin.NekoPluginManager
 
 // Settings for all protocols, built-in or plugin
 object Protocols {
@@ -30,12 +26,6 @@ object Protocols {
     fun getCanMuxList(): List<String> {
         // built-in and support mux
         val list = mutableListOf("vmess", "trojan", "trojan-go", "shadowsocks", "vless", "padding")
-
-        NekoPluginManager.getProtocols().forEach {
-            if (it.protocolConfig.optBoolean("canMux")) {
-                list.add(it.protocolId)
-            }
-        }
 
         return list
     }
@@ -63,15 +53,6 @@ object Protocols {
             return hash() == other.hash()
         }
 
-    }
-
-    // Display
-
-    fun Context.getProtocolColor(type: Int): Int {
-        return when (type) {
-            TYPE_NEKO -> getColorAttr(android.R.attr.textColorPrimary)
-            else -> getColorAttr(R.attr.accentOrTextSecondary)
-        }
     }
 
     // Test

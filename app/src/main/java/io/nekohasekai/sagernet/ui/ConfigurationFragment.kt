@@ -17,7 +17,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -40,7 +39,6 @@ import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.proto.UrlTest
 import io.nekohasekai.sagernet.database.*
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
-import io.nekohasekai.sagernet.databinding.LayoutAppsItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -50,7 +48,6 @@ import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.ui.profile.*
-import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.*
@@ -58,12 +55,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
-import moe.matsuri.nb4a.Protocols.getProtocolColor
-import moe.matsuri.nb4a.plugin.NekoPluginManager
 import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
-import moe.matsuri.nb4a.proxy.neko.NekoJSInterface
-import moe.matsuri.nb4a.proxy.neko.NekoSettingActivity
-import moe.matsuri.nb4a.proxy.neko.canShare
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import moe.matsuri.nb4a.utils.blur
 import moe.matsuri.nb4a.utils.closeQuietly
@@ -403,38 +395,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java))
             }
 
-            R.id.action_new_neko -> {
-                val context = requireContext()
-                lateinit var dialog: AlertDialog
-                val linearLayout = LinearLayout(context).apply {
-                    orientation = LinearLayout.VERTICAL
-
-                    NekoPluginManager.getProtocols().forEach { obj ->
-                        LayoutAppsItemBinding.inflate(layoutInflater, this, true).apply {
-                            itemcheck.isGone = true
-                            button.isGone = false
-                            itemicon.setImageDrawable(
-                                PackageCache.installedApps[obj.plgId]?.loadIcon(
-                                    context.packageManager
-                                )
-                            )
-                            title.text = obj.protocolId
-                            desc.text = obj.plgId
-                            button.setOnClickListener {
-                                dialog.dismiss()
-                                val intent = Intent(context, NekoSettingActivity::class.java)
-                                intent.putExtra("plgId", obj.plgId)
-                                intent.putExtra("protocolId", obj.protocolId)
-                                startActivity(intent)
-                            }
-                        }
-                    }
-                }
-                dialog = MaterialAlertDialogBuilder(context).setTitle(R.string.neko_plugin)
-                    .setView(linearLayout)
-                    .show()
-            }
-
             R.id.action_clear_traffic_statistics -> {
                 runOnDefaultDispatcher {
                     val profiles = SagerDatabase.proxyDao.getByGroup(DataStore.currentGroupId())
@@ -639,7 +599,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     append("\n")
                     append(
                         profile.displayType(),
-                        ForegroundColorSpan(context.getProtocolColor(profile.type)),
+                        ForegroundColorSpan(context.getColorAttr(R.attr.accentOrTextSecondary)),
                         SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                     append(" ")
@@ -859,7 +819,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
                 GroupManager.postReload(DataStore.currentGroupId())
-                NekoJSInterface.Default.destroyAllJsi()
                 mainJob.cancel()
                 testJobs.forEach { it.cancel() }
             }
@@ -1495,7 +1454,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 profileName.text = proxyEntity.displayName()
                 profileType.text = proxyEntity.displayType()
-                profileType.setTextColor(requireContext().getProtocolColor(proxyEntity.type))
+                profileType.setTextColor(requireContext().getColorAttr(R.attr.accentOrTextSecondary))
 
                 var rx = proxyEntity.rx
                 var tx = proxyEntity.tx
@@ -1587,10 +1546,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.isGone = select
                 removeButton.isGone = select
 
-                proxyEntity.nekoBean?.apply {
-                    shareLayout.isGone = !canShare()
-                }
-
                 runOnDefaultDispatcher {
                     val selected = (selectedItem?.id ?: DataStore.selectedProxy) == proxyEntity.id
                     val started =
@@ -1635,10 +1590,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 popup.menu.removeItem(R.id.action_group_clipboard)
                             }
 
-                        }
-
-                        if (proxyEntity.nekoBean != null) {
-                            popup.menu.removeItem(R.id.action_group_configuration)
                         }
 
                         popup.setOnMenuItemClickListener(this@ConfigurationHolder)

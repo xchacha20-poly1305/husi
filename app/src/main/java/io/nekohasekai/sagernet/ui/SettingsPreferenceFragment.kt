@@ -26,7 +26,6 @@ import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.ktx.remove
 import io.nekohasekai.sagernet.utils.Theme
-import io.nekohasekai.sagernet.widget.AppListPreference
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
@@ -35,7 +34,6 @@ import moe.matsuri.nb4a.ui.SimpleMenuPreference
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
     private lateinit var isProxyApps: SwitchPreference
-    private lateinit var nekoPlugins: AppListPreference
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -82,18 +80,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             when (preferenceCategory.key) {
                 Key.GENERAL_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
-                        Key.NEKO_PLUGIN_MANAGED -> {
-                            DataStore.routePackages = DataStore.nekoPlugins
-                            preference.setOnPreferenceClickListener {
-                                // borrow from route app settings
-                                startActivity(Intent(
-                                    context, AppListActivity::class.java
-                                ).apply { putExtra(Key.NEKO_PLUGIN_MANAGED, true) })
-                                true
-                            }
-
-                        }
-
                         Key.APP_THEME -> {
                             preference as ColorPickerPreference
                             preference.setOnPreferenceChangeListener { _, newTheme ->
@@ -293,9 +279,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         if (::isProxyApps.isInitialized) {
             isProxyApps.isChecked = DataStore.proxyApps
-        }
-        if (::nekoPlugins.isInitialized) {
-            nekoPlugins.postUpdate()
         }
     }
 

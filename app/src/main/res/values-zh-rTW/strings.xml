@@ -465,12 +465,6 @@
     <string name="tuic_congestion_controller">擁塞控制</string>
     <string name="tuic_disable_sni">禁用 SNI</string>
     <string name="connection_test_delete_unavailable">清理不可用配置</string>
-    <string name="neko_plugin">進階插件</string>
-    <string name="neko_plugin_summary">高級插件可以提供原本不支援的協定。
-\n
-\n 任何人都可以編寫高級插件，開啟相當於給予其控制 husi 的權限，請從信任的來源下載安裝。
-\n
-\n 普通插件在關於頁面顯示，無需手動開啟。</string>
     <string name="hop_interval">連接埠跳頻間隔（秒）</string>
     <string name="domain_strategy_for_remote">域名策略（遠端）</string>
     <string name="domain_strategy_for_direct">域名策略（直連）</string>
@@ -509,7 +503,6 @@
     <string name="neko_plugin_internal_error">%s 內部錯誤</string>
     <string name="move">移動</string>
     <string name="app_tls_version">訂閱最低 TLS 版本</string>
-    <string name="exe_prefer_provider">插件首選提供者</string>
     <string name="create_shortcut">建立快捷方式</string>
     <string name="bypass_lan_in_core">在核心中繞過 LAN</string>
     <string name="need_restart">重新啟動應用程式以應用更改</string>

@@ -456,7 +456,6 @@
     <string name="acquire_wake_lock_summary">Mantiene la CPU encendida</string>
     <string name="action_switch">Cambiar</string>
     <string name="connection_test_delete_unavailable">Borrar los no disponibles</string>
-    <string name="neko_plugin">Plugin avanzado</string>
     <string name="neko_plugin_internal_error">%s error interno</string>
     <string name="app_name_long">husi para Android</string>
     <string name="update_all_subscription">Actualizar suscripciones</string>
@@ -466,15 +465,11 @@
     <string name="tuic_disable_sni">Desactivar SNI</string>
     <string name="tuic_reduce_rtt">Activar protocolo de enlace QUIC 0-RTT</string>
     <string name="move">Mover</string>
-    <string name="exe_prefer_provider">Proveedor preferido de plugins</string>
     <string name="create_shortcut">Crear acceso directo</string>
     <string name="app_tls_version">Versión mínima de TLS de suscripción</string>
     <string name="mux_sum">Mux está diseñado para reducir la latencia del protocolo de enlace TCP, no para aumentar el rendimiento de la conexión. Usar Mux para ver vídeos, descargar o hacer pruebas de velocidad suele ser contraproducente. Si el servidor no lo soporta, no podrás acceder a Internet.</string>
     <string name="tuic_udp_relay_mode">Modo de retransmisión UDP</string>
     <string name="tuic_congestion_controller">Controlador de congestión</string>
-    <string name="neko_plugin_summary">Los plugins avanzados pueden proporcionar protocolos que no se admiten originalmente.
-\n
-\nCualquiera puede escribir plugins avanzados, que pueden controlar husi. Por favor, descargar e instalar de fuentes de confianza.</string>
     <string name="hop_interval">Intervalo de salto de puerto (segundos)</string>
     <string name="app_name">husi</string>
     <string name="menu_dashboard">Panel SingBox</string>

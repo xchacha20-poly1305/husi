@@ -15,20 +15,6 @@ import org.json.JSONArray
 import java.io.Closeable
 import java.io.File
 
-// SagerNet Class
-
-fun SagerNet.cleanWebview() {
-    var pathToClean = "app_webview"
-    if (isBgProcess) pathToClean += "_$process"
-    try {
-        val dataDir = filesDir.parentFile!!
-        File(dataDir, "$pathToClean/BrowserMetrics").recreate(true)
-        File(dataDir, "$pathToClean/BrowserMetrics-spare.pma").recreate(false)
-    } catch (e: Exception) {
-        Logs.e(e)
-    }
-}
-
 fun File.recreate(dir: Boolean) {
     if (parentFile?.isDirectory != true) return
     if (dir && !isFile) {
@@ -38,14 +24,6 @@ fun File.recreate(dir: Boolean) {
         if (exists()) delete()
         mkdir()
     }
-}
-
-// Context utils
-
-@SuppressLint("DiscouragedApi")
-fun Context.getDrawableByName(name: String?): Drawable? {
-    val resourceId: Int = resources.getIdentifier(name, "drawable", packageName)
-    return AppCompatResources.getDrawable(this, resourceId)
 }
 
 // List

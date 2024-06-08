@@ -514,15 +514,8 @@
     <string name="tuic_disable_sni">Disable SNI</string>
     <string name="tuic_reduce_rtt">Enable 0-RTT QUIC handshake</string>
     <string name="connection_test_delete_unavailable">Clear unavailable</string>
-    <string name="neko_plugin">Advanced plugin</string>
-    <string name="neko_plugin_summary">Advanced plugins can provide protocols that are not
-        originally supported.\n\n
-        Anyone can write advanced plugins, which can control husi. please download and install from
-        trusted sources.
-    </string>
     <string name="neko_plugin_internal_error">%s internal error</string>
     <string name="move">Move</string>
-    <string name="exe_prefer_provider">Plugin Preferred Provider</string>
     <string name="create_shortcut">Create Shortcut</string>
     <string name="app_tls_version">Subscription Min TLS Version</string>
     <string name="hop_interval">Port Hopping Interval(second)</string>
