@@ -68,7 +68,6 @@ class BaseService {
 
         val receiver = broadcastReceiver { ctx, intent ->
             when (intent.action) {
-                Intent.ACTION_SHUTDOWN -> service.persistStats()
                 Action.RELOAD -> service.reload()
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
@@ -233,10 +232,7 @@ class BaseService {
             val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy) ?: return false
             val tmpBox = ProxyInstance(ent)
             tmpBox.buildConfigTmp()
-            if (tmpBox.lastSelectorGroupId == data.proxy?.lastSelectorGroupId) {
-                return true
-            }
-            return false
+            return tmpBox.lastSelectorGroupId == data.proxy?.lastSelectorGroupId
         }
 
         suspend fun startProcesses() {
@@ -313,10 +309,6 @@ class BaseService {
             }
         }
 
-        open fun persistStats() {
-            // TODO NEW save app stats?
-        }
-
         // networks
         var upstreamInterfaceName: String?
 
@@ -326,16 +318,6 @@ class BaseService {
 
         var wakeLock: PowerManager.WakeLock?
         fun acquireWakeLock()
-        suspend fun switchWakeLock() {
-            wakeLock?.apply {
-                release()
-                wakeLock = null
-                data.notification?.postNotificationWakeLockStatus(false)
-            } ?: apply {
-                acquireWakeLock()
-                data.notification?.postNotificationWakeLockStatus(true)
-            }
-        }
 
         suspend fun lateInit() {
             wakeLock?.apply {
