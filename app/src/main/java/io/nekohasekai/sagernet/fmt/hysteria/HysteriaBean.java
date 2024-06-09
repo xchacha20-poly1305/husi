@@ -151,6 +151,11 @@ public class HysteriaBean extends AbstractBean {
         };
     }
 
+    @Override
+    public String displayAddress() {
+        return NetsKt.wrapIPV6Host(serverAddress) + ":" + serverPorts;
+    }
+
     @NotNull
     @Override
     public HysteriaBean clone() {
