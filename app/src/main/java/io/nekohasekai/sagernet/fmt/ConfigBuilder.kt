@@ -41,15 +41,16 @@ const val TAG_TUN = "tun-in"
 
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
-const val TAG_BYPASS = "bypass"
 const val TAG_BLOCK = "block"
 
 const val TAG_DNS_IN = "dns-in"
 const val TAG_DNS_OUT = "dns-out"
 const val TAG_DNS_REMOTE = "dns-remote"
 const val TAG_DNS_DIRECT = "dns-direct"
+const val TAG_DNS_BLOCK = "dns-block"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FINAL = "dns-final"
+const val TAG_DNS_FAKE = "dns-fake"
 
 const val LOCALHOST4 = "127.0.0.1"
 
@@ -502,7 +503,7 @@ fun buildConfig(
                     bean.finalPort = mappingPort
 
                     inbounds.add(Inbound_DirectOptions().apply {
-                        type = "direct"
+                        type = TAG_DIRECT
                         listen = LOCALHOST4
                         listen_port = mappingPort
                         tag = "$chainTag-mapping-${proxyEntity.id}"
@@ -649,7 +650,7 @@ fun buildConfig(
 
                     0L -> {
                         if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
-                            server = "dns-fake"
+                            server = TAG_DNS_FAKE
                             inbound = listOf(TAG_TUN)
                             query_type = FAKE_DNS_QUERY_TYPE
                         }
@@ -660,7 +661,7 @@ fun buildConfig(
 
                     -2L -> {
                         userDNSRuleList += makeDnsRuleObj().apply {
-                            server = "dns-block"
+                            server = TAG_DNS_BLOCK
                             disable_cache = true
                         }
                     }
@@ -668,7 +669,7 @@ fun buildConfig(
 
                 outbound = when (val outId = rule.outbound) {
                     0L -> TAG_PROXY
-                    -1L -> TAG_BYPASS
+                    -1L -> TAG_DIRECT
                     -2L -> TAG_BLOCK
                     else -> if (outId == proxy.id) TAG_PROXY else tagMap[outId] ?: ""
                 }
@@ -694,19 +695,19 @@ fun buildConfig(
         }
         route.rule_set = route.rule_set.distinctByTag()
 
-        for (freedom in arrayOf(TAG_DIRECT, TAG_BYPASS)) outbounds.add(Outbound().apply {
-            tag = freedom
-            type = "direct"
+        outbounds.add(Outbound().apply {
+            tag = TAG_DIRECT
+            type = TAG_DIRECT
         }.asMap())
 
         outbounds.add(Outbound().apply {
             tag = TAG_BLOCK
-            type = "block"
+            type = TAG_BLOCK
         }.asMap())
 
         if (!forTest) {
             inbounds.add(0, Inbound_DirectOptions().apply {
-                type = "direct"
+                type = TAG_DIRECT
                 tag = TAG_DNS_IN
                 listen = bind
                 listen_port = DataStore.localDNSPort
@@ -815,7 +816,7 @@ fun buildConfig(
 
         dns.servers.add(DNSServerOptions().apply {
             address = "rcode://success"
-            tag = "dns-block"
+            tag = TAG_DNS_BLOCK
         })
 
         // dns object user rules
@@ -846,7 +847,7 @@ fun buildConfig(
             })
             if (DataStore.bypassLanInCore) {
                 route.rules.add(Rule_DefaultOptions().apply {
-                    outbound = TAG_BYPASS
+                    outbound = TAG_DIRECT
                     ip_is_private = true
                 })
             }
@@ -869,7 +870,7 @@ fun buildConfig(
                 })
                 dns.rules.add(DNSRule_DefaultOptions().apply {
                     inbound = listOf(TAG_TUN)
-                    server = "dns-fake"
+                    server = TAG_DNS_FAKE
                     disable_cache = true
                     query_type = FAKE_DNS_QUERY_TYPE
                 })
