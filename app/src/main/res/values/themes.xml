@@ -439,15 +439,16 @@
     </style>
 
     <style name="Theme.SagerNet.Black">
-        <item name="colorPrimary">@color/color_ng_black_primary</item>
-        <item name="colorPrimaryDark">@color/color_ng_black_primary</item>
-        <item name="colorAccent">@color/color_ng_black_accent</item>
-        <item name="colorMaterial100">@color/color_ng_black_primary</item>
-        <item name="colorMaterial300">@color/color_ng_black_primary</item>
+        <item name="colorPrimary">@color/material_light_black</item>
+        <item name="colorPrimaryDark">@color/black</item>
+        <item name="colorAccent">@color/color_ng_black_accent</item><!--Can show text in light mode-->
+        <item name="colorMaterial100">@color/fab_color_progress</item>
+        <item name="colorMaterial300">@color/material_light_black</item>
 
-        <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
-        <item name="fabColorBackground">@color/color_ng_black_accent</item>
-        <item name="itemShapeFillColor">@color/color_ng_black_accent</item>
+        <item name="android:textColorLink">?attr/accentOrTextSecondary</item>
+        <item name="fabColorBackground">?colorPrimaryDark</item>
+        <item name="selectedColorPrimary">@color/white</item>
+        <item name="itemShapeFillColor">#616161</item>
 
         <item name="accentOrTextSecondary">?android:textColorSecondary</item>
         <item name="accentOrTextPrimary">?android:textColorPrimary</item>

@@ -51,7 +51,7 @@ open class SimpleMenuPreference
     }
 
     override fun createAdapter(): ArrayAdapter<CharSequence?> {
-        mAdapter = SimpleMenuAdapter(getContext(), R.layout.simple_menu_dropdown_item)
+        mAdapter = SimpleMenuAdapter(context, R.layout.simple_menu_dropdown_item)
         return mAdapter
     }
 
@@ -71,7 +71,7 @@ open class SimpleMenuPreference
         override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view: View = super.getDropDownView(position, convertView, parent)
             if (position == currentPosition) {
-                view.setBackgroundColor(context.getColorAttr(R.attr.colorMaterial100))
+                view.setBackgroundColor(context.getColorAttr(R.attr.colorAccent))
             } else {
                 view.setBackgroundColor(
                     ContextCompat.getColor(
