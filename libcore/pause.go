@@ -3,6 +3,8 @@ package libcore
 import (
 	"sync"
 	"time"
+
+	"github.com/sagernet/sing-box/log"
 )
 
 type servicePauseFields struct {
@@ -13,33 +15,22 @@ type servicePauseFields struct {
 func (b *BoxInstance) Pause() {
 	b.pauseAccess.Lock()
 	defer b.pauseAccess.Unlock()
-
 	if b.pauseTimer != nil {
 		b.pauseTimer.Stop()
 	}
-
-	b.pauseTimer = time.AfterFunc(time.Minute, b.pause)
-}
-
-func (b *BoxInstance) pause() {
-	b.pauseAccess.Lock()
-	defer b.pauseAccess.Unlock()
-
-	b.pauseManager.DevicePause()
-	_ = b.Box.Router().ResetNetwork()
-	b.pauseTimer = nil
+	b.pauseTimer = time.AfterFunc(3*time.Second, b.ResetNetwork)
 }
 
 func (b *BoxInstance) Wake() {
-	_ = b.Box.Router().ResetNetwork()
 	b.pauseAccess.Lock()
 	defer b.pauseAccess.Unlock()
-
 	if b.pauseTimer != nil {
 		b.pauseTimer.Stop()
-		b.pauseTimer = nil
-		return
 	}
+	b.pauseTimer = time.AfterFunc(3*time.Minute, b.ResetNetwork)
+}
 
-	b.pauseManager.DeviceWake()
+func (b *BoxInstance) ResetNetwork() {
+	_ = b.Box.Router().ResetNetwork()
+	log.Debug("Reset network.")
 }
