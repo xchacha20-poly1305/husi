@@ -170,8 +170,8 @@ fun JSONObject.parseHysteria1Json(): HysteriaBean {
         alpn = getStr("alpn")
         allowInsecure = getBool("insecure")
 
-        streamReceiveWindow = getIntNya("recv_window_conn")
-        connectionReceiveWindow = getIntNya("recv_window")
+        streamReceiveWindow = getIntOrNull("recv_window_conn")
+        connectionReceiveWindow = getIntOrNull("recv_window")
         disableMtuDiscovery = getBool("disable_mtu_discovery")
     }
 }

@@ -84,8 +84,7 @@ fun JSONObject.getBool(name: String): Boolean? {
 }
 
 
-// 重名了喵
-fun JSONObject.getIntNya(name: String): Int? {
+fun JSONObject.getIntOrNull(name: String): Int? {
     return try {
         getInt(name)
     } catch (ignored: Exception) {
