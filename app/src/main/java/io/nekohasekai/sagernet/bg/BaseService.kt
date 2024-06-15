@@ -165,10 +165,9 @@ class BaseService {
         }
 
         override fun setConnection(enable: Boolean) {
+            data?.proxy?.connectionLooper?.stop()
             if (enable) {
                 data?.proxy?.connectionLooper?.start()
-            } else {
-                data?.proxy?.connectionLooper?.stop()
             }
         }
 
