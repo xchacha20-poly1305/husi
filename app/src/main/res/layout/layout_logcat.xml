@@ -30,6 +30,7 @@
                     android:focusable="true"
                     android:gravity="start|top"
                     android:textIsSelectable="true"
+                    android:autoLink="web"
                     tools:ignore="LabelFor"/>
         </ScrollView>
     </LinearLayout>
