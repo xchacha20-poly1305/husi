@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	_ "unsafe"
 )
@@ -17,10 +16,6 @@ func LogPrintln(s string) {
 
 func LogClear() {
 	platformLogWrapper.truncate()
-}
-
-func ForceGc() {
-	go runtime.GC()
 }
 
 func InitCore(process, cachePath, internalAssets, externalAssets string,

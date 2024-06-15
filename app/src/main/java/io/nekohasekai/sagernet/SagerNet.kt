@@ -115,12 +115,6 @@ class SagerNet : Application(),
                 .build()
         }
 
-    override fun onTrimMemory(level: Int) {
-        super.onTrimMemory(level)
-
-        Libcore.forceGc()
-    }
-
     @SuppressLint("InlinedApi")
     companion object {
 
