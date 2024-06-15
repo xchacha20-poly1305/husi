@@ -169,7 +169,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                         it.src.contains(str) ||
                         it.dst.contains(str) ||
                         it.host.contains(str) ||
-                        it.rule.contains(str)
+                        it.outbound.contains(str)
             } ?: true
         }.sortedWith(connectionComparator).toMutableList()
 
@@ -258,7 +258,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             binding.connectionOutbound.text = textWithColor(
                 getString(R.string.outbound_rule) + ": ",
                 getColor(R.color.log_blue),
-                connection.rule,
+                connection.outbound,
             )
             binding.root.setOnClickListener {
                 context?.let { ctx ->

@@ -86,6 +86,7 @@ make <Plugin name>
 Plugin name list:
 
 * `hysteria2`
+* `juicity`
 
 ## ☠️ End users
 
