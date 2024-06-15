@@ -13,5 +13,5 @@ data class Connection(
     var src: String = "",
     var dst: String = "",
     var host: String = "",
-    var rule: String = "",
+    var outbound: String = "",
 ) : Parcelable
