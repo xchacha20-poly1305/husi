@@ -80,7 +80,7 @@ The APK file will be located in `app/build/outputs/apk`.
 #### 🌈 Plugins
 
 ```shell
-make <Plugin name>
+make plugin PLUGIN=<Plugin name>
 ```
 
 Plugin name list:

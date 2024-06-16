@@ -1,4 +1,4 @@
-.PHONY: update libcore apk apk_debug assets lint_go test_go
+.PHONY: update libcore apk apk_debug assets lint_go test_go plugin
 
 libcore:
 	./run lib core
@@ -35,8 +35,5 @@ fmt_go_install:
 test_go:
 	cd libcore/ && go test -v -count=1 ./...
 
-hysteria2:
-	./gradlew :plugin:hysteria2:assembleFossRelease
-
-juicity:
-	./gradlew :plugin:juicity:assembleFossRelease
+plugin:
+	./gradlew :plugin:$(PLUGIN):assembleFossRelease
