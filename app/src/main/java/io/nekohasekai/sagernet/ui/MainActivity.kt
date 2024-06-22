@@ -33,7 +33,11 @@ import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
-import io.nekohasekai.sagernet.database.*
+import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.GroupManager
+import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutMainBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -41,7 +45,14 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.alert
+import io.nekohasekai.sagernet.ktx.hasPermission
+import io.nekohasekai.sagernet.ktx.launchCustomTab
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.parseProxies
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.widget.ListHolderListener
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
@@ -105,8 +116,6 @@ class MainActivity : ThemedActivity(),
             onNewIntent(intent)
         }
 
-        refreshNavMenu(DataStore.clashAPIListen.isNotBlank())
-
         // sdk 33 notification
         if (Build.VERSION.SDK_INT >= 33) {
             val checkPermission =
@@ -138,13 +147,6 @@ class MainActivity : ThemedActivity(),
             }
         } catch (e: Exception) {
             Logs.w(e)
-        }
-    }
-
-
-    fun refreshNavMenu(clashApi: Boolean) {
-        if (::navigation.isInitialized) {
-            navigation.menu.findItem(R.id.nav_traffic)?.isVisible = clashApi
         }
     }
 
@@ -429,7 +431,9 @@ class MainActivity : ThemedActivity(),
     }
 
     override fun connectionUpdate(connectionList: List<Connection>) {
-        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)?.emitStats(connectionList)
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)?.emitStats(
+            connectionList
+        )
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
