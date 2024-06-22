@@ -572,4 +572,12 @@
     <string name="by_destination">Por destino</string>
     <string name="by_download">Por descarga</string>
     <string name="pinned_peer_certificate_chain_sha256">Hash de la cadena del certificado anclado</string>
+    <string name="by_inbound">Según entrada</string>
+    <string name="by_matched_rule">Según reglas iguales</string>
+    <string name="upload">Subir</string>
+    <string name="ip_version">Versión de la ip</string>
+    <string name="outbound">Saliente</string>
+    <string name="chain">Cadena</string>
+    <string name="close">Cerrar</string>
+    <string name="inbound">Entrante</string>
 </resources>
