@@ -1,7 +1,13 @@
 package io.nekohasekai.sagernet.fmt
 
 import android.widget.Toast
-import io.nekohasekai.sagernet.*
+import io.nekohasekai.sagernet.DNSMode
+import io.nekohasekai.sagernet.IPv6Mode
+import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.MuxState
+import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
@@ -27,8 +33,33 @@ import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import moe.matsuri.nb4a.*
-import moe.matsuri.nb4a.SingBoxOptions.*
+import moe.matsuri.nb4a.Protocols
+import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
+import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
+import moe.matsuri.nb4a.SingBoxOptions.ClashAPIOptions
+import moe.matsuri.nb4a.SingBoxOptions.DNSFakeIPOptions
+import moe.matsuri.nb4a.SingBoxOptions.DNSOptions
+import moe.matsuri.nb4a.SingBoxOptions.DNSRule_DefaultOptions
+import moe.matsuri.nb4a.SingBoxOptions.DNSServerOptions
+import moe.matsuri.nb4a.SingBoxOptions.ExperimentalOptions
+import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
+import moe.matsuri.nb4a.SingBoxOptions.Inbound_MixedOptions
+import moe.matsuri.nb4a.SingBoxOptions.Inbound_TunOptions
+import moe.matsuri.nb4a.SingBoxOptions.LogOptions
+import moe.matsuri.nb4a.SingBoxOptions.MultiplexOptions
+import moe.matsuri.nb4a.SingBoxOptions.MyOptions
+import moe.matsuri.nb4a.SingBoxOptions.NTPOptions
+import moe.matsuri.nb4a.SingBoxOptions.Outbound
+import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
+import moe.matsuri.nb4a.SingBoxOptions.Outbound_SocksOptions
+import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
+import moe.matsuri.nb4a.SingBoxOptions.Rule_DefaultOptions
+import moe.matsuri.nb4a.SingBoxOptions.User
+import moe.matsuri.nb4a.SingBoxOptionsUtil
+import moe.matsuri.nb4a.checkEmpty
+import moe.matsuri.nb4a.distinctByTag
+import moe.matsuri.nb4a.makeSingBoxRule
+import moe.matsuri.nb4a.makeSingBoxRuleSet
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
@@ -36,20 +67,22 @@ import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
+// Inbound
 const val TAG_MIXED = "mixed-in"
 const val TAG_TUN = "tun-in"
+const val TAG_DNS_IN = "dns-in"
 
+// Outbound
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
 const val TAG_BLOCK = "block"
-
-const val TAG_DNS_IN = "dns-in"
 const val TAG_DNS_OUT = "dns-out"
+
+// DNS
 const val TAG_DNS_REMOTE = "dns-remote"
 const val TAG_DNS_DIRECT = "dns-direct"
 const val TAG_DNS_BLOCK = "dns-block"
 const val TAG_DNS_LOCAL = "dns-local"
-const val TAG_DNS_FINAL = "dns-final"
 const val TAG_DNS_FAKE = "dns-fake"
 
 const val LOCALHOST4 = "127.0.0.1"
@@ -59,11 +92,10 @@ const val LOCAL_DNS_SERVER = "local"
 
 val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
 
-val ERR_NO_REMOTE_DNS = Exception("No remote DNS, check your settings!")
-val ERR_NO_DIRECT_DNS = Exception("No direct DNS, check your settings!")
-val ERR_NO_SUBNET = Exception("Your DNS mode requires set direct DNS client subnet.")
+val ERR_NO_REMOTE_DNS by lazy { Exception("No remote DNS, check your settings!") }
+val ERR_NO_DIRECT_DNS by lazy { Exception("No direct DNS, check your settings!") }
 
-val externalAssets = SagerNet.application.externalAssets.absolutePath
+val externalAssets: String by lazy { SagerNet.application.externalAssets.absolutePath }
 
 class ConfigBuildResult(
     var config: String,
@@ -116,15 +148,15 @@ fun buildConfig(
         return mutableListOf(this)
     }
 
-    fun selectorName(name_: String): String {
-        var name = name_
+    fun selectorName(name: String): String {
+        var newName = name
         var count = 0
-        while (selectorNames.contains(name)) {
+        while (selectorNames.contains(newName)) {
             count++
-            name = "$name_-$count"
+            newName = "$name-$count"
         }
-        selectorNames.add(name)
-        return name
+        selectorNames.add(newName)
+        return newName
     }
 
     fun ProxyEntity.resolveChain(): MutableList<ProxyEntity> {
@@ -160,6 +192,11 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns = (DataStore.dnsMode == DNSMode.FAKE_DNS) && !forTest
+    val tagDnsFinal = if (DataStore.dnsMode == DNSMode.LEAK) {
+        TAG_DNS_DIRECT
+    } else {
+        TAG_DNS_REMOTE
+    }
     val needSniff = DataStore.trafficSniffing > 0
     val needSniffOverride = DataStore.trafficSniffing == 2
     val externalIndexMap = ArrayList<IndexEntity>()
@@ -639,14 +676,7 @@ fun buildConfig(
                 when (rule.outbound) {
                     -1L -> {
                         userDNSRuleList += makeDnsRuleObj().apply {
-                            server = if (rule_set != null &&
-                                DataStore.dnsMode == DNSMode.PRECISE &&
-                                rule_set.any { it.startsWith("geoip-") }
-                            ) {
-                                TAG_DNS_FINAL
-                            } else {
-                                TAG_DNS_DIRECT
-                            }
+                            server = tagDnsFinal
                         }
                     }
 
@@ -762,8 +792,13 @@ fun buildConfig(
                 tag = TAG_DNS_REMOTE
                 address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-                if (DataStore.directDnsClientSubnet.isNotBlank()) {
-                    client_subnet = DataStore.directDnsClientSubnet
+
+                if (DataStore.dnsMode == DNSMode.PRECISE) {
+                    if (DataStore.directDnsClientSubnet.isNotBlank()) {
+                        client_subnet = DataStore.directDnsClientSubnet
+                    } else {
+                        throw Exception("Precise mode require client subnet")
+                    }
                 }
             })
         }
@@ -778,31 +813,9 @@ fun buildConfig(
                     address_resolver = TAG_DNS_LOCAL
                 }
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-            })
-        }
 
-        // final DNS
-        if (!useFakeDns) {
-            dns.servers.add(DNSServerOptions().apply {
-                tag = TAG_DNS_FINAL
-                address_resolver = TAG_DNS_LOCAL
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(TAG_DNS_DIRECT))
                 if (DataStore.directDnsClientSubnet.isNotBlank()) {
                     client_subnet = DataStore.directDnsClientSubnet
-                }
-                when (DataStore.dnsMode) {
-                    DNSMode.LEAK -> {
-                        address = directDNS.firstOrNull() ?: throw ERR_NO_DIRECT_DNS
-                    }
-
-                    DNSMode.PRECISE -> {
-                        if (client_subnet.isNullOrBlank()) throw ERR_NO_SUBNET
-                        address = remoteDns.firstOrNull() ?: throw ERR_NO_REMOTE_DNS
-                    }
-
-                    else -> {
-                        address = remoteDns.firstOrNull() ?: throw ERR_NO_REMOTE_DNS
-                    }
                 }
             })
         }
@@ -885,7 +898,7 @@ fun buildConfig(
                 })
             }
         }
-        if (!forTest && !useFakeDns) dns.final_ = TAG_DNS_FINAL
+        dns.final_ = tagDnsFinal
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {
