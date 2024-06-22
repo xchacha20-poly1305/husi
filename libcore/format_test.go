@@ -7,8 +7,10 @@ import (
 )
 
 func TestFormatBytes(t *testing.T) {
-	tt := []int64{humanize.IByte, humanize.KByte, humanize.MByte, humanize.GByte,
-		humanize.TByte, humanize.TByte, humanize.EByte}
+	tt := []int64{
+		humanize.IByte, humanize.KByte, humanize.MByte, humanize.GByte,
+		humanize.TByte, humanize.TByte, humanize.EByte,
+	}
 
 	for _, test := range tt {
 		bytesFormat := FormatBytes(test)

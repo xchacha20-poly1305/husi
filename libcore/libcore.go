@@ -19,7 +19,7 @@ func LogClear() {
 }
 
 func Kill() {
-    os.Exit(0)
+	os.Exit(0)
 }
 
 func InitCore(process, cachePath, internalAssets, externalAssets string,

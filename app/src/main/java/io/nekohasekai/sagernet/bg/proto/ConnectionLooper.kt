@@ -4,6 +4,7 @@ import io.nekohasekai.sagernet.aidl.ConnectionList
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.toConnectionList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -41,5 +42,12 @@ class ConnectionLooper(
 
     fun stop() {
         job?.cancel()
+        runOnDefaultDispatcher {
+            runCatching {
+                data.binder.broadcast { work ->
+                    work.connectionUpdate(ConnectionList())
+                }
+            }
+        }
     }
 }

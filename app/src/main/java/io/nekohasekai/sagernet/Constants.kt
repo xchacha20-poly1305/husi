@@ -240,9 +240,10 @@ object Action {
 
 object TrafficSortMode {
     const val START = 0
-    const val ID = 1
+    const val INBOUND = 1
     const val SRC = 2
     const val DST = 3
     const val UPLOAD = 4
     const val DOWNLOAD = 5
+    const val MATCHED_RULE = 6
 }
