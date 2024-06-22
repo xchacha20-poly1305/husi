@@ -620,10 +620,17 @@
     <string name="sort">Sort</string>
     <string name="sort_mode">Sort Mode</string>
     <string name="by_time">By Time</string>
-    <string name="by_id">By ID</string>
     <string name="by_source">By Source</string>
     <string name="by_destination">By Destination</string>
     <string name="by_upload">By Upload</string>
     <string name="by_download">By Download</string>
     <string name="pinned_peer_certificate_chain_sha256">Pinned certificate chain hash</string>
+    <string name="by_inbound">By Inbound</string>
+    <string name="by_matched_rule">By Matched Rule</string>
+    <string name="upload">Upload</string>
+    <string name="inbound">Inbound</string>
+    <string name="ip_version">IP Version</string>
+    <string name="outbound">Outbound</string>
+    <string name="chain">Chain</string>
+    <string name="close">Close</string>
 </resources>

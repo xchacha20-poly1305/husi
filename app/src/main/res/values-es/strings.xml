@@ -563,7 +563,6 @@
     <string name="outbound_rule">regla de salida</string>
     <string name="start_time">Empezó a las</string>
     <string name="detail">Detalle</string>
-    <string name="by_id">Por ID</string>
     <string name="source_address">Dirección de la fuente</string>
     <string name="destination_address">Dirección de destino</string>
     <string name="ascending">Ascendente</string>

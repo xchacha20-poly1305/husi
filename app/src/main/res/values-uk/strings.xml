@@ -529,7 +529,6 @@
     <string name="sort_mode">Режим сортування</string>
     <string name="by_destination">За адресою призначення</string>
     <string name="by_time">За часом</string>
-    <string name="by_id">За ID</string>
     <string name="by_source">За вихідною адресою</string>
     <string name="by_download">За скачуванням</string>
     <string name="pinned_peer_certificate_chain_sha256">Хеш ланцюжка закріпленого сертифіката</string>

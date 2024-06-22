@@ -595,7 +595,6 @@
     <string name="ascending">По возрастанию</string>
     <string name="sort_mode">Режим сортировки</string>
     <string name="by_time">По времени</string>
-    <string name="by_id">По ID</string>
     <string name="by_source">По исходящему адресу</string>
     <string name="by_destination">По адресу назначения</string>
     <string name="by_upload">По загрузке</string>
