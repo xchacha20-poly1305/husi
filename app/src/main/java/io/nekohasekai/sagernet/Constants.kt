@@ -27,7 +27,6 @@ object Key {
 
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"
-    const val UNDERLYING_DNS = "underlyingDns"
     const val DIRECT_DNS_CLIENT_SUBNET = "directDnsClientSubnet"
     const val ENABLE_DNS_ROUTING = "enableDnsRouting"
     const val DNS_MODE = "dnsMode"

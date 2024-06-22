@@ -188,8 +188,6 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
-    val underlyingDns = DataStore.underlyingDns.split("\n")
-        .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns = (DataStore.dnsMode == DNSMode.FAKE_DNS) && !forTest
     val tagDnsFinal = if (DataStore.dnsMode == DNSMode.LEAK) {
@@ -821,13 +819,10 @@ fun buildConfig(
         }
 
         // underlyingDns
-        underlyingDns.firstOrNull().let {
-            dns.servers.add(DNSServerOptions().apply {
-                address = it ?: LOCAL_DNS_SERVER
-                tag = TAG_DNS_LOCAL
-                if (address != LOCAL_DNS_SERVER) detour = TAG_DIRECT
-            })
-        }
+        dns.servers.add(DNSServerOptions().apply {
+            address = LOCAL_DNS_SERVER
+            tag = TAG_DNS_LOCAL
+        })
 
         dns.servers.add(DNSServerOptions().apply {
             address = "rcode://success"

@@ -80,7 +80,6 @@
     <string name="enable_fakedns">FakeDNSを有効化</string>
     <string name="enable_dns_routing">DNSルーティングを有効化</string>
     <string name="direct_dns">ダイレクトDNS</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="remote_dns">リモートDNS</string>
     <string name="connection_test_error_status_code">エラーコード: #%d</string>
     <string name="connection_test_fail">インターネットは利用できません</string>

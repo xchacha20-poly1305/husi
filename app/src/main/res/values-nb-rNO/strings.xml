@@ -307,7 +307,6 @@
     </string>
     <string name="enable_dns_routing">Aktiver DNS -ruting</string>
     <string name="direct_dns">Direkte DNS</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="remote_dns">Ekstern DNS</string>
     <string name="cag_dns">DNS innstillinger</string>
     <string name="connection_test_error_status_code">Feilkode: #%d</string>

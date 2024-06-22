@@ -225,7 +225,6 @@
     <string name="route_reset">Rétablir</string>
     <string name="ssh_auth_type_none">Aucun</string>
     <string name="direct_dns">DNS Direct</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="username">Nom d\'utilisateur</string>
     <string name="network">Réseau</string>
     <string name="disable">Désactiver</string>
