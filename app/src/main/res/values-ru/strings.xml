@@ -22,7 +22,6 @@
     <string name="enable_dns_routing">Включить маршрутизацию DNS</string>
     <string name="direct_dns">Прямой DNS</string>
     <string name="remote_dns">Удаленный DNS</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="cag_dns">Настройки DNS</string>
     <string name="connection_test_error_status_code">Код ошибки: #%d</string>
     <string name="connection_test_fail">Интернет недоступен</string>

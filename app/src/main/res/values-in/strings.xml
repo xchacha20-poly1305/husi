@@ -28,7 +28,6 @@
     <string name="enable_dns_routing">Aktifkan DNS Routing</string>
     <string name="direct_dns">Direk DNS</string>
     <string name="remote_dns">Remot DNS</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="cag_dns">Pengaturan DNS</string>
     <string name="connection_test_error_status_code">Kode galat: #%d</string>
     <string name="connection_test_fail">Internet tidak tersedia</string>
