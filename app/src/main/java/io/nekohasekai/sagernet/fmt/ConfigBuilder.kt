@@ -251,16 +251,18 @@ fun buildConfig(
                 sniff_override_destination = needSniffOverride
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                        address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
                     IPv6Mode.ONLY -> {
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
                     else -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(
+                            VpnService.PRIVATE_VLAN4_CLIENT + "/28",
+                            VpnService.PRIVATE_VLAN6_CLIENT + "/126",
+                        )
                     }
                 }
             })

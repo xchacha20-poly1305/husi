@@ -2299,20 +2299,14 @@ public class SingBoxOptions {
         public Integer mtu;
 
         // Generate note: Listable
-        public List<String> inet4_address;
-
-        // Generate note: Listable
-        public List<String> inet6_address;
+        public List<String> address;
 
         public Boolean auto_route;
 
         public Boolean strict_route;
 
         // Generate note: Listable
-        public List<String> inet4_route_address;
-
-        // Generate note: Listable
-        public List<String> inet6_route_address;
+        public List<String> route_address;
 
         // Generate note: Listable
         public List<String> include_interface;
@@ -2799,20 +2793,14 @@ public class SingBoxOptions {
         public Integer mtu;
 
         // Generate note: Listable
-        public List<String> inet4_address;
-
-        // Generate note: Listable
-        public List<String> inet6_address;
+        public List<String> address;
 
         public Boolean auto_route;
 
         public Boolean strict_route;
 
         // Generate note: Listable
-        public List<String> inet4_route_address;
-
-        // Generate note: Listable
-        public List<String> inet6_route_address;
+        public List<String> route_address;
 
         // Generate note: Listable
         public List<String> include_interface;
