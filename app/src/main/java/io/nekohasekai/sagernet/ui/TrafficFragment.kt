@@ -1,22 +1,15 @@
 package io.nekohasekai.sagernet.ui
 
-import android.content.ClipData
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat.getColor
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.database.DataStore
@@ -24,9 +17,7 @@ import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
-import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.setOnFocusCancel
 
 class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
@@ -53,7 +44,10 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
         when (DataStore.trafficSortMode) {
             TrafficSortMode.START -> toolbar.menu.findItem(R.id.action_sort_time)!!.isChecked = true
-            TrafficSortMode.ID -> toolbar.menu.findItem(R.id.action_sort_id)!!.isChecked = true
+            TrafficSortMode.INBOUND -> {
+                toolbar.menu.findItem(R.id.action_sort_inbound)!!.isChecked = true
+            }
+
             TrafficSortMode.SRC -> toolbar.menu.findItem(R.id.action_sort_source)!!.isChecked = true
             TrafficSortMode.DST -> {
                 toolbar.menu.findItem(R.id.action_sort_destination)!!.isChecked = true
@@ -65,6 +59,10 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
             TrafficSortMode.DOWNLOAD -> {
                 toolbar.menu.findItem(R.id.action_sort_download)!!.isChecked = true
+            }
+
+            TrafficSortMode.MATCHED_RULE -> {
+                toolbar.menu.findItem(R.id.action_sort_rule)!!.isChecked = true
             }
         }
         searchView = toolbar.findViewById<SearchView?>(R.id.action_traffic_search).apply {
@@ -91,11 +89,12 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
     private val connectionComparator = Comparator<Connection> { a, b ->
         var result = when (DataStore.trafficSortMode) {
             TrafficSortMode.START -> compareValues(a.start, b.start)
-            TrafficSortMode.ID -> compareValues(a.uuid, b.uuid)
+            TrafficSortMode.INBOUND -> compareValues(a.uuid, b.uuid)
             TrafficSortMode.SRC -> compareValues(a.src, b.src)
             TrafficSortMode.DST -> compareValues(a.dst, b.dst)
             TrafficSortMode.UPLOAD -> compareValues(a.uploadTotal, b.uploadTotal)
             TrafficSortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
+            TrafficSortMode.MATCHED_RULE -> compareValues(a.matchedRule, b.matchedRule)
             else -> throw IllegalArgumentException()
         }
 
@@ -122,8 +121,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 item.isChecked = true
             }
 
-            R.id.action_sort_id -> {
-                DataStore.trafficSortMode = TrafficSortMode.ID
+            R.id.action_sort_inbound -> {
+                DataStore.trafficSortMode = TrafficSortMode.INBOUND
                 item.isChecked = true
             }
 
@@ -147,6 +146,11 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 item.isChecked = true
             }
 
+            R.id.action_sort_rule -> {
+                DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
+                item.isChecked = true
+            }
+
             else -> return false
         }
         return true
@@ -163,13 +167,15 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
         val newList = list.filter {
             searchString?.let { str ->
-                it.uuid.contains(str) ||
+                it.inbound.contains(str) ||
                         it.network.contains(str) ||
                         it.start.contains(str) ||
                         it.src.contains(str) ||
                         it.dst.contains(str) ||
                         it.host.contains(str) ||
-                        it.outbound.contains(str)
+                        it.matchedRule.contains(str) ||
+                        it.outbound.contains(str) ||
+                        it.chain.contains(str)
             } ?: true
         }.sortedWith(connectionComparator).toMutableList()
 
@@ -220,85 +226,21 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
-            binding.connectionID.text = textWithColor(
-                "${connection.uuid} ",
-                getColor(R.color.log_red),
-                connection.network,
-            )
-            binding.connectionSrc.text = textWithColor(
-                getString(R.string.source_address) + ": ",
-                getColor(R.color.design_default_color_secondary_variant),
-                connection.src,
-            )
-            binding.connectionDst.text = textWithColor(
-                getString(R.string.destination_address) + ": ",
-                getColor(R.color.color_pink_ssr),
-                connection.dst,
-            )
-            binding.connectionHost.apply {
-                if (connection.host.isNotBlank()) {
-                    isVisible = true
-                    text = textWithColor(
-                        "Host: ",
-                        getColor(R.color.log_purple),
-                        connection.host,
-                    )
-                } else isVisible = false
-            }
+            binding.connectionNetwork.text = connection.network.uppercase()
+            binding.connectionInbound.text = connection.inbound
+            binding.connectionDestination.text = connection.dst
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
                 Libcore.formatBytes(connection.uploadTotal),
                 Libcore.formatBytes(connection.downloadTotal),
             )
-            binding.connectionStart.text = textWithColor(
-                getString(R.string.start) + ": ",
-                getColor(R.color.design_default_color_secondary),
-                connection.start
-            )
-            binding.connectionOutbound.text = textWithColor(
-                getString(R.string.outbound_rule) + ": ",
-                getColor(R.color.log_blue),
-                connection.outbound,
-            )
+            binding.connectionChain.text = connection.chain
             binding.root.setOnClickListener {
-                context?.let { ctx ->
-                    val detail = gson.toJson(connection)
-                    MaterialAlertDialogBuilder(ctx)
-                        .setTitle(R.string.detail)
-                        .setMessage(detail)
-                        .setPositiveButton(R.string.ok) { _, _ -> }
-                        .setPositiveButton(R.string.action_copy) { _, _ ->
-                            clipboardManager.setPrimaryClip(
-                                ClipData.newPlainText(
-                                    "connection",
-                                    detail,
-                                )
-                            )
-                            snackbar(R.string.copy_success)
-                        }
-                        .show()
-                }
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_holder, ConnectionFragment(connection))
+                    .addToBackStack(null)
+                    .commit()
             }
-        }
-
-        private fun textWithColor(
-            tagStr: String,
-            color: Int,
-            colorStr: String,
-        ): SpannableStringBuilder {
-            return SpannableStringBuilder(tagStr).apply {
-                append(colorStr)
-                setSpan(
-                    ForegroundColorSpan(color),
-                    tagStr.length,
-                    tagStr.length + colorStr.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-        }
-
-        private fun getColor(id: Int): Int {
-            return getColor(binding.root.context, id)
         }
     }
 
@@ -341,6 +283,5 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         searchString = query
         return false
     }
-
 
 }

@@ -42,6 +42,8 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
             add(
                 Connection(
                     uuid = trackerInfo.uuid,
+                    inbound = trackerInfo.inbound,
+                    ipVersion = trackerInfo.ipVersion,
                     network = trackerInfo.network,
                     uploadTotal = trackerInfo.uploadTotal,
                     downloadTotal = trackerInfo.downloadTotal,
@@ -49,7 +51,9 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
                     src = trackerInfo.src,
                     dst = trackerInfo.dst,
                     host = trackerInfo.host,
+                    matchedRule = trackerInfo.matchedRule,
                     outbound = trackerInfo.outbound,
+                    chain = trackerInfo.chain
                 )
             )
         }

@@ -42,8 +42,8 @@
                                 android:id="@+id/action_sort_time"
                                 android:title="@string/by_time" />
                         <item
-                                android:id="@+id/action_sort_id"
-                                android:title="@string/by_id" />
+                                android:id="@+id/action_sort_inbound"
+                                android:title="@string/by_inbound" />
                         <item
                                 android:id="@+id/action_sort_upload"
                                 android:title="@string/by_upload" />
@@ -56,6 +56,9 @@
                         <item
                                 android:id="@+id/action_sort_destination"
                                 android:title="@string/by_destination" />
+                        <item
+                                android:id="@+id/action_sort_rule"
+                                android:title="@string/by_matched_rule" />
                     </group>
                 </menu>
             </item>

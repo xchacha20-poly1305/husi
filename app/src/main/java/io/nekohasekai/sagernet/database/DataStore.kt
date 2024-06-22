@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.TunImplementation
+import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
