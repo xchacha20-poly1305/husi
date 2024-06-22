@@ -6,10 +6,10 @@ require (
 	github.com/gofrs/uuid/v5 v5.2.0
 	github.com/miekg/dns v1.1.59
 	github.com/sagernet/gomobile v0.1.3
-	github.com/sagernet/sing v0.5.0-alpha.10
-	github.com/sagernet/sing-box v1.10.0-alpha.12
+	github.com/sagernet/sing v0.5.0-alpha.11
+	github.com/sagernet/sing-box v1.10.0-alpha.16
 	github.com/sagernet/sing-dns v0.3.0-beta.5
-	github.com/sagernet/sing-tun v0.4.0-beta.9
+	github.com/sagernet/sing-tun v0.4.0-beta.12
 	github.com/xchacha20-poly1305/TLS-scribe v0.5.0
 	github.com/xchacha20-poly1305/cazilla v0.2.2
 	github.com/xchacha20-poly1305/libping v0.5.1
@@ -66,8 +66,8 @@ require (
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1 // indirect
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
-	github.com/sagernet/netlink v0.0.0-20240523065131-45e60152f9ba // indirect
-	github.com/sagernet/nftables v0.3.0-beta.2 // indirect
+	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
+	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.45.0-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
@@ -87,7 +87,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8 // indirect
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
