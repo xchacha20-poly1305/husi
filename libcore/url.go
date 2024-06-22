@@ -6,6 +6,7 @@ import (
 	"strings"
 	_ "unsafe"
 
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
@@ -73,7 +74,7 @@ func ParseURL(rawURL string) (URL, error) {
 		if !strings.Contains(errStr, "invalid port") {
 			return nil, E.Cause(err, "pause rawURL")
 		}
-		multiplePort := stringBetween(errStr, "invalid port \"", "\" after host")
+		multiplePort := common.SubstringBetween(errStr, "invalid port \"", "\" after host")
 		noPort := strings.Replace(rawURL, multiplePort, "", 1)
 		uu, err = url.Parse(noPort)
 		if err != nil {
