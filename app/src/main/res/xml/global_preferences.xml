@@ -223,12 +223,6 @@
                 app:key="directDns"
                 app:title="@string/direct_dns"
                 app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-                app:defaultValue="local"
-                app:icon="@drawable/ic_action_dns"
-                app:key="underlyingDns"
-                app:title="@string/underlying_dns"
-                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="auto"
                 app:entries="@array/dns_network_select"

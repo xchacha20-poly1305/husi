@@ -11,7 +11,6 @@
     <string name="enable_dns_routing">DNS Yönlendirmesini Etkinleştir</string>
     <string name="direct_dns">Direkt DNS</string>
     <string name="remote_dns">Uzak DNS</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="cag_dns">DNS Ayarları</string>
     <string name="connection_test_error_status_code">Hata kodu: #%d</string>
     <string name="connection_test_fail">Internet Bağlantısı Yok</string>

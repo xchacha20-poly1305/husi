@@ -86,7 +86,6 @@
     <string name="cag_dns">Ajustes de DNS</string>
     <string name="remote_dns">DNS remoto</string>
     <string name="direct_dns">DNS directo</string>
-    <string name="underlying_dns">DNS subyacente</string>
     <string name="enable_dns_routing">Activar enrutamiento DNS</string>
     <string name="dns_routing_message">Resuelve dominios en rutas de omisión con el DNS directo.
         Tenga en cuenta las posibles fugas de DNS

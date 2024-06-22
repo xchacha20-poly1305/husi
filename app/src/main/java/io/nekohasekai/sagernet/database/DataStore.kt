@@ -113,7 +113,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
-    var underlyingDns by configurationStore.string(Key.UNDERLYING_DNS) { "local" }
     var directDnsClientSubnet by configurationStore.string(Key.DIRECT_DNS_CLIENT_SUBNET) { "" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var dnsMode by configurationStore.stringToInt(Key.DNS_MODE) { 0 }

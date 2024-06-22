@@ -8,7 +8,6 @@
     <string name="enable_dns_routing">Увімкнути маршрутизацію DNS</string>
     <string name="direct_dns">Прямий DNS</string>
     <string name="remote_dns">Віддалений DNS</string>
-    <string name="underlying_dns">Underlying DNS</string>
     <string name="cag_dns">Налаштування DNS</string>
     <string name="connection_test_error_status_code">Код помилки: #%d</string>
     <string name="connection_test_fail">Інтернет недоступний</string>
