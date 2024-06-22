@@ -61,6 +61,7 @@ func (b *BoxInstance) CloseConnection(id string) {
 var _ TrackerInfoIterator = (*iterator[*TrackerInfo])(nil)
 
 type TrackerInfoIterator interface {
+	Len() int32
 	Next() *TrackerInfo
 	HasNext() bool
 }

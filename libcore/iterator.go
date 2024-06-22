@@ -3,6 +3,7 @@ package libcore
 import "github.com/sagernet/sing/common"
 
 type StringIterator interface {
+	Len() int32
 	Next() string
 	HasNext() bool
 }
@@ -18,6 +19,10 @@ func newIterator[T any](values []T) *iterator[T] {
 	return &iterator[T]{values}
 }
 */
+
+func (i *iterator[T]) Len() int32 {
+	return int32(len(i.values))
+}
 
 func (i *iterator[T]) Next() T {
 	if len(i.values) == 0 {
