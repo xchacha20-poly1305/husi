@@ -20,9 +20,16 @@ class ConnectionFragment(private val conn: Connection) :
         super.onViewCreated(view, savedInstanceState)
 
         binding = LayoutConnectionBinding.bind(view)
-        toolbar.setTitle(conn.uuid)
-        toolbar.inflateMenu(R.menu.connection_menu)
-        toolbar.setOnMenuItemClickListener(this)
+        toolbar.apply {
+            setTitle(conn.uuid)
+            inflateMenu(R.menu.connection_menu)
+            setOnMenuItemClickListener(this@ConnectionFragment)
+
+            setNavigationIcon(R.drawable.baseline_arrow_back_24)
+            setNavigationOnClickListener {
+                parentFragmentManager.popBackStack()
+            }
+        }
 
         bind()
     }
