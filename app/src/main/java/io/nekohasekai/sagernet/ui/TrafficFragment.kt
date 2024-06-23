@@ -229,6 +229,18 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             binding.connectionNetwork.text = connection.network.uppercase()
             binding.connectionInbound.text = connection.inbound
             binding.connectionDestination.text = connection.dst
+            binding.connectionHost.let {
+                it.isVisible = if (
+                    connection.host.isNotBlank() &&
+                    // If use domain to connect, not show host.
+                    !connection.dst.startsWith(connection.host)
+                ) {
+                    it.text = connection.host
+                    true
+                } else {
+                    false
+                }
+            }
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
                 Libcore.formatBytes(connection.uploadTotal),

@@ -34,6 +34,16 @@
 
         <TextView
                 style="?attr/textAppearanceBodySmall"
+                android:id="@+id/connectionHost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sekai.icu"
+                android:visibility="gone"
+                android:textSize="16sp"
+                android:textColor="@color/log_red_light" />
+
+        <TextView
+                style="?attr/textAppearanceBodySmall"
                 android:id="@+id/connectionInbound"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
