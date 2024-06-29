@@ -156,10 +156,12 @@ class BaseService {
                 error("core not started")
             }
             try {
-                return Libcore.urlTest(
-                    data!!.proxy!!.box, DataStore.connectionTestURL, DataStore.connectionTestTimeout
+                return data!!.proxy!!.box.urlTest(
+                    DataStore.connectionTestURL,
+                    DataStore.connectionTestTimeout
                 )
             } catch (e: Exception) {
+                Logs.e(e)
                 error(Protocols.genFriendlyMsg(e.readableMessage))
             }
         }

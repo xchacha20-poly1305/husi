@@ -893,7 +893,7 @@ fun buildConfig(
                 })
             }
         }
-        dns.final_ = tagDnsFinal
+        if (!forTest) dns.final_ = tagDnsFinal
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {
