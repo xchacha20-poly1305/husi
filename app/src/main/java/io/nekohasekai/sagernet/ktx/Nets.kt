@@ -3,11 +3,13 @@
 package io.nekohasekai.sagernet.ktx
 
 import io.nekohasekai.sagernet.BuildConfig
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import libcore.Libcore
+import libcore.SocksInfo
 import moe.matsuri.nb4a.utils.NGUtil
 import java.net.InetSocketAddress
 import java.net.Socket
-import libcore.Libcore
 
 fun String.isIpAddress(): Boolean {
     return NGUtil.isIpv4Address(this) || NGUtil.isIpv6Address(this)
@@ -48,4 +50,12 @@ fun mkPort(): Int {
     return port
 }
 
-val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})"}
+val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
+
+fun socksInfo(): SocksInfo {
+    return SocksInfo(
+        DataStore.mixedPort.toString(),
+        DataStore.inboundUsername,
+        DataStore.inboundPassword,
+    )
+}

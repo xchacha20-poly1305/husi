@@ -14,42 +14,79 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"sync"
 
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
 	"github.com/sagernet/sing/protocol/socks/socks5"
 )
 
+// HTTPClient is an adapt client of http.
 type HTTPClient interface {
+	// RestrictedTLS forces to use TLS 1.3.
 	RestrictedTLS()
+
+	// ModernTLS allows use common TLS with TLS 1.2.
 	ModernTLS()
+
+	// PinnedTLS12 forces to use TLS 1.2.
 	PinnedTLS12()
+
+	// PinnedSHA256 verifies server TLS certificate's sha256 whether same as sumHex.
+	// If not, it will reject this handshake.
 	PinnedSHA256(sumHex string)
-	TrySocks5(port int32)
+
+	// TrySocks5 tries to connect to server by socks5 from socksInfo.
+	TrySocks5(socksInfo *SocksInfo)
+
+	// KeepAlive force use HTTP/2 and enable keep alive.
 	KeepAlive()
-	SetInsecure(bool)
+
+	// SetInsecure disables TLS secure verifying.
+	SetInsecure(allow bool)
+
+	// NewRequest creates a new HTTPRequest base settings.
 	NewRequest() HTTPRequest
+
+	// Close closes all connections.
 	Close()
 }
 
+// HTTPRequest is an custom HTTP request.
 type HTTPRequest interface {
+	// SetURL sets target by link.
 	SetURL(link string) error
+
+	// SetMethod sets HTTP mod.
 	SetMethod(method string)
+
+	// SetHeader sets HTTP header.
 	SetHeader(key string, value string)
+
+	// SetContent sets the content you want to send to server.
 	SetContent(content []byte)
 	SetContentString(content string)
+
+	// SetUserAgent sets HTTP user agent.
 	SetUserAgent(userAgent string)
+
+	// Execute do HTTP query.
 	Execute() (HTTPResponse, error)
 }
 
+// HTTPResponse is the HTTP server response.
 type HTTPResponse interface {
-	GetHeader(string) string
+	// GetHeader returns the header corresponding to the key.
+	GetHeader(key string) string
+
+	// GetContent returns server content in response.
 	GetContent() ([]byte, error)
 	GetContentString() (string, error)
+
+	// WriteTo writes content to the file of `path`.
 	WriteTo(path string) error
 }
 
@@ -65,6 +102,7 @@ type httpClient struct {
 	transport http.Transport
 }
 
+// NewHttpClient returns the basic HTTPClient.
 func NewHttpClient() HTTPClient {
 	client := new(httpClient)
 	client.client.Transport = &client.transport
@@ -90,6 +128,11 @@ func (c *httpClient) RestrictedTLS() {
 func (c *httpClient) PinnedTLS12() {
 	c.tls.MinVersion = tls.VersionTLS12
 	c.tls.MaxVersion = tls.VersionTLS12
+	c.tls.CipherSuites = common.Map(common.Filter(tls.CipherSuites(), func(it *tls.CipherSuite) bool {
+		return common.Contains(it.SupportedVersions, uint16(tls.VersionTLS12))
+	}), func(it *tls.CipherSuite) uint16 {
+		return it.ID
+	})
 }
 
 func (c *httpClient) PinnedSHA256(sumHex string) {
@@ -104,15 +147,28 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 	}
 }
 
-func (c *httpClient) TrySocks5(port int32) {
+func (c *httpClient) TrySocks5(socksInfo *SocksInfo) {
 	dialer := new(net.Dialer)
 	c.transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 		for {
-			socksConn, err := dialer.DialContext(ctx, "tcp", "127.0.0.1:"+strconv.Itoa(int(port)))
+			if socksInfo == nil || socksInfo.Port == "" {
+				break
+			}
+			socksConn, err := dialer.DialContext(
+				ctx,
+				N.NetworkTCP,
+				net.JoinHostPort("127.0.0.1", socksInfo.Port),
+			)
 			if err != nil {
 				break
 			}
-			_, err = socks.ClientHandshake5(socksConn, socks5.CommandConnect, metadata.ParseSocksaddr(addr), "", "")
+			_, err = socks.ClientHandshake5(
+				socksConn,
+				socks5.CommandConnect,
+				metadata.ParseSocksaddr(addr),
+				socksInfo.Username,
+				socksInfo.Password,
+			)
 			if err != nil {
 				break
 			}
