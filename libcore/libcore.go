@@ -22,6 +22,20 @@ func Kill() {
 	os.Exit(0)
 }
 
+// SocksInfo saves information for socks.
+type SocksInfo struct {
+	Port               string
+	Username, Password string
+}
+
+func NewSocksInfo(port, username, password string) *SocksInfo {
+	return &SocksInfo{
+		Port:     port,
+		Username: username,
+		Password: password,
+	}
+}
+
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
 	if1 GUIInterface, if2 BoxPlatformInterface,

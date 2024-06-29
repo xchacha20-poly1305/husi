@@ -1,8 +1,8 @@
 package io.nekohasekai.sagernet.utils
 
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.socksInfo
 import io.nekohasekai.sagernet.utils.cf.DeviceResponse
 import io.nekohasekai.sagernet.utils.cf.RegisterRequest
 import io.nekohasekai.sagernet.utils.cf.UpdateDeviceRequest
@@ -22,7 +22,7 @@ object Cloudflare {
         val keyPair = Libcore.newWireGuardKeyPair()
         val client = Libcore.newHttpClient().apply {
             pinnedTLS12()
-            trySocks5(DataStore.mixedPort)
+            trySocks5(socksInfo())
         }
 
         try {
