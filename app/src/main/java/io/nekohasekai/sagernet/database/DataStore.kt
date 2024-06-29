@@ -8,7 +8,6 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.TunImplementation
-import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
@@ -114,7 +113,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
-    var directDnsClientSubnet by configurationStore.string(Key.DIRECT_DNS_CLIENT_SUBNET) { "" }
+    var ednsClientSubnet by configurationStore.string(Key.EDNS_CLIENT_SUBNET) { "" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var dnsMode by configurationStore.stringToInt(Key.DNS_MODE) { 0 }
 

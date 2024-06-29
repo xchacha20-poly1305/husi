@@ -584,7 +584,6 @@
     <string name="mux_preference">Multiplex Settings</string>
     <string name="mux_state">Multiplex</string>
     <string name="enable_brutal">Enable TCP Brutal congestion controller</string>
-    <string name="direct_dns_client_subnet">Direct EDNS client subnet</string>
     <string name="dns_mode">DNS mode</string>
     <string name="fake_dns" translatable="false">Fake DNS</string>
     <string name="dns_mode_leak">Precise query with leak</string>
@@ -633,4 +632,5 @@
     <string name="outbound">Outbound</string>
     <string name="chain">Chain</string>
     <string name="close">Close</string>
+    <string name="edns_client_subnet" translatable="false">EDNS Client Subnet</string>
 </resources>

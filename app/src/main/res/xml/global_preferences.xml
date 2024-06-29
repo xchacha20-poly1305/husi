@@ -215,8 +215,8 @@
                 app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_baseline_push_pin_24"
-                app:key="directDnsClientSubnet"
-                app:title="@string/direct_dns_client_subnet"
+                app:key="ednsClientSubnet"
+                app:title="@string/edns_client_subnet"
                 app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_action_dns"
