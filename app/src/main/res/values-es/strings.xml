@@ -520,7 +520,6 @@
     <string name="vpn_app_type_other">Otro</string>
     <string name="sekai">nekohasekai</string>
     <string name="test_timeout">Tiempo de espera de la prueba (ms)</string>
-    <string name="direct_dns_client_subnet">Subred de cliente EDNS directo</string>
     <string name="share_subscription">Compartir suscripción</string>
     <string name="tls_camouflage_settings">Ajustes de camuflaje TLS</string>
     <string name="resolve_server">Resolver dirección del servidor según política IPv6</string>

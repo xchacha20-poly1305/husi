@@ -792,8 +792,8 @@ fun buildConfig(
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
 
                 if (DataStore.dnsMode == DNSMode.PRECISE) {
-                    if (DataStore.directDnsClientSubnet.isNotBlank()) {
-                        client_subnet = DataStore.directDnsClientSubnet
+                    if (DataStore.ednsClientSubnet.isNotBlank()) {
+                        client_subnet = DataStore.ednsClientSubnet
                     } else {
                         throw Exception("Precise mode require client subnet")
                     }
@@ -812,8 +812,8 @@ fun buildConfig(
                 }
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
 
-                if (DataStore.directDnsClientSubnet.isNotBlank()) {
-                    client_subnet = DataStore.directDnsClientSubnet
+                if (DataStore.ednsClientSubnet.isNotBlank()) {
+                    client_subnet = DataStore.ednsClientSubnet
                 }
             })
         }
