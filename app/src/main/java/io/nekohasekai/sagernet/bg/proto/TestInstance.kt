@@ -13,7 +13,7 @@ import kotlinx.coroutines.delay
 import libcore.Libcore
 import kotlin.coroutines.suspendCoroutine
 
-class TestInstance(profile: ProxyEntity, val link: String, val timeout: Int) :
+class TestInstance(profile: ProxyEntity, val link: String, private val timeout: Int) :
     BoxInstance(profile) {
 
     suspend fun doTest(): Int {
@@ -31,7 +31,7 @@ class TestInstance(profile: ProxyEntity, val link: String, val timeout: Int) :
                             // wait for plugin start
                             delay(500)
                         }
-                        c.tryResume(Libcore.urlTest(box, link, timeout))
+                        c.tryResume(box.urlTest(link, timeout))
                     } catch (e: Exception) {
                         c.tryResumeWithException(e)
                         Log.e("URL test", e.toString())
