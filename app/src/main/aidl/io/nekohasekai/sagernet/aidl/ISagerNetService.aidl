@@ -13,4 +13,5 @@ interface ISagerNetService {
 
   oneway void setConnection(boolean enable);
   oneway void closeConnection(String id);
+  oneway void resetNetwork();
 }

@@ -81,11 +81,10 @@ class BaseService {
                 }
 
                 Action.RESET_UPSTREAM_CONNECTIONS -> runOnDefaultDispatcher {
-                    Libcore.resetAllConnections()
+                    resetNetwork()
                     runOnMainDispatcher {
                         Util.collapseStatusBar(ctx)
-                        Toast.makeText(ctx, "Reset upstream connections done", Toast.LENGTH_SHORT)
-                            .show()
+                        Toast.makeText(ctx, R.string.have_reset_network, Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -102,6 +101,10 @@ class BaseService {
             state = s
             DataStore.serviceState = s
             binder.stateChanged(s, msg)
+        }
+
+        fun resetNetwork() {
+            proxy?.box?.resetNetwork() ?: Libcore.resetAllConnections()
         }
     }
 
@@ -175,6 +178,10 @@ class BaseService {
 
         override fun closeConnection(id: String) {
             data?.proxy?.box?.closeConnection(id)
+        }
+
+        override fun resetNetwork() {
+            data?.resetNetwork()
         }
 
         fun stateChanged(s: State, msg: String?) = launch {
