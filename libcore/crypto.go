@@ -5,34 +5,23 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"strings"
-
-	E "github.com/sagernet/sing/common/exceptions"
 
 	"golang.org/x/crypto/curve25519"
 )
 
-type WireGuardKeyPair interface {
-	GetPrivateKey() (privateKey string)
-	GetPublicKey() (publicKey string)
-}
-
-var _ WireGuardKeyPair = (*wgKeyPair)(nil)
-
-type wgKeyPair struct {
+// WireGuardKeyPair saves WireGuard key pair.
+type WireGuardKeyPair struct {
 	privateKey, publicKey string
 }
 
 const wgKeyLen = 32
 
-func NewWireGuardKeyPair() (WireGuardKeyPair, error) {
+// NewWireGuardKeyPair generate key pair from system random bytes.
+func NewWireGuardKeyPair() *WireGuardKeyPair {
 	// from: golang.zx2c4.com/wireguard/wgctrl/wgtypes
 
 	randomBytes := make([]byte, wgKeyLen)
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		return nil, E.Cause(err, "generate key")
-	}
+	_, _ = rand.Read(randomBytes)
 
 	// Modify random bytes using algorithm described at:
 	// https://cr.yp.to/ecdh.html.
@@ -40,7 +29,7 @@ func NewWireGuardKeyPair() (WireGuardKeyPair, error) {
 	randomBytes[31] &= 127
 	randomBytes[31] |= 64
 
-	keyPair := &wgKeyPair{
+	keyPair := &WireGuardKeyPair{
 		privateKey: base64.StdEncoding.EncodeToString(randomBytes),
 	}
 
@@ -51,35 +40,21 @@ func NewWireGuardKeyPair() (WireGuardKeyPair, error) {
 	curve25519.ScalarBaseMult(&pub, &pri)
 	keyPair.publicKey = base64.StdEncoding.EncodeToString(pub[:])
 
-	return keyPair, nil
+	return keyPair
 }
 
-func (w *wgKeyPair) GetPrivateKey() (privateKey string) {
+// GetPrivateKey returns private key of key pair.
+func (w *WireGuardKeyPair) GetPrivateKey() string {
 	return w.privateKey
 }
 
-func (w *wgKeyPair) GetPublicKey() (publicKey string) {
+// GetPublicKey returns publick key of key pair.
+func (w *WireGuardKeyPair) GetPublicKey() string {
 	return w.publicKey
 }
 
+// Sha256Hex culculates sha256 sum of data.
 func Sha256Hex(data []byte) string {
 	sum := sha256.Sum256(data)
 	return hex.EncodeToString(sum[:])
-}
-
-// BA:88:45:17:A1
-func Sha256OpenSSL(data []byte) string {
-	sum := sha256.Sum256(data)
-	sumStr := hex.EncodeToString(sum[:])
-	sumStr = strings.ToUpper(sumStr)
-
-	sumSlice := strings.Split(sumStr, "")
-
-	var result []string
-	for i := 0; i < len(sumSlice)-1; i += 2 {
-		appendSlice := strings.Join(sumSlice[i:i+2], "")
-		result = append(result, appendSlice)
-	}
-
-	return strings.Join(result, ":")
 }
