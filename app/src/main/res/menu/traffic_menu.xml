@@ -9,6 +9,12 @@
             app:showAsAction="always" />
 
     <item
+            android:id="@+id/action_reset_network"
+            android:title="@string/reset_connections"
+            android:icon="@drawable/ic_baseline_sanitizer_24"
+            app:showAsAction="always" />
+
+    <item
             android:id="@+id/action_misc"
             android:icon="@drawable/ic_baseline_more_vert_24"
             android:title=""

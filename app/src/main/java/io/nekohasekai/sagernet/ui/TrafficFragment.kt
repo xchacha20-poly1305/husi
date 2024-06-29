@@ -9,6 +9,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
@@ -17,6 +18,7 @@ import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.snackbar
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.setOnFocusCancel
 
@@ -106,6 +108,20 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_reset_network -> (requireActivity() as? MainActivity)?.let {
+                MaterialAlertDialogBuilder(it)
+                    .setTitle(R.string.reset_connections)
+                    .setMessage(getString(R.string.ensure_close_all, adapter.data.size.toString()))
+                    .setPositiveButton(R.string.ok) { _, _ ->
+                        it.connection.service?.resetNetwork()
+                        snackbar(R.string.have_reset_network).show()
+                    }
+                    .setNegativeButton(R.string.no_thanks) { _, _ -> }
+                    .show()
+            }
+
+            // Sort
+
             R.id.action_sort_ascending -> {
                 DataStore.trafficDescending = false
                 item.isChecked = true
