@@ -133,7 +133,7 @@ fun HysteriaBean.toUri(): String {
             url.addQueryParameter("obfs-password", obfuscation)
         }
         if (caText.isNotBlank()) {
-            url.addQueryParameter("pinSHA256", Libcore.sha256OpenSSL(caText.toByteArray()))
+            url.addQueryParameter("pinSHA256", Libcore.sha256Hex(caText.toByteArray()))
         }
     }
 
