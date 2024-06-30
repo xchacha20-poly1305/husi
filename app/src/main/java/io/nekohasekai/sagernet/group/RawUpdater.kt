@@ -833,6 +833,16 @@ object RawUpdater : GroupUpdater() {
                         config = json.toStringPretty()
                     })
                 }
+
+                json.has("version") && json.has("servers") -> {
+                    // try to parse SIP008
+                    // TODO: read traffic data
+                    json.getJSONArray("servers").forEach { _, it ->
+                        if (it is JSONObject) {
+                            proxies.add(it.parseShadowsocks())
+                        }
+                    }
+                }
             }
         } else {
             json as JSONArray
