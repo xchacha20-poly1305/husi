@@ -53,6 +53,7 @@ class GroupSettingsActivity(
         DataStore.landingProxyTmp = if (landingProxy >= 0) 3 else 0
 
         val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
+        DataStore.subscriptionType = subscription.type
         DataStore.subscriptionLink = subscription.link
         DataStore.subscriptionForceResolve = subscription.forceResolve
         DataStore.subscriptionDeduplication = subscription.deduplication
@@ -74,6 +75,7 @@ class GroupSettingsActivity(
         val isSubscription = type == GroupType.SUBSCRIPTION
         if (isSubscription) {
             subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
+                type = DataStore.subscriptionType
                 link = DataStore.subscriptionLink
                 forceResolve = DataStore.subscriptionForceResolve
                 deduplication = DataStore.subscriptionDeduplication
@@ -85,9 +87,8 @@ class GroupSettingsActivity(
         }
     }
 
-    fun needSave(): Boolean {
-        if (!DataStore.dirty) return false
-        return true
+    private fun needSave(): Boolean {
+        return DataStore.dirty
     }
 
     fun PreferenceFragmentCompat.createPreferences(
@@ -252,7 +253,7 @@ class GroupSettingsActivity(
                     DataStore.groupType == GroupType.SUBSCRIPTION &&
                     entity.subscription?.link == DataStore.subscriptionLink)
             if (!keepUserInfo) {
-                entity.subscription?.subscriptionUserinfo = "";
+                entity.subscription?.subscriptionUserinfo = ""
             }
             GroupManager.updateGroup(entity.apply { serialize() })
         }

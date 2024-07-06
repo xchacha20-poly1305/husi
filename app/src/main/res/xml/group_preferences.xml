@@ -45,6 +45,14 @@
             app:key="groupSubscription"
             app:title="@string/subscription_settings">
 
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:entries="@array/subscription_types"
+                app:entryValues="@array/int_array_3"
+                app:icon="@drawable/ic_baseline_nfc_24"
+                app:key="subscriptionType"
+                app:title="@string/subscription_type"
+                app:useSimpleSummaryProvider="true" />
+
         <io.nekohasekai.sagernet.widget.LinkOrContentPreference
                 app:icon="@drawable/ic_baseline_link_24"
                 app:key="subscriptionLink"
