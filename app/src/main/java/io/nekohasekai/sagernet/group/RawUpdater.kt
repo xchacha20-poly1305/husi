@@ -717,7 +717,7 @@ object RawUpdater : GroupUpdater() {
 
                 json.has("server") && json.has("server_port") -> {
                     return listOf(ConfigBean().applyDefaultValues().apply {
-                        type = 1
+                        type = ConfigBean.TYPE_OUTBOUND
                         config = json.toStringPretty()
                     })
                 }

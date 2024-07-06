@@ -57,7 +57,6 @@ import moe.matsuri.nb4a.SingBoxOptions.Rule_DefaultOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
 import moe.matsuri.nb4a.checkEmpty
-import moe.matsuri.nb4a.distinctByTag
 import moe.matsuri.nb4a.makeSingBoxRule
 import moe.matsuri.nb4a.makeSingBoxRuleSet
 import moe.matsuri.nb4a.proxy.config.ConfigBean
@@ -114,14 +113,14 @@ fun buildConfig(
 
     if (proxy.type == TYPE_CONFIG) {
         val bean = proxy.requireBean() as ConfigBean
-        if (bean.type == 0) {
+        if (bean.type == ConfigBean.TYPE_CONFIG) {
             return ConfigBuildResult(
                 bean.config,
                 listOf(),
-                proxy.id, //
-                mapOf(TAG_PROXY to listOf(proxy)), //
-                mapOf(proxy.id to TAG_PROXY), //
-                -1L
+                proxy.id,
+                mapOf(TAG_PROXY to listOf(proxy)),
+                mapOf(proxy.id to TAG_PROXY),
+                -1L,
             )
         }
     }
@@ -309,7 +308,7 @@ fun buildConfig(
                 domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
-                if (DataStore.inboundUsername.isNotEmpty() || DataStore.inboundPassword.isNotEmpty()) {
+                if (DataStore.inboundUsername.isNotBlank() || DataStore.inboundPassword.isNotBlank()) {
                     users = listOf(
                         User().apply {
                             username = DataStore.inboundUsername
@@ -614,7 +613,7 @@ fun buildConfig(
                 if (rule.ruleSet.isNotBlank()) {
                     rule_set = rule.ruleSet.listByLineOrComma()
                 }
-                var domainList: List<String>? = null
+                var domainList: List<String> = listOf()
                 if (rule.domains.isNotBlank()) {
                     domainList = rule.domains.listByLineOrComma()
                     makeSingBoxRule(domainList, false)
@@ -664,9 +663,10 @@ fun buildConfig(
                     return DNSRule_DefaultOptions().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
                         makeSingBoxRule(
-                            domainList ?: listOf(),
+                            domainList,
                             rule.ruleSet.listByLineOrComma(),
-                            DataStore.dnsMode
+                            DataStore.dnsMode,
+                            rule.ip.listByLineOrComma(),
                         )
                     }
                 }
@@ -723,7 +723,7 @@ fun buildConfig(
                 route.makeSingBoxRuleSet(rule.ruleSet.listByLineOrComma(), "$externalAssets/geo")
             }
         }
-        route.rule_set = route.rule_set.distinctByTag()
+        route.rule_set = route.rule_set.distinctBy { it.tag }
 
         outbounds.add(Outbound().apply {
             tag = TAG_DIRECT
@@ -888,7 +888,12 @@ fun buildConfig(
             // force bypass (always top DNS rule)
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
-                    makeSingBoxRule(domainListDNSDirectForce.toHashSet().toList(), listOf())
+                    makeSingBoxRule(
+                        domainListDNSDirectForce.toHashSet().toList(),
+                        listOf(),
+                        DNSMode.RAW,
+                        listOf(),
+                    )
                     server = TAG_DNS_DIRECT
                 })
             }
