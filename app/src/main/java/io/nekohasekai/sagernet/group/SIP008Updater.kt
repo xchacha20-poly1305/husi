@@ -59,6 +59,7 @@ object SIP008Updater : GroupUpdater() {
 
             val response = Libcore.newHttpClient().apply {
                 trySocks5(socksInfo())
+                // Strict !!!
                 modernTLS()
             }.newRequest().apply {
                 setURL(subscription.link)
@@ -68,8 +69,8 @@ object SIP008Updater : GroupUpdater() {
             sip008Response = JSONObject(response.contentString)
         }
 
-        subscription.bytesUsed = sip008Response.getLongOrNull("bytesUsed") ?: -1
-        subscription.bytesRemaining = sip008Response.getLongOrNull("bytesRemaining") ?: -1
+        subscription.bytesUsed = sip008Response.getLongOrNull("bytes_used") ?: -1
+        subscription.bytesRemaining = sip008Response.getLongOrNull("bytes_remaining") ?: -1
         subscription.applyDefaultValues()
 
         val servers = sip008Response.getJSONArray("servers").filterIsInstance<JSONObject>()
