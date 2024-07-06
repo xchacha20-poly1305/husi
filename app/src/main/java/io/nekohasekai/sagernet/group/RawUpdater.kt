@@ -78,7 +78,29 @@ object RawUpdater : GroupUpdater() {
             proxies = parseRaw(response.contentString)
                 ?: error(app.getString(R.string.no_proxies_found))
 
-            subscription.subscriptionUserinfo = response.getHeader("Subscription-Userinfo")
+            // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
+            // Subscription-Userinfo: upload=2375927198; download=12983696043; total=1099511627776; expire=1862111613
+            val userInfo = response.getHeader("Subscription-Userinfo")
+            if (userInfo.isNotBlank()) {
+                var used = 0L
+                var total = 0L
+                var expired = -1L
+                for (info in userInfo.split("; ")) {
+                    info.split("=", limit = 2).let {
+                        if (it.size != 2) return@let
+                        when (it[0]) {
+                            "upload", "download" -> used += it[1].toLong()
+                            "total" -> total = it[1].toLong()
+                            "expire" -> expired = it[1].toLong()
+                        }
+                    }
+                }
+                subscription.apply {
+                    bytesUsed = used
+                    bytesRemaining = total - used
+                    if (expired > 0) expiryDate = expired
+                }
+            }
         }
 
         tidyProxies(proxies, subscription, proxyGroup, userInterface, byUser)
@@ -702,7 +724,6 @@ object RawUpdater : GroupUpdater() {
 
                 json.has("version") && json.has("servers") -> {
                     // try to parse SIP008
-                    // TODO: read traffic data
                     json.getJSONArray("servers").forEach { _, it ->
                         if (it is JSONObject) {
                             proxies.add(it.parseShadowsocks())

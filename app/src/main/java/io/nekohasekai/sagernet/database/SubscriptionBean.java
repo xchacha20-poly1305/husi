@@ -1,12 +1,11 @@
 package io.nekohasekai.sagernet.database;
 
 import androidx.annotation.NonNull;
+
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-import io.nekohasekai.sagernet.fmt.Serializable;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.nekohasekai.sagernet.fmt.Serializable;
 
 public class SubscriptionBean extends Serializable {
 
@@ -31,27 +30,22 @@ public class SubscriptionBean extends Serializable {
     public String customUserAgent;
     public Boolean autoUpdate;
     public Integer autoUpdateDelay;
+    public Integer lastUpdated;
 
     // SIP008
-    public Integer lastUpdated;
     public Long bytesUsed;
+    public Long bytesRemaining; // Also for OOC
 
     // Open Online Config
-    public Long bytesRemaining;
     public String username;
-    public Integer expiryDate;
-
-
-    // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
-    public List<String> protocols;
-    public String subscriptionUserinfo;
+    public Long expiryDate;
 
     public SubscriptionBean() {
     }
 
     @Override
     public void serializeToBuffer(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
 
         output.writeInt(type);
 
@@ -64,8 +58,7 @@ public class SubscriptionBean extends Serializable {
         output.writeBoolean(autoUpdate);
         output.writeInt(autoUpdateDelay);
         output.writeInt(lastUpdated);
-
-        output.writeString(subscriptionUserinfo);
+        output.writeLong(expiryDate);
     }
 
     public void serializeForShare(ByteBufferOutput output) {
@@ -94,7 +87,8 @@ public class SubscriptionBean extends Serializable {
         autoUpdate = input.readBoolean();
         autoUpdateDelay = input.readInt();
         lastUpdated = input.readInt();
-        subscriptionUserinfo = input.readString();
+        if (version < 2) return;
+        expiryDate = input.readLong();
     }
 
     public void deserializeFromShare(ByteBufferInput input) {
@@ -125,8 +119,7 @@ public class SubscriptionBean extends Serializable {
         if (bytesRemaining == null) bytesRemaining = 0L;
 
         if (username == null) username = "";
-        if (expiryDate == null) expiryDate = 0;
-        if (protocols == null) protocols = new ArrayList<>();
+        if (expiryDate == null) expiryDate = 0L;
     }
 
 }

@@ -23,6 +23,7 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 
+/** https://github.com/Shadowsocks-NET/OpenOnlineConfig */
 object OpenOnlineConfigUpdater : GroupUpdater() {
 
     override suspend fun doUpdate(
