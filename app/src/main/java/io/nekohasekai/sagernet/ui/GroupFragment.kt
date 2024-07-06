@@ -452,7 +452,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 editButton.isGone = proxyGroup.ungrouped
             }
 
-            // FIXME fresh sub
             val subscription = proxyGroup.subscription
             if (subscription != null &&
                 (subscription.bytesUsed > 0L || subscription.bytesRemaining > 0)

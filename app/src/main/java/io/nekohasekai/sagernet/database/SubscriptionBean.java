@@ -59,6 +59,8 @@ public class SubscriptionBean extends Serializable {
         output.writeInt(autoUpdateDelay);
         output.writeInt(lastUpdated);
         output.writeLong(expiryDate);
+        output.writeLong(bytesUsed);
+        output.writeLong(bytesRemaining);
     }
 
     public void serializeForShare(ByteBufferOutput output) {
@@ -89,6 +91,8 @@ public class SubscriptionBean extends Serializable {
         lastUpdated = input.readInt();
         if (version < 2) return;
         expiryDate = input.readLong();
+        bytesUsed = input.readLong();
+        bytesRemaining = input.readLong();
     }
 
     public void deserializeFromShare(ByteBufferInput input) {
