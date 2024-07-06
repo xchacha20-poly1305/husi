@@ -10,7 +10,11 @@ import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
+import androidx.core.view.setPadding
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,14 +28,22 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.dp2px
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
+import io.nekohasekai.sagernet.ktx.snackbar
+import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.widget.ListHolderListener
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.delay
-import libcore.Libcore
 import moe.matsuri.nb4a.utils.Util
-import java.util.*
+import java.util.Date
 
 class GroupFragment : ToolbarFragment(R.layout.layout_group),
     Toolbar.OnMenuItemClickListener {
@@ -441,72 +453,49 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             val subscription = proxyGroup.subscription
-            if (subscription != null && subscription.bytesUsed > 0L) { // SIP008 & Open Online Config
-                groupTraffic.isVisible = true
-                groupTraffic.text = if (subscription.bytesRemaining > 0L) {
-                    app.getString(
-                        R.string.subscription_traffic, Formatter.formatFileSize(
-                            app, subscription.bytesUsed
-                        ), Formatter.formatFileSize(
-                            app, subscription.bytesRemaining
-                        )
+            if (subscription != null &&
+                (subscription.bytesUsed > 0L || subscription.bytesRemaining > 0)
+            ) {
+                val builder = StringBuilder().apply {
+                    append(
+                        if (subscription.bytesRemaining > 0L) {
+                            app.getString(
+                                R.string.subscription_traffic,
+                                Formatter.formatFileSize(app, subscription.bytesUsed),
+                                Formatter.formatFileSize(app, subscription.bytesRemaining),
+                            )
+                        } else {
+                            app.getString(
+                                R.string.subscription_used, Formatter.formatFileSize(
+                                    app, subscription.bytesUsed
+                                )
+                            )
+                        }
                     )
-                } else {
-                    app.getString(
-                        R.string.subscription_used, Formatter.formatFileSize(
-                            app, subscription.bytesUsed
-                        )
-                    )
-                }
-                groupStatus.setPadding(0)
-            } else if (subscription != null && !subscription.subscriptionUserinfo.isNullOrBlank()) { // Raw
-                var text = ""
-
-                fun get(regex: String): String? {
-                    return regex.toRegex().findAll(subscription.subscriptionUserinfo).mapNotNull {
-                        if (it.groupValues.size > 1) it.groupValues[1] else null
-                    }.firstOrNull()
-                }
-
-                var used: Long = 0
-                var total: Long = 0
-                try {
-                    get("upload=([0-9]+)")?.apply {
-                        used += toLong()
-                    }
-                    get("download=([0-9]+)")?.apply {
-                        used += toLong()
-                    }
-                    total = get("total=([0-9]+)")?.toLong() ?: 0
-                    if (used > 0 || total > 0) {
-                        text += getString(
-                            R.string.subscription_traffic,
-                            Libcore.formatBytes(used),
-                            Libcore.formatBytes(total - used)
-                        )
-                    }
-                    get("expire=([0-9]+)")?.apply {
-                        text += "\n"
-                        text += getString(
+                    if (subscription.expiryDate > 0) append(
+                        "\n" + getString(
                             R.string.subscription_expire,
-                            Util.timeStamp2Text(this.toLong() * 1000)
+                            Util.timeStamp2Text(subscription.expiryDate * 1000),
                         )
-                    }
-                } catch (_: NumberFormatException) {
-                    // ignore
+                    )
                 }
 
-                if (text.isNotEmpty()) {
+                val text = builder.toString()
+                if (text.isNotBlank()) {
                     groupTraffic.isVisible = true
                     groupTraffic.text = text
                     groupStatus.setPadding(0)
 
-                    if (proxyGroup.id !in GroupUpdater.updating) subscriptionUpdateProgress.apply {
-                        isVisible = true
-                        setProgressCompat(
-                            ((used.toDouble() / total.toDouble()) * 100).toInt(),
-                            true
-                        )
+                    // Show traffic used percent by progress.
+                    if (proxyGroup.id !in GroupUpdater.updating && subscription.bytesRemaining > 0) {
+                        subscriptionUpdateProgress.apply {
+                            isVisible = true
+                            val total = subscription.bytesUsed + subscription.bytesRemaining
+                            setProgressCompat(
+                                ((subscription.bytesUsed.toDouble() / total.toDouble()) * 100).toInt(),
+                                true,
+                            )
+                        }
                     }
                 }
             } else {
