@@ -105,6 +105,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                         Key.METERED_NETWORK -> if (Build.VERSION.SDK_INT < 28) {
                             preference.remove()
+                            preference.onPreferenceChangeListener = reloadListener
                         }
 
                         Key.SERVICE_MODE -> preference.setOnPreferenceChangeListener { _, _ ->
@@ -130,6 +131,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                         Key.SHOW_DIRECT_SPEED -> showDirectSpeed = preference as SwitchPreference
 
+                        Key.PERSIST_ACROSS_REBOOT, Key.SECURITY_ADVISORY -> {}
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
@@ -147,6 +149,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                         Key.BYPASS_LAN -> bypassLan = preference as SwitchPreference
                         Key.BYPASS_LAN_IN_CORE -> bypassLanInCore = preference as SwitchPreference
+                        Key.RULES_PROVIDER -> {}
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
@@ -182,6 +185,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.onPreferenceChangeListener = reloadListener
                             preference.isVisible = false
                         }
+
+                        Key.CONNECTION_TEST_URL, Key.APP_TLS_VERSION,
+                        Key.SHOW_BOTTOM_BAR, Key.ALLOW_INSECURE_ON_REQUEST,
+                        -> Unit
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
