@@ -20,14 +20,18 @@ class ConfigSettingActivity :
 
     override fun ConfigBean.init() {
         // CustomBean to input
-        DataStore.profileCacheStore.putBoolean(isOutboundOnlyKey, type == 1)
+        DataStore.profileCacheStore.putBoolean(isOutboundOnlyKey, type == ConfigBean.TYPE_OUTBOUND)
         DataStore.profileName = name
         DataStore.serverConfig = config
     }
 
     override fun ConfigBean.serialize() {
         // CustomBean from input
-        type = if (DataStore.profileCacheStore.getBoolean(isOutboundOnlyKey, false)) 1 else 0
+        type = if (DataStore.profileCacheStore.getBoolean(isOutboundOnlyKey, false)){
+            ConfigBean.TYPE_OUTBOUND
+        } else {
+            ConfigBean.TYPE_CONFIG
+        }
         name = DataStore.profileName
         config = DataStore.serverConfig
     }

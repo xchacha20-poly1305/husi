@@ -1,12 +1,15 @@
 package moe.matsuri.nb4a.proxy.config;
 
 import androidx.annotation.NonNull;
+
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+
+import org.jetbrains.annotations.NotNull;
+
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.internal.InternalBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
-import org.jetbrains.annotations.NotNull;
 
 public class ConfigBean extends InternalBean {
 
@@ -22,13 +25,17 @@ public class ConfigBean extends InternalBean {
             return new ConfigBean[size];
         }
     };
-    public Integer type; // 0=config 1=outbound
+
+    public static final int TYPE_CONFIG = 0;
+    public static final int TYPE_OUTBOUND = 1;
+    public Integer type;
+
     public String config;
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
-        if (type == null) type = 0;
+        if (type == null) type = TYPE_CONFIG;
         if (config == null) config = "";
     }
 
@@ -58,7 +65,7 @@ public class ConfigBean extends InternalBean {
     }
 
     public String displayType() {
-        return type == 0 ? "sing-box config" : "sing-box outbound";
+        return type == TYPE_CONFIG ? "sing-box config" : "sing-box outbound";
     }
 
     @NotNull
