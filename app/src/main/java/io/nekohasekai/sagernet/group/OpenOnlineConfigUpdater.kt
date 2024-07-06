@@ -101,7 +101,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             restrictedTLS()
             if (certSha256 != null) pinnedSHA256(certSha256)
         }.newRequest().apply {
-            setURL(subscription.link)
+            setURL(baseLink.string)
             setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
         }.execute()
 
