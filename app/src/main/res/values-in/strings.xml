@@ -214,4 +214,14 @@
     <string name="header_type">Jenis Tajuk</string>
     <string name="security">Enkripsi lapisan transportasi</string>
     <string name="alter_id">Ubah ID</string>
+    <string name="app_name">husi</string>
+    <string name="app_name_long">husi untuk Android</string>
+    <string name="menu_dashboard">Dasbor sing-box</string>
+    <string name="action_copy">Salin</string>
+    <string name="action_open">Buka</string>
+    <string name="update_all_subscription">Perbarui semua langganan</string>
+    <string name="route_bypass_ip">Aturan IP untuk %s</string>
+    <string name="route_play_store">Aturan Play Store untuk %s</string>
+    <string name="route_opt_block_analysis">Analisis blok</string>
+    <string name="connection_test_mux">Server tidak mendukung protokol multipleks ini</string>
 </resources>
