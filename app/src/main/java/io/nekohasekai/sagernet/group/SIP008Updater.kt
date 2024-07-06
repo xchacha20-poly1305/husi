@@ -21,7 +21,6 @@ package io.nekohasekai.sagernet.group
 
 import android.net.Uri
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
@@ -59,10 +58,7 @@ object SIP008Updater : GroupUpdater() {
 
             val response = Libcore.newHttpClient().apply {
                 trySocks5(socksInfo())
-                when (DataStore.appTLSVersion) {
-                    "1.3" -> restrictedTLS()
-                }
-                setInsecure(DataStore.allowInsecureOnRequest)
+                modernTLS()
             }.newRequest().apply {
                 setURL(subscription.link)
                 setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
