@@ -177,6 +177,7 @@ object Key {
 
     const val GROUP_SUBSCRIPTION = "groupSubscription"
     const val SUBSCRIPTION_TYPE = "subscriptionType"
+    const val SUBSCRIPTION_TOKEN = "subscriptionToken"
     const val SUBSCRIPTION_LINK = "subscriptionLink"
     const val SUBSCRIPTION_FORCE_RESOLVE = "subscriptionForceResolve"
     const val SUBSCRIPTION_DEDUPLICATION = "subscriptionDeduplication"

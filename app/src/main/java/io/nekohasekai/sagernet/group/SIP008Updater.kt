@@ -60,7 +60,7 @@ object SIP008Updater : GroupUpdater() {
             val response = Libcore.newHttpClient().apply {
                 trySocks5(socksInfo())
                 // Strict !!!
-                modernTLS()
+                restrictedTLS()
             }.newRequest().apply {
                 setURL(subscription.link)
                 setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
