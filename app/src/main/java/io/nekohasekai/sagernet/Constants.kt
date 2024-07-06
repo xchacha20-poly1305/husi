@@ -176,6 +176,8 @@ object Key {
     const val GROUP_LANDING_PROXY = "groupLandingProxy"
 
     const val GROUP_SUBSCRIPTION = "groupSubscription"
+    const val SUBSCRIPTION_TYPE = "subscriptionType"
+    const val SUBSCRIPTION_TOKEN = "subscriptionToken"
     const val SUBSCRIPTION_LINK = "subscriptionLink"
     const val SUBSCRIPTION_FORCE_RESOLVE = "subscriptionForceResolve"
     const val SUBSCRIPTION_DEDUPLICATION = "subscriptionDeduplication"
@@ -208,6 +210,12 @@ object IPv6Mode {
 object GroupType {
     const val BASIC = 0
     const val SUBSCRIPTION = 1
+}
+
+object SubscriptionType {
+    const val RAW = 0
+    const val OOCv1 = 1
+    const val SIP008 = 2
 }
 
 object GroupOrder {

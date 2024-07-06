@@ -5,9 +5,7 @@ import android.net.Uri
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
-import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
-import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
@@ -38,7 +36,6 @@ import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.socksInfo
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
-import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import org.ini4j.Ini
@@ -58,10 +55,9 @@ object RawUpdater : GroupUpdater() {
         byUser: Boolean,
     ) {
 
-        val link = subscription.link
         var proxies: List<AbstractBean>
-        if (link.startsWith("content://")) {
-            val contentText = app.contentResolver.openInputStream(Uri.parse(link))
+        if (subscription.link.startsWith("content://")) {
+            val contentText = app.contentResolver.openInputStream(Uri.parse(subscription.link))
                 ?.bufferedReader()
                 ?.readText()
 
@@ -82,140 +78,32 @@ object RawUpdater : GroupUpdater() {
             proxies = parseRaw(response.contentString)
                 ?: error(app.getString(R.string.no_proxies_found))
 
-            subscription.subscriptionUserinfo = response.getHeader("Subscription-Userinfo")
-        }
-
-        val proxiesMap = LinkedHashMap<String, AbstractBean>()
-        for (proxy in proxies) {
-            var index = 0
-            var name = proxy.displayName()
-            while (proxiesMap.containsKey(name)) {
-                println("Exists name: $name")
-                index++
-                name = name.replace(" (${index - 1})", "")
-                name = "$name ($index)"
-                proxy.name = name
-            }
-            proxiesMap[proxy.displayName()] = proxy
-        }
-        proxies = proxiesMap.values.toList()
-
-        if (subscription.forceResolve) forceResolve(proxies, proxyGroup.id)
-
-        val exists = SagerDatabase.proxyDao.getByGroup(proxyGroup.id)
-        val duplicate = ArrayList<String>()
-        if (subscription.deduplication) {
-            Logs.d("Before deduplication: ${proxies.size}")
-            val uniqueProxies = LinkedHashSet<Protocols.Deduplication>()
-            val uniqueNames = HashMap<Protocols.Deduplication, String>()
-            for (_proxy in proxies) {
-                val proxy = Protocols.Deduplication(_proxy, _proxy.javaClass.toString())
-                if (!uniqueProxies.add(proxy)) {
-                    val index = uniqueProxies.indexOf(proxy)
-                    if (uniqueNames.containsKey(proxy)) {
-                        val name = uniqueNames[proxy]!!.replace(" ($index)", "")
-                        if (name.isNotBlank()) {
-                            duplicate.add("$name ($index)")
-                            uniqueNames[proxy] = ""
+            // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
+            // Subscription-Userinfo: upload=2375927198; download=12983696043; total=1099511627776; expire=1862111613
+            val userInfo = response.getHeader("Subscription-Userinfo")
+            if (userInfo.isNotBlank()) {
+                var used = 0L
+                var total = 0L
+                var expired = -1L
+                for (info in userInfo.split("; ")) {
+                    info.split("=", limit = 2).let {
+                        if (it.size != 2) return@let
+                        when (it[0]) {
+                            "upload", "download" -> used += it[1].toLong()
+                            "total" -> total = it[1].toLong()
+                            "expire" -> expired = it[1].toLong()
                         }
                     }
-                    duplicate.add(_proxy.displayName() + " ($index)")
-                } else {
-                    uniqueNames[proxy] = _proxy.displayName()
+                }
+                subscription.apply {
+                    bytesUsed = used
+                    bytesRemaining = total - used
+                    if (expired > 0) expiryDate = expired
                 }
             }
-            uniqueProxies.retainAll(uniqueNames.keys)
-            proxies = uniqueProxies.toList().map { it.bean }
         }
 
-        Logs.d("New profiles: ${proxies.size}")
-
-        val nameMap = proxies.associateBy { bean ->
-            bean.displayName()
-        }
-
-        Logs.d("Unique profiles: ${nameMap.size}")
-
-        val toDelete = ArrayList<ProxyEntity>()
-        val toReplace = exists.mapNotNull { entity ->
-            val name = entity.displayName()
-            if (nameMap.contains(name)) name to entity else let {
-                toDelete.add(entity)
-                null
-            }
-        }.toMap()
-
-        Logs.d("toDelete profiles: ${toDelete.size}")
-        Logs.d("toReplace profiles: ${toReplace.size}")
-
-        val toUpdate = ArrayList<ProxyEntity>()
-        val added = mutableListOf<String>()
-        val updated = mutableMapOf<String, String>()
-        val deleted = toDelete.map { it.displayName() }
-
-        var userOrder = 1L
-        var changed = toDelete.size
-        for ((name, bean) in nameMap.entries) {
-            if (toReplace.contains(name)) {
-                val entity = toReplace[name]!!
-                val existsBean = entity.requireBean()
-                existsBean.applyFeatureSettings(bean)
-                when {
-                    existsBean != bean -> {
-                        changed++
-                        entity.putBean(bean)
-                        toUpdate.add(entity)
-                        updated[entity.displayName()] = name
-
-                        Logs.d("Updated profile: $name")
-                    }
-
-                    entity.userOrder != userOrder -> {
-                        entity.putBean(bean)
-                        toUpdate.add(entity)
-                        entity.userOrder = userOrder
-
-                        Logs.d("Reordered profile: $name")
-                    }
-
-                    else -> {
-                        Logs.d("Ignored profile: $name")
-                    }
-                }
-            } else {
-                changed++
-                SagerDatabase.proxyDao.addProxy(ProxyEntity(
-                    groupId = proxyGroup.id, userOrder = userOrder
-                ).apply {
-                    putBean(bean)
-                })
-                added.add(name)
-                Logs.d("Inserted profile: $name")
-            }
-            userOrder++
-        }
-
-        SagerDatabase.proxyDao.updateProxy(toUpdate).also {
-            Logs.d("Updated profiles: $it")
-        }
-
-        SagerDatabase.proxyDao.deleteProxy(toDelete).also {
-            Logs.d("Deleted profiles: $it")
-        }
-
-        val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).toInt()
-
-        if (existCount != proxies.size) {
-            Logs.e("Exist profiles: $existCount, new profiles: ${proxies.size}")
-        }
-
-        subscription.lastUpdated = (System.currentTimeMillis() / 1000).toInt()
-        SagerDatabase.groupDao.updateGroup(proxyGroup)
-        finishUpdate(proxyGroup)
-
-        userInterface?.onUpdateSuccess(
-            proxyGroup, changed, added, updated, deleted, duplicate, byUser
-        )
+        tidyProxies(proxies, subscription, proxyGroup, userInterface, byUser)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -836,7 +724,6 @@ object RawUpdater : GroupUpdater() {
 
                 json.has("version") && json.has("servers") -> {
                     // try to parse SIP008
-                    // TODO: read traffic data
                     json.getJSONArray("servers").forEach { _, it ->
                         if (it is JSONObject) {
                             proxies.add(it.parseShadowsocks())

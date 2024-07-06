@@ -27,6 +27,7 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
@@ -182,6 +183,11 @@ class MainActivity : ThemedActivity(),
 
             // cleartext format
             subscription.link = url
+            subscription.type = when (uri.getQueryParameter("type")?.lowercase()) {
+                "oocv1" -> SubscriptionType.OOCv1
+                "sip008" -> SubscriptionType.SIP008
+                else -> SubscriptionType.RAW
+            }
             group.name = uri.getQueryParameter("name")
         } else {
             val data = uri.encodedQuery.takeIf { !it.isNullOrBlank() } ?: return

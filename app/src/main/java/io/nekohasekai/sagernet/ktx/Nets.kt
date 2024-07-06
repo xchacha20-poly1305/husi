@@ -7,9 +7,22 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import libcore.Libcore
 import libcore.SocksInfo
+import libcore.URL
 import moe.matsuri.nb4a.utils.NGUtil
 import java.net.InetSocketAddress
 import java.net.Socket
+
+var URL.pathSegments: List<String>
+    get() = path.split("/").filter { it.isNotBlank() }
+    set(value) {
+        path = value.joinToString("/")
+    }
+
+fun URL.addPathSegments(vararg segments: String) {
+    pathSegments = pathSegments.toMutableList().apply {
+        addAll(segments)
+    }
+}
 
 fun String.isIpAddress(): Boolean {
     return NGUtil.isIpv4Address(this) || NGUtil.isIpv6Address(this)

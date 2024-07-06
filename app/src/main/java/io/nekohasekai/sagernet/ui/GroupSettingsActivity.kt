@@ -21,6 +21,7 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.database.*
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.ktx.Logs
@@ -29,6 +30,7 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.OutboundPreference
+import io.nekohasekai.sagernet.widget.UserAgentPreference
 import kotlinx.parcelize.Parcelize
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
@@ -53,6 +55,8 @@ class GroupSettingsActivity(
         DataStore.landingProxyTmp = if (landingProxy >= 0) 3 else 0
 
         val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
+        DataStore.subscriptionType = subscription.type
+        DataStore.subscriptionToken = subscription.token
         DataStore.subscriptionLink = subscription.link
         DataStore.subscriptionForceResolve = subscription.forceResolve
         DataStore.subscriptionDeduplication = subscription.deduplication
@@ -74,6 +78,8 @@ class GroupSettingsActivity(
         val isSubscription = type == GroupType.SUBSCRIPTION
         if (isSubscription) {
             subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
+                type = DataStore.subscriptionType
+                token = DataStore.subscriptionToken
                 link = DataStore.subscriptionLink
                 forceResolve = DataStore.subscriptionForceResolve
                 deduplication = DataStore.subscriptionDeduplication
@@ -85,9 +91,8 @@ class GroupSettingsActivity(
         }
     }
 
-    fun needSave(): Boolean {
-        if (!DataStore.dirty) return false
-        return true
+    private fun needSave(): Boolean {
+        return DataStore.dirty
     }
 
     fun PreferenceFragmentCompat.createPreferences(
@@ -139,6 +144,22 @@ class GroupSettingsActivity(
         updateGroupType()
         groupType.setOnPreferenceChangeListener { _, newValue ->
             updateGroupType((newValue as String).toInt())
+            true
+        }
+
+        val subscriptionType = findPreference<SimpleMenuPreference>(Key.SUBSCRIPTION_TYPE)!!
+        val subscriptionLink = findPreference<EditTextPreference>(Key.SUBSCRIPTION_LINK)!!
+        val subscriptionToken = findPreference<EditTextPreference>(Key.SUBSCRIPTION_TOKEN)!!
+        val subscriptionUserAgent = findPreference<UserAgentPreference>(Key.SUBSCRIPTION_USER_AGENT)!!
+
+        fun updateSubscriptionType(subscriptionType: Int = DataStore.subscriptionType) {
+            subscriptionLink.isVisible = subscriptionType != SubscriptionType.OOCv1
+            subscriptionToken.isVisible = subscriptionType == SubscriptionType.OOCv1
+            subscriptionUserAgent.notifyChanged()
+        }
+        updateSubscriptionType()
+        subscriptionType.setOnPreferenceChangeListener { _, newValue ->
+            updateSubscriptionType((newValue as String).toInt())
             true
         }
 
@@ -252,7 +273,11 @@ class GroupSettingsActivity(
                     DataStore.groupType == GroupType.SUBSCRIPTION &&
                     entity.subscription?.link == DataStore.subscriptionLink)
             if (!keepUserInfo) {
-                entity.subscription?.subscriptionUserinfo = "";
+                entity.subscription?.apply {
+                    bytesUsed = -1L
+                    bytesRemaining = -1L
+                    expiryDate = -1L
+                }
             }
             GroupManager.updateGroup(entity.apply { serialize() })
         }

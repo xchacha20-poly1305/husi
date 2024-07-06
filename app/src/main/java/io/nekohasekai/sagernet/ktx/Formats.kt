@@ -92,6 +92,14 @@ fun JSONObject.getIntOrNull(name: String): Int? {
     }
 }
 
+fun JSONObject.getLongOrNull(name: String): Long? {
+    return try {
+        getLong(name)
+    } catch (_: Exception) {
+        null
+    }
+}
+
 
 fun String.decodeBase64UrlSafe(): String {
     return String(Util.b64Decode(this))

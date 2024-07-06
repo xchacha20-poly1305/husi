@@ -561,4 +561,10 @@
         <item>60m</item>
     </string-array>
 
+    <string-array name="subscription_types">
+        <item>@string/raw</item>
+        <item>OOCv1</item>
+        <item>SIP008</item>
+    </string-array>
+
 </resources>
