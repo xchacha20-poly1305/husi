@@ -253,7 +253,11 @@ class GroupSettingsActivity(
                     DataStore.groupType == GroupType.SUBSCRIPTION &&
                     entity.subscription?.link == DataStore.subscriptionLink)
             if (!keepUserInfo) {
-                entity.subscription?.subscriptionUserinfo = ""
+                entity.subscription?.apply {
+                    bytesUsed = -1L
+                    bytesRemaining = -1L
+                    expiryDate = -1L
+                }
             }
             GroupManager.updateGroup(entity.apply { serialize() })
         }
