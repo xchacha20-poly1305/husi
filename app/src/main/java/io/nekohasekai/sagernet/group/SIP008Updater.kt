@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
@@ -44,11 +45,11 @@ object SIP008Updater : GroupUpdater() {
         userInterface: GroupManager.Interface?,
         byUser: Boolean,
     ) {
+        if (subscription.link.startsWith("http://")) Logs.w("Use SIP008 with HTTP!")
 
-        val link = subscription.link
         val sip008Response: JSONObject
-        if (link.startsWith("content://")) {
-            val contentText = app.contentResolver.openInputStream(Uri.parse(link))
+        if (subscription.link.startsWith("content://")) {
+            val contentText = app.contentResolver.openInputStream(Uri.parse(subscription.link))
                 ?.bufferedReader()
                 ?.readText()
 

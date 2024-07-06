@@ -55,10 +55,9 @@ object RawUpdater : GroupUpdater() {
         byUser: Boolean,
     ) {
 
-        val link = subscription.link
         var proxies: List<AbstractBean>
-        if (link.startsWith("content://")) {
-            val contentText = app.contentResolver.openInputStream(Uri.parse(link))
+        if (subscription.link.startsWith("content://")) {
+            val contentText = app.contentResolver.openInputStream(Uri.parse(subscription.link))
                 ?.bufferedReader()
                 ?.readText()
 
