@@ -211,7 +211,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             setHasStableIds(true)
         }
 
-        lateinit var data: MutableList<Connection>
+        var data: MutableList<Connection> = mutableListOf()
 
         // Upstream uses UUID (String) as ID, when Adapter use Long.
         // LinkedHashSet marks an unique index for each uuid.
@@ -222,7 +222,6 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
 
         override fun getItemCount(): Int {
-            if (!::data.isInitialized) return 0
             return data.size
         }
 
