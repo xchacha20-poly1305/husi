@@ -224,4 +224,14 @@
     <string name="route_play_store">Aturan Play Store untuk %s</string>
     <string name="route_opt_block_analysis">Analisis blok</string>
     <string name="connection_test_mux">Server tidak mendukung protokol multipleks ini</string>
+    <string name="action_export_file">Ekspor ke file</string>
+    <string name="action_export">Ekspor</string>
+    <string name="action_export_clipboard">Ekspor ke Clipboard</string>
+    <string name="mux_sum">Mux dirancang untuk mengurangi latensi handshake, bukan untuk meningkatkan throughput koneksi. Menggunakan Mux untuk menonton video, mengunduh, atau menguji kecepatan biasanya tidak produktif. Jika server tidak mendukungnya, Anda tidak akan dapat mengakses Internet.</string>
+    <string name="route_opt_block_quic">Blokir QUIC</string>
+    <string name="circular_reference_sum">Rute tidak dapat berisi dirinya sendiri.</string>
+    <string name="clear_profiles">Bersihkan</string>
+    <string name="action_create_group">Grup kosong</string>
+    <string name="action_from_link">Dari langganan</string>
+    <string name="action_scan_china_apps">Pindai aplikasi China</string>
 </resources>
