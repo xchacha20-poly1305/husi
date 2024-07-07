@@ -569,4 +569,5 @@
     <string name="close">关闭</string>
     <string name="have_reset_network">已重置所有网络</string>
     <string name="ensure_close_all">你确定关闭 %s 个连接吗？</string>
+    <string name="speed_test">速度测试</string>
 </resources>

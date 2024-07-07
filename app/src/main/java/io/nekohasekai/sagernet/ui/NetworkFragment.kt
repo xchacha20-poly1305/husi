@@ -44,9 +44,13 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
         binding.scanVPN.setOnClickListener {
             startActivity(Intent(requireContext(), VPNScanerActivity::class.java))
         }
+
+        binding.speedTest.setOnClickListener {
+            startActivity(Intent(requireContext(), SpeedtestActivity::class.java))
+        }
     }
 
-    suspend fun generateWarpConfiguration() {
+    private suspend fun generateWarpConfiguration() {
         val activity = requireActivity() as MainActivity
         val binding = LayoutProgressBinding.inflate(layoutInflater).apply {
             content.setText(R.string.generating)
