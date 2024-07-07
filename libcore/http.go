@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -73,6 +74,9 @@ type HTTPRequest interface {
 	// SetUserAgent sets HTTP user agent.
 	SetUserAgent(userAgent string)
 
+	// SetTimeout sets timeout millisecond.
+	SetTimeout(timeout int32)
+
 	// Execute do HTTP query.
 	Execute() (HTTPResponse, error)
 }
@@ -88,6 +92,9 @@ type HTTPResponse interface {
 
 	// WriteTo writes content to the file of `path`.
 	WriteTo(path string) error
+
+	// WriteToCallback writes content to the file of `path` with callback.
+	WriteToCallback(path string, callback CopyCallback) error
 }
 
 var (
@@ -242,6 +249,10 @@ func (r *httpRequest) SetContentString(content string) {
 	r.SetContent([]byte(content))
 }
 
+func (r *httpRequest) SetTimeout(timeout int32) {
+	r.client.Timeout = time.Duration(timeout) * time.Millisecond
+}
+
 func (r *httpRequest) Execute() (HTTPResponse, error) {
 	response, err := r.client.Do(&r.request)
 	if err != nil {
@@ -301,5 +312,23 @@ func (h *httpResponse) WriteTo(path string) error {
 	}
 	defer file.Close()
 	_, err = io.Copy(file, h.Response.Body)
+	return err
+}
+
+func (h *httpResponse) WriteToCallback(path string, callback CopyCallback) error {
+	defer h.Response.Body.Close()
+	if callback == nil {
+		return E.New("missing callback")
+	}
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	callback.SetLength(h.Response.ContentLength)
+	_, err = io.Copy(&callbackWriter{
+		writer:   file,
+		callback: callback.Update,
+	}, h.Response.Body)
 	return err
 }

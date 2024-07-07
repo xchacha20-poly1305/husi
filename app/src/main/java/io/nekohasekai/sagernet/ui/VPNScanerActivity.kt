@@ -36,7 +36,12 @@ class VPNScanerActivity : ThemedActivity() {
         val binding = LayoutVpnScanerBinding.inflate(layoutInflater)
         this.binding = binding
         setContentView(binding.root)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
+        }
+
         binding.scanVPNResult.adapter = Adapter().also {
             adapter = it
         }

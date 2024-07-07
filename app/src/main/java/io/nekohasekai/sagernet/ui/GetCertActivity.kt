@@ -24,10 +24,10 @@ class GetCertActivity : ThemedActivity() {
 
         binding = LayoutGetCertBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setTitle(R.string.get_cert)
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
-            setTitle(R.string.get_cert)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
