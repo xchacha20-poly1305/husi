@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.BaseService
@@ -177,6 +178,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var trafficDescending by configurationStore.boolean("trafficDescending") { false }
     var trafficSortMode by configurationStore.int("trafficSortMode") { TrafficSortMode.START }
     var enabledCazilla by configurationStore.boolean(Key.ENABLED_CAZILLA) { false }
+
+    var speedTestUrl by configurationStore.string("speedTestUrl") { SPEED_TEST_URL }
+    var speedTestTimeout by configurationStore.int("speedTestTimeout") { 20000 }
 
     // ntp
     var ntpEnable by configurationStore.boolean(Key.ENABLE_NTP) { false }

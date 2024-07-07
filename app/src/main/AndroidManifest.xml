@@ -199,9 +199,6 @@
                 android:name="moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity"
                 android:configChanges="uiMode"/>
         <activity
-                android:name="moe.matsuri.nb4a.proxy.neko.NekoSettingActivity"
-                android:configChanges="uiMode"/>
-        <activity
                 android:name="moe.matsuri.nb4a.proxy.config.ConfigSettingActivity"
                 android:configChanges="uiMode"/>
         <activity
@@ -251,6 +248,11 @@
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
                 android:name="io.nekohasekai.sagernet.ui.StunActivity"
+                android:configChanges="uiMode"
+                android:launchMode="singleTask"
+                android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
+        <activity
+                android:name="io.nekohasekai.sagernet.ui.SpeedtestActivity"
                 android:configChanges="uiMode"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>

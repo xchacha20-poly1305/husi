@@ -635,4 +635,5 @@
     <string name="edns_client_subnet" translatable="false">EDNS Client Subnet</string>
     <string name="have_reset_network">All network have been reset</string>
     <string name="ensure_close_all">Are you sure to close %s connections?</string>
+    <string name="speed_test">Speed Test</string>
 </resources>

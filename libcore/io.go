@@ -14,6 +14,8 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
+// UntargzWithoutDir untargz the archive to path,
+// but ignore the directionary in tar.
 func UntargzWihoutDir(archive, path string) (err error) {
 	file, err := os.Open(archive)
 	if err != nil {
@@ -64,7 +66,8 @@ func copyToFile(path string, reader io.Reader) error {
 	return common.Error(io.Copy(newFile, reader))
 }
 
-// UnzipWithoutDir unzip zipfile buy ignore the directory in the zip file.
+// UnzipWithoutDir unzip the archive to path,
+// but ignore the directionary in tar.
 func UnzipWithoutDir(archive, path string) error {
 	r, err := zip.OpenReader(archive)
 	if err != nil {
@@ -118,4 +121,23 @@ func removeIfHasPrefix(dir, prefix string) error {
 		}
 		return nil
 	})
+}
+
+// CopyCallback callbacks when copying.
+type CopyCallback interface {
+	SetLength(length int64)
+	Update(n int64)
+}
+
+// callbackWriter use callback when write.
+// It is worth noting that it will never check nil for callback.
+type callbackWriter struct {
+	writer   io.Writer
+	callback func(n int64)
+}
+
+func (c *callbackWriter) Write(p []byte) (n int, err error) {
+	n, err = c.writer.Write(p)
+	c.callback(int64(n))
+	return
 }

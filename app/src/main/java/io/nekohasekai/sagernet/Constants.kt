@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet
 
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
+const val SPEED_TEST_URL = "http://speed.cloudflare.com/__down?bytes=20000000"
 
 object Key {
 
