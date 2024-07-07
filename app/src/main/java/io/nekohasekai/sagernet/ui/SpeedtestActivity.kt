@@ -26,10 +26,10 @@ class SpeedtestActivity : ThemedActivity() {
 
         binding = LayoutSpeedTestBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setTitle(R.string.speed_test)
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
+            setTitle(R.string.speed_test)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
@@ -74,16 +74,17 @@ class SpeedtestActivity : ThemedActivity() {
                 return@runOnDefaultDispatcher
             } catch (e: Exception) {
                 Logs.w(e)
-                AlertDialog.Builder(binding.root.context)
-                    .setTitle(R.string.error_title)
-                    .setMessage(e.toString())
-                    .setPositiveButton(android.R.string.ok) { _, _ -> }
-                    .runCatching { show() }
+                runOnMainDispatcher {
+                    AlertDialog.Builder(binding.root.context)
+                        .setTitle(R.string.error_title)
+                        .setMessage(e.toString())
+                        .setPositiveButton(android.R.string.ok) { _, _ -> }
+                        .runCatching { show() }
+                }
                 return@runOnDefaultDispatcher
             } finally {
                 tmpFile.delete()
             }
-            snackbar(R.string.ok).show()
         }
     }
 
