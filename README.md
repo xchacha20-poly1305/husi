@@ -91,6 +91,7 @@ Plugin name list:
 
 * `hysteria2`
 * `juicity`
+* `naive`
 
 ## ☠️ End users
 

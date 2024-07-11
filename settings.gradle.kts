@@ -5,6 +5,7 @@ when {
     buildPlugin.isNullOrBlank() -> {
         include(":plugin:hysteria2")
         include(":plugin:juicity")
+        include(":plugin:naive")
     }
     buildPlugin == "none" -> {
     }
