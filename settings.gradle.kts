@@ -6,6 +6,7 @@ when {
         include(":plugin:hysteria2")
         include(":plugin:juicity")
         include(":plugin:naive")
+        include(":plugin:mieru")
     }
     buildPlugin == "none" -> {
     }
