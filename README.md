@@ -6,6 +6,10 @@
 
 ## 🛠️ Contribution
 
+## 🧭 Guide
+
+[CONTRIBUTING](./CONTRIBUTING.md)
+
 ### 📚 Localization
 
 Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the 
