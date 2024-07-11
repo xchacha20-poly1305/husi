@@ -7,11 +7,11 @@ require (
 	github.com/miekg/dns v1.1.61
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.5.0-alpha.12
-	github.com/sagernet/sing-box v1.10.0-alpha.19
+	github.com/sagernet/sing-box v1.10.0-alpha.20
 	github.com/sagernet/sing-dns v0.3.0-beta.10
 	github.com/sagernet/sing-tun v0.4.0-beta.13.0.20240703164908-1f043289199d
 	github.com/xchacha20-poly1305/TLS-scribe v0.5.0
-	github.com/xchacha20-poly1305/cazilla v0.2.2
+	github.com/xchacha20-poly1305/cazilla v0.3.1
 	github.com/xchacha20-poly1305/libping v0.5.1
 	golang.org/x/crypto v0.24.0
 	golang.org/x/sys v0.21.0
@@ -73,10 +73,10 @@ require (
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
 	github.com/sagernet/sing-quic v0.2.0-beta.12 // indirect
-	github.com/sagernet/sing-shadowsocks v0.2.6 // indirect
+	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
-	github.com/sagernet/sing-vmess v0.1.11 // indirect
+	github.com/sagernet/sing-vmess v0.1.12 // indirect
 	github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7 // indirect
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6 // indirect
 	github.com/sagernet/utls v1.5.4 // indirect
@@ -97,5 +97,5 @@ require (
 	golang.org/x/tools v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/grpc v1.63.2 // indirect
-	lukechampine.com/blake3 v1.2.1 // indirect
+	lukechampine.com/blake3 v1.3.0 // indirect
 )

@@ -8,10 +8,26 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "dev"
+    pull-request-branch-name:
+      separator: "-"
     schedule:
       interval: "daily"
   - package-ecosystem: "gradle"
     directory: "/"
     target-branch: "dev"
+    pull-request-branch-name:
+      separator: "-"
     schedule:
       interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/"
+    target-branch: "dev"
+    pull-request-branch-name:
+      separator: "-"
+    schedule:
+      interval: "daily"
+    # Used in cmd, usually not necessary to update.
+    ignore:
+      - dependency-name: "github.com/oschwald/*"
+      - dependency-name: "github.com/v2fly/v2ray-core/v5"
+      - dependency-name: "google.golang.org/protobuf "
