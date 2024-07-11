@@ -28,12 +28,20 @@ object SingBoxOptionsUtil {
 
 }
 
+// Set this value is same as enable `ip_is_private`.
+const val IP_PRIVATE = "private"
+
+// Starts with it will apply this IP rule for DNS.
+const val PREFIX_IP_DNS = "dns:"
+
 fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(
     domainList: List<String>,
     ruleSetList: List<String>,
     dnsMode: Int = DNSMode.RAW,
     ipList: List<String>,
 ) {
+    val shouldApplyIPRule = dnsMode == DNSMode.LEAK || dnsMode == DNSMode.PRECISE
+
     domain = mutableListOf<String>()
     domain_suffix = mutableListOf<String>()
     domain_regex = mutableListOf<String>()
@@ -43,11 +51,14 @@ fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(
     wifi_bssid = mutableListOf<String>()
 
     for (rule in ruleSetList) {
-        if (rule.startsWith("geosite") ||
-            dnsMode == DNSMode.LEAK ||
-            dnsMode == DNSMode.PRECISE
-        ) {
+        if (rule.startsWith("geosite-")) {
             rule_set.plusAssign(rule)
+            continue
+        }
+        if (shouldApplyIPRule) {
+            if (rule.startsWith(PREFIX_IP_DNS)) {
+                rule_set.plusAssign(rule.removePrefix(PREFIX_IP_DNS))
+            }
         }
     }
 
@@ -63,11 +74,13 @@ fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(
         }
     }
 
-    if (dnsMode == DNSMode.LEAK || dnsMode == DNSMode.PRECISE) for (rule in ipList) {
-        if (rule == "private") {
-            ip_is_private = true
-        } else {
-            ip_cidr.plusAssign(rule)
+    if (shouldApplyIPRule) for (rule in ipList) {
+        if (rule.startsWith(PREFIX_IP_DNS)) rule.removePrefix(PREFIX_IP_DNS).let {
+            if (it == IP_PRIVATE) {
+                ip_is_private = true
+            } else {
+                ip_cidr.plusAssign(it)
+            }
         }
     }
 
@@ -111,11 +124,13 @@ fun SingBoxOptions.Rule_DefaultOptions.makeSingBoxRule(rules: List<String>, isIP
         domain_regex = mutableListOf<String>()
         domain_keyword = mutableListOf<String>()
     }
-    rule_set = mutableListOf<String>()
+    if (rule_set == null) rule_set = mutableListOf<String>()
 
     for (rule in rules) {
         if (isIP) {
-            if (rule == "private") {
+            if (rule.startsWith(PREFIX_IP_DNS)) continue
+
+            if (rule == IP_PRIVATE) {
                 ip_is_private = true
             } else {
                 ip_cidr.plusAssign(rule)
@@ -170,12 +185,13 @@ fun SingBoxOptions.Rule_DefaultOptions.checkEmpty(): Boolean {
 
 fun SingBoxOptions.RouteOptions.makeSingBoxRuleSet(names: List<String>, geoPath: String) {
     if (rule_set == null) rule_set = mutableListOf<Rule_SetOptions>()
-    names.forEach {
-        rule_set.add(Rule_SetOptions().apply {
-            tag = it
+    for (name in names) {
+        val newName = name.removePrefix(PREFIX_IP_DNS)
+        rule_set.plusAssign(Rule_SetOptions().apply {
+            tag = newName
             type = "local"
             format = "binary"
-            path = "$geoPath/$it.srs"
+            path = "$geoPath/$newName.srs"
         })
     }
 }

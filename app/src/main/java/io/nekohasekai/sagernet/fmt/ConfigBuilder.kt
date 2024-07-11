@@ -56,6 +56,7 @@ import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
 import moe.matsuri.nb4a.SingBoxOptions.Rule_DefaultOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
+import moe.matsuri.nb4a.PREFIX_IP_DNS
 import moe.matsuri.nb4a.checkEmpty
 import moe.matsuri.nb4a.makeSingBoxRule
 import moe.matsuri.nb4a.makeSingBoxRuleSet
@@ -611,7 +612,9 @@ fun buildConfig(
                     user_id = uidList
                 }
                 if (rule.ruleSet.isNotBlank()) {
-                    rule_set = rule.ruleSet.listByLineOrComma()
+                    rule_set = rule.ruleSet.listByLineOrComma().filterNot {
+                        it.startsWith(PREFIX_IP_DNS)
+                    }
                 }
                 var domainList: List<String> = listOf()
                 if (rule.domains.isNotBlank()) {
