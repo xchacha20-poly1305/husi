@@ -11,9 +11,10 @@ import (
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
 	_ "github.com/sagernet/sing-box/include"
-	boxlog "github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
+	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
@@ -24,19 +25,24 @@ import (
 
 func ResetAllConnections() {
 	conntrack.Close()
-	boxlog.Debug("Reset system connections done.")
+	log.Debug("Reset system connections done.")
 }
+
+// boxState is sing-box state
+type boxState = uint8
+
+const (
+	boxStateNeverStarted boxState = iota
+	boxStateRunning
+	boxStateClosed
+)
 
 type BoxInstance struct {
 	*box.Box
 
 	cancel context.CancelFunc
 
-	// state is sing-box state
-	// 0: never started
-	// 1: running
-	// 2: closed
-	state          int
+	state          atomic.TypedValue[boxState]
 	isMainInstance bool
 
 	v2api *v2rayapilite.V2RayServerLite
@@ -96,8 +102,8 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 func (b *BoxInstance) Start() (err error) {
 	defer catchPanic("box.Start", func(panicErr error) { err = panicErr })
 
-	if b.state == 0 {
-		b.state = 1
+	if b.state.Load() == boxStateNeverStarted {
+		b.state.Store(boxStateRunning)
 		defer func(b *BoxInstance, callback selectorCallback) {
 			if b.selector != nil {
 				boxCancel := b.cancel
@@ -118,10 +124,10 @@ func (b *BoxInstance) Close() (err error) {
 	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
 
 	// no double close
-	if b.state == 2 {
+	if b.state.Load() == boxStateClosed {
 		return nil
 	}
-	b.state = 2
+	b.state.Store(boxStateClosed)
 
 	if b.isMainInstance {
 		goServeProtect(false)
@@ -142,7 +148,7 @@ func (b *BoxInstance) Close() (err error) {
 	case <-ctx.Done():
 		return E.New("sing-box did not close in time")
 	case <-chClosed:
-		boxlog.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
+		log.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
 		return nil
 	}
 }
