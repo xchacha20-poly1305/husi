@@ -98,11 +98,17 @@ func (b *BoxInstance) Start() (err error) {
 
 	if b.state == 0 {
 		b.state = 1
-		defer func() {
-			if b.selector != nil && intfGUI != nil {
-				go b.listenSelectorChange(context.Background(), intfGUI.SelectorCallback)
+		defer func(b *BoxInstance, callback selectorCallback) {
+			if b.selector != nil {
+				boxCancel := b.cancel
+				ctx, cancelContext := context.WithCancel(context.Background())
+				b.cancel = func() {
+					boxCancel()
+					cancelContext()
+				}
+				go b.listenSelectorChange(ctx, callback)
 			}
-		}()
+		}(b, intfGUI.SelectorCallback)
 		return b.Box.Start()
 	}
 	return E.New("already started")

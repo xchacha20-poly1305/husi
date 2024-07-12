@@ -7,7 +7,7 @@ import (
 	"libcore/stun"
 )
 
-func StunTest(server string) (result string) {
+func StunTest(server string) string {
 	// note: this library doesn't support stun1.l.google.com:19302
 
 	var resultBuilder strings.Builder
