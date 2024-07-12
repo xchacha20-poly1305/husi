@@ -224,7 +224,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
                 val selectedProfileIndex =
                     fragment.adapter!!.configurationIdList.indexOf(selectedProxy)
-                if (selectedProfileIndex > 0) {
+                if (selectedProfileIndex != -1) {
                     val layoutManager = fragment.layoutManager
                     val first = layoutManager.findFirstVisibleItemPosition()
                     val last = layoutManager.findLastVisibleItemPosition()
