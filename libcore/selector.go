@@ -9,10 +9,9 @@ import (
 
 type selectorCallback func(tag string)
 
-/*
-listenSelectorChange check the change of the main selector once in a while and use callback.
-It will block the thread, so run it in a new goroutine.
-*/
+// listenSelectorChange check the change of the main selector once
+// in a while and use callback.
+// It will block the thread, so run it in a new goroutine.
 func (b *BoxInstance) listenSelectorChange(ctx context.Context, callback selectorCallback) {
 	if b.selector == nil || callback == nil {
 		return
@@ -21,37 +20,24 @@ func (b *BoxInstance) listenSelectorChange(ctx context.Context, callback selecto
 	defer catchPanic("listenSelectorChange", func(panicErr error) { log.Error(panicErr) })
 
 	const (
-		duration0 = 500 * time.Millisecond
-		duration1 = 700 * time.Millisecond
-		duration2 = 1000 * time.Millisecond
-		duration3 = 2000 * time.Millisecond
+		minimumDuration = 300 * time.Millisecond
+		maximumDuration = 2 * time.Second
 	)
 
-	var durationLevel uint8 = 0
-	ticker := time.NewTicker(duration0)
+	duration := minimumDuration
+	ticker := time.NewTicker(minimumDuration)
 	defer ticker.Stop()
 
-	// updateTicker 动态调整 ticker 间隔。如果选择的标签已更改，则重置为默认的间隔，如果没有则逐级延长检查间隔。
+	// updateTicker adds duration little by little.
 	updateTicker := func(changed bool) {
 		if changed {
-			ticker.Reset(duration0)
-			durationLevel = 0
-			return
+			duration = minimumDuration
+		} else {
+			if duration < maximumDuration {
+				duration = duration * 2
+			}
 		}
-
-		switch durationLevel {
-		case 0:
-			ticker.Reset(duration1)
-		case 1:
-			ticker.Reset(duration2)
-		case 2:
-			ticker.Reset(duration3)
-		case 3:
-			return
-		default:
-			ticker.Reset(duration0)
-		}
-		durationLevel++
+		ticker.Reset(duration)
 	}
 
 	oldTag := b.selector.Now()
