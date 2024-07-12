@@ -49,7 +49,7 @@ func (b *BoxInstance) listenSelectorChange(ctx context.Context, callback selecto
 			log.Trace("Selector change listener close by context: ", ctx.Err())
 			return
 		case <-ticker.C:
-			if b.state == 2 {
+			if b.state.Load() == boxStateClosed {
 				log.Trace("Selector change listener close because of box close.")
 				return
 			}
