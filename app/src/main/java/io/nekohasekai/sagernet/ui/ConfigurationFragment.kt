@@ -224,7 +224,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
                 val selectedProfileIndex =
                     fragment.adapter!!.configurationIdList.indexOf(selectedProxy)
-                if (selectedProfileIndex != -1) {
+                if (selectedProfileIndex > 0) {
                     val layoutManager = fragment.layoutManager
                     val first = layoutManager.findFirstVisibleItemPosition()
                     val last = layoutManager.findLastVisibleItemPosition()
@@ -239,6 +239,29 @@ class ConfigurationFragment @JvmOverloads constructor(
                 fragment.configurationListView.scrollTo(0)
             }
 
+        }
+
+        toolbar.setOnLongClickListener {
+            val selectedProxy = selectedItem
+                ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                ?: return@setOnLongClickListener true
+            val groupIndex = adapter.groupList.indexOfFirst {
+                it.id == selectedProxy.groupId
+            }
+            if (groupIndex < 0) return@setOnLongClickListener true
+            DataStore.selectedGroup = selectedProxy.groupId
+            groupPager.currentItem = groupIndex
+
+            getCurrentGroupFragment()?.let { fragment ->
+                val selectedProfileIndex = fragment.adapter!!.configurationIdList.indexOfFirst {
+                    it == selectedProxy.id
+                }
+                if (selectedProfileIndex > 0) {
+                    fragment.configurationListView.scrollTo(selectedProfileIndex, true)
+                }
+            }
+
+            true
         }
 
         DataStore.profileCacheStore.registerChangeListener(this)
