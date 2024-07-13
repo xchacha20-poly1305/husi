@@ -57,6 +57,8 @@ import moe.matsuri.nb4a.SingBoxOptions.Rule_DefaultOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
 import moe.matsuri.nb4a.PREFIX_IP_DNS
+import moe.matsuri.nb4a.SingBoxOptions.V2RayAPIOptions
+import moe.matsuri.nb4a.SingBoxOptions.V2RayStatsServiceOptions
 import moe.matsuri.nb4a.checkEmpty
 import moe.matsuri.nb4a.makeSingBoxRule
 import moe.matsuri.nb4a.makeSingBoxRuleSet
@@ -212,6 +214,13 @@ fun buildConfig(
 
     return MyOptions().apply {
         if (!forTest) experimental = ExperimentalOptions().apply {
+            if (!forExport) v2ray_api = V2RayAPIOptions().apply {
+                listen = "$LOCALHOST4:0" // Never really listen
+                stats = V2RayStatsServiceOptions().also {
+                    it.enabled = true
+                    it.outbounds = tagMap.values.toList() + TAG_PROXY + TAG_DIRECT
+                }
+            }
             clash_api = ClashAPIOptions().apply {
                 external_controller = DataStore.clashAPIListen.ifBlank {
                     "$LOCALHOST4:${mkPort()}"

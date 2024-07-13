@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	box "github.com/sagernet/sing-box"
@@ -12,7 +11,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	_ "github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/outbound"
 	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -44,8 +42,6 @@ type BoxInstance struct {
 
 	state          atomic.TypedValue[boxState]
 	isMainInstance bool
-
-	v2api *v2rayapilite.V2RayServerLite
 
 	selector *outbound.Selector
 
@@ -162,19 +158,12 @@ func (b *BoxInstance) SetAsMain() {
 	goServeProtect(true)
 }
 
-func (b *BoxInstance) SetV2rayStats(outbounds string) {
-	b.v2api = v2rayapilite.NewSbV2rayServer(option.V2RayStatsServiceOptions{
-		Enabled:   true,
-		Outbounds: strings.Split(outbounds, "\n"),
-	})
-	b.Box.Router().SetV2RayServer(b.v2api)
-}
-
 func (b *BoxInstance) QueryStats(tag, direct string) int64 {
-	if b.v2api == nil {
+	statsGetter := b.Router().V2RayServer().(v2rayapilite.StatsGetter)
+	if statsGetter == nil {
 		return 0
 	}
-	return b.v2api.QueryStats(fmt.Sprintf("outbound>>>%s>>>traffic>>>%s", tag, direct))
+	return statsGetter.QueryStats("outbound>>>" + tag + ">>>traffic>>>" + direct)
 }
 
 func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {
