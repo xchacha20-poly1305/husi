@@ -531,4 +531,15 @@
     <string name="by_source">За вихідною адресою</string>
     <string name="by_download">За скачуванням</string>
     <string name="pinned_peer_certificate_chain_sha256">Хеш ланцюжка закріпленого сертифіката</string>
+    <string name="speed_test">Тест швидкості</string>
+    <string name="have_reset_network">Усі мережі було скинуто</string>
+    <string name="ensure_close_all">Ви впевнені, що хочете закрити %s з\'єднань?</string>
+    <string name="by_inbound">За вхідним підключенням</string>
+    <string name="by_matched_rule">За співпадаючим правилом</string>
+    <string name="upload">Завантажити</string>
+    <string name="inbound">Вхідне підключення</string>
+    <string name="ip_version">Версія IP</string>
+    <string name="outbound">Вихідне підключення</string>
+    <string name="chain">Ланцюг</string>
+    <string name="close">Закрити</string>
 </resources>
