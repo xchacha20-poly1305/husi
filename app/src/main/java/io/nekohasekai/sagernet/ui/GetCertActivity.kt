@@ -2,13 +2,11 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.ClipData
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.SagerNet.Companion.clipboardManager
 import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -33,7 +31,7 @@ class GetCertActivity : ThemedActivity() {
         }
 
         binding.getCert.setOnClickListener {
-            SagerNet.inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+            SagerNet.inputMethod.hideSoftInputFromWindow(binding.root.windowToken, 0)
             copyCert()
         }
     }
@@ -52,7 +50,7 @@ class GetCertActivity : ThemedActivity() {
                 Logs.i(certificate)
 
                 val clipData = ClipData.newPlainText("Certificate", certificate)
-                clipboardManager.setPrimaryClip(clipData)
+                SagerNet.clipboard.setPrimaryClip(clipData)
 
                 Snackbar.make(
                     binding.root,

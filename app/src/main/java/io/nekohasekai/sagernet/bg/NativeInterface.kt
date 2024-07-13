@@ -92,7 +92,7 @@ class NativeInterface : BoxPlatformInterface, GUIInterface {
 
     override fun readWIFIState(): WIFIState? {
         // TODO API 34
-        @Suppress("DEPRECATION") val wifiInfo = SagerNet.wifiManager.connectionInfo ?: return null
+        @Suppress("DEPRECATION") val wifiInfo = SagerNet.wifi.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
             ssid = ssid.substring(1, ssid.length - 1)

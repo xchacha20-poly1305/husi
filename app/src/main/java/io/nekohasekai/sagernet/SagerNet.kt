@@ -32,6 +32,7 @@ import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
 import io.nekohasekai.sagernet.bg.NativeInterface
 import moe.matsuri.nb4a.utils.JavaUtil
+import java.io.File
 import androidx.work.Configuration as WorkConfiguration
 
 class SagerNet : Application(),
@@ -43,12 +44,12 @@ class SagerNet : Application(),
         application = this
     }
 
-    val nativeInterface = NativeInterface()
+    private val nativeInterface = NativeInterface()
 
-    val externalAssets by lazy { getExternalFilesDir(null) ?: filesDir }
-    val process = JavaUtil.getProcessName()
-    val isMainProcess = process == BuildConfig.APPLICATION_ID
-    val isBgProcess = process.endsWith(":bg")
+    val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
+    val process: String = JavaUtil.getProcessName()
+    private val isMainProcess = process == BuildConfig.APPLICATION_ID
+    private val isBgProcess = process.endsWith(":bg")
 
     override fun onCreate() {
         super.onCreate()
@@ -143,9 +144,8 @@ class SagerNet : Application(),
         val user by lazy { application.getSystemService<UserManager>()!! }
         val uiMode by lazy { application.getSystemService<UiModeManager>()!! }
         val power by lazy { application.getSystemService<PowerManager>()!! }
-        val wifiManager by lazy { application.getSystemService<WifiManager>()!! }
-        val inputMethodManager by lazy { application.getSystemService<InputMethodManager>()!! }
-        val clipboardManager by lazy { application.getSystemService<ClipboardManager>()!! }
+        val wifi by lazy { application.getSystemService<WifiManager>()!! }
+        val inputMethod by lazy { application.getSystemService<InputMethodManager>()!! }
 
         fun getClipboardText(): String {
             return clipboard.primaryClip?.takeIf { it.itemCount > 0 }
