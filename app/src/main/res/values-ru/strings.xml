@@ -599,4 +599,15 @@
     <string name="by_upload">По загрузке</string>
     <string name="by_download">По скачиванию</string>
     <string name="pinned_peer_certificate_chain_sha256">Хэш цепочки закрепленного сертификата</string>
+    <string name="speed_test">Тест скорости</string>
+    <string name="have_reset_network">Все сети были сброшены</string>
+    <string name="ensure_close_all">Вы уверены, что хотите закрыть %s соединений?</string>
+    <string name="by_inbound">По входящему подключению</string>
+    <string name="by_matched_rule">По совпадающему правилу</string>
+    <string name="upload">Загрузить</string>
+    <string name="inbound">Входящее подключение</string>
+    <string name="ip_version">Версия IP</string>
+    <string name="outbound">Исходящее подключение</string>
+    <string name="chain">Цепочка</string>
+    <string name="close">Закрыть</string>
 </resources>
