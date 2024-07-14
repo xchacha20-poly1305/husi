@@ -96,3 +96,54 @@ func TestFormatConfig(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  string
+		wantErr bool
+	}{
+		{
+			name:    "Empty",
+			config:  "",
+			wantErr: true,
+		},
+		{
+			name:    "{}",
+			config:  "{}",
+			wantErr: false,
+		},
+		{
+			name: "Invalid field",
+			config: `
+{
+    "outbounds": [
+        {
+            "type": "shadowsocks",
+            "tag": "proxy",
+            "method": "xsala20"
+        }
+    ]
+}
+			`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		err := CheckConfig(tt.config)
+		if err != nil {
+			if tt.wantErr {
+				t.Logf("TestCheckConfig [%s] passed", tt.name)
+				continue
+			}
+			t.Errorf("TestCheckConfig [%s] wants error but not", tt.name)
+			continue
+		}
+		if tt.wantErr {
+			t.Errorf("TestCheckConfig [%s] wants error but not", tt.name)
+			continue
+		}
+		t.Logf("TestCheckConfig [%s] passed", tt.name)
+	}
+}

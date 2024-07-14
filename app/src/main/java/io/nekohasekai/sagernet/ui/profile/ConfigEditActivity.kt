@@ -12,6 +12,10 @@ import com.blacksquircle.ui.language.json.JsonLanguage
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -24,7 +28,7 @@ import moe.matsuri.nb4a.ui.ExtendedKeyboard
 
 class ConfigEditActivity : ThemedActivity() {
 
-    var dirty = false
+    private var dirty = false
     var key = Key.SERVER_CONFIG
 
     class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
@@ -92,6 +96,28 @@ class ConfigEditActivity : ThemedActivity() {
                 binding.editor.setTextContent(it)
             }
         }
+        binding.actionConfigTest.setOnClickListener {
+            try {
+                val content = binding.editor.text.toString()
+                val jsonContent = if (content.contains("outbound")) {
+                    content
+                } else {
+                    // make it full outbounds
+                    val singleOutbound = JsonParser.parseString(content)
+                    val jsonArray = JsonArray().also { it.add(singleOutbound) }
+                    JsonObject().also { it.add("outbounds", jsonArray) }.toString()
+                }
+                Libcore.checkConfig(jsonContent)
+            } catch (e: Exception) {
+                AlertDialog.Builder(this)
+                    .setTitle(R.string.error_title)
+                    .setMessage(e.toString())
+                    .setPositiveButton(android.R.string.ok) { _, _ -> }
+                    .show()
+                return@setOnClickListener
+            }
+            snackbar(R.string.ok).show()
+        }
 
         val extendedKeyboard = findViewById<ExtendedKeyboard>(R.id.extended_keyboard)
         extendedKeyboard.setKeyListener { char -> binding.editor.insert(char) }
@@ -144,5 +170,9 @@ class ConfigEditActivity : ThemedActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun snackbarInternal(text: CharSequence): Snackbar {
+        return Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT)
     }
 }
