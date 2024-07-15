@@ -1,0 +1,16 @@
+--- cgocall.go
++++ cgocall.go
+@@ -215,8 +215,11 @@
+ func callbackUpdateSystemStack(mp *m, sp uintptr, signal bool) {
+ 	g0 := mp.g0
+
+-	inBound := sp > g0.stack.lo && sp <= g0.stack.hi
+-	if mp.ncgo > 0 && !inBound {
++	if sp > g0.stack.lo && sp <= g0.stack.hi {
++		// Stack already in bounds, nothing to do.
++		return
++	}
++	if mp.ncgo > 0 {
+ 		// ncgo > 0 indicates that this M was in Go further up the stack
+ 		// (it called C and is now receiving a callback).
+ 		//

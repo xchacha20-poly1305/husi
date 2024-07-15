@@ -44,9 +44,16 @@ jobs:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
       - uses: actions/setup-java@v4
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
           java-version: "17"
           distribution: "temurin"
+      - name: Patch Go
+        if: steps.cache.outputs.cache-hit != 'true'
+        # https://github.com/golang/go/commit/3560cf0afb3c29300a6c88ccd98256949ca7a6f6
+        run: |
+          cd "$(go env GOROOT)/src/runtime"
+          patch --verbose < $GITHUB_WORKSPACE/libcore/cgo_go1225.diff
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
