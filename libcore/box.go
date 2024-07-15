@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/sagernet/sing-box/outbound"
 	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
+	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 
@@ -40,16 +40,19 @@ type BoxInstance struct {
 
 	cancel context.CancelFunc
 
-	state          atomic.TypedValue[boxState]
-	isMainInstance bool
+	state atomic.TypedValue[boxState]
 
-	selector *outbound.Selector
+	protectFun    protect.Protect
+	protectCloser io.Closer
+
+	selector         *outbound.Selector
+	selectorCallback selectorCallback
 
 	pauseManager pause.Manager
 	servicePauseFields
 }
 
-func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error) {
+func NewBoxInstance(config string, platformInterface PlatformInterface, forTest bool) (b *BoxInstance, err error) {
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 
 	options, err := parseConfig(config)
@@ -60,7 +63,9 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 	// create box
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = pause.WithDefaultManager(ctx)
-	platformWrapper := &boxPlatformInterfaceWrapper{}
+	platformWrapper := &boxPlatformInterfaceWrapper{
+		iif: platformInterface,
+	}
 	boxOption := box.Options{
 		Options:           options,
 		Context:           ctx,
@@ -80,8 +85,11 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 	}
 
 	b = &BoxInstance{
-		Box:          instance,
-		cancel:       cancel,
+		Box:    instance,
+		cancel: cancel,
+		protectFun: func(fd int) error {
+			return platformInterface.AutoDetectInterfaceControl(int32(fd))
+		},
 		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
 
@@ -89,6 +97,7 @@ func NewSingBoxInstance(config string, forTest bool) (b *BoxInstance, err error)
 	if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
 		if selector, isSelector := proxy.(*outbound.Selector); isSelector {
 			b.selector = selector
+			b.selectorCallback = platformInterface.SelectorCallback
 		}
 	}
 
@@ -110,41 +119,40 @@ func (b *BoxInstance) Start() (err error) {
 				}
 				go b.listenSelectorChange(ctx, callback)
 			}
-		}(b, intfGUI.SelectorCallback)
+		}(b, b.selectorCallback)
 		return b.Box.Start()
 	}
-	return E.New("already started")
+	return E.New("box already started")
 }
 
 func (b *BoxInstance) Close() (err error) {
 	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
 
 	// no double close
-	if b.state.Load() == boxStateClosed {
+	if b.state.Swap(boxStateClosed) == boxStateClosed {
 		return nil
 	}
-	b.state.Store(boxStateClosed)
 
-	if b.isMainInstance {
-		goServeProtect(false)
+	if b.protectCloser != nil {
+		_ = b.protectCloser.Close()
 	}
 
 	// close box
-	chClosed := make(chan struct{})
-	ctx, cancel := context.WithTimeout(context.Background(), C.StopTimeout)
+	done := make(chan struct{})
+	ctx, cancel := context.WithTimeout(context.Background(), C.FatalStopTimeout)
 	defer cancel()
 	start := time.Now()
-	go func() {
+	go func(done chan<- struct{}) {
 		defer catchPanic("box.Close", func(panicErr error) { err = panicErr })
 		b.cancel()
 		_ = b.Box.Close()
-		close(chClosed)
-	}()
+		close(done)
+	}(done)
 	select {
 	case <-ctx.Done():
 		return E.New("sing-box did not close in time")
-	case <-chClosed:
-		log.Info(fmt.Sprintf("sing-box closed in %d ms.", time.Since(start).Milliseconds()))
+	case <-done:
+		log.Info("sing-box closed in ", F.Seconds(time.Since(start).Seconds()), " s.")
 		return nil
 	}
 }
@@ -153,9 +161,9 @@ func (b *BoxInstance) NeedWIFIState() bool {
 	return b.Box.Router().NeedWIFIState()
 }
 
+// SetAsMain starts protect server listening.
 func (b *BoxInstance) SetAsMain() {
-	b.isMainInstance = true
-	goServeProtect(true)
+	b.protectCloser = serveProtect(b.protectFun)
 }
 
 func (b *BoxInstance) QueryStats(tag, direct string) int64 {
@@ -173,20 +181,8 @@ func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {
 	return false
 }
 
-var protectCloser io.Closer
-
-func goServeProtect(start bool) {
-	if protectCloser != nil {
-		_ = protectCloser.Close()
-		protectCloser = nil
-	}
-
-	if start {
-		protectCloser = protect.ServerProtect(ProtectPath, func(fd int) error {
-			if intfBox == nil {
-				return E.New("not init intfBox")
-			}
-			return intfBox.AutoDetectInterfaceControl(int32(fd))
-		})
-	}
+func serveProtect(protectFunc protect.Protect) io.Closer {
+	return protect.ServerProtect(ProtectPath, func(fd int) error {
+		return protectFunc(fd)
+	})
 }

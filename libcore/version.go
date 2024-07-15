@@ -16,25 +16,19 @@ func VersionBox() string {
 	return C.Version
 }
 
-var (
-	detailVersion     string
-	detailVersionOnce sync.Once
-)
-
-// Version
-// Show detail version
-// Format:
+// Version shows detail version. Format:
 //
-//	sing-box: {dun_version}
+//	sing-box: {C.Version}
 //	{go_version}@{os}/{arch}
 //	{tags}
 func Version() string {
-	detailVersionOnce.Do(loadDetailVersion)
-	return detailVersion
+	return detailVersion()
 }
 
-func loadDetailVersion() {
-	detailVersionSli := []string{
+var detailVersion = sync.OnceValue(loadDetailVersion)
+
+func loadDetailVersion() string {
+	detailVersionBuilder := []string{
 		"sing-box: " + C.Version,
 		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
 	}
@@ -49,8 +43,8 @@ func loadDetailVersion() {
 		},
 	)
 	if found {
-		detailVersionSli = append(detailVersionSli, debugInfo.Settings[tagsSettingIndex].Value)
+		detailVersionBuilder = append(detailVersionBuilder, debugInfo.Settings[tagsSettingIndex].Value)
 	}
 
-	detailVersion = strings.Join(detailVersionSli, "\n")
+	return strings.Join(detailVersionBuilder, "\n")
 }

@@ -4,6 +4,7 @@ import android.os.SystemClock
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.AbstractInstance
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
+import io.nekohasekai.sagernet.bg.NativeInterface
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult
@@ -35,9 +36,9 @@ abstract class BoxInstance(
     lateinit var config: ConfigBuildResult
     lateinit var box: BoxInstance
 
-    val pluginPath = hashMapOf<String, PluginManager.InitResult>()
+    private val pluginPath = hashMapOf<String, PluginManager.InitResult>()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
-    val externalInstances = hashMapOf<Int, AbstractInstance>()
+    private val externalInstances = hashMapOf<Int, AbstractInstance>()
     open lateinit var processes: GuardedProcessPool
     private var cacheFiles = ArrayList<File>()
     fun isInitialized(): Boolean {
@@ -53,13 +54,13 @@ abstract class BoxInstance(
     }
 
     protected open suspend fun loadConfig() {
-        box = Libcore.newSingBoxInstance(config.config, false)
+        box = BoxInstance(config.config, NativeInterface(), false)
     }
 
     open suspend fun init() {
         buildConfig()
         for ((chain) in config.externalIndex) {
-            chain.entries.forEachIndexed { index, (port, profile) ->
+            chain.entries.forEach { (port, profile) ->
                 when (val bean = profile.requireBean()) {
                     is TrojanGoBean -> {
                         initPlugin("trojan-go-plugin")
@@ -107,10 +108,9 @@ abstract class BoxInstance(
         cacheDir.mkdirs()
 
         for ((chain) in config.externalIndex) {
-            chain.entries.forEachIndexed { index, (port, profile) ->
+            chain.entries.forEach { (port, profile) ->
                 val bean = profile.requireBean()
-                val needChain = index != chain.size - 1
-                val (profileType, config) = pluginConfigs[port] ?: (0 to "")
+                val (_, config) = pluginConfigs[port] ?: (0 to "")
 
                 when {
                     externalInstances.containsKey(port) -> {
@@ -251,7 +251,7 @@ abstract class BoxInstance(
         if (::box.isInitialized) {
             try {
                 box.close()
-            } catch (e : Exception) {
+            } catch (e: Exception) {
                 Logs.w(e)
                 Libcore.kill()
             }

@@ -1,13 +1,13 @@
 package libcore
 
 import (
-	"fmt"
 	"io"
 	stdlog "log"
 	"os"
 	"syscall"
 
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
@@ -25,6 +25,14 @@ func LogWarning(l string) {
 
 func LogError(l string) {
 	log.Error(l)
+}
+
+func LogPrintln(s string) {
+	stdlog.Println(s)
+}
+
+func LogClear() {
+	platformLogWrapper.truncate()
 }
 
 var platformLogWrapper *logWriter
@@ -87,7 +95,7 @@ func (w *logWriter) DisableColors() bool {
 }
 
 func (w *logWriter) WriteMessage(_ log.Level, message string) {
-	_, _ = io.WriteString(w.writer, fmt.Sprintf("%s\n", message))
+	_, _ = io.WriteString(w.writer, message+"\n")
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -113,9 +121,5 @@ func (w *logWriter) truncate() {
 }
 
 func (w *logWriter) Close() error {
-	if file, isFile := w.writer.(*os.File); isFile {
-		return file.Close()
-	}
-
-	return nil
+	return common.Close(w.writer)
 }

@@ -16,7 +16,7 @@ import java.net.InterfaceAddress
 import java.net.NetworkInterface
 import java.util.*
 
-class NativeInterface : BoxPlatformInterface, GUIInterface {
+class NativeInterface : PlatformInterface {
 
     //  libbox interface
 
@@ -64,11 +64,6 @@ class NativeInterface : BoxPlatformInterface, GUIInterface {
         return PackageCache[packageName] ?: 0
     }
 
-    // GUI interface
-
-    override fun useOfficialAssets(): Boolean {
-        return DataStore.rulesProvider == 0
-    }
 
     override fun selectorCallback(tag: String) {
         DataStore.baseService?.apply {
