@@ -28,7 +28,7 @@ func Version() string {
 var detailVersion = sync.OnceValue(loadDetailVersion)
 
 func loadDetailVersion() string {
-	detailVersionBuilder := []string{
+	builder := []string{
 		"sing-box: " + C.Version,
 		runtime.Version() + "@" + runtime.GOOS + "/" + runtime.GOARCH,
 	}
@@ -43,8 +43,8 @@ func loadDetailVersion() string {
 		},
 	)
 	if found {
-		detailVersionBuilder = append(detailVersionBuilder, debugInfo.Settings[tagsSettingIndex].Value)
+		builder = append(builder, debugInfo.Settings[tagsSettingIndex].Value)
 	}
 
-	return strings.Join(detailVersionBuilder, "\n")
+	return strings.Join(builder, "\n")
 }
