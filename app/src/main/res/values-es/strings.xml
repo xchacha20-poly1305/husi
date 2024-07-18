@@ -581,4 +581,5 @@
     <string name="speed_test">Prueba de velocidad</string>
     <string name="have_reset_network">Se han restablecido todas las redes</string>
     <string name="ensure_close_all">¿Estás seguro de cerrar %s conexiones?</string>
+    <string name="padding">Relleno</string>
 </resources>
