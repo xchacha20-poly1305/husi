@@ -75,9 +75,6 @@ object Key {
     const val NTP_INTERVAL = "ntpInterval"
 
     // Protocol Settings
-    const val MUX_TYPE = "muxType"
-    const val MUX_PROTOCOLS = "mux"
-    const val MUX_CONCURRENCY = "muxConcurrency"
     const val GLOBAL_ALLOW_INSECURE = "globalAllowInsecure"
     const val UPLOAD_SPEED = "uploadSpeed"
     const val DOWNLOAD_SPEED = "downloadSpeed"
@@ -119,8 +116,11 @@ object Key {
     const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"
     const val SERVER_MTU = "serverMTU"
 
-    const val MUX_STATE = "muxState"
+    const val SERVER_MUX = "serverMux"
     const val SERVER_BRUTAL = "serverBrutal"
+    const val SERVER_MUX_TYPE = "serverMuxType"
+    const val SERVER_MUX_CONCURRENCY = "serverMuxConcurrency"
+    const val SERVER_MUX_PADDING = "serverMuxPadding"
 
     const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
     const val AUTHENTICATED_LENGTH = "authenticatedLength"
@@ -232,10 +232,10 @@ object DNSMode {
     const val FAKE_DNS = 3
 }
 
-object MuxState {
-    const val DEFAULT = 0
-    const val ENABLED = 1
-    const val DISABLED = 2
+object MuxType {
+    const val H2MUX = 0
+    const val SMUX = 1
+    const val YAMUX = 2
 }
 
 object Action {

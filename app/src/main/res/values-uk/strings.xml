@@ -256,7 +256,6 @@
         <item quantity="other">%d елементів видалені</item>
     </plurals>
     <string name="mux_preference">Налаштування мультиплексування</string>
-    <string name="mux_state">Мультиплексування</string>
     <string name="hysteria2_provider">Провайдер Hysteria2</string>
     <string name="authenticated_length">Автентифікована довжина</string>
     <string name="keep_default">Залишити за замовчуванням</string>

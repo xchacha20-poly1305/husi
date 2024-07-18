@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -26,6 +27,8 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         DataStore.serverNetwork = type
         DataStore.serverHost = host
         DataStore.serverPath = path
+        DataStore.serverMux = serverMux
+        DataStore.serverMuxConcurrency = serverMuxConcurrency
         if (encryption.startsWith("ss;")) {
             DataStore.serverEncryption = "ss"
             DataStore.serverMethod = encryption.substringAfter(";").substringBefore(":")
@@ -45,6 +48,8 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         type = DataStore.serverNetwork
         host = DataStore.serverHost
         path = DataStore.serverPath
+        serverMux = DataStore.serverMux
+        serverMuxConcurrency = DataStore.serverMuxConcurrency
         encryption = when (val security = DataStore.serverEncryption) {
             "ss" -> {
                 "ss;" + DataStore.serverMethod + ":" + DataStore.serverPassword1
@@ -57,13 +62,16 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
     }
 
     lateinit var network: SimpleMenuPreference
-    lateinit var encryprtion: SimpleMenuPreference
-    lateinit var wsCategory: PreferenceCategory
-    lateinit var ssCategory: PreferenceCategory
+    private lateinit var encryprtion: SimpleMenuPreference
+    private lateinit var wsCategory: PreferenceCategory
+    private lateinit var ssCategory: PreferenceCategory
     lateinit var method: SimpleMenuPreference
 
-    val trojanGoMethods = app.resources.getStringArray(R.array.trojan_go_methods)
-    val trojanGoNetworks = app.resources.getStringArray(R.array.trojan_go_networks_value)
+    lateinit var mux: SwitchPreference
+    private lateinit var muxConcurrency: EditTextPreference
+
+    private val trojanGoMethods: Array<String> = app.resources.getStringArray(R.array.trojan_go_methods)
+    private val trojanGoNetworks: Array<String> = app.resources.getStringArray(R.array.trojan_go_networks_value)
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -85,6 +93,10 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
 
         network = findPreference(Key.SERVER_NETWORK)!!
 
+        mux = findPreference(Key.SERVER_MUX)!!
+        muxConcurrency = findPreference(Key.SERVER_MUX_CONCURRENCY)!!
+        muxConcurrency.isVisible = mux.isChecked
+
         if (network.value !in trojanGoNetworks) {
             network.value = trojanGoNetworks[0]
         }
@@ -100,9 +112,15 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
             updateEncryption(newValue as String)
             true
         }
+
+        mux.setOnPreferenceChangeListener { _, newValue ->
+            muxConcurrency.isVisible = newValue as Boolean
+            true
+        }
+        muxConcurrency.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
-    fun updateNetwork(newNet: String) {
+    private fun updateNetwork(newNet: String) {
         when (newNet) {
             "ws" -> {
                 wsCategory.isVisible = true
@@ -114,7 +132,7 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         }
     }
 
-    fun updateEncryption(encryption: String) {
+    private fun updateEncryption(encryption: String) {
         when (encryption) {
             "ss" -> {
                 ssCategory.isVisible = true

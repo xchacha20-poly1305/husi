@@ -107,7 +107,7 @@ data class ProxyEntity(
         const val TYPE_SOCKS = 0
         const val TYPE_HTTP = 1
         const val TYPE_SS = 2
-        const val TYPE_VMESS = 4
+        const val TYPE_VMESS = 4 // And VLESS
         const val TYPE_TROJAN = 6
         const val TYPE_TROJAN_GO = 7
         const val TYPE_CHAIN = 8
@@ -345,16 +345,15 @@ data class ProxyEntity(
 
     fun needCoreMux(): Boolean {
         return when (type) {
-            TYPE_VMESS -> if (vmessBean!!.isVLESS) {
-                Protocols.isProfileNeedMux(vmessBean!!) && Protocols.shouldEnableMux("vless")
-            } else {
-                Protocols.isProfileNeedMux(vmessBean!!) && Protocols.shouldEnableMux("vmess")
+            // and VLESS
+            TYPE_VMESS -> Protocols.isProfileNeedMux(vmessBean!!) && vmessBean!!.serverMux
+
+            TYPE_TROJAN -> Protocols.isProfileNeedMux(trojanBean!!) && trojanBean!!.serverMux
+
+            TYPE_SS -> ssBean!!.run {
+                !sUoT && serverMux
             }
 
-            TYPE_TROJAN -> Protocols.isProfileNeedMux(trojanBean!!)
-                    && Protocols.shouldEnableMux("trojan")
-
-            TYPE_SS -> !ssBean!!.sUoT && Protocols.shouldEnableMux("shadowsocks")
             else -> false
         }
     }

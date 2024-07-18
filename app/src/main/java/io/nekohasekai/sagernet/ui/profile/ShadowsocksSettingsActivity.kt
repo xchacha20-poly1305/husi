@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
-import io.nekohasekai.sagernet.MuxState
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -12,7 +12,6 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import moe.matsuri.nb4a.proxy.PreferenceBinding
 import moe.matsuri.nb4a.proxy.PreferenceBindingManager
 import moe.matsuri.nb4a.proxy.Type
-import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
@@ -20,16 +19,20 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
     private val pbm = PreferenceBindingManager()
     private val name = pbm.add(PreferenceBinding(Type.Text, "name"))
-    private val serverAddress = pbm.add(PreferenceBinding(Type.Text, "serverAddress"))
-    private val serverPort = pbm.add(PreferenceBinding(Type.TextToInt, "serverPort"))
+    private val serverAddress = pbm.add(PreferenceBinding(Type.Text, Key.SERVER_ADDRESS))
+    private val serverPort = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_PORT))
     private val password = pbm.add(PreferenceBinding(Type.Text, "password"))
     private val method = pbm.add(PreferenceBinding(Type.Text, "method"))
     private val pluginName =
         pbm.add(PreferenceBinding(Type.Text, "pluginName").apply { disable = true })
     private val pluginConfig =
         pbm.add(PreferenceBinding(Type.Text, "pluginConfig").apply { disable = true })
-    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, "muxState"))
-    private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, "serverBrutal"))
+
+    private val serverMux = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX))
+    private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
+    private val serverMuxType = pbm.add(PreferenceBinding(Type.Int, Key.SERVER_MUX_TYPE))
+    private val serverMuxConcurrency = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_CONCURRENCY))
+    private val serverMuxPadding = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX_PADDING))
     private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
 
     override fun ShadowsocksBean.init() {
@@ -54,7 +57,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         addPreferencesFromResource(R.xml.shadowsocks_preferences)
         pbm.setPreferenceFragment(this)
 
-        serverBrutal.preference.isEnabled = DataStore.profileCacheStore.getString(muxState.fieldName) != MuxState.DISABLED.toString()
+        updateMuxState(DataStore.serverMux)
 
         serverPort.preference.apply {
             this as EditTextPreference
@@ -64,24 +67,34 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
             this as EditTextPreference
             summaryProvider = PasswordSummaryProvider
         }
-        muxState.preference.apply {
-            this as SimpleMenuPreference
-            setOnPreferenceChangeListener {_, newValue ->
-                updateBrutal(newValue as String)
+        serverMux.preference.apply {
+            this as SwitchPreference
+            setOnPreferenceChangeListener { _, newValue ->
+                updateMuxState(newValue as Boolean)
                 true
             }
         }
+        serverBrutal.preference.apply {
+            this as SwitchPreference
+            setOnPreferenceChangeListener { _, newValue ->
+                serverMuxConcurrency.preference.isEnabled = !(newValue as Boolean)
+                true
+            }
+        }
+        (serverMuxConcurrency.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
-    private fun updateBrutal(muxState: String) {
-        when(muxState) {
-            MuxState.DEFAULT.toString(), MuxState.ENABLED.toString()-> {
-                serverBrutal.preference.isEnabled = true
-            }
-            MuxState.DISABLED.toString() -> {
-                serverBrutal.preference.isEnabled = false
-                (serverBrutal.preference as SwitchPreference).isChecked = false
-            }
+    private fun updateMuxState(enabled: Boolean) {
+        if (enabled) {
+            serverBrutal.preference.isVisible = true
+            serverMuxType.preference.isVisible = true
+            serverMuxConcurrency.preference.isVisible = true
+            serverMuxPadding.preference.isVisible = true
+        } else {
+            serverBrutal.preference.isVisible = false
+            serverMuxType.preference.isVisible = false
+            serverMuxConcurrency.preference.isVisible = false
+            serverMuxPadding.preference.isVisible = false
         }
     }
 

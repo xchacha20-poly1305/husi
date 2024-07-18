@@ -532,7 +532,6 @@
     <string name="insecure_warn">安全建議</string>
     <string name="hysteria2_provider">Hysteria2 提供者</string>
     <string name="mux_preference">多工設定</string>
-    <string name="mux_state">多工</string>
     <string name="authenticated_length">驗證長度</string>
     <string name="experimental_authenticated_length">使每個有效負載段的長度不再可變。此實驗要求伺服器和客戶端使用相同版本的 v2ray-core。預計此實驗將有更多重大更新。</string>
     <string name="keep_default">保持預設</string>

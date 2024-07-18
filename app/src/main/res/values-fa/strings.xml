@@ -524,7 +524,6 @@
     <string name="landing_proxy">پروکسی فرود</string>
     <string name="front_proxy">پروکسی جلو</string>
     <string name="authenticated_length">طول تایید شده</string>
-    <string name="mux_state">مالتی پلکس</string>
     <string name="insecure_warn">مشاوره امنیتی</string>
     <string name="mux_preference">تنظیمات مالتی پلکس</string>
     <string name="experimental_authenticated_length">طول هر بخش محموله بار دیگر قابل انعطاف نباشد. این آزمایش مستلزم استفاده سرور و کلاینت از نسخه مشابه v2ray-core است. انتظار می‌رود به‌روزرسانی‌های سریع‌تری درباره این آزمایش انجام شود.</string>

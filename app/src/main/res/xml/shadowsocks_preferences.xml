@@ -4,46 +4,63 @@
             app:icon="@drawable/ic_social_emoji_symbols"
             app:key="name"
             app:title="@string/profile_name"
-            app:useSimpleSummaryProvider="true"/>
+            app:useSimpleSummaryProvider="true" />
 
     <PreferenceCategory app:title="@string/proxy_cat">
         <EditTextPreference
                 app:icon="@drawable/ic_hardware_router"
                 app:key="serverAddress"
                 app:title="@string/server_address"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_maps_directions_boat"
                 app:key="serverPort"
                 app:title="@string/server_port"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:entries="@array/ss_enc_method_value"
                 app:entryValues="@array/ss_enc_method_value"
                 app:icon="@drawable/ic_notification_enhanced_encryption"
                 app:key="method"
                 app:title="@string/enc_method"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:dialogLayout="@layout/layout_password_dialog"
                 app:icon="@drawable/ic_settings_password"
                 app:key="password"
-                app:title="@string/password"/>
+                app:title="@string/password" />
     </PreferenceCategory>
 
     <PreferenceCategory
+            app:key="serverMuxCategory"
             app:title="@string/mux_preference">
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
-            app:entries="@array/mux_states"
-            app:entryValues="@array/int_array_3"
-            app:key="muxState"
-            app:icon="@drawable/ic_baseline_compare_arrows_24"
-            app:title="@string/mux_state"
-            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+                app:key="serverMux"
+                app:icon="@drawable/ic_baseline_compare_arrows_24"
+                app:title="@string/enable_mux"
+                app:summary="@string/mux_sum" />
         <SwitchPreference
                 app:key="serverBrutal"
                 app:icon="@drawable/ic_baseline_bolt"
-                app:title="@string/enable_brutal"/>
+                app:title="@string/enable_brutal" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:defaultValue="0"
+                app:entries="@array/mux_type"
+                app:entryValues="@array/int_array_3"
+                app:key="serverMuxType"
+                app:title="@string/mux_type"
+                app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+                app:defaultValue="8"
+                app:icon="@drawable/ic_baseline_low_priority_24"
+                app:key="serverMuxConcurrency"
+                app:title="@string/mux_concurrency"
+                app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+                app:key="serverMuxPadding"
+                app:icon="@drawable/baseline_developer_board_24"
+                app:title="@string/padding" />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/plugin">
@@ -54,18 +71,18 @@
                 app:icon="@drawable/baseline_construction_24"
                 app:key="pluginName"
                 app:title="@string/plugin"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:icon="@drawable/ic_action_settings"
                 app:key="pluginConfig"
                 app:title="@string/plugin_configure"
-                app:useSimpleSummaryProvider="true"/>
+                app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/experimental_settings">
         <SwitchPreference
                 app:key="sUoT"
-                app:title="UDP over TCP"/>
+                app:title="UDP over TCP" />
     </PreferenceCategory>
 
 </PreferenceScreen>
