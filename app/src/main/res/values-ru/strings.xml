@@ -565,7 +565,6 @@
     <string name="location_permission_description">Ваше правило маршрутизации содержит правила маршрутизации Wi-Fi SSID или Wi-Fi BSSID. Чтобы они работали, husi использует разрешение на определение местоположения в фоновом режиме, чтобы получать информацию о подключенной сети Wi-Fi. Информация будет использоваться только для целей маршрутизации.</string>
     <string name="location_permission_background_description">На Android 10 и выше требуется разрешение на определение местоположения в фоновом режиме. Выберите Разрешить все время, чтобы предоставить разрешение.</string>
     <string name="mux_preference">Настройки мультиплексирования</string>
-    <string name="mux_state">Мультиплексирование</string>
     <string name="location_permission_title">Разрешение геолокации</string>
     <string name="ok">Ок</string>
     <string name="hysteria2_provider">Провайдер Hysteria2</string>

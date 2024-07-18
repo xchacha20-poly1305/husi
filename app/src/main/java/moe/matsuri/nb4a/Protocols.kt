@@ -19,17 +19,6 @@ object Protocols {
         }
     }
 
-    fun shouldEnableMux(protocol: String): Boolean {
-        return DataStore.muxProtocols.contains(protocol)
-    }
-
-    fun getCanMuxList(): List<String> {
-        // built-in and support mux
-        val list = mutableListOf("vmess", "trojan", "trojan-go", "shadowsocks", "vless", "padding")
-
-        return list
-    }
-
     // Deduplication
 
     class Deduplication(

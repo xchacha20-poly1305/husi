@@ -8,7 +8,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.core.app.ActivityCompat
 import androidx.preference.EditTextPreference
-import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
@@ -26,7 +25,6 @@ import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.ktx.remove
 import io.nekohasekai.sagernet.utils.Theme
-import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
@@ -157,17 +155,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                 Key.PROTOCOL_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
-                        Key.MUX_PROTOCOLS -> {
-                            preference as MultiSelectListPreference
-                            preference.apply {
-                                val e = Protocols.getCanMuxList().toTypedArray()
-                                entries = e
-                                entryValues = e
-                            }
-                        }
-
-                        Key.MUX_CONCURRENCY, Key.UPLOAD_SPEED, Key.DOWNLOAD_SPEED -> (preference as EditTextPreference).setPortEdit()
-
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }

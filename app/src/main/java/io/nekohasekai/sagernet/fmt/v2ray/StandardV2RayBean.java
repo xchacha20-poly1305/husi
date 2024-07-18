@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.fmt.v2ray;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 
-import io.nekohasekai.sagernet.MuxState;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
@@ -59,10 +58,6 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public Integer packetEncoding; // 1:packetaddr 2:xudp
 
-    // --------------------------------------- //
-
-    public Integer muxState;
-
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
@@ -100,13 +95,11 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (ech == null) ech = false;
         if (echCfg == null) echCfg = "";
-
-        if (muxState == null) muxState = MuxState.DEFAULT;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(3);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -161,8 +154,6 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (this instanceof VMessBean) {
             output.writeBoolean(((VMessBean) this).authenticatedLength);
         }
-
-        output.writeInt(muxState);
     }
 
     @Override
@@ -221,8 +212,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
             if (version >= 1) ((VMessBean) this).authenticatedLength = input.readBoolean();
         }
 
-        if (version >= 2) {
-            muxState = input.readInt();
+        if (version < 2) {
+            int ignored = input.readInt();
+            return;
         }
     }
 
