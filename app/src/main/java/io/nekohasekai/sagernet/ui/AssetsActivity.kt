@@ -20,7 +20,6 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.socksInfo
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.use
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
@@ -131,7 +130,7 @@ class AssetsActivity : ThemedActivity() {
                     Libcore.unzipWithoutDir(outFile.absolutePath, geoDir.absolutePath)
                 } catch (_: Exception) {
                     try {
-                        Libcore.untargzWihoutDir(outFile.absolutePath, geoDir.absolutePath)
+                        Libcore.untargzWithoutDir(outFile.absolutePath, geoDir.absolutePath)
                     } catch (e: Exception) {
                         onMainDispatcher {
                             e.message?.let { snackbar(it).show() }
@@ -281,7 +280,7 @@ class AssetsActivity : ThemedActivity() {
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
-            trySocks5(socksInfo())
+            trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
         }
 
 
@@ -350,7 +349,7 @@ class AssetsActivity : ThemedActivity() {
             onMainDispatcher {
                 setProgress(15)
             }
-            Libcore.untargzWihoutDir(cacheFile.absolutePath, geoDir.absolutePath)
+            Libcore.untargzWithoutDir(cacheFile.absolutePath, geoDir.absolutePath)
             cacheFile.delete()
         }
 

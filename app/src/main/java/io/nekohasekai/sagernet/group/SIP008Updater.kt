@@ -21,6 +21,7 @@ package io.nekohasekai.sagernet.group
 
 import android.net.Uri
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
@@ -32,7 +33,6 @@ import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.filterIsInstance
 import io.nekohasekai.sagernet.ktx.getLongOrNull
-import io.nekohasekai.sagernet.ktx.socksInfo
 import libcore.Libcore
 import org.json.JSONObject
 
@@ -58,7 +58,7 @@ object SIP008Updater : GroupUpdater() {
         } else {
 
             val response = Libcore.newHttpClient().apply {
-                trySocks5(socksInfo())
+                trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
                 // Strict !!!
                 restrictedTLS()
             }.newRequest().apply {

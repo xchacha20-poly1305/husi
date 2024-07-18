@@ -2,10 +2,10 @@ package protect
 
 import (
 	"io"
-	"log"
 	"net"
 	"os"
 
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common/debug"
 	E "github.com/sagernet/sing/common/exceptions"
 
@@ -20,7 +20,6 @@ const (
 type Protect func(fd int) error
 
 func getOneFd(socketFd int) (int, error) {
-	// recvmsg
 	buf := make([]byte, unix.CmsgSpace(4))
 	_, _, _, _, err := unix.Recvmsg(socketFd, nil, buf, 0)
 	if err != nil {
@@ -44,12 +43,12 @@ func getOneFd(socketFd int) (int, error) {
 // ServerProtect listen at path, and use protectCtl to implement VPN protect.
 func ServerProtect(path string, protectCtl Protect) io.Closer {
 	if debug.Enabled {
-		log.Println("ServerProtect", path)
+		log.Info("ServerProtect", path)
 	}
 
 	if protectCtl == nil {
 		if debug.Enabled {
-			log.Println("Not provide protectCtl")
+			log.Error("Not provide protectCtl")
 		}
 		return nil
 	}
@@ -57,7 +56,7 @@ func ServerProtect(path string, protectCtl Protect) io.Closer {
 	_ = os.Remove(path)
 	l, err := net.ListenUnix("unix", &net.UnixAddr{Name: path, Net: "unix"})
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return nil
 	}
 	_ = os.Chmod(path, 0o777)
@@ -67,11 +66,12 @@ func ServerProtect(path string, protectCtl Protect) io.Closer {
 			conn, err := l.Accept()
 			if err != nil {
 				if debug.Enabled {
-					log.Println("protect server accept:", err)
+					log.Error(E.Cause(err, "protect server accept"))
 				}
 				return
 			}
 
+			// handle
 			go func(conn *net.UnixConn) {
 				defer conn.Close()
 
@@ -95,7 +95,7 @@ func ServerProtect(path string, protectCtl Protect) io.Closer {
 				if err != nil {
 					_, _ = conn.Write([]byte{ProtectFailed})
 					if debug.Enabled {
-						log.Println("Failed to control fd")
+						log.Error("Failed to control fd")
 					}
 					return
 				}

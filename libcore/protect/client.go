@@ -33,7 +33,10 @@ func ClientProtect(protectFd int, protectPath string) error {
 		return err
 	}
 	if n != 1 {
-		return E.New("Protect failed")
+		return E.New("protect failed")
+	}
+	if dummy[0] != ProtectSuccess {
+		return E.New("protect failed for failed flag")
 	}
 
 	return nil

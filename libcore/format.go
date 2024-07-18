@@ -54,7 +54,7 @@ func CheckConfig(configContent string) error {
 	instance, err := box.New(box.Options{
 		Options:           options,
 		Context:           ctx,
-		PlatformInterface: &boxPlatformInterfaceWrapper{},
+		PlatformInterface: platformInterfaceStub{},
 	})
 	if err != nil {
 		return E.Cause(err, "create box")

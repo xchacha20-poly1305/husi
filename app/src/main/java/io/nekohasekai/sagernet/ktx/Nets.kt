@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import libcore.Libcore
-import libcore.SocksInfo
 import libcore.URL
 import moe.matsuri.nb4a.utils.NGUtil
 import java.net.InetSocketAddress
@@ -64,11 +63,3 @@ fun mkPort(): Int {
 }
 
 val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
-
-fun socksInfo(): SocksInfo {
-    return SocksInfo(
-        DataStore.mixedPort.toString(),
-        DataStore.inboundUsername,
-        DataStore.inboundPassword,
-    )
-}

@@ -10,7 +10,6 @@ import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
-import io.nekohasekai.sagernet.ktx.socksInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import libcore.CopyCallback
@@ -61,7 +60,11 @@ class SpeedtestActivity : ThemedActivity() {
             val tmpFile = File.createTempFile("speed_test", "", binding.root.context.cacheDir)
             try {
                 Libcore.newHttpClient().apply {
-                    trySocks5(socksInfo())
+                    trySocks5(
+                        DataStore.mixedPort,
+                        DataStore.inboundUsername,
+                        DataStore.inboundPassword,
+                    )
                 }.newRequest().apply {
                     setURL(binding.speedTestServer.text.toString())
                     setTimeout(binding.speedTestTimeout.text.toString().toInt())

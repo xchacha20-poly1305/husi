@@ -1,11 +1,11 @@
 package libcore
 
 import (
-	"log"
 	"net"
 	"net/netip"
 	"sync"
 
+	"github.com/sagernet/sing-box/log"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -35,17 +35,11 @@ type networkAddress struct {
 }
 
 func (m *interfaceMonitor) Start() error {
-	if intfBox != nil {
-		return intfBox.StartDefaultInterfaceMonitor(m)
-	}
-	return nil
+	return m.iif.StartDefaultInterfaceMonitor(m)
 }
 
 func (m *interfaceMonitor) Close() error {
-	if intfBox != nil {
-		return intfBox.CloseDefaultInterfaceMonitor(m)
-	}
-	return nil
+	return m.iif.CloseDefaultInterfaceMonitor(m)
 }
 
 func (m *interfaceMonitor) DefaultInterfaceName(destination netip.Addr) string {
@@ -123,7 +117,7 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 		err = m.router.UpdateInterfaces()
 	}
 	if err != nil {
-		log.Println("[ERROR]", E.Cause(err, "update interface"))
+		log.Error(E.Cause(err, "update interfaces"))
 	}
 	interfaceIndex := int(interfaceIndex32)
 	if m.defaultInterfaceName == interfaceName && m.defaultInterfaceIndex == interfaceIndex {

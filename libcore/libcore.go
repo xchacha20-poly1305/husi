@@ -10,43 +10,16 @@ import (
 
 const ProtectPath = "protect_path"
 
-func LogPrintln(s string) {
-	log.Println(s)
-}
-
-func LogClear() {
-	platformLogWrapper.truncate()
-}
-
 func Kill() {
 	os.Exit(0)
 }
 
-// SocksInfo saves information for socks.
-type SocksInfo struct {
-	Port               string
-	Username, Password string
-}
-
-func NewSocksInfo(port, username, password string) *SocksInfo {
-	return &SocksInfo{
-		Port:     port,
-		Username: username,
-		Password: password,
-	}
-}
-
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
-	if1 GUIInterface, if2 BoxPlatformInterface,
-	enabledCazilla bool,
+	useOfficialAssets, enabledCazilla bool,
 ) {
 	defer catchPanic("InitCore", func(panicErr error) { log.Println(panicErr) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
-
-	intfGUI = if1
-	intfBox = if2
-	useProcfs = intfBox.UseProcFS()
 
 	workDir := filepath.Join(cachePath, "../no_backup")
 	_ = os.MkdirAll(workDir, 0o755)
@@ -72,7 +45,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 
 		// bg
 		if isBgProcess {
-			extractAssets()
+			extractAssets(useOfficialAssets)
 		}
 	}()
 }

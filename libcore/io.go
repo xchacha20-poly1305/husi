@@ -15,8 +15,8 @@ import (
 )
 
 // UntargzWithoutDir untargz the archive to path,
-// but ignore the directionary in tar.
-func UntargzWihoutDir(archive, path string) (err error) {
+// but ignore the directory in tar.
+func UntargzWithoutDir(archive, path string) (err error) {
 	file, err := os.Open(archive)
 	if err != nil {
 		return
@@ -67,7 +67,7 @@ func copyToFile(path string, reader io.Reader) error {
 }
 
 // UnzipWithoutDir unzip the archive to path,
-// but ignore the directionary in tar.
+// but ignore the directory in tar.
 func UnzipWithoutDir(archive, path string) error {
 	r, err := zip.OpenReader(archive)
 	if err != nil {
@@ -129,7 +129,7 @@ type CopyCallback interface {
 	Update(n int64)
 }
 
-// callbackWriter use callback when write.
+// callbackWriter use callback when writing.
 // It is worth noting that it will never check nil for callback.
 type callbackWriter struct {
 	writer   io.Writer

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -40,8 +41,8 @@ type HTTPClient interface {
 	// If not, it will reject this handshake.
 	PinnedSHA256(sumHex string)
 
-	// TrySocks5 tries to connect to server by socks5 from socksInfo.
-	TrySocks5(socksInfo *SocksInfo)
+	// TrySocks5 tries to connect to server by socks5.
+	TrySocks5(port int32, username, password string)
 
 	// KeepAlive force use HTTP/2 and enable keep alive.
 	KeepAlive()
@@ -154,17 +155,17 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 	}
 }
 
-func (c *httpClient) TrySocks5(socksInfo *SocksInfo) {
+func (c *httpClient) TrySocks5(port int32, username, password string) {
 	dialer := new(net.Dialer)
 	c.transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 		for {
-			if socksInfo == nil || socksInfo.Port == "" {
+			if port <= 0 {
 				break
 			}
 			socksConn, err := dialer.DialContext(
 				ctx,
 				N.NetworkTCP,
-				net.JoinHostPort("127.0.0.1", socksInfo.Port),
+				net.JoinHostPort("127.0.0.1", strconv.Itoa(int(port))),
 			)
 			if err != nil {
 				break
@@ -173,8 +174,8 @@ func (c *httpClient) TrySocks5(socksInfo *SocksInfo) {
 				socksConn,
 				socks5.CommandConnect,
 				metadata.ParseSocksaddr(addr),
-				socksInfo.Username,
-				socksInfo.Password,
+				username,
+				password,
 			)
 			if err != nil {
 				break

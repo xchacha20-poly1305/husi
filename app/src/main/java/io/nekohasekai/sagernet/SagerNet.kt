@@ -30,7 +30,6 @@ import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
-import io.nekohasekai.sagernet.bg.NativeInterface
 import moe.matsuri.nb4a.utils.JavaUtil
 import java.io.File
 import androidx.work.Configuration as WorkConfiguration
@@ -43,8 +42,6 @@ class SagerNet : Application(),
 
         application = this
     }
-
-    private val nativeInterface = NativeInterface()
 
     val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
     val process: String = JavaUtil.getProcessName()
@@ -78,7 +75,7 @@ class SagerNet : Application(),
             externalAssets.absolutePath + "/",
             DataStore.logBufSize,
             DataStore.logLevel > 0,
-            nativeInterface, nativeInterface,
+            DataStore.rulesProvider == 0,
             DataStore.enabledCazilla
         )
 

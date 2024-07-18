@@ -33,7 +33,6 @@ import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
 import io.nekohasekai.sagernet.ktx.parseProxies
-import io.nekohasekai.sagernet.ktx.socksInfo
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
 import moe.matsuri.nb4a.proxy.config.ConfigBean
@@ -66,7 +65,7 @@ object RawUpdater : GroupUpdater() {
         } else {
 
             val response = Libcore.newHttpClient().apply {
-                trySocks5(socksInfo())
+                trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
                 when (DataStore.appTLSVersion) {
                     "1.3" -> restrictedTLS()
                 }
