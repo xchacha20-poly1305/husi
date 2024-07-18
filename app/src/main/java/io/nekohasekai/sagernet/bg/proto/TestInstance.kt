@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.bg.proto
 import android.util.Log
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
-import io.nekohasekai.sagernet.bg.NativeInterface
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.ktx.Logs
@@ -48,7 +47,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
     override suspend fun loadConfig() {
         // don't call destroyAllJsi here
         if (BuildConfig.DEBUG) Logs.d(config.config)
-        box = libcore.BoxInstance(config.config, NativeInterface(), true)
+        box = libcore.BoxInstance(config.config, null, true)
     }
 
 }
