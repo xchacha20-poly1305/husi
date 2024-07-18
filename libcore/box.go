@@ -53,7 +53,10 @@ type BoxInstance struct {
 	servicePauseFields
 }
 
-func NewBoxInstance(config string, platformInterface PlatformInterface, forTest bool) (b *BoxInstance, err error) {
+// NewBoxInstance creates a new BoxInstance.
+// If platformInterface is nil, it will use test mode.
+func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxInstance, err error) {
+	forTest := platformInterface == nil
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 
 	options, err := parseConfig(config)
@@ -101,10 +104,12 @@ func NewBoxInstance(config string, platformInterface PlatformInterface, forTest 
 	}
 
 	// selector
-	if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
-		if selector, isSelector := proxy.(*outbound.Selector); isSelector {
-			b.selector = selector
-			b.selectorCallback = platformInterface.SelectorCallback
+	if !forTest {
+		if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
+			if selector, isSelector := proxy.(*outbound.Selector); isSelector {
+				b.selector = selector
+				b.selectorCallback = platformInterface.SelectorCallback
+			}
 		}
 	}
 
