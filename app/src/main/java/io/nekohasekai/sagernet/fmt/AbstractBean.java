@@ -43,10 +43,6 @@ public abstract class AbstractBean extends Serializable {
         return "tcp,udp";
     }
 
-    public boolean canBrutal() {
-        return false;
-    }
-
     public boolean canICMPing() {
         return true;
     }
