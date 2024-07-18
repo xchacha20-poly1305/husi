@@ -75,7 +75,7 @@ func main() {
 				log.Fatalln(err)
 				return
 			}
-			err = srs.Write(outputRuleSet, plainRuleSet)
+			err = srs.Write(outputRuleSet, plainRuleSet, true)
 			if err != nil {
 				_ = outputRuleSet.Close()
 				log.Fatalln(err)
@@ -116,7 +116,7 @@ func main() {
 				log.Fatalln(err)
 				return
 			}
-			err = srs.Write(outputRuleSet, plainRuleSet)
+			err = srs.Write(outputRuleSet, plainRuleSet, true)
 			if err != nil {
 				_ = outputRuleSet.Close()
 				log.Fatalln(err)
