@@ -97,11 +97,6 @@ public class SOCKSBean extends AbstractBean {
         sUoT = input.readBoolean();
     }
 
-    @Override
-    public boolean canBrutal() {
-        return true;
-    }
-
     @NotNull
     @Override
     public SOCKSBean clone() {

@@ -212,7 +212,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
             if (version >= 1) ((VMessBean) this).authenticatedLength = input.readBoolean();
         }
 
-        if (version < 2) {
+        if (version < 3) {
             int ignored = input.readInt();
             return;
         }
@@ -240,16 +240,6 @@ public abstract class StandardV2RayBean extends AbstractBean {
     @Override
     public boolean canTCPing() {
         return !type.equals("quic");
-    }
-
-    @Override
-    public boolean canBrutal() {
-        return switch (type) {
-            case "quic", "grpc" -> false;
-            // If using TLS, http will upgrade to http2, which not supports mux.
-            case "http" -> !security.equals("tls");
-            default -> true;
-        };
     }
 
 }

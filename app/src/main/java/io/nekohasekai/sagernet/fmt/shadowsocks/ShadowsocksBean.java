@@ -70,11 +70,6 @@ public class ShadowsocksBean extends AbstractBean {
         bean.sUoT = sUoT;
     }
 
-    @Override
-    public boolean canBrutal() {
-        return true;
-    }
-
     @NotNull
     @Override
     public ShadowsocksBean clone() {
