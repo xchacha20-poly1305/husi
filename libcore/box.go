@@ -8,6 +8,7 @@ import (
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	_ "github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/outbound"
@@ -63,13 +64,19 @@ func NewBoxInstance(config string, platformInterface PlatformInterface, forTest 
 	// create box
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = pause.WithDefaultManager(ctx)
-	platformWrapper := &boxPlatformInterfaceWrapper{
-		iif: platformInterface,
+	var interfaceWrapper platform.Interface
+	if forTest {
+		interfaceWrapper = platformInterfaceStub{}
+	} else {
+		interfaceWrapper = &boxPlatformInterfaceWrapper{
+			useProcFS: platformInterface.UseProcFS(),
+			iif:       platformInterface,
+		}
 	}
 	boxOption := box.Options{
 		Options:           options,
 		Context:           ctx,
-		PlatformInterface: platformWrapper,
+		PlatformInterface: interfaceWrapper,
 	}
 
 	// If set PlatformLogWrapper, box will set something about cache file,

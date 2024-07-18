@@ -21,8 +21,9 @@ import (
 )
 
 type boxPlatformInterfaceWrapper struct {
-	iif    PlatformInterface
-	router adapter.Router
+	useProcFS bool // Store iif.UseProcFS()
+	iif       PlatformInterface
+	router    adapter.Router
 }
 
 var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
@@ -139,7 +140,7 @@ func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 
 func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network string, source netip.AddrPort, destination netip.AddrPort) (*process.Info, error) {
 	var uid int32
-	if w.iif.UseProcFS() {
+	if w.useProcFS {
 		uid = procfs.ResolveSocketByProcSearch(network, source, destination)
 		if uid == -1 {
 			return nil, E.New("procfs: not found")
