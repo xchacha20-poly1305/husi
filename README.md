@@ -31,7 +31,10 @@ cd husi/
 
 Environment:
 
-* Go (should be as up-to-date as possible)
+* Go (1.22+)
+
+  If your Go version greater than 1.22.5, you should apply [this patch](./libcore/cgo_go1225.diff) to `${GOROOT}/src/runtime/cgocall.go`
+
 * Openjdk-17 (Other version is ok. But require version 17 to build the same file as action.)
 
 Run:
