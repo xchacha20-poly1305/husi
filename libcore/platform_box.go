@@ -21,7 +21,9 @@ import (
 )
 
 type boxPlatformInterfaceWrapper struct {
-	router adapter.Router
+	useProcFS bool // Store iif.UseProcFS()
+	iif       PlatformInterface
+	router    adapter.Router
 }
 
 var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
@@ -36,16 +38,14 @@ func NewWIFIState(wifiSSID string, wifiBSSID string) *WIFIState {
 }
 
 func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
-	if intfBox != nil {
-		wifiState := intfBox.ReadWIFIState()
-		if wifiState != nil {
-			return (adapter.WIFIState)(*wifiState)
-		}
+	wifiState := w.iif.ReadWIFIState()
+	if wifiState == nil {
+		return adapter.WIFIState{}
 	}
-	return adapter.WIFIState{}
+	return (adapter.WIFIState)(*wifiState)
 }
 
-func (w *boxPlatformInterfaceWrapper) Initialize(ctx context.Context, router adapter.Router) error {
+func (w *boxPlatformInterfaceWrapper) Initialize(_ context.Context, router adapter.Router) error {
 	w.router = router
 	return nil
 }
@@ -58,7 +58,7 @@ func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl() control.Func 
 	// "protect"
 	return func(network, address string, conn syscall.RawConn) error {
 		return control.Raw(conn, func(fd uintptr) error {
-			return intfBox.AutoDetectInterfaceControl(int32(fd))
+			return w.iif.AutoDetectInterfaceControl(int32(fd))
 		})
 	}
 }
@@ -72,9 +72,9 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	}
 	a, _ := json.Marshal(options)
 	b, _ := json.Marshal(platformOptions)
-	tunFd, err := intfBox.OpenTun(string(a), string(b))
+	tunFd, err := w.iif.OpenTun(string(a), string(b))
 	if err != nil {
-		return nil, E.Cause(err, "intfBox.OpenTun")
+		return nil, E.Cause(err, "iif.OpenTun")
 	}
 	// Do you want to close it?
 	tunFd, err = syscall.Dup(tunFd)
@@ -94,7 +94,7 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformDefaultInterfaceMonitor() bool 
 	return true
 }
 
-func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(l logger.Logger) tun.DefaultInterfaceMonitor {
+func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(_ logger.Logger) tun.DefaultInterfaceMonitor {
 	return &interfaceMonitor{
 		boxPlatformInterfaceWrapper: w,
 		defaultInterfaceIndex:       -1,
@@ -102,30 +102,24 @@ func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(l logger.Log
 }
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformInterfaceGetter() bool {
-	if intfBox != nil {
-		return intfBox.UsePlatformInterfaceGetter()
-	}
-	return false
+	return w.iif.UsePlatformInterfaceGetter()
 }
 
 func (w *boxPlatformInterfaceWrapper) Interfaces() ([]control.Interface, error) {
-	if intfBox != nil {
-		interfaceIterator, err := intfBox.GetInterfaces()
-		if err != nil {
-			return nil, err
-		}
-		var interfaces []control.Interface
-		for _, netInterface := range iteratorToArray[*NetworkInterface](interfaceIterator) {
-			interfaces = append(interfaces, control.Interface{
-				Index:     int(netInterface.Index),
-				MTU:       int(netInterface.MTU),
-				Name:      netInterface.Name,
-				Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
-			})
-		}
-		return interfaces, nil
+	interfaceIterator, err := w.iif.GetInterfaces()
+	if err != nil {
+		return nil, err
 	}
-	return nil, E.New("not found intfBox")
+	var interfaces []control.Interface
+	for _, netInterface := range iteratorToArray[*NetworkInterface](interfaceIterator) {
+		interfaces = append(interfaces, control.Interface{
+			Index:     int(netInterface.Index),
+			MTU:       int(netInterface.MTU),
+			Name:      netInterface.Name,
+			Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
+		})
+	}
+	return interfaces, nil
 }
 
 // Android not using
@@ -144,9 +138,9 @@ func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 
 // process.Searcher
 
-func (w *boxPlatformInterfaceWrapper) FindProcessInfo(ctx context.Context, network string, source netip.AddrPort, destination netip.AddrPort) (*process.Info, error) {
+func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network string, source netip.AddrPort, destination netip.AddrPort) (*process.Info, error) {
 	var uid int32
-	if useProcfs {
+	if w.useProcFS {
 		uid = procfs.ResolveSocketByProcSearch(network, source, destination)
 		if uid == -1 {
 			return nil, E.New("procfs: not found")
@@ -162,11 +156,11 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(ctx context.Context, netwo
 			return nil, E.New("unknown network: ", network)
 		}
 		var err error
-		uid, err = intfBox.FindConnectionOwner(ipProtocol, source.Addr().String(), int32(source.Port()), destination.Addr().String(), int32(destination.Port()))
+		uid, err = w.iif.FindConnectionOwner(ipProtocol, source.Addr().String(), int32(source.Port()), destination.Addr().String(), int32(destination.Port()))
 		if err != nil {
 			return nil, err
 		}
 	}
-	packageName, _ := intfBox.PackageNameByUid(uid)
+	packageName, _ := w.iif.PackageNameByUid(uid)
 	return &process.Info{UserId: uid, PackageName: packageName}, nil
 }

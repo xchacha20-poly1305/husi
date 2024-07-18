@@ -20,6 +20,7 @@
 package io.nekohasekai.sagernet.group
 
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
@@ -35,7 +36,6 @@ import io.nekohasekai.sagernet.ktx.filterIsInstance
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getLongOrNull
 import io.nekohasekai.sagernet.ktx.getStr
-import io.nekohasekai.sagernet.ktx.socksInfo
 import libcore.Libcore
 import libcore.URL
 import org.json.JSONObject
@@ -96,7 +96,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         }
 
         val response = Libcore.newHttpClient().apply {
-            trySocks5(socksInfo())
+            trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
             // Strict !!!
             restrictedTLS()
             if (certSha256 != null) pinnedSHA256(certSha256)

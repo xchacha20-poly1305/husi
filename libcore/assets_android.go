@@ -16,10 +16,10 @@ import (
 )
 
 // extractAssets extract assets in apk.
-func extractAssets() {
+func extractAssets(useOfficialAssets bool) {
 	deleteLocalDashboard()
 
-	if intfGUI.UseOfficialAssets() {
+	if useOfficialAssets {
 		// Prepare directory
 		targetDir := filepath.Join(externalAssetsPath, "geo")
 		_ = os.MkdirAll(targetDir, os.ModePerm)
@@ -58,7 +58,7 @@ func extractGeo(name, targetDir string) error {
 	}
 
 	_ = removeIfHasPrefix(targetDir, name+"-")
-	err = UntargzWihoutDir(tmpPackName, targetDir)
+	err = UntargzWithoutDir(tmpPackName, targetDir)
 	_ = os.Remove(tmpPackName)
 	if err != nil {
 		return E.Cause(err, "untargz ", name)
