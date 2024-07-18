@@ -6,9 +6,7 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.MuxState
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -21,7 +19,7 @@ import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV2RayBean>() {
 
-    var tmpBean: StandardV2RayBean? = null
+    private var tmpBean: StandardV2RayBean? = null
 
     private val pbm = PreferenceBindingManager()
     private val name = pbm.add(PreferenceBinding(Type.Text, "name"))
@@ -46,11 +44,15 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val utlsFingerprint = pbm.add(PreferenceBinding(Type.Text, "utlsFingerprint"))
     private val realityPubKey = pbm.add(PreferenceBinding(Type.Text, "realityPubKey"))
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
-    private val muxState = pbm.add(PreferenceBinding(Type.TextToInt, Key.MUX_STATE))
-    private val brutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val ech = pbm.add(PreferenceBinding(Type.Bool, Key.ECH))
     private val echCfg = pbm.add(PreferenceBinding(Type.Text, Key.ECH_CFG))
     private val authenticatedLength = pbm.add(PreferenceBinding(Type.Bool, Key.AUTHENTICATED_LENGTH))
+
+    private val serverMux = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX))
+    private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
+    private val serverMuxType = pbm.add(PreferenceBinding(Type.Int, Key.SERVER_MUX_TYPE))
+    private val serverMuxConcurrency = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_CONCURRENCY))
+    private val serverMuxPadding = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX_PADDING))
 
     override fun StandardV2RayBean.init() {
         if (this is TrojanBean) {
@@ -66,12 +68,12 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         pbm.fromCacheAll(this)
     }
 
-    lateinit var securityCategory: PreferenceCategory
-    lateinit var tlsCamouflageCategory: PreferenceCategory
-    lateinit var echCategory: PreferenceCategory
-    lateinit var wsCategory: PreferenceCategory
-    lateinit var muxCategory: PreferenceCategory
-    lateinit var experimentsCategory: PreferenceCategory
+    private lateinit var securityCategory: PreferenceCategory
+    private lateinit var tlsCamouflageCategory: PreferenceCategory
+    private lateinit var echCategory: PreferenceCategory
+    private lateinit var wsCategory: PreferenceCategory
+    private lateinit var muxCategory: PreferenceCategory
+    private lateinit var experimentsCategory: PreferenceCategory
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -113,7 +115,12 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         password.preference.isVisible = isHttp
         experimentsCategory.isVisible = isVmess
 
-        brutal.preference.isEnabled = muxState.toString() != MuxState.DISABLED.toString()
+        muxCategory.isVisible = when (tmpBean?.type) {
+            "quic", "grpc" -> false
+            "h2" -> tmpBean?.security != "tls"
+            else -> true
+        }
+        updateMuxState(tmpBean?.serverMux ?: false)
 
         if (tmpBean is TrojanBean) {
             uuid.preference.title = resources.getString(R.string.password)
@@ -154,13 +161,23 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             }
         }
 
-        muxState.preference.apply {
-            this as SimpleMenuPreference
+        serverMux.preference.apply {
+            this as SwitchPreference
             setOnPreferenceChangeListener {_, newValue ->
-                updateBrutal(newValue as String)
+                updateMuxState(newValue as Boolean)
                 true
             }
         }
+        serverBrutal.preference.apply {
+            this as SwitchPreference
+            setOnPreferenceChangeListener { _, newValue ->
+                serverMuxConcurrency.preference.isEnabled = !(newValue as Boolean)
+                true
+            }
+        }
+        serverMuxConcurrency.preference.isEnabled = !(tmpBean?.serverBrutal ?: false)
+        (serverMuxConcurrency.preference as EditTextPreference)
+            .setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
     private fun updateView(network: String, tls: String) {
@@ -212,14 +229,17 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         }
     }
 
-    private fun updateBrutal(muxState: String) {
-        when(muxState) {
-            MuxState.DEFAULT.toString(), MuxState.ENABLED.toString()-> {
-                brutal.preference.isEnabled = true
-            }
-            MuxState.DISABLED.toString() -> {
-                brutal.preference.isEnabled = false
-            }
+    private fun updateMuxState(enabled: Boolean) {
+        if (enabled) {
+            serverBrutal.preference.isVisible = true
+            serverMuxType.preference.isVisible = true
+            serverMuxConcurrency.preference.isVisible = true
+            serverMuxPadding.preference.isVisible = true
+        } else {
+            serverBrutal.preference.isVisible = false
+            serverMuxType.preference.isVisible = false
+            serverMuxConcurrency.preference.isVisible = false
+            serverMuxPadding.preference.isVisible = false
         }
     }
 

@@ -396,11 +396,6 @@
         <item>2</item>
     </string-array>
 
-    <string-array name="tuic_version">
-        <item>5</item>
-        <item>4</item>
-    </string-array>
-
     <string-array name="socks_versions">
         <item>SOCKS4</item>
         <item>SOCKS4A</item>
@@ -447,8 +442,6 @@
         <item>9000</item>
     </string-array>
 
-    <string-array name="mux_select_init"/>
-
     <string-array name="mux_type">
         <item>h2mux</item>
         <item>smux</item>
@@ -461,11 +454,6 @@
         <item>prefer_ipv4</item>
         <item>ipv4_only</item>
         <item>ipv6_only</item>
-    </string-array>
-
-    <string-array name="exe_prefer_provider">
-        <item>Matsuri</item>
-        <item>SagerNet</item>
     </string-array>
 
     <string-array name="app_tls_version">
@@ -546,12 +534,6 @@
     <string-array name="plugin_providers">
         <item>sing-box</item>
         <item>@string/plugin</item>
-    </string-array>
-
-    <string-array name="mux_states">
-        <item>@string/keep_default</item>
-        <item>@string/on</item>
-        <item>@string/off</item>
     </string-array>
 
     <string-array name="ntp_intervals">

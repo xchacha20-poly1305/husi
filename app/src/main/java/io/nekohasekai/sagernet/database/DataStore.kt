@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.TunImplementation
@@ -190,9 +191,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     // protocol
 
-    var muxType by configurationStore.stringToInt(Key.MUX_TYPE)
-    var muxProtocols by configurationStore.stringSet(Key.MUX_PROTOCOLS)
-    var muxConcurrency by configurationStore.stringToInt(Key.MUX_CONCURRENCY) { 8 }
     var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
     var uploadSpeed by configurationStore.stringToInt(Key.UPLOAD_SPEED) { 0 }
     var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
@@ -225,9 +223,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverCertificates by profileCacheStore.string(Key.SERVER_CERTIFICATES)
     var serverPinnedCertificateChain by profileCacheStore.string(Key.SERVER_PINNED_CERTIFICATE_CHAIN)
     var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU)
-    var serverBrutal by profileCacheStore.boolean(Key.SERVER_BRUTAL)
     var serverHeaders by profileCacheStore.string(Key.SERVER_HEADERS)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
+
+    var serverMux by profileCacheStore.boolean(Key.SERVER_MUX) { false }
+    var serverBrutal by profileCacheStore.boolean(Key.SERVER_BRUTAL) { false }
+    var serverMuxType by profileCacheStore.stringToInt(Key.SERVER_MUX_TYPE) { MuxType.H2MUX }
+    var serverMuxConcurrency by profileCacheStore.stringToInt(Key.SERVER_MUX_CONCURRENCY) { 8 }
+    var serverMuxPadding by profileCacheStore.boolean(Key.SERVER_MUX_PADDING) { false }
 
     var authenticatedLength by profileCacheStore.boolean(Key.AUTHENTICATED_LENGTH)
 

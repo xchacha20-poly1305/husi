@@ -518,7 +518,6 @@
     <string name="sekai">世界</string>
     <string name="test_timeout">测试超时 (ms)</string>
     <string name="mux_preference">多路复用设置</string>
-    <string name="mux_state">多路复用</string>
     <string name="enable_brutal">启用 TCP Brutal 拥塞控制算法</string>
     <string name="dns_mode">DNS 模式</string>
     <string name="dns_mode_leak">精准查询 （DNS 泄漏）</string>
@@ -570,4 +569,5 @@
     <string name="have_reset_network">已重置所有网络</string>
     <string name="ensure_close_all">你确定关闭 %s 个连接吗？</string>
     <string name="speed_test">速度测试</string>
+    <string name="padding">填充</string>
 </resources>

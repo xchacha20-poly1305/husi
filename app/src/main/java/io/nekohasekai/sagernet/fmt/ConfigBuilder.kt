@@ -4,7 +4,7 @@ import android.widget.Toast
 import io.nekohasekai.sagernet.DNSMode
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.MuxState
+import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.TunImplementation
@@ -33,7 +33,6 @@ import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
 import moe.matsuri.nb4a.SingBoxOptions.ClashAPIOptions
@@ -470,32 +469,18 @@ fun buildConfig(
                             currentOutbound["protect_path"] = Libcore.ProtectPath
                         }
 
-                        val useBrutal = bean.serverBrutal && bean.canBrutal()
-                        var useMux = (!muxApplied && proxyEntity.needCoreMux()) || useBrutal
-
-                        val outboundMuxState = when (bean) {
-                            is StandardV2RayBean -> bean.muxState
-                            is ShadowsocksBean -> bean.muxState
-                            else -> MuxState.DEFAULT
-                        }
-                        // prioritize profile mux state to overall setting
-                        useMux = when (outboundMuxState) {
-                            MuxState.ENABLED -> true
-                            MuxState.DISABLED -> false
-                            else -> useMux
-                        }
-
-                        if (useMux) {
+                        if (!muxApplied && proxyEntity.needCoreMux()) {
                             muxApplied = true
                             currentOutbound["multiplex"] = MultiplexOptions().apply {
                                 enabled = true
-                                padding = Protocols.shouldEnableMux("padding")
-                                protocol = when (DataStore.muxType) {
-                                    1 -> "smux"
-                                    2 -> "yamux"
-                                    else -> "h2mux"
+                                padding = bean.serverMuxPadding
+                                protocol = when (bean.serverMuxType) {
+                                    MuxType.H2MUX -> "h2mux"
+                                    MuxType.SMUX -> "smux"
+                                    MuxType.YAMUX -> "yamux"
+                                    else -> throw IllegalArgumentException()
                                 }
-                                if (useBrutal) {
+                                if (bean.serverBrutal) {
                                     max_connections = 1
                                     brutal = BrutalOptions().apply {
                                         enabled = true
@@ -503,7 +488,7 @@ fun buildConfig(
                                         down_mbps = DataStore.downloadSpeed
                                     }
                                 } else {
-                                    max_streams = DataStore.muxConcurrency
+                                    max_streams = bean.serverMuxConcurrency
                                 }
                             }.asMap()
                         }

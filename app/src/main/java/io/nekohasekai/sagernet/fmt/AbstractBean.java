@@ -13,16 +13,16 @@ public abstract class AbstractBean extends Serializable {
 
     public String serverAddress;
     public Integer serverPort;
-    public Boolean serverBrutal;
-
     public String name;
-
-    //
-
     public String customOutboundJson;
     public String customConfigJson;
 
-    //
+    public Boolean serverMux;
+    public Boolean serverBrutal;
+    public Integer serverMuxType;
+    public Integer serverMuxConcurrency;
+    public Boolean serverMuxPadding;
+
     public transient String finalAddress;
     public transient int finalPort;
     private transient boolean serializeWithoutName;
@@ -76,14 +76,19 @@ public abstract class AbstractBean extends Serializable {
 
         if (customOutboundJson == null) customOutboundJson = "";
         if (customConfigJson == null) customConfigJson = "";
+
+        if (serverMux == null) serverMux = false;
         if (serverBrutal == null) serverBrutal = false;
+        if (serverMuxType == null) serverMuxType = 0;
+        if (serverMuxConcurrency == null) serverMuxConcurrency = 8;
+        if (serverMuxPadding == null) serverMuxPadding = false;
     }
 
     @Override
     public void serializeToBuffer(@NonNull ByteBufferOutput output) {
         serialize(output);
 
-        output.writeInt(2);
+        output.writeInt(3);
         if (!serializeWithoutName) {
             output.writeString(name);
         }
@@ -91,6 +96,10 @@ public abstract class AbstractBean extends Serializable {
         output.writeString(customConfigJson);
 
         output.writeBoolean(serverBrutal);
+        output.writeBoolean(serverMux);
+        output.writeInt(serverMuxType);
+        output.writeInt(serverMuxConcurrency);
+        output.writeBoolean(serverMuxPadding);
     }
 
     @Override
@@ -104,6 +113,11 @@ public abstract class AbstractBean extends Serializable {
         customConfigJson = input.readString();
 
         if (extraVersion >= 2) serverBrutal = input.readBoolean();
+        if (extraVersion < 3) return;
+        serverMux = input.readBoolean();
+        serverMuxType = input.readInt();
+        serverMuxConcurrency = input.readInt();
+        serverMuxPadding = input.readBoolean();
     }
 
     public void serialize(ByteBufferOutput output) {

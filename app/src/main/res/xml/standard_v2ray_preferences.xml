@@ -146,17 +146,32 @@
     <PreferenceCategory
             app:key="serverMuxCategory"
             app:title="@string/mux_preference">
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
-            app:entries="@array/mux_states"
-            app:entryValues="@array/int_array_3"
-            app:key="muxState"
-            app:icon="@drawable/ic_baseline_compare_arrows_24"
-            app:title="@string/mux_state"
-            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+                app:key="serverMux"
+                app:icon="@drawable/ic_baseline_compare_arrows_24"
+                app:title="@string/enable_mux"
+                app:summary="@string/mux_sum" />
         <SwitchPreference
                 app:key="serverBrutal"
                 app:icon="@drawable/ic_baseline_bolt"
                 app:title="@string/enable_brutal" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:defaultValue="0"
+                app:entries="@array/mux_type"
+                app:entryValues="@array/int_array_3"
+                app:key="serverMuxType"
+                app:title="@string/mux_type"
+                app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+                app:defaultValue="8"
+                app:icon="@drawable/ic_baseline_low_priority_24"
+                app:key="serverMuxConcurrency"
+                app:title="@string/mux_concurrency"
+                app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+                app:key="serverMuxPadding"
+                app:icon="@drawable/baseline_developer_board_24"
+                app:title="@string/padding" />
     </PreferenceCategory>
 
     <PreferenceCategory
