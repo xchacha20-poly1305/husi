@@ -72,7 +72,7 @@
     </string>
     <string name="security_settings">Ajustes de seguridad TLS</string>
     <string name="allow_insecure">Permitir inseguro</string>
-    <string name="allow_insecure_sum">Desactiva la comprobación de certificados. Cuando está activada, esta configuración es tan segura como el texto sin formato.</string>
+    <string name="allow_insecure_sum">Desactiva la comprobación de certificados. Cuando está activada, esta configuración es tan segura como el texto sin formato</string>
     <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirecto： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
@@ -128,8 +128,8 @@
     <string name="early_data_header_name">Nombre de encabezado de datos iniciales</string>
     <string name="encryption">Cifrado</string>
     <string name="extra_headers">Encabezados adicionales</string>
-    <string name="config_type">Tipo de config.</string>
-    <string name="edit_config">Editar config.</string>
+    <string name="config_type">Tipo de configuración</string>
+    <string name="edit_config">Editar configuración</string>
     <!-- feature category -->
     <string name="ipv6">Ruta IPv6</string>
     <string name="prefer">Preferir</string>
@@ -329,7 +329,7 @@
     <string name="subscription_type">Tipo de suscripción</string>
     <string name="delete_group_prompt">¿Realmente quieres eliminar este grupo?</string>
     <string name="force_resolve">Forzar resolución</string>
-    <string name="force_resolve_sum">Resuelve todos los nombres de dominio a direcciones IP al actualizar. El host y el SNI se añadirán automáticamente si es posible.</string>
+    <string name="force_resolve_sum">Resuelve todos los nombres de dominio a direcciones IP al actualizar. El host y el SNI se añadirán automáticamente si es posible</string>
     <string name="deduplication_sum">Elimina las configuraciones duplicadas al actualizar</string>
     <string name="raw">Raw</string>
     <string name="update_settings">Ajustes de actualización</string>
@@ -416,7 +416,7 @@
     <string name="wireguard_psk">Clave precompartida de pares</string>
     <string name="cloudflare_wrap" translatable="false">Cloudflare Warp</string>
     <string name="warp_license">CloudFlare Warp es un proveedor gratuito de la VPN WireGuard. Al utilizarlo, aceptas las condiciones del servicio.</string>
-    <string name="warp_generate">Generar config.</string>
+    <string name="warp_generate">Generar configuración</string>
     <string name="generating">Generando…</string>
     <string name="tun_implementation">Implementación TUN</string>
     <string name="destination_override">Sobrescribir destino</string>
@@ -582,4 +582,5 @@
     <string name="have_reset_network">Se han restablecido todas las redes</string>
     <string name="ensure_close_all">¿Estás seguro de cerrar %s conexiones?</string>
     <string name="padding">Relleno</string>
+    <string name="custom_rule_provider">Proveedor de reglas personalizadas</string>
 </resources>
