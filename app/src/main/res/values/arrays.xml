@@ -325,12 +325,6 @@
         <item>10000</item>
     </string-array>
 
-    <string-array name="domain_strategy">
-        <item>AsIs</item>
-        <item>IPIfNonMatch</item>
-        <item>IPOnDemand</item>
-    </string-array>
-
     <string-array name="mieru_protocol">
         <item>TCP</item>
         <item>UDP</item>
@@ -363,6 +357,7 @@
         <item>@string/route_rules_official</item>
         <item>Loyalsoldier (xchacha20-poly1305/sing-geo*)</item>
         <item>Chocolate4U/Iran-sing-box-rules</item>
+        <item>@string/custom_rule_provider</item>
     </string-array>
 
     <string-array name="balancer_type">
