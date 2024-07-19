@@ -16,6 +16,7 @@ import androidx.preference.forEach
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -70,6 +71,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var profileTrafficStatistics: SwitchPreference
         lateinit var speedInterval: SimpleMenuPreference
         lateinit var showDirectSpeed: SwitchPreference
+
+        lateinit var ruleProvider: SimpleMenuPreference
+        lateinit var customRuleProvider: EditTextPreference
 
 
         preferenceManager.sharedPreferences
@@ -147,7 +151,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                         Key.BYPASS_LAN -> bypassLan = preference as SwitchPreference
                         Key.BYPASS_LAN_IN_CORE -> bypassLanInCore = preference as SwitchPreference
-                        Key.RULES_PROVIDER -> {}
+                        Key.RULES_PROVIDER -> ruleProvider = preference as SimpleMenuPreference
+                        Key.CUSTOM_RULE_PROVIDER -> {
+                            customRuleProvider = (preference as EditTextPreference).also {
+                                it.isVisible = DataStore.rulesProvider == RuleProvider.CUSTOM
+                            }
+                        }
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
@@ -263,6 +272,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         blurredAddress.isEnabled = alwaysShowAddress.isChecked
         alwaysShowAddress.setOnPreferenceChangeListener { _, newValue ->
             blurredAddress.isEnabled = newValue as Boolean
+            true
+        }
+
+        ruleProvider.setOnPreferenceChangeListener { _, newValue ->
+            customRuleProvider.isVisible = (newValue as String).toInt() == RuleProvider.CUSTOM
             true
         }
 

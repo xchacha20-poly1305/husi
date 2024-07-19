@@ -142,10 +142,16 @@
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/rules_dat_provider"
-                app:entryValues="@array/int_array_3"
+                app:entryValues="@array/int_array_4"
                 app:icon="@drawable/ic_baseline_rule_folder_24"
                 app:key="rulesProvider"
                 app:title="@string/route_rules_provider"
+                app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+                app:isPreferenceVisible="false"
+                app:icon="@drawable/ic_baseline_import_contacts_24"
+                app:key="customRuleProvider"
+                app:title="@string/custom_rule_provider"
                 app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
