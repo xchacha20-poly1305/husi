@@ -62,6 +62,7 @@ object Key {
     const val SECURITY_ADVISORY = "securityAdvisory"
     const val TCP_KEEP_ALIVE_INTERVAL = "tcpKeepAliveInterval"
     const val RULES_PROVIDER = "rulesProvider"
+    const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
     const val LOG_LEVEL = "logLevel"
     const val LOG_BUF_SIZE = "logBufSize"
     const val MTU = "mtu"
@@ -255,4 +256,11 @@ object TrafficSortMode {
     const val UPLOAD = 4
     const val DOWNLOAD = 5
     const val MATCHED_RULE = 6
+}
+
+object RuleProvider {
+    const val OFFICIAL = 0
+    const val LOYALSOLDIER = 1
+    const val CHOCOLATE4U = 2
+    const val CUSTOM = 3
 }

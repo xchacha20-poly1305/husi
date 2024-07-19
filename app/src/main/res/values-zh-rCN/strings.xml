@@ -570,4 +570,5 @@
     <string name="ensure_close_all">你确定关闭 %s 个连接吗？</string>
     <string name="speed_test">速度测试</string>
     <string name="padding">填充</string>
+    <string name="custom_rule_provider">自定义规则提供者</string>
 </resources>

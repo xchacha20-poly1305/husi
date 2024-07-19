@@ -1,15 +1,9 @@
 package moe.matsuri.nb4a.utils
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.drawable.Drawable
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SearchView
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.forEach
 import org.json.JSONArray
 import java.io.Closeable
