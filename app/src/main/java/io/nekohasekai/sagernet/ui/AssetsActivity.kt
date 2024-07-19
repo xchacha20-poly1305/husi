@@ -402,8 +402,16 @@ class AssetsActivity : ThemedActivity() {
                     }
 
                     updateProgress(25)
-                    for (file in cacheFiles) {
-                        tryOpenCompressed(file.absolutePath, geoDir.absolutePath)
+                    try {
+                        for (file in cacheFiles) {
+                            tryOpenCompressed(file.absolutePath, geoDir.absolutePath)
+                        }
+                    } catch (e: Exception) {
+                        throw e
+                    } finally {
+                        for (file in cacheFiles) {
+                            file.delete()
+                        }
                     }
 
                     updateProgress(25)
@@ -437,7 +445,6 @@ class AssetsActivity : ThemedActivity() {
 
         updating.setProgressCompat(100, true)
         onMainDispatcher {
-            updateProgress(0)
             updating.visibility = View.GONE
             adapter.reloadAssets()
         }
