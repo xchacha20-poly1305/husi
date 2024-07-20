@@ -31,6 +31,7 @@ import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter
+import kotlin.io.path.absolutePathString
 
 class AssetsActivity : ThemedActivity() {
 
@@ -269,8 +270,8 @@ class AssetsActivity : ThemedActivity() {
         override val updateAssets: ((Int) -> Unit),
         val repos: List<String>,
         val client: HTTPClient,
-        val cacheDir: File,
         val geoDir: String,
+        val unstableBranch: Boolean = false, // rule-set v2
     ) : RulesFetcher {
         override fun fetch(): Boolean {
             // Compare version
@@ -282,13 +283,14 @@ class AssetsActivity : ThemedActivity() {
                 versions.add(version)
                 if (versionFiles[i].readText() != version) {
                     shouldUpdate = true
-                    break
                 }
             }
             if (!shouldUpdate) return true
 
             // single repo
-            if (versions.size == 1) versions.add(versions[0])
+            while (versions.size == repos.size) {
+                versions.add(versions[0])
+            }
 
             // Download
             val cacheFiles = mutableListOf<File>()
@@ -329,14 +331,17 @@ class AssetsActivity : ThemedActivity() {
 
         private fun download(repo: String): File {
             // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
-            // TODO branch unstable-rule-set
+            var branchName = "rule-set"
+            if (unstableBranch && repo.endsWith("sing-geosite")) branchName += "-unstable"
             val response = client.newRequest().apply {
-                setURL("https://codeload.github.com/$repo/tar.gz/refs/heads/rule-set")
+                setURL("https://codeload.github.com/$repo/tar.gz/refs/heads/${branchName}")
             }.execute()
 
-            val cacheFile = File(cacheDir.parentFile, cacheDir.name + repo + ".tmp")
+            val cacheFile = File(
+                kotlin.io.path.createTempFile(repo.substringAfter("/"), "tmp").absolutePathString()
+            )
             cacheFile.parentFile?.mkdirs()
-            response.writeTo(cacheFile.canonicalPath)
+            response.writeTo(cacheFile.absolutePath)
             return cacheFile
         }
     }
@@ -361,24 +366,28 @@ class AssetsActivity : ThemedActivity() {
             File(filesDir, "geosite.version.txt")
         )
         val provider: RulesFetcher = if (DataStore.rulesProvider != RuleProvider.CUSTOM) {
+            var unstableBranch = false
             GithubRuleFetcher(
                 versionFileList,
                 updateProgress,
                 when (DataStore.rulesProvider) {
-                    RuleProvider.OFFICIAL -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
+                    RuleProvider.OFFICIAL -> {
+                        unstableBranch = true
+                        listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
+                    }
 
-                    RuleProvider.LOYALSOLDIER -> listOf(
-                        "xchacha20-poly1305/sing-geoip",
-                        "xchacha20-poly1305/sing-geosite",
-                    )
+                    RuleProvider.LOYALSOLDIER -> {
+                        unstableBranch = true
+                        listOf("xchacha20-poly1305/sing-geoip", "xchacha20-poly1305/sing-geosite")
+                    }
 
                     RuleProvider.CHOCOLATE4U -> listOf("Chocolate4U/Iran-sing-box-rules")
 
                     else -> error("?")
                 },
                 client,
-                filesDir,
                 geoDir.absolutePath,
+                unstableBranch,
             )
         } else {
             object : RulesFetcher {
