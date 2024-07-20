@@ -4,11 +4,12 @@ import (
 	"io"
 	stdlog "log"
 	"os"
-	"syscall"
+	"strings"
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	"golang.org/x/sys/unix"
 )
 
 func LogDebug(l string) {
@@ -27,10 +28,6 @@ func LogError(l string) {
 	log.Error(l)
 }
 
-func LogPrintln(s string) {
-	stdlog.Println(s)
-}
-
 func LogClear() {
 	platformLogWrapper.truncate()
 }
@@ -47,7 +44,7 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 	if err == nil {
 		fd := int(file.Fd())
 		if !notTruncateOnStart {
-			_ = syscall.Flock(fd, syscall.LOCK_EX)
+			_ = unix.Flock(fd, unix.LOCK_EX)
 			// Check if need truncate
 			if size, _ := file.Seek(0, io.SeekEnd); size > maxSize {
 				// read oldBytes for maxSize
@@ -62,10 +59,10 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 					}
 				}
 			}
-			_ = syscall.Flock(fd, syscall.LOCK_UN)
+			_ = unix.Flock(fd, unix.LOCK_UN)
 		}
 		// redirect stderr
-		_ = syscall.Dup3(fd, int(os.Stderr.Fd()), 0)
+		_ = unix.Dup3(fd, int(os.Stderr.Fd()), 0)
 	}
 
 	if err != nil {
@@ -95,7 +92,11 @@ func (w *logWriter) DisableColors() bool {
 }
 
 func (w *logWriter) WriteMessage(_ log.Level, message string) {
-	_, _ = io.WriteString(w.writer, message+"\n")
+	// Prevent add extra `\n`
+	if !strings.HasSuffix(message, "\n") {
+		message += "\n"
+	}
+	_, _ = io.WriteString(w.writer, message)
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -108,8 +109,8 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 	file, isFile := w.writer.(*os.File)
 	if isFile {
 		fd := int(file.Fd())
-		_ = syscall.Flock(fd, syscall.LOCK_EX)
-		defer syscall.Flock(fd, syscall.LOCK_UN)
+		_ = unix.Flock(fd, unix.LOCK_EX)
+		defer unix.Flock(fd, unix.LOCK_UN)
 	}
 	return w.writer.Write(p)
 }

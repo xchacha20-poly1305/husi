@@ -56,15 +56,13 @@ object SendLog {
         )
     }
 
+    val logFile by lazy { File(SagerNet.application.externalAssets, "stderr.log") }
+
     // Get log bytes from stderr.log
     fun getCoreLog(max: Long): ByteArray {
         return try {
-            val file = File(
-                SagerNet.application.externalAssets,
-                "stderr.log"
-            )
-            val len = file.length()
-            val stream = FileInputStream(file)
+            val len = logFile.length()
+            val stream = FileInputStream(logFile)
             if (max in 1 until len) {
                 stream.skip(len - max) // TODO string?
             }
