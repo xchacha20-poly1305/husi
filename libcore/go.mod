@@ -5,7 +5,6 @@ go 1.22
 require (
 	github.com/gofrs/uuid/v5 v5.2.0
 	github.com/miekg/dns v1.1.61
-	github.com/sagernet/fswatch v0.1.1
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.5.0-alpha.12.0.20240717075530-332e47007567
 	github.com/sagernet/sing-box v1.10.0-alpha.22
@@ -66,6 +65,7 @@ require (
 	github.com/quic-go/qtls-go1-20 v0.4.1 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1 // indirect
+	github.com/sagernet/fswatch v0.1.1 // indirect
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect

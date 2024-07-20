@@ -5,7 +5,6 @@ import (
 	stdlog "log"
 	"os"
 
-	"github.com/sagernet/fswatch"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -36,46 +35,7 @@ func LogClear() {
 	platformLogWrapper.truncate()
 }
 
-type LogUpdateCallback interface {
-	UpdateLog()
-}
-
-// SetLogCallback sets callback for log.
-// If callback not nil, it will watch log's change.
-// If callback is nil, it will close old watcher.
-func SetLogCallback(callback LogUpdateCallback) {
-	if callback == nil {
-		if logWatcher != nil {
-			err := logWatcher.Close()
-			if err != nil {
-				log.Warn(err)
-			}
-			logWatcher = nil
-		}
-		return
-	}
-
-	var err error
-	logWatcher, err = fswatch.NewWatcher(fswatch.Options{
-		Path:   []string{platformLogWrapper.path},
-		Direct: true,
-		Callback: func(_ string) {
-			callback.UpdateLog()
-		},
-	})
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	err = logWatcher.Start()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-}
-
 var platformLogWrapper *logWriter
-var logWatcher *fswatch.Watcher
 
 func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (err error) {
 	if platformLogWrapper != nil {

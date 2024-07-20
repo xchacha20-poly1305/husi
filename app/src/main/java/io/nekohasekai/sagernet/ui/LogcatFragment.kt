@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.FileObserver
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -23,16 +24,28 @@ import io.nekohasekai.sagernet.utils.SendLog
 import io.nekohasekai.sfa.utils.ColorUtils
 import io.nekohasekai.sfa.utils.ColorUtils.highlightKeyword
 import libcore.Libcore
-import libcore.LogUpdateCallback
 import moe.matsuri.nb4a.utils.setOnFocusCancel
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener,
-    LogUpdateCallback,
     SearchView.OnQueryTextListener {
 
     lateinit var binding: LayoutLogcatBinding
     private lateinit var logAdapter: LogAdapter
+
+    @Suppress("DEPRECATION") // FileObserver(File) require API 29
+    private val fileObserver = object : FileObserver(SendLog.logFile.absolutePath) {
+        override fun onEvent(event: Int, path: String?) {
+            if (event != MODIFY) return
+            runOnMainDispatcher {
+                logAdapter.logList = getLogList()
+                if (searchKeyword.isNullOrBlank()) {
+                    // May be just update one?
+                    binding.logView.scrollToPosition(logAdapter.notifyItemInserted())
+                }
+            }
+        }
+    }
 
     @SuppressLint("RestrictedApi", "WrongConstant")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -43,7 +56,6 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         toolbar.setOnMenuItemClickListener(this)
 
         binding = LayoutLogcatBinding.bind(view)
-        Libcore.setLogCallback(this)
         binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
         binding.logView.adapter = LogAdapter(getLogList()).also {
             logAdapter = it
@@ -55,6 +67,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             setOnFocusCancel()
         }
 
+        fileObserver.startWatching()
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -88,15 +101,8 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     }
 
     override fun onDestroyView() {
+        fileObserver.stopWatching()
         super.onDestroyView()
-        Libcore.setLogCallback(null)
-    }
-
-    override fun updateLog() {
-        runOnMainDispatcher {
-            logAdapter.logList = getLogList()
-            logAdapter.notifyDataSetChanged()
-        }
     }
 
     private fun getLogList(): List<String> {
@@ -133,6 +139,12 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         override fun getItemCount(): Int {
             return logList.size
+        }
+
+        fun notifyItemInserted(): Int {
+            val position = logList.size - 1
+            notifyItemInserted(position)
+            return position
         }
     }
 
