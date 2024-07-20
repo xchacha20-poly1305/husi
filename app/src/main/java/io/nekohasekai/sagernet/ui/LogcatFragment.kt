@@ -1,31 +1,46 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
+import android.os.FileObserver
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.ScrollView
-import androidx.appcompat.widget.SearchView
+import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
+import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
+import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.utils.SendLog
 import io.nekohasekai.sfa.utils.ColorUtils
-import io.nekohasekai.sfa.utils.ColorUtils.highlightKeyword
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.setOnFocusCancel
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
-    Toolbar.OnMenuItemClickListener,
-    SearchView.OnQueryTextListener {
+    Toolbar.OnMenuItemClickListener {
 
     lateinit var binding: LayoutLogcatBinding
+    private lateinit var logAdapter: LogAdapter
+
+    @Suppress("DEPRECATION") // FileObserver(File) require API 29
+    private val fileObserver = object : FileObserver(SendLog.logFile.absolutePath) {
+        override fun onEvent(event: Int, path: String?) {
+            if (event != MODIFY) return
+            runOnMainDispatcher {
+                logAdapter.logList = getLogList()
+                // May be just update one?
+                val position = logAdapter.notifyItemInserted()
+                if (!pinLog) binding.logView.scrollToPosition(position)
+            }
+        }
+    }
 
     @SuppressLint("RestrictedApi", "WrongConstant")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -36,57 +51,46 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         toolbar.setOnMenuItemClickListener(this)
 
         binding = LayoutLogcatBinding.bind(view)
-
-        if (Build.VERSION.SDK_INT >= 23) {
-            binding.textview.breakStrategy = 0 // simple
+        binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
+        binding.logView.adapter = LogAdapter(getLogList()).also {
+            logAdapter = it
         }
+        binding.logView.scrollToPosition(logAdapter.itemCount - 1)
 
-        reloadSession()
-
-        searchView = toolbar.findViewById<SearchView>(R.id.action_log_search).apply {
-            setOnQueryTextListener(this@LogcatFragment)
-            setOnFocusCancel()
-        }
+        fileObserver.startWatching()
     }
 
-    private fun reloadSession() {
-        binding.textview.text = ColorUtils.ansiEscapeToSpannable(
-            binding.root.context, String(SendLog.getCoreLog(50 * 1024))
-        ).run {
-            if (!searchKeyword.isNullOrBlank()) {
-                highlightKeyword(
-                    this,
-                    searchKeyword!!,
-                    ContextCompat.getColor(binding.root.context, R.color.material_amber_400),
-                )
-            }
-            this
-        }
-
-        binding.scroolview.post {
-            binding.scroolview.fullScroll(ScrollView.FOCUS_DOWN)
-        }
-    }
+    private var pinLog = false
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_pin_logcat -> {
+                item.isChecked = if (pinLog) {
+                    item.setIcon(R.drawable.ic_baseline_push_pin_24)
+                    pinLog = false
+                    false
+                } else {
+                    item.setIcon(R.drawable.ic_maps_360)
+                    pinLog = true
+                    true
+                }
+            }
+
             R.id.action_clear_logcat -> {
-                searchKeyword = null
+                logAdapter.logList = listOf()
+                logAdapter.notifyDataSetChanged()
+
                 runOnDefaultDispatcher {
                     try {
                         Libcore.logClear()
                         Runtime.getRuntime().exec("/system/bin/logcat -c")
                     } catch (e: Exception) {
+                        Logs.e(e) // ?
                         onMainDispatcher {
                             snackbar(e.readableMessage).show()
                         }
-                        return@runOnDefaultDispatcher
-                    }
-                    onMainDispatcher {
-                        binding.textview.text = ""
                     }
                 }
-
             }
 
             R.id.action_send_logcat -> {
@@ -95,26 +99,51 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                     SendLog.sendLog(context, "husi")
                 }
             }
-
-            R.id.action_refresh -> {
-                reloadSession()
-            }
         }
 
         return true
     }
 
-    private lateinit var searchView: SearchView
-    private var searchKeyword: String? = null
-
-    override fun onQueryTextSubmit(query: String?): Boolean {
-        searchKeyword = query
-        reloadSession()
-        return false
+    override fun onDestroyView() {
+        fileObserver.stopWatching()
+        super.onDestroyView()
     }
 
-    override fun onQueryTextChange(newText: String): Boolean {
-        return false
+    private fun getLogList(): List<String> {
+        return String(SendLog.getCoreLog(50 * 1024)).split("\n")
     }
 
+
+    inner class LogAdapter(var logList: List<String>) :
+        RecyclerView.Adapter<LogViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+            return LogViewHolder(
+                ViewLogItemBinding.inflate(
+                    LayoutInflater.from(parent.context), parent, false
+                )
+            )
+        }
+
+        override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
+            holder.bind(logList[position])
+        }
+
+        override fun getItemCount(): Int {
+            return logList.size
+        }
+
+        fun notifyItemInserted(): Int {
+            val position = logList.size - 1
+            notifyItemInserted(position)
+            return position
+        }
+    }
+
+    inner class LogViewHolder(val binding: ViewLogItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(message: String) {
+            binding.text.text = ColorUtils.ansiEscapeToSpannable(binding.root.context, message)
+        }
+    }
 }

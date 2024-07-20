@@ -4,16 +4,11 @@
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-            android:id="@+id/action_log_search"
-            android:title="@android:string/search_go"
-            app:actionViewClass="androidx.appcompat.widget.SearchView"
+            android:id="@+id/action_pin_logcat"
+            android:icon="@drawable/ic_baseline_push_pin_24"
+            android:title="@string/pin_log"
             app:showAsAction="always"
             tools:ignore="AlwaysShowAction" />
-    <item
-            android:id="@+id/action_refresh"
-            android:icon="@drawable/ic_baseline_refresh_24"
-            android:title="@string/group_update"
-            app:showAsAction="always" />
     <item
             android:id="@+id/action_send_logcat"
             android:icon="@drawable/baseline_send_24"
