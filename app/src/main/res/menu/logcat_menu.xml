@@ -6,8 +6,8 @@
     <item
             android:id="@+id/action_pin_logcat"
             android:icon="@drawable/ic_baseline_push_pin_24"
+            android:title="@string/pin_log"
             app:showAsAction="always"
-            app:title="@string/pin_log"
             tools:ignore="AlwaysShowAction" />
     <item
             android:id="@+id/action_send_logcat"

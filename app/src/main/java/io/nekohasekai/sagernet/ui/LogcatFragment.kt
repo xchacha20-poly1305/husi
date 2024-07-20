@@ -64,7 +64,17 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_pin_logcat -> pinLog = !pinLog
+            R.id.action_pin_logcat -> {
+                item.isChecked = if (pinLog) {
+                    item.setIcon(R.drawable.ic_baseline_push_pin_24)
+                    pinLog = false
+                    false
+                } else {
+                    item.setIcon(R.drawable.ic_maps_360)
+                    pinLog = true
+                    true
+                }
+            }
 
             R.id.action_clear_logcat -> {
                 logAdapter.logList = listOf()
