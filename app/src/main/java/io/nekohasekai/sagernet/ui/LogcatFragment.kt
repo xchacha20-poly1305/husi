@@ -9,6 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
+import androidx.core.text.toSpannable
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
@@ -22,9 +25,9 @@ import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.utils.SendLog
 import io.nekohasekai.sfa.utils.ColorUtils
-import io.nekohasekai.sfa.utils.ColorUtils.highlightKeyword
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.setOnFocusCancel
+import java.util.concurrent.locks.ReentrantLock
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener,
@@ -32,17 +35,20 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
     lateinit var binding: LayoutLogcatBinding
     private lateinit var logAdapter: LogAdapter
+    private val lock = ReentrantLock()
 
     @Suppress("DEPRECATION") // FileObserver(File) require API 29
     private val fileObserver = object : FileObserver(SendLog.logFile.absolutePath) {
         override fun onEvent(event: Int, path: String?) {
             if (event != MODIFY) return
             runOnMainDispatcher {
+                lock.lock()
                 logAdapter.logList = getLogList()
                 if (searchKeyword.isNullOrBlank()) {
                     // May be just update one?
                     binding.logView.scrollToPosition(logAdapter.notifyItemInserted())
                 }
+                lock.unlock()
             }
         }
     }
@@ -67,6 +73,23 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             setOnFocusCancel()
         }
 
+        binding.fabUp.setOnClickListener {
+            if (searchIndex <= 0) {
+                searchIndex = matched.size - 1 // loop back
+            } else {
+                searchIndex--
+            }
+            binding.logView.scrollToPosition(matched[searchIndex])
+        }
+        binding.fabDown.setOnClickListener {
+            if (searchIndex >= matched.size - 1) {
+                searchIndex = 0 // loop back
+            } else {
+                searchIndex++
+            }
+            binding.logView.scrollToPosition(matched[searchIndex])
+        }
+
         fileObserver.startWatching()
     }
 
@@ -74,8 +97,15 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         when (item.itemId) {
             R.id.action_clear_logcat -> {
                 searchKeyword = null
+                matched.clear()
+                searchIndex = 0
+                setFabVisibility(false)
+
+                lock.lock()
                 logAdapter.logList = listOf()
                 logAdapter.notifyDataSetChanged()
+                lock.unlock()
+
                 runOnDefaultDispatcher {
                     try {
                         Libcore.logClear()
@@ -109,12 +139,46 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         return String(SendLog.getCoreLog(50 * 1024)).split("\n")
     }
 
-    // TODO roll to position
     private lateinit var searchView: SearchView
     private var searchKeyword: String? = null
+    private var matched = mutableListOf<Int>()
+    private var searchIndex = 0
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         searchKeyword = query
+
+        matched.clear()
+        searchIndex = 0
+
+        if (!query.isNullOrBlank()) {
+            lock.lock()
+
+            // FIXME
+            for ((i, logText) in logAdapter.logList.withIndex()) {
+                if (!logText.contains(searchKeyword!!, true)) continue
+                matched.add(i)
+                val item = binding.logView.findViewHolderForAdapterPosition(i) ?: continue
+                item as LogViewHolder
+                val originText = item.binding.text.text
+                item.binding.text.text = ColorUtils.highlightKeyword(
+                    originText.toSpannable(),
+                    searchKeyword!!,
+                    ContextCompat.getColor(binding.root.context, R.color.material_amber_400),
+                )
+            }
+
+            if (matched.isNotEmpty()) {
+                setFabVisibility(true)
+                binding.logView.scrollToPosition(matched[0])
+            } else {
+                setFabVisibility(false)
+            }
+
+            lock.unlock()
+        } else {
+            setFabVisibility(false)
+        }
+
         return false
     }
 
@@ -148,16 +212,16 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
     }
 
-    inner class LogViewHolder(private val binding: ViewLogItemBinding) :
+    inner class LogViewHolder(val binding: ViewLogItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(message: String) {
-            val text = ColorUtils.ansiEscapeToSpannable(binding.root.context, message)
-            binding.text.text = if (!searchKeyword.isNullOrBlank()) {
-                highlightKeyword(text, searchKeyword!!, R.color.material_amber_400)
-            } else {
-                text
-            }
+            binding.text.text = ColorUtils.ansiEscapeToSpannable(binding.root.context, message)
         }
+    }
+
+    private fun setFabVisibility(visibility: Boolean) {
+        binding.fabUp.isVisible = visibility
+        binding.fabDown.isVisible = visibility
     }
 }
