@@ -10,11 +10,6 @@
             app:showAsAction="always"
             tools:ignore="AlwaysShowAction" />
     <item
-            android:id="@+id/action_refresh"
-            android:icon="@drawable/ic_baseline_refresh_24"
-            android:title="@string/group_update"
-            app:showAsAction="always" />
-    <item
             android:id="@+id/action_send_logcat"
             android:icon="@drawable/baseline_send_24"
             android:title="@string/logcat"
