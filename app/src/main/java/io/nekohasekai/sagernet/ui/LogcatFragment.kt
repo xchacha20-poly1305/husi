@@ -45,7 +45,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         binding = LayoutLogcatBinding.bind(view)
         Libcore.setLogCallback(this)
         binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
-        binding.logView.adapter = LogAdapter(getLogList().toMutableList()).also {
+        binding.logView.adapter = LogAdapter(getLogList()).also {
             logAdapter = it
         }
         binding.logView.scrollToPosition(logAdapter.itemCount - 1)
@@ -61,7 +61,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         when (item.itemId) {
             R.id.action_clear_logcat -> {
                 searchKeyword = null
-                logAdapter.logList.clear()
+                logAdapter.logList = listOf()
                 logAdapter.notifyDataSetChanged()
                 runOnDefaultDispatcher {
                     try {
@@ -92,12 +92,10 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         Libcore.setLogCallback(null)
     }
 
-    // FIXME not update
-    override fun updateLog(message: String) {
+    override fun updateLog() {
         runOnMainDispatcher {
-            logAdapter.logList.add(message)
+            logAdapter.logList = getLogList()
             logAdapter.notifyDataSetChanged()
-            // logAdapter.notifyItemInserted(logAdapter.logList.size - 1)
         }
     }
 
@@ -119,7 +117,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     }
 
 
-    inner class LogAdapter(val logList: MutableList<String>) :
+    inner class LogAdapter(var logList: List<String>) :
         RecyclerView.Adapter<LogViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
             return LogViewHolder(
