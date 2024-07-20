@@ -6,7 +6,6 @@ import android.graphics.Typeface
 import android.text.ParcelableSpan
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
@@ -118,21 +117,5 @@ object ColorUtils {
                 null
             }
         }
-    }
-
-    fun highlightKeyword(builder: Spannable, keyword: String, color: Int): Spannable {
-        var startIndex = builder.indexOf(keyword, ignoreCase = true)
-        while (startIndex != -1) {
-            val endIndex = startIndex + keyword.length
-            builder.setSpan(
-                BackgroundColorSpan(color),
-                startIndex,
-                endIndex,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-            )
-            startIndex = builder.indexOf(keyword, endIndex, true)
-        }
-
-        return builder
     }
 }

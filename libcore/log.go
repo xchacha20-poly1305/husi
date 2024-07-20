@@ -75,7 +75,6 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 	platformLogWrapper = &logWriter{
 		disable: !enableLog,
 		writer:  file,
-		path:    path,
 	}
 	// setup std log
 	stdlog.SetFlags(stdlog.LstdFlags | stdlog.LUTC)
@@ -89,7 +88,6 @@ var _ log.PlatformWriter = (*logWriter)(nil)
 type logWriter struct {
 	disable bool
 	writer  io.Writer
-	path    string
 }
 
 func (w *logWriter) DisableColors() bool {
