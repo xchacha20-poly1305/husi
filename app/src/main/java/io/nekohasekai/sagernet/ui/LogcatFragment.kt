@@ -36,7 +36,8 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             runOnMainDispatcher {
                 logAdapter.logList = getLogList()
                 // May be just update one?
-                binding.logView.scrollToPosition(logAdapter.notifyItemInserted())
+                val position = logAdapter.notifyItemInserted()
+                if (!pinLog) binding.logView.scrollToPosition(position)
             }
         }
     }
@@ -59,8 +60,12 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         fileObserver.startWatching()
     }
 
+    private var pinLog = false
+
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_pin_logcat -> pinLog = !pinLog
+
             R.id.action_clear_logcat -> {
                 logAdapter.logList = listOf()
                 logAdapter.notifyDataSetChanged()

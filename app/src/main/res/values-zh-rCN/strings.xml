@@ -571,4 +571,5 @@
     <string name="speed_test">速度测试</string>
     <string name="padding">填充</string>
     <string name="custom_rule_provider">自定义规则提供者</string>
+    <string name="pin_log">固定日志</string>
 </resources>
