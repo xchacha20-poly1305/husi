@@ -85,7 +85,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 alpn = bean.alpn.listByLineOrComma()
             }
             if (bean.caText.isNotBlank()) {
-                certificate = bean.caText
+                certificate = listOf(bean.caText)
             }
             if (bean.ech) {
                 val echList = bean.echCfg.split("\n")

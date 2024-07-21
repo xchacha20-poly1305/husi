@@ -510,12 +510,12 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         }
 
         "ws" -> {
-            return V2RayTransportOptions_WebsocketOptions().apply {
+            return V2RayTransportOptions_V2RayWebsocketOptions().apply {
                 type = "ws"
                 headers = mutableMapOf()
 
                 if (bean.host.isNotBlank()) {
-                    headers["Host"] = bean.host
+                    headers["Host"] = listOf(bean.host)
                 }
 
                 if (bean.path.contains("?ed=")) {
@@ -537,7 +537,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         }
 
         "http" -> {
-            return V2RayTransportOptions_HTTPOptions().apply {
+            return V2RayTransportOptions_V2RayHTTPOptions().apply {
                 type = "http"
                 if (!bean.isTLS()) method = "GET" // v2ray tcp header
                 if (bean.host.isNotBlank()) {
@@ -554,14 +554,14 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         }
 
         "grpc" -> {
-            return V2RayTransportOptions_GRPCOptions().apply {
+            return V2RayTransportOptions_V2RayGRPCOptions().apply {
                 type = "grpc"
                 service_name = bean.path
             }
         }
 
         "httpupgrade" -> {
-            return V2RayTransportOptions_HTTPUpgradeOptions().apply {
+            return V2RayTransportOptions_V2RayHTTPUpgradeOptions().apply {
                 type = "httpupgrade"
                 host = bean.host
                 path = bean.path
@@ -585,7 +585,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         insecure = bean.allowInsecure || DataStore.globalAllowInsecure
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
-        if (bean.certificates.isNotBlank()) certificate = bean.certificates
+        if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
         var fp = bean.utlsFingerprint
         if (bean.realityPubKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {

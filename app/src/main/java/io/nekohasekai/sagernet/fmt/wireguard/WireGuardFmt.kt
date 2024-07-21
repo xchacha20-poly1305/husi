@@ -26,7 +26,7 @@ fun genReserved(anyStr: String): String {
     }
 }
 
-fun buildSingBoxOutboundWireguardBean(bean: WireGuardBean): SingBoxOptions.Outbound_WireGuardOptions {
+fun buildSingBoxOutboundWireGuardBean(bean: WireGuardBean): SingBoxOptions.Outbound_WireGuardOptions {
     return SingBoxOptions.Outbound_WireGuardOptions().apply {
         type = "wireguard"
         server = bean.serverAddress
