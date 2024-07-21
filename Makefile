@@ -39,4 +39,4 @@ plugin:
 	./gradlew :plugin:$(PLUGIN):assembleFossRelease
 
 generate_option:
-	cd libcore/cmd/boxoption && go run .
+	cd ./libcore/cmd/boxoption && go run . | xclip -selection clipboard

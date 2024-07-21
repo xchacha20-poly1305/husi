@@ -33,7 +33,7 @@ func main() {
 		writer = file
 	}
 
-	var classes []string
+	classes := make([]string, 0, len(optionList))
 	for _, opt := range optionList {
 		classes = append(classes, buildClass(opt))
 	}
@@ -41,29 +41,30 @@ func main() {
 }
 
 var optionList = []any{
-	//option.Options{},
-	//option.LogOptions{},
-	//option.NTPOptions{},
+	option.Options{},
+	option.LogOptions{},
+	option.NTPOptions{},
 
 	// DNS
-	//option.DNSOptions{},
+	option.DNSOptions{},
 	option.DNSServerOptions{},
-	//option.DNSClientOptions{},
-	option.DNSRule{},
+	option.DNSClientOptions{},
+	// option.DNSRule{},
 	option.DefaultDNSRule{},
 	option.LogicalDNSRule{},
 	option.DNSFakeIPOptions{},
 
 	// Inbound
-	option.Inbound{},
-	//option.InboundOptions{},
+	//option.Inbound{},
+	option.InboundOptions{},
 	option.HTTPMixedInboundOptions{},
 	option.TunInboundOptions{},
 	option.TunPlatformOptions{},
-	option.HTTPOutboundOptions{},
+	option.HTTPProxyOptions{},
+	option.InboundTLSOptions{},
 
 	// Outbound
-	option.Outbound{},
+	//option.Outbound{},
 
 	// Experimental
 	option.ExperimentalOptions{},
@@ -75,7 +76,7 @@ var optionList = []any{
 
 	// Route
 	option.RouteOptions{},
-	option.Rule{},
+	// option.Rule{},
 	option.DefaultRule{},
 	option.LogicalRule{},
 	option.RuleSet{},
@@ -92,7 +93,7 @@ var optionList = []any{
 	option.OutboundUTLSOptions{},
 	option.OutboundRealityOptions{},
 	option.OutboundECHOptions{},
-	option.V2RayTransportOptions{},
+	//option.V2RayTransportOptions{},
 	option.V2RayHTTPOptions{},
 	option.V2RayWebsocketOptions{},
 	option.V2RayQUICOptions{},
