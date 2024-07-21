@@ -1,4 +1,4 @@
-.PHONY: update libcore apk apk_debug assets lint_go test_go plugin
+.PHONY: update libcore apk apk_debug assets lint_go test_go plugin generate_option
 
 libcore:
 	./run lib core
@@ -37,3 +37,6 @@ test_go:
 
 plugin:
 	./gradlew :plugin:$(PLUGIN):assembleFossRelease
+
+generate_option:
+	cd libcore/cmd/boxoption && go run .
