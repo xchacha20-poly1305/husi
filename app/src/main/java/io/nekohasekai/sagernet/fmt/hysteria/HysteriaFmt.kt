@@ -294,7 +294,7 @@ fun HysteriaBean.canUseSingBox(): Boolean {
 
 fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any> {
     return when (bean.protocolVersion) {
-        1 -> SingBoxOptions.Outbound_HysteriaOutboundOptions().apply {
+        1 -> SingBoxOptions.Outbound_HysteriaOptions().apply {
             type = "hysteria"
             server = bean.serverAddress
             server_port = bean.serverPorts.toIntOrNull()
@@ -336,7 +336,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
             }
         }.asMap()
 
-        2 -> SingBoxOptions.Outbound_Hysteria2OutboundOptions().apply {
+        2 -> SingBoxOptions.Outbound_Hysteria2Options().apply {
             type = "hysteria2"
             server = bean.serverAddress
             server_port = bean.serverPorts.toIntOrNull()

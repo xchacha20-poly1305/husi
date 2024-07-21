@@ -580,7 +580,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Rule_DefaultRule extends Rule {
+    public static class Rule_Default extends Rule {
 
         public List<String> inbound;
 
@@ -650,7 +650,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Rule_LogicalRule extends Rule {
+    public static class Rule_Logical extends Rule {
 
         public String mode;
 
@@ -662,7 +662,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class DNSRule_DefaultDNSRule extends DNSRule {
+    public static class DNSRule_Default extends DNSRule {
 
         public List<String> inbound;
 
@@ -744,7 +744,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class DNSRule_LogicalDNSRule extends DNSRule {
+    public static class DNSRule_Logical extends DNSRule {
 
         public String mode;
 
@@ -762,19 +762,19 @@ public class SingBoxOptions {
 
     }
 
-    public static class RuleSet_PlainRuleSet extends RuleSet {
+    public static class RuleSet_Plain extends RuleSet {
 
         public List<HeadlessRule> rules;
 
     }
 
-    public static class RuleSet_LocalRuleSet extends RuleSet {
+    public static class RuleSet_Local extends RuleSet {
 
         public String path;
 
     }
 
-    public static class RuleSet_RemoteRuleSet extends RuleSet {
+    public static class RuleSet_Remote extends RuleSet {
 
         public String url;
 
@@ -838,7 +838,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Inbound_InboundOptions extends Inbound {
+    public static class Inbound_Options extends Inbound {
 
         public Boolean sniff;
 
@@ -852,7 +852,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Inbound_HTTPMixedInboundOptions extends Inbound {
+    public static class Inbound_HTTPMixedOptions extends Inbound {
 
         // Generate note: nested type ListenOptions
         public String listen;
@@ -893,7 +893,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Inbound_TunInboundOptions extends Inbound {
+    public static class Inbound_TunOptions extends Inbound {
 
         public String interface_name;
 
@@ -997,7 +997,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Inbound_DirectInboundOptions extends Inbound {
+    public static class Inbound_DirectOptions extends Inbound {
 
         // Generate note: nested type ListenOptions
         public String listen;
@@ -1037,7 +1037,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_DirectOutboundOptions extends Outbound {
+    public static class Outbound_DirectOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1074,7 +1074,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_ShadowsocksOutboundOptions extends Outbound {
+    public static class Outbound_ShadowsocksOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1124,7 +1124,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_ShadowTLSOutboundOptions extends Outbound {
+    public static class Outbound_ShadowTLSOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1167,7 +1167,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_SelectorOutboundOptions extends Outbound {
+    public static class Outbound_SelectorOptions extends Outbound {
 
         public List<String> outbounds;
 
@@ -1178,7 +1178,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_SocksOutboundOptions extends Outbound {
+    public static class Outbound_SocksOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1224,7 +1224,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_HTTPOutboundOptions extends Outbound {
+    public static class Outbound_HTTPOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1271,7 +1271,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_SSHOutboundOptions extends Outbound {
+    public static class Outbound_SSHOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1323,7 +1323,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_TrojanOutboundOptions extends Outbound {
+    public static class Outbound_TrojanOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1370,7 +1370,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_HysteriaOutboundOptions extends Outbound {
+    public static class Outbound_HysteriaOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1431,7 +1431,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_Hysteria2OutboundOptions extends Outbound {
+    public static class Outbound_Hysteria2Options extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1482,7 +1482,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_TUICOutboundOptions extends Outbound {
+    public static class Outbound_TUICOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1537,7 +1537,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_VLESSOutboundOptions extends Outbound {
+    public static class Outbound_VLESSOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1588,7 +1588,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_VMessOutboundOptions extends Outbound {
+    public static class Outbound_VMessOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1645,7 +1645,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_WireGuardOutboundOptions extends Outbound {
+    public static class Outbound_WireGuardOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;

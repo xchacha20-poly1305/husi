@@ -3,8 +3,8 @@ package io.nekohasekai.sagernet.fmt.ssh
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
-fun buildSingBoxOutboundSSHBean(bean: SSHBean): SingBoxOptions.Outbound_SSHOutboundOptions {
-    return SingBoxOptions.Outbound_SSHOutboundOptions().apply {
+fun buildSingBoxOutboundSSHBean(bean: SSHBean): SingBoxOptions.Outbound_SSHOptions {
+    return SingBoxOptions.Outbound_SSHOptions().apply {
         type = "ssh"
         server = bean.serverAddress
         server_port = bean.serverPort

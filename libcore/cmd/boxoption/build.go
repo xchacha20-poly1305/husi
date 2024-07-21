@@ -22,8 +22,6 @@ const (
 	extendsBox = "SingBoxOption"
 )
 
-// TODO link extends
-
 func buildClass(opt any, belongs string) string {
 	value := reflect.Indirect(reflect.ValueOf(opt))
 	valueType := value.Type()
@@ -32,7 +30,7 @@ func buildClass(opt any, belongs string) string {
 
 	var fieldName string
 	if belongs != extendsBox {
-		fieldName = belongs + "_" + valueType.Name()
+		fieldName = belongs + "_" + strings.ReplaceAll(valueType.Name(), belongs, "")
 	} else {
 		fieldName = valueType.Name()
 	}

@@ -616,7 +616,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
 fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
     when (bean) {
         is HttpBean -> {
-            return Outbound_HTTPOutboundOptions().apply {
+            return Outbound_HTTPOptions().apply {
                 type = "http"
                 server = bean.serverAddress
                 server_port = bean.serverPort
@@ -627,7 +627,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
         }
 
         is VMessBean -> {
-            if (bean.isVLESS) return Outbound_VLESSOutboundOptions().apply {
+            if (bean.isVLESS) return Outbound_VLESSOptions().apply {
                 type = "vless"
                 server = bean.serverAddress
                 server_port = bean.serverPort
@@ -643,7 +643,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
                 tls = buildSingBoxOutboundTLS(bean)
                 transport = buildSingBoxOutboundStreamSettings(bean)
             }
-            return Outbound_VMessOutboundOptions().apply {
+            return Outbound_VMessOptions().apply {
                 type = "vmess"
                 server = bean.serverAddress
                 server_port = bean.serverPort
@@ -664,7 +664,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
         }
 
         is TrojanBean -> {
-            return Outbound_TrojanOutboundOptions().apply {
+            return Outbound_TrojanOptions().apply {
                 type = "trojan"
                 server = bean.serverAddress
                 server_port = bean.serverPort

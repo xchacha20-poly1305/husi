@@ -48,14 +48,15 @@ import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
 import moe.matsuri.nb4a.PREFIX_IP_DNS
-import moe.matsuri.nb4a.SingBoxOptions.DNSRule_DefaultDNSRule
-import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectInboundOptions
-import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedInboundOptions
-import moe.matsuri.nb4a.SingBoxOptions.Inbound_TunInboundOptions
+import moe.matsuri.nb4a.SingBoxOptions
+import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
+import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
+import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
+import moe.matsuri.nb4a.SingBoxOptions.Inbound_TunOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundMultiplexOptions
-import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOutboundOptions
-import moe.matsuri.nb4a.SingBoxOptions.Outbound_SocksOutboundOptions
-import moe.matsuri.nb4a.SingBoxOptions.Rule_DefaultRule
+import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
+import moe.matsuri.nb4a.SingBoxOptions.Outbound_SocksOptions
+import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
 import moe.matsuri.nb4a.SingBoxOptions.V2RayAPIOptions
 import moe.matsuri.nb4a.SingBoxOptions.V2RayStatsServiceOptions
 import moe.matsuri.nb4a.checkEmpty
@@ -180,7 +181,7 @@ fun buildConfig(
             rule.outbound.takeIf { it > 0 && it != proxy.id }
         }.toHashSet().toList()).associateBy { it.id }
     val buildSelector = !forTest && group?.isSelector == true && !forExport
-    val userDNSRuleList = mutableListOf<DNSRule_DefaultDNSRule>()
+    val userDNSRuleList = mutableListOf<DNSRule_Default>()
     val domainListDNSDirectForce = mutableListOf<String>()
     val bypassDNSBeans = hashSetOf<AbstractBean>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
@@ -279,7 +280,7 @@ fun buildConfig(
         inbounds = mutableListOf()
 
         if (!forTest) {
-            if (isVPN) inbounds.add(Inbound_TunInboundOptions().apply {
+            if (isVPN) inbounds.add(Inbound_TunOptions().apply {
                 type = "tun"
                 tag = TAG_TUN
                 stack = when (DataStore.tunImplementation) {
@@ -309,7 +310,7 @@ fun buildConfig(
                     }
                 }
             })
-            inbounds.add(Inbound_HTTPMixedInboundOptions().apply {
+            inbounds.add(Inbound_HTTPMixedOptions().apply {
                 type = "mixed"
                 tag = TAG_MIXED
                 listen = bind
@@ -400,7 +401,7 @@ fun buildConfig(
                 if (index > 0) {
                     // chain route/proxy rules
                     if (pastEntity!!.needExternal()) {
-                        route.rules.add(Rule_DefaultRule().apply {
+                        route.rules.add(Rule_Default().apply {
                             inbound = listOf(pastInboundTag)
                             outbound = tagOut
                         })
@@ -424,7 +425,7 @@ fun buildConfig(
                 if (proxyEntity.needExternal()) { // externel outbound
                     val localPort = mkPort()
                     externalChainMap[localPort] = proxyEntity
-                    currentOutbound = Outbound_SocksOutboundOptions().apply {
+                    currentOutbound = Outbound_SocksOptions().apply {
                         type = "socks"
                         server = LOCALHOST4
                         server_port = localPort
@@ -533,7 +534,7 @@ fun buildConfig(
                     bean.finalAddress = LOCALHOST4
                     bean.finalPort = mappingPort
 
-                    inbounds.add(Inbound_DirectInboundOptions().apply {
+                    inbounds.add(Inbound_DirectOptions().apply {
                         type = "direct"
                         listen = LOCALHOST4
                         listen_port = mappingPort
@@ -546,7 +547,7 @@ fun buildConfig(
 
                         // no chain rule and not outbound, so need to set to direct
                         if (index == profileList.lastIndex) {
-                            route.rules.add(Rule_DefaultRule().apply {
+                            route.rules.add(Rule_Default().apply {
                                 inbound = listOf(tag)
                                 outbound = TAG_DIRECT
                             })
@@ -570,7 +571,7 @@ fun buildConfig(
             list?.forEach {
                 tagMap[it.id] = buildChain(it.id, it)
             }
-            outbounds.add(0, Outbound_SelectorOutboundOptions().apply {
+            outbounds.add(0, Outbound_SelectorOptions().apply {
                 type = "selector"
                 tag = TAG_PROXY
                 default_ = tagMap[proxy.id]
@@ -600,7 +601,7 @@ fun buildConfig(
                 PackageCache[it]?.takeIf { uid -> uid >= 1000 }
             }.toHashSet().filterNotNull()
 
-            val ruleObj = Rule_DefaultRule().apply {
+            val ruleObj = Rule_Default().apply {
                 if (uidList.isNotEmpty()) {
                     PackageCache.awaitLoadSync()
                     user_id = uidList
@@ -656,8 +657,8 @@ fun buildConfig(
                     wifi_bssid = rule.bssid.listByLineOrComma()
                 }
 
-                fun makeDnsRuleObj(): DNSRule_DefaultDNSRule {
-                    return DNSRule_DefaultDNSRule().apply {
+                fun makeDnsRuleObj(): DNSRule_Default {
+                    return DNSRule_Default().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
                         makeSingBoxRule(
                             domainList,
@@ -733,7 +734,7 @@ fun buildConfig(
         }.asMap())
 
         if (!forTest) {
-            inbounds.add(0, Inbound_DirectInboundOptions().apply {
+            inbounds.add(0, Inbound_DirectOptions().apply {
                 type = "direct"
                 tag = TAG_DNS_IN
                 listen = bind
@@ -844,22 +845,22 @@ fun buildConfig(
             dns.rules = listOf()
         } else {
             // built-in DNS rules
-            route.rules.add(0, Rule_DefaultRule().apply {
+            route.rules.add(0, Rule_Default().apply {
                 inbound = listOf(TAG_DNS_IN)
                 outbound = TAG_DNS_OUT
             })
-            route.rules.add(0, Rule_DefaultRule().apply {
+            route.rules.add(0, Rule_Default().apply {
                 port = listOf(53)
                 outbound = TAG_DNS_OUT
             })
             if (DataStore.bypassLanInCore) {
-                route.rules.add(Rule_DefaultRule().apply {
+                route.rules.add(Rule_Default().apply {
                     outbound = TAG_DIRECT
                     ip_is_private = true
                 })
             }
             // block mcast
-            route.rules.add(Rule_DefaultRule().apply {
+            route.rules.add(Rule_Default().apply {
                 ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 outbound = TAG_BLOCK
@@ -875,7 +876,7 @@ fun buildConfig(
                     address = "fakeip"
                     tag = "dns-fake"
                 })
-                dns.rules.add(DNSRule_DefaultDNSRule().apply {
+                dns.rules.add(DNSRule_Default().apply {
                     inbound = listOf(TAG_TUN)
                     server = TAG_DNS_FAKE
                     disable_cache = true
@@ -884,7 +885,7 @@ fun buildConfig(
             }
             // force bypass (always top DNS rule)
             if (domainListDNSDirectForce.isNotEmpty()) {
-                dns.rules.add(0, DNSRule_DefaultDNSRule().apply {
+                dns.rules.add(0, DNSRule_Default().apply {
                     makeSingBoxRule(
                         domainListDNSDirectForce.toHashSet().toList(),
                         listOf(),

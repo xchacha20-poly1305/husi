@@ -45,8 +45,8 @@ fun SOCKSBean.toUri(): String {
 
 }
 
-fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SocksOutboundOptions {
-    return SingBoxOptions.Outbound_SocksOutboundOptions().apply {
+fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SocksOptions {
+    return SingBoxOptions.Outbound_SocksOptions().apply {
         type = "socks"
         server = bean.serverAddress
         server_port = bean.serverPort

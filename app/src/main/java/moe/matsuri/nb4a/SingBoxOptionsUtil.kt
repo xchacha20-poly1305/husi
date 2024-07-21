@@ -33,7 +33,7 @@ const val IP_PRIVATE = "private"
 // Starts with it will apply this IP rule for DNS.
 const val PREFIX_IP_DNS = "dns:"
 
-fun SingBoxOptions.DNSRule_DefaultDNSRule.makeSingBoxRule(
+fun SingBoxOptions.DNSRule_Default.makeSingBoxRule(
     domainList: List<String>,
     ruleSetList: List<String>,
     dnsMode: Int = DNSMode.RAW,
@@ -101,7 +101,7 @@ fun SingBoxOptions.DNSRule_DefaultDNSRule.makeSingBoxRule(
     if (wifi_bssid?.isEmpty() == true) wifi_bssid = null
 }
 
-fun SingBoxOptions.DNSRule_DefaultDNSRule.checkEmpty(): Boolean {
+fun SingBoxOptions.DNSRule_Default.checkEmpty(): Boolean {
     if (ip_is_private == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (domain?.isNotEmpty() == true) return false
@@ -114,7 +114,7 @@ fun SingBoxOptions.DNSRule_DefaultDNSRule.checkEmpty(): Boolean {
     return true
 }
 
-fun SingBoxOptions.Rule_DefaultRule.makeSingBoxRule(rules: List<String>, isIP: Boolean) {
+fun SingBoxOptions.Rule_Default.makeSingBoxRule(rules: List<String>, isIP: Boolean) {
     if (isIP) {
         ip_cidr = mutableListOf<String>()
     } else {
@@ -163,7 +163,7 @@ fun SingBoxOptions.Rule_DefaultRule.makeSingBoxRule(rules: List<String>, isIP: B
     if (ip_is_private == false) ip_is_private = null
 }
 
-fun SingBoxOptions.Rule_DefaultRule.checkEmpty(): Boolean {
+fun SingBoxOptions.Rule_Default.checkEmpty(): Boolean {
     if (ip_cidr?.isNotEmpty() == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (ip_is_private == true) return false
@@ -186,7 +186,7 @@ fun SingBoxOptions.RouteOptions.makeSingBoxRuleSet(names: List<String>, geoPath:
     if (rule_set == null) rule_set = mutableListOf<SingBoxOptions.RuleSet>()
     for (name in names) {
         val newName = name.removePrefix(PREFIX_IP_DNS)
-        rule_set.plusAssign(SingBoxOptions.RuleSet_LocalRuleSet().apply {
+        rule_set.plusAssign(SingBoxOptions.RuleSet_Local().apply {
             tag = newName
             type = "local"
             format = "binary"

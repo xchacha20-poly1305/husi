@@ -62,8 +62,8 @@ fun TuicBean.toUri(): String {
     return builder.string
 }
 
-fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOutboundOptions {
-    return SingBoxOptions.Outbound_TUICOutboundOptions().apply {
+fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOptions {
+    return SingBoxOptions.Outbound_TUICOptions().apply {
         type = "tuic"
         server = bean.serverAddress
         server_port = bean.serverPort
