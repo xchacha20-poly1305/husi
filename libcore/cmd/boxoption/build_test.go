@@ -7,5 +7,5 @@ import (
 )
 
 func TestBuildClass(t *testing.T) {
-	t.Log(buildClass(option.ClashAPIOptions{}))
+	t.Log(buildClass(option.ClashAPIOptions{}, extendsBox))
 }
