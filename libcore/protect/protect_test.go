@@ -66,5 +66,4 @@ func TestProtect(t *testing.T) {
 			return
 		}
 	}
-
 }

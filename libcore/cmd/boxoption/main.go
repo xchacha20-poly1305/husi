@@ -55,7 +55,7 @@ var optionList = []any{
 	option.DNSFakeIPOptions{},
 
 	// Inbound
-	//option.Inbound{},
+	// option.Inbound{},
 	option.InboundOptions{},
 	option.HTTPMixedInboundOptions{},
 	option.TunInboundOptions{},
@@ -64,7 +64,7 @@ var optionList = []any{
 	option.InboundTLSOptions{},
 
 	// Outbound
-	//option.Outbound{},
+	// option.Outbound{},
 
 	// Experimental
 	option.ExperimentalOptions{},
@@ -93,7 +93,7 @@ var optionList = []any{
 	option.OutboundUTLSOptions{},
 	option.OutboundRealityOptions{},
 	option.OutboundECHOptions{},
-	//option.V2RayTransportOptions{},
+	// option.V2RayTransportOptions{},
 	option.V2RayHTTPOptions{},
 	option.V2RayWebsocketOptions{},
 	option.V2RayQUICOptions{},

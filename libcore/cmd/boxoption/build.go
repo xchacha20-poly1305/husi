@@ -110,7 +110,7 @@ func getTypeName(valueType reflect.Type) string {
 	case reflect.Map:
 		return "Map<" + getTypeName(valueType.Key()) + ", " + getTypeName(valueType.Elem()) + ">"
 	case reflect.Struct:
-        valueName := valueType.Name()
+		valueName := valueType.Name()
 		if valueName == "ListenAddress" || valueName == "AddrPrefix" || valueName == "Prefix" {
 			return javaString
 		}
