@@ -10,9 +10,8 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
-	"libcore/protect"
-
 	"github.com/xchacha20-poly1305/libping"
+	"libcore/protect"
 )
 
 func init() {

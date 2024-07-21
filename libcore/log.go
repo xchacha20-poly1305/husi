@@ -9,6 +9,7 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+
 	"golang.org/x/sys/unix"
 )
 

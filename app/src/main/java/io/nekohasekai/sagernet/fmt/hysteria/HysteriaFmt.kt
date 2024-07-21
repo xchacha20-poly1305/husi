@@ -19,9 +19,7 @@ fun parseHysteria1(link: String): HysteriaBean {
         serverPorts = url.ports
         name = url.fragment
 
-        url.queryParameterNotBlank("peer").also {
-            sni = it
-        }
+        sni = url.queryParameterNotBlank("peer")
         url.queryParameterNotBlank("auth").takeIf { it.isNotBlank() }.also {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
@@ -29,22 +27,14 @@ fun parseHysteria1(link: String): HysteriaBean {
         url.queryParameterNotBlank("insecure").also {
             allowInsecure = it == "1" || it == "true"
         }
-        url.queryParameterNotBlank("alpn").also {
-            alpn = it
-        }
-        url.queryParameterNotBlank("obfsParam").also {
-            obfuscation = it
-        }
-        url.queryParameterNotBlank("protocol")?.also {
-            when (it) {
-                "faketcp" -> {
-                    protocol = HysteriaBean.PROTOCOL_FAKETCP
-                }
+        alpn = url.queryParameterNotBlank("alpn")
+        obfuscation = url.queryParameterNotBlank("obfsParam")
+        protocol = when (url.queryParameterNotBlank("protocol")) {
+            "faketcp" -> HysteriaBean.PROTOCOL_FAKETCP
 
-                "wechat-video" -> {
-                    protocol = HysteriaBean.PROTOCOL_WECHAT_VIDEO
-                }
-            }
+            "wechat-video" -> HysteriaBean.PROTOCOL_WECHAT_VIDEO
+
+            else -> HysteriaBean.PROTOCOL_UDP
         }
     }
 }
@@ -57,10 +47,11 @@ fun parseHysteria2(link: String): HysteriaBean {
         serverAddress = url.host
         serverPorts = url.ports
 
-        var ps:String? = null
+        var ps: String? = null
         try {
             ps = url.password
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
         authPayload = if (ps.isNullOrBlank()) {
             url.username
         } else {
@@ -69,15 +60,11 @@ fun parseHysteria2(link: String): HysteriaBean {
 
         name = url.fragment
 
-        url.queryParameterNotBlank("sni").also {
-            sni = it
-        }
+        sni = url.queryParameterNotBlank("sni")
         url.queryParameterNotBlank("insecure").also {
             allowInsecure = it == "1" || it == "true"
         }
-        url.queryParameterNotBlank("obfs-password").also {
-            obfuscation = it
-        }
+        obfuscation = url.queryParameterNotBlank("obfs-password")
         url.queryParameterNotBlank("pinSHA256").also {
             // TODO your box do not support it
         }
@@ -86,10 +73,12 @@ fun parseHysteria2(link: String): HysteriaBean {
 
 fun HysteriaBean.toUri(): String {
     //
-    val url = Libcore.newURL(when(protocolVersion) {
-        2 -> "hysteria2"
-        else -> "hysteria"
-    }).apply {
+    val url = Libcore.newURL(
+        when (protocolVersion) {
+            2 -> "hysteria2"
+            else -> "hysteria"
+        }
+    ).apply {
         host = serverAddress
         ports = serverPorts
         username = authPayload
@@ -235,11 +224,11 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
             put("lazy", true)
 
             put("quic", JSONObject().apply {
-                    put("sockopts", JSONObject().apply {
-                            put("fdControlUnixSocket", Libcore.ProtectPath)
-                        }
-                    )
+                put("sockopts", JSONObject().apply {
+                    put("fdControlUnixSocket", Libcore.ProtectPath)
                 }
+                )
+            }
             )
 
             put(
@@ -331,7 +320,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                     alpn = bean.alpn.listByLineOrComma()
                 }
                 if (bean.caText.isNotBlank()) {
-                    certificate = bean.caText
+                    certificate = listOf(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")
@@ -373,7 +362,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                 }
                 alpn = listOf("h3")
                 if (bean.caText.isNotBlank()) {
-                    certificate = bean.caText
+                    certificate = listOf(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")

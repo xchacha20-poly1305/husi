@@ -14,7 +14,7 @@ fun buildSingBoxOutboundSSHBean(bean: SSHBean): SingBoxOptions.Outbound_SSHOptio
         }
         when (bean.authType) {
             SSHBean.AUTH_TYPE_PRIVATE_KEY -> {
-                private_key = bean.privateKey
+                private_key = listOf(bean.privateKey)
                 private_key_passphrase = bean.privateKeyPassphrase
             }
 
