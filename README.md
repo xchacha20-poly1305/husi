@@ -54,7 +54,7 @@ If you don't want to build it, you can download then in [actions](https://github
 Environment:
 
 * jdk-17-openjdk
-* ndk 26.3.11579264
+* ndk 27.0.12077973
 
 If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script `buildScript/init/env_ndk.sh`:
 
