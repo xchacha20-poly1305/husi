@@ -62,8 +62,8 @@ fun TuicBean.toUri(): String {
     return builder.string
 }
 
-fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOptions {
-    return SingBoxOptions.Outbound_TUICOptions().apply {
+fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOutboundOptions {
+    return SingBoxOptions.Outbound_TUICOutboundOptions().apply {
         type = "tuic"
         server = bean.serverAddress
         server_port = bean.serverPort
@@ -85,7 +85,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 alpn = bean.alpn.listByLineOrComma()
             }
             if (bean.caText.isNotBlank()) {
-                certificate = bean.caText
+                certificate = listOf(bean.caText)
             }
             if (bean.ech) {
                 val echList = bean.echCfg.split("\n")

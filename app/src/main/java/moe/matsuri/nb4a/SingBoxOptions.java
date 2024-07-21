@@ -41,6 +41,7 @@ public class SingBoxOptions {
     }
 
     // Classes have optional field
+    // Generated in line 164
 
     public static class Inbound extends SingBoxOption {
 
@@ -198,7 +199,7 @@ public class SingBoxOptions {
 
         public Boolean enabled;
 
-        public Long interval;
+        public String interval;
 
         public Boolean write_to_system;
 
@@ -222,7 +223,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -232,7 +233,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
     }
 
@@ -272,7 +273,7 @@ public class SingBoxOptions {
 
         public String address_strategy;
 
-        public Long address_fallback_delay;
+        public String address_fallback_delay;
 
         public String strategy;
 
@@ -296,106 +297,6 @@ public class SingBoxOptions {
 
     }
 
-    public static class DefaultDNSRule extends SingBoxOption {
-
-        public List<String> inbound;
-
-        public Integer ip_version;
-
-        public List<Integer> query_type;
-
-        public List<String> network;
-
-        public List<String> auth_user;
-
-        public List<String> protocol;
-
-        public List<String> domain;
-
-        public List<String> domain_suffix;
-
-        public List<String> domain_keyword;
-
-        public List<String> domain_regex;
-
-        public List<String> geosite;
-
-        public List<String> source_geoip;
-
-        public List<String> geoip;
-
-        public List<String> ip_cidr;
-
-        public Boolean ip_is_private;
-
-        public List<String> source_ip_cidr;
-
-        public Boolean source_ip_is_private;
-
-        public List<Integer> source_port;
-
-        public List<String> source_port_range;
-
-        public List<Integer> port;
-
-        public List<String> port_range;
-
-        public List<String> process_name;
-
-        public List<String> process_path;
-
-        public List<String> package_name;
-
-        public List<String> user;
-
-        public List<Integer> user_id;
-
-        public List<String> outbound;
-
-        public String clash_mode;
-
-        public List<String> wifi_ssid;
-
-        public List<String> wifi_bssid;
-
-        public List<String> rule_set;
-
-        public Boolean rule_set_ip_cidr_match_source;
-
-        public Boolean rule_set_ip_cidr_accept_empty;
-
-        public Boolean invert;
-
-        public String server;
-
-        public Boolean disable_cache;
-
-        public Integer rewrite_ttl;
-
-        public String client_subnet;
-
-        public Boolean rule_set_ipcidr_match_source;
-
-    }
-
-    public static class LogicalDNSRule extends SingBoxOption {
-
-        public String mode;
-
-        public List<DNSRule> rules;
-
-        public Boolean invert;
-
-        public String server;
-
-        public Boolean disable_cache;
-
-        public Integer rewrite_ttl;
-
-        public String client_subnet;
-
-    }
-
     public static class DNSFakeIPOptions extends SingBoxOption {
 
         public Boolean enabled;
@@ -403,197 +304,6 @@ public class SingBoxOptions {
         public String inet4_range;
 
         public String inet6_range;
-
-    }
-
-    public static class InboundOptions extends SingBoxOption {
-
-        public Boolean sniff;
-
-        public Boolean sniff_override_destination;
-
-        public Long sniff_timeout;
-
-        public String domain_strategy;
-
-        public Boolean udp_disable_domain_unmapping;
-
-    }
-
-    public static class HTTPMixedInboundOptions extends SingBoxOption {
-
-        // Generate note: nested type ListenOptions
-        public String listen;
-
-        public Integer listen_port;
-
-        public Boolean tcp_fast_open;
-
-        public Boolean tcp_multi_path;
-
-        public Boolean udp_fragment;
-
-        public Long udp_timeout;
-
-        public Boolean proxy_protocol;
-
-        public Boolean proxy_protocol_accept_no_header;
-
-        public String detour;
-
-        // Generate note: nested type InboundOptions
-        public Boolean sniff;
-
-        public Boolean sniff_override_destination;
-
-        public Long sniff_timeout;
-
-        public String domain_strategy;
-
-        public Boolean udp_disable_domain_unmapping;
-
-        public List<User> users;
-
-        public Boolean set_system_proxy;
-
-        // Generate note: nested type InboundTLSOptionsContainer
-        public InboundTLSOptions tls;
-
-    }
-
-    public static class TunInboundOptions extends SingBoxOption {
-
-        public String interface_name;
-
-        public Integer mtu;
-
-        public Boolean gso;
-
-        public List<String> address;
-
-        public Boolean auto_route;
-
-        public Integer iproute2_table_index;
-
-        public Integer iproute2_rule_index;
-
-        public Boolean auto_redirect;
-
-        public Integer auto_redirect_input_mark;
-
-        public Integer auto_redirect_output_mark;
-
-        public Boolean strict_route;
-
-        public List<String> route_address;
-
-        public List<String> route_address_set;
-
-        public List<String> route_exclude_address;
-
-        public List<String> route_exclude_address_set;
-
-        public List<String> include_interface;
-
-        public List<String> exclude_interface;
-
-        public List<Integer> include_uid;
-
-        public List<String> include_uid_range;
-
-        public List<Integer> exclude_uid;
-
-        public List<String> exclude_uid_range;
-
-        public List<Integer> include_android_user;
-
-        public List<String> include_package;
-
-        public List<String> exclude_package;
-
-        public Boolean endpoint_independent_nat;
-
-        public Long udp_timeout;
-
-        public String stack;
-
-        public TunPlatformOptions platform;
-
-        // Generate note: nested type InboundOptions
-        public Boolean sniff;
-
-        public Boolean sniff_override_destination;
-
-        public Long sniff_timeout;
-
-        public String domain_strategy;
-
-        public Boolean udp_disable_domain_unmapping;
-
-        public List<String> inet4_address;
-
-        public List<String> inet6_address;
-
-        public List<String> inet4_route_address;
-
-        public List<String> inet6_route_address;
-
-        public List<String> inet4_route_exclude_address;
-
-        public List<String> inet6_route_exclude_address;
-
-    }
-
-    public static class TunPlatformOptions extends SingBoxOption {
-
-        public HTTPProxyOptions http_proxy;
-
-    }
-
-    public static class HTTPProxyOptions extends SingBoxOption {
-
-        public Boolean enabled;
-
-        // Generate note: nested type ServerOptions
-        public String server;
-
-        public Integer server_port;
-
-        public List<String> bypass_domain;
-
-        public List<String> match_domain;
-
-    }
-
-    public static class InboundTLSOptions extends SingBoxOption {
-
-        public Boolean enabled;
-
-        public String server_name;
-
-        public Boolean insecure;
-
-        public List<String> alpn;
-
-        public String min_version;
-
-        public String max_version;
-
-        public List<String> cipher_suites;
-
-        public List<String> certificate;
-
-        public String certificate_path;
-
-        public List<String> key;
-
-        public String key_path;
-
-//        public InboundACMEOptions acme;
-
-//        public InboundECHOptions ech;
-
-//        public InboundRealityOptions reality;
 
     }
 
@@ -621,7 +331,7 @@ public class SingBoxOptions {
 
         public Boolean store_rdrc;
 
-        public Long rdrc_timeout;
+        public String rdrc_timeout;
 
     }
 
@@ -716,88 +426,6 @@ public class SingBoxOptions {
 
     }
 
-    public static class DefaultRule extends SingBoxOption {
-
-        public List<String> inbound;
-
-        public Integer ip_version;
-
-        public List<String> network;
-
-        public List<String> auth_user;
-
-        public List<String> protocol;
-
-        public List<String> domain;
-
-        public List<String> domain_suffix;
-
-        public List<String> domain_keyword;
-
-        public List<String> domain_regex;
-
-        public List<String> geosite;
-
-        public List<String> source_geoip;
-
-        public List<String> geoip;
-
-        public List<String> source_ip_cidr;
-
-        public Boolean source_ip_is_private;
-
-        public List<String> ip_cidr;
-
-        public Boolean ip_is_private;
-
-        public List<Integer> source_port;
-
-        public List<String> source_port_range;
-
-        public List<Integer> port;
-
-        public List<String> port_range;
-
-        public List<String> process_name;
-
-        public List<String> process_path;
-
-        public List<String> package_name;
-
-        public List<String> user;
-
-        public List<Integer> user_id;
-
-        public String clash_mode;
-
-        public List<String> wifi_ssid;
-
-        public List<String> wifi_bssid;
-
-        public List<String> rule_set;
-
-        public Boolean rule_set_ip_cidr_match_source;
-
-        public Boolean invert;
-
-        public String outbound;
-
-        public Boolean rule_set_ipcidr_match_source;
-
-    }
-
-    public static class LogicalRule extends SingBoxOption {
-
-        public String mode;
-
-        public List<Rule> rules;
-
-        public Boolean invert;
-
-        public String outbound;
-
-    }
-
     public static class RuleSet extends SingBoxOption {
 
         public String type;
@@ -805,28 +433,6 @@ public class SingBoxOptions {
         public String tag;
 
         public String format;
-
-    }
-
-    public static class PlainRuleSet extends SingBoxOption {
-
-        public List<HeadlessRule> rules;
-
-    }
-
-    public static class LocalRuleSet extends SingBoxOption {
-
-        public String path;
-
-    }
-
-    public static class RemoteRuleSet extends SingBoxOption {
-
-        public String url;
-
-        public String download_detour;
-
-        public Long update_interval;
 
     }
 
@@ -934,7 +540,251 @@ public class SingBoxOptions {
 
     }
 
-    public static class V2RayHTTPOptions extends SingBoxOption {
+    public static class InboundTLSOptions extends SingBoxOption {
+
+        public Boolean enabled;
+
+        public String server_name;
+
+        public Boolean insecure;
+
+        public List<String> alpn;
+
+        public String min_version;
+
+        public String max_version;
+
+        public List<String> cipher_suites;
+
+        public List<String> certificate;
+
+        public String certificate_path;
+
+        public List<String> key;
+
+        public String key_path;
+
+//        public InboundACMEOptions acme;
+
+//        public InboundECHOptions ech;
+
+//        public InboundRealityOptions reality;
+
+    }
+
+    public static class Hysteria2Obfs extends SingBoxOption {
+
+        public String type;
+
+        public String password;
+
+    }
+
+    public static class Rule_DefaultRule extends Rule {
+
+        public List<String> inbound;
+
+        public Integer ip_version;
+
+        public List<String> network;
+
+        public List<String> auth_user;
+
+        public List<String> protocol;
+
+        public List<String> domain;
+
+        public List<String> domain_suffix;
+
+        public List<String> domain_keyword;
+
+        public List<String> domain_regex;
+
+        public List<String> geosite;
+
+        public List<String> source_geoip;
+
+        public List<String> geoip;
+
+        public List<String> source_ip_cidr;
+
+        public Boolean source_ip_is_private;
+
+        public List<String> ip_cidr;
+
+        public Boolean ip_is_private;
+
+        public List<Integer> source_port;
+
+        public List<String> source_port_range;
+
+        public List<Integer> port;
+
+        public List<String> port_range;
+
+        public List<String> process_name;
+
+        public List<String> process_path;
+
+        public List<String> package_name;
+
+        public List<String> user;
+
+        public List<Integer> user_id;
+
+        public String clash_mode;
+
+        public List<String> wifi_ssid;
+
+        public List<String> wifi_bssid;
+
+        public List<String> rule_set;
+
+        public Boolean rule_set_ip_cidr_match_source;
+
+        public Boolean invert;
+
+        public String outbound;
+
+        public Boolean rule_set_ipcidr_match_source;
+
+    }
+
+    public static class Rule_LogicalRule extends Rule {
+
+        public String mode;
+
+        public List<Rule> rules;
+
+        public Boolean invert;
+
+        public String outbound;
+
+    }
+
+    public static class DNSRule_DefaultDNSRule extends DNSRule {
+
+        public List<String> inbound;
+
+        public Integer ip_version;
+
+        public List<String> query_type;
+
+        public List<String> network;
+
+        public List<String> auth_user;
+
+        public List<String> protocol;
+
+        public List<String> domain;
+
+        public List<String> domain_suffix;
+
+        public List<String> domain_keyword;
+
+        public List<String> domain_regex;
+
+        public List<String> geosite;
+
+        public List<String> source_geoip;
+
+        public List<String> geoip;
+
+        public List<String> ip_cidr;
+
+        public Boolean ip_is_private;
+
+        public List<String> source_ip_cidr;
+
+        public Boolean source_ip_is_private;
+
+        public List<Integer> source_port;
+
+        public List<String> source_port_range;
+
+        public List<Integer> port;
+
+        public List<String> port_range;
+
+        public List<String> process_name;
+
+        public List<String> process_path;
+
+        public List<String> package_name;
+
+        public List<String> user;
+
+        public List<Integer> user_id;
+
+        public List<String> outbound;
+
+        public String clash_mode;
+
+        public List<String> wifi_ssid;
+
+        public List<String> wifi_bssid;
+
+        public List<String> rule_set;
+
+        public Boolean rule_set_ip_cidr_match_source;
+
+        public Boolean rule_set_ip_cidr_accept_empty;
+
+        public Boolean invert;
+
+        public String server;
+
+        public Boolean disable_cache;
+
+        public Integer rewrite_ttl;
+
+        public String client_subnet;
+
+        public Boolean rule_set_ipcidr_match_source;
+
+    }
+
+    public static class DNSRule_LogicalDNSRule extends DNSRule {
+
+        public String mode;
+
+        public List<DNSRule> rules;
+
+        public Boolean invert;
+
+        public String server;
+
+        public Boolean disable_cache;
+
+        public Integer rewrite_ttl;
+
+        public String client_subnet;
+
+    }
+
+    public static class RuleSet_PlainRuleSet extends RuleSet {
+
+        public List<HeadlessRule> rules;
+
+    }
+
+    public static class RuleSet_LocalRuleSet extends RuleSet {
+
+        public String path;
+
+    }
+
+    public static class RuleSet_RemoteRuleSet extends RuleSet {
+
+        public String url;
+
+        public String download_detour;
+
+        public String update_interval;
+
+    }
+
+    public static class V2RayTransportOptions_V2RayHTTPOptions extends V2RayTransportOptions {
 
         public List<String> host;
 
@@ -944,13 +794,13 @@ public class SingBoxOptions {
 
         public Map<String, List<String>> headers;
 
-        public Long idle_timeout;
+        public String idle_timeout;
 
-        public Long ping_timeout;
+        public String ping_timeout;
 
     }
 
-    public static class V2RayWebsocketOptions extends SingBoxOption {
+    public static class V2RayTransportOptions_V2RayWebsocketOptions extends V2RayTransportOptions {
 
         public String path;
 
@@ -962,23 +812,23 @@ public class SingBoxOptions {
 
     }
 
-    public static class V2RayQUICOptions extends SingBoxOption {
+    public static class V2RayTransportOptions_V2RayQUICOptions extends V2RayTransportOptions {
 
     }
 
-    public static class V2RayGRPCOptions extends SingBoxOption {
+    public static class V2RayTransportOptions_V2RayGRPCOptions extends V2RayTransportOptions {
 
         public String service_name;
 
-        public Long idle_timeout;
+        public String idle_timeout;
 
-        public Long ping_timeout;
+        public String ping_timeout;
 
         public Boolean permit_without_stream;
 
     }
 
-    public static class V2RayHTTPUpgradeOptions extends SingBoxOption {
+    public static class V2RayTransportOptions_V2RayHTTPUpgradeOptions extends V2RayTransportOptions {
 
         public String host;
 
@@ -988,7 +838,206 @@ public class SingBoxOptions {
 
     }
 
-    public static class ShadowsocksOutboundOptions extends SingBoxOption {
+    public static class Inbound_InboundOptions extends Inbound {
+
+        public Boolean sniff;
+
+        public Boolean sniff_override_destination;
+
+        public String sniff_timeout;
+
+        public String domain_strategy;
+
+        public Boolean udp_disable_domain_unmapping;
+
+    }
+
+    public static class Inbound_HTTPMixedInboundOptions extends Inbound {
+
+        // Generate note: nested type ListenOptions
+        public String listen;
+
+        public Integer listen_port;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public Long udp_timeout;
+
+        public Boolean proxy_protocol;
+
+        public Boolean proxy_protocol_accept_no_header;
+
+        public String detour;
+
+        // Generate note: nested type InboundOptions
+        public Boolean sniff;
+
+        public Boolean sniff_override_destination;
+
+        public String sniff_timeout;
+
+        public String domain_strategy;
+
+        public Boolean udp_disable_domain_unmapping;
+
+        public List<User> users;
+
+        public Boolean set_system_proxy;
+
+        // Generate note: nested type InboundTLSOptionsContainer
+        public InboundTLSOptions tls;
+
+    }
+
+    public static class Inbound_TunInboundOptions extends Inbound {
+
+        public String interface_name;
+
+        public Integer mtu;
+
+        public Boolean gso;
+
+        public List<String> address;
+
+        public Boolean auto_route;
+
+        public Integer iproute2_table_index;
+
+        public Integer iproute2_rule_index;
+
+        public Boolean auto_redirect;
+
+        public Integer auto_redirect_input_mark;
+
+        public Integer auto_redirect_output_mark;
+
+        public Boolean strict_route;
+
+        public List<String> route_address;
+
+        public List<String> route_address_set;
+
+        public List<String> route_exclude_address;
+
+        public List<String> route_exclude_address_set;
+
+        public List<String> include_interface;
+
+        public List<String> exclude_interface;
+
+        public List<Integer> include_uid;
+
+        public List<String> include_uid_range;
+
+        public List<Integer> exclude_uid;
+
+        public List<String> exclude_uid_range;
+
+        public List<Integer> include_android_user;
+
+        public List<String> include_package;
+
+        public List<String> exclude_package;
+
+        public Boolean endpoint_independent_nat;
+
+        public Long udp_timeout;
+
+        public String stack;
+
+        public Inbound_TunPlatformOptions platform;
+
+        // Generate note: nested type InboundOptions
+        public Boolean sniff;
+
+        public Boolean sniff_override_destination;
+
+        public String sniff_timeout;
+
+        public String domain_strategy;
+
+        public Boolean udp_disable_domain_unmapping;
+
+        public List<String> inet4_address;
+
+        public List<String> inet6_address;
+
+        public List<String> inet4_route_address;
+
+        public List<String> inet6_route_address;
+
+        public List<String> inet4_route_exclude_address;
+
+        public List<String> inet6_route_exclude_address;
+
+    }
+
+    public static class Inbound_TunPlatformOptions extends Inbound {
+
+        public Inbound_HTTPProxyOptions http_proxy;
+
+    }
+
+    public static class Inbound_HTTPProxyOptions extends Inbound {
+
+        public Boolean enabled;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        public List<String> bypass_domain;
+
+        public List<String> match_domain;
+
+    }
+
+    public static class Inbound_DirectInboundOptions extends Inbound {
+
+        // Generate note: nested type ListenOptions
+        public String listen;
+
+        public Integer listen_port;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public Long udp_timeout;
+
+        public Boolean proxy_protocol;
+
+        public Boolean proxy_protocol_accept_no_header;
+
+        public String detour;
+
+        // Generate note: nested type InboundOptions
+        public Boolean sniff;
+
+        public Boolean sniff_override_destination;
+
+        public String sniff_timeout;
+
+        public String domain_strategy;
+
+        public Boolean udp_disable_domain_unmapping;
+
+        public String network;
+
+        public String override_address;
+
+        public Integer override_port;
+
+    }
+
+    public static class Outbound_DirectOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1005,7 +1054,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1015,7 +1064,44 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
+
+        public String override_address;
+
+        public Integer override_port;
+
+        public Integer proxy_protocol;
+
+    }
+
+    public static class Outbound_ShadowsocksOutboundOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1038,7 +1124,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class ShadowTLSOutboundOptions extends SingBoxOption {
+    public static class Outbound_ShadowTLSOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1055,7 +1141,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1065,7 +1151,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1081,7 +1167,18 @@ public class SingBoxOptions {
 
     }
 
-    public static class SocksOutboundOptions extends SingBoxOption {
+    public static class Outbound_SelectorOutboundOptions extends Outbound {
+
+        public List<String> outbounds;
+
+        @SerializedName("default")
+        public String default_;
+
+        public Boolean interrupt_exist_connections;
+
+    }
+
+    public static class Outbound_SocksOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1098,7 +1195,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1108,7 +1205,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1127,7 +1224,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class HTTPOutboundOptions extends SingBoxOption {
+    public static class Outbound_HTTPOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1144,7 +1241,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1154,7 +1251,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1174,7 +1271,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class SSHOutboundOptions extends SingBoxOption {
+    public static class Outbound_SSHOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1191,7 +1288,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1201,7 +1298,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1226,7 +1323,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class TrojanOutboundOptions extends SingBoxOption {
+    public static class Outbound_TrojanOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1243,7 +1340,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1253,7 +1350,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1273,7 +1370,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class TUICOutboundOptions extends SingBoxOption {
+    public static class Outbound_HysteriaOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1290,7 +1387,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1300,7 +1397,119 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        public String up;
+
+        public Integer up_mbps;
+
+        public String down;
+
+        public Integer down_mbps;
+
+        public String obfs;
+
+        public String auth;
+
+        public String auth_str;
+
+        public Long recv_window_conn;
+
+        public Long recv_window;
+
+        public Boolean disable_mtu_discovery;
+
+        public String network;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+    }
+
+    public static class Outbound_Hysteria2OutboundOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public String fallback_delay;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        public Integer up_mbps;
+
+        public Integer down_mbps;
+
+        public Hysteria2Obfs obfs;
+
+        public String password;
+
+        public String network;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+        public Boolean brutal_debug;
+
+    }
+
+    public static class Outbound_TUICOutboundOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1319,7 +1528,7 @@ public class SingBoxOptions {
 
         public Boolean zero_rtt_handshake;
 
-        public Long heartbeat;
+        public String heartbeat;
 
         public String network;
 
@@ -1328,7 +1537,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class VLESSOutboundOptions extends SingBoxOption {
+    public static class Outbound_VLESSOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1345,7 +1554,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1355,7 +1564,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1379,7 +1588,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class VMessOutboundOptions extends SingBoxOption {
+    public static class Outbound_VMessOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1396,7 +1605,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1406,7 +1615,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1436,7 +1645,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class WireGuardOutboundOptions extends SingBoxOption {
+    public static class Outbound_WireGuardOutboundOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1453,7 +1662,7 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
-        public Long connect_timeout;
+        public String connect_timeout;
 
         public Boolean tcp_fast_open;
 
@@ -1463,7 +1672,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Long fallback_delay;
+        public String fallback_delay;
 
         public Boolean system_interface;
 
@@ -1475,7 +1684,7 @@ public class SingBoxOptions {
 
         public String private_key;
 
-        public List<WireGuardPeer> peers;
+        public List<Outbound_WireGuardPeer> peers;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1496,7 +1705,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class WireGuardPeer extends SingBoxOption {
+    public static class Outbound_WireGuardPeer extends Outbound {
 
         // Generate note: nested type ServerOptions
         public String server;

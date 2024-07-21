@@ -18,18 +18,30 @@ const (
 	extends     = "extends "
 )
 
-func buildClass(opt any) string {
+const (
+	extendsBox = "SingBoxOption"
+)
+
+// TODO link extends
+
+func buildClass(opt any, belongs string) string {
 	value := reflect.Indirect(reflect.ValueOf(opt))
 	valueType := value.Type()
 
 	builder := &strings.Builder{}
 
+	var fieldName string
+	if belongs != extendsBox {
+		fieldName = belongs + "_" + valueType.Name()
+	} else {
+		fieldName = valueType.Name()
+	}
 	// public static class ClashAPIOptions extends SingBoxOption {
 	builder.WriteString(
 		F.ToString(
 			classSpace, public, staticClass,
-			valueType.Name(), " ",
-			extends, "SingBoxOption",
+			fieldName, " ",
+			extends, belongs, " ",
 			"{\n\n",
 		),
 	)
@@ -94,9 +106,19 @@ func getTypeName(valueType reflect.Type) string {
 		return getTypeName(valueType.Elem())
 	case reflect.Bool:
 		return javaBoolean
-	case reflect.Int, reflect.Int32, reflect.Uint16, reflect.Uint32:
+	case reflect.Uint16:
+		if valueType.Name() == "DNSQueryType" {
+			return javaString
+		}
 		return javaInteger
-	case reflect.Int64, reflect.Uint64:
+	case reflect.Int, reflect.Int32, reflect.Uint32:
+		return javaInteger
+	case reflect.Int64:
+		if valueType.Name() == "Duration" {
+			return javaString
+		}
+		return javaLong
+	case reflect.Uint64:
 		return javaLong
 	case reflect.String:
 		return javaString
