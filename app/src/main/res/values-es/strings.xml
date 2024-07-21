@@ -583,4 +583,6 @@
     <string name="ensure_close_all">¿Estás seguro de cerrar %s conexiones?</string>
     <string name="padding">Relleno</string>
     <string name="custom_rule_provider">Proveedor de reglas personalizadas</string>
+    <string name="pin_log">Fijar registro</string>
+    <string name="interrupt_selector">(Selector) Interrumpe todas las conexiones cuando se cambia la configuración</string>
 </resources>
