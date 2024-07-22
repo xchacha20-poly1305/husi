@@ -48,7 +48,6 @@ import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
 import moe.matsuri.nb4a.PREFIX_IP_DNS
-import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
@@ -576,6 +575,7 @@ fun buildConfig(
                 tag = TAG_PROXY
                 default_ = tagMap[proxy.id]
                 outbounds = tagMap.values.toList()
+                interrupt_exist_connections = DataStore.interruptSelector
             }.asMap())
         } else {
             buildChain(0, proxy)
