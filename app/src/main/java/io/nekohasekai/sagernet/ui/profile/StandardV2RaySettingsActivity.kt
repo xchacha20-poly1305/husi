@@ -46,12 +46,14 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val realityShortId = pbm.add(PreferenceBinding(Type.Text, "realityShortId"))
     private val ech = pbm.add(PreferenceBinding(Type.Bool, Key.ECH))
     private val echCfg = pbm.add(PreferenceBinding(Type.Text, Key.ECH_CFG))
-    private val authenticatedLength = pbm.add(PreferenceBinding(Type.Bool, Key.AUTHENTICATED_LENGTH))
+    private val authenticatedLength =
+        pbm.add(PreferenceBinding(Type.Bool, Key.AUTHENTICATED_LENGTH))
 
     private val serverMux = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX))
     private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val serverMuxType = pbm.add(PreferenceBinding(Type.Int, Key.SERVER_MUX_TYPE))
-    private val serverMuxConcurrency = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_CONCURRENCY))
+    private val serverMuxConcurrency =
+        pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_CONCURRENCY))
     private val serverMuxPadding = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX_PADDING))
 
     override fun StandardV2RayBean.init() {
@@ -115,7 +117,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         password.preference.isVisible = isHttp
         experimentsCategory.isVisible = isVmess
 
-        muxCategory.isVisible = when (tmpBean?.type) {
+        muxCategory.isVisible = if (isHttp) {
+            false
+        } else when (tmpBean?.type) {
             "quic", "grpc" -> false
             "h2" -> tmpBean?.security != "tls"
             else -> true
@@ -142,11 +146,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         // menu with listener
 
         type.preference.apply {
-            val s = security.readStringFromCache()
-            updateView(type.readStringFromCache(), s)
+            val tls = security.readStringFromCache()
+            updateView(isHttp, type.readStringFromCache(), tls)
             this as SimpleMenuPreference
             setOnPreferenceChangeListener { _, newValue ->
-                updateView(network = newValue as String, tls = s)
+                updateView(isHttp, newValue as String, tls)
                 true
             }
         }
@@ -156,14 +160,16 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             this as SimpleMenuPreference
 
             setOnPreferenceChangeListener { _, newValue ->
-                updateTls(newValue as String)
+                newValue as String
+                updateTls(newValue)
+                updateView(isHttp, type.readStringFromCache(), newValue)
                 true
             }
         }
 
         serverMux.preference.apply {
             this as SwitchPreference
-            setOnPreferenceChangeListener {_, newValue ->
+            setOnPreferenceChangeListener { _, newValue ->
                 updateMuxState(newValue as Boolean)
                 true
             }
@@ -180,11 +186,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             .setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
-    private fun updateView(network: String, tls: String) {
+    private fun updateView(isHttp: Boolean, network: String, tls: String) {
         host.preference.isVisible = false
         path.preference.isVisible = false
         wsCategory.isVisible = false
-        muxCategory.isVisible = true
+        muxCategory.isVisible = !isHttp
 
         when (network) {
             "tcp" -> {
@@ -198,6 +204,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 host.preference.isVisible = true
                 path.preference.isVisible = true
 
+                // http + TLS = h2
                 if (tls == "tls") muxCategory.isVisible = false
             }
 
