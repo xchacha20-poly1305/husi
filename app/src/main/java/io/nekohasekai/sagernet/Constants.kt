@@ -194,6 +194,7 @@ object Key {
     const val APP_TLS_VERSION = "appTLSVersion"
     const val CLASH_API_LISTEN = "clashAPIListen"
     const val ENABLED_CAZILLA = "enabledCazilla"
+    const val INTERRUPT_SELECTOR = "interruptSelector"
 }
 
 object TunImplementation {
