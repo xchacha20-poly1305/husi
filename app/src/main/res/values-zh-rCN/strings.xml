@@ -573,4 +573,5 @@
     <string name="custom_rule_provider">自定义规则提供者</string>
     <string name="pin_log">固定日志</string>
     <string name="interrupt_selector">(Selector) 在切换配置时打断所有连接</string>
+    <string name="client_type">客户端类型</string>
 </resources>

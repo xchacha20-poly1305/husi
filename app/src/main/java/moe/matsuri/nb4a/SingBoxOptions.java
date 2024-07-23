@@ -592,6 +592,8 @@ public class SingBoxOptions {
 
         public List<String> protocol;
 
+        public List<String> client;
+
         public List<String> domain;
 
         public List<String> domain_suffix;

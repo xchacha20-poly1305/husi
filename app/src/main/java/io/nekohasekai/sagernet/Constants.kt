@@ -169,6 +169,7 @@ object Key {
     const val ROUTE_PACKAGES = "routePackages"
     const val ROUTE_SSID = "routeSSID"
     const val ROUTE_BSSID = "routeBSSID"
+    const val ROUTE_CLIENT = "routeClient"
 
     const val GROUP_NAME = "groupName"
     const val GROUP_TYPE = "groupType"

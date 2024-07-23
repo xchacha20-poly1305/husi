@@ -639,4 +639,5 @@
     <string name="custom_rule_provider">Custom Rule Provider</string>
     <string name="pin_log">Pin Log</string>
     <string name="interrupt_selector">(Selector) Interrupt all connections when switch configuration</string>
+    <string name="client_type">Client Type</string>
 </resources>

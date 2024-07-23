@@ -65,6 +65,11 @@
                 app:key="routeBSSID"
                 app:title="WIFI BSSID"
                 app:useSimpleSummaryProvider="true"/>
+        <EditTextPreference
+                app:icon="@drawable/ic_baseline_fingerprint_24"
+                app:key="routeClient"
+                app:title="@string/client_type"
+                app:useSimpleSummaryProvider="true"/>
         <io.nekohasekai.sagernet.widget.OutboundPreference
                 app:icon="@drawable/ic_hardware_router"
                 app:key="routeOutbound"
