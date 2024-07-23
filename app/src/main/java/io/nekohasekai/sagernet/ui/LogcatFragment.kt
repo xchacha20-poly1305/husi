@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.FileObserver
 import android.view.LayoutInflater
@@ -21,28 +20,32 @@ import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.utils.SendLog
 import io.nekohasekai.sfa.utils.ColorUtils
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import libcore.Libcore
+import moe.matsuri.nb4a.utils.closeQuietly
+import java.io.RandomAccessFile
+import java.util.LinkedList
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener {
 
     lateinit var binding: LayoutLogcatBinding
     private lateinit var logAdapter: LogAdapter
+    private var freshJob: Job? = null
+    private var fileChange = Channel<Unit>()
 
     @Suppress("DEPRECATION") // FileObserver(File) require API 29
     private val fileObserver = object : FileObserver(SendLog.logFile.absolutePath) {
         override fun onEvent(event: Int, path: String?) {
             if (event != MODIFY) return
-            runOnMainDispatcher {
-                logAdapter.logList = getLogList()
-                // May be just update one?
-                val position = logAdapter.notifyItemInserted()
-                if (!pinLog) binding.logView.scrollToPosition(position)
+            runBlocking {
+                runCatching { fileChange.send(Unit) }
             }
         }
     }
 
-    @SuppressLint("RestrictedApi", "WrongConstant")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbar.setTitle(R.string.menu_log)
@@ -52,12 +55,16 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         binding = LayoutLogcatBinding.bind(view)
         binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
-        binding.logView.adapter = LogAdapter(getLogList()).also {
+        binding.logView.adapter = LogAdapter(LinkedList(SendLog.logFile.readLines())).also {
             logAdapter = it
         }
+        lastPosition = SendLog.logFile.length()
         binding.logView.scrollToPosition(logAdapter.itemCount - 1)
 
         fileObserver.startWatching()
+        freshJob = runOnDefaultDispatcher {
+            updateLog(RandomAccessFile(SendLog.logFile, "r"))
+        }
     }
 
     private var pinLog = false
@@ -77,7 +84,8 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             }
 
             R.id.action_clear_logcat -> {
-                logAdapter.logList = listOf()
+                lastPosition = 0L
+                logAdapter.logList.clear()
                 logAdapter.notifyDataSetChanged()
 
                 runOnDefaultDispatcher {
@@ -106,15 +114,12 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
     override fun onDestroyView() {
         fileObserver.stopWatching()
+        freshJob?.cancel()
+        fileChange.close()
         super.onDestroyView()
     }
 
-    private fun getLogList(): List<String> {
-        return String(SendLog.getCoreLog(50 * 1024)).split("\n")
-    }
-
-
-    inner class LogAdapter(var logList: List<String>) :
+    inner class LogAdapter(val logList: LinkedList<String>) :
         RecyclerView.Adapter<LogViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
             return LogViewHolder(
@@ -144,6 +149,39 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         fun bind(message: String) {
             binding.text.text = ColorUtils.ansiEscapeToSpannable(binding.root.context, message)
+        }
+    }
+
+    // last position for log file
+    private var lastPosition = 0L
+
+    private suspend fun updateLog(file: RandomAccessFile) {
+        try {
+            while (true) {
+                if (file.length() <= lastPosition) {
+                    // Waiting for change
+                    fileChange.receive()
+                    continue
+                }
+
+                // Read new line and notify change
+                file.seek(lastPosition)
+                val line = file.readLine()
+                if (line.isNotBlank()) {
+                    logAdapter.logList.add(line)
+                    runOnMainDispatcher {
+                        val position = logAdapter.notifyItemInserted()
+                        if (!pinLog) binding.logView.scrollToPosition(position)
+                    }
+                }
+                lastPosition = file.filePointer
+            }
+        } catch (e: Exception) {
+            Logs.w(e)
+//        } catch (_: IOException) {
+//        } catch (_: CancellationException) {
+        } finally {
+            file.closeQuietly()
         }
     }
 }
