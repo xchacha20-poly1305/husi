@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
 import dev.matrix.roomigrant.GenerateRoomMigrations
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.SagerNet
@@ -15,14 +14,13 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-val MIGRATIONS: Array<Migration> = arrayOf()
-
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class],
-    version = 3,
+    version = 4,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
-        AutoMigration(from = 2, to = 3, spec = SagerDatabase_Migration_2_3_Spec::class),
+        AutoMigration(from = 2, to = 3, spec = SagerDatabase_Migration_2_3::class),
+        AutoMigration(from = 3, to = 4),
     ],
 )
 @TypeConverters(value = [KryoConverters::class, GsonConverters::class])
@@ -36,7 +34,9 @@ abstract class SagerDatabase : RoomDatabase() {
         val instance by lazy {
             SagerNet.application.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
             Room.databaseBuilder(SagerNet.application, SagerDatabase::class.java, Key.DB_PROFILE)
-                .addMigrations(*MIGRATIONS)
+                .addMigrations(
+                    SagerDatabase_Migration_3_4,
+                )
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
                 .fallbackToDestructiveMigration()

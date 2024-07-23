@@ -68,6 +68,7 @@ class RouteSettingsActivity(
         DataStore.routeOutboundRule = outbound
         DataStore.routeSSID = ssid
         DataStore.routeBSSID = bssid
+        DataStore.routeClient = clientType
         DataStore.routeOutbound = when (outbound) {
             0L -> 0
             -1L -> 1
@@ -89,6 +90,7 @@ class RouteSettingsActivity(
         protocol = DataStore.routeProtocol
         ssid = DataStore.routeSSID
         bssid = DataStore.routeBSSID
+        clientType = DataStore.routeClient
         outbound = when (DataStore.routeOutbound) {
             0 -> 0L
             1 -> -1L
@@ -117,6 +119,7 @@ class RouteSettingsActivity(
             DataStore.routeProtocol.isBlank() &&
             DataStore.routeSSID.isBlank() &&
             DataStore.routeBSSID.isBlank() &&
+            DataStore.routeClient.isBlank() &&
             DataStore.routeOutbound == 0
         ) {
             return false

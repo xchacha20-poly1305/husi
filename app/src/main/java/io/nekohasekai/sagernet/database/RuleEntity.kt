@@ -26,6 +26,7 @@ data class RuleEntity(
     var packages: List<String> = listOf(),
     var ssid: String = "",
     var bssid: String = "",
+    @ColumnInfo(defaultValue = "") var clientType: String = "",
 ) : Parcelable {
 
     fun displayName(): String {
@@ -45,8 +46,9 @@ data class RuleEntity(
         if (packages.isNotEmpty()) summary += app.getString(
             R.string.apps_message, packages.size
         ) + "\n"
-        if (ssid.isNotBlank()) summary += "ssid: $ssid"
-        if (bssid.isNotBlank()) summary += "bssid: $bssid"
+        if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
+        if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
+        if (clientType.isNotBlank()) summary += "client: $clientType\n"
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {
             lines.subList(0, 3).joinToString("\n", postfix = "\n...")
