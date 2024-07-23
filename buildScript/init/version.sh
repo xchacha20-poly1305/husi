@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GO_VERSION="1.22.5"
+GO_VERSION="1.23.0-rc.2"
 
 # https://github.com/Dreamacro/maxmind-geoip
 GEOIP_VERSION="20240712"
