@@ -900,7 +900,7 @@ fun buildConfig(
                 })
             }
             // force bypass (always top DNS rule)
-            dns.rules.add(0, DNSRule_Default().apply {
+            dns.rules.add(0, DNSRule_DefaultOptions().apply {
                 outbound = listOf(TAG_ANY)
                 server = TAG_DNS_DIRECT
             })
