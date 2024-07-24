@@ -75,6 +75,7 @@ const val TAG_TUN = "tun-in"
 const val TAG_DNS_IN = "dns-in"
 
 // Outbound
+const val TAG_ANY = "any" // "special for outbound domain"
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
 const val TAG_BLOCK = "block"
@@ -802,6 +803,7 @@ fun buildConfig(
                 tag = TAG_DNS_REMOTE
                 address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
+                detour = TAG_PROXY
 
                 if (DataStore.dnsMode == DNSMode.PRECISE) {
                     if (DataStore.ednsClientSubnet.isNotBlank()) {
@@ -898,6 +900,10 @@ fun buildConfig(
                 })
             }
             // force bypass (always top DNS rule)
+            dns.rules.add(0, DNSRule_Default().apply {
+                outbound = listOf(TAG_ANY)
+                server = TAG_DNS_DIRECT
+            })
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(
