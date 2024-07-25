@@ -31,7 +31,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.filterIsInstance
-import io.nekohasekai.sagernet.ktx.generateUsearAgent
+import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.getLongOrNull
 import libcore.Libcore
 import org.json.JSONObject
@@ -63,7 +63,7 @@ object SIP008Updater : GroupUpdater() {
                 restrictedTLS()
             }.newRequest().apply {
                 setURL(subscription.link)
-                setUserAgent(generateUsearAgent(subscription.customUserAgent))
+                setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
 
             sip008Response = JSONObject(response.contentString)
