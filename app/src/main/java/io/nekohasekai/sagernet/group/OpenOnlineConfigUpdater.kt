@@ -32,7 +32,7 @@ import io.nekohasekai.sagernet.ktx.addPathSegments
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.filterIsInstance
-import io.nekohasekai.sagernet.ktx.generateUsearAgent
+import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getLongOrNull
 import io.nekohasekai.sagernet.ktx.getStr
@@ -102,7 +102,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             if (certSha256 != null) pinnedSHA256(certSha256)
         }.newRequest().apply {
             setURL(baseLink.string)
-            setUserAgent(generateUsearAgent(subscription.customUserAgent))
+            setUserAgent(generateUserAgent(subscription.customUserAgent))
         }.execute()
 
         val oocResponse = JSONObject(response.contentString)
