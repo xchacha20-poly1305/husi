@@ -3,7 +3,6 @@
 package io.nekohasekai.sagernet.ktx
 
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import libcore.Libcore
 import libcore.URL
@@ -42,10 +41,10 @@ fun String.unwrapIPV6Host(): String {
 // [2001:4860:4860::8888] or 2001:4860:4860::8888 -> [2001:4860:4860::8888]
 fun String.wrapIPV6Host(): String {
     val unwrapped = this.unwrapIPV6Host()
-    if (unwrapped.isIpAddressV6()) {
-        return "[$unwrapped]"
+    return if (unwrapped.isIpAddressV6()) {
+        "[$unwrapped]"
     } else {
-        return this
+        this
     }
 }
 
@@ -63,3 +62,13 @@ fun mkPort(): Int {
 }
 
 val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
+
+/**
+ Replace all version-about escapes in userAent
+ */
+fun generateUserAgent(userAgent: String): String {
+    if (userAgent.isBlank()) return USER_AGENT
+    return userAgent.replace("\$version", BuildConfig.VERSION_NAME)
+        .replace("\$version_code", BuildConfig.VERSION_CODE.toString())
+        .replace("\$box_version", Libcore.versionBox())
+}

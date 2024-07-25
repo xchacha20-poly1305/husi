@@ -28,11 +28,11 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.pluginToLocal
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.addPathSegments
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.filterIsInstance
+import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getLongOrNull
 import io.nekohasekai.sagernet.ktx.getStr
@@ -102,7 +102,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             if (certSha256 != null) pinnedSHA256(certSha256)
         }.newRequest().apply {
             setURL(baseLink.string)
-            setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
+            setUserAgent(generateUserAgent(subscription.customUserAgent))
         }.execute()
 
         val oocResponse = JSONObject(response.contentString)
