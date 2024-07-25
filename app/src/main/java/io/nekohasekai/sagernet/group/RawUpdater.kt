@@ -29,7 +29,7 @@ import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
-import io.nekohasekai.sagernet.ktx.generateUsearAgent
+import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
 import io.nekohasekai.sagernet.ktx.parseProxies
