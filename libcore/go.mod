@@ -7,8 +7,8 @@ require (
 	github.com/miekg/dns v1.1.61
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.5.0-alpha.13
-	github.com/sagernet/sing-box v1.10.0-alpha.23
-	github.com/sagernet/sing-dns v0.3.0-beta.10
+	github.com/sagernet/sing-box v1.10.0-alpha.24
+	github.com/sagernet/sing-dns v0.3.0-beta.12
 	github.com/sagernet/sing-tun v0.4.0-beta.13.0.20240703164908-1f043289199d
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
 	github.com/xchacha20-poly1305/cazilla v0.3.1
@@ -88,7 +88,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/exp v0.0.0-20240707233637-46b078467d37 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
