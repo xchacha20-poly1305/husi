@@ -72,7 +72,7 @@ object RawUpdater : GroupUpdater() {
                 setInsecure(DataStore.allowInsecureOnRequest)
             }.newRequest().apply {
                 setURL(subscription.link)
-                setUserAgent(generateUsearAgent(subscription.customUserAgent))
+                setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
             proxies = parseRaw(response.contentString)
                 ?: error(app.getString(R.string.no_proxies_found))
