@@ -66,7 +66,7 @@ val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSIO
 /**
  Replace all version-about escapes in userAent
  */
-fun generateUsearAgent(userAgent: String): String {
+fun generateUserAgent(userAgent: String): String {
     if (userAgent.isBlank()) return USER_AGENT
     return userAgent.replace("\$version", BuildConfig.VERSION_NAME)
         .replace("\$version_code", BuildConfig.VERSION_CODE.toString())
