@@ -25,11 +25,11 @@ import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
-import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
+import io.nekohasekai.sagernet.ktx.generateUsearAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
 import io.nekohasekai.sagernet.ktx.parseProxies
@@ -72,7 +72,7 @@ object RawUpdater : GroupUpdater() {
                 setInsecure(DataStore.allowInsecureOnRequest)
             }.newRequest().apply {
                 setURL(subscription.link)
-                setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
+                setUserAgent(generateUsearAgent(subscription.customUserAgent))
             }.execute()
             proxies = parseRaw(response.contentString)
                 ?: error(app.getString(R.string.no_proxies_found))
