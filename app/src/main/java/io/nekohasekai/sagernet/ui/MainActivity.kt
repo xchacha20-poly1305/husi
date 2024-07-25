@@ -28,9 +28,9 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SubscriptionType
-import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
+import io.nekohasekai.sagernet.aidl.DashboardStatus
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -436,9 +436,9 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    override fun connectionUpdate(connectionList: List<Connection>) {
+    override fun statusUpdate(dashboardStatus: DashboardStatus) {
         (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)?.emitStats(
-            connectionList
+            dashboardStatus
         )
     }
 
@@ -508,10 +508,8 @@ class MainActivity : ThemedActivity(),
 
     private val locationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) {
-                if (it && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    requestBackgroundLocationPermission()
-                }
+            if (it && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requestBackgroundLocationPermission()
             }
         }
 

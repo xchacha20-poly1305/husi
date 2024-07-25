@@ -87,6 +87,12 @@ const val TAG_DNS_BLOCK = "dns-block"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 
+// Clash mode
+// Use lower case to adapt with some dashboard
+const val CLASH_GLOBAL = "global"
+const val CLASH_RULE = "rule"
+const val CLASH_DIRECT = "direct"
+
 const val LOCALHOST4 = "127.0.0.1"
 
 // Note: You shouldn't set strategy and detour for "local"
@@ -225,6 +231,7 @@ fun buildConfig(
                 external_controller = DataStore.clashAPIListen.ifBlank {
                     "$LOCALHOST4:${mkPort()}"
                 }
+                default_mode = CLASH_RULE
             }
             cache_file = CacheFileOptions().apply {
                 enabled = true
@@ -858,6 +865,17 @@ fun buildConfig(
                 port = listOf(53)
                 outbound = TAG_DNS_OUT
             })
+
+            // clash mode
+            route.rules.add(Rule_Default().apply {
+                clash_mode = CLASH_GLOBAL
+                outbound = TAG_PROXY
+            })
+            route.rules.add(Rule_Default().apply {
+                clash_mode = CLASH_DIRECT
+                outbound = TAG_DIRECT
+            })
+
             if (DataStore.bypassLanInCore) {
                 route.rules.add(Rule_Default().apply {
                     outbound = TAG_DIRECT
@@ -870,6 +888,7 @@ fun buildConfig(
                 source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 outbound = TAG_BLOCK
             })
+
             // FakeDNS obj
             if (useFakeDns) {
                 dns.fakeip = DNSFakeIPOptions().apply {
@@ -888,6 +907,16 @@ fun buildConfig(
                     query_type = FAKE_DNS_QUERY_TYPE
                 })
             }
+
+            // clash mode
+            dns.rules.add(DNSRule_Default().apply {
+                clash_mode = CLASH_GLOBAL
+                server = TAG_DNS_REMOTE
+            })
+            dns.rules.add(DNSRule_Default().apply {
+                clash_mode = CLASH_DIRECT
+                server = TAG_DNS_DIRECT
+            })
             // force bypass (always top DNS rule)
             dns.rules.add(0, DNSRule_Default().apply {
                 outbound = listOf(TAG_ANY)

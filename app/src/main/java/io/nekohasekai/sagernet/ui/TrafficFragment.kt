@@ -3,24 +3,23 @@ package io.nekohasekai.sagernet.ui
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
-import io.nekohasekai.sagernet.aidl.Connection
+import io.nekohasekai.sagernet.aidl.DashboardStatus
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
-import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
-import libcore.Libcore
 import moe.matsuri.nb4a.utils.setOnFocusCancel
+
+const val POSITION_DASH = 0
+const val POSITION_CONNECTIONS = 1
 
 class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
     Toolbar.OnMenuItemClickListener,
@@ -37,7 +36,20 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         toolbar.inflateMenu(R.menu.traffic_menu)
         toolbar.setOnMenuItemClickListener(this)
 
-        binding.connectionNotFound.isVisible = true
+        binding.trafficPager.adapter = TrafficAdapter(this).also {
+            adapter = it
+        }
+        TabLayoutMediator(binding.trafficTab, binding.trafficPager) { tab, position ->
+            tab.text = when (position) {
+                POSITION_DASH -> getString(R.string.traffic_status)
+                POSITION_CONNECTIONS -> getString(R.string.traffic_connections)
+                else -> throw IllegalArgumentException()
+            }
+            tab.view.setOnLongClickListener {
+                // clear toast
+                true
+            }
+        }.attach()
 
         if (DataStore.trafficDescending) {
             toolbar.menu.findItem(R.id.action_sort_descending)!!.isChecked = true
@@ -71,47 +83,30 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             setOnQueryTextListener(this@TrafficFragment)
             maxWidth = Int.MAX_VALUE
             setOnFocusCancel()
+            isVisible = true
         }
-
-        binding.connections.layoutManager = FixedLinearLayoutManager(binding.connections)
-        binding.connections.adapter = TrafficAdapter().also {
-            adapter = it
-        }
-
-        ItemTouchHelper(SwipeToDeleteCallback(adapter)).attachToRecyclerView(binding.connections)
-
-        (requireActivity() as MainActivity).connection.service?.setConnection(true)
+        (requireActivity() as MainActivity).connection.service?.enableDashboardStatus(true)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        (requireActivity() as MainActivity).connection.service?.setConnection(false)
-    }
-
-    private val connectionComparator = Comparator<Connection> { a, b ->
-        var result = when (DataStore.trafficSortMode) {
-            TrafficSortMode.START -> compareValues(a.start, b.start)
-            TrafficSortMode.INBOUND -> compareValues(a.uuid, b.uuid)
-            TrafficSortMode.SRC -> compareValues(a.src, b.src)
-            TrafficSortMode.DST -> compareValues(a.dst, b.dst)
-            TrafficSortMode.UPLOAD -> compareValues(a.uploadTotal, b.uploadTotal)
-            TrafficSortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
-            TrafficSortMode.MATCHED_RULE -> compareValues(a.matchedRule, b.matchedRule)
-            else -> throw IllegalArgumentException()
-        }
-
-        // If same, sort by uuid
-        if (result == 0) result = compareValues(a.uuid, b.uuid)
-
-        if (DataStore.trafficDescending) -result else result
+    override fun onDestroyView() {
+        (requireActivity() as MainActivity).connection.service?.enableDashboardStatus(false)
+        super.onDestroyView()
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_reset_network -> (requireActivity() as? MainActivity)?.let {
+                val size =
+                    (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
+                        ?.adapter?.data?.size ?: 0
                 MaterialAlertDialogBuilder(it)
                     .setTitle(R.string.reset_connections)
-                    .setMessage(getString(R.string.ensure_close_all, adapter.data.size.toString()))
+                    .setMessage(
+                        getString(
+                            R.string.ensure_close_all,
+                            size.toString(),
+                        )
+                    )
                     .setPositiveButton(R.string.ok) { _, _ ->
                         it.connection.service?.resetNetwork()
                         snackbar(R.string.have_reset_network).show()
@@ -172,142 +167,53 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         return true
     }
 
-    fun emitStats(list: List<Connection>) {
-        if (list.isEmpty()) {
-            runOnMainDispatcher {
-                binding.connectionNotFound.isVisible = true
-                binding.connections.isVisible = false
+    fun emitStats(dashboardStatus: DashboardStatus) {
+        when (binding.trafficPager.currentItem) {
+            POSITION_DASH -> adapter.getCurrentFragment(POSITION_DASH).let { dashboard ->
+                dashboard as DashboardFragment
+                dashboard.emitStats(dashboardStatus.memory, dashboardStatus.goroutines)
             }
-            return
-        }
 
-        val newList = list.filter {
-            searchString?.let { str ->
-                it.inbound.contains(str) ||
-                        it.network.contains(str) ||
-                        it.start.contains(str) ||
-                        it.src.contains(str) ||
-                        it.dst.contains(str) ||
-                        it.host.contains(str) ||
-                        it.matchedRule.contains(str) ||
-                        it.outbound.contains(str) ||
-                        it.chain.contains(str)
-            } ?: true
-        }.sortedWith(connectionComparator).toMutableList()
-
-        runOnMainDispatcher {
-            binding.connectionNotFound.isVisible = false
-            binding.connections.isVisible = true
-        }
-
-        binding.connections.post {
-            adapter.data = newList
-            adapter.notifyDataSetChanged()
+            POSITION_CONNECTIONS -> (adapter.getCurrentFragment(POSITION_CONNECTIONS) as ConnectionListFragment)
+                .emitStats(dashboardStatus.connections)
         }
     }
 
-    inner class TrafficAdapter : RecyclerView.Adapter<Holder>() {
-        init {
-            setHasStableIds(true)
-        }
-
-        var data: MutableList<Connection> = mutableListOf()
-
-        // Upstream uses UUID (String) as ID, when Adapter use Long.
-        // LinkedHashSet marks an unique index for each uuid.
-        private var idStore = linkedSetOf<String>()
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-            return Holder(ViewConnectionItemBinding.inflate(layoutInflater, parent, false))
-        }
-
+    inner class TrafficAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
         override fun getItemCount(): Int {
-            return data.size
+            return 2
         }
 
-        override fun onBindViewHolder(holder: Holder, position: Int) {
-            idStore.add(data[position].uuid)
-            holder.bind(data[position])
-        }
-
-        override fun getItemId(position: Int): Long {
-            idStore.add(data[position].uuid)
-            return idStore.indexOf(data[position].uuid).toLong()
-        }
-
-    }
-
-    inner class Holder(
-        private val binding: ViewConnectionItemBinding,
-    ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(connection: Connection) {
-            binding.connectionNetwork.text = connection.network.uppercase()
-            binding.connectionInbound.text = connection.inbound
-            binding.connectionDestination.text = connection.dst
-            binding.connectionHost.let {
-                it.isVisible = if (
-                    connection.host.isNotBlank() &&
-                    // If use domain to connect, not show host.
-                    !connection.dst.startsWith(connection.host)
-                ) {
-                    it.text = connection.host
-                    true
-                } else {
-                    false
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                POSITION_DASH -> DashboardFragment().also {
+                    searchView.isVisible = false
                 }
-            }
-            binding.connectionTraffic.text = getString(
-                R.string.traffic,
-                Libcore.formatBytes(connection.uploadTotal),
-                Libcore.formatBytes(connection.downloadTotal),
-            )
-            binding.connectionChain.text = connection.chain
-            binding.root.setOnClickListener {
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_holder, ConnectionFragment(connection))
-                    .addToBackStack(null)
-                    .commit()
+
+                POSITION_CONNECTIONS -> ConnectionListFragment().also {
+                    searchView.isVisible = true
+                }
+
+                else -> throw IllegalArgumentException()
             }
         }
-    }
 
-    inner class SwipeToDeleteCallback(private val adapter: TrafficAdapter) :
-        ItemTouchHelper.Callback() {
-        override fun getMovementFlags(
-            recyclerView: RecyclerView,
-            viewHolder: RecyclerView.ViewHolder,
-        ): Int {
-            val swipeFlags = ItemTouchHelper.LEFT
-            return makeMovementFlags(0, swipeFlags)
-        }
-
-        override fun onMove(
-            recyclerView: RecyclerView,
-            viewHolder: RecyclerView.ViewHolder,
-            target: RecyclerView.ViewHolder,
-        ): Boolean {
-            // No move action
-            return false
-        }
-
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            (requireActivity() as MainActivity)
-                .connection
-                .service?.closeConnection(adapter.data[viewHolder.absoluteAdapterPosition].uuid)
+        fun getCurrentFragment(position: Int): Fragment? {
+            return childFragmentManager.findFragmentByTag("f$position")
         }
     }
-
 
     private lateinit var searchView: SearchView
-    private var searchString: String? = null
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        searchString = query
+        (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
+            ?.searchString = query
         return false
     }
 
     override fun onQueryTextChange(query: String?): Boolean {
-        searchString = query
+        (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
+            ?.searchString = query
         return false
     }
 

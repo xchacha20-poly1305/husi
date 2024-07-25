@@ -4,6 +4,8 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-class ConnectionList(
-    var connections: List<Connection> = listOf()
+class DashboardStatus(
+    val connections: List<Connection>,
+    val memory: Long,
+    val goroutines: Int,
 ) : Parcelable
