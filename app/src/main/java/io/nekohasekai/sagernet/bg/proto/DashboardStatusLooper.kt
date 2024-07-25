@@ -1,6 +1,6 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import io.nekohasekai.sagernet.aidl.ConnectionList
+import io.nekohasekai.sagernet.aidl.DashboardStatus
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
@@ -11,8 +11,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import libcore.Libcore
 
-class ConnectionLooper(
+class DashboardStatusLooper(
     val data: BaseService.Data, private val scope: CoroutineScope,
 ) {
 
@@ -30,7 +31,13 @@ class ConnectionLooper(
         while (scope.isActive) {
             try {
                 data.binder.broadcast { work ->
-                    work.connectionUpdate(ConnectionList(data.proxy!!.box.trackerInfos.toConnectionList()))
+                    work.dashboardStatusUpdate(
+                        DashboardStatus(
+                            data.proxy!!.box.trackerInfos.toConnectionList(),
+                            Libcore.getMemory(),
+                            Libcore.getGoroutines(),
+                        )
+                    )
                 }
             } catch (e: Exception) {
                 Logs.e(e)
@@ -45,7 +52,7 @@ class ConnectionLooper(
         runOnDefaultDispatcher {
             runCatching {
                 data.binder.broadcast { work ->
-                    work.connectionUpdate(ConnectionList())
+                    work.dashboardStatusUpdate(DashboardStatus(emptyList(), 0, 0))
                 }
             }
         }

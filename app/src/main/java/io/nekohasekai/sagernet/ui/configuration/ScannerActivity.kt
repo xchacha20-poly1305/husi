@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.configuration
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -53,6 +53,8 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.widget.ListHolderListener
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

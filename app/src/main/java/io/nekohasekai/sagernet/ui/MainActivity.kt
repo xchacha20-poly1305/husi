@@ -28,9 +28,9 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SubscriptionType
-import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
+import io.nekohasekai.sagernet.aidl.DashboardStatus
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -54,6 +54,8 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
+import io.nekohasekai.sagernet.ui.traffic.TrafficFragment
 import io.nekohasekai.sagernet.widget.ListHolderListener
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
@@ -436,10 +438,14 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    override fun connectionUpdate(connectionList: List<Connection>) {
-        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)?.emitStats(
-            connectionList
-        )
+    override fun statusUpdate(dashboardStatus: DashboardStatus) {
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)
+            ?.emitStats(dashboardStatus)
+    }
+
+    override fun clashModeUpdate(mode: String) {
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)
+            ?.clashModeUpdate(mode)
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
@@ -508,10 +514,8 @@ class MainActivity : ThemedActivity(),
 
     private val locationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) {
-                if (it && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    requestBackgroundLocationPermission()
-                }
+            if (it && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requestBackgroundLocationPermission()
             }
         }
 

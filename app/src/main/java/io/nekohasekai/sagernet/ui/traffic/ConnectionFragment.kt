@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.traffic
 
 import android.os.Bundle
 import android.view.MenuItem
@@ -8,6 +8,8 @@ import androidx.core.view.isVisible
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutConnectionBinding
+import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.ToolbarFragment
 import libcore.Libcore
 
 class ConnectionFragment(private val conn: Connection) :

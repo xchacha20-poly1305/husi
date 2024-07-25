@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.tools
 
 import android.content.ClipData
 import android.os.Bundle
@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import libcore.Libcore
 
 class GetCertActivity : ThemedActivity() {
