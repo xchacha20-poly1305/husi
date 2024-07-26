@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui
 import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.TextView
+import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.database.DataStore
@@ -15,7 +16,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import libcore.CopyCallback
 import libcore.Libcore
-import java.io.File
 
 class SpeedtestActivity : ThemedActivity() {
 
@@ -44,21 +44,24 @@ class SpeedtestActivity : ThemedActivity() {
         }
     }
 
-    // to manage tasks
+    // Make sure just one job.
     // FIXME real interrupt
-    var job: Job? = null
+    private var speedtestJob: Job? = null
 
     override fun onDestroy() {
-        job?.cancel()
+        speedtestJob?.cancel()
         DataStore.speedTestUrl = binding.speedTestServer.text.toString()
         DataStore.speedTestTimeout = binding.speedTestTimeout.text.toString().toInt()
         super.onDestroy()
     }
 
+    override fun snackbarInternal(text: CharSequence): Snackbar {
+        return Snackbar.make(binding.mainLayout, text, Snackbar.LENGTH_LONG)
+    }
+
     private fun doTest() {
-        job?.cancel()
-        job = runOnDefaultDispatcher {
-            val tmpFile = File.createTempFile("speed_test", "", binding.root.context.cacheDir)
+        speedtestJob?.cancel()
+        speedtestJob = runOnDefaultDispatcher {
             try {
                 Libcore.newHttpClient().apply {
                     trySocks5(socksInfo())
@@ -66,10 +69,7 @@ class SpeedtestActivity : ThemedActivity() {
                     setURL(binding.speedTestServer.text.toString())
                     setTimeout(binding.speedTestTimeout.text.toString().toInt())
                 }.execute()
-                    .writeToCallback(
-                        tmpFile.absolutePath,
-                        CopyCallBack(binding.speedTestResult),
-                    )
+                    .writeTo(Libcore.DevNull, CopyCallBack(binding.speedTestResult))
             } catch (_: CancellationException) {
                 return@runOnDefaultDispatcher
             } catch (e: Exception) {
@@ -82,9 +82,8 @@ class SpeedtestActivity : ThemedActivity() {
                         .runCatching { show() }
                 }
                 return@runOnDefaultDispatcher
-            } finally {
-                tmpFile.delete()
             }
+            snackbar(R.string.done).show()
         }
     }
 

@@ -328,7 +328,7 @@ class AssetsActivity : ThemedActivity() {
 
                 val cacheFile = File(filesDir.parentFile, filesDir.name + i + ".tmp")
                 cacheFile.parentFile?.mkdirs()
-                response.writeTo(cacheFile.canonicalPath)
+                response.writeTo(cacheFile.canonicalPath, null)
                 cacheFiles += cacheFile
 
             } catch (e: Exception) {
