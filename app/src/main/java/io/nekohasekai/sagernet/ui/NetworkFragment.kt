@@ -42,7 +42,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
         }
 
         binding.scanVPN.setOnClickListener {
-            startActivity(Intent(requireContext(), VPNScanerActivity::class.java))
+            startActivity(Intent(requireContext(), VPNScannerActivity::class.java))
         }
 
         binding.speedTest.setOnClickListener {
