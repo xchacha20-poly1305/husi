@@ -92,10 +92,8 @@ type HTTPResponse interface {
 	GetContentString() (string, error)
 
 	// WriteTo writes content to the file of `path`.
-	WriteTo(path string) error
-
-	// WriteToCallback writes content to the file of `path` with callback.
-	WriteToCallback(path string, callback CopyCallback) error
+	// callback could be nil
+	WriteTo(path string, callback CopyCallback) error
 }
 
 var (
@@ -305,31 +303,23 @@ func (h *httpResponse) GetContentString() (string, error) {
 	return string(content), nil
 }
 
-func (h *httpResponse) WriteTo(path string) error {
+func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
 	defer h.Response.Body.Close()
-	file, err := os.Create(path)
-	if err != nil {
-		return err
+	var writer io.Writer
+	if path == DevNull {
+		// Android not support /dev/null
+		writer = io.Discard
+	} else {
+		file, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		writer = file
 	}
-	defer file.Close()
-	_, err = io.Copy(file, h.Response.Body)
-	return err
-}
-
-func (h *httpResponse) WriteToCallback(path string, callback CopyCallback) error {
-	defer h.Response.Body.Close()
-	if callback == nil {
-		return E.New("missing callback")
+	if callback != nil {
+		callback.SetLength(h.Response.ContentLength)
+		writer = &callbackWriter{writer, callback.Update}
 	}
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	callback.SetLength(h.Response.ContentLength)
-	_, err = io.Copy(&callbackWriter{
-		writer:   file,
-		callback: callback.Update,
-	}, h.Response.Body)
-	return err
+	return common.Error(io.Copy(writer, h.Response.Body))
 }

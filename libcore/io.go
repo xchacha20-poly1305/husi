@@ -123,6 +123,8 @@ func removeIfHasPrefix(dir, prefix string) error {
 	})
 }
 
+const DevNull = os.DevNull
+
 // CopyCallback callbacks when copying.
 type CopyCallback interface {
 	SetLength(length int64)
