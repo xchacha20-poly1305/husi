@@ -262,7 +262,7 @@
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.VPNScanerActivity"
+                android:name="io.nekohasekai.sagernet.ui.VPNScannerActivity"
                 android:configChanges="uiMode"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>

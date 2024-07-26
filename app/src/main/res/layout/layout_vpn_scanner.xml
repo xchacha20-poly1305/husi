@@ -4,6 +4,11 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
+    <include
+            layout="@layout/layout_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
     <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/scanVPNProgress"
             android:layout_width="match_parent"

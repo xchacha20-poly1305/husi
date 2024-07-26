@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.databinding.LayoutVpnScanerBinding
+import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import kotlinx.coroutines.Dispatchers
@@ -24,20 +24,21 @@ import java.io.File
 import java.util.zip.ZipFile
 import kotlin.math.roundToInt
 
-class VPNScanerActivity : ThemedActivity() {
+class VPNScannerActivity : ThemedActivity() {
 
-    private var binding: LayoutVpnScanerBinding? = null
+    private var binding: LayoutVpnScannerBinding? = null
     private var adapter: Adapter? = null
     private val appInfoList = mutableListOf<AppInfo>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.scan_vpn_app)
-        val binding = LayoutVpnScanerBinding.inflate(layoutInflater)
+        val binding = LayoutVpnScannerBinding.inflate(layoutInflater)
         this.binding = binding
         setContentView(binding.root)
 
+        setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
+            setTitle(R.string.scan_vpn_app)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
