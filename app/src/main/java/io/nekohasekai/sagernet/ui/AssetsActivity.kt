@@ -341,7 +341,7 @@ class AssetsActivity : ThemedActivity() {
                 kotlin.io.path.createTempFile(repo.substringAfter("/"), "tmp").absolutePathString()
             )
             cacheFile.parentFile?.mkdirs()
-            response.writeTo(cacheFile.absolutePath)
+            response.writeTo(cacheFile.absolutePath, null)
             return cacheFile
         }
     }
@@ -406,7 +406,7 @@ class AssetsActivity : ThemedActivity() {
 
                         val cacheFile = File(cacheDir.parentFile, cacheDir.name + i + ".tmp")
                         cacheFile.parentFile?.mkdirs()
-                        response.writeTo(cacheFile.canonicalPath)
+                        response.writeTo(cacheFile.canonicalPath, null)
                         cacheFiles.add(cacheFile)
                     }
 
