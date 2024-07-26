@@ -575,4 +575,6 @@
     <string name="interrupt_selector">(Selector) 在切换配置时打断所有连接</string>
     <string name="client_type">客户端类型</string>
     <string name="done">已完成</string>
+    <string name="custom_plugin_prefix">自定义插件前缀</string>
+    <string name="custom_plugin_prefix_summary">请确定您完全信任插件提供者</string>
 </resources>

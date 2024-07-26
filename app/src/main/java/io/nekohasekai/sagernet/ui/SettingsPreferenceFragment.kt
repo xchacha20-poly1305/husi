@@ -164,6 +164,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                 Key.PROTOCOL_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
+                        Key.CUSTOM_PLUGIN_PREFIX -> {
+                            preference.onPreferenceChangeListener = restartListener
+                        }
+
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }

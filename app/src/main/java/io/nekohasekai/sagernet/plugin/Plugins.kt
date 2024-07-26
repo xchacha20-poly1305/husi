@@ -4,27 +4,36 @@ import android.content.pm.PackageInfo
 import android.content.pm.ProviderInfo
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.utils.PackageCache
+import moe.matsuri.nb4a.utils.listByLineOrComma
 
 object Plugins {
-    const val AUTHORITIES_PREFIX_SEKAI_EXE = "io.nekohasekai.sagernet.plugin."
-    const val AUTHORITIES_PREFIX_NEKO_EXE = "moe.matsuri.exe."
     const val AUTHORITIES_PREFIX_HUSI_EXE = "fr.husi.plugin."
-    const val AUTHORITIES_PREFIX_DYHKWONG = "com.github.dyhkwong."
+    const val AUTHORITIES_PREFIX_SEKAI_EXE = "io.nekohasekai.sagernet.plugin." // https://github.com/SagerNet/SagerNet
+    const val AUTHORITIES_PREFIX_NEKO_EXE = "moe.matsuri.exe." // https://github.com/MatsuriDayo/plugins
+    const val AUTHORITIES_PREFIX_DYHKWONG = "com.github.dyhkwong."// https://github.com/dyhkwong/Exclave
 
     const val ACTION_NATIVE_PLUGIN = "io.nekohasekai.sagernet.plugin.ACTION_NATIVE_PLUGIN"
 
     const val METADATA_KEY_ID = "io.nekohasekai.sagernet.plugin.id"
     const val METADATA_KEY_EXECUTABLE_PATH = "io.nekohasekai.sagernet.plugin.executable_path"
 
-    fun isExeOrPlugin(pkg: PackageInfo): Boolean {
+    val allowedSet = HashSet<String>(DataStore.customPluginPrefix.listByLineOrComma()).apply {
+        add(AUTHORITIES_PREFIX_HUSI_EXE)
+        add(AUTHORITIES_PREFIX_SEKAI_EXE)
+        add(AUTHORITIES_PREFIX_NEKO_EXE)
+        add(AUTHORITIES_PREFIX_DYHKWONG)
+    }
+
+    fun isPlugin(pkg: PackageInfo): Boolean {
         if (pkg.providers.isNullOrEmpty()) return false
         val auth = pkg.providers[0].authority ?: return false
-        return auth.startsWith(AUTHORITIES_PREFIX_HUSI_EXE)
-                || auth.startsWith(AUTHORITIES_PREFIX_DYHKWONG)
-                || auth.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)
-                || auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)
+        for (prefix in allowedSet) {
+            if (auth.startsWith(prefix)) return true
+        }
+        return false
     }
 
     fun preferExePrefix(): String {

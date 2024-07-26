@@ -80,6 +80,7 @@ object Key {
     const val UPLOAD_SPEED = "uploadSpeed"
     const val DOWNLOAD_SPEED = "downloadSpeed"
     const val PROVIDER_HYSTERIA2 = "providerHysteria2"
+    const val CUSTOM_PLUGIN_PREFIX = "customPluginPrefix"
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
     const val SHOW_BOTTOM_BAR = "showBottomBar"

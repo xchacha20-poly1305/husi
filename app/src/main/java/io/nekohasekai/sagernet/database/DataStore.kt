@@ -20,7 +20,6 @@ import io.nekohasekai.sagernet.ktx.int
 import io.nekohasekai.sagernet.ktx.long
 import io.nekohasekai.sagernet.ktx.parsePort
 import io.nekohasekai.sagernet.ktx.string
-import io.nekohasekai.sagernet.ktx.stringSet
 import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
 import moe.matsuri.nb4a.TempDatabase
@@ -196,6 +195,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
     var uploadSpeed by configurationStore.stringToInt(Key.UPLOAD_SPEED) { 0 }
     var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
+    var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
     // old cache, DO NOT ADD
 
