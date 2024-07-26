@@ -586,4 +586,5 @@
     <string name="pin_log">Fijar registro</string>
     <string name="interrupt_selector">(Selector) Interrumpir todas las conexiones cuando se cambia la configuración</string>
     <string name="client_type">Tipo de cliente</string>
+    <string name="done">Hecho</string>
 </resources>
