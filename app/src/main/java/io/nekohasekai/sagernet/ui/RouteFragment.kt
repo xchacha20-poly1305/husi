@@ -277,7 +277,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             RecyclerView.ViewHolder(binding.root) {
             fun bind() {
                 itemView.setOnClickListener {
-                    it.context.launchCustomTab("https://AntiNeko.github.io/cb4a-route/")
+                    it.context.launchCustomTab("https://github.com/xchacha20-poly1305/husi/wiki/Route")
                 }
             }
         }
