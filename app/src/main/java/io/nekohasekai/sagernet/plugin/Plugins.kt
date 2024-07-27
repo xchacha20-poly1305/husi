@@ -7,7 +7,6 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.utils.PackageCache
-import moe.matsuri.nb4a.utils.listByLineOrComma
 
 object Plugins {
     const val AUTHORITIES_PREFIX_HUSI_EXE = "fr.husi.plugin."
@@ -20,7 +19,9 @@ object Plugins {
     const val METADATA_KEY_ID = "io.nekohasekai.sagernet.plugin.id"
     const val METADATA_KEY_EXECUTABLE_PATH = "io.nekohasekai.sagernet.plugin.executable_path"
 
-    val allowedSet = HashSet<String>(DataStore.customPluginPrefix.listByLineOrComma()).apply {
+    val allowedSet = HashSet<String>(DataStore.customPluginPrefix.split("\n").filter {
+        it.isNotBlank() && it != "."
+    }).apply {
         add(AUTHORITIES_PREFIX_HUSI_EXE)
         add(AUTHORITIES_PREFIX_SEKAI_EXE)
         add(AUTHORITIES_PREFIX_NEKO_EXE)
