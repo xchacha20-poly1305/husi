@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+	"os"
+	"path/filepath"
 	"strings"
 	_ "unsafe" // for go:linkname
 
@@ -19,24 +21,32 @@ import (
 //go:linkname systemRoots crypto/x509.systemRoots
 var systemRoots *x509.CertPool
 
-func updateRootCACerts(pem []byte, enabledCazilla bool) {
-	roots := func(useMozilla bool) *x509.CertPool {
-		if useMozilla {
-			log.Info("Using cazilla.")
-			return cazilla.CA
-		}
+// UpdateRootCACerts appends externalAssetsPath/ca.pem to root CA.
+// By the way, if enabledCazilla == true, it will use the CA trusted by mozilla.
+func UpdateRootCACerts(enabledCazilla bool) {
+	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
+	// Make sure initialize system cert pool.
+	// If system cert has not been initilize,
+	// other place, where using x509.SystemCertPool(),will reload systemRoots.
+	_, _ = x509.SystemCertPool()
 
-		p, _ := x509.SystemCertPool()
-		return p
-	}(enabledCazilla)
+	var roots *x509.CertPool
+	if enabledCazilla {
+		roots = x509.NewCertPool()
+		_ = roots.AppendCertsFromPEM(cazilla.MozillaIncludedCAPEM) // Must
+	} else {
+		roots, _ = x509.SystemCertPool()
+	}
 
-	if len(pem) > 0 {
-		if roots.AppendCertsFromPEM(pem) {
+	externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, "ca.pem"))
+	if len(externalPem) > 0 {
+		if roots.AppendCertsFromPEM(externalPem) {
 			log.Info("external ca.pem was loaded")
 		} else {
 			log.Warn("failed to append certificates from pem")
 		}
 	}
+
 	systemRoots = roots
 }
 
