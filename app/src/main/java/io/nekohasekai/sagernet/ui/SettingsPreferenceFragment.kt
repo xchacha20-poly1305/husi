@@ -104,7 +104,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         }
 
                         Key.METERED_NETWORK -> if (Build.VERSION.SDK_INT < 28) {
-                            preference.remove()
+                            preference.isVisible = false
+                        } else {
                             preference.onPreferenceChangeListener = reloadListener
                         }
 
