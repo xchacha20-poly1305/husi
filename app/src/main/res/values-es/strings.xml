@@ -587,4 +587,6 @@
     <string name="interrupt_selector">(Selector) Interrumpir todas las conexiones cuando se cambia la configuración</string>
     <string name="client_type">Tipo de cliente</string>
     <string name="done">Hecho</string>
+    <string name="custom_plugin_prefix">Prefijo de plugin personalizado</string>
+    <string name="custom_plugin_prefix_summary">Por favor, asegúrate de que confías plenamente en el proveedor del plugin.</string>
 </resources>
