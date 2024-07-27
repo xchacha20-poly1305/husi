@@ -641,4 +641,6 @@
     <string name="interrupt_selector">(Selector) Interrupt all connections when switch configuration</string>
     <string name="client_type">Client Type</string>
     <string name="done">Done</string>
+    <string name="custom_plugin_prefix">Custom plugin prefix</string>
+    <string name="custom_plugin_prefix_summary">Please make sure you totally trust the plugin provider.</string>
 </resources>
