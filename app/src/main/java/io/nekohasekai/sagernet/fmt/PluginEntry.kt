@@ -6,7 +6,7 @@ import io.nekohasekai.sagernet.SagerNet
 enum class PluginEntry(
     val pluginId: String,
     val displayName: String,
-    val packageName: String, // for play and f-droid page
+    val packageName: String, // for f-droid page
     val downloadSource: DownloadSource = DownloadSource()
 ) {
     TrojanGo(
@@ -15,25 +15,25 @@ enum class PluginEntry(
         "io.nekohasekai.sagernet.plugin.trojan_go",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/SagerNet/SagerNet/releases?q=trojan-go"
+            downloadLink = "https://github.com/SagerNet/SagerNet/releases?q=trojan-go",
         ),
     ),
     MieruProxy(
         "mieru-plugin",
         SagerNet.application.getString(R.string.action_mieru),
-        "moe.matsuri.exe.mieru",
+        "fr.husi.plugin.mieru",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=mieru"
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=mieru",
         ),
     ),
     NaiveProxy(
         "naive-plugin",
         SagerNet.application.getString(R.string.action_naive),
-        "io.nekohasekai.sagernet.plugin.naive",
+        "fr.husi.plugin.naive",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/AntiNeko/sing-plugin/releases?q=naive"
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=naive",
         ),
     ),
     Hysteria(
@@ -51,7 +51,7 @@ enum class PluginEntry(
         "fr.husi.plugin.hysteria2",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=Hysteria2"
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=Hysteria2",
         ),
     ),
     Juicity(
@@ -60,14 +60,14 @@ enum class PluginEntry(
         "fr.husi.plugin.juicity",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=juicity"
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=juicity",
         ),
     )
     ;
 
     data class DownloadSource(
         val fdroid: Boolean = true,
-        val downloadLink: String = "https://github.com/xchacha20-poly1305/husi/releases"
+        val downloadLink: String = "https://github.com/xchacha20-poly1305/husi/releases",
     )
 
     companion object {
