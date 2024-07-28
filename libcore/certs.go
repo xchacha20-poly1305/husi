@@ -24,18 +24,19 @@ var systemRoots *x509.CertPool
 // UpdateRootCACerts appends externalAssetsPath/ca.pem to root CA.
 // By the way, if enabledCazilla == true, it will use the CA trusted by mozilla.
 func UpdateRootCACerts(enabledCazilla bool) {
+	systemRoots = nil // Clean up old
 	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
 	// Make sure initialize system cert pool.
-	// If system cert has not been initilize,
-	// other place, where using x509.SystemCertPool(),will reload systemRoots.
-	_, _ = x509.SystemCertPool()
+	// If system cert has not been initialized,
+	// other place, where using x509.SystemCertPool(), will initialize systemRoots and override out hook.
+	sysRoots, _ := x509.SystemCertPool()
 
 	var roots *x509.CertPool
 	if enabledCazilla {
 		roots = x509.NewCertPool()
 		_ = roots.AppendCertsFromPEM(cazilla.MozillaIncludedCAPEM) // Must
 	} else {
-		roots, _ = x509.SystemCertPool()
+		roots = sysRoots
 	}
 
 	externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, "ca.pem"))

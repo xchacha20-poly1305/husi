@@ -76,10 +76,8 @@ func TestUpdateRootCACerts(t *testing.T) {
 	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
 	testConnect(husi, localListen, false, "loaded custom")
 
-	// Setback but load local
-	// Includes the CA changes behind this.
+	// Set back but load local
 	UpdateRootCACerts(false)
-	// Still not include China CA
-	testConnect(chinaRailway, trustAsiaAddress, true, "normal 12306 2")
+	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
 	testConnect(husi, localListen, false, "loaded custom 2")
 }
