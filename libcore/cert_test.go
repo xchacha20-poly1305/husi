@@ -14,18 +14,19 @@ func TestUpdateRootCACerts(t *testing.T) {
 		chinaRailway     = "www.12306.cn" // Use CA from China
 		trustAsiaAddress = chinaRailway + ":443"
 
-		husi        = "husi.fr"
-		localListen = "127.0.0.1:50625"
+		husi = "husi.fr"
 	)
+	listener := common.Must1(net.Listen(N.NetworkTCP, "127.0.0.1:0"))
+	defer listener.Close()
+	listen := listener.Addr().String()
 
 	done := make(chan struct{})
-	go func(done chan struct{}) {
+	go func(listener net.Listener, done chan struct{}) {
 		cert := common.Must1(tls.LoadX509KeyPair("ca.pem", "ca.key"))
 		config := &tls.Config{
 			Certificates: []tls.Certificate{cert},
 			ServerName:   husi,
 		}
-		listener := common.Must1(tls.Listen(N.NetworkTCP, localListen, config))
 		done <- struct{}{}
 		go func(listener net.Listener, done chan struct{}) {
 			<-done
@@ -41,12 +42,19 @@ func TestUpdateRootCACerts(t *testing.T) {
 			if err != nil {
 				return
 			}
-			go func(conn net.Conn) {
+			go func(config *tls.Config, conn net.Conn) {
 				defer conn.Close()
-				_, _ = conn.Write([]byte("hello"))
-			}(conn)
+				tlsConn := tls.Server(conn, config)
+				err := tlsConn.Handshake()
+				if err != nil {
+					return
+				}
+				defer tlsConn.Close()
+				// Write something to prevent client EOF
+				_, _ = tlsConn.Write([]byte("hello"))
+			}(config, conn)
 		}
-	}(done)
+	}(listener, done)
 	<-done
 	defer close(done)
 
@@ -69,15 +77,15 @@ func TestUpdateRootCACerts(t *testing.T) {
 
 	// normal
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306")
-	testConnect(husi, localListen, true, "normal local")
+	testConnect(husi, listen, true, "normal local")
 
 	// Load local cert and Mozilla CA
 	UpdateRootCACerts(true)
 	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
-	testConnect(husi, localListen, false, "loaded custom")
+	testConnect(husi, listen, false, "loaded custom")
 
 	// Set back but load local
 	UpdateRootCACerts(false)
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
-	testConnect(husi, localListen, false, "loaded custom 2")
+	testConnect(husi, listen, false, "loaded custom 2")
 }
