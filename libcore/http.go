@@ -314,6 +314,7 @@ func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
 			return err
 		}
 		defer file.Close()
+		writer = file
 	}
 	if callback != nil {
 		callback.SetLength(h.Response.ContentLength)
