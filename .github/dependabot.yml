@@ -20,7 +20,7 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/"
+    directory: "libcore"
     target-branch: "dev"
     pull-request-branch-name:
       separator: "-"
