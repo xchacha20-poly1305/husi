@@ -66,7 +66,7 @@ class SagerNet : Application(),
         Seq.setContext(this)
         updateNotificationChannels()
 
-        // nb4a: init core
+        // init core
         externalAssets.mkdirs()
         Libcore.initCore(
             process,
@@ -76,8 +76,8 @@ class SagerNet : Application(),
             DataStore.logBufSize,
             DataStore.logLevel > 0,
             DataStore.rulesProvider == 0,
-            DataStore.enabledCazilla
         )
+        Libcore.updateRootCACerts(DataStore.enabledCazilla)
 
         if (isMainProcess) {
             Theme.apply(this)
