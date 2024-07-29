@@ -39,7 +39,6 @@ func NewSocksInfo(port, username, password string) *SocksInfo {
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
 	if1 GUIInterface, if2 BoxPlatformInterface,
-	enabledCazilla bool,
 ) {
 	defer catchPanic("InitCore", func(panicErr error) { log.Println(panicErr) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
@@ -65,10 +64,6 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 
 		externalAssetsPath = externalAssets
 		internalAssetsPath = internalAssets
-
-		// certs
-		pem, _ := os.ReadFile(externalAssetsPath + "ca.pem")
-		updateRootCACerts(pem, enabledCazilla)
 
 		// bg
 		if isBgProcess {

@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.bg.proto
 import android.util.Log
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.ktx.Logs
@@ -31,6 +32,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
                             // wait for plugin start
                             delay(500)
                         }
+                        Libcore.updateRootCACerts(DataStore.enabledCazilla)
                         c.tryResume(box.urlTest(link, timeout))
                     } catch (e: Exception) {
                         c.tryResumeWithException(e)
