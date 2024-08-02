@@ -614,4 +614,7 @@
     <string name="pin_log">Закрепить лог</string>
     <string name="interrupt_selector">(Selector) Прервать все соединения при смене конфигурации</string>
     <string name="padding">Отступ</string>
+    <string name="done">Готово</string>
+    <string name="custom_plugin_prefix">Пользовательский префикс плагина</string>
+    <string name="custom_plugin_prefix_summary">Пожалуйста, убедитесь, что вы полностью доверяете поставщику плагина.</string>
 </resources>
