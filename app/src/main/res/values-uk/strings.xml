@@ -546,4 +546,7 @@
     <string name="client_type">Тип клієнта</string>
     <string name="custom_rule_provider">Користувацький постачальник ресурсів правил</string>
     <string name="padding">Відступ</string>
+    <string name="done">Готово</string>
+    <string name="custom_plugin_prefix">Користувацький префікс плагіна</string>
+    <string name="custom_plugin_prefix_summary">Будь ласка, переконайтеся, що ви повністю довіряєте постачальнику плагіна.</string>
 </resources>
