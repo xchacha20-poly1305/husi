@@ -553,7 +553,7 @@
     <string name="create_shortcut">Создать ярлык</string>
     <string name="xtls_flow">Flow (подпротокол VLESS)</string>
     <string name="tls_camouflage_settings">Настройки камуфляжа TLS</string>
-    <string name="test_concurrency">Тестирование параллелизма</string>
+    <string name="test_concurrency">Число параллельных подключений</string>
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
     <string name="tuic_reduce_rtt">Включить рукопожатие 0-RTT QUIC</string>
     <string name="hop_interval">Интервал переключения портов(второй)</string>
