@@ -14,7 +14,7 @@ require (
 	github.com/xchacha20-poly1305/cazilla v0.3.1
 	github.com/xchacha20-poly1305/libping v0.5.1
 	golang.org/x/crypto v0.25.0
-	golang.org/x/sys v0.22.0
+	golang.org/x/sys v0.24.0
 )
 
 // cmd
