@@ -3,7 +3,7 @@ module libcore
 go 1.22
 
 require (
-	github.com/gofrs/uuid/v5 v5.2.0
+	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.61
 	github.com/sagernet/gomobile v0.1.3
 	github.com/sagernet/sing v0.5.0-alpha.13.0.20240726000009-a2f9fef93663
