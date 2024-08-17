@@ -579,7 +579,6 @@
     <string name="custom_plugin_prefix_summary">请确定您完全信任插件提供者</string>
     <string name="traffic_status">状态</string>
     <string name="traffic_connections">连接</string>
-    <string name="loading">加载中···</string>
     <string name="status_memory">内存</string>
     <string name="status_status">状态</string>
 </resources>

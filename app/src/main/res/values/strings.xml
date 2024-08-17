@@ -645,7 +645,6 @@
     <string name="custom_plugin_prefix_summary">Please make sure you totally trust the plugin provider.</string>
     <string name="traffic_status">Stats</string>
     <string name="traffic_connections">Connections</string>
-    <string name="loading">Loading...</string>
     <string name="status_goroutines" translatable="false">Goroutines</string>
     <string name="status_memory">Memory</string>
     <string name="status_status">Status</string>

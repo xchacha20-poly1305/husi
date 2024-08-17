@@ -67,7 +67,7 @@ class MainActivity : ThemedActivity(),
     NavigationView.OnNavigationItemSelectedListener {
 
     lateinit var binding: LayoutMainBinding
-    lateinit var navigation: NavigationView
+    private lateinit var navigation: NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -237,7 +237,7 @@ class MainActivity : ThemedActivity(),
         GroupUpdater.startUpdate(subscription, true)
     }
 
-    suspend fun importProfile(uri: Uri) {
+    private suspend fun importProfile(uri: Uri) {
         val profile = try {
             parseProxies(uri.toString()).getOrNull(0) ?: error(getString(R.string.no_proxies_found))
         } catch (e: Exception) {
@@ -383,6 +383,13 @@ class MainActivity : ThemedActivity(),
         binding.fab.changeState(state, DataStore.serviceState, animate)
         binding.stats.changeState(state)
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
+
+        // If is in dashboard, enable dashboard status loop.
+        val trafficFragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment
+        if (trafficFragment != null && state == BaseService.State.Connected) {
+            connection.service?.enableDashboardStatus(true)
+            trafficFragment.refreshClashMode()
+        }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {

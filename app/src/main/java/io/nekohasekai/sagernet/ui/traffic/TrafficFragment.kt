@@ -20,7 +20,7 @@ import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import moe.matsuri.nb4a.utils.setOnFocusCancel
 
-const val POSITION_DASH = 0
+const val POSITION_STATUS = 0
 const val POSITION_CONNECTIONS = 1
 
 class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
@@ -43,7 +43,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
         TabLayoutMediator(binding.trafficTab, binding.trafficPager) { tab, position ->
             tab.text = when (position) {
-                POSITION_DASH -> getString(R.string.traffic_status)
+                POSITION_STATUS -> getString(R.string.traffic_status)
                 POSITION_CONNECTIONS -> getString(R.string.traffic_connections)
                 else -> throw IllegalArgumentException()
             }
@@ -171,19 +171,35 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
     fun emitStats(dashboardStatus: DashboardStatus) {
         when (binding.trafficPager.currentItem) {
-            POSITION_DASH -> adapter.getCurrentFragment(POSITION_DASH).let { dashboard ->
-                dashboard as DashboardFragment
-                dashboard.emitStats(dashboardStatus.memory, dashboardStatus.goroutines)
+            POSITION_STATUS -> {
+                val dashboard = getFragment(POSITION_STATUS) as? StatusFragment ?: return
+                if (dashboardStatus.isStop) {
+                    dashboard.clearStats()
+                } else {
+                    dashboard.emitStats(dashboardStatus.memory, dashboardStatus.goroutines)
+                }
             }
 
-            POSITION_CONNECTIONS -> (adapter.getCurrentFragment(POSITION_CONNECTIONS) as ConnectionListFragment)
-                .emitStats(dashboardStatus.connections)
+            POSITION_CONNECTIONS -> {
+                val connectionFragment =
+                    getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment ?: return
+                connectionFragment.emitStats(dashboardStatus.connections)
+            }
         }
     }
 
     fun clashModeUpdate(mode: String) {
-        if (binding.trafficPager.currentItem != POSITION_DASH) return
-        (adapter.getCurrentFragment(POSITION_DASH) as DashboardFragment).clashModeUpdate(mode)
+        if (binding.trafficPager.currentItem != POSITION_STATUS) return
+        (getFragment(POSITION_STATUS) as? StatusFragment)?.clashModeUpdate(mode)
+    }
+
+    fun refreshClashMode() {
+        if (binding.trafficPager.currentItem != POSITION_STATUS) return
+        (getFragment(POSITION_STATUS) as? StatusFragment)?.refreshClashMode()
+    }
+
+    private fun getFragment(position: Int): Fragment? {
+        return adapter.getCurrentFragment(position)
     }
 
     inner class TrafficAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
@@ -193,7 +209,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
-                POSITION_DASH -> DashboardFragment().also {
+                POSITION_STATUS -> StatusFragment().also {
                     searchView.isVisible = false
                 }
 
@@ -213,15 +229,12 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
     private lateinit var searchView: SearchView
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
-            ?.searchString = query
+        (getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)?.searchString = query
         return false
     }
 
     override fun onQueryTextChange(query: String?): Boolean {
-        (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
-            ?.searchString = query
+        (getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)?.searchString = query
         return false
     }
-
 }

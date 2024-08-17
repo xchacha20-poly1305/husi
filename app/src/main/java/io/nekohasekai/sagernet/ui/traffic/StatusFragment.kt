@@ -7,22 +7,22 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.databinding.LayoutDashboardBinding
+import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
 
-class DashboardFragment : Fragment(R.layout.layout_dashboard) {
+class StatusFragment : Fragment(R.layout.layout_status) {
 
-    private lateinit var binding: LayoutDashboardBinding
+    private lateinit var binding: LayoutStatusBinding
     private lateinit var adapter: ClashModeAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutDashboardBinding.bind(view)
+        binding = LayoutStatusBinding.bind(view)
         binding.clashModeList.layoutManager = FixedLinearLayoutManager(binding.clashModeList)
 
         val service = (requireActivity() as MainActivity).connection.service
@@ -38,13 +38,25 @@ class DashboardFragment : Fragment(R.layout.layout_dashboard) {
         binding.goroutinesText.text = goroutines.toString()
     }
 
+    fun clearStats() {
+        binding.memoryText.text = getString(R.string.no_statistics)
+        binding.goroutinesText.text = getString(R.string.no_statistics)
+    }
+
     fun clashModeUpdate(mode: String) {
         adapter.selected = mode
         adapter.notifyDataSetChanged()
     }
 
+    fun refreshClashMode() {
+        val service = (requireActivity() as MainActivity).connection.service
+        adapter.items = service?.clashModes ?: emptyList()
+        adapter.selected = service?.clashMode ?: io.nekohasekai.sagernet.fmt.CLASH_RULE
+        adapter.notifyDataSetChanged()
+    }
+
     private inner class ClashModeAdapter(
-        val items: List<String>,
+        var items: List<String>,
         var selected: String,
     ) : RecyclerView.Adapter<ClashModeItemView>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClashModeItemView {
@@ -64,16 +76,23 @@ class DashboardFragment : Fragment(R.layout.layout_dashboard) {
         }
 
         override fun onBindViewHolder(holder: ClashModeItemView, position: Int) {
-            holder.bind(items[position])
+            val modeName = items[position]
+            holder.bind(modeName, modeName == selected)
         }
     }
 
     private inner class ClashModeItemView(val binding: ViewClashModeBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: String) {
+        fun bind(item: String, isSelected: Boolean) {
             binding.clashModeButtonText.text = item
-            if (item != adapter.selected) {
+            if (isSelected) {
+                binding.clashModeButtonText.setTextColor(
+                    binding.root.context.getColorAttr(R.attr.colorMaterial100)
+                )
+                binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle_active)
+                binding.clashModeButton.isClickable = false
+            } else {
                 binding.clashModeButtonText.setTextColor(
                     binding.root.context.getColorAttr(R.attr.colorOnSurface)
                 )
@@ -81,12 +100,6 @@ class DashboardFragment : Fragment(R.layout.layout_dashboard) {
                 binding.clashModeButton.setOnClickListener {
                     (requireActivity() as MainActivity).connection.service?.setClashMode(item)
                 }
-            } else {
-                binding.clashModeButtonText.setTextColor(
-                    binding.root.context.getColorAttr(R.attr.colorMaterial100)
-                )
-                binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle_active)
-                binding.clashModeButton.isClickable = false
             }
         }
     }

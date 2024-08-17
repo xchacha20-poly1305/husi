@@ -36,6 +36,7 @@ class DashboardStatusLooper(
                             data.proxy!!.box.trackerInfos.toConnectionList(),
                             Libcore.getMemory(),
                             Libcore.getGoroutines(),
+                            false,
                         )
                     )
                 }
@@ -52,7 +53,9 @@ class DashboardStatusLooper(
         runOnDefaultDispatcher {
             runCatching {
                 data.binder.broadcast { work ->
-                    work.dashboardStatusUpdate(DashboardStatus(emptyList(), 0, 0))
+                    work.dashboardStatusUpdate(
+                        DashboardStatus(emptyList(), 0, 0, true)
+                    )
                 }
             }
         }

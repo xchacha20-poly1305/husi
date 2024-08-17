@@ -79,7 +79,7 @@
                                             style="?attr/textAppearanceBodySmall"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:text="@string/loading"
+                                            android:text="@string/no_statistics"
                                             android:textColor="?android:colorForeground" />
 
                                 </LinearLayout>
@@ -109,7 +109,7 @@
                                             style="?attr/textAppearanceBodySmall"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:text="@string/loading"
+                                            android:text="@string/no_statistics"
                                             android:textColor="?android:colorForeground" />
 
                                 </LinearLayout>
