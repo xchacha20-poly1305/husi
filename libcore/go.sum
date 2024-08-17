@@ -8,8 +8,8 @@ github.com/andybalholm/brotli v1.0.6 h1:Yf9fFpf49Zrxb9NlQaluyE92/+X7UVHlhMNJN2sx
 github.com/andybalholm/brotli v1.0.6/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/caddyserver/certmagic v0.20.0 h1:bTw7LcEZAh9ucYCRXyCpIrSAGplplI0vGYJ4BpCQ/Fc=
 github.com/caddyserver/certmagic v0.20.0/go.mod h1:N4sXgpICQUskEWpj7zVzvWD41p3NYacrNoZYiRM2jTg=
-github.com/cloudflare/circl v1.3.7 h1:qlCDlTPz2n9fu58M0Nh1J/JzcFpfgkFHHX3O35r5vcU=
-github.com/cloudflare/circl v1.3.7/go.mod h1:sRTcRWXGLrKw6yIGJ+l7amYJFfAXbZG0kBSc8r4zxgA=
+github.com/cloudflare/circl v1.3.9 h1:QFrlgFYf2Qpi8bSpVPK1HBvWpx16v/1TZivyo7pGuBE=
+github.com/cloudflare/circl v1.3.9/go.mod h1:PDRU+oXvdD7KCtgKxW95M5Z8BpSCJXQORiZFnBQS5QU=
 github.com/cretz/bine v0.1.0/go.mod h1:6PF6fWAvYtwjRGkAuDEJeWNOv3a2hUouSP/yRYXmvHw=
 github.com/cretz/bine v0.2.0 h1:8GiDRGlTgz+o8H9DSnsl+5MeBK4HsExxgl6WgzOCuZo=
 github.com/cretz/bine v0.2.0/go.mod h1:WU4o9QR9wWp8AVKtTM1XD5vUHkEqnf2vVSo6dBqbetI=
@@ -154,8 +154,8 @@ github.com/v2fly/v2ray-core/v5 v5.16.1 h1:hIuRzCJhmRYqCA76hGiNLkAHopgbNt91L871wl
 github.com/v2fly/v2ray-core/v5 v5.16.1/go.mod h1:3pWIBTmNagMKpzd9/QicXq/7JZCQt716GsGZdBNmYkU=
 github.com/vishvananda/netns v0.0.4 h1:Oeaw1EM2JMxD51g9uhtC0D7erkIjgmj8+JZc26m1YX8=
 github.com/vishvananda/netns v0.0.4/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
-github.com/xchacha20-poly1305/TLS-scribe v0.6.1 h1:eMe562VUOSjoumbom/XS1O5mw0A3/QOKPyLgwAjVDgo=
-github.com/xchacha20-poly1305/TLS-scribe v0.6.1/go.mod h1:2suBWLi3ESUbkp97tMz1okYK6Dh9XpjRzyO7eMA5s6Q=
+github.com/xchacha20-poly1305/TLS-scribe v0.7.0 h1:Mq+nDMJR6k7DKczh8Iq33r6o6yRqOxoLVp8W0DWlc2Q=
+github.com/xchacha20-poly1305/TLS-scribe v0.7.0/go.mod h1:tadTvyQ2GFKuoDtyuQvRn61X3glNCPhQAu95LsGLBgw=
 github.com/xchacha20-poly1305/cazilla v0.3.1 h1:L+/BuCT1uKHBthR8Cw8TfyDU9YfQ5HsClk8E/JVrh/o=
 github.com/xchacha20-poly1305/cazilla v0.3.1/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.5.1 h1:/Jvyi2mjHdTn3771D05eqZ/oXWixxjuRDCstn7bZOcY=

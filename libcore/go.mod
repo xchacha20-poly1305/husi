@@ -10,7 +10,7 @@ require (
 	github.com/sagernet/sing-box v1.10.0-alpha.29
 	github.com/sagernet/sing-dns v0.3.0-beta.14
 	github.com/sagernet/sing-tun v0.4.0-beta.13.0.20240703164908-1f043289199d
-	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
+	github.com/xchacha20-poly1305/TLS-scribe v0.7.0
 	github.com/xchacha20-poly1305/cazilla v0.3.1
 	github.com/xchacha20-poly1305/libping v0.5.1
 	golang.org/x/crypto v0.25.0
@@ -31,7 +31,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/caddyserver/certmagic v0.20.0 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.3.9 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
