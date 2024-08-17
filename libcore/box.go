@@ -8,6 +8,7 @@ import (
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/experimental/clashapi"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	_ "github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
@@ -48,6 +49,9 @@ type BoxInstance struct {
 
 	selector         *outbound.Selector
 	selectorCallback selectorCallback
+
+	clashModeHook     chan struct{}
+	clashModeCallback func(mode string)
 
 	pauseManager pause.Manager
 	servicePauseFields
@@ -103,13 +107,18 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		pauseManager: service.FromContext[pause.Manager](ctx),
 	}
 
-	// selector
 	if !forTest {
+		// selector
 		if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
 			if selector, isSelector := proxy.(*outbound.Selector); isSelector {
 				b.selector = selector
 				b.selectorCallback = platformInterface.SelectorCallback
 			}
+		}
+
+		// Clash
+		if clash := b.Box.Router().ClashServer(); clash != nil {
+			b.clashModeCallback = platformInterface.ClashModeCallback
 		}
 	}
 
@@ -147,6 +156,15 @@ func (b *BoxInstance) Close() (err error) {
 
 	if b.protectCloser != nil {
 		_ = b.protectCloser.Close()
+	}
+	if b.clashModeHook != nil {
+		select {
+		case <-b.clashModeHook:
+			// closed
+		default:
+			b.Router().ClashServer().(*clashapi.Server).SetModeUpdateHook(nil)
+			close(b.clashModeHook)
+		}
 	}
 
 	// close box

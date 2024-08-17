@@ -24,6 +24,15 @@ class NativeInterface : PlatformInterface {
         DataStore.vpnService?.protect(fd)
     }
 
+    override fun clashModeCallback(mode: String?) {
+        val data = DataStore.baseService?.data ?: return
+        runOnDefaultDispatcher {
+            data.binder.broadcast { work ->
+                work.clashModeUpdate(data.proxy?.box?.clashMode ?: return@broadcast)
+            }
+        }
+    }
+
     override fun openTun(singTunOptionsJson: String, tunPlatformOptionsJson: String): Long {
         if (DataStore.vpnService == null) {
             throw Exception("no VpnService")
@@ -37,7 +46,7 @@ class NativeInterface : PlatformInterface {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun findConnectionOwner(
-        ipProto: Int, srcIp: String, srcPort: Int, destIp: String, destPort: Int
+        ipProto: Int, srcIp: String, srcPort: Int, destIp: String, destPort: Int,
     ): Int {
         return SagerNet.connectivity.getConnectionOwnerUid(
             ipProto, InetSocketAddress(srcIp, srcPort), InetSocketAddress(destIp, destPort)
@@ -63,7 +72,6 @@ class NativeInterface : PlatformInterface {
         PackageCache.awaitLoadSync()
         return PackageCache[packageName] ?: 0
     }
-
 
     override fun selectorCallback(tag: String) {
         DataStore.baseService?.apply {

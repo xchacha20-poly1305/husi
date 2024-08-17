@@ -1,9 +1,10 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.configuration
 
 import android.content.Intent
 import android.os.Bundle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.ui.ThemedActivity
 
 class ProfileSelectActivity : ThemedActivity(R.layout.layout_empty),
     ConfigurationFragment.SelectCallback {

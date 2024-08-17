@@ -8,6 +8,9 @@ import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutToolsBinding
 import io.nekohasekai.sagernet.ktx.isExpert
+import io.nekohasekai.sagernet.ui.tools.BackupFragment
+import io.nekohasekai.sagernet.ui.tools.DebugFragment
+import io.nekohasekai.sagernet.ui.tools.NetworkFragment
 
 class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
 

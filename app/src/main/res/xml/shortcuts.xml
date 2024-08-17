@@ -17,7 +17,7 @@
             android:shortcutShortLabel="@string/add_profile_methods_scan_qr_code">
         <intent
                 android:action="android.intent.action.MAIN"
-                android:targetClass="io.nekohasekai.sagernet.ui.ScannerActivity"
+                android:targetClass="io.nekohasekai.sagernet.ui.configuration.ScannerActivity"
                 android:targetPackage="fr.husi"/>
     </shortcut>
 </shortcuts>

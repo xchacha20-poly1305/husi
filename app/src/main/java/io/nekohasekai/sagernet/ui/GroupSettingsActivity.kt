@@ -28,6 +28,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.OutboundPreference
 import io.nekohasekai.sagernet.widget.UserAgentPreference

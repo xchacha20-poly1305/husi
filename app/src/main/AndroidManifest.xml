@@ -234,35 +234,35 @@
                 android:launchMode="singleTask"
                 android:parentActivityName=".ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.ScannerActivity"
+                android:name="io.nekohasekai.sagernet.ui.configuration.ScannerActivity"
                 android:configChanges="uiMode"
                 android:excludeFromRecents="true"
                 android:label="@string/add_profile_methods_scan_qr_code"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.ProfileSelectActivity"
+                android:name="io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity"
                 android:configChanges="uiMode"
                 android:label="@string/select_profile"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.StunActivity"
+                android:name="io.nekohasekai.sagernet.ui.tools.StunActivity"
                 android:configChanges="uiMode"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.SpeedtestActivity"
+                android:name="io.nekohasekai.sagernet.ui.tools.SpeedtestActivity"
                 android:configChanges="uiMode"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.GetCertActivity"
+                android:name="io.nekohasekai.sagernet.ui.tools.GetCertActivity"
                 android:configChanges="uiMode"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>
         <activity
-                android:name="io.nekohasekai.sagernet.ui.VPNScannerActivity"
+                android:name="io.nekohasekai.sagernet.ui.tools.VPNScannerActivity"
                 android:configChanges="uiMode"
                 android:launchMode="singleTask"
                 android:parentActivityName="io.nekohasekai.sagernet.ui.MainActivity"/>

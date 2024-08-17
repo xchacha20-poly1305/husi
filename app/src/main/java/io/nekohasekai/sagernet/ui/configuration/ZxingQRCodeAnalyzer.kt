@@ -17,7 +17,7 @@
  *                                                                            *
  ******************************************************************************/
 
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.configuration
 
 import io.nekohasekai.sagernet.ktx.Logs
 import androidx.camera.core.ImageAnalysis
