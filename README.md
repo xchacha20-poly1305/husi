@@ -35,7 +35,7 @@ Environment:
 
   Go1.22.5: Apply [this patch](./libcore/patches/cgo_go1225.diff) to `${GOROOT}/src/runtime/cgocall.go`
 
-  Go1.23rc2: Apply [this patch](https://go-review.googlesource.com/changes/go~600296/revisions/1/patch) (You should decode base64 first) to `${GOROOT}`
+  Go1.23: Apply [this patch](https://go-review.googlesource.com/changes/go~600296/revisions/1/patch) (You should decode base64 first) to `${GOROOT}`
 
 * Openjdk-17 (Other version is ok. But require version 17 to build the same file as action.)
 
