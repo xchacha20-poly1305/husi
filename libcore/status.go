@@ -2,17 +2,20 @@ package libcore
 
 import (
 	"cmp"
+	"runtime"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/experimental/clashapi"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
+	"github.com/sagernet/sing/common/memory"
 	M "github.com/sagernet/sing/common/metadata"
 
 	"github.com/gofrs/uuid/v5"
 )
 
+// GetTrackerInfos returns TrackerInfo list. If not set clash API, it will returns error.
 func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator, err error) {
 	clash := b.Router().ClashServer().(*clashapi.Server)
 	if clash == nil {
@@ -43,6 +46,7 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 	return &iterator[*TrackerInfo]{trackerInfos}, nil
 }
 
+// CloseConnection closes the connection, whose UUID is `id`.
 func (b *BoxInstance) CloseConnection(id string) {
 	clash := b.Router().ClashServer().(*clashapi.Server)
 	if clash == nil {
@@ -65,6 +69,7 @@ type TrackerInfoIterator interface {
 	HasNext() bool
 }
 
+// TrackerInfo recodes a connection's information.
 type TrackerInfo struct {
 	UUID          uuid.UUID
 	Inbound       string
@@ -96,6 +101,7 @@ func (t *TrackerInfo) GetStart() string {
 	return t.Start.Format(time.DateTime)
 }
 
+// generateBound formats inbound/outbound's name.
 func generateBound(bound, boundType string) string {
 	if bound == "" {
 		return boundType
@@ -103,6 +109,7 @@ func generateBound(bound, boundType string) string {
 	return bound + "/" + boundType
 }
 
+// generateRule formats the rule chain.
 func generateRule(rule adapter.Rule, outbound string) string {
 	if rule != nil {
 		return F.ToString(rule.String(), " => ", outbound)
@@ -110,6 +117,7 @@ func generateRule(rule adapter.Rule, outbound string) string {
 	return "final"
 }
 
+// chainToString formats connection chain.
 func chainToString(raw []string) (chain string) {
 	for i, c := range raw {
 		chain += c
@@ -118,4 +126,73 @@ func chainToString(raw []string) (chain string) {
 		}
 	}
 	return
+}
+
+// GetMemory returns memory status.
+func GetMemory() int64 {
+	return int64(memory.Inuse())
+}
+
+// GetGoroutines returns goroutines count.
+func GetGoroutines() int32 {
+	return int32(runtime.NumGoroutine())
+}
+
+// GetClashModeList returns the clash mode you have set.
+func (b *BoxInstance) GetClashModeList() StringIterator {
+	clash := b.Router().ClashServer()
+	if clash == nil {
+		return nil
+	}
+	return &iterator[string]{clash.ModeList()}
+}
+
+// EnableClashModeCallback set whether enable clash mode callbck.
+func (b *BoxInstance) EnableClashModeCallback(enable bool) {
+	clash := b.Router().ClashServer().(*clashapi.Server)
+	if clash == nil {
+		return
+	}
+
+	// clean old
+	clash.SetModeUpdateHook(nil)
+	if b.clashModeHook != nil {
+		select {
+		case <-b.clashModeHook:
+			// closed
+		default:
+			close(b.clashModeHook)
+		}
+		b.clashModeHook = nil
+	}
+
+	if !enable {
+		return
+	}
+
+	b.clashModeHook = make(chan struct{}, 1)
+	clash.SetModeUpdateHook(b.clashModeHook)
+	go func() {
+		for range b.clashModeHook {
+			b.clashModeCallback(b.GetClashMode())
+		}
+	}()
+}
+
+// GetClashMode returns the clash mode that being selected.
+func (b *BoxInstance) GetClashMode() string {
+	clash := b.Router().ClashServer()
+	if clash == nil {
+		return ""
+	}
+	return clash.Mode()
+}
+
+// SetClashMode sets clash mode.
+func (b *BoxInstance) SetClashMode(mode string) {
+	clash := b.Router().ClashServer().(*clashapi.Server)
+	if clash == nil {
+		return
+	}
+	clash.SetMode(mode)
 }

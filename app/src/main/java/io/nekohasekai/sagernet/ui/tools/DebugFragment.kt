@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
 import android.view.View
@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutDebugBinding
 import io.nekohasekai.sagernet.ktx.snackbar
+import io.nekohasekai.sagernet.ui.NamedFragment
 
 class DebugFragment : NamedFragment(R.layout.layout_debug) {
 

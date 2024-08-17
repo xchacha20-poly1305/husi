@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
 import androidx.core.view.isVisible
@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutStunBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import libcore.Libcore
 
 class StunActivity : ThemedActivity() {

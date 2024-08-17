@@ -14,13 +14,13 @@ import moe.matsuri.nb4a.utils.JavaUtil
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
     BoxInstance(profile) {
 
-    var notTmp = true
+    private var notTmp = true
 
     var lastSelectorGroupId = -1L
     var displayProfileName = ServiceNotification.genTitle(profile)
 
     var trafficLooper: TrafficLooper? = null
-    var connectionLooper: ConnectionLooper? = null
+    var dashboardStatusLooper: DashboardStatusLooper? = null
 
     override fun buildConfig() {
         super.buildConfig()
@@ -55,7 +55,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         runOnDefaultDispatcher {
             service?.let {
                 trafficLooper = TrafficLooper(it.data, this)
-                connectionLooper = ConnectionLooper(it.data, this)
+                dashboardStatusLooper = DashboardStatusLooper(it.data, this)
             }
             trafficLooper?.start()
         }
@@ -68,8 +68,8 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
             trafficLooper?.stop()
             trafficLooper = null
 
-            connectionLooper?.stop()
-            connectionLooper = null
+            dashboardStatusLooper?.stop()
+            dashboardStatusLooper = null
         }
     }
 }

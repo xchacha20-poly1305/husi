@@ -15,6 +15,7 @@ type PlatformInterface interface {
 	UsePlatformInterfaceGetter() bool
 
 	SelectorCallback(tag string)
+	ClashModeCallback(mode string)
 }
 
 type InterfaceUpdateListener interface {

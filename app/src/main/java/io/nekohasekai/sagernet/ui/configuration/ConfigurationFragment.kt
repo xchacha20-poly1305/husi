@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.configuration
 
 import android.content.Intent
 import android.graphics.Color
@@ -80,6 +80,8 @@ import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HysteriaSettingsActivity

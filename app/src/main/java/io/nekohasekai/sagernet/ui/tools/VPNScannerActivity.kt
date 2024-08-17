@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.tools
 
 import android.Manifest
 import android.content.pm.PackageInfo
@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
 import io.nekohasekai.sagernet.ktx.toStringIterator
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

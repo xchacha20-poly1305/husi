@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.tools
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import libcore.CopyCallback

@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -25,6 +26,7 @@ import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.toList
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -169,10 +171,12 @@ class BaseService {
             }
         }
 
-        override fun setConnection(enable: Boolean) {
-            data?.proxy?.connectionLooper?.stop()
+        override fun enableDashboardStatus(enable: Boolean) {
+            val proxy = data?.proxy ?: return
+            proxy.box.enableClashModeCallback(enable)
+            proxy.dashboardStatusLooper?.stop()
             if (enable) {
-                data?.proxy?.connectionLooper?.start()
+                proxy.dashboardStatusLooper?.start()
             }
         }
 
@@ -182,6 +186,18 @@ class BaseService {
 
         override fun resetNetwork() {
             data?.resetNetwork()
+        }
+
+        override fun getClashModes(): List<String> {
+            return data?.proxy?.box?.clashModeList?.toList() ?: emptyList()
+        }
+
+        override fun getClashMode(): String? {
+            return data?.proxy?.box?.clashMode
+        }
+
+        override fun setClashMode(mode: String?) {
+            data?.proxy?.box?.clashMode = mode
         }
 
         fun stateChanged(s: State, msg: String?) = launch {
@@ -341,6 +357,7 @@ class BaseService {
             }
         }
 
+        @SuppressLint("UnspecifiedRegisterReceiverFlag")
         fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
             DataStore.baseService = this
 

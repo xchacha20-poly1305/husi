@@ -34,6 +34,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.AppListPreference
 import io.nekohasekai.sagernet.widget.ListListener

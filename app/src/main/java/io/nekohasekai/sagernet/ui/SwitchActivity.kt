@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 
 class SwitchActivity : ThemedActivity(R.layout.layout_empty),
     ConfigurationFragment.SelectCallback {

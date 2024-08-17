@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui
+package io.nekohasekai.sagernet.ui.tools
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,6 +10,8 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.databinding.LayoutNetworkBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressBinding
 import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.NamedFragment
 import io.nekohasekai.sagernet.utils.Cloudflare
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

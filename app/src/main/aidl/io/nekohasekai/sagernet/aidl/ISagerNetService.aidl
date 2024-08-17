@@ -11,7 +11,10 @@ interface ISagerNetService {
 
   int urlTest();
 
-  oneway void setConnection(boolean enable);
+  oneway void enableDashboardStatus(boolean enable);
   oneway void closeConnection(String id);
   oneway void resetNetwork();
+  List<String> getClashModes();
+  String getClashMode();
+  oneway void setClashMode(String mode);
 }
