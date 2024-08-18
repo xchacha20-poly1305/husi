@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -71,6 +72,7 @@ class SpeedtestActivity : ThemedActivity() {
                     )
                 }.newRequest().apply {
                     setURL(binding.speedTestServer.text.toString())
+                    setUserAgent(USER_AGENT)
                     setTimeout(binding.speedTestTimeout.text.toString().toInt())
                 }.execute()
                     .writeTo(Libcore.DevNull, CopyCallBack(binding.speedTestResult))
