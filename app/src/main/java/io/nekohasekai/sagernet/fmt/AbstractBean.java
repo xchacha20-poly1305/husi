@@ -20,8 +20,9 @@ public abstract class AbstractBean extends Serializable {
     public Boolean serverMux;
     public Boolean serverBrutal;
     public Integer serverMuxType;
-    public Integer serverMuxConcurrency;
+    public Integer serverMuxNumber;
     public Boolean serverMuxPadding;
+    public Integer serverMuxStrategy;
 
     public transient String finalAddress;
     public transient int finalPort;
@@ -76,15 +77,16 @@ public abstract class AbstractBean extends Serializable {
         if (serverMux == null) serverMux = false;
         if (serverBrutal == null) serverBrutal = false;
         if (serverMuxType == null) serverMuxType = 0;
-        if (serverMuxConcurrency == null) serverMuxConcurrency = 8;
+        if (serverMuxNumber == null) serverMuxNumber = 8;
         if (serverMuxPadding == null) serverMuxPadding = false;
+        if (serverMuxStrategy == null) serverMuxStrategy = 0;
     }
 
     @Override
     public void serializeToBuffer(@NonNull ByteBufferOutput output) {
         serialize(output);
 
-        output.writeInt(3);
+        output.writeInt(4);
         if (!serializeWithoutName) {
             output.writeString(name);
         }
@@ -94,8 +96,9 @@ public abstract class AbstractBean extends Serializable {
         output.writeBoolean(serverBrutal);
         output.writeBoolean(serverMux);
         output.writeInt(serverMuxType);
-        output.writeInt(serverMuxConcurrency);
+        output.writeInt(serverMuxNumber);
         output.writeBoolean(serverMuxPadding);
+        output.writeInt(serverMuxStrategy);
     }
 
     @Override
@@ -112,8 +115,10 @@ public abstract class AbstractBean extends Serializable {
         if (extraVersion < 3) return;
         serverMux = input.readBoolean();
         serverMuxType = input.readInt();
-        serverMuxConcurrency = input.readInt();
+        serverMuxNumber = input.readInt();
         serverMuxPadding = input.readBoolean();
+        if (extraVersion < 4) return;
+        serverMuxStrategy = input.readInt();
     }
 
     public void serialize(ByteBufferOutput output) {

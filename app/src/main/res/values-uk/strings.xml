@@ -284,7 +284,6 @@
     <string name="traffic_sniffing">Увімкнути аналіз трафіка</string>
     <string name="enable_mux">Увімкнути мультиплексор</string>
     <string name="mux_sum">Протокол MUX призначений для зменьшення затримки з\'єднання TCP, а не для збільшення пропускної здатності. Використання MUX для перегляду відео, завантаження файлів або перевірки швидкості зазвичай контрпродуктивно. Якщо сервер не підтримує MUX, ви не зможете отримати доступ до Інтернету.</string>
-    <string name="mux_concurrency">Кількість одночасних підключень Mux</string>
     <string name="tcp_keep_alive_interval">Інтервал доставки пакетів TCP keep-alive</string>
     <string name="on">Увімкнено</string>
     <string name="proxied_apps_summary">Налаштувати режим VPN для обраних застосунків</string>

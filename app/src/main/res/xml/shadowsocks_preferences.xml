@@ -45,16 +45,23 @@
                 app:title="@string/enable_brutal" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
                 app:defaultValue="0"
-                app:entries="@array/mux_type"
+                app:entries="@array/mux_types"
                 app:entryValues="@array/int_array_3"
                 app:key="serverMuxType"
                 app:title="@string/mux_type"
                 app:useSimpleSummaryProvider="true" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+                app:defaultValue="0"
+                app:entries="@array/mux_strategies"
+                app:entryValues="@array/int_array_3"
+                app:key="serverMuxStrategy"
+                app:title="@string/mux_strategy"
+                app:useSimpleSummaryProvider="true" />
         <EditTextPreference
                 app:defaultValue="8"
                 app:icon="@drawable/ic_baseline_low_priority_24"
-                app:key="serverMuxConcurrency"
-                app:title="@string/mux_concurrency"
+                app:key="serverMuxNumber"
+                app:title="@string/mux_number"
                 app:useSimpleSummaryProvider="true" />
         <SwitchPreference
                 app:key="serverMuxPadding"

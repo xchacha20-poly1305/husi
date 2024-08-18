@@ -437,10 +437,16 @@
         <item>9000</item>
     </string-array>
 
-    <string-array name="mux_type">
+    <string-array name="mux_types">
         <item>h2mux</item>
         <item>smux</item>
         <item>yamux</item>
+    </string-array>
+
+    <string-array name="mux_strategies" >
+        <item>@string/mux_max_connections</item>
+        <item>@string/mux_min_streams</item>
+        <item>@string/mux_max_streams</item>
     </string-array>
 
     <string-array name="dns_network_select">

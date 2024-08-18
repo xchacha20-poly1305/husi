@@ -155,7 +155,6 @@
     <string name="domain_strategy">استراتژی حل و فصل دامنه</string>
     <string name="traffic_sniffing">فعال کردن بو کشیدن ترافیک</string>
     <string name="enable_mux">فعال کردن مولتی پلکسر</string>
-    <string name="mux_concurrency">اتصالات همزمان Mux</string>
     <string name="tcp_keep_alive_interval">TCP بازه تحویل بسته را فعال نگه می دارد</string>
     <string name="proxied_apps">حالت VPN برنامه‌ها</string>
     <string name="proxied_apps_summary">حالت VPN را برای برنامه های انتخابی پیکربندی کنید</string>

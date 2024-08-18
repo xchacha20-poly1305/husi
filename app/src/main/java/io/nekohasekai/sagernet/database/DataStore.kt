@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.TrafficSortMode
@@ -231,7 +232,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverMux by profileCacheStore.boolean(Key.SERVER_MUX) { false }
     var serverBrutal by profileCacheStore.boolean(Key.SERVER_BRUTAL) { false }
     var serverMuxType by profileCacheStore.stringToInt(Key.SERVER_MUX_TYPE) { MuxType.H2MUX }
-    var serverMuxConcurrency by profileCacheStore.stringToInt(Key.SERVER_MUX_CONCURRENCY) { 8 }
+    var serverMuxStrategy by profileCacheStore.stringToInt(Key.SERVER_MUX_STRATEGY) { MuxStrategy.MAX_CONNECTIONS }
+    var serverMuxNumber by profileCacheStore.stringToInt(Key.SERVER_MUX_NUMBER) { 8 }
     var serverMuxPadding by profileCacheStore.boolean(Key.SERVER_MUX_PADDING) { false }
 
     var authenticatedLength by profileCacheStore.boolean(Key.AUTHENTICATED_LENGTH)

@@ -99,7 +99,7 @@ fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
         put("log_level", if (DataStore.logLevel > 0) 0 else 2)
         if (serverMux) put("mux", JSONObject().apply {
             put("enabled", true)
-            put("concurrency", serverMuxConcurrency)
+            put("concurrency", serverMuxNumber)
         })
         put("tcp", JSONObject().apply {
             put("prefer_ipv4", DataStore.ipv6Mode <= IPv6Mode.ENABLE)

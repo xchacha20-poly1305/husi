@@ -4,6 +4,7 @@ import android.widget.Toast
 import io.nekohasekai.sagernet.DNSMode
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
@@ -497,8 +498,16 @@ fun buildConfig(
                                         up_mbps = -1 // need kernel module
                                         down_mbps = DataStore.downloadSpeed
                                     }
-                                } else {
-                                    max_streams = bean.serverMuxConcurrency
+                                } else when (bean.serverMuxStrategy) {
+                                    MuxStrategy.MAX_CONNECTIONS -> {
+                                        max_connections = bean.serverMuxNumber
+                                    }
+
+                                    MuxStrategy.MIN_STREAMS -> min_streams = bean.serverMuxNumber
+
+                                    MuxStrategy.MAX_STREAMS -> max_streams = bean.serverMuxNumber
+
+                                    else -> throw IllegalStateException()
                                 }
                             }.asMap()
                         }

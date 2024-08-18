@@ -222,7 +222,6 @@
     <string name="proxied_apps">وضع تطبيقات VPN</string>
     <string name="tcp_keep_alive_interval">يحتفظ TCP بالفاصل الزمني النشط لتسليم الحزم</string>
     <string name="mux_sum">تم تصميم Mux لتقليل زمن انتقال مصافحة TCP، وليس لزيادة إنتاجية الاتصال. عادةً ما يؤدي استخدام Mux لمشاهدة مقاطع الفيديو أو التنزيل أو اختبار السرعة إلى نتائج عكسية</string>
-    <string name="mux_concurrency">اتصالات مسك المتزامنة</string>
     <string name="enable_mux">تمكين المضاعف</string>
     <string name="traffic_sniffing">تمكين استنشاق حركة المرور</string>
     <string name="domain_strategy">استراتيجية حل المجال</string>
