@@ -867,7 +867,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             profile.status = 1
                             profile.ping = result
                         } catch (e: PluginManager.PluginNotFoundException) {
-                            profile.status = 2
+                            profile.status = -1
                             profile.error = e.readableMessage
                         } catch (e: Exception) {
                             profile.status = 3
