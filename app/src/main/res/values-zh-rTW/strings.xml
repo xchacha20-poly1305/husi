@@ -581,4 +581,9 @@
     <string name="custom_plugin_prefix_summary">請確保您完全信任插件提供者。</string>
     <string name="padding">填充</string>
     <string name="disable_post_quantum">禁用後量子密鑰協商</string>
+    <string name="mux_strategy">多路復用策略</string>
+    <string name="mux_number">複用器數量</string>
+    <string name="mux_max_connections">最大連線數</string>
+    <string name="mux_min_streams">最小流數</string>
+    <string name="mux_max_streams">最大流數</string>
 </resources>
