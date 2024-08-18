@@ -268,4 +268,8 @@ object RuleProvider {
     const val LOYALSOLDIER = 1
     const val CHOCOLATE4U = 2
     const val CUSTOM = 3
+
+    fun hasUnstableBranch(provider: Int): Boolean {
+        return provider in OFFICIAL..LOYALSOLDIER
+    }
 }

@@ -366,18 +366,15 @@ class AssetsActivity : ThemedActivity() {
             File(filesDir, "geosite.version.txt")
         )
         val provider: RulesFetcher = if (DataStore.rulesProvider != RuleProvider.CUSTOM) {
-            var unstableBranch = false
             GithubRuleFetcher(
                 versionFileList,
                 updateProgress,
                 when (DataStore.rulesProvider) {
                     RuleProvider.OFFICIAL -> {
-                        unstableBranch = true
                         listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
                     }
 
                     RuleProvider.LOYALSOLDIER -> {
-                        unstableBranch = true
                         listOf("xchacha20-poly1305/sing-geoip", "xchacha20-poly1305/sing-geosite")
                     }
 
@@ -387,7 +384,7 @@ class AssetsActivity : ThemedActivity() {
                 },
                 client,
                 geoDir.absolutePath,
-                unstableBranch,
+                RuleProvider.hasUnstableBranch(DataStore.rulesProvider),
             )
         } else {
             object : RulesFetcher {
