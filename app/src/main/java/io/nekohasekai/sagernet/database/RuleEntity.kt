@@ -27,6 +27,7 @@ data class RuleEntity(
     var ssid: String = "",
     var bssid: String = "",
     @ColumnInfo(defaultValue = "") var clientType: String = "",
+    @ColumnInfo(defaultValue = "") var clashMode: String = "",
 ) : Parcelable {
 
     fun displayName(): String {
@@ -49,6 +50,7 @@ data class RuleEntity(
         if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
         if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
         if (clientType.isNotBlank()) summary += "client: $clientType\n"
+        if (clashMode.isNotBlank()) summary += "clash mode: $clashMode\n"
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {
             lines.subList(0, 3).joinToString("\n", postfix = "\n...")

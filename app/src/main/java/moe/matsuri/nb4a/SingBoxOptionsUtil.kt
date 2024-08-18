@@ -167,6 +167,7 @@ fun SingBoxOptions.Rule_Default.checkEmpty(): Boolean {
     if (ip_cidr?.isNotEmpty() == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (ip_is_private == true) return false
+    if (source_ip_is_private == true) return false
 
     if (domain?.isNotEmpty() == true) return false
     if (domain_suffix?.isNotEmpty() == true) return false

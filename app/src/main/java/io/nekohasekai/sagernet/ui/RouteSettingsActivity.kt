@@ -70,6 +70,7 @@ class RouteSettingsActivity(
         DataStore.routeSSID = ssid
         DataStore.routeBSSID = bssid
         DataStore.routeClient = clientType
+        DataStore.routeClashMode = clashMode
         DataStore.routeOutbound = when (outbound) {
             0L -> 0
             -1L -> 1
@@ -92,6 +93,7 @@ class RouteSettingsActivity(
         ssid = DataStore.routeSSID
         bssid = DataStore.routeBSSID
         clientType = DataStore.routeClient
+        clashMode = DataStore.routeClashMode
         outbound = when (DataStore.routeOutbound) {
             0 -> 0L
             1 -> -1L
@@ -121,6 +123,7 @@ class RouteSettingsActivity(
             DataStore.routeSSID.isBlank() &&
             DataStore.routeBSSID.isBlank() &&
             DataStore.routeClient.isBlank() &&
+            DataStore.routeClashMode.isBlank() &&
             DataStore.routeOutbound == 0
         ) {
             return false

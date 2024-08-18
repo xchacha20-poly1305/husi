@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
+import moe.matsuri.nb4a.IP_PRIVATE
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
 import moe.matsuri.nb4a.SingBoxOptions.ClashAPIOptions
@@ -653,7 +654,15 @@ fun buildConfig(
                     network = listOf(rule.network)
                 }
                 if (rule.source.isNotBlank()) {
-                    source_ip_cidr = rule.source.listByLineOrComma()
+                    val sourceIPs = mutableListOf<String>()
+                    for (source in rule.source.listByLineOrComma()) {
+                        if (source.startsWith(IP_PRIVATE)) {
+                            source_ip_is_private = true
+                        } else {
+                            sourceIPs += source
+                        }
+                    }
+                    if (sourceIPs.isNotEmpty()) source_ip_cidr = sourceIPs
                 }
                 if (rule.protocol.isNotBlank()) {
                     protocol = rule.protocol.listByLineOrComma()
@@ -666,6 +675,9 @@ fun buildConfig(
                 }
                 if (rule.clientType.isNotBlank()) {
                     client = rule.clientType.listByLineOrComma()
+                }
+                if (rule.clashMode.isNotBlank()) {
+                    clash_mode = rule.clashMode
                 }
 
                 fun makeDnsRuleObj(): DNSRule_Default {
