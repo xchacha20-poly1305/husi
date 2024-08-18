@@ -580,4 +580,5 @@
     <string name="custom_plugin_prefix">自訂插件前綴</string>
     <string name="custom_plugin_prefix_summary">請確保您完全信任插件提供者。</string>
     <string name="padding">填充</string>
+    <string name="disable_post_quantum">禁用後量子密鑰協商</string>
 </resources>
