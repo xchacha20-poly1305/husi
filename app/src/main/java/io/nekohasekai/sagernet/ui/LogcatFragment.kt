@@ -25,8 +25,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.closeQuietly
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.util.LinkedList
+import kotlin.coroutines.cancellation.CancellationException
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener {
@@ -55,9 +57,10 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         binding = LayoutLogcatBinding.bind(view)
         binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
-        binding.logView.adapter = LogAdapter(LinkedList(SendLog.logFile.readLines())).also {
-            logAdapter = it
-        }
+        binding.logView.adapter =
+            LogAdapter(LinkedList(SendLog.logFile.readText().split(Libcore.LogSplitFlag))).also {
+                logAdapter = it
+            }
         lastPosition = SendLog.logFile.length()
         binding.logView.scrollToPosition(logAdapter.itemCount - 1)
 
@@ -166,9 +169,14 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
                 // Read new line and notify change
                 file.seek(lastPosition)
-                val line = file.readLine()
-                if (line.isNotBlank()) {
-                    logAdapter.logList.add(line)
+                val remainingBytes = ByteArray((file.length() - lastPosition).toInt())
+                file.readFully(remainingBytes)
+                val lines = remainingBytes
+                    .decodeToString()
+                    .split(Libcore.LogSplitFlag)
+                    .filterNot { it.isBlank() }
+                if (lines.isNotEmpty()) {
+                    logAdapter.logList.addAll(lines)
                     runOnMainDispatcher {
                         val position = logAdapter.notifyItemInserted()
                         if (!pinLog) binding.logView.scrollToPosition(position)
@@ -176,10 +184,10 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                 }
                 lastPosition = file.filePointer
             }
+        } catch (_: IOException) {
+        } catch (_: CancellationException) {
         } catch (e: Exception) {
             Logs.w(e)
-//        } catch (_: IOException) {
-//        } catch (_: CancellationException) {
         } finally {
             file.closeQuietly()
         }

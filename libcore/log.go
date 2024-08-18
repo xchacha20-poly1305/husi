@@ -46,7 +46,7 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 		fd := int(file.Fd())
 		if !notTruncateOnStart {
 			_ = unix.Flock(fd, unix.LOCK_EX)
-			// Check if need truncate
+			// Check whether log need truncate
 			if size, _ := file.Seek(0, io.SeekEnd); size > maxSize {
 				// read oldBytes for maxSize
 				_, _ = file.Seek(-maxSize, io.SeekCurrent)
@@ -92,10 +92,12 @@ func (w *logWriter) DisableColors() bool {
 	return false
 }
 
+const LogSplitFlag = "\n\n"
+
 func (w *logWriter) WriteMessage(_ log.Level, message string) {
-	// Prevent add extra `\n`
-	if !strings.HasSuffix(message, "\n") {
-		message += "\n"
+	// Prevent add extra LogSplitFlag
+	if !strings.HasSuffix(message, LogSplitFlag) {
+		message += LogSplitFlag
 	}
 	_, _ = io.WriteString(w.writer, message)
 }
