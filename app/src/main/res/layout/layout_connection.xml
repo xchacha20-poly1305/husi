@@ -191,6 +191,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:visibility="gone"
+            android:id="@+id/connHostLayout"
             android:layout_marginTop="8dp">
 
         <TextView
