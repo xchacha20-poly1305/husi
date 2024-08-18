@@ -24,6 +24,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         DataStore.serverHeaders = extraHeaders
         DataStore.serverInsecureConcurrency = insecureConcurrency
         DataStore.profileCacheStore.putBoolean("sUoT", sUoT)
+        DataStore.serverNoPostQuantum = noPostQuantum
     }
 
     override fun NaiveBean.serialize() {
@@ -37,6 +38,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         extraHeaders = DataStore.serverHeaders.replace("\r\n", "\n")
         insecureConcurrency = DataStore.serverInsecureConcurrency
         sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
+        noPostQuantum = DataStore.serverNoPostQuantum
     }
 
     override fun PreferenceFragmentCompat.createPreferences(

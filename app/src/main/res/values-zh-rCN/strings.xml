@@ -581,4 +581,5 @@
     <string name="traffic_connections">连接</string>
     <string name="status_memory">内存</string>
     <string name="status_status">状态</string>
+    <string name="disable_post_quantum">禁用后量子密钥协商</string>
 </resources>

@@ -32,6 +32,9 @@ public class NaiveBean extends AbstractBean {
     public Integer insecureConcurrency;
     // sing-box socks
     public Boolean sUoT;
+    // https://github.com/klzgrad/naiveproxy/blob/76e7bbed0fdd349fb8a8890cd082e90072dab734/USAGE.txt#L110
+    // https://tldr.fail/
+    public Boolean noPostQuantum;
 
     @Override
     public void initializeDefaultValues() {
@@ -44,20 +47,21 @@ public class NaiveBean extends AbstractBean {
         if (sni == null) sni = "";
         if (insecureConcurrency == null) insecureConcurrency = 0;
         if (sUoT == null) sUoT = false;
+        if (noPostQuantum == null) noPostQuantum = false;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(proto);
         output.writeString(username);
         output.writeString(password);
-        // note: sequence is different from SagerNet,,,
         output.writeString(extraHeaders);
         output.writeString(sni);
         output.writeInt(insecureConcurrency);
         output.writeBoolean(sUoT);
+        output.writeBoolean(noPostQuantum);
     }
 
     @Override
@@ -76,6 +80,8 @@ public class NaiveBean extends AbstractBean {
         sni = input.readString();
         insecureConcurrency = input.readInt();
         sUoT = input.readBoolean();
+        if (version < 1) return;
+        noPostQuantum = input.readBoolean();
     }
 
     @NotNull

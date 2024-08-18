@@ -648,4 +648,5 @@
     <string name="status_goroutines" translatable="false">Goroutines</string>
     <string name="status_memory">Memory</string>
     <string name="status_status">Status</string>
+    <string name="disable_post_quantum">Disable post-quantum key agreement</string>
 </resources>
