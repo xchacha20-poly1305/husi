@@ -128,25 +128,34 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 func (b *BoxInstance) Start() (err error) {
 	defer catchPanic("box.Start", func(panicErr error) { err = panicErr })
 
-	if b.state.Load() == boxStateNeverStarted {
-		b.state.Store(boxStateRunning)
-		defer func(b *BoxInstance, callback selectorCallback) {
-			if b.selector != nil {
-				boxCancel := b.cancel
-				ctx, cancelContext := context.WithCancel(context.Background())
-				b.cancel = func() {
-					boxCancel()
-					cancelContext()
-				}
-				go b.listenSelectorChange(ctx, callback)
-			}
-		}(b, b.selectorCallback)
-		return b.Box.Start()
+	if b.state.Load() != boxStateNeverStarted {
+		return E.New("box already started")
 	}
-	return E.New("box already started")
+
+	b.state.Store(boxStateRunning)
+	err = b.Box.Start()
+	if err != nil {
+		return err
+	}
+
+	if b.selector != nil {
+		oldCancel := b.cancel
+		ctx, cancel := context.WithCancel(context.Background())
+		b.cancel = func() {
+			oldCancel()
+			cancel()
+		}
+		go b.listenSelectorChange(ctx, b.selectorCallback)
+	}
+
+	return nil
 }
 
 func (b *BoxInstance) Close() (err error) {
+	return b.CloseTimeout(C.FatalStopTimeout)
+}
+
+func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
 
 	// no double close
@@ -169,7 +178,7 @@ func (b *BoxInstance) Close() (err error) {
 
 	// close box
 	done := make(chan struct{})
-	ctx, cancel := context.WithTimeout(context.Background(), C.FatalStopTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	start := time.Now()
 	go func(done chan<- struct{}) {
@@ -212,7 +221,5 @@ func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {
 }
 
 func serveProtect(protectFunc protect.Protect) io.Closer {
-	return protect.ServerProtect(ProtectPath, func(fd int) error {
-		return protectFunc(fd)
-	})
+	return protect.ServerProtect(ProtectPath, protectFunc)
 }
