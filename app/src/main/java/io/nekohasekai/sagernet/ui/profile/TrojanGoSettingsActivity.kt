@@ -28,7 +28,7 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         DataStore.serverHost = host
         DataStore.serverPath = path
         DataStore.serverMux = serverMux
-        DataStore.serverMuxConcurrency = serverMuxConcurrency
+        DataStore.serverMuxNumber = serverMuxNumber
         if (encryption.startsWith("ss;")) {
             DataStore.serverEncryption = "ss"
             DataStore.serverMethod = encryption.substringAfter(";").substringBefore(":")
@@ -49,7 +49,7 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         host = DataStore.serverHost
         path = DataStore.serverPath
         serverMux = DataStore.serverMux
-        serverMuxConcurrency = DataStore.serverMuxConcurrency
+        serverMuxNumber = DataStore.serverMuxNumber
         encryption = when (val security = DataStore.serverEncryption) {
             "ss" -> {
                 "ss;" + DataStore.serverMethod + ":" + DataStore.serverPassword1
@@ -68,7 +68,7 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
     lateinit var method: SimpleMenuPreference
 
     lateinit var mux: SwitchPreference
-    private lateinit var muxConcurrency: EditTextPreference
+    private lateinit var muxNumber: EditTextPreference
 
     private val trojanGoMethods: Array<String> = app.resources.getStringArray(R.array.trojan_go_methods)
     private val trojanGoNetworks: Array<String> = app.resources.getStringArray(R.array.trojan_go_networks_value)
@@ -94,8 +94,8 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         network = findPreference(Key.SERVER_NETWORK)!!
 
         mux = findPreference(Key.SERVER_MUX)!!
-        muxConcurrency = findPreference(Key.SERVER_MUX_CONCURRENCY)!!
-        muxConcurrency.isVisible = mux.isChecked
+        muxNumber = findPreference(Key.SERVER_MUX_NUMBER)!!
+        muxNumber.isVisible = mux.isChecked
 
         if (network.value !in trojanGoNetworks) {
             network.value = trojanGoNetworks[0]
@@ -114,10 +114,10 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
         }
 
         mux.setOnPreferenceChangeListener { _, newValue ->
-            muxConcurrency.isVisible = newValue as Boolean
+            muxNumber.isVisible = newValue as Boolean
             true
         }
-        muxConcurrency.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        muxNumber.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
     private fun updateNetwork(newNet: String) {

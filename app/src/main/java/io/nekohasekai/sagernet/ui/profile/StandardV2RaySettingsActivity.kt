@@ -52,8 +52,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val serverMux = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX))
     private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val serverMuxType = pbm.add(PreferenceBinding(Type.Int, Key.SERVER_MUX_TYPE))
-    private val serverMuxConcurrency =
-        pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_CONCURRENCY))
+    private val serverMuxStrategy =
+        pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_STRATEGY))
+    private val serverMuxNumber = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_NUMBER))
     private val serverMuxPadding = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX_PADDING))
 
     override fun StandardV2RayBean.init() {
@@ -177,12 +178,12 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverBrutal.preference.apply {
             this as SwitchPreference
             setOnPreferenceChangeListener { _, newValue ->
-                serverMuxConcurrency.preference.isEnabled = !(newValue as Boolean)
+                serverMuxNumber.preference.isEnabled = !(newValue as Boolean)
                 true
             }
         }
-        serverMuxConcurrency.preference.isEnabled = !(tmpBean?.serverBrutal ?: false)
-        (serverMuxConcurrency.preference as EditTextPreference)
+        serverMuxNumber.preference.isEnabled = !(tmpBean?.serverBrutal ?: false)
+        (serverMuxNumber.preference as EditTextPreference)
             .setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
@@ -240,12 +241,14 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         if (enabled) {
             serverBrutal.preference.isVisible = true
             serverMuxType.preference.isVisible = true
-            serverMuxConcurrency.preference.isVisible = true
+            serverMuxStrategy.preference.isVisible = true
+            serverMuxNumber.preference.isVisible = true
             serverMuxPadding.preference.isVisible = true
         } else {
             serverBrutal.preference.isVisible = false
             serverMuxType.preference.isVisible = false
-            serverMuxConcurrency.preference.isVisible = false
+            serverMuxStrategy.preference.isVisible = false
+            serverMuxNumber.preference.isVisible = false
             serverMuxPadding.preference.isVisible = false
         }
     }

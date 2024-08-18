@@ -235,7 +235,6 @@
     <string name="domain_strategy">網域解析策略</string>
     <string name="traffic_sniffing">啟用流量嗅探</string>
     <string name="enable_mux">啟用多工器</string>
-    <string name="mux_concurrency">多工器同時連線數目</string>
     <string name="tcp_keep_alive_interval">TCP 保持連線傳送間隔</string>
     <string name="service_failed">失敗：</string>
     <string name="select_profile">選擇設定檔</string>

@@ -248,7 +248,6 @@
     <string name="proxied_apps">Apper VPN -modus</string>
     <string name="tcp_keep_alive_interval">TCP beholder det aktive pakkeleveringsintervallet
     </string>
-    <string name="mux_concurrency">Mux samtidige tilkoblinger</string>
     <string name="enable_mux">Aktiver Multiplexer</string>
     <string name="traffic_sniffing">Aktiver trafikksniff</string>
     <string name="domain_strategy">Domeneløsningsstrategi</string>

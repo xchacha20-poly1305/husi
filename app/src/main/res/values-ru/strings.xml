@@ -324,7 +324,6 @@
     <string name="proxied_apps_summary">Настроить режим VPN для выбранных приложений</string>
     <string name="proxied_apps">Режим VPN для приложений</string>
     <string name="tcp_keep_alive_interval">Интервал доставки пакетов TCP keep-alive</string>
-    <string name="mux_concurrency">Число одновременных подключений Mux</string>
     <string name="enable_mux">Включить мультиплексор</string>
     <string name="traffic_sniffing">Включить анализ трафика</string>
     <string name="domain_strategy">Стратегия разрешения доменов</string>

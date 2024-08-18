@@ -168,7 +168,6 @@
     <string name="traffic_sniffing">Enable Traffic Sniffing</string>
     <string name="enable_mux">Enable Multiplexer</string>
     <string name="mux_sum">Mux is designed to reduce connecting handshake latency, not to increase connection throughput. Using Mux to watch videos, download or speed test is usually counter productive. If the server does not support it, you will not be able to access the Internet.</string>
-    <string name="mux_concurrency">Mux Concurrent Connections</string>
     <string name="tcp_keep_alive_interval">TCP keep active packet delivery interval</string>
     <string name="proxied_apps">Apps VPN mode</string>
     <string name="proxied_apps_summary">Configure VPN mode for selected apps</string>
@@ -649,4 +648,9 @@
     <string name="status_memory">Memory</string>
     <string name="status_status">Status</string>
     <string name="disable_post_quantum">Disable post-quantum key agreement</string>
+    <string name="mux_strategy">Mux Strategy</string>
+    <string name="mux_number">Mux Number</string>
+    <string name="mux_max_connections">Max connections</string>
+    <string name="mux_min_streams">Min streams</string>
+    <string name="mux_max_streams">Max streams</string>
 </resources>

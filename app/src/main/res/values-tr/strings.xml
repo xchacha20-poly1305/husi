@@ -389,7 +389,6 @@
     <string name="on">Açık</string>
     <string name="proxied_apps_summary">VPN modunu seçili uygulamalar için ayarla</string>
     <string name="proxied_apps">Uygulama VPN modu</string>
-    <string name="mux_concurrency">Çoklayıcı Eşzamanlı Bağlantı Sayısı</string>
     <string name="enable_mux">Çoklayıcıyı Etkinleştir</string>
     <string name="traffic_sniffing">Trafik İzlemeyi Etkinleştir</string>
     <string name="domain_strategy">Alan Adı Çözümleme Stratejisi</string>

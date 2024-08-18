@@ -190,7 +190,6 @@
     <string name="proxied_apps_summary">Konfigurasikan mode VPN untuk aplikasi yang dipilih</string>
     <string name="proxied_apps">Modus aplikasi VPN</string>
     <string name="tcp_keep_alive_interval">TCP menjaga interval pengiriman paket aktif</string>
-    <string name="mux_concurrency">Koneksi Mux Concurrent</string>
     <string name="domain_strategy">Strategi Resolusi Domain</string>
     <string name="route_opt_bypass_lan">Lewati LAN</string>
     <string name="route_rules_provider">Penyedia Aset Aturan</string>

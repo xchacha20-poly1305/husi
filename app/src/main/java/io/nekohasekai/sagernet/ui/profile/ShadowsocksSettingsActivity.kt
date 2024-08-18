@@ -31,7 +31,8 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
     private val serverMux = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX))
     private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
     private val serverMuxType = pbm.add(PreferenceBinding(Type.Int, Key.SERVER_MUX_TYPE))
-    private val serverMuxConcurrency = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_CONCURRENCY))
+    private val serverMuxStrategy = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_STRATEGY))
+    private val serverMuxNumber = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_NUMBER))
     private val serverMuxPadding = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX_PADDING))
     private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
 
@@ -77,23 +78,25 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         serverBrutal.preference.apply {
             this as SwitchPreference
             setOnPreferenceChangeListener { _, newValue ->
-                serverMuxConcurrency.preference.isEnabled = !(newValue as Boolean)
+                serverMuxNumber.preference.isEnabled = !(newValue as Boolean)
                 true
             }
         }
-        (serverMuxConcurrency.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (serverMuxNumber.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
     private fun updateMuxState(enabled: Boolean) {
         if (enabled) {
             serverBrutal.preference.isVisible = true
             serverMuxType.preference.isVisible = true
-            serverMuxConcurrency.preference.isVisible = true
+            serverMuxStrategy.preference.isVisible = true
+            serverMuxNumber.preference.isVisible = true
             serverMuxPadding.preference.isVisible = true
         } else {
             serverBrutal.preference.isVisible = false
             serverMuxType.preference.isVisible = false
-            serverMuxConcurrency.preference.isVisible = false
+            serverMuxStrategy.preference.isVisible = false
+            serverMuxNumber.preference.isVisible = false
             serverMuxPadding.preference.isVisible = false
         }
     }

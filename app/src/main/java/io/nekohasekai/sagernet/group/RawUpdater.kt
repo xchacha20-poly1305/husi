@@ -2,6 +2,8 @@ package io.nekohasekai.sagernet.group
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import io.nekohasekai.sagernet.MuxStrategy
+import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
@@ -654,6 +656,38 @@ object RawUpdater : GroupUpdater() {
                 "tag" -> name = opt.value.toString()
                 "server" -> serverAddress = opt.value.toString()
                 "server_port" -> serverPort = opt.value.toString().toInt()
+                "multiplex" -> {
+                    val muxMap = opt.value as? Map<String, Any?> ?: continue
+                    if (muxMap["enabled"] != true) continue
+
+                    serverMux = true
+                    serverMuxPadding = muxMap["padding"]?.toString() == "true"
+                    muxMap["protocol"]?.toString()?.let {
+                        serverMuxType = when (it) {
+                            "smux" -> MuxType.SMUX
+                            "yamux" -> MuxType.YAMUX
+                            else -> MuxType.H2MUX
+                        }
+                    }
+
+                    muxMap["max_connections"]?.toString()?.toIntOrNull()?.let {
+                        serverMuxStrategy = MuxStrategy.MAX_CONNECTIONS
+                        serverMuxNumber = it
+                    }
+                    muxMap["min_streams"]?.toString()?.toIntOrNull()?.let {
+                        serverMuxStrategy = MuxStrategy.MIN_STREAMS
+                        serverMuxNumber = it
+                    }
+                    muxMap["max_streams"]?.toString()?.toIntOrNull()?.let {
+                        serverMuxStrategy = MuxStrategy.MAX_STREAMS
+                        serverMuxNumber = it
+                    }
+
+                    (muxMap["brutal"] as? Map<String, Any?>)?.get("enabled")?.toString()?.let {
+                        serverBrutal = it == "true"
+                    }
+                }
+
                 else -> block(opt)
             }
         }

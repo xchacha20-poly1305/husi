@@ -121,7 +121,8 @@ object Key {
     const val SERVER_MUX = "serverMux"
     const val SERVER_BRUTAL = "serverBrutal"
     const val SERVER_MUX_TYPE = "serverMuxType"
-    const val SERVER_MUX_CONCURRENCY = "serverMuxConcurrency"
+    const val SERVER_MUX_STRATEGY = "serverMuxStrategy"
+    const val SERVER_MUX_NUMBER = "serverMuxNumber"
     const val SERVER_MUX_PADDING = "serverMuxPadding"
 
     const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
@@ -242,6 +243,12 @@ object MuxType {
     const val H2MUX = 0
     const val SMUX = 1
     const val YAMUX = 2
+}
+
+object MuxStrategy {
+    const val MAX_CONNECTIONS = 0
+    const val MIN_STREAMS = 1
+    const val MAX_STREAMS = 2
 }
 
 object Action {

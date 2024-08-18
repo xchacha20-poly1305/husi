@@ -163,7 +163,6 @@
     <string name="domain_strategy">Estrategia de resolución de dominio</string>
     <string name="traffic_sniffing">Activar rastreo de tráfico</string>
     <string name="enable_mux">Activar multiplexor</string>
-    <string name="mux_concurrency">Conexiones simultáneas Mux</string>
     <string name="tcp_keep_alive_interval">TCP mantiene activo el intervalo de entrega de paquetes
     </string>
     <string name="proxied_apps">Modo VPN de aplicaciones</string>
