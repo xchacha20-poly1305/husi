@@ -616,4 +616,14 @@
     <string name="done">Готово</string>
     <string name="custom_plugin_prefix">Пользовательский префикс плагина</string>
     <string name="custom_plugin_prefix_summary">Пожалуйста, убедитесь, что вы полностью доверяете поставщику плагина.</string>
+    <string name="traffic_status">Статистика</string>
+    <string name="status_memory">Память</string>
+    <string name="disable_post_quantum">Отключить постквантовое соглашение ключей</string>
+    <string name="mux_min_streams">Минимальное количество потоков</string>
+    <string name="mux_max_streams">Максимальное количество потоков</string>
+    <string name="traffic_connections">Соединения</string>
+    <string name="mux_max_connections">Максимум соединений</string>
+    <string name="mux_strategy">Статегия Mux</string>
+    <string name="mux_number">Номер Mux</string>
+    <string name="status_status">Статус</string>
 </resources>
