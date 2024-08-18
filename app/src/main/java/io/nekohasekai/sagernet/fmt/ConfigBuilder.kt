@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
@@ -739,9 +740,39 @@ fun buildConfig(
             }
         }
 
+        // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
+        var domainPath = "$externalAssets/geo"
+        var ipPath: String? = null
+        if (forExport) {
+            val pathPrefix = "https://raw.githubusercontent.com"
+            val provider = DataStore.rulesProvider
+            val branch = if (RuleProvider.hasUnstableBranch(provider)) {
+                "rule-set-unstable"
+            } else {
+                "rule-set"
+            }
+            when (provider) {
+                RuleProvider.OFFICIAL -> {
+                    domainPath = "$pathPrefix/SagerNet/sing-geosite/$branch"
+                    ipPath = "$pathPrefix/SagerNet/sing-geoip/$branch"
+                }
+
+                RuleProvider.LOYALSOLDIER -> {
+                    domainPath = "$pathPrefix/xchacha20-poly1305/sing-geosite/$branch"
+                    ipPath = "$pathPrefix/xchacha20-poly1305/sing-geoip/$branch"
+                }
+
+                RuleProvider.CHOCOLATE4U -> {
+                    domainPath = "$pathPrefix/Chocolate4U/sing-geosite/$branch"
+                    ipPath = "$pathPrefix/Chocolate4U/sing-geoip/$branch"
+                }
+
+                RuleProvider.CUSTOM -> {} // Can't generate.
+            }
+        }
         for (rule in extraRules) {
             if (rule.ruleSet.isNotBlank()) {
-                route.makeSingBoxRuleSet(rule.ruleSet.listByLineOrComma(), "$externalAssets/geo")
+                route.makeSingBoxRuleSet(rule.ruleSet.listByLineOrComma(), domainPath, ipPath)
             }
         }
         route.rule_set = route.rule_set.distinctBy { it.tag }
