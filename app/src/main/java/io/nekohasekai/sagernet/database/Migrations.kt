@@ -20,3 +20,9 @@ object SagerDatabase_Migration_3_4 : Migration(3, 4) {
         database.execSQL("""ALTER TABLE `rules` ADD `clientType` TEXT NOT NULL DEFAULT ''""")
     }
 }
+
+object SagerDatabase_Migration_4_5 : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("""ALTER TABLE `rules` ADD `clashMode` TEXT NOT NULL DEFAULT ''""")
+    }
+}
