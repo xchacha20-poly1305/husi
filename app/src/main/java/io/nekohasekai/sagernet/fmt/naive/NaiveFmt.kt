@@ -87,5 +87,6 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         if (insecureConcurrency > 0) {
             put("insecure-concurrency", insecureConcurrency)
         }
+        put("no-post-quantum", noPostQuantum)
     }.toStringPretty()
 }

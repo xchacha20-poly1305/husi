@@ -251,6 +251,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverProtocolInt by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)
     var serverPrivateKey by profileCacheStore.string(Key.SERVER_PRIVATE_KEY)
     var serverInsecureConcurrency by profileCacheStore.stringToInt(Key.SERVER_INSECURE_CONCURRENCY)
+    var serverNoPostQuantum by profileCacheStore.boolean(Key.SERVER_NO_POST_QUANTUM)
 
     var serverUDPRelayMode by profileCacheStore.string(Key.SERVER_UDP_RELAY_MODE)
     var serverCongestionController by profileCacheStore.string(Key.SERVER_CONGESTION_CONTROLLER)
