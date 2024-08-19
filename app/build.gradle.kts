@@ -92,7 +92,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.7") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.2.1-android")
+    implementation("com.google.guava:guava:33.3.0-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
