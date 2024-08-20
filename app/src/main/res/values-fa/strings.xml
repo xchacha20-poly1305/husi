@@ -427,12 +427,10 @@
     <string name="nat_result_hint">نتیجه بررسی NAT</string>
     <string name="tools_network">شبکه</string>
     <string name="backup">پشتیبان گیری</string>
-    <string name="backup_groups_and_configurations">گروه‌ها و تنظیمات</string>
+    <string name="backup_groups_and_configurations">گروه‌ها و کانفیگ‌ها</string>
     <string name="backup_rules">قوانین مسیریابی</string>
     <string name="backup_settings">تنظیمات</string>
-    <string name="backup_summary">اگر از تنظیمات مسیریابی با تنظیمات پشتیبان تهیه نشود، خروجی های
-        سفارشی از بین خواهند رفت.
-    </string>
+    <string name="backup_summary">اگر از تنظیمات مسیریابی با کانفیگ‌ها پشتیبان تهیه نشود، خروجی‌های سفارشی از بین خواهند رفت.</string>
     <string name="backup_not_file">یک فایل پشتیبان نیست: به جز .json، اما %s</string>
     <string name="invalid_backup_file">فایل پشتیبان نامعتبر است</string>
     <string name="backup_import">وارد كردن</string>
@@ -441,10 +439,10 @@
     <string name="packet_encoding">رمزگذاری بسته‌ها</string>
     <string name="acquire_wake_lock">به‌دست آوردن WakeLock</string>
     <string name="release_wake_lock">آزاد کردن WakeLock</string>
-    <string name="acquire_wake_lock_summary">پردازنده مرکزی را روشن نگه دارید</string>
+    <string name="acquire_wake_lock_summary">پردازنده مرکزی را روشن نگه‌دارید</string>
     <string name="action_switch">تعویض</string>
     <string name="tuic_udp_relay_mode">حالت رله UDP</string>
-    <string name="tuic_congestion_controller">کنترل کننده ازدحام</string>
+    <string name="tuic_congestion_controller">کنترل کننده ازدحام(ترافیک)</string>
     <string name="tuic_disable_sni">غیرفعال کردن SNI</string>
     <string name="tuic_reduce_rtt">فعال‌سازی 0-RTT ارتباط QUIC</string>
     <string name="connection_test_delete_unavailable">پاک‌سازی غیرقابل دسترس‌ها</string>
