@@ -588,4 +588,14 @@
     <string name="done">Hecho</string>
     <string name="custom_plugin_prefix">Prefijo de plugin personalizado</string>
     <string name="custom_plugin_prefix_summary">Por favor, asegúrate de que confías plenamente en el proveedor del plugin.</string>
+    <string name="traffic_status">Estadísticas</string>
+    <string name="traffic_connections">Conexiones</string>
+    <string name="status_status">Estados</string>
+    <string name="disable_post_quantum">Deshabilitar el acuerdo de clave postcuántica</string>
+    <string name="status_memory">Memoria</string>
+    <string name="mux_strategy">Estrategia Mux</string>
+    <string name="mux_max_connections">Conexiones máximas</string>
+    <string name="mux_min_streams">Minutos de transmisión</string>
+    <string name="mux_max_streams">Máximo de transmisiones</string>
+    <string name="mux_number">Número Mux</string>
 </resources>
