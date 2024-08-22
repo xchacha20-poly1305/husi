@@ -447,7 +447,7 @@
     <string name="tuic_reduce_rtt">فعال‌سازی 0-RTT ارتباط QUIC</string>
     <string name="connection_test_delete_unavailable">پاک‌سازی غیرقابل دسترس‌ها</string>
     <string name="neko_plugin_internal_error">خطای داخلی %s</string>
-    <string name="move">حرکت</string>
+    <string name="move">انتقال</string>
     <string name="create_shortcut">ایجاد میانبر</string>
     <string name="app_tls_version">حداقل نسخه TLS اشتراک</string>
     <string name="hop_interval">فاصله پرش پورت(ثانیه)</string>
@@ -464,7 +464,7 @@
     <string name="custom_config_json">پیکربندی سفارشی JSON</string>
     <string name="need_restart">راه اندازی مجدد برنامه برای اعمال تغییرات</string>
     <string name="protocol_version">نسخه پروتکل</string>
-    <string name="show_group_in_notification">نشان دادن اسم گروه در اعلان‌ها</string>
+    <string name="show_group_in_notification">نمایش اسم گروه در اعلان</string>
     <string name="reset_connections">راه اندازی مجدد اتصال ها</string>
     <string name="use_selector">استفاده از انتخابگر</string>
     <string name="share_subscription">به‌هم رسانی اشتراک‌ها</string>
