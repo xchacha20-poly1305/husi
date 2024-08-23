@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.0.10-1.0.24"
+    id("com.google.devtools.ksp") version "2.0.20-1.0.24"
 }
 
 setupApp()
@@ -92,7 +92,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.7") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.2.1-android")
+    implementation("com.google.guava:guava:33.3.0-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
