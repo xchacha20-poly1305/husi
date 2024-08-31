@@ -6,7 +6,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.content.*
-import android.content.pm.PackageInfo
 import android.content.res.Resources
 import android.os.Build
 import android.system.Os
@@ -116,9 +115,6 @@ fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Uni
             addDataScheme("package")
         })
     }
-
-val PackageInfo.signaturesCompat
-    get() = if (Build.VERSION.SDK_INT >= 28) signingInfo.apkContentsSigners else @Suppress("DEPRECATION") signatures
 
 /**
  * Based on: https://stackoverflow.com/a/26348729/2245107

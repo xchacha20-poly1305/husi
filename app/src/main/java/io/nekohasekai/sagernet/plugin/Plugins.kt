@@ -30,7 +30,7 @@ object Plugins {
 
     fun isPlugin(pkg: PackageInfo): Boolean {
         if (pkg.providers.isNullOrEmpty()) return false
-        val auth = pkg.providers[0].authority ?: return false
+        val auth = pkg.providers!![0].authority ?: return false
         for (prefix in allowedSet) {
             if (auth.startsWith(prefix)) return true
         }
@@ -75,8 +75,8 @@ object Plugins {
         PackageCache.awaitLoadSync()
         val pkgs = PackageCache.installedPluginPackages
             .map { it.value }
-            .filter { it.providers[0].loadString(METADATA_KEY_ID) == pluginId }
-        return pkgs.map { it.providers[0] }
+            .filter { it.providers!![0].loadString(METADATA_KEY_ID) == pluginId }
+        return pkgs.map { it.providers!![0] }
     }
 
 }

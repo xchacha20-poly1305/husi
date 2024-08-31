@@ -109,7 +109,7 @@ class AppManagerActivity : ThemedActivity() {
         suspend fun reload() {
             apps = cachedApps.map { (packageName, packageInfo) ->
                 coroutineContext[Job]!!.ensureActive()
-                ProxiedApp(packageManager, packageInfo.applicationInfo, packageName)
+                ProxiedApp(packageManager, packageInfo.applicationInfo!!, packageName)
             }.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
         }
 
@@ -168,7 +168,7 @@ class AppManagerActivity : ThemedActivity() {
         proxiedUids.clear()
         val apps = cachedApps
         for (line in str.lineSequence()) proxiedUids[(apps[line]
-            ?: continue).applicationInfo.uid] = true
+            ?: continue).applicationInfo!!.uid] = true
     }
 
     private fun isProxiedApp(app: ProxiedApp) = proxiedUids[app.uid]
@@ -343,7 +343,7 @@ class AppManagerActivity : ThemedActivity() {
 
             apps = cachedApps.map { (packageName, packageInfo) ->
                 kotlin.coroutines.coroutineContext[Job]!!.ensureActive()
-                ProxiedApp(packageManager, packageInfo.applicationInfo, packageName)
+                ProxiedApp(packageManager, packageInfo.applicationInfo!!, packageName)
             }.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
 
             scan@ for ((pkg, app) in cachedApps.entries) {
@@ -362,13 +362,13 @@ class AppManagerActivity : ThemedActivity() {
 
                 if (isChinaApp(app.packageName)) {
                     chinaApps.add(
-                        app to app.applicationInfo.loadLabel(packageManager).toString()
+                        app to app.applicationInfo!!.loadLabel(packageManager).toString()
                     )
                     if (bypass) {
                         // changed = !proxiedUids[app.applicationInfo.uid]
-                        proxiedUids[app.applicationInfo.uid] = true
+                        proxiedUids[app.applicationInfo!!.uid] = true
                     } else {
-                        proxiedUids.delete(app.applicationInfo.uid)
+                        proxiedUids.delete(app.applicationInfo!!.uid)
                     }
                 }
 
@@ -498,7 +498,7 @@ class AppManagerActivity : ThemedActivity() {
                     return true
                 }
             }
-            ZipFile(File(packageInfo.applicationInfo.publicSourceDir)).use {
+            ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use {
                 for (packageEntry in it.entries()) {
                     if (packageEntry.name.startsWith("firebase-")) return false
                 }

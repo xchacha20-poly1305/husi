@@ -1,7 +1,8 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.SagerNet" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
