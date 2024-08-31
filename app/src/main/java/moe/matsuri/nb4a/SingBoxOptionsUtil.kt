@@ -187,38 +187,37 @@ const val RULE_SET_FORMAT_BINARY = "binary"
 const val RULE_SET_TYPE_REMOTE = "remote"
 const val RULE_SET_TYPE_LOCAL = "local"
 
-/**
- * @param domainPath Domain rule set path. Also local rule-set path if ipPath == null.
- * @param ipPath IP rule set path. Not null marks use remote.
- */
-fun SingBoxOptions.RouteOptions.makeSingBoxRuleSet(
-    names: List<String>,
-    domainPath: String,
-    ipPath: String? = null,
-) {
-    val isRemote = ipPath != null
-
+fun SingBoxOptions.RouteOptions.makeRuleSetRulesLocal(names: List<String>, resourcePath: String) {
     if (rule_set == null) rule_set = mutableListOf<SingBoxOptions.RuleSet>()
     for (name in names) {
         val newName = name.removePrefix(PREFIX_IP_DNS)
-        if (isRemote) {
-            rule_set.plusAssign(SingBoxOptions.RuleSet_Remote().apply {
-                tag = newName
-                type = RULE_SET_TYPE_REMOTE
-                format = RULE_SET_FORMAT_BINARY
-                url = if (name.startsWith("geosite-")) {
-                    "$domainPath/$newName.srs"
-                } else {
-                    "$ipPath/$newName.srs"
-                }
-            })
-        } else {
-            rule_set.plusAssign(SingBoxOptions.RuleSet_Local().apply {
-                tag = newName
-                type = RULE_SET_TYPE_LOCAL
-                format = RULE_SET_FORMAT_BINARY
-                path = "$domainPath/$newName.srs"
-            })
-        }
+        rule_set.plusAssign(SingBoxOptions.RuleSet_Local().apply {
+            tag = newName
+            type = RULE_SET_TYPE_LOCAL
+            format = RULE_SET_FORMAT_BINARY
+            path = "$resourcePath/$newName.srs"
+        })
+    }
+}
+
+fun SingBoxOptions.RouteOptions.makeRuleSetRulesRemote(
+    names: List<String>,
+    domainURL: String,
+    ipURL: String,
+) {
+    if (rule_set == null) rule_set = mutableListOf<SingBoxOptions.RuleSet>()
+    for (name in names) {
+        val newName = name.removePrefix(PREFIX_IP_DNS)
+        rule_set.plusAssign(SingBoxOptions.RuleSet_Remote().apply {
+            tag = newName
+            type = RULE_SET_TYPE_REMOTE
+            format = RULE_SET_FORMAT_BINARY
+            val isIP = newName.startsWith("geoip-")
+            url = if (isIP) {
+                "${ipURL}/${newName}.srs"
+            } else {
+                "${domainURL}/${newName}.srs"
+            }
+        })
     }
 }
