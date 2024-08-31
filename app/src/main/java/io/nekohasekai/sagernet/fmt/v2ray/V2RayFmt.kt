@@ -8,9 +8,11 @@ import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
+import moe.matsuri.nb4a.Listable
 import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.utils.NGUtil
 import moe.matsuri.nb4a.utils.listByLineOrComma
+import moe.matsuri.nb4a.utils.toListable
 
 data class VmessQRCode(
     var v: String = "",
@@ -515,7 +517,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 headers = mutableMapOf()
 
                 if (bean.host.isNotBlank()) {
-                    headers["Host"] = listOf(bean.host)
+                    headers["Host"] = Listable(bean.host)
                 }
 
                 if (bean.path.contains("?ed=")) {
@@ -541,7 +543,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 type = "http"
                 if (!bean.isTLS()) method = "GET" // v2ray tcp header
                 if (bean.host.isNotBlank()) {
-                    host = bean.host.split(",")
+                    host = bean.host.split(",").toListable()
                 }
                 path = bean.path.takeIf { it.isNotBlank() } ?: "/"
             }
@@ -584,8 +586,8 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         enabled = true
         insecure = bean.allowInsecure || DataStore.globalAllowInsecure
         if (bean.sni.isNotBlank()) server_name = bean.sni
-        if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
-        if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
+        if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma().toListable()
+        if (bean.certificates.isNotBlank()) certificate = Listable(bean.certificates)
         var fp = bean.utlsFingerprint
         if (bean.realityPubKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
@@ -607,7 +609,8 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
                 enabled = true
                 pq_signature_schemes_enabled = echList.size > 5
                 dynamic_record_sizing_disabled = true
-                config = echList
+                config = Listable(echList)
+
             }
         }
     }

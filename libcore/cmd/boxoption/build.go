@@ -161,7 +161,7 @@ func className(valueType reflect.Type) string {
 			// Go json save []uint8 or []byte as base64 string
 			return javaString
 		}
-		return "List<" + className(elem) + ">"
+		return "Listable<" + className(elem) + ">"
 	case reflect.Map:
 		return "Map<" + className(valueType.Key()) + ", " + className(valueType.Elem()) + ">"
 	case reflect.Struct:
