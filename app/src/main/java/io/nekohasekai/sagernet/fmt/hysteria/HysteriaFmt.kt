@@ -4,9 +4,11 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
+import moe.matsuri.nb4a.Listable
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
+import moe.matsuri.nb4a.utils.toListable
 import org.json.JSONObject
 import java.io.File
 
@@ -317,10 +319,10 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                     server_name = bean.sni
                 }
                 if (bean.alpn.isNotBlank()) {
-                    alpn = bean.alpn.listByLineOrComma()
+                    alpn = bean.alpn.listByLineOrComma().toListable()
                 }
                 if (bean.caText.isNotBlank()) {
-                    certificate = listOf(bean.caText)
+                    certificate = Listable(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")
@@ -328,7 +330,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
                         dynamic_record_sizing_disabled = true
-                        config = echList
+                        config = Listable(echList)
                     }
                 }
                 insecure = bean.allowInsecure || DataStore.globalAllowInsecure
@@ -360,9 +362,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
-                alpn = listOf("h3")
+                alpn = Listable("h3")
                 if (bean.caText.isNotBlank()) {
-                    certificate = listOf(bean.caText)
+                    certificate = Listable(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")
@@ -370,7 +372,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
                         dynamic_record_sizing_disabled = true
-                        config = echList
+                        config = Listable(echList)
                     }
                 }
                 insecure = bean.allowInsecure || DataStore.globalAllowInsecure

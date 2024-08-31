@@ -173,9 +173,9 @@ public class SingBoxOptions {
 
         public NTPOptions ntp;
 
-        public List<Inbound> inbounds;
+        public Listable<Inbound> inbounds;
 
-        public List<Outbound> outbounds;
+        public Listable<Outbound> outbounds;
 
         public RouteOptions route;
 
@@ -239,9 +239,9 @@ public class SingBoxOptions {
 
     public static class DNSOptions extends SingBoxOption {
 
-        public List<DNSServerOptions> servers;
+        public Listable<DNSServerOptions> servers;
 
-        public List<DNSRule> rules;
+        public Listable<DNSRule> rules;
 
         @SerializedName("final")
         public String final_;
@@ -349,7 +349,7 @@ public class SingBoxOptions {
 
         public String default_mode;
 
-        public List<String> access_control_allow_origin;
+        public Listable<String> access_control_allow_origin;
 
         public Boolean access_control_allow_private_network;
 
@@ -377,11 +377,11 @@ public class SingBoxOptions {
 
         public Boolean enabled;
 
-        public List<String> inbounds;
+        public Listable<String> inbounds;
 
-        public List<String> outbounds;
+        public Listable<String> outbounds;
 
-        public List<String> users;
+        public Listable<String> users;
 
     }
 
@@ -411,9 +411,9 @@ public class SingBoxOptions {
 
 //        public GeositeOptions geosite;
 
-        public List<Rule> rules;
+        public Listable<Rule> rules;
 
-        public List<RuleSet> rule_set;
+        public Listable<RuleSet> rule_set;
 
         @SerializedName("final")
         public String final_;
@@ -492,15 +492,15 @@ public class SingBoxOptions {
 
         public Boolean insecure;
 
-        public List<String> alpn;
+        public Listable<String> alpn;
 
         public String min_version;
 
         public String max_version;
 
-        public List<String> cipher_suites;
+        public Listable<String> cipher_suites;
 
-        public List<String> certificate;
+        public Listable<String> certificate;
 
         public String certificate_path;
 
@@ -538,7 +538,7 @@ public class SingBoxOptions {
 
         public Boolean dynamic_record_sizing_disabled;
 
-        public List<String> config;
+        public Listable<String> config;
 
         public String config_path;
 
@@ -552,19 +552,19 @@ public class SingBoxOptions {
 
         public Boolean insecure;
 
-        public List<String> alpn;
+        public Listable<String> alpn;
 
         public String min_version;
 
         public String max_version;
 
-        public List<String> cipher_suites;
+        public Listable<String> cipher_suites;
 
-        public List<String> certificate;
+        public Listable<String> certificate;
 
         public String certificate_path;
 
-        public List<String> key;
+        public Listable<String> key;
 
         public String key_path;
 
@@ -586,65 +586,65 @@ public class SingBoxOptions {
 
     public static class Rule_Default extends Rule {
 
-        public List<String> inbound;
+        public Listable<String> inbound;
 
         public Integer ip_version;
 
-        public List<String> network;
+        public Listable<String> network;
 
-        public List<String> auth_user;
+        public Listable<String> auth_user;
 
-        public List<String> protocol;
+        public Listable<String> protocol;
 
-        public List<String> client;
+        public Listable<String> client;
 
-        public List<String> domain;
+        public Listable<String> domain;
 
-        public List<String> domain_suffix;
+        public Listable<String> domain_suffix;
 
-        public List<String> domain_keyword;
+        public Listable<String> domain_keyword;
 
-        public List<String> domain_regex;
+        public Listable<String> domain_regex;
 
-        public List<String> geosite;
+        public Listable<String> geosite;
 
-        public List<String> source_geoip;
+        public Listable<String> source_geoip;
 
-        public List<String> geoip;
+        public Listable<String> geoip;
 
-        public List<String> source_ip_cidr;
+        public Listable<String> source_ip_cidr;
 
         public Boolean source_ip_is_private;
 
-        public List<String> ip_cidr;
+        public Listable<String> ip_cidr;
 
         public Boolean ip_is_private;
 
-        public List<Integer> source_port;
+        public Listable<Integer> source_port;
 
-        public List<String> source_port_range;
+        public Listable<String> source_port_range;
 
-        public List<Integer> port;
+        public Listable<Integer> port;
 
-        public List<String> port_range;
+        public Listable<String> port_range;
 
-        public List<String> process_name;
+        public Listable<String> process_name;
 
-        public List<String> process_path;
+        public Listable<String> process_path;
 
-        public List<String> package_name;
+        public Listable<String> package_name;
 
-        public List<String> user;
+        public Listable<String> user;
 
-        public List<Integer> user_id;
+        public Listable<Integer> user_id;
 
         public String clash_mode;
 
-        public List<String> wifi_ssid;
+        public Listable<String> wifi_ssid;
 
-        public List<String> wifi_bssid;
+        public Listable<String> wifi_bssid;
 
-        public List<String> rule_set;
+        public Listable<String> rule_set;
 
         public Boolean rule_set_ip_cidr_match_source;
 
@@ -660,7 +660,7 @@ public class SingBoxOptions {
 
         public String mode;
 
-        public List<Rule> rules;
+        public Listable<Rule> rules;
 
         public Boolean invert;
 
@@ -670,67 +670,67 @@ public class SingBoxOptions {
 
     public static class DNSRule_Default extends DNSRule {
 
-        public List<String> inbound;
+        public Listable<String> inbound;
 
         public Integer ip_version;
 
-        public List<String> query_type;
+        public Listable<String> query_type;
 
-        public List<String> network;
+        public Listable<String> network;
 
-        public List<String> auth_user;
+        public Listable<String> auth_user;
 
-        public List<String> protocol;
+        public Listable<String> protocol;
 
-        public List<String> domain;
+        public Listable<String> domain;
 
-        public List<String> domain_suffix;
+        public Listable<String> domain_suffix;
 
-        public List<String> domain_keyword;
+        public Listable<String> domain_keyword;
 
-        public List<String> domain_regex;
+        public Listable<String> domain_regex;
 
-        public List<String> geosite;
+        public Listable<String> geosite;
 
-        public List<String> source_geoip;
+        public Listable<String> source_geoip;
 
-        public List<String> geoip;
+        public Listable<String> geoip;
 
-        public List<String> ip_cidr;
+        public Listable<String> ip_cidr;
 
         public Boolean ip_is_private;
 
-        public List<String> source_ip_cidr;
+        public Listable<String> source_ip_cidr;
 
         public Boolean source_ip_is_private;
 
-        public List<Integer> source_port;
+        public Listable<Integer> source_port;
 
-        public List<String> source_port_range;
+        public Listable<String> source_port_range;
 
-        public List<Integer> port;
+        public Listable<Integer> port;
 
-        public List<String> port_range;
+        public Listable<String> port_range;
 
-        public List<String> process_name;
+        public Listable<String> process_name;
 
-        public List<String> process_path;
+        public Listable<String> process_path;
 
-        public List<String> package_name;
+        public Listable<String> package_name;
 
-        public List<String> user;
+        public Listable<String> user;
 
-        public List<Integer> user_id;
+        public Listable<Integer> user_id;
 
-        public List<String> outbound;
+        public Listable<String> outbound;
 
         public String clash_mode;
 
-        public List<String> wifi_ssid;
+        public Listable<String> wifi_ssid;
 
-        public List<String> wifi_bssid;
+        public Listable<String> wifi_bssid;
 
-        public List<String> rule_set;
+        public Listable<String> rule_set;
 
         public Boolean rule_set_ip_cidr_match_source;
 
@@ -754,7 +754,7 @@ public class SingBoxOptions {
 
         public String mode;
 
-        public List<DNSRule> rules;
+        public Listable<DNSRule> rules;
 
         public Boolean invert;
 
@@ -770,7 +770,7 @@ public class SingBoxOptions {
 
     public static class RuleSet_Plain extends RuleSet {
 
-        public List<HeadlessRule> rules;
+        public Listable<HeadlessRule> rules;
 
     }
 
@@ -792,13 +792,13 @@ public class SingBoxOptions {
 
     public static class V2RayTransportOptions_V2RayHTTPOptions extends V2RayTransportOptions {
 
-        public List<String> host;
+        public Listable<String> host;
 
         public String path;
 
         public String method;
 
-        public Map<String, List<String>> headers;
+        public Map<String, Listable<String>> headers;
 
         public String idle_timeout;
 
@@ -810,7 +810,7 @@ public class SingBoxOptions {
 
         public String path;
 
-        public Map<String, List<String>> headers;
+        public Map<String, Listable<String>> headers;
 
         public Integer max_early_data;
 
@@ -840,7 +840,7 @@ public class SingBoxOptions {
 
         public String path;
 
-        public Map<String, List<String>> headers;
+        public Map<String, Listable<String>> headers;
 
     }
 
@@ -890,7 +890,7 @@ public class SingBoxOptions {
 
         public Boolean udp_disable_domain_unmapping;
 
-        public List<User> users;
+        public Listable<User> users;
 
         public Boolean set_system_proxy;
 
@@ -907,7 +907,7 @@ public class SingBoxOptions {
 
         public Boolean gso;
 
-        public List<String> address;
+        public Listable<String> address;
 
         public Boolean auto_route;
 
@@ -923,31 +923,31 @@ public class SingBoxOptions {
 
         public Boolean strict_route;
 
-        public List<String> route_address;
+        public Listable<String> route_address;
 
-        public List<String> route_address_set;
+        public Listable<String> route_address_set;
 
-        public List<String> route_exclude_address;
+        public Listable<String> route_exclude_address;
 
-        public List<String> route_exclude_address_set;
+        public Listable<String> route_exclude_address_set;
 
-        public List<String> include_interface;
+        public Listable<String> include_interface;
 
-        public List<String> exclude_interface;
+        public Listable<String> exclude_interface;
 
-        public List<Integer> include_uid;
+        public Listable<Integer> include_uid;
 
-        public List<String> include_uid_range;
+        public Listable<String> include_uid_range;
 
-        public List<Integer> exclude_uid;
+        public Listable<Integer> exclude_uid;
 
-        public List<String> exclude_uid_range;
+        public Listable<String> exclude_uid_range;
 
-        public List<Integer> include_android_user;
+        public Listable<Integer> include_android_user;
 
-        public List<String> include_package;
+        public Listable<String> include_package;
 
-        public List<String> exclude_package;
+        public Listable<String> exclude_package;
 
         public Boolean endpoint_independent_nat;
 
@@ -968,17 +968,17 @@ public class SingBoxOptions {
 
         public Boolean udp_disable_domain_unmapping;
 
-        public List<String> inet4_address;
+        public Listable<String> inet4_address;
 
-        public List<String> inet6_address;
+        public Listable<String> inet6_address;
 
-        public List<String> inet4_route_address;
+        public Listable<String> inet4_route_address;
 
-        public List<String> inet6_route_address;
+        public Listable<String> inet6_route_address;
 
-        public List<String> inet4_route_exclude_address;
+        public Listable<String> inet4_route_exclude_address;
 
-        public List<String> inet6_route_exclude_address;
+        public Listable<String> inet6_route_exclude_address;
 
     }
 
@@ -997,9 +997,9 @@ public class SingBoxOptions {
 
         public Integer server_port;
 
-        public List<String> bypass_domain;
+        public Listable<String> bypass_domain;
 
-        public List<String> match_domain;
+        public Listable<String> match_domain;
 
     }
 
@@ -1175,7 +1175,7 @@ public class SingBoxOptions {
 
     public static class Outbound_SelectorOptions extends Outbound {
 
-        public List<String> outbounds;
+        public Listable<String> outbounds;
 
         @SerializedName("default")
         public String default_;
@@ -1273,7 +1273,7 @@ public class SingBoxOptions {
 
         public String path;
 
-        public Map<String, List<String>> headers;
+        public Map<String, Listable<String>> headers;
 
     }
 
@@ -1315,15 +1315,15 @@ public class SingBoxOptions {
 
         public String password;
 
-        public List<String> private_key;
+        public Listable<String> private_key;
 
         public String private_key_path;
 
         public String private_key_passphrase;
 
-        public List<String> host_key;
+        public Listable<String> host_key;
 
-        public List<String> host_key_algorithms;
+        public Listable<String> host_key_algorithms;
 
         public String client_version;
 
@@ -1686,11 +1686,11 @@ public class SingBoxOptions {
 
         public String interface_name;
 
-        public List<String> local_address;
+        public Listable<String> local_address;
 
         public String private_key;
 
-        public List<Outbound_WireGuardPeer> peers;
+        public Listable<Outbound_WireGuardPeer> peers;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1722,7 +1722,7 @@ public class SingBoxOptions {
 
         public String pre_shared_key;
 
-        public List<String> allowed_ips;
+        public Listable<String> allowed_ips;
 
         public String reserved;
 
