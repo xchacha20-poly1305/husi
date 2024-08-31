@@ -96,8 +96,8 @@ const LogSplitFlag = "\n\n"
 
 func (w *logWriter) WriteMessage(_ log.Level, message string) {
 	// Prevent add extra LogSplitFlag
-	if !strings.HasSuffix(message, LogSplitFlag) {
-		message += LogSplitFlag
+	if !strings.HasPrefix(message, LogSplitFlag) {
+		message = LogSplitFlag + message
 	}
 	_, _ = io.WriteString(w.writer, message)
 }

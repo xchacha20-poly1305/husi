@@ -139,12 +139,6 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         override fun getItemCount(): Int {
             return logList.size
         }
-
-        fun notifyItemInserted(): Int {
-            val position = logList.size - 1
-            notifyItemInserted(position)
-            return position
-        }
     }
 
     inner class LogViewHolder(val binding: ViewLogItemBinding) :
@@ -176,10 +170,11 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                     .split(Libcore.LogSplitFlag)
                     .filterNot { it.isBlank() }
                 if (lines.isNotEmpty()) {
+                    val startPosition = logAdapter.logList.size
                     logAdapter.logList.addAll(lines)
                     runOnMainDispatcher {
-                        val position = logAdapter.notifyItemInserted()
-                        if (!pinLog) binding.logView.scrollToPosition(position)
+                        logAdapter.notifyItemRangeInserted(startPosition, lines.size)
+                        if (!pinLog) binding.logView.scrollToPosition(logAdapter.itemCount - 1)
                     }
                 }
                 lastPosition = file.filePointer
