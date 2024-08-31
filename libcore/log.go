@@ -1,10 +1,11 @@
 package libcore
 
 import (
+	"context"
 	"io"
 	stdlog "log"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
@@ -74,6 +75,18 @@ func setupLog(maxSize int64, path string, enableLog, notTruncateOnStart bool) (e
 		disable: !enableLog,
 		writer:  file,
 	}
+	log.SetStdLogger(log.NewDefaultFactory(
+		context.Background(),
+		log.Formatter{
+			BaseTime:         time.Now(),
+			DisableTimestamp: true,
+			DisableLineBreak: true,
+		},
+		file,
+		path,
+		nil,
+		false,
+	).Logger())
 	// setup std log
 	stdlog.SetFlags(stdlog.LstdFlags | stdlog.LUTC)
 	stdlog.SetOutput(platformLogWrapper)
@@ -96,9 +109,15 @@ const LogSplitFlag = "\n\n"
 
 func (w *logWriter) WriteMessage(_ log.Level, message string) {
 	// Prevent add extra LogSplitFlag
-	if !strings.HasPrefix(message, LogSplitFlag) {
+	// We are sure that message must longer than 2 bytes.
+	if message[0] == '\n' {
+		if message[1] != '\n' {
+			message = "\n" + message
+		}
+	} else {
 		message = LogSplitFlag + message
 	}
+
 	_, _ = io.WriteString(w.writer, message)
 }
 
