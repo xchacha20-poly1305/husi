@@ -20,7 +20,9 @@ TAGS=(
 IFS="," BUILD_TAGS="${TAGS[*]}"
 
 # -buildvcs require: https://github.com/SagerNet/gomobile/commit/6bc27c2027e816ac1779bf80058b1a7710dad260
-gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
+# CGO_FLAGS require Go 1.23: https://go.dev/doc/go1.23#cgo
+# max-page-size: https://developer.android.com/guide/practices/page-sizes
+CGO_LDFLAGS="-Wl,-z,max-page-size=16384" gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
     -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid=" \
     -tags="$BUILD_TAGS" . || exit 1
 
