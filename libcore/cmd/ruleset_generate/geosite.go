@@ -1,26 +1,28 @@
 package main
 
 import (
-	"os"
-	"sort"
+	"cmp"
+	"slices"
 	"strings"
 
 	"github.com/sagernet/sing-box/common/geosite"
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 
 	"github.com/v2fly/v2ray-core/v5/app/router/routercommon"
 	"google.golang.org/protobuf/proto"
 )
 
-// TODO: reproducible build for geosite
-func generateGeosite(data []byte) (map[string][]geosite.Item, error) {
+func generateGeosite(data []byte) ([]*NamedItemList[geosite.Item], error) {
 	domainMap, err := parseGeosite(data)
 	if err != nil {
 		return nil, err
 	}
 	filterGeositeTags(domainMap)
 	mergeGeositeTags(domainMap)
-	return domainMap, nil
+
+	list := FromMap(domainMap)
+	return list, nil
 }
 
 func parseGeosite(vGeositeData []byte) (map[string][]geosite.Item, error) {
@@ -70,9 +72,10 @@ func parseGeosite(vGeositeData []byte) (map[string][]geosite.Item, error) {
 			}
 		}
 		domainMap[code] = common.Uniq(domains)
-		for attribute, attributeEntries := range attributes {
-			attributeDomains := make([]geosite.Item, 0, len(attributeEntries)*2)
-			for _, domain := range attributeEntries {
+		attributesList := FromMap(attributes)
+		for _, attribute := range attributesList {
+			attributeDomains := make([]geosite.Item, 0, len(attribute.content)*2)
+			for _, domain := range attribute.content {
 				switch domain.Type {
 				case routercommon.Domain_Plain:
 					attributeDomains = append(attributeDomains, geosite.Item{
@@ -102,7 +105,7 @@ func parseGeosite(vGeositeData []byte) (map[string][]geosite.Item, error) {
 					})
 				}
 			}
-			domainMap[code+"@"+attribute] = common.Uniq(attributeDomains)
+			domainMap[code+"@"+attribute.name] = common.Uniq(attributeDomains)
 		}
 	}
 	return domainMap, nil
@@ -168,13 +171,14 @@ func filterGeositeTags(data map[string][]geosite.Item) {
 		for item := range newMap {
 			newList = append(newList, item)
 		}
+		slices.SortFunc(newList, compareGeositeItem)
 		data[it.code] = newList
 		mergedCodeMap = append(mergedCodeMap, it.badCode)
 	}
-	sort.Strings(filteredCodeMap)
-	sort.Strings(mergedCodeMap)
-	_, _ = os.Stderr.WriteString("filtered " + strings.Join(filteredCodeMap, ",") + "\n")
-	_, _ = os.Stderr.WriteString("merged " + strings.Join(mergedCodeMap, ",") + "\n")
+	slices.Sort(filteredCodeMap)
+	slices.Sort(mergedCodeMap)
+	log.Info("filtered ", strings.Join(filteredCodeMap, ","), "\n")
+	log.Info("merged ", strings.Join(mergedCodeMap, ","), "\n")
 }
 
 func mergeGeositeTags(data map[string][]geosite.Item) {
@@ -212,6 +216,14 @@ func mergeGeositeTags(data map[string][]geosite.Item) {
 	for item := range newMap {
 		newList = append(newList, item)
 	}
+	slices.SortFunc(newList, compareGeositeItem)
 	data["geolocation-cn"] = newList
-	println("merged cn categories: " + strings.Join(cnCodeList, ","))
+	log.Info("merged cn categories: " + strings.Join(cnCodeList, ","))
+}
+
+func compareGeositeItem(a, b geosite.Item) int {
+	if c := cmp.Compare(a.Type, b.Type); c != 0 {
+		return c
+	}
+	return cmp.Compare(a.Value, b.Value)
 }

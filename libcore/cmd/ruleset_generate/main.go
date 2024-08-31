@@ -1,39 +1,36 @@
 package main
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"flag"
 	"io"
-	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/sagernet/sing-box/common/geosite"
 	"github.com/sagernet/sing-box/common/srs"
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common"
 )
 
 var (
 	geositeDate = flag.String("geosite", "", "geosite date")
 	geoipDate   = flag.String("geoip", "", "geoip date")
 
-	output = flag.String("o", "ruleset", "rule set output")
+	geositeOutput = flag.String("so", "geosite.tgz", "geosite tar.gz output")
+	geoipOutput   = flag.String("io", "geoip.tgz", "geoip tar.gz output")
 )
 
 const (
 	geositeRepo = "v2fly/domain-list-community"
 	geoipRepo   = "Dreamacro/maxmind-geoip"
 
-	site     = "geosite"
 	siteName = "dlc.dat"
-	ip       = "geoip"
 	ipName   = "Country.mmdb"
-)
-
-var (
-	geositeDir string
-	geoipDir   string
 )
 
 func init() {
@@ -41,22 +38,30 @@ func init() {
 }
 
 func main() {
-	initDir(*output)
+	buf := bytes.NewBuffer(nil) // Shared buf.
 
 	if *geositeDate != "" {
+		siteFile, err := os.OpenFile(*geositeOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer siteFile.Close()
+		gWriter := common.Must1(gzip.NewWriterLevel(siteFile, gzip.BestCompression))
+		defer gWriter.Close()
+		tWriter := tar.NewWriter(gWriter)
+		defer tWriter.Close()
+
 		geositeData, err := fetch(geositeRepo, *geositeDate, siteName)
 		if err != nil {
-			log.Fatalln(err)
-			return
+			log.Fatal(err)
 		}
-		domainMap, err := generateGeosite(geositeData)
+		geosites, err := generateGeosite(geositeData)
 		if err != nil {
-			log.Fatalln(err)
-			return
+			log.Fatal(err)
 		}
-		for code, domains := range domainMap {
+		for _, geositeItem := range geosites {
 			var headlessRule option.DefaultHeadlessRule
-			defaultRule := geosite.Compile(domains)
+			defaultRule := geosite.Compile(geositeItem.content)
 			headlessRule.Domain = defaultRule.Domain
 			headlessRule.DomainSuffix = defaultRule.DomainSuffix
 			headlessRule.DomainKeyword = defaultRule.DomainKeyword
@@ -68,38 +73,51 @@ func main() {
 					DefaultOptions: headlessRule,
 				},
 			}
-			srsPath, _ := filepath.Abs(filepath.Join(geositeDir, "geosite-"+code+".srs"))
-			// os.Stderr.WriteString("write " + srsPath + "\n")
-			outputRuleSet, err := os.Create(srsPath)
+			buf.Reset()
+			err = srs.Write(buf, plainRuleSet, true)
 			if err != nil {
-				log.Fatalln(err)
-				return
+				log.Fatal(err)
 			}
-			err = srs.Write(outputRuleSet, plainRuleSet, true)
+			srsName := "geosite-" + geositeItem.name + ".srs"
+			// Reproducible builds should not set time.
+			err = tWriter.WriteHeader(&tar.Header{
+				Name: srsName,
+				Size: int64(buf.Len()),
+				Mode: int64(os.ModePerm),
+			})
 			if err != nil {
-				_ = outputRuleSet.Close()
-				log.Fatalln(err)
-				return
+				log.Fatal(err)
 			}
-			_ = outputRuleSet.Close()
+			_, err = tWriter.Write(buf.Bytes())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
 	if *geoipDate != "" {
+		ipFile, err := os.OpenFile(*geoipOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer ipFile.Close()
+		gWriter := gzip.NewWriter(ipFile)
+		defer gWriter.Close()
+		tWriter := tar.NewWriter(gWriter)
+		defer tWriter.Close()
+
 		geoipData, err := fetch(geoipRepo, *geoipDate, ipName)
 		if err != nil {
-			log.Fatalln(err)
-			return
+			log.Fatal(err)
 		}
-		/*metadata*/ _, countryMap, err := generateGeoip(geoipData)
+		ips, err := generateGeoip(geoipData)
 		if err != nil {
-			log.Fatalln(err)
-			return
+			log.Fatal(err)
 		}
-		for countryCode, ipNets := range countryMap {
+		for _, ip := range ips {
 			var headlessRule option.DefaultHeadlessRule
-			headlessRule.IPCIDR = make([]string, 0, len(ipNets))
-			for _, cidr := range ipNets {
+			headlessRule.IPCIDR = make([]string, 0, len(ip.content))
+			for _, cidr := range ip.content {
 				headlessRule.IPCIDR = append(headlessRule.IPCIDR, cidr.String())
 			}
 			var plainRuleSet option.PlainRuleSet
@@ -109,32 +127,26 @@ func main() {
 					DefaultOptions: headlessRule,
 				},
 			}
-			srsPath, _ := filepath.Abs(filepath.Join(geoipDir, "geoip-"+countryCode+".srs"))
-			//_, _ = os.Stderr.WriteString("write " + srsPath + "\n")
-			outputRuleSet, err := os.Create(srsPath)
+			buf.Reset()
+			err = srs.Write(buf, plainRuleSet, true)
 			if err != nil {
-				log.Fatalln(err)
-				return
+				log.Fatal(err)
 			}
-			err = srs.Write(outputRuleSet, plainRuleSet, true)
+			srsName := "geoip-" + ip.name + ".srs"
+			err = tWriter.WriteHeader(&tar.Header{
+				Name: srsName,
+				Size: int64(buf.Len()),
+				Mode: int64(os.ModePerm),
+			})
 			if err != nil {
-				_ = outputRuleSet.Close()
-				log.Fatalln(err)
-				return
+				log.Fatal(err)
 			}
-			_ = outputRuleSet.Close()
+			_, err = tWriter.Write(buf.Bytes())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
-}
-
-func initDir(dir string) {
-	_ = os.RemoveAll(dir)
-	_ = os.MkdirAll(dir, os.ModePerm)
-
-	geositeDir = filepath.Join(dir, site)
-	geoipDir = filepath.Join(dir, ip)
-	_ = os.MkdirAll(geositeDir, os.ModePerm)
-	_ = os.MkdirAll(geoipDir, os.ModePerm)
 }
 
 func fetch(repo, tag, name string) ([]byte, error) {
