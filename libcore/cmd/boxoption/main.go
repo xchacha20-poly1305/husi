@@ -3,14 +3,12 @@ package main
 import (
 	"flag"
 	"io"
-	"log"
 	"os"
 	"strings"
 
+	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 )
-
-//go:generate go run .
 
 var output string
 
@@ -53,6 +51,8 @@ func main() {
 		}
 	}
 	_, _ = io.WriteString(writer, strings.Join(classes, "\n"))
+
+	log.Debug("Constant cap: ", maxBuilderSize, ", Final bulder cap: ", builder.Cap())
 }
 
 type withExtends struct {

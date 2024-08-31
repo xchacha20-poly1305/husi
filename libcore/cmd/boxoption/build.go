@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"reflect"
 	"strings"
+	"unsafe"
 
 	F "github.com/sagernet/sing/common/format"
 )
@@ -22,11 +21,42 @@ const (
 	extendsBox = "SingBoxOption"
 )
 
+var (
+	// builder is a shared strings.Builder for building class content.
+	// It is safe because we just use one thread.
+	builder = &strings.Builder{}
+
+	// builderAddr is the first field of builder.
+	builderAddr **strings.Builder
+	// builderBuf points to builder.buf.
+	// Because builder.Reset() will clean the buf, but we want to reuse the buf.
+	// Reuse the buf can reduce the stress of GC.
+	builderBuf *[]byte
+)
+
+// maxBuilderSize is the maximum size of the builder.
+// We found this is the max size the builder will use.
+const maxBuilderSize = 2048
+
+func init() {
+	builderAddr = (**strings.Builder)(unsafe.Pointer(reflect.ValueOf(builder).Elem().Field(0).UnsafeAddr()))
+	builderBuf = (*[]byte)(unsafe.Pointer(reflect.ValueOf(builder).Elem().Field(1).UnsafeAddr()))
+
+	*builderBuf = make([]byte, maxBuilderSize)
+}
+
+// resetBuilder resets the builder but keeps its buf with large capcity.
+func resetBuilder() {
+	*builderAddr = nil
+	clear(*builderBuf)
+	*builderBuf = (*builderBuf)[:0]
+}
+
 func buildClass(opt any, belongs string) string {
 	value := reflect.Indirect(reflect.ValueOf(opt))
 	valueType := value.Type()
 
-	builder := &strings.Builder{}
+	resetBuilder()
 
 	var fieldName string
 	if belongs != extendsBox {
@@ -52,7 +82,12 @@ func buildClass(opt any, belongs string) string {
 	// }
 	builder.WriteString(F.ToString(classSpace, "}\n"))
 
-	return builder.String()
+	// log.Trace("Builder cap: ", builder.Cap(), " Length: ", builder.Len())
+
+	// builder.String() returns an unsafe point of buf, so copy a new string here.
+	newBuf := make([]byte, builder.Len())
+	copy(newBuf, *builderBuf)
+	return string(newBuf)
 }
 
 func buildContent(valueType reflect.Type) string {
@@ -79,7 +114,7 @@ func buildContent(valueType reflect.Type) string {
 			tag += "_"
 		}
 
-		typeName := getTypeName(field.Type)
+		typeName := className(field.Type)
 		// Example:
 		//         public String listen;
 		builder.WriteString(F.ToString(fieldSpace, public, typeName, " ", tag, ";\n\n"))
@@ -98,10 +133,10 @@ const (
 	reservedFinal   = "final"
 )
 
-func getTypeName(valueType reflect.Type) string {
+func className(valueType reflect.Type) string {
 	switch valueType.Kind() {
 	case reflect.Ptr:
-		return getTypeName(valueType.Elem())
+		return className(valueType.Elem())
 	case reflect.Bool:
 		return javaBoolean
 	case reflect.Uint16:
@@ -126,9 +161,9 @@ func getTypeName(valueType reflect.Type) string {
 			// Go json save []uint8 or []byte as base64 string
 			return javaString
 		}
-		return "List<" + getTypeName(elem) + ">"
+		return "List<" + className(elem) + ">"
 	case reflect.Map:
-		return "Map<" + getTypeName(valueType.Key()) + ", " + getTypeName(valueType.Elem()) + ">"
+		return "Map<" + className(valueType.Key()) + ", " + className(valueType.Elem()) + ">"
 	case reflect.Struct:
 		valueName := valueType.Name()
 		if valueName == "ListenAddress" || valueName == "AddrPrefix" || valueName == "Prefix" {
@@ -141,7 +176,6 @@ func getTypeName(valueType reflect.Type) string {
 		}
 		return javaInteger
 	default:
-		log.Panic("[", valueType.Name(), "] is invalid: ", fmt.Sprint(valueType))
+		panic(F.ToString("[", valueType.Name(), "] is not  included"))
 	}
-	return ""
 }
