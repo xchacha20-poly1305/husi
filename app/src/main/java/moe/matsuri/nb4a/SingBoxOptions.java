@@ -349,6 +349,10 @@ public class SingBoxOptions {
 
         public String default_mode;
 
+        public List<String> access_control_allow_origin;
+
+        public Boolean access_control_allow_private_network;
+
         public String cache_file;
 
         public String cache_id;
