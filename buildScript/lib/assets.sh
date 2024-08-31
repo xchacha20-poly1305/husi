@@ -15,19 +15,10 @@ mkdir -p $DIR
 #     sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
 # }
 
-function pack() {
-  local name=$1
-  tar --mtime='1970-01-01' -czf "${name}.tgz" "ruleset/$name"
-}
-
 echo "GEOIP: $GEOIP_VERSION"
 echo "GEOSITE: $GEOSITE_VERSION"
 pushd $GENERATER
-rm -rf ruleset || true
-rm *.tgz || true
-go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION
-pack "geoip"
-pack "geosite"
+go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION -so="geosite.tgz" -io="geoip.tgz"
 popd
 
 cp -r "$GENERATER/geoip.tgz" "$DIR"
