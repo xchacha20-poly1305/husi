@@ -87,8 +87,8 @@ fun Project.requireTargetAbi(): String {
 @Suppress("UnstableApiUsage")
 fun Project.setupCommon() {
     android.apply {
-        buildToolsVersion = "34.0.0"
-        compileSdk = 34
+        buildToolsVersion = "35.0.0"
+        compileSdk = 35
         defaultConfig {
             minSdk = 21
         }
@@ -153,7 +153,7 @@ fun Project.setupCommon() {
     }
     (android as? ApplicationExtension)?.apply {
         defaultConfig {
-            targetSdk = 34
+            targetSdk = 35
         }
     }
 }
