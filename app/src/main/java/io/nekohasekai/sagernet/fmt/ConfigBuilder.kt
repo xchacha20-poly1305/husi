@@ -62,8 +62,9 @@ import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
 import moe.matsuri.nb4a.SingBoxOptions.V2RayAPIOptions
 import moe.matsuri.nb4a.SingBoxOptions.V2RayStatsServiceOptions
 import moe.matsuri.nb4a.checkEmpty
+import moe.matsuri.nb4a.makeRuleSetRulesLocal
+import moe.matsuri.nb4a.makeRuleSetRulesRemote
 import moe.matsuri.nb4a.makeSingBoxRule
-import moe.matsuri.nb4a.makeSingBoxRuleSet
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
@@ -105,8 +106,6 @@ val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
 
 val ERR_NO_REMOTE_DNS by lazy { Exception("No remote DNS, check your settings!") }
 val ERR_NO_DIRECT_DNS by lazy { Exception("No direct DNS, check your settings!") }
-
-val externalAssets: String by lazy { SagerNet.application.externalAssets.absolutePath }
 
 class ConfigBuildResult(
     var config: String,
@@ -749,39 +748,54 @@ fun buildConfig(
             }
         }
 
-        // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
-        var domainPath = "$externalAssets/geo"
-        var ipPath: String? = null
+        val ruleSetResource by lazy { SagerNet.application.externalAssets.absolutePath + "/geo" }
+        var geositeLink: String? = null
+        var geoipLink: String? = null
         if (forExport) {
+            // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
             val pathPrefix = "https://raw.githubusercontent.com"
             val provider = DataStore.rulesProvider
-            val branch = if (RuleProvider.hasUnstableBranch(provider)) {
+            
+            val normalBranch = "rule-set"
+            val geoipBranch = normalBranch
+            val geositeBranch = if (RuleProvider.hasUnstableBranch(provider)) {
                 "rule-set-unstable"
             } else {
-                "rule-set"
+                normalBranch
             }
+            
             when (provider) {
                 RuleProvider.OFFICIAL -> {
-                    domainPath = "$pathPrefix/SagerNet/sing-geosite/$branch"
-                    ipPath = "$pathPrefix/SagerNet/sing-geoip/$branch"
+                    geositeLink = "$pathPrefix/SagerNet/sing-geosite/$geositeBranch"
+                    geoipLink = "$pathPrefix/SagerNet/sing-geoip/$geoipBranch"
                 }
 
                 RuleProvider.LOYALSOLDIER -> {
-                    domainPath = "$pathPrefix/xchacha20-poly1305/sing-geosite/$branch"
-                    ipPath = "$pathPrefix/xchacha20-poly1305/sing-geoip/$branch"
+                    geositeLink = "$pathPrefix/xchacha20-poly1305/sing-geosite/$geositeBranch"
+                    geoipLink = "$pathPrefix/xchacha20-poly1305/sing-geoip/$geoipBranch"
                 }
 
                 RuleProvider.CHOCOLATE4U -> {
-                    domainPath = "$pathPrefix/Chocolate4U/sing-geosite/$branch"
-                    ipPath = "$pathPrefix/Chocolate4U/sing-geoip/$branch"
+                    geositeLink = "$pathPrefix/Chocolate4U/sing-geosite/$geositeBranch"
+                    geoipLink = "$pathPrefix/Chocolate4U/sing-geoip/$geoipBranch"
                 }
 
                 RuleProvider.CUSTOM -> {} // Can't generate.
             }
         }
-        for (rule in extraRules) {
-            if (rule.ruleSet.isNotBlank()) {
-                route.makeSingBoxRuleSet(rule.ruleSet.listByLineOrComma(), domainPath, ipPath)
+        val useRemote = geositeLink != null
+        for (rule in extraRules) if (rule.ruleSet.isNotBlank()) {
+            if (useRemote) {
+                route.makeRuleSetRulesRemote(
+                    rule.ruleSet.listByLineOrComma(),
+                    geositeLink!!,
+                    geoipLink!!,
+                )
+            } else {
+                route.makeRuleSetRulesLocal(
+                    rule.ruleSet.listByLineOrComma(),
+                    ruleSetResource,
+                )
             }
         }
         route.rule_set = route.rule_set.distinctBy { it.tag }
