@@ -30,6 +30,7 @@ abstract class AlertDialogFragment<Arg : Parcelable, Ret : Parcelable?> :
             fragment.setFragmentResultListener(requestKey) { _, bundle ->
                 listener(
                     bundle.getInt(KEY_WHICH, Activity.RESULT_CANCELED),
+                    @Suppress("DEPRECATION")
                     bundle.getParcelable(KEY_RET)
                 )
             }
@@ -44,6 +45,7 @@ abstract class AlertDialogFragment<Arg : Parcelable, Ret : Parcelable?> :
     protected abstract fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener)
 
     private val resultKey get() = requireArguments().getString(KEY_RESULT)
+    @Suppress("DEPRECATION")
     protected val arg by lazy { requireArguments().getParcelable<Arg>(KEY_ARG)!! }
     protected open fun ret(which: Int): Ret? = null
 

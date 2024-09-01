@@ -73,6 +73,7 @@ class MainActivity : ThemedActivity(),
         super.onCreate(savedInstanceState)
 
         window?.apply {
+            @Suppress("DEPRECATION")
             statusBarColor = Color.TRANSPARENT
         }
 

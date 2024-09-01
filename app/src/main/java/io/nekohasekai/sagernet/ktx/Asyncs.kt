@@ -1,4 +1,4 @@
-@file:Suppress("EXPERIMENTAL_API_USAGE")
+@file:OptIn(DelicateCoroutinesApi::class)
 
 package io.nekohasekai.sagernet.ktx
 

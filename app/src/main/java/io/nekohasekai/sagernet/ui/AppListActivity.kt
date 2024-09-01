@@ -16,7 +16,9 @@ import androidx.core.util.set
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,6 +37,7 @@ import io.nekohasekai.sagernet.widget.ListListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
 
@@ -164,12 +167,14 @@ class AppListActivity : ThemedActivity() {
     @UiThread
     private fun loadApps() {
         loader?.cancel()
-        loader = lifecycleScope.launchWhenCreated {
-            loading.crossFadeFrom(binding.list)
-            val adapter = binding.list.adapter as AppsAdapter
-            withContext(Dispatchers.IO) { adapter.reload() }
-            adapter.filter.filter(binding.search.text?.toString() ?: "")
-            binding.list.crossFadeFrom(loading)
+        loader = lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                loading.crossFadeFrom(binding.list)
+                val adapter = binding.list.adapter as AppsAdapter
+                withContext(Dispatchers.IO) { adapter.reload() }
+                adapter.filter.filter(binding.search.text?.toString() ?: "")
+                binding.list.crossFadeFrom(loading)
+            }
         }
     }
 

@@ -194,6 +194,7 @@ class ServiceNotification(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             (service as Service).stopForeground(Service.STOP_FOREGROUND_REMOVE)
         } else {
+            @Suppress("DEPRECATION")
             (service as Service).stopForeground(true)
         }
         service.unregisterReceiver(this)

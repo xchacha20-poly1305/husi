@@ -19,7 +19,9 @@ import androidx.core.util.contains
 import androidx.core.util.set
 import androidx.core.view.ViewCompat
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -43,6 +45,7 @@ import io.nekohasekai.sagernet.widget.ListListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.zip.ZipFile
@@ -143,7 +146,8 @@ class AppManagerActivity : ThemedActivity() {
             }
 
             override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                @Suppress("UNCHECKED_CAST") filteredApps = results.values as List<ProxiedApp>
+                @Suppress("UNCHECKED_CAST")
+                filteredApps = results.values as List<ProxiedApp>
                 notifyDataSetChanged()
             }
         }
@@ -176,12 +180,14 @@ class AppManagerActivity : ThemedActivity() {
     @UiThread
     private fun loadApps() {
         loader?.cancel()
-        loader = lifecycleScope.launchWhenCreated {
-            loading.crossFadeFrom(binding.list)
-            val adapter = binding.list.adapter as AppsAdapter
-            withContext(Dispatchers.IO) { adapter.reload() }
-            adapter.filter.filter(binding.search.text?.toString() ?: "")
-            binding.list.crossFadeFrom(loading)
+        loader = lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                loading.crossFadeFrom(binding.list)
+                val adapter = binding.list.adapter as AppsAdapter
+                withContext(Dispatchers.IO) { adapter.reload() }
+                adapter.filter.filter(binding.search.text?.toString() ?: "")
+                binding.list.crossFadeFrom(loading)
+            }
         }
     }
 
@@ -204,8 +210,8 @@ class AppManagerActivity : ThemedActivity() {
         }
 
         binding.bypassGroup.check(if (DataStore.bypassMode) R.id.appProxyModeBypass else R.id.appProxyModeOn)
-        binding.bypassGroup.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
+        binding.bypassGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            when (checkedIds.firstOrNull()) {
                 R.id.appProxyModeDisable -> {
                     DataStore.proxyApps = false
                     finish()
@@ -457,7 +463,8 @@ class AppManagerActivity : ThemedActivity() {
         val packageManagerFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
         } else {
-            @Suppress("DEPRECATION") PackageManager.GET_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
+            @Suppress("DEPRECATION")
+            PackageManager.GET_UNINSTALLED_PACKAGES or PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS
         }
         if (packageName.matches(chinaAppRegex)) {
             Log.d("PerAppProxyActivity", "Match package name: $packageName")
@@ -470,9 +477,7 @@ class AppManagerActivity : ThemedActivity() {
                     PackageManager.PackageInfoFlags.of(packageManagerFlags.toLong())
                 )
             } else {
-                @Suppress("DEPRECATION") SagerNet.application.packageManager.getPackageInfo(
-                    packageName, packageManagerFlags
-                )
+                SagerNet.application.packageManager.getPackageInfo(packageName, packageManagerFlags)
             }
             packageInfo.services?.forEach {
                 if (it.name.matches(chinaAppRegex)) {

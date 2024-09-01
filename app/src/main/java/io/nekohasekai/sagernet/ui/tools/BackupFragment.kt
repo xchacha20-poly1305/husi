@@ -8,6 +8,7 @@ import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
@@ -29,7 +30,10 @@ import moe.matsuri.nb4a.utils.Util
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+const val TIME_FORMAT = "yyyy-MM-dd_HH-mm-ss"
 
 class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
@@ -37,7 +41,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
     var content = ""
     private val exportSettings =
-        registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
+        registerForActivityResult(CreateDocument("text/plain")) { data ->
             if (data != null) {
                 runOnDefaultDispatcher {
                     try {
@@ -71,9 +75,10 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     binding.backupRules.isChecked,
                     binding.backupSettings.isChecked
                 )
+                val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
                 onMainDispatcher {
                     startFilesForResult(
-                        exportSettings, "husi_backup_${Date().toLocaleString()}.json"
+                        exportSettings, "husi_backup_${time}.json"
                     )
                 }
             }
@@ -87,8 +92,9 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     binding.backupSettings.isChecked
                 )
                 app.cacheDir.mkdirs()
+                val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
                 val cacheFile = File(
-                    app.cacheDir, "husi_backup_${Date().toLocaleString()}.json"
+                    app.cacheDir, "husi_backup_${time}.json"
                 )
                 cacheFile.writeText(content)
                 onMainDispatcher {
