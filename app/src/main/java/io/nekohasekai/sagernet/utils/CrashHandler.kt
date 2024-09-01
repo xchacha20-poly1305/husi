@@ -19,19 +19,16 @@ import java.util.regex.Pattern
 
 object CrashHandler : Thread.UncaughtExceptionHandler {
 
-    @Suppress("UNNECESSARY_SAFE_CALL")
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         // note: libc / go panic is in android log
 
-        try {
+        runCatching {
             Log.e(thread.toString(), throwable.stackTraceToString())
-        } catch (e: Exception) {
         }
 
-        try {
+        runCatching {
             Logs.e(thread.toString())
             Logs.e(throwable.stackTraceToString())
-        } catch (e: Exception) {
         }
 
         ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
@@ -136,8 +133,9 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
                 if (matcher.matches()) {
                     key = matcher.group(1)
                     value = matcher.group(2)
-                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) systemProperties[key] =
-                        value
+                    if (!key.isNullOrBlank() && !value.isNullOrBlank()) {
+                        systemProperties[key] = value
+                    }
                 }
             }
             bufferedReader.close()

@@ -10,8 +10,10 @@ import android.os.Handler
 import android.os.Looper
 import io.nekohasekai.sagernet.SagerNet
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.runBlocking
 
@@ -29,6 +31,7 @@ object DefaultNetworkListener {
         class Lost(val network: Network) : NetworkMessage()
     }
 
+    @OptIn(ObsoleteCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val networkActor = GlobalScope.actor<NetworkMessage>(Dispatchers.Unconfined) {
         val listeners = mutableMapOf<Any, (Network?) -> Unit>()
         var network: Network? = null

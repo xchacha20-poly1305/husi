@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.setValue
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -55,6 +56,7 @@ abstract class GroupUpdater {
         var progress by AtomicInteger()
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     protected suspend fun forceResolve(
         profiles: List<AbstractBean>, groupId: Long?,
     ) {

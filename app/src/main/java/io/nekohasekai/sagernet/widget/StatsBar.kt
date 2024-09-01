@@ -8,8 +8,9 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.whenStarted
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomappbar.BottomAppBar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
@@ -84,7 +85,9 @@ class StatsBar @JvmOverloads constructor(
         val activity = context as MainActivity
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
-            activity.whenStarted { what() }
+            activity.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                what()
+            }
         }
         if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
             postWhenStarted {

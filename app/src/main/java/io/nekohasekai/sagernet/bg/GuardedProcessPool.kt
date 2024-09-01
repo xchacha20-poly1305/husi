@@ -11,7 +11,6 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.utils.Commandline
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import libcore.Libcore
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -102,6 +101,7 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
     override val coroutineContext = Dispatchers.Main.immediate + Job()
     var processCount = 0
 
+    @OptIn(DelicateCoroutinesApi::class)
     @MainThread
     fun start(
         cmd: List<String>,
