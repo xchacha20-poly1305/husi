@@ -465,10 +465,10 @@
     <string name="need_restart">راه اندازی مجدد برنامه برای اعمال تغییرات</string>
     <string name="protocol_version">نسخه پروتکل</string>
     <string name="show_group_in_notification">نمایش اسم گروه در اعلان</string>
-    <string name="reset_connections">راه اندازی مجدد اتصال ها</string>
+    <string name="reset_connections">بازنشانی اتصال ها</string>
     <string name="use_selector">استفاده از انتخابگر</string>
-    <string name="share_subscription">به‌هم رسانی اشتراک‌ها</string>
-    <string name="mtu_help">برای تنظیم MTU سفارشی، اولویت را طولانی فشار دهید.</string>
+    <string name="share_subscription">هم رسانی اشتراک</string>
+    <string name="mtu_help">برای تنظیم MTU سفارشی، ترجیح را طولانی فشار دهید.</string>
     <string name="remove_duplicate">حذف سرورهای تکراری</string>
     <string name="sniff_routing">نتیجه Sniff برای مسیریابی</string>
     <string name="resolve_server">یافتن آدرس سرور مطابق خط مشی IPv6</string>
@@ -506,7 +506,7 @@
     <string name="global_allow_insecure">پذیرفتن همیشگی ارتباط ناامن</string>
     <string name="vpn_golang_version">نسخه زبان Go</string>
     <string name="cazilla">استفاده از Mozilla CA Certificate Program</string>
-    <string name="log_level_help">برای تنظیم اندازه بافر اولویت را طولانی فشار دهید.</string>
+    <string name="log_level_help">برای تنظیم اندازه بافر ترجیح را طولانی فشار دهید.</string>
     <string name="tls_camouflage_settings">تنظیمات استتار TLS</string>
     <string name="sniff_override">نتیجه Sniff برای مقصد</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>
