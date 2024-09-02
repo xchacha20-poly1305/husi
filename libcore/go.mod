@@ -11,7 +11,7 @@ require (
 	github.com/sagernet/sing-box v1.10.0-beta.5
 	github.com/sagernet/sing-dns v0.3.0-beta.14
 	github.com/sagernet/sing-tun v0.4.0-beta.13.0.20240703164908-1f043289199d
-	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
+	github.com/xchacha20-poly1305/TLS-scribe v0.8.0
 	github.com/xchacha20-poly1305/cazilla v0.3.1
 	github.com/xchacha20-poly1305/libping v0.5.1
 	golang.org/x/crypto v0.26.0
@@ -32,7 +32,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/caddyserver/certmagic v0.20.0 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.4.0 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
@@ -89,13 +89,13 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/mod v0.19.0 // indirect
+	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 // indirect
+	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.23.0 // indirect
+	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
