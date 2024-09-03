@@ -23,7 +23,7 @@ IFS="," BUILD_TAGS="${TAGS[*]}"
 # CGO_FLAGS require Go 1.23: https://go.dev/doc/go1.23#cgo
 # max-page-size: https://developer.android.com/guide/practices/page-sizes
 CGO_LDFLAGS="-Wl,-z,max-page-size=16384" gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
-    -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid=" \
+    -ldflags="-X 'runtime.godebugDefault=asynctimerchan=1' -X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid=" \
     -tags="$BUILD_TAGS" . || exit 1
 
 rm -r libcore-sources.jar
