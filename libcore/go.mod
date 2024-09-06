@@ -6,16 +6,16 @@ go 1.23.0
 require (
 	github.com/gofrs/uuid/v5 v5.2.0
 	github.com/miekg/dns v1.1.62
-	github.com/sagernet/gomobile v0.1.3
+	github.com/sagernet/gomobile v0.1.4
 	github.com/sagernet/sing v0.5.0-beta.1
-	github.com/sagernet/sing-box v1.10.0-beta.5
+	github.com/sagernet/sing-box v1.10.0-beta.8
 	github.com/sagernet/sing-dns v0.3.0-beta.14
 	github.com/sagernet/sing-tun v0.4.0-beta.13.0.20240703164908-1f043289199d
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
-	github.com/xchacha20-poly1305/cazilla v0.3.1
+	github.com/xchacha20-poly1305/cazilla v0.3.3
 	github.com/xchacha20-poly1305/libping v0.5.1
 	golang.org/x/crypto v0.26.0
-	golang.org/x/sys v0.24.0
+	golang.org/x/sys v0.25.0
 )
 
 // cmd
@@ -71,7 +71,7 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/quic-go v0.46.0-beta.4 // indirect
+	github.com/sagernet/quic-go v0.47.0-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
 	github.com/sagernet/sing-quic v0.3.0-beta.3 // indirect
@@ -93,7 +93,7 @@ require (
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
