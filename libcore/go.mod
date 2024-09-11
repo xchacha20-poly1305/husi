@@ -6,7 +6,7 @@ go 1.23.0
 require (
 	github.com/gofrs/uuid/v5 v5.2.0
 	github.com/miekg/dns v1.1.62
-	github.com/sagernet/gomobile v0.1.3
+	github.com/sagernet/gomobile v0.1.4
 	github.com/sagernet/sing v0.5.0-beta.1
 	github.com/sagernet/sing-box v1.10.0-beta.5
 	github.com/sagernet/sing-dns v0.3.0-beta.14
