@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
-import com.google.common.base.Strings
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
@@ -42,7 +41,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
             null
         }
         // not base64 user info
-        if (!Strings.isNullOrEmpty(pass)) {
+        if (!pass.isNullOrEmpty()) {
             return ShadowsocksBean().apply {
                 serverAddress = url.host
                 serverPort = url.ports.toIntOrNull() ?: 8388
