@@ -31,6 +31,8 @@ const (
 
 	siteName = "dlc.dat"
 	ipName   = "Country.mmdb"
+
+	finalBufCap = 524288
 )
 
 func init() {
@@ -39,6 +41,7 @@ func init() {
 
 func main() {
 	buf := bytes.NewBuffer(nil) // Shared buf.
+	buf.Grow(finalBufCap)
 
 	if *geositeDate != "" {
 		siteFile, err := os.OpenFile(*geositeOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
@@ -95,6 +98,8 @@ func main() {
 		}
 	}
 
+	log.Trace("Buf length: ", buf.Len(), " cap: ", buf.Cap())
+
 	if *geoipDate != "" {
 		ipFile, err := os.OpenFile(*geoipOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
 		if err != nil {
@@ -147,6 +152,8 @@ func main() {
 			}
 		}
 	}
+
+	log.Trace("Buf length: ", buf.Len(), " cap: ", buf.Cap())
 }
 
 func fetch(repo, tag, name string) ([]byte, error) {

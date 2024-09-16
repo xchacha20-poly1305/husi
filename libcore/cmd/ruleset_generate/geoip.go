@@ -8,7 +8,7 @@ import (
 	"github.com/oschwald/maxminddb-golang"
 )
 
-func generateGeoip(data []byte) (ips []*NamedItemList[*net.IPNet], err error) {
+func generateGeoip(data []byte) (ips []*NamedList[*net.IPNet], err error) {
 	var countryMap map[string][]*net.IPNet
 	countryMap, err = parseGeoip(data)
 	if err != nil {
