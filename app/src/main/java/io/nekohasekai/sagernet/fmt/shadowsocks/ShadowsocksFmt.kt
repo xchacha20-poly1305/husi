@@ -41,7 +41,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
             null
         }
         // not base64 user info
-        if (pass != null) {
+        if (!pass.isNullOrEmpty()) {
             return ShadowsocksBean().apply {
                 serverAddress = url.host
                 serverPort = url.ports.toIntOrNull() ?: 8388
