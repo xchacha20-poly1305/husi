@@ -624,4 +624,6 @@
     <string name="mux_strategy">Статегия Mux</string>
     <string name="mux_number">Номер Mux</string>
     <string name="status_status">Статус</string>
+    <string name="override_address">Переопределить адрес</string>
+    <string name="override_port">Переопределить порт</string>
 </resources>
