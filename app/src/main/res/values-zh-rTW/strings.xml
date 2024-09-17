@@ -584,4 +584,6 @@
     <string name="mux_max_connections">最大連線數</string>
     <string name="mux_min_streams">最小流數</string>
     <string name="mux_max_streams">最大流數</string>
+    <string name="override_address">覆寫位址</string>
+    <string name="override_port">覆蓋連接埠</string>
 </resources>
