@@ -14,7 +14,6 @@ data class RuleEntity(
     var name: String = "",
     var userOrder: Long = 0L,
     var enabled: Boolean = false,
-    var ruleSet: String = "",
     var domains: String = "",
     var ip: String = "",
     var port: String = "",
@@ -30,13 +29,18 @@ data class RuleEntity(
     @ColumnInfo(defaultValue = "") var clashMode: String = "",
 ) : Parcelable {
 
+    companion object {
+        const val OUTBOUND_PROXY = 0L
+        const val OUTBOUND_DIRECT = -1L
+        const val OUTBOUND_BLOCK = -2L
+    }
+
     fun displayName(): String {
         return name.takeIf { it.isNotBlank() } ?: "Rule $id"
     }
 
     fun mkSummary(): String {
         var summary = ""
-        if (ruleSet.isNotBlank()) summary += "$ruleSet\n"
         if (domains.isNotBlank()) summary += "$domains\n"
         if (ip.isNotBlank()) summary += "$ip\n"
         if (source.isNotBlank()) summary += "source: $source\n"
@@ -61,9 +65,9 @@ data class RuleEntity(
 
     fun displayOutbound(): String {
         return when (outbound) {
-            0L -> app.getString(R.string.route_proxy)
-            -1L -> app.getString(R.string.route_bypass)
-            -2L -> app.getString(R.string.route_block)
+            OUTBOUND_PROXY -> app.getString(R.string.route_proxy)
+            OUTBOUND_DIRECT -> app.getString(R.string.route_bypass)
+            OUTBOUND_BLOCK -> app.getString(R.string.route_block)
             else -> ProfileManager.getProfile(outbound)?.displayName()
                 ?: app.getString(R.string.error_title)
         }

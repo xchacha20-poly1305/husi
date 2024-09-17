@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.fmt.buildConfig
+import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.http.toUri
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -39,9 +40,6 @@ import io.nekohasekai.sagernet.fmt.socks.toUri
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
-import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
-import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
-import io.nekohasekai.sagernet.fmt.trojan_go.toUri
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.tuic.toUri
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
@@ -51,6 +49,7 @@ import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.DirectSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HysteriaSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.JuicitySettingsActivity
@@ -60,7 +59,6 @@ import io.nekohasekai.sagernet.ui.profile.ProfileSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SSHSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SocksSettingsActivity
-import io.nekohasekai.sagernet.ui.profile.TrojanGoSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
@@ -90,7 +88,6 @@ data class ProxyEntity(
     var ssBean: ShadowsocksBean? = null,
     var vmessBean: VMessBean? = null,
     var trojanBean: TrojanBean? = null,
-    var trojanGoBean: TrojanGoBean? = null,
     var mieruBean: MieruBean? = null,
     var naiveBean: NaiveBean? = null,
     var hysteriaBean: HysteriaBean? = null,
@@ -99,6 +96,7 @@ data class ProxyEntity(
     var sshBean: SSHBean? = null,
     var wgBean: WireGuardBean? = null,
     var shadowTLSBean: ShadowTLSBean? = null,
+    var directBean: DirectBean? = null,
     var chainBean: ChainBean? = null,
     var configBean: ConfigBean? = null,
 ) : Serializable() {
@@ -109,7 +107,9 @@ data class ProxyEntity(
         const val TYPE_SS = 2
         const val TYPE_VMESS = 4 // And VLESS
         const val TYPE_TROJAN = 6
-        const val TYPE_TROJAN_GO = 7
+
+        //        const val TYPE_TROJAN_GO = 7
+
         const val TYPE_CHAIN = 8
         const val TYPE_NAIVE = 9
         const val TYPE_HYSTERIA = 15
@@ -119,6 +119,7 @@ data class ProxyEntity(
         const val TYPE_TUIC = 20
         const val TYPE_MIERU = 21
         const val TYPE_JUICITY = 22
+        const val TYPE_DIRECT = 23
 
         const val TYPE_CONFIG = 998
 
@@ -194,7 +195,6 @@ data class ProxyEntity(
             TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
             TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
             TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
-            TYPE_TROJAN_GO -> trojanGoBean = KryoConverters.trojanGoDeserialize(byteArray)
             TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
             TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
             TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
@@ -202,6 +202,7 @@ data class ProxyEntity(
             TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
             TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
             TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
+            TYPE_DIRECT -> directBean = KryoConverters.directDeserialize(byteArray)
             TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
@@ -214,7 +215,6 @@ data class ProxyEntity(
         TYPE_SS -> "Shadowsocks"
         TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
         TYPE_TROJAN -> "Trojan"
-        TYPE_TROJAN_GO -> "Trojan-Go"
         TYPE_MIERU -> "Mieru"
         TYPE_NAIVE -> "Naïve"
         TYPE_HYSTERIA -> "Hysteria" + hysteriaBean!!.protocolVersion
@@ -223,6 +223,7 @@ data class ProxyEntity(
         TYPE_TUIC -> "TUIC"
         TYPE_JUICITY -> "Juicity"
         TYPE_SHADOWTLS -> "ShadowTLS"
+        TYPE_DIRECT -> "Direct"
         TYPE_CHAIN -> chainName
         TYPE_CONFIG -> configBean!!.displayType()
         else -> "Undefined type $type"
@@ -238,7 +239,6 @@ data class ProxyEntity(
             TYPE_SS -> ssBean
             TYPE_VMESS -> vmessBean
             TYPE_TROJAN -> trojanBean
-            TYPE_TROJAN_GO -> trojanGoBean
             TYPE_MIERU -> mieruBean
             TYPE_NAIVE -> naiveBean
             TYPE_HYSTERIA -> hysteriaBean
@@ -246,6 +246,7 @@ data class ProxyEntity(
             TYPE_WG -> wgBean
             TYPE_TUIC -> tuicBean
             TYPE_JUICITY -> juicityBean
+            TYPE_DIRECT -> directBean
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_CHAIN -> chainBean
             TYPE_CONFIG -> configBean
@@ -256,6 +257,7 @@ data class ProxyEntity(
     fun haveLink(): Boolean {
         return when (type) {
             TYPE_CHAIN -> false
+            TYPE_DIRECT -> false
             else -> true
         }
     }
@@ -265,6 +267,7 @@ data class ProxyEntity(
             is SSHBean -> false
             is WireGuardBean -> false
             is ShadowTLSBean -> false
+            is DirectBean -> false
             is ConfigBean -> false
             else -> true
         }
@@ -277,7 +280,6 @@ data class ProxyEntity(
             is ShadowsocksBean -> toUri()
             is VMessBean -> toUriVMessVLESSTrojan()
             is TrojanBean -> toUriVMessVLESSTrojan()
-            is TrojanGoBean -> toUri()
             is NaiveBean -> toUri()
             is HysteriaBean -> toUri()
             is TuicBean -> toUri()
@@ -299,13 +301,8 @@ data class ProxyEntity(
                 }
 
                 for ((chain) in config.externalIndex) {
-                    chain.entries.forEachIndexed { index, (port, profile) ->
+                    chain.entries.forEach { (port, profile) ->
                         when (val bean = profile.requireBean()) {
-                            is TrojanGoBean -> {
-                                append("\n\n")
-                                append(bean.buildTrojanGoConfig(port))
-                            }
-
                             is MieruBean -> {
                                 append("\n\n")
                                 append(bean.buildMieruConfig(port))
@@ -334,7 +331,6 @@ data class ProxyEntity(
 
     fun needExternal(): Boolean {
         return when (type) {
-            TYPE_TROJAN_GO -> true
             TYPE_MIERU -> true
             TYPE_NAIVE -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
@@ -364,7 +360,6 @@ data class ProxyEntity(
         ssBean = null
         vmessBean = null
         trojanBean = null
-        trojanGoBean = null
         mieruBean = null
         naiveBean = null
         hysteriaBean = null
@@ -372,6 +367,7 @@ data class ProxyEntity(
         wgBean = null
         tuicBean = null
         juicityBean = null
+        directBean = null
         shadowTLSBean = null
         chainBean = null
         configBean = null
@@ -400,11 +396,6 @@ data class ProxyEntity(
             is TrojanBean -> {
                 type = TYPE_TROJAN
                 trojanBean = bean
-            }
-
-            is TrojanGoBean -> {
-                type = TYPE_TROJAN_GO
-                trojanGoBean = bean
             }
 
             is MieruBean -> {
@@ -442,6 +433,11 @@ data class ProxyEntity(
                 juicityBean = bean
             }
 
+            is DirectBean -> {
+                type = TYPE_DIRECT
+                directBean = bean
+            }
+
             is ShadowTLSBean -> {
                 type = TYPE_SHADOWTLS
                 shadowTLSBean = bean
@@ -470,7 +466,6 @@ data class ProxyEntity(
                 TYPE_SS -> ShadowsocksSettingsActivity::class.java
                 TYPE_VMESS -> VMessSettingsActivity::class.java
                 TYPE_TROJAN -> TrojanSettingsActivity::class.java
-                TYPE_TROJAN_GO -> TrojanGoSettingsActivity::class.java
                 TYPE_MIERU -> MieruSettingsActivity::class.java
                 TYPE_NAIVE -> NaiveSettingsActivity::class.java
                 TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
@@ -478,6 +473,7 @@ data class ProxyEntity(
                 TYPE_WG -> WireGuardSettingsActivity::class.java
                 TYPE_TUIC -> TuicSettingsActivity::class.java
                 TYPE_JUICITY -> JuicitySettingsActivity::class.java
+                TYPE_DIRECT -> DirectSettingsActivity::class.java
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java

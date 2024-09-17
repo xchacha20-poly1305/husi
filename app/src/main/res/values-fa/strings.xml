@@ -525,8 +525,6 @@
     <string name="mux_preference">تنظیمات مالتی پلکس</string>
     <string name="experimental_authenticated_length">طول هر بخش محموله بار دیگر قابل انعطاف نباشد. این آزمایش مستلزم استفاده سرور و کلاینت از نسخه مشابه v2ray-core است. انتظار می‌رود به‌روزرسانی‌های سریع‌تری درباره این آزمایش انجام شود.</string>
     <string name="test_timeout">مهلت تست (میلی‌ثانیه)</string>
-    <string name="dns_mode_leak">پرس و جو دقیق با نشت</string>
-    <string name="dns_mode_precise">پرس و جو دقیق با سرعت کم</string>
     <string name="hysteria2_provider">ارائه دهنده Hysteria2</string>
     <string name="keep_default">پیش فرض را حفظ کنید</string>
     <string name="connection_test_mux">سرور از این پروتکل چندگانه پشتیبانی نمی کند</string>

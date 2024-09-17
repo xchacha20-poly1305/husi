@@ -517,7 +517,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 headers = mutableMapOf()
 
                 if (bean.host.isNotBlank()) {
-                    headers["Host"] = Listable(bean.host)
+                    headers["Host"] = Listable.fromArgs(bean.host)
                 }
 
                 if (bean.path.contains("?ed=")) {
@@ -587,7 +587,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         insecure = bean.allowInsecure || DataStore.globalAllowInsecure
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma().toListable()
-        if (bean.certificates.isNotBlank()) certificate = Listable(bean.certificates)
+        if (bean.certificates.isNotBlank()) certificate = Listable.fromArgs(bean.certificates)
         var fp = bean.utlsFingerprint
         if (bean.realityPubKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {

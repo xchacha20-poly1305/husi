@@ -146,7 +146,6 @@
     <string name="nat_stun_server_hint">STUN сервер</string>
     <string name="share_subscription">Поділитися підпискою</string>
     <string name="dns_mode">Режим DNS</string>
-    <string name="dns_mode_leak">Точний запит з витоком</string>
     <string name="insecure_warn">Порадни з безпеки</string>
     <string name="app_name">husi</string>
     <string name="app_name_long">husi для Android</string>
@@ -454,7 +453,6 @@
     <string name="enable_brutal">Увімкнути контролер перевантаження TCP Brutal</string>
     <string name="action_camera_switch">Змінити камеру</string>
     <string name="action_flash_off">Вимкнути спалах</string>
-    <string name="dns_mode_precise">Точний запит з низькою швидкістю</string>
     <string name="blurred_address">Зробити адресу сервера розмитою</string>
     <string name="location_permission_description">Ваше правило маршрутизації містить правила маршрутизації Wi-Fi SSID або Wi-Fi BSSID. Для того, щоб вони працювали, husi використовує дозвіл на визначення місцерозташування у фоновому режимі, аби отримувати інформацію про підключену мережу Wi-Fi. Інформація буде використовуватися виключно для маршрутизації.</string>
     <string name="ok">Ок</string>

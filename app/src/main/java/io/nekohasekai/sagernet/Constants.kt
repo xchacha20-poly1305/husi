@@ -30,7 +30,7 @@ object Key {
     const val DIRECT_DNS = "directDns"
     const val EDNS_CLIENT_SUBNET = "ednsClientSubnet"
     const val ENABLE_DNS_ROUTING = "enableDnsRouting"
-    const val DNS_MODE = "dnsMode"
+    const val ENABLE_FAKE_DNS = "enableFakeDns"
 
     const val IPV6_MODE = "ipv6Mode"
 
@@ -96,6 +96,9 @@ object Key {
     const val PROFILE_GROUP = "profileGroup"
     const val PROFILE_CURRENT = "profileCurrent"
 
+    const val OVERRIDE_ADDRESS = "overrideAddress"
+    const val OVERRIDE_PORT = "overridePort"
+
     const val SERVER_ADDRESS = "serverAddress"
     const val SERVER_PORT = "serverPort"
     const val SERVER_USERNAME = "serverUsername"
@@ -160,7 +163,6 @@ object Key {
     const val SERVER_REDUCE_RTT = "serverReduceRTT"
 
     const val ROUTE_NAME = "routeName"
-    const val ROUTE_RULE_SET = "routeRuleSet"
     const val ROUTE_DOMAIN = "routeDomain"
     const val ROUTE_IP = "routeIP"
     const val ROUTE_PORT = "routePort"
@@ -230,13 +232,6 @@ object GroupOrder {
     const val ORIGIN = 0
     const val BY_NAME = 1
     const val BY_DELAY = 2
-}
-
-object DNSMode {
-    const val RAW = 0
-    const val LEAK = 1
-    const val PRECISE = 2
-    const val FAKE_DNS = 3
 }
 
 object MuxType {

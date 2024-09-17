@@ -215,7 +215,6 @@
     <string name="action_shadowsocks" translatable="false">Shadowsocks</string>
     <string name="action_vmess" translatable="false">VMess</string>
     <string name="action_trojan" translatable="false">Trojan</string>
-    <string name="action_trojan_go" translatable="false">Trojan Go</string>
     <string name="action_mieru" translatable="false">Mieru</string>
     <string name="action_naive" translatable="false">Naïve</string>
     <string name="action_ping_tunnel" translatable="false">Ping Tunnel</string>
@@ -224,6 +223,7 @@
     <string name="action_wireguard" translatable="false">WireGuard</string>
     <string name="action_tuic" translatable="false">TUIC</string>
     <string name="action_juicity" translatable="false">Juicity</string>
+    <string name="action_direct" translatable="false">Direct</string>
     <string name="proxy_chain">Proxy Chain</string>
     <string name="custom_config">Custom Config</string>
     <string name="balancer">Balancer</string>
@@ -584,8 +584,6 @@
     <string name="enable_brutal">Enable TCP Brutal congestion controller</string>
     <string name="dns_mode">DNS mode</string>
     <string name="fake_dns" translatable="false">Fake DNS</string>
-    <string name="dns_mode_leak">Precise query with leak</string>
-    <string name="dns_mode_precise">Precise query with low speed</string>
     <string name="blurred_address">Make the server address blurred</string>
     <string name="action_flash_on">Turn on flash</string>
     <string name="action_camera_switch">Switch camera</string>
@@ -653,4 +651,6 @@
     <string name="mux_max_connections">Max connections</string>
     <string name="mux_min_streams">Min streams</string>
     <string name="mux_max_streams">Max streams</string>
+    <string name="override_address">Override Address</string>
+    <string name="override_port">Override Port</string>
 </resources>

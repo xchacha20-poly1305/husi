@@ -118,7 +118,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
     var ednsClientSubnet by configurationStore.string(Key.EDNS_CLIENT_SUBNET) { "" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
-    var dnsMode by configurationStore.stringToInt(Key.DNS_MODE) { 0 }
+    var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
@@ -211,6 +211,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverPassword by profileCacheStore.string(Key.SERVER_PASSWORD)
     var serverPassword1 by profileCacheStore.string(Key.SERVER_PASSWORD1)
     var serverMethod by profileCacheStore.string(Key.SERVER_METHOD)
+    var overrideAddress by profileCacheStore.string(Key.OVERRIDE_ADDRESS)
+    var overridePort by profileCacheStore.stringToInt(Key.OVERRIDE_PORT)
 
     var sharedStorage by profileCacheStore.string("sharedStorage")
 
@@ -261,7 +263,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverReduceRTT by profileCacheStore.boolean(Key.SERVER_REDUCE_RTT)
 
     var routeName by profileCacheStore.string(Key.ROUTE_NAME)
-    var routeRuleSet by profileCacheStore.string(Key.ROUTE_RULE_SET)
     var routeDomain by profileCacheStore.string(Key.ROUTE_DOMAIN)
     var routeIP by profileCacheStore.string(Key.ROUTE_IP)
     var routePort by profileCacheStore.string(Key.ROUTE_PORT)

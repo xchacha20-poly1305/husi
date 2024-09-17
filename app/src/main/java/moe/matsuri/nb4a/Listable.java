@@ -18,14 +18,19 @@ public class Listable<T> extends ArrayList<T> {
         super();
     }
 
+    public Listable(Integer cap) {
+        super(cap);
+    }
+
     public Listable(Collection<? extends T> c) {
         super(c);
     }
 
     @SafeVarargs
-    public Listable(T... elements) {
-        super();
-        Collections.addAll(this, elements);
+    public static <T> Listable<T> fromArgs(T... elements) {
+        Listable<T> listable = new Listable<>();
+        Collections.addAll(listable, elements);
+        return listable;
     }
 
     public static class ListableSerializer<T> implements JsonSerializer<Listable<T>> {

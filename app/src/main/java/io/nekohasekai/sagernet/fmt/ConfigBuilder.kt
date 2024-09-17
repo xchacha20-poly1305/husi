@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.fmt
 
 import android.widget.Toast
-import io.nekohasekai.sagernet.DNSMode
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxStrategy
@@ -14,8 +13,11 @@ import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
+import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
+import io.nekohasekai.sagernet.fmt.direct.DirectBean
+import io.nekohasekai.sagernet.fmt.direct.buildSingBoxOutboundDirectBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildSingBoxOutboundHysteriaBean
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
@@ -35,8 +37,8 @@ import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import moe.matsuri.nb4a.IP_PRIVATE
 import moe.matsuri.nb4a.Listable
+import moe.matsuri.nb4a.RuleItem
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
 import moe.matsuri.nb4a.SingBoxOptions.ClashAPIOptions
@@ -51,7 +53,6 @@ import moe.matsuri.nb4a.SingBoxOptions.Outbound
 import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
-import moe.matsuri.nb4a.PREFIX_IP_DNS
 import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
@@ -62,10 +63,10 @@ import moe.matsuri.nb4a.SingBoxOptions.Outbound_SocksOptions
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
 import moe.matsuri.nb4a.SingBoxOptions.V2RayAPIOptions
 import moe.matsuri.nb4a.SingBoxOptions.V2RayStatsServiceOptions
+import moe.matsuri.nb4a.buildRuleSets
 import moe.matsuri.nb4a.checkEmpty
-import moe.matsuri.nb4a.makeRuleSetRulesLocal
-import moe.matsuri.nb4a.makeRuleSetRulesRemote
-import moe.matsuri.nb4a.makeSingBoxRule
+import moe.matsuri.nb4a.makeCommonRule
+import moe.matsuri.nb4a.parseRules
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
@@ -201,12 +202,7 @@ fun buildConfig(
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val enableDnsRouting = DataStore.enableDnsRouting
-    val useFakeDns = (DataStore.dnsMode == DNSMode.FAKE_DNS) && !forTest
-    val tagDnsFinal = if (DataStore.dnsMode == DNSMode.LEAK) {
-        TAG_DNS_DIRECT
-    } else {
-        TAG_DNS_REMOTE
-    }
+    val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
     val needSniff = DataStore.trafficSniffing > 0
     val needSniffOverride = DataStore.trafficSniffing == 2
     val externalIndexMap = ArrayList<IndexEntity>()
@@ -228,7 +224,10 @@ fun buildConfig(
                 listen = "$LOCALHOST4:0" // Never really listen
                 stats = V2RayStatsServiceOptions().also {
                     it.enabled = true
-                    it.outbounds = (tagMap.values.toList() + TAG_PROXY + TAG_DIRECT).toListable()
+                    it.outbounds = tagMap.values.toListable().also { list ->
+                        list.add(TAG_PROXY)
+                        list.add(TAG_DIRECT)
+                    }
                 }
             }
             clash_api = ClashAPIOptions().apply {
@@ -306,15 +305,15 @@ fun buildConfig(
                 sniff_override_destination = needSniffOverride
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
-                        address = Listable(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                        address = Listable.fromArgs(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
                     IPv6Mode.ONLY -> {
-                        address = Listable(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = Listable.fromArgs(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
                     else -> {
-                        address = Listable(
+                        address = Listable.fromArgs(
                             VpnService.PRIVATE_VLAN4_CLIENT + "/28",
                             VpnService.PRIVATE_VLAN6_CLIENT + "/126",
                         )
@@ -330,7 +329,7 @@ fun buildConfig(
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
                 if (DataStore.inboundUsername.isNotBlank() || DataStore.inboundPassword.isNotBlank()) {
-                    users = Listable(
+                    users = Listable.fromArgs(
                         User().apply {
                             username = DataStore.inboundUsername
                             password = DataStore.inboundPassword
@@ -413,7 +412,7 @@ fun buildConfig(
                     // chain route/proxy rules
                     if (pastEntity!!.needExternal()) {
                         route.rules.add(Rule_Default().apply {
-                            inbound = Listable(pastInboundTag)
+                            inbound = Listable.fromArgs(pastInboundTag)
                             outbound = tagOut
                         })
                     } else {
@@ -443,8 +442,7 @@ fun buildConfig(
                     }.asMap()
                 } else { // internal outbound
                     currentOutbound = when (bean) {
-                        is ConfigBean ->
-                            gson.fromJson(bean.config, currentOutbound.javaClass)
+                        is ConfigBean -> gson.fromJson(bean.config, currentOutbound.javaClass)
 
                         is ShadowTLSBean -> // before StandardV2RayBean
                             buildSingBoxOutboundShadowTLSBean(bean).asMap()
@@ -452,23 +450,19 @@ fun buildConfig(
                         is StandardV2RayBean -> // http/trojan/vmess/vless
                             buildSingBoxOutboundStandardV2RayBean(bean).asMap()
 
-                        is HysteriaBean ->
-                            buildSingBoxOutboundHysteriaBean(bean)
+                        is HysteriaBean -> buildSingBoxOutboundHysteriaBean(bean)
 
-                        is TuicBean ->
-                            buildSingBoxOutboundTuicBean(bean).asMap()
+                        is TuicBean -> buildSingBoxOutboundTuicBean(bean).asMap()
 
-                        is SOCKSBean ->
-                            buildSingBoxOutboundSocksBean(bean).asMap()
+                        is SOCKSBean -> buildSingBoxOutboundSocksBean(bean).asMap()
 
-                        is ShadowsocksBean ->
-                            buildSingBoxOutboundShadowsocksBean(bean).asMap()
+                        is ShadowsocksBean -> buildSingBoxOutboundShadowsocksBean(bean).asMap()
 
-                        is WireGuardBean ->
-                            buildSingBoxOutboundWireGuardBean(bean).asMap()
+                        is WireGuardBean -> buildSingBoxOutboundWireGuardBean(bean).asMap()
 
-                        is SSHBean ->
-                            buildSingBoxOutboundSSHBean(bean).asMap()
+                        is SSHBean -> buildSingBoxOutboundSSHBean(bean).asMap()
+
+                        is DirectBean -> buildSingBoxOutboundDirectBean(bean).asMap()
 
                         else -> throw IllegalStateException("can't reach")
                     }
@@ -567,7 +561,7 @@ fun buildConfig(
                         // no chain rule and not outbound, so need to set to direct
                         if (index == profileList.lastIndex) {
                             route.rules.add(Rule_Default().apply {
-                                inbound = Listable(tag)
+                                inbound = Listable.fromArgs(tag)
                                 outbound = TAG_DIRECT
                             })
                         }
@@ -626,18 +620,13 @@ fun buildConfig(
                     PackageCache.awaitLoadSync()
                     user_id = uidList
                 }
-                if (rule.ruleSet.isNotBlank()) {
-                    rule_set = rule.ruleSet.listByLineOrComma().filterNot {
-                        it.startsWith(PREFIX_IP_DNS)
-                    }.toListable()
-                }
-                var domainList: List<String> = listOf()
+                var domainList: List<RuleItem> = listOf()
                 if (rule.domains.isNotBlank()) {
-                    domainList = rule.domains.listByLineOrComma()
-                    makeSingBoxRule(domainList, false)
+                    domainList = parseRules(rule.domains.listByLineOrComma())
+                    makeCommonRule(domainList, false)
                 }
                 if (rule.ip.isNotBlank()) {
-                    makeSingBoxRule(rule.ip.listByLineOrComma(), true)
+                    makeCommonRule(parseRules(rule.ip.listByLineOrComma()), true)
                 }
                 if (rule.port.isNotBlank()) {
                     port = Listable()
@@ -662,15 +651,15 @@ fun buildConfig(
                     }
                 }
                 if (rule.network.isNotBlank()) {
-                    network = Listable(rule.network)
+                    network = Listable.fromArgs(rule.network)
                 }
                 if (rule.source.isNotBlank()) {
                     val sourceIPs = Listable<String>()
                     for (source in rule.source.listByLineOrComma()) {
-                        if (source.startsWith(IP_PRIVATE)) {
+                        if (source == RuleItem.CONTENT_PRIVATE) {
                             source_ip_is_private = true
                         } else {
-                            sourceIPs += source
+                            sourceIPs.add(source)
                         }
                     }
                     if (sourceIPs.isNotEmpty()) source_ip_cidr = sourceIPs
@@ -694,46 +683,46 @@ fun buildConfig(
                 fun makeDnsRuleObj(): DNSRule_Default {
                     return DNSRule_Default().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
-                        makeSingBoxRule(
-                            domainList,
-                            rule.ruleSet.listByLineOrComma(),
-                            DataStore.dnsMode,
-                            rule.ip.listByLineOrComma(),
-                        )
+                        val ips = parseRules(rule.ip.listByLineOrComma()).filter {
+                            it.dns
+                        }
+                        makeCommonRule(domainList + ips)
                     }
                 }
 
-                when (rule.outbound) {
-                    -1L -> {
-                        userDNSRuleList += makeDnsRuleObj().apply {
-                            server = tagDnsFinal
-                        }
+                when (val outID = rule.outbound) {
+                    RuleEntity.OUTBOUND_DIRECT -> {
+                        userDNSRuleList.add(makeDnsRuleObj().apply {
+                            server = TAG_DNS_DIRECT
+                        })
+                        outbound = TAG_DIRECT
                     }
 
-                    0L -> {
+                    RuleEntity.OUTBOUND_PROXY -> {
                         if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
                             server = TAG_DNS_FAKE
-                            inbound = Listable(TAG_TUN)
+                            inbound = Listable.fromArgs(TAG_TUN)
                             query_type = Listable(FAKE_DNS_QUERY_TYPE)
                         }
                         userDNSRuleList += makeDnsRuleObj().apply {
                             server = TAG_DNS_REMOTE
                         }
+                        outbound = TAG_PROXY
                     }
 
-                    -2L -> {
+                    RuleEntity.OUTBOUND_BLOCK -> {
                         userDNSRuleList += makeDnsRuleObj().apply {
                             server = TAG_DNS_BLOCK
                             disable_cache = true
                         }
+                        outbound = TAG_BLOCK
                     }
-                }
 
-                outbound = when (val outId = rule.outbound) {
-                    0L -> TAG_PROXY
-                    -1L -> TAG_DIRECT
-                    -2L -> TAG_BLOCK
-                    else -> if (outId == proxy.id) TAG_PROXY else tagMap[outId] ?: ""
+                    else -> outbound = if (outID == proxy.id) {
+                        TAG_PROXY
+                    } else {
+                        tagMap[outID] ?: ""
+                    }
                 }
             }
 
@@ -750,14 +739,14 @@ fun buildConfig(
             }
         }
 
-        val ruleSetResource by lazy { SagerNet.application.externalAssets.absolutePath + "/geo" }
+        var ruleSetResource: String? = null
         var geositeLink: String? = null
         var geoipLink: String? = null
         if (forExport) {
             // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
             val pathPrefix = "https://raw.githubusercontent.com"
             val provider = DataStore.rulesProvider
-            
+
             val normalBranch = "rule-set"
             val geoipBranch = normalBranch
             val geositeBranch = if (RuleProvider.hasUnstableBranch(provider)) {
@@ -765,7 +754,7 @@ fun buildConfig(
             } else {
                 normalBranch
             }
-            
+
             when (provider) {
                 RuleProvider.OFFICIAL -> {
                     geositeLink = "$pathPrefix/SagerNet/sing-geosite/$geositeBranch"
@@ -785,22 +774,10 @@ fun buildConfig(
                 RuleProvider.CUSTOM -> {} // Can't generate.
             }
         }
-        val useRemote = geositeLink != null
-        for (rule in extraRules) if (rule.ruleSet.isNotBlank()) {
-            if (useRemote) {
-                route.makeRuleSetRulesRemote(
-                    rule.ruleSet.listByLineOrComma(),
-                    geositeLink!!,
-                    geoipLink!!,
-                )
-            } else {
-                route.makeRuleSetRulesLocal(
-                    rule.ruleSet.listByLineOrComma(),
-                    ruleSetResource,
-                )
-            }
+        if (geositeLink == null) {
+            ruleSetResource = SagerNet.application.externalAssets.absolutePath + "/geo"
         }
-        route.rule_set = route.rule_set.distinctBy { it.tag }.toListable()
+        buildRuleSets(geoipLink, geositeLink, ruleSetResource)
 
         outbounds.add(Outbound().apply {
             tag = TAG_DIRECT
@@ -869,12 +846,8 @@ fun buildConfig(
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
                 detour = TAG_PROXY
 
-                if (DataStore.dnsMode == DNSMode.PRECISE) {
-                    if (DataStore.ednsClientSubnet.isNotBlank()) {
-                        client_subnet = DataStore.ednsClientSubnet
-                    } else {
-                        throw Exception("Precise mode require client subnet")
-                    }
+                if (DataStore.ednsClientSubnet.isNotBlank()) {
+                    client_subnet = DataStore.ednsClientSubnet
                 }
             })
         }
@@ -916,7 +889,7 @@ fun buildConfig(
 
         if (forTest) {
             // Always use system DNS for urlTest
-            dns.servers = Listable(
+            dns.servers = Listable.fromArgs(
                 DNSServerOptions().apply {
                     address = LOCAL_DNS_SERVER
                     tag = TAG_DNS_LOCAL
@@ -936,11 +909,11 @@ fun buildConfig(
 
             // built-in DNS rules
             route.rules.add(0, Rule_Default().apply {
-                inbound = Listable(TAG_DNS_IN)
+                inbound = Listable.fromArgs(TAG_DNS_IN)
                 outbound = TAG_DNS_OUT
             })
             route.rules.add(0, Rule_Default().apply {
-                port = Listable(53)
+                port = Listable.fromArgs(53)
                 outbound = TAG_DNS_OUT
             })
 
@@ -952,8 +925,8 @@ fun buildConfig(
             }
             // block mcast
             route.rules.add(Rule_Default().apply {
-                ip_cidr = Listable("224.0.0.0/3", "ff00::/8")
-                source_ip_cidr = Listable("224.0.0.0/3", "ff00::/8")
+                ip_cidr = Listable.fromArgs("224.0.0.0/3", "ff00::/8")
+                source_ip_cidr = Listable.fromArgs("224.0.0.0/3", "ff00::/8")
                 outbound = TAG_BLOCK
             })
 
@@ -969,7 +942,7 @@ fun buildConfig(
                     tag = "dns-fake"
                 })
                 dns.rules.add(DNSRule_Default().apply {
-                    inbound = Listable(TAG_TUN)
+                    inbound = Listable.fromArgs(TAG_TUN)
                     server = TAG_DNS_FAKE
                     disable_cache = true
                     query_type = Listable(FAKE_DNS_QUERY_TYPE)
@@ -987,22 +960,19 @@ fun buildConfig(
             })
             // force bypass (always top DNS rule)
             dns.rules.add(0, DNSRule_Default().apply {
-                outbound = Listable(TAG_ANY)
+                outbound = Listable.fromArgs(TAG_ANY)
                 server = TAG_DNS_DIRECT
             })
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
-                    makeSingBoxRule(
-                        domainListDNSDirectForce.toHashSet().toList(),
-                        listOf(),
-                        DNSMode.RAW,
-                        listOf(),
+                    makeCommonRule(
+                        parseRules(domainListDNSDirectForce.toHashSet().toList()),
                     )
                     server = TAG_DNS_DIRECT
                 })
             }
         }
-        if (!forTest) dns.final_ = tagDnsFinal
+        if (!forTest) dns.final_ = TAG_DNS_REMOTE
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {

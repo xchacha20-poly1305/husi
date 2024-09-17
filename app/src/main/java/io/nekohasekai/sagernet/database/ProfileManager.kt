@@ -190,34 +190,34 @@ object ProfileManager {
                     name = app.getString(R.string.route_opt_block_quic),
                     protocol = "quic",
                     network = "udp",
-                    outbound = -2
+                    outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_ads),
-                    ruleSet = "geosite-category-ads-all",
-                    outbound = -2
+                    domains = "set:geosite-category-ads-all",
+                    outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_analysis),
-                    domains = app.assets.open("analysis.txt").use {
-                        it.bufferedReader()
+                    domains = app.assets.open("analysis.txt").use { stream ->
+                        stream.bufferedReader()
                             .readLines()
                             .filter { it.isNotBlank() }
                             .joinToString("\n")
                     },
-                    outbound = -2,
+                    outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
-            val wallCountry = mutableListOf("cn:中国")
+            val walledCountry = mutableListOf("cn:中国")
             if (Locale.getDefault().country == Locale.US.country) {
                 // English users
-                wallCountry += "ir:Iran"
+                walledCountry += "ir:Iran"
             }
-            for (c in wallCountry) {
+            for (c in walledCountry) {
                 val country = c.substringBefore(":")
                 val displayCountry = c.substringAfter(":")
                 //
@@ -230,15 +230,15 @@ object ProfileManager {
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_domain, displayCountry),
-                        ruleSet = "geosite-$country",
-                        outbound = -1
+                        domains = "set:geosite-$country",
+                        outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
                 )
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_ip, displayCountry),
-                        ruleSet = "geoip-$country",
-                        outbound = -1
+                        ip = "set:geoip-$country",
+                        outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
                 )
             }

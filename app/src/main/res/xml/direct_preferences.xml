@@ -1,0 +1,32 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="profileName"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        app:icon="@drawable/ic_hardware_router"
+        app:key="overrideAddress"
+        app:title="@string/override_address"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        app:icon="@drawable/ic_maps_directions_boat"
+        app:key="overridePort"
+        app:title="@string/override_port"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreference
+        app:icon="@drawable/ic_baseline_import_contacts_24"
+        app:key="isOutboundOnly"
+        app:title="@string/is_outbound_only" />
+
+    <moe.matsuri.nb4a.ui.EditConfigPreference
+        app:icon="@drawable/ic_baseline_layers_24"
+        app:key="serverConfig"
+        app:title="@string/custom_config"
+        app:useSimpleSummaryProvider="true" />
+
+</PreferenceScreen>

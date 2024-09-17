@@ -322,7 +322,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                     alpn = bean.alpn.listByLineOrComma().toListable()
                 }
                 if (bean.caText.isNotBlank()) {
-                    certificate = Listable(bean.caText)
+                    certificate = Listable.fromArgs(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")
@@ -362,9 +362,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
-                alpn = Listable("h3")
+                alpn = Listable.fromArgs("h3")
                 if (bean.caText.isNotBlank()) {
-                    certificate = Listable(bean.caText)
+                    certificate = Listable.fromArgs(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")

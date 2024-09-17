@@ -539,8 +539,6 @@
     <string name="domain_strategy_for_remote">Стратегия домена для Удаленного</string>
     <string name="resolve_server">Разрешить адрес сервера в соответствии с политикой IPv6</string>
     <string name="cazilla">Использовать программу сертификации Mozilla CA</string>
-    <string name="dns_mode_leak">Точный запрос с утечкой</string>
-    <string name="dns_mode_precise">Точный запрос с низкой скоростью</string>
     <string name="app_name">husi</string>
     <string name="tuic_congestion_controller">Контроллер перегруженности</string>
     <string name="custom_config_json">Пользовательская конфигурация JSON</string>

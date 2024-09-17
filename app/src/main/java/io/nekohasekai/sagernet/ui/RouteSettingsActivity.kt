@@ -57,7 +57,6 @@ class RouteSettingsActivity(
 
     fun RuleEntity.init() {
         DataStore.routeName = name
-        DataStore.routeRuleSet = ruleSet
         DataStore.routeDomain = domains
         DataStore.routeIP = ip
         DataStore.routePort = port
@@ -71,9 +70,9 @@ class RouteSettingsActivity(
         DataStore.routeClient = clientType
         DataStore.routeClashMode = clashMode
         DataStore.routeOutbound = when (outbound) {
-            0L -> 0
-            -1L -> 1
-            -2L -> 2
+            RuleEntity.OUTBOUND_PROXY -> 0
+            RuleEntity.OUTBOUND_DIRECT -> 1
+            RuleEntity.OUTBOUND_BLOCK -> 2
             else -> 3
         }
         DataStore.routePackages = packages.joinToString("\n")
@@ -81,7 +80,6 @@ class RouteSettingsActivity(
 
     fun RuleEntity.serialize() {
         name = DataStore.routeName
-        ruleSet = DataStore.routeRuleSet
         domains = DataStore.routeDomain
         ip = DataStore.routeIP
         port = DataStore.routePort
@@ -94,9 +92,9 @@ class RouteSettingsActivity(
         clientType = DataStore.routeClient
         clashMode = DataStore.routeClashMode
         outbound = when (DataStore.routeOutbound) {
-            0 -> 0L
-            1 -> -1L
-            2 -> -2L
+            0 -> RuleEntity.OUTBOUND_PROXY
+            1 -> RuleEntity.OUTBOUND_DIRECT
+            2 -> RuleEntity.OUTBOUND_BLOCK
             else -> DataStore.routeOutboundRule
         }
         if (DataStore.routePackages.isNotBlank()) {
@@ -111,7 +109,6 @@ class RouteSettingsActivity(
     fun needSave(): Boolean {
         if (!DataStore.dirty) return false
         if (DataStore.routePackages.isBlank() &&
-            DataStore.routeRuleSet.isBlank() &&
             DataStore.routeDomain.isBlank() &&
             DataStore.routeIP.isBlank() &&
             DataStore.routePort.isBlank() &&
