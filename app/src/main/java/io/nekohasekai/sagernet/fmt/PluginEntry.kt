@@ -9,15 +9,6 @@ enum class PluginEntry(
     val packageName: String, // for f-droid page
     val downloadSource: DownloadSource = DownloadSource()
 ) {
-    TrojanGo(
-        "trojan-go-plugin",
-        SagerNet.application.getString(R.string.action_trojan_go),
-        "io.nekohasekai.sagernet.plugin.trojan_go",
-        DownloadSource(
-            fdroid = false,
-            downloadLink = "https://github.com/SagerNet/SagerNet/releases?q=trojan-go",
-        ),
-    ),
     MieruProxy(
         "mieru-plugin",
         SagerNet.application.getString(R.string.action_mieru),

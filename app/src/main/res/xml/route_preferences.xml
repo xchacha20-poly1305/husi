@@ -12,11 +12,6 @@
             app:title="@string/apps"/>
     <PreferenceCategory app:title="@string/cag_route">
         <EditTextPreference
-                app:icon="@drawable/ic_baseline_emoji_emotions_24"
-                app:key="routeRuleSet"
-                app:title="Rule set"
-                app:useSimpleSummaryProvider="true"/>
-        <EditTextPreference
                 app:icon="@drawable/ic_baseline_domain_24"
                 app:key="routeDomain"
                 app:title="domain"

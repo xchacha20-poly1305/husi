@@ -12,7 +12,6 @@ import io.nekohasekai.sagernet.fmt.parseUniversal
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
 import io.nekohasekai.sagernet.fmt.socks.parseSOCKS
 import io.nekohasekai.sagernet.fmt.trojan.parseTrojan
-import io.nekohasekai.sagernet.fmt.trojan_go.parseTrojanGo
 import io.nekohasekai.sagernet.fmt.tuic.parseTuic
 import io.nekohasekai.sagernet.fmt.v2ray.parseV2Ray
 import moe.matsuri.nb4a.utils.JavaUtil.gson
@@ -159,18 +158,11 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 }
             }
 
-            "trojan" -> {
+            // Trojan-go was partially compatible
+            "trojan", "trojan-go" -> {
                 Logs.d("Try parse trojan link: $this")
                 runCatching {
                     entities.add(parseTrojan(this))
-                }.onFailure {
-                    Logs.w(it)
-                }
-            }
-
-            "trojan-go" -> {
-                runCatching {
-                    entities.add(parseTrojanGo(this))
                 }.onFailure {
                     Logs.w(it)
                 }

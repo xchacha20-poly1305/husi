@@ -1,7 +1,13 @@
 package moe.matsuri.nb4a
 
-import io.nekohasekai.sagernet.DNSMode
 import io.nekohasekai.sagernet.database.DataStore
+import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
+import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Logical
+import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_FORMAT_BINARY
+import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_TYPE_LOCAL
+import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_TYPE_REMOTE
+import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
+import moe.matsuri.nb4a.SingBoxOptions.Rule_Logical
 
 object SingBoxOptionsUtil {
 
@@ -27,59 +33,26 @@ object SingBoxOptionsUtil {
 
 }
 
-// Set this value is same as enable `ip_is_private`.
-const val IP_PRIVATE = "private"
 
-// Starts with it will apply this IP rule for DNS.
-const val PREFIX_IP_DNS = "dns:"
-
-fun SingBoxOptions.DNSRule_Default.makeSingBoxRule(
-    domainList: List<String>,
-    ruleSetList: List<String>,
-    dnsMode: Int = DNSMode.RAW,
-    ipList: List<String>,
-) {
-    val shouldApplyIPRule = dnsMode == DNSMode.LEAK || dnsMode == DNSMode.PRECISE
-
+fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     domain = Listable()
     domain_suffix = Listable()
     domain_regex = Listable()
     domain_keyword = Listable()
     rule_set = Listable()
-    wifi_ssid = Listable()
-    wifi_bssid = Listable()
 
-    for (rule in ruleSetList) {
-        if (rule.startsWith("geosite-")) {
-            rule_set.plusAssign(rule)
+    for (rule in list) {
+        if (rule.content == RuleItem.CONTENT_PRIVATE) {
+            ip_is_private = true
             continue
         }
-        if (shouldApplyIPRule) {
-            if (rule.startsWith(PREFIX_IP_DNS)) {
-                rule_set.plusAssign(rule.removePrefix(PREFIX_IP_DNS))
-            }
-        }
-    }
 
-    for (rule in domainList) {
-        if (rule.startsWith("full:")) {
-            domain.plusAssign(rule.removePrefix("full:").lowercase())
-        } else if (rule.startsWith("domain:")) {
-            domain_suffix.plusAssign(rule.removePrefix("domain:").lowercase())
-        } else if (rule.startsWith("regexp:")) {
-            domain_regex.plusAssign(rule.removePrefix("regexp:").lowercase())
-        } else {
-            domain_keyword.plusAssign(rule.lowercase())
-        }
-    }
-
-    if (shouldApplyIPRule) for (rule in ipList) {
-        if (rule.startsWith(PREFIX_IP_DNS)) rule.removePrefix(PREFIX_IP_DNS).let {
-            if (it == IP_PRIVATE) {
-                ip_is_private = true
-            } else {
-                ip_cidr.plusAssign(it)
-            }
+        when (rule.type) {
+            RuleItem.TYPE_FLAG_RULE_SET -> rule_set.add(rule.content)
+            RuleItem.TYPE_FLAG_FULL -> domain.add(rule.content)
+            RuleItem.TYPE_FLAG_DOMAIN_SUFFIX -> domain_suffix.add(rule.content)
+            RuleItem.TYPE_FLAG_REGEX -> domain_regex.add(rule.content)
+            else -> domain_keyword.add(rule.content)
         }
     }
 
@@ -88,8 +61,6 @@ fun SingBoxOptions.DNSRule_Default.makeSingBoxRule(
     domain_suffix?.removeIf { it.isNullOrBlank() }
     domain_regex?.removeIf { it.isNullOrBlank() }
     domain_keyword?.removeIf { it.isNullOrBlank() }
-    wifi_ssid?.removeIf { it.isNullOrBlank() }
-    wifi_bssid?.removeIf { it.isNullOrBlank() }
 
     if (ip_is_private == false) ip_is_private = null
     if (rule_set?.isEmpty() == true) rule_set = null
@@ -97,11 +68,9 @@ fun SingBoxOptions.DNSRule_Default.makeSingBoxRule(
     if (domain_suffix?.isEmpty() == true) domain_suffix = null
     if (domain_regex?.isEmpty() == true) domain_regex = null
     if (domain_keyword?.isEmpty() == true) domain_keyword = null
-    if (wifi_ssid?.isEmpty() == true) wifi_ssid = null
-    if (wifi_bssid?.isEmpty() == true) wifi_bssid = null
 }
 
-fun SingBoxOptions.DNSRule_Default.checkEmpty(): Boolean {
+fun DNSRule_Default.checkEmpty(): Boolean {
     if (ip_is_private == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (domain?.isNotEmpty() == true) return false
@@ -114,7 +83,7 @@ fun SingBoxOptions.DNSRule_Default.checkEmpty(): Boolean {
     return true
 }
 
-fun SingBoxOptions.Rule_Default.makeSingBoxRule(rules: List<String>, isIP: Boolean) {
+fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
     if (isIP) {
         ip_cidr = Listable()
     } else {
@@ -125,26 +94,26 @@ fun SingBoxOptions.Rule_Default.makeSingBoxRule(rules: List<String>, isIP: Boole
     }
     if (rule_set == null) rule_set = Listable()
 
-    for (rule in rules) {
+    for (rule in list) {
+        if (rule.dns) continue
+
         if (isIP) {
-            if (rule.startsWith(PREFIX_IP_DNS)) continue
-
-            if (rule == IP_PRIVATE) {
+            if (rule.content == RuleItem.CONTENT_PRIVATE) {
                 ip_is_private = true
-            } else {
-                ip_cidr.plusAssign(rule)
+                continue
             }
-            continue
-        }
-
-        if (rule.startsWith("full:")) {
-            domain.plusAssign(rule.removePrefix("full:").lowercase())
-        } else if (rule.startsWith("domain:")) {
-            domain_suffix.plusAssign(rule.removePrefix("domain:").lowercase())
-        } else if (rule.startsWith("regexp:")) {
-            domain_regex.plusAssign(rule.removePrefix("regexp:").lowercase())
+            when (rule.type) {
+                RuleItem.TYPE_FLAG_RULE_SET -> rule_set.add(rule.content)
+                else ->ip_cidr.add(rule.content)
+            }
         } else {
-            domain_keyword.plusAssign(rule.lowercase())
+            when (rule.type) {
+                RuleItem.TYPE_FLAG_RULE_SET -> rule_set.add(rule.content)
+                RuleItem.TYPE_FLAG_FULL -> domain.add(rule.content)
+                RuleItem.TYPE_FLAG_DOMAIN_SUFFIX -> domain_suffix.add(rule.content)
+                RuleItem.TYPE_FLAG_REGEX -> domain_regex.add(rule.content)
+                else -> domain_keyword.add(rule.content)
+            }
         }
     }
 
@@ -163,7 +132,7 @@ fun SingBoxOptions.Rule_Default.makeSingBoxRule(rules: List<String>, isIP: Boole
     if (ip_is_private == false) ip_is_private = null
 }
 
-fun SingBoxOptions.Rule_Default.checkEmpty(): Boolean {
+fun Rule_Default.checkEmpty(): Boolean {
     if (ip_cidr?.isNotEmpty() == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (ip_is_private == true) return false
@@ -183,41 +152,63 @@ fun SingBoxOptions.Rule_Default.checkEmpty(): Boolean {
     return true
 }
 
-const val RULE_SET_FORMAT_BINARY = "binary"
-const val RULE_SET_TYPE_REMOTE = "remote"
-const val RULE_SET_TYPE_LOCAL = "local"
-
-fun SingBoxOptions.RouteOptions.makeRuleSetRulesLocal(names: List<String>, resourcePath: String) {
-    if (rule_set == null) rule_set = Listable()
-    for (name in names) {
-        val newName = name.removePrefix(PREFIX_IP_DNS)
-        rule_set.plusAssign(SingBoxOptions.RuleSet_Local().apply {
-            tag = newName
-            type = RULE_SET_TYPE_LOCAL
-            format = RULE_SET_FORMAT_BINARY
-            path = "$resourcePath/$newName.srs"
-        })
-    }
-}
-
-fun SingBoxOptions.RouteOptions.makeRuleSetRulesRemote(
-    names: List<String>,
-    domainURL: String,
-    ipURL: String,
+fun SingBoxOptions.MyOptions.buildRuleSets(
+    ipURL: String?,
+    domainURL: String?,
+    localPath: String?,
 ) {
-    if (rule_set == null) rule_set = Listable()
-    for (name in names) {
-        val newName = name.removePrefix(PREFIX_IP_DNS)
-        rule_set.plusAssign(SingBoxOptions.RuleSet_Remote().apply {
-            tag = newName
+    val names = hashSetOf<String>()
+    if (dns != null) names.addAll(collectSet(dns.rules))
+    if (route != null) names.addAll(collectSet(route.rules))
+
+    if (names.isEmpty()) return
+
+    if (route == null) route = SingBoxOptions.RouteOptions()
+    for (set in route.rule_set) names.add(set.tag)
+    val list = Listable<SingBoxOptions.RuleSet>(names.size)
+
+    val isRemote = ipURL != null
+    for (name in names.sorted()) {
+        if (isRemote) list.add(SingBoxOptions.RuleSet_Remote().apply {
+            tag = name
             type = RULE_SET_TYPE_REMOTE
             format = RULE_SET_FORMAT_BINARY
-            val isIP = newName.startsWith("geoip-")
+            val isIP = name.startsWith("geoip-")
             url = if (isIP) {
-                "${ipURL}/${newName}.srs"
+                "${ipURL}/${name}.srs"
             } else {
-                "${domainURL}/${newName}.srs"
+                "${domainURL}/${name}.srs"
             }
+        }) else list.add(SingBoxOptions.RuleSet_Local().apply {
+            tag = name
+            type = RULE_SET_TYPE_LOCAL
+            format = RULE_SET_FORMAT_BINARY
+            path = "$localPath/$name.srs"
         })
     }
+
+    route.rule_set = list
+}
+
+/**
+ * @param rules item should be DNSRule or Rule.
+ */
+private fun collectSet(rules: List<SingBoxOptions.SingBoxOption>?): HashSet<String> {
+    if (rules == null) return hashSetOf()
+
+    val hashSet = hashSetOf<String>()
+    for (rule in rules) when (rule) {
+        is DNSRule_Logical -> hashSet.addAll(collectSet(rule.rules))
+        is Rule_Logical -> hashSet.addAll(collectSet(rule.rules))
+
+        is DNSRule_Default -> rule.rule_set?.let {
+            hashSet.addAll(it)
+        }
+
+        is Rule_Default -> rule.rule_set?.let {
+            hashSet.addAll(it)
+        }
+    }
+
+    return hashSet
 }

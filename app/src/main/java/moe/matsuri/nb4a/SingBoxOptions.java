@@ -9,6 +9,10 @@ import static moe.matsuri.nb4a.utils.JavaUtil.gson;
 
 public class SingBoxOptions {
 
+    public static final String RULE_SET_FORMAT_BINARY = "binary";
+    public static final String RULE_SET_TYPE_REMOTE = "remote";
+    public static final String RULE_SET_TYPE_LOCAL = "local";
+
     // base
 
     public static class SingBoxOption {
@@ -41,7 +45,7 @@ public class SingBoxOptions {
     }
 
     // Classes have optional field
-    // Generated in line 164
+    // Generated in line 169
 
     public static class Inbound extends SingBoxOption {
 

@@ -28,7 +28,6 @@ import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
-import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
@@ -71,10 +70,6 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is TrojanBean -> {
             if (!isTLS()) return ResultInsecure(R.raw.not_encrypted)
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
-        }
-
-        is TrojanGoBean -> {
             if (allowInsecure) return ResultInsecure(R.raw.insecure)
         }
 

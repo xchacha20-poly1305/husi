@@ -43,9 +43,6 @@
                             android:id="@+id/action_new_trojan"
                             android:title="@string/action_trojan" />
                     <item
-                            android:id="@+id/action_new_trojan_go"
-                            android:title="@string/action_trojan_go" />
-                    <item
                             android:id="@+id/action_new_mieru"
                             android:title="@string/action_mieru" />
                     <item
@@ -60,6 +57,9 @@
                     <item
                             android:id="@+id/action_new_juicity"
                             android:title="@string/action_juicity" />
+                    <item
+                        android:id="@+id/action_new_direct"
+                        android:title="@string/action_direct" />
                     <item
                             android:id="@+id/action_new_ssh"
                             android:title="@string/action_ssh" />

@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.group
 
-import io.nekohasekai.sagernet.DNSMode
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -16,7 +15,6 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
-import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.ktx.Logs
@@ -81,7 +79,7 @@ abstract class GroupUpdater {
             lookupJobs.add(GlobalScope.launch(lookupPool) {
                 try {
                     val results = if (
-                        DataStore.dnsMode == DNSMode.FAKE_DNS &&
+                        DataStore.enableFakeDns &&
                         DataStore.serviceState.started &&
                         DataStore.serviceMode == Key.MODE_VPN
                     ) {
@@ -124,10 +122,6 @@ abstract class GroupUpdater {
                     when (security) {
                         "tls" -> if (sni.isBlank()) sni = bean.serverAddress
                     }
-                }
-
-                is TrojanGoBean -> {
-                    if (sni.isBlank()) sni = bean.serverAddress
                 }
 
                 is HysteriaBean -> {
