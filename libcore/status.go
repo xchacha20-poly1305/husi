@@ -170,7 +170,7 @@ func (b *BoxInstance) EnableClashModeCallback(enable bool) {
 		return
 	}
 
-	b.clashModeHook = make(chan struct{}, 1)
+	b.clashModeHook = make(chan struct{})
 	clash.SetModeUpdateHook(b.clashModeHook)
 	go func() {
 		for range b.clashModeHook {
