@@ -4,11 +4,9 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
-import moe.matsuri.nb4a.Listable
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import moe.matsuri.nb4a.utils.toListable
 import org.json.JSONObject
 import java.io.File
 
@@ -270,7 +268,7 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
 
         }.toStringPretty()
 
-        else -> throw Exception("error version: $protocolVersion")
+        else -> throw unknownVersion()
     }
 }
 
@@ -294,10 +292,9 @@ fun HysteriaBean.canUseSingBox(): Boolean {
     }
 }
 
-fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any> {
+fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outbound {
     return when (bean.protocolVersion) {
         1 -> SingBoxOptions.Outbound_HysteriaOptions().apply {
-            type = "hysteria"
             server = bean.serverAddress
             server_port = bean.serverPorts.toIntOrNull()
             up_mbps = bean.getUploadSpeed()
@@ -319,10 +316,10 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                     server_name = bean.sni
                 }
                 if (bean.alpn.isNotBlank()) {
-                    alpn = bean.alpn.listByLineOrComma().toListable()
+                    alpn = bean.alpn.listByLineOrComma()
                 }
                 if (bean.caText.isNotBlank()) {
-                    certificate = Listable.fromArgs(bean.caText)
+                    certificate = listOf(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")
@@ -330,16 +327,15 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
                         dynamic_record_sizing_disabled = true
-                        config = Listable(echList)
+                        config = echList
                     }
                 }
                 insecure = bean.allowInsecure || DataStore.globalAllowInsecure
                 enabled = true
             }
-        }.asMap()
+        }
 
         2 -> SingBoxOptions.Outbound_Hysteria2Options().apply {
-            type = "hysteria2"
             server = bean.serverAddress
             server_port = bean.serverPorts.toIntOrNull()
             up_mbps = DataStore.uploadSpeed
@@ -362,9 +358,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
-                alpn = Listable.fromArgs("h3")
+                alpn = listOf("h3")
                 if (bean.caText.isNotBlank()) {
-                    certificate = Listable.fromArgs(bean.caText)
+                    certificate = listOf(bean.caText)
                 }
                 if (bean.ech) {
                     val echList = bean.echCfg.split("\n")
@@ -372,15 +368,17 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): MutableMap<String, Any
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
                         dynamic_record_sizing_disabled = true
-                        config = Listable(echList)
+                        config = echList
                     }
                 }
                 insecure = bean.allowInsecure || DataStore.globalAllowInsecure
                 enabled = true
             }
-        }.asMap()
+        }
 
-        else -> mutableMapOf("error_version" to bean.protocolVersion)
+        else -> throw bean.unknownVersion()
+    }.apply {
+        type = bean.outboundType()
     }
 }
 

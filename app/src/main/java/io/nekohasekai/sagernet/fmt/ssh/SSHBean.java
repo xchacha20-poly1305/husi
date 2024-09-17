@@ -5,6 +5,8 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import moe.matsuri.nb4a.SingBoxOptions;
+
 import org.jetbrains.annotations.NotNull;
 
 public class SSHBean extends AbstractBean {
@@ -89,5 +91,10 @@ public class SSHBean extends AbstractBean {
     @Override
     public SSHBean clone() {
         return KryoConverters.deserialize(new SSHBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return SingBoxOptions.TYPE_SSH;
     }
 }

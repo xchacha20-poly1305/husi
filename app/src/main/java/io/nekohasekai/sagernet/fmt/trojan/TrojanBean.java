@@ -5,6 +5,8 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean;
+import moe.matsuri.nb4a.SingBoxOptions;
+
 import org.jetbrains.annotations.NotNull;
 
 public class TrojanBean extends StandardV2RayBean {
@@ -48,5 +50,10 @@ public class TrojanBean extends StandardV2RayBean {
     @Override
     public TrojanBean clone() {
         return KryoConverters.deserialize(new TrojanBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return SingBoxOptions.TYPE_TROJAN;
     }
 }

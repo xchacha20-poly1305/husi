@@ -8,11 +8,9 @@ import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
-import moe.matsuri.nb4a.Listable
 import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.utils.NGUtil
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import moe.matsuri.nb4a.utils.toListable
 
 data class VmessQRCode(
     var v: String = "",
@@ -517,7 +515,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 headers = mutableMapOf()
 
                 if (bean.host.isNotBlank()) {
-                    headers["Host"] = Listable.fromArgs(bean.host)
+                    headers["Host"] = listOf(bean.host)
                 }
 
                 if (bean.path.contains("?ed=")) {
@@ -543,7 +541,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 type = "http"
                 if (!bean.isTLS()) method = "GET" // v2ray tcp header
                 if (bean.host.isNotBlank()) {
-                    host = bean.host.split(",").toListable()
+                    host = bean.host.split(",")
                 }
                 path = bean.path.takeIf { it.isNotBlank() } ?: "/"
             }
@@ -586,8 +584,8 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         enabled = true
         insecure = bean.allowInsecure || DataStore.globalAllowInsecure
         if (bean.sni.isNotBlank()) server_name = bean.sni
-        if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma().toListable()
-        if (bean.certificates.isNotBlank()) certificate = Listable.fromArgs(bean.certificates)
+        if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
+        if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
         var fp = bean.utlsFingerprint
         if (bean.realityPubKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
@@ -609,7 +607,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
                 enabled = true
                 pq_signature_schemes_enabled = echList.size > 5
                 dynamic_record_sizing_disabled = true
-                config = Listable(echList)
+                config = echList
 
             }
         }
@@ -620,7 +618,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
     when (bean) {
         is HttpBean -> {
             return Outbound_HTTPOptions().apply {
-                type = "http"
+                type = bean.outboundType()
                 server = bean.serverAddress
                 server_port = bean.serverPort
                 username = bean.username
@@ -631,7 +629,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
 
         is VMessBean -> {
             if (bean.isVLESS) return Outbound_VLESSOptions().apply {
-                type = "vless"
+                type = bean.outboundType()
                 server = bean.serverAddress
                 server_port = bean.serverPort
                 uuid = bean.uuid
@@ -647,7 +645,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
                 transport = buildSingBoxOutboundStreamSettings(bean)
             }
             return Outbound_VMessOptions().apply {
-                type = "vmess"
+                type = bean.outboundType()
                 server = bean.serverAddress
                 server_port = bean.serverPort
                 uuid = bean.uuid
@@ -668,7 +666,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
 
         is TrojanBean -> {
             return Outbound_TrojanOptions().apply {
-                type = "trojan"
+                type = bean.outboundType()
                 server = bean.serverAddress
                 server_port = bean.serverPort
                 password = bean.password

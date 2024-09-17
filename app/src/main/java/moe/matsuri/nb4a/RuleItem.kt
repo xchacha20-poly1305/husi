@@ -38,5 +38,8 @@ class RuleItem(val type: String = "", val content: String) {
         const val CONTENT_PRIVATE = "private"
     }
 
+    /**
+     * Just for DNS rule.
+     * */
     var dns: Boolean = false
 }

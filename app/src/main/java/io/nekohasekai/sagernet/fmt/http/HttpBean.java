@@ -5,6 +5,8 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean;
+import moe.matsuri.nb4a.SingBoxOptions;
+
 import org.jetbrains.annotations.NotNull;
 
 // TODO: add path
@@ -52,5 +54,10 @@ public class HttpBean extends StandardV2RayBean {
     @Override
     public HttpBean clone() {
         return KryoConverters.deserialize(new HttpBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() {
+        return SingBoxOptions.TYPE_HTTP;
     }
 }

@@ -8,11 +8,9 @@ import android.os.Build;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
-import com.google.gson.reflect.TypeToken;
 
 import io.nekohasekai.sagernet.BuildConfig;
 import kotlin.text.StringsKt;
-import moe.matsuri.nb4a.Listable;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -33,14 +31,6 @@ public class JavaUtil {
             .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
             .setLenient()
             .disableHtmlEscaping()
-            .registerTypeAdapter(new TypeToken<Listable<String>>() {
-            }.getType(), new Listable.ListableSerializer<>())
-            .registerTypeAdapter(new TypeToken<Listable<String>>() {
-            }.getType(), new Listable.ListableDeserializer<>(String.class))
-            .registerTypeAdapter(new TypeToken<Listable<Integer>>() {
-            }.getType(), new Listable.ListableSerializer<>())
-            .registerTypeAdapter(new TypeToken<Listable<Integer>>() {
-            }.getType(), new Listable.ListableDeserializer<>(Integer.class))
             .create();
     // The encoded character of each character escape.
     // This array functions as the keys of a sorted map, from encoded characters to decoded characters.

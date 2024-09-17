@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.fmt.buildConfig
+import io.nekohasekai.sagernet.fmt.buildSingBoxOutbound
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.http.toUri
@@ -285,6 +286,11 @@ data class ProxyEntity(
         }
     }
 
+    fun mustUsePlugin(): Boolean = when (type) {
+        TYPE_MIERU, TYPE_NAIVE, TYPE_JUICITY -> true
+        else -> false
+    }
+
     fun exportConfig(): Pair<String, String> {
         var name = "${requireBean().displayName()}.json"
 
@@ -325,6 +331,8 @@ data class ProxyEntity(
             }.toString()
         } to name
     }
+
+    fun exportOutbound(): String = buildSingBoxOutbound(requireBean())
 
     fun needExternal(): Boolean {
         return when (type) {

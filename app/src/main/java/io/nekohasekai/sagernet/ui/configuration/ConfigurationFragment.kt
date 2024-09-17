@@ -110,6 +110,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
+import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import moe.matsuri.nb4a.utils.blur
@@ -1640,36 +1641,35 @@ class ConfigurationFragment @JvmOverloads constructor(
                         val popup = PopupMenu(requireContext(), anchor)
                         popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
 
-                        when {
+                        if (proxyEntity.type != ProxyEntity.TYPE_VMESS) {
+                            popup.menu
+                                .findItem(R.id.action_group_qr).subMenu
+                                ?.removeItem(R.id.action_v2rayn_qr)
+                            popup.menu
+                                .findItem(R.id.action_group_clipboard).subMenu
+                                ?.removeItem(R.id.action_v2rayn_clipboard)
 
-                            proxyEntity.type != ProxyEntity.TYPE_VMESS -> {
-                                popup.menu.findItem(R.id.action_group_qr)
-                                    .subMenu?.removeItem(R.id.action_v2rayn_qr)
-                                popup.menu.findItem(R.id.action_group_clipboard)
-                                    .subMenu?.removeItem(R.id.action_v2rayn_clipboard)
+                            if (!proxyEntity.haveStandardLink()) {
+                                popup.menu
+                                    .findItem(R.id.action_group_qr).subMenu
+                                    ?.removeItem(R.id.action_standard_qr)
 
-                                if (!proxyEntity.haveStandardLink()) {
-                                    popup.menu.findItem(R.id.action_group_qr)
-                                        .subMenu?.removeItem(
-                                            R.id
-                                                .action_standard_qr
-                                        )
-
-                                    popup.menu.findItem(
-                                        R.id
-                                            .action_group_clipboard
-                                    )
-                                        .subMenu?.removeItem(
-                                            R.id.action_standard_clipboard
-                                        )
-                                }
+                                popup.menu
+                                    .findItem(R.id.action_group_clipboard).subMenu
+                                    ?.removeItem(R.id.action_standard_clipboard)
                             }
+                        }
 
-                            !proxyEntity.haveLink() -> {
-                                popup.menu.removeItem(R.id.action_group_qr)
-                                popup.menu.removeItem(R.id.action_group_clipboard)
-                            }
+                        if (!proxyEntity.haveLink()) {
+                            popup.menu.removeItem(R.id.action_group_qr)
+                            popup.menu.removeItem(R.id.action_group_clipboard)
+                        }
 
+                        val bean = proxyEntity.requireBean()
+                        if (proxyEntity.mustUsePlugin()
+                            || (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
+                        ) {
+                            popup.menu.removeGroup(R.id.action_group_outbound)
                         }
 
                         popup.setOnMenuItemClickListener(this@ConfigurationHolder)
@@ -1782,6 +1782,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 (parentFragment as ConfigurationFragment).exportConfig, cfg.second
                             )
                         }
+
+                        R.id.action_outbound_export_clipboard -> export(entity.exportOutbound())
                     }
                 } catch (e: Exception) {
                     Logs.w(e)

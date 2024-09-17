@@ -47,6 +47,8 @@ import kotlin.coroutines.Continuation
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
+import com.google.gson.annotations.SerializedName
+import moe.matsuri.nb4a.SingBoxOptions
 
 
 inline fun <T> Iterable<T>.forEachTry(action: (T) -> Unit) {
@@ -266,6 +268,36 @@ fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
         resumeWith(Result.failure(exception))
     } catch (ignored: IllegalStateException) {
     }
+}
+
+fun <T : Any> T.asMap(): MutableMap<String, Any> {
+    val map = mutableMapOf<String, Any>()
+    val clazz = this::class.java
+
+    // Traverse the class hierarchy
+    var currentClass: Class<*> = clazz
+    while (currentClass != Any::class.java) {
+        for (field in currentClass.declaredFields) {
+            field.isAccessible = true
+
+            // Get SerializedName annotation or fallback to field name
+            val serializedName = field.getAnnotation(SerializedName::class.java)?.value ?: field.name
+            if (serializedName == "type") Logs.d("find type: ${field.get(this)}")
+
+            val mappedValue = when (val value = field.get(this)) {
+                // Listable
+                is List<*> -> {
+                    if (value.size == 1) value.first() else value
+                }
+                else -> value
+            } ?: continue
+
+            map[serializedName] = mappedValue
+        }
+        currentClass = currentClass.superclass
+    }
+
+    return map
 }
 
 operator fun <F> KProperty0<F>.getValue(thisRef: Any?, property: KProperty<*>): F = get()

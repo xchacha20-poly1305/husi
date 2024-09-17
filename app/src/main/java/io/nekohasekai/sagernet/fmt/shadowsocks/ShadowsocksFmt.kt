@@ -126,7 +126,7 @@ fun JSONObject.parseShadowsocks(): ShadowsocksBean {
 
 fun buildSingBoxOutboundShadowsocksBean(bean: ShadowsocksBean): SingBoxOptions.Outbound_ShadowsocksOptions {
     return SingBoxOptions.Outbound_ShadowsocksOptions().apply {
-        type = "shadowsocks"
+        type = bean.outboundType()
         server = bean.serverAddress
         server_port = bean.serverPort
         password = bean.password

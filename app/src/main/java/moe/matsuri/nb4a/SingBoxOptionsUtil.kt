@@ -33,13 +33,12 @@ object SingBoxOptionsUtil {
 
 }
 
-
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
-    domain = Listable()
-    domain_suffix = Listable()
-    domain_regex = Listable()
-    domain_keyword = Listable()
-    rule_set = Listable()
+    domain = mutableListOf()
+    domain_suffix = mutableListOf()
+    domain_regex = mutableListOf()
+    domain_keyword = mutableListOf()
+    rule_set = mutableListOf()
 
     for (rule in list) {
         if (rule.content == RuleItem.CONTENT_PRIVATE) {
@@ -85,14 +84,14 @@ fun DNSRule_Default.checkEmpty(): Boolean {
 
 fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
     if (isIP) {
-        ip_cidr = Listable()
+        ip_cidr = mutableListOf()
     } else {
-        domain = Listable()
-        domain_suffix = Listable()
-        domain_regex = Listable()
-        domain_keyword = Listable()
+        domain = mutableListOf()
+        domain_suffix = mutableListOf()
+        domain_regex = mutableListOf()
+        domain_keyword = mutableListOf()
     }
-    if (rule_set == null) rule_set = Listable()
+    if (rule_set == null) rule_set = mutableListOf()
 
     for (rule in list) {
         if (rule.dns) continue
@@ -104,7 +103,7 @@ fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
             }
             when (rule.type) {
                 RuleItem.TYPE_FLAG_RULE_SET -> rule_set.add(rule.content)
-                else ->ip_cidr.add(rule.content)
+                else -> ip_cidr.add(rule.content)
             }
         } else {
             when (rule.type) {
@@ -152,6 +151,11 @@ fun Rule_Default.checkEmpty(): Boolean {
     return true
 }
 
+/**
+ * Builds all rule-set.
+ * Crates route if it == null,
+ * and will refreshes route.rule_set.
+ * */
 fun SingBoxOptions.MyOptions.buildRuleSets(
     ipURL: String?,
     domainURL: String?,
@@ -165,7 +169,7 @@ fun SingBoxOptions.MyOptions.buildRuleSets(
 
     if (route == null) route = SingBoxOptions.RouteOptions()
     for (set in route.rule_set) names.add(set.tag)
-    val list = Listable<SingBoxOptions.RuleSet>(names.size)
+    val list = ArrayList<SingBoxOptions.RuleSet>(names.size)
 
     val isRemote = ipURL != null
     for (name in names.sorted()) {
@@ -191,6 +195,7 @@ fun SingBoxOptions.MyOptions.buildRuleSets(
 }
 
 /**
+ * Collects all rule-set in rules.
  * @param rules item should be DNSRule or Rule.
  */
 private fun collectSet(rules: List<SingBoxOptions.SingBoxOption>?): HashSet<String> {

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import moe.matsuri.nb4a.SingBoxOptions;
 
 /**
  * @implNote {@link #serverAddress} & {@link #serverPort} as overrideAddress & overridePort
@@ -48,5 +49,10 @@ public class DirectBean extends AbstractBean {
     @Override
     public DirectBean clone() {
         return KryoConverters.deserialize(new DirectBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() {
+        return SingBoxOptions.TYPE_DIRECT;
     }
 }
