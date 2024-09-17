@@ -596,4 +596,6 @@
     <string name="mux_min_streams">Minutos de transmisión</string>
     <string name="mux_max_streams">Máximo de transmisiones</string>
     <string name="mux_number">Número Mux</string>
+    <string name="override_address">Anular dirección</string>
+    <string name="override_port">Anular puerto</string>
 </resources>
