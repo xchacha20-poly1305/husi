@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class],
-    version = 6,
+    version = 7,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3, spec = SagerDatabase_Migration_2_3::class),
@@ -39,6 +39,7 @@ abstract class SagerDatabase : RoomDatabase() {
                 .addMigrations(
                     SagerDatabase_Migration_3_4,
                     SagerDatabase_Migration_4_5,
+                    SagerDatabase_Migration_6_7,
                 )
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()

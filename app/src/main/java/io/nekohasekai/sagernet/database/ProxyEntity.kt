@@ -107,9 +107,7 @@ data class ProxyEntity(
         const val TYPE_SS = 2
         const val TYPE_VMESS = 4 // And VLESS
         const val TYPE_TROJAN = 6
-
-        //        const val TYPE_TROJAN_GO = 7
-
+        const val TYPE_TROJAN_GO = 7
         const val TYPE_CHAIN = 8
         const val TYPE_NAIVE = 9
         const val TYPE_HYSTERIA = 15
@@ -120,9 +118,8 @@ data class ProxyEntity(
         const val TYPE_MIERU = 21
         const val TYPE_JUICITY = 22
         const val TYPE_DIRECT = 23
-
         const val TYPE_CONFIG = 998
-
+        const val TYPE_NEKO = 999
 
         val chainName by lazy { app.getString(R.string.proxy_chain) }
 
