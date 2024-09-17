@@ -2,11 +2,9 @@ package io.nekohasekai.sagernet.fmt.tuic
 
 import io.nekohasekai.sagernet.database.DataStore
 import libcore.Libcore
-import moe.matsuri.nb4a.Listable
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import moe.matsuri.nb4a.utils.toListable
 
 // https://github.com/daeuniverse/dae/discussions/182
 fun parseTuic(link: String): TuicBean {
@@ -66,7 +64,7 @@ fun TuicBean.toUri(): String {
 
 fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOptions {
     return SingBoxOptions.Outbound_TUICOptions().apply {
-        type = "tuic"
+        type = bean.outboundType()
         server = bean.serverAddress
         server_port = bean.serverPort
         uuid = bean.uuid
@@ -84,10 +82,10 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 server_name = bean.sni
             }
             if (bean.alpn.isNotBlank()) {
-                alpn = bean.alpn.listByLineOrComma().toListable()
+                alpn = bean.alpn.listByLineOrComma()
             }
             if (bean.caText.isNotBlank()) {
-                certificate = Listable.fromArgs(bean.caText)
+                certificate = listOf(bean.caText)
             }
             if (bean.ech) {
                 val echList = bean.echCfg.split("\n")
@@ -95,7 +93,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                     enabled = true
                     pq_signature_schemes_enabled = echList.size > 5
                     dynamic_record_sizing_disabled = true
-                    config = Listable(echList)
+                    config = echList
                 }
             }
             disable_sni = bean.disableSNI

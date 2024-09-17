@@ -2,9 +2,9 @@ package io.nekohasekai.sagernet.fmt.v2ray;
 
 import androidx.annotation.NonNull;
 
-
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import moe.matsuri.nb4a.SingBoxOptions;
 import moe.matsuri.nb4a.utils.JavaUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,5 +50,14 @@ public class VMessBean extends StandardV2RayBean {
     @Override
     public VMessBean clone() {
         return KryoConverters.deserialize(new VMessBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        if (isVLESS()) {
+            return SingBoxOptions.TYPE_VLESS;
+        } else {
+            return SingBoxOptions.TYPE_VMESS;
+        }
     }
 }

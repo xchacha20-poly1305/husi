@@ -5,6 +5,8 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import moe.matsuri.nb4a.SingBoxOptions;
+
 import org.jetbrains.annotations.NotNull;
 
 public class TuicBean extends AbstractBean {
@@ -116,5 +118,10 @@ public class TuicBean extends AbstractBean {
     @Override
     public TuicBean clone() {
         return KryoConverters.deserialize(new TuicBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return SingBoxOptions.TYPE_TUIC;
     }
 }

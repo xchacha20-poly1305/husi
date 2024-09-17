@@ -1,11 +1,15 @@
 package io.nekohasekai.sagernet.fmt.hysteria;
 
 import androidx.annotation.NonNull;
+
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.ktx.NetsKt;
+import moe.matsuri.nb4a.SingBoxOptions;
+
 import org.jetbrains.annotations.NotNull;
 
 public class HysteriaBean extends AbstractBean {
@@ -160,6 +164,19 @@ public class HysteriaBean extends AbstractBean {
     @Override
     public HysteriaBean clone() {
         return KryoConverters.deserialize(new HysteriaBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return switch (protocolVersion) {
+            case 1 -> SingBoxOptions.TYPE_HYSTERIA;
+            case 2 -> SingBoxOptions.TYPE_HYSTERIA2;
+            default -> throw unknownVersion();
+        };
+    }
+
+    Throwable unknownVersion() {
+        return new IllegalArgumentException("Unknown version: " + protocolVersion.toString());
     }
 
 }

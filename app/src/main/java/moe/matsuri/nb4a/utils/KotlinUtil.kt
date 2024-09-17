@@ -5,7 +5,6 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.forEach
-import moe.matsuri.nb4a.Listable
 import org.json.JSONArray
 import java.io.Closeable
 import java.io.File
@@ -22,10 +21,6 @@ fun File.recreate(dir: Boolean) {
 }
 
 // List
-
-fun <T> Collection<T>.toListable(): Listable<T> {
-    return Listable(this)
-}
 
 fun String.listByLineOrComma(): List<String> {
     return this.split(",", "\n").map { it.trim() }.filter { it.isNotEmpty() }

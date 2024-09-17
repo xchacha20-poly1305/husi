@@ -168,4 +168,9 @@ public abstract class AbstractBean extends Serializable {
     public void applyFeatureSettings(AbstractBean other) {
     }
 
+    @NotNull
+    public String outboundType() throws Throwable {
+        return "abstract";
+    }
+
 }

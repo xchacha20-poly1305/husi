@@ -33,11 +33,11 @@ import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireGuardBean
+import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import moe.matsuri.nb4a.Listable
 import moe.matsuri.nb4a.RuleItem
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
@@ -73,7 +73,6 @@ import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import moe.matsuri.nb4a.utils.toListable
 
 // Inbound
 const val TAG_MIXED = "mixed-in"
@@ -224,7 +223,7 @@ fun buildConfig(
                 listen = "$LOCALHOST4:0" // Never really listen
                 stats = V2RayStatsServiceOptions().also {
                     it.enabled = true
-                    it.outbounds = tagMap.values.toListable().also { list ->
+                    it.outbounds = tagMap.values.toMutableList().also { list ->
                         list.add(TAG_PROXY)
                         list.add(TAG_DIRECT)
                     }
@@ -269,8 +268,8 @@ fun buildConfig(
         }
 
         dns = DNSOptions().apply {
-            servers = Listable()
-            rules = Listable()
+            servers = mutableListOf()
+            rules = mutableListOf()
             independent_cache = true
         }
 
@@ -305,15 +304,15 @@ fun buildConfig(
                 sniff_override_destination = needSniffOverride
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
-                        address = Listable.fromArgs(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                        address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
                     IPv6Mode.ONLY -> {
-                        address = Listable.fromArgs(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
                     else -> {
-                        address = Listable.fromArgs(
+                        address = listOf(
                             VpnService.PRIVATE_VLAN4_CLIENT + "/28",
                             VpnService.PRIVATE_VLAN6_CLIENT + "/126",
                         )
@@ -329,7 +328,7 @@ fun buildConfig(
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
                 if (DataStore.inboundUsername.isNotBlank() || DataStore.inboundPassword.isNotBlank()) {
-                    users = Listable.fromArgs(
+                    users = listOf(
                         User().apply {
                             username = DataStore.inboundUsername
                             password = DataStore.inboundPassword
@@ -344,8 +343,8 @@ fun buildConfig(
         // init routing object
         route = RouteOptions().apply {
             auto_detect_interface = true
-            rules = Listable()
-            rule_set = Listable()
+            rules = mutableListOf()
+            rule_set = mutableListOf()
         }
 
         // returns outbound tag
@@ -354,7 +353,7 @@ fun buildConfig(
         ): String {
             val profileList = entity.resolveChain()
             val chainTrafficSet = HashSet<ProxyEntity>().apply {
-                plusAssign(profileList)
+                addAll(profileList)
                 add(entity)
             }
 
@@ -393,7 +392,7 @@ fun buildConfig(
                 if (index == profileList.lastIndex) {
                     needGlobal = true
                     tagOut = "g-" + proxyEntity.id
-                    bypassDNSBeans += proxyEntity.requireBean()
+                    bypassDNSBeans.add(proxyEntity.requireBean())
                 }
 
                 // last profile set as "proxy"
@@ -412,7 +411,7 @@ fun buildConfig(
                     // chain route/proxy rules
                     if (pastEntity!!.needExternal()) {
                         route.rules.add(Rule_Default().apply {
-                            inbound = Listable.fromArgs(pastInboundTag)
+                            inbound = listOf(pastInboundTag)
                             outbound = tagOut
                         })
                     } else {
@@ -450,7 +449,7 @@ fun buildConfig(
                         is StandardV2RayBean -> // http/trojan/vmess/vless
                             buildSingBoxOutboundStandardV2RayBean(bean).asMap()
 
-                        is HysteriaBean -> buildSingBoxOutboundHysteriaBean(bean)
+                        is HysteriaBean -> buildSingBoxOutboundHysteriaBean(bean).asMap()
 
                         is TuicBean -> buildSingBoxOutboundTuicBean(bean).asMap()
 
@@ -472,12 +471,12 @@ fun buildConfig(
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
 
                         if (outboundProtect) {
-                            currentOutbound["protect_path"] = Libcore.ProtectPath
+                            this["protect_path"] = Libcore.ProtectPath
                         }
 
                         if (!muxApplied && proxyEntity.needCoreMux()) {
                             muxApplied = true
-                            currentOutbound["multiplex"] = OutboundMultiplexOptions().apply {
+                            this["multiplex"] = OutboundMultiplexOptions().apply {
                                 enabled = true
                                 padding = bean.serverMuxPadding
                                 protocol = when (bean.serverMuxType) {
@@ -515,7 +514,7 @@ fun buildConfig(
                     try {
                         val sUoT = bean.javaClass.getField("sUoT").get(bean)
                         if (sUoT is Boolean && sUoT == true) {
-                            currentOutbound["udp_over_tcp"] = true
+                            this["udp_over_tcp"] = true
                         }
                     } catch (_: Exception) {
                     }
@@ -527,7 +526,7 @@ fun buildConfig(
                         }
                     }
                     // domain_strategy
-                    currentOutbound["domain_strategy"] =
+                    this["domain_strategy"] =
                         if (forTest) "" else defaultServerDomainStrategy
 
                     // custom JSON merge
@@ -561,7 +560,7 @@ fun buildConfig(
                         // no chain rule and not outbound, so need to set to direct
                         if (index == profileList.lastIndex) {
                             route.rules.add(Rule_Default().apply {
-                                inbound = Listable.fromArgs(tag)
+                                inbound = listOf(tag)
                                 outbound = TAG_DIRECT
                             })
                         }
@@ -588,7 +587,7 @@ fun buildConfig(
                 type = "selector"
                 tag = TAG_PROXY
                 default_ = tagMap[proxy.id]
-                outbounds = tagMap.values.toListable()
+                outbounds = tagMap.values.toList()
                 interrupt_exist_connections = DataStore.interruptSelector
             }.asMap())
         } else {
@@ -613,7 +612,7 @@ fun buildConfig(
                     ).show()
                 }
                 PackageCache[it]?.takeIf { uid -> uid >= 1000 }
-            }.toHashSet().filterNotNull().toListable()
+            }.toHashSet().filterNotNull()
 
             val ruleObj = Rule_Default().apply {
                 if (uidList.isNotEmpty()) {
@@ -629,8 +628,8 @@ fun buildConfig(
                     makeCommonRule(parseRules(rule.ip.listByLineOrComma()), true)
                 }
                 if (rule.port.isNotBlank()) {
-                    port = Listable()
-                    port_range = Listable()
+                    port = mutableListOf()
+                    port_range = mutableListOf()
                     rule.port.listByLineOrComma().map {
                         if (it.contains(":")) {
                             port_range.add(it)
@@ -640,8 +639,8 @@ fun buildConfig(
                     }
                 }
                 if (rule.sourcePort.isNotBlank()) {
-                    source_port = Listable()
-                    source_port_range = Listable()
+                    source_port = mutableListOf()
+                    source_port_range = mutableListOf()
                     rule.sourcePort.listByLineOrComma().map {
                         if (it.contains(":")) {
                             source_port_range.add(it)
@@ -651,10 +650,10 @@ fun buildConfig(
                     }
                 }
                 if (rule.network.isNotBlank()) {
-                    network = Listable.fromArgs(rule.network)
+                    network = listOf(rule.network)
                 }
                 if (rule.source.isNotBlank()) {
-                    val sourceIPs = Listable<String>()
+                    val sourceIPs = mutableListOf<String>()
                     for (source in rule.source.listByLineOrComma()) {
                         if (source == RuleItem.CONTENT_PRIVATE) {
                             source_ip_is_private = true
@@ -665,16 +664,16 @@ fun buildConfig(
                     if (sourceIPs.isNotEmpty()) source_ip_cidr = sourceIPs
                 }
                 if (rule.protocol.isNotBlank()) {
-                    protocol = rule.protocol.listByLineOrComma().toListable()
+                    protocol = rule.protocol.listByLineOrComma()
                 }
                 if (rule.ssid.isNotBlank()) {
-                    wifi_ssid = rule.ssid.listByLineOrComma().toListable()
+                    wifi_ssid = rule.ssid.listByLineOrComma()
                 }
                 if (rule.bssid.isNotBlank()) {
-                    wifi_bssid = rule.bssid.listByLineOrComma().toListable()
+                    wifi_bssid = rule.bssid.listByLineOrComma()
                 }
                 if (rule.clientType.isNotBlank()) {
-                    client = rule.clientType.listByLineOrComma().toListable()
+                    client = rule.clientType.listByLineOrComma()
                 }
                 if (rule.clashMode.isNotBlank()) {
                     clash_mode = rule.clashMode
@@ -699,22 +698,22 @@ fun buildConfig(
                     }
 
                     RuleEntity.OUTBOUND_PROXY -> {
-                        if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
+                        if (useFakeDns) userDNSRuleList.add(makeDnsRuleObj().apply {
                             server = TAG_DNS_FAKE
-                            inbound = Listable.fromArgs(TAG_TUN)
-                            query_type = Listable(FAKE_DNS_QUERY_TYPE)
-                        }
-                        userDNSRuleList += makeDnsRuleObj().apply {
+                            inbound = listOf(TAG_TUN)
+                            query_type = FAKE_DNS_QUERY_TYPE
+                        })
+                        userDNSRuleList.add(makeDnsRuleObj().apply {
                             server = TAG_DNS_REMOTE
-                        }
+                        })
                         outbound = TAG_PROXY
                     }
 
                     RuleEntity.OUTBOUND_BLOCK -> {
-                        userDNSRuleList += makeDnsRuleObj().apply {
+                        userDNSRuleList.add(makeDnsRuleObj().apply {
                             server = TAG_DNS_BLOCK
                             disable_cache = true
-                        }
+                        })
                         outbound = TAG_BLOCK
                     }
 
@@ -889,13 +888,13 @@ fun buildConfig(
 
         if (forTest) {
             // Always use system DNS for urlTest
-            dns.servers = Listable.fromArgs(
+            dns.servers = listOf(
                 DNSServerOptions().apply {
                     address = LOCAL_DNS_SERVER
                     tag = TAG_DNS_LOCAL
                 }
             )
-            dns.rules = Listable()
+            dns.rules = mutableListOf()
         } else {
             // clash mode
             route.rules.add(0, Rule_Default().apply {
@@ -909,11 +908,11 @@ fun buildConfig(
 
             // built-in DNS rules
             route.rules.add(0, Rule_Default().apply {
-                inbound = Listable.fromArgs(TAG_DNS_IN)
+                inbound = listOf(TAG_DNS_IN)
                 outbound = TAG_DNS_OUT
             })
             route.rules.add(0, Rule_Default().apply {
-                port = Listable.fromArgs(53)
+                port = listOf(53)
                 outbound = TAG_DNS_OUT
             })
 
@@ -925,8 +924,8 @@ fun buildConfig(
             }
             // block mcast
             route.rules.add(Rule_Default().apply {
-                ip_cidr = Listable.fromArgs("224.0.0.0/3", "ff00::/8")
-                source_ip_cidr = Listable.fromArgs("224.0.0.0/3", "ff00::/8")
+                ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
+                source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 outbound = TAG_BLOCK
             })
 
@@ -942,10 +941,10 @@ fun buildConfig(
                     tag = "dns-fake"
                 })
                 dns.rules.add(DNSRule_Default().apply {
-                    inbound = Listable.fromArgs(TAG_TUN)
+                    inbound = listOf(TAG_TUN)
                     server = TAG_DNS_FAKE
                     disable_cache = true
-                    query_type = Listable(FAKE_DNS_QUERY_TYPE)
+                    query_type = FAKE_DNS_QUERY_TYPE
                 })
             }
 
@@ -960,13 +959,13 @@ fun buildConfig(
             })
             // force bypass (always top DNS rule)
             dns.rules.add(0, DNSRule_Default().apply {
-                outbound = Listable.fromArgs(TAG_ANY)
+                outbound = listOf(TAG_ANY)
                 server = TAG_DNS_DIRECT
             })
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
                     makeCommonRule(
-                        parseRules(domainListDNSDirectForce.toHashSet().toList()),
+                        parseRules(domainListDNSDirectForce.distinct()),
                     )
                     server = TAG_DNS_DIRECT
                 })

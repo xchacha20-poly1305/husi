@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.fmt.wireguard
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
-import moe.matsuri.nb4a.utils.toListable
 
 fun genReserved(anyStr: String): String {
     try {
@@ -29,10 +28,10 @@ fun genReserved(anyStr: String): String {
 
 fun buildSingBoxOutboundWireGuardBean(bean: WireGuardBean): SingBoxOptions.Outbound_WireGuardOptions {
     return SingBoxOptions.Outbound_WireGuardOptions().apply {
-        type = "wireguard"
+        type = bean.outboundType()
         server = bean.serverAddress
         server_port = bean.serverPort
-        local_address = bean.localAddress.listByLineOrComma().toListable()
+        local_address = bean.localAddress.listByLineOrComma()
         private_key = bean.privateKey
         peer_public_key = bean.peerPublicKey
         pre_shared_key = bean.peerPreSharedKey

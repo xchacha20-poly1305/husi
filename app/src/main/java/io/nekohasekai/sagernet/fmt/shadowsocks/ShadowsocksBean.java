@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.io.ByteBufferOutput;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import moe.matsuri.nb4a.SingBoxOptions;
 import moe.matsuri.nb4a.utils.JavaUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,5 +75,10 @@ public class ShadowsocksBean extends AbstractBean {
     @Override
     public ShadowsocksBean clone() {
         return KryoConverters.deserialize(new ShadowsocksBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return SingBoxOptions.TYPE_SHADOWSOCKS;
     }
 }
