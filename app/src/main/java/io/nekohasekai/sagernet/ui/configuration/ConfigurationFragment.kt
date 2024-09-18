@@ -1669,7 +1669,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         if (proxyEntity.mustUsePlugin()
                             || (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
                         ) {
-                            popup.menu.removeGroup(R.id.action_group_outbound)
+                            popup.menu.removeItem(R.id.action_group_outbound)
                         }
 
                         popup.setOnMenuItemClickListener(this@ConfigurationHolder)
