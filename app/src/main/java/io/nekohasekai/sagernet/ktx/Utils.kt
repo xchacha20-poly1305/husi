@@ -282,7 +282,6 @@ fun <T : Any> T.asMap(): MutableMap<String, Any> {
 
             // Get SerializedName annotation or fallback to field name
             val serializedName = field.getAnnotation(SerializedName::class.java)?.value ?: field.name
-            if (serializedName == "type") Logs.d("find type: ${field.get(this)}")
 
             val mappedValue = when (val value = field.get(this)) {
                 // Listable
