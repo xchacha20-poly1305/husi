@@ -32,7 +32,6 @@
     </item>
     <item
         android:id="@+id/action_group_configuration"
-
         android:title="@string/menu_configuration">
         <menu>
             <item
@@ -45,7 +44,6 @@
     </item>
     <item
         android:id="@+id/action_group_outbound"
-
         android:title="@string/outbound">
         <menu>
             <item
