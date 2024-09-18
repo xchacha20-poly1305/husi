@@ -1,11 +1,12 @@
 package libcore
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	_ "unsafe"
+
+	"github.com/sagernet/sing-box/log"
 )
 
 const ProtectPath = "protect_path"
@@ -18,7 +19,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logEnable bool,
 	useOfficialAssets bool,
 ) {
-	defer catchPanic("InitCore", func(panicErr error) { log.Println(panicErr) })
+	defer catchPanic("InitCore", func(panicErr error) { log.Error(panicErr) })
 	isBgProcess := strings.HasSuffix(process, ":bg")
 
 	workDir := filepath.Join(cachePath, "../no_backup")
@@ -33,7 +34,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 
 	// Set up some component
 	go func() {
-		defer catchPanic("InitCore-go", func(panicErr error) { log.Println(panicErr) })
+		defer catchPanic("InitCore-go", func(panicErr error) { log.Error(panicErr) })
 		GoDebug(process)
 
 		externalAssetsPath = externalAssets
