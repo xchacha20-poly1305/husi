@@ -328,7 +328,8 @@ class AssetsActivity : ThemedActivity() {
                 setURL("https://api.github.com/repos/$repo/releases/latest")
                 setUserAgent(USER_AGENT)
             }.execute()
-            return JSONObject(response.contentString).optString("tag_name")
+            return JSONObject(response.contentString.also { response.getError() })
+                .optString("tag_name")
         }
 
         private fun download(repo: String): File {
@@ -465,7 +466,8 @@ class AssetsActivity : ThemedActivity() {
         return true
     }
 
-    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.",
+    @Deprecated(
+        "This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.",
         ReplaceWith("finish()")
     )
     override fun onBackPressed() {

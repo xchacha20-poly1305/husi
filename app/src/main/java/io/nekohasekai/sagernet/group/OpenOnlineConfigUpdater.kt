@@ -105,7 +105,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             setUserAgent(generateUserAgent(subscription.customUserAgent))
         }.execute()
 
-        val oocResponse = JSONObject(response.contentString)
+        val oocResponse = JSONObject(response.contentString.also { response.getError() })
 
         val protocols = oocResponse.getJSONArray("protocols").filterIsInstance<String>()
         for (protocol in protocols) {
