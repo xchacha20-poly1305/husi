@@ -7,8 +7,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
-	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -20,6 +18,7 @@ import (
 
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
@@ -88,8 +87,19 @@ type HTTPResponse interface {
 	GetHeader(key string) string
 
 	// GetContent returns server content in response.
-	GetContent() ([]byte, error)
-	GetContentString() (string, error)
+	// Check GetError to get error.
+	GetContent() []byte
+	// GetContentString returns server content string in response.
+	// Check GetError to get error.
+	GetContentString() string
+
+	// GetError returns the error after content.
+	// According to https://github.com/golang/go/issues/46893 ,
+	// We will get "fatal error: bulkBarrierPreWrite: unaligned arguments"
+	// in some cases that return []byte.
+	// So not returns error directly.
+	// Invoke it to get http error instead of parse content error.
+	GetError() error
 
 	// WriteTo writes content to the file of `path`.
 	// callback could be nil
@@ -259,7 +269,7 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 	}
 	httpResp := &httpResponse{Response: response}
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.New(httpResp.errorString())
+		return nil, E.New(httpResp.errorString())
 	}
 	return httpResp, nil
 }
@@ -273,34 +283,41 @@ type httpResponse struct {
 }
 
 func (h *httpResponse) errorString() string {
-	content, err := h.GetContentString()
-	if err != nil {
-		return fmt.Sprint("HTTP ", h.Response.Status)
+	content := h.GetContentString()
+	if h.contentError != nil {
+		return F.ToString("HTTP ", h.Response.Status)
 	}
 	if len(content) > 100 {
 		content = content[:100] + " ..."
 	}
-	return fmt.Sprint("HTTP ", h.Response.Status, ": ", content)
+	return F.ToString("HTTP ", h.Response.Status, ": ", content)
 }
 
 func (h *httpResponse) GetHeader(key string) string {
 	return h.Response.Header.Get(key)
 }
 
-func (h *httpResponse) GetContent() ([]byte, error) {
+func (h *httpResponse) GetContent() []byte {
 	h.getContentOnce.Do(func() {
-		defer h.Response.Body.Close()
-		h.content, h.contentError = io.ReadAll(h.Response.Body)
+		defer h.Body.Close()
+		h.content, h.contentError = io.ReadAll(h.Body)
 	})
-	return h.content, h.contentError
+	if h.contentError != nil {
+		return nil
+	}
+	return h.content
 }
 
-func (h *httpResponse) GetContentString() (string, error) {
-	content, err := h.GetContent()
-	if err != nil {
-		return "", err
+func (h *httpResponse) GetContentString() string {
+	content := h.GetContent()
+	if h.contentError != nil {
+		return ""
 	}
-	return string(content), nil
+	return string(content)
+}
+
+func (h *httpResponse) GetError() error {
+	return h.contentError
 }
 
 func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {

@@ -37,6 +37,7 @@ object Cloudflare {
             }.execute()
 
             Logs.d(response.contentString)
+            response.getError()
             val device = gson.fromJson(response.contentString, DeviceResponse::class.java)
             val accessToken = device.token
 

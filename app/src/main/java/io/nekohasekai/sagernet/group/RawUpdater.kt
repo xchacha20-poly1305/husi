@@ -75,7 +75,7 @@ object RawUpdater : GroupUpdater() {
                 setURL(subscription.link)
                 setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
-            proxies = parseRaw(response.contentString)
+            proxies = parseRaw(response.contentString.also { response.getError() })
                 ?: error(app.getString(R.string.no_proxies_found))
 
             // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
