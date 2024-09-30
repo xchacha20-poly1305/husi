@@ -33,6 +33,12 @@ data class RuleEntity(
         const val OUTBOUND_PROXY = 0L
         const val OUTBOUND_DIRECT = -1L
         const val OUTBOUND_BLOCK = -2L
+
+        // Use lower case to adapt with clash dashboard
+        const val MODE_RULE = "rule"
+        const val MODE_DIRECT = "direct"
+        const val MODE_GLOBAL = "global"
+        const val MODE_BLOCK = "block"
     }
 
     fun displayName(): String {
@@ -54,7 +60,7 @@ data class RuleEntity(
         if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
         if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
         if (clientType.isNotBlank()) summary += "client: $clientType\n"
-        if (clashMode.isNotBlank()) summary += "clash mode: $clashMode\n"
+        if (clashMode.isNotBlank()) summary += "Clash mode: $clashMode\n"
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {
             lines.subList(0, 3).joinToString("\n", postfix = "\n...")

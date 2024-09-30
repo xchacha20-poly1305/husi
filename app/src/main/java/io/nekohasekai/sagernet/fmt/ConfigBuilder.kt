@@ -93,12 +93,6 @@ const val TAG_DNS_BLOCK = "dns-block"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
 
-// Clash mode
-// Use lower case to adapt with some dashboard
-const val CLASH_GLOBAL = "global"
-const val CLASH_RULE = "rule"
-const val CLASH_DIRECT = "direct"
-
 const val LOCALHOST4 = "127.0.0.1"
 
 // Note: You shouldn't set strategy and detour for "local"
@@ -233,7 +227,7 @@ fun buildConfig(
                 external_controller = DataStore.clashAPIListen.ifBlank {
                     "$LOCALHOST4:${mkPort()}"
                 }
-                default_mode = CLASH_RULE
+                default_mode = RuleEntity.MODE_RULE
             }
             cache_file = CacheFileOptions().apply {
                 enabled = true
@@ -898,12 +892,16 @@ fun buildConfig(
         } else {
             // clash mode
             route.rules.add(0, Rule_Default().apply {
-                clash_mode = CLASH_GLOBAL
+                clash_mode = RuleEntity.MODE_GLOBAL
                 outbound = TAG_PROXY
             })
             route.rules.add(0, Rule_Default().apply {
-                clash_mode = CLASH_DIRECT
+                clash_mode = RuleEntity.MODE_DIRECT
                 outbound = TAG_DIRECT
+            })
+            route.rules.add(0, Rule_Default().apply {
+                clash_mode = RuleEntity.MODE_BLOCK
+                outbound = TAG_BLOCK
             })
 
             // built-in DNS rules
@@ -950,12 +948,16 @@ fun buildConfig(
 
             // clash mode
             dns.rules.add(0, DNSRule_Default().apply {
-                clash_mode = CLASH_GLOBAL
+                clash_mode = RuleEntity.MODE_GLOBAL
                 server = TAG_DNS_REMOTE
             })
             dns.rules.add(0, DNSRule_Default().apply {
-                clash_mode = CLASH_DIRECT
+                clash_mode = RuleEntity.MODE_DIRECT
                 server = TAG_DNS_DIRECT
+            })
+            dns.rules.add(0, DNSRule_Default().apply {
+                clash_mode = RuleEntity.MODE_BLOCK
+                server = TAG_DNS_BLOCK
             })
             // force bypass (always top DNS rule)
             dns.rules.add(0, DNSRule_Default().apply {
