@@ -25,6 +25,7 @@ import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.utils.Theme
+import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
@@ -153,7 +154,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         Key.BYPASS_LAN_IN_CORE -> bypassLanInCore = preference as SwitchPreference
                         Key.RULES_PROVIDER -> ruleProvider = preference as SimpleMenuPreference
                         Key.CUSTOM_RULE_PROVIDER -> {
-                            customRuleProvider = (preference as EditTextPreference).also {
+                            customRuleProvider = (preference as LinkOrContentPreference).also {
+                                it.allowMultipleLines = true
                                 it.isVisible = DataStore.rulesProvider == RuleProvider.CUSTOM
                             }
                         }

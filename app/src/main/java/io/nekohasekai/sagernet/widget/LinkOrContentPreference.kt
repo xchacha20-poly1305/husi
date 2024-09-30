@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.widget
 
 import android.content.Context
-import android.net.Uri
 import android.util.AttributeSet
 import androidx.core.content.res.TypedArrayUtils
 import androidx.core.widget.addTextChangedListener
@@ -21,7 +20,8 @@ constructor(
         context, R.attr.editTextPreferenceStyle,
         android.R.attr.editTextPreferenceStyle
     ),
-    defStyleRes: Int = 0
+    defStyleRes: Int = 0,
+    var allowMultipleLines: Boolean = false,
 ) : EditTextPreference(context, attrs, defStyleAttr, defStyleRes) {
 
     init {
@@ -30,30 +30,35 @@ constructor(
         setOnBindEditTextListener {
             val linkLayout = it.rootView.findViewById<TextInputLayout>(R.id.input_layout)
             fun validate() {
-                val link = it.text
-                if (link.isBlank()) {
+                val text = it.text
+                if (text.isBlank()) {
                     linkLayout.isErrorEnabled = false
                     return
                 }
 
-                try {
-                    if (Uri.parse(link.toString()).scheme == "content") {
-                        linkLayout.isErrorEnabled = false
-                        return
-                    }
-                    val url = Libcore.parseURL(link.toString())
-                    if ("http".equals(url.scheme, true)) {
-                        linkLayout.error = app.getString(R.string.cleartext_http_warning)
-                        linkLayout.isErrorEnabled = true
-                    } else {
-                        linkLayout.isErrorEnabled = false
-                    }
-                    if (link.contains("\n")) {
-                        linkLayout.error = "Unexpected new line"
+                val lines = text.split("\n")
+                if (lines.size > 1 && !allowMultipleLines) {
+                    linkLayout.isErrorEnabled = true
+                    linkLayout.error = "Unexpected new line"
+                    return
+                }
+
+                val errors = linkedSetOf<String>()
+                for (link in lines) try {
+                    val url = Libcore.parseURL(link)
+                    when (url.scheme.lowercase()) {
+                        "content" -> continue
+                        "http" -> errors.add(app.getString(R.string.cleartext_http_warning))
                     }
                 } catch (e: Exception) {
-                    linkLayout.error = e.readableMessage
+                    errors.add(e.readableMessage)
+                }
+
+                if (errors.isNotEmpty()) {
                     linkLayout.isErrorEnabled = true
+                    linkLayout.error = errors.joinToString("\n")
+                } else {
+                    linkLayout.isErrorEnabled = false
                 }
 
             }
