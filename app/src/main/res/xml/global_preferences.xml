@@ -151,7 +151,7 @@
             app:key="rulesProvider"
             app:title="@string/route_rules_provider"
             app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
+        <io.nekohasekai.sagernet.widget.LinkOrContentPreference
             app:icon="@drawable/ic_baseline_import_contacts_24"
             app:isPreferenceVisible="false"
             app:key="customRuleProvider"
