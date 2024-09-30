@@ -598,4 +598,5 @@
     <string name="mux_number">Número Mux</string>
     <string name="override_address">Anular dirección</string>
     <string name="override_port">Anular puerto</string>
+    <string name="allow_apps_bypass_vpn">Permitir que las aplicaciones eviten la VPN</string>
 </resources>
