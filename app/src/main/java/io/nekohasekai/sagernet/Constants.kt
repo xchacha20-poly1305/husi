@@ -66,6 +66,7 @@ object Key {
     const val LOG_LEVEL = "logLevel"
     const val LOG_BUF_SIZE = "logBufSize"
     const val MTU = "mtu"
+    const val ALLOW_APPS_BYPASS_VPN = "allowAppsBypassVpn"
     const val ALWAYS_SHOW_ADDRESS = "alwaysShowAddress"
     const val BLURRED_ADDRESS = "blurredAddress"
 

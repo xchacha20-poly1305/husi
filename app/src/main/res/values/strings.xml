@@ -653,4 +653,5 @@
     <string name="mux_max_streams">Max streams</string>
     <string name="override_address">Override Address</string>
     <string name="override_port">Override Port</string>
+    <string name="allow_apps_bypass_vpn">Allow Apps to bypass VPN</string>
 </resources>
