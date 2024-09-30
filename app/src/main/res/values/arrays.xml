@@ -474,11 +474,6 @@
         <item>android</item>
         <item>random</item>
         <item>randomized</item>
-        <item>chrome_psk</item>
-        <item>chrome_psk_shuffle</item>
-        <item>chrome_padding_psk_shuffle</item>
-        <item>chrome_pq</item>
-        <item>chrome_pq_psk</item>
     </string-array>
 
     <string-array name="tuic_udp_relay_mode_value">

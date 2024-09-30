@@ -99,7 +99,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(3);
+        output.writeInt(4);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -200,6 +200,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
             certificates = input.readString();
             allowInsecure = input.readBoolean();
             utlsFingerprint = input.readString();
+            // https://github.com/SagerNet/sing-box/commit/9f0d61a44011db196b5b302d96efc6376e211acf
+            if (version < 4 && utlsFingerprint.startsWith("chrome")) {
+                utlsFingerprint = "chrome";
+            }
             realityPubKey = input.readString();
             realityShortId = input.readString();
             ech = input.readBoolean();
