@@ -33,15 +33,19 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-const val TIME_FORMAT = "yyyy-MM-dd_HH-mm-ss"
 
 class BackupFragment : NamedFragment(R.layout.layout_backup) {
+
+    companion object {
+        const val TIME_FORMAT = "yyyy-MM-dd_HH-mm-ss"
+        const val MIME_TYPE = "application/json"
+    }
 
     override fun name0() = app.getString(R.string.backup)
 
     var content = ""
     private val exportSettings =
-        registerForActivityResult(CreateDocument("text/plain")) { data ->
+        registerForActivityResult(CreateDocument(MIME_TYPE)) { data ->
             if (data != null) {
                 runOnDefaultDispatcher {
                     try {
@@ -77,8 +81,9 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 )
                 val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
                 onMainDispatcher {
+                    // Saving to local will automatically append ".json"
                     startFilesForResult(
-                        exportSettings, "husi_backup_${time}.json"
+                        exportSettings, "husi_backup_${time}"
                     )
                 }
             }
@@ -93,6 +98,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 )
                 app.cacheDir.mkdirs()
                 val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
+                // Sharing will not automatically add ".json"
                 val cacheFile = File(
                     app.cacheDir, "husi_backup_${time}.json"
                 )
@@ -100,7 +106,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 onMainDispatcher {
                     startActivity(
                         Intent.createChooser(
-                            Intent(Intent.ACTION_SEND).setType("application/json")
+                            Intent(Intent.ACTION_SEND).setType(MIME_TYPE)
                                 .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 .putExtra(
                                     Intent.EXTRA_STREAM, FileProvider.getUriForFile(
