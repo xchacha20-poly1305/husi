@@ -148,12 +148,13 @@ fun Rule_Default.checkEmpty(): Boolean {
     if (source_ip_cidr?.isNotEmpty() == true) return false
     if (wifi_ssid?.isNotEmpty() == true) return false
     if (wifi_bssid?.isNotEmpty() == true) return false
+    if (clash_mode?.isNotEmpty() == true) return false
     return true
 }
 
 /**
  * Builds all rule-set.
- * Crates route if it == null,
+ * This will crate route if route is null,
  * and will refreshes route.rule_set.
  * */
 fun SingBoxOptions.MyOptions.buildRuleSets(

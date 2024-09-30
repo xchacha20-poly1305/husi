@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
@@ -27,7 +28,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
 
         val service = (requireActivity() as MainActivity).connection.service
         val clashModes = service?.clashModes ?: emptyList()
-        val selected = service?.clashMode ?: io.nekohasekai.sagernet.fmt.CLASH_RULE
+        val selected = service?.clashMode ?: RuleEntity.MODE_RULE
         binding.clashModeList.adapter = ClashModeAdapter(clashModes, selected).also {
             adapter = it
         }
@@ -51,7 +52,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
     fun refreshClashMode() {
         val service = (requireActivity() as MainActivity).connection.service
         adapter.items = service?.clashModes ?: emptyList()
-        adapter.selected = service?.clashMode ?: io.nekohasekai.sagernet.fmt.CLASH_RULE
+        adapter.selected = service?.clashMode ?: RuleEntity.MODE_RULE
         adapter.notifyDataSetChanged()
     }
 
