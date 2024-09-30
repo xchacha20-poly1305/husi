@@ -586,4 +586,5 @@
     <string name="mux_max_streams">最大流数</string>
     <string name="override_address">覆写地址</string>
     <string name="override_port">覆写端口</string>
+    <string name="allow_apps_bypass_vpn">允许应用绕过 VPN</string>
 </resources>
