@@ -163,8 +163,8 @@ fun SingBoxOptions.MyOptions.buildRuleSets(
     localPath: String?,
 ) {
     val names = hashSetOf<String>()
-    if (dns != null) names.addAll(collectSet(dns.rules))
-    if (route != null) names.addAll(collectSet(route.rules))
+    if (dns != null) collectSet(names, dns.rules)
+    if (route != null) collectSet(names, route.rules)
 
     if (names.isEmpty()) return
 
@@ -199,22 +199,21 @@ fun SingBoxOptions.MyOptions.buildRuleSets(
  * Collects all rule-set in rules.
  * @param rules item should be DNSRule or Rule.
  */
-private fun collectSet(rules: List<SingBoxOptions.SingBoxOption>?): HashSet<String> {
-    if (rules == null) return hashSetOf()
+private fun collectSet(set: HashSet<String>, rules: List<SingBoxOptions.SingBoxOption>?) {
+    if (rules == null) return
 
-    val hashSet = hashSetOf<String>()
     for (rule in rules) when (rule) {
-        is DNSRule_Logical -> hashSet.addAll(collectSet(rule.rules))
-        is Rule_Logical -> hashSet.addAll(collectSet(rule.rules))
+        is DNSRule_Logical -> collectSet(set, rule.rules)
+        is Rule_Logical -> collectSet(set, rule.rules)
 
         is DNSRule_Default -> rule.rule_set?.let {
-            hashSet.addAll(it)
+            set.addAll(it)
         }
 
         is Rule_Default -> rule.rule_set?.let {
-            hashSet.addAll(it)
+            set.addAll(it)
         }
     }
 
-    return hashSet
+    return
 }
