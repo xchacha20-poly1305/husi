@@ -626,4 +626,5 @@
     <string name="status_status">Статус</string>
     <string name="override_address">Переопределить адрес</string>
     <string name="override_port">Переопределить порт</string>
+    <string name="allow_apps_bypass_vpn">Разрешить приложениям обходить VPN</string>
 </resources>
