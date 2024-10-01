@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"context"
+	"net/netip"
 	"time"
 
 	box "github.com/sagernet/sing-box"
@@ -19,6 +20,7 @@ import (
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 
+	"libcore/anchor"
 	"libcore/protect"
 	"libcore/v2rayapilite"
 )
@@ -107,6 +109,34 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
 			if selector, isSelector := proxy.(*outbound.Selector); isSelector {
 				b.selector = selector
+			}
+		}
+
+		if platformInterface.AllowDiscoveryByLan() {
+			var anchorOptions anchor.Options
+			for _, inbound := range options.Inbounds {
+				switch inbound.Type {
+				case C.TypeMixed:
+					listen := (*netip.Addr)(inbound.MixedOptions.Listen)
+					if !listen.IsUnspecified() {
+						break
+					}
+					anchorOptions.SocksPort = inbound.MixedOptions.ListenPort
+					if len(inbound.MixedOptions.Users) > 0 {
+						anchorOptions.User = inbound.MixedOptions.Users[0]
+					}
+				case C.TypeDirect:
+					if inbound.Tag != "dns-in" {
+						continue
+					}
+					anchorOptions.DnsPort = inbound.DirectOptions.OverridePort
+				}
+			}
+			anchorServer, err := anchor.New(ctx, log.StdLogger(), anchorOptions)
+			if err != nil {
+				log.WarnContext(ctx, "create anchor service: ", err)
+			} else {
+				b.services = append(b.services, anchorServer)
 			}
 		}
 
