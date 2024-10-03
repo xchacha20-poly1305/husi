@@ -3,20 +3,22 @@ package libcore
 import (
 	"context"
 	"crypto/rand"
+	"syscall"
 	"time"
 
 	"github.com/sagernet/sing-box/common/urltest"
+	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/xchacha20-poly1305/libping"
-	"libcore/protect"
 )
 
-func init() {
-	libping.FdControl = func(fd int) {
-		_ = protect.ClientProtect(fd, ProtectPath)
+func ignoreProtectError(path string) control.Func {
+	return func(network, address string, conn syscall.RawConn) error {
+		_ = control.ProtectPath(path)(network, address, conn)
+		return nil
 	}
 }
 
@@ -28,7 +30,7 @@ func IcmpPing(address string, timeout int32) (latency int32, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
-	t, err := libping.IcmpPing(ctx, M.ParseSocksaddr(address), payload)
+	t, err := libping.IcmpPing(ctx, M.ParseSocksaddr(address), payload, ignoreProtectError(ProtectPath))
 	if err != nil {
 		return -1, err
 	}
@@ -41,7 +43,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
-	l, err := libping.TcpPing(ctx, M.ParseSocksaddrHostPortStr(host, port))
+	l, err := libping.TcpPing(ctx, ignoreProtectError(ProtectPath), M.ParseSocksaddrHostPortStr(host, port))
 	if err != nil {
 		return -1, err
 	}
