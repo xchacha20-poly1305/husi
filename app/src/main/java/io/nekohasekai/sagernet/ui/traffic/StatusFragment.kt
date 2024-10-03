@@ -35,7 +35,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
     }
 
     fun emitStats(memory: Long, goroutines: Int) {
-        binding.memoryText.text = Libcore.formatBytes(memory)
+        binding.memoryText.text = Libcore.formatMemoryBytes(memory)
         binding.goroutinesText.text = goroutines.toString()
     }
 

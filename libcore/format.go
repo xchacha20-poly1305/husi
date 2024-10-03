@@ -11,9 +11,14 @@ import (
 	"github.com/sagernet/sing/common/json"
 )
 
-// FormatBytes formats the bytes to humanize.
+// FormatBytes formats the bytes length to humanize.
 func FormatBytes(length int64) string {
 	return humanize.Bytes(uint64(length))
+}
+
+// FormatMemoryBytes formats the bytes length in memory format.
+func FormatMemoryBytes(length int64) string {
+	return humanize.MemoryBytes(uint64(length))
 }
 
 // parseConfig parses configContent to option.Options.
