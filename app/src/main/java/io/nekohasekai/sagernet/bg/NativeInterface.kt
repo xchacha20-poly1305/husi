@@ -21,7 +21,9 @@ class NativeInterface : PlatformInterface {
     //  libbox interface
 
     override fun autoDetectInterfaceControl(fd: Int) {
-        DataStore.vpnService?.protect(fd)
+        // Make it throw NPE
+        val success = DataStore.vpnService!!.protect(fd)
+        if (!success) error("failed to protect $fd")
     }
 
     override fun clashModeCallback(mode: String?) {

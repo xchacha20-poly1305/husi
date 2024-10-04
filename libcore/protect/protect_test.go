@@ -1,35 +1,48 @@
+//go:build unix
+
 package protect
 
 import (
-	"io"
+	"context"
+	"os"
+	"syscall"
 	"testing"
+	"time"
 
+	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
 func TestProtect(t *testing.T) {
-	const testProtectPath = "protect_test"
-	closer := ServerProtect(testProtectPath, func(fd int) error {
+	const (
+		testProtectPath = "protect_test"
+		timeout         = 5 * time.Second
+	)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	service, err := New(ctx, log.StdLogger(), testProtectPath, func(fd int) error {
 		if fd < 0 {
 			return E.New("invalid fd: ", fd)
 		}
 		return nil
 	})
-	if closer == nil {
-		t.Errorf("ServerProtect failed")
+	if err != nil {
+		t.Errorf("create protect service: %v", err)
 		return
 	}
-	defer func(t *testing.T, closer io.Closer) {
-		if err := closer.Close(); err != nil {
-			t.Errorf("failed to close: %v", err)
-		}
-	}(t, closer)
+	err = service.Start()
+	if err != nil {
+		t.Errorf("start protect server: %v", err)
+		return
+	}
+	defer service.Close()
 
 	type clientArg struct {
 		fd   int
 		path string
 	}
-	tests := []struct {
+	tt := []struct {
 		name    string
 		arg     clientArg
 		wantErr bool
@@ -59,11 +72,29 @@ func TestProtect(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		err := ClientProtect(tt.arg.fd, tt.arg.path)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("protect failed for [%s]", tt.name)
+	for _, test := range tt {
+		do := control.ProtectPath(test.arg.path)
+		err := do(netUnix, "", fdProvider(test.arg.fd))
+		if (err != nil) != test.wantErr {
+			t.Errorf("protect failed for [%s]", test.name)
 			return
 		}
 	}
+}
+
+var _ syscall.RawConn = fdProvider(0)
+
+type fdProvider int
+
+func (f fdProvider) Control(ctl func(fd uintptr)) error {
+	ctl(uintptr(f))
+	return nil
+}
+
+func (f fdProvider) Read(_ func(fd uintptr) (done bool)) error {
+	return os.ErrInvalid
+}
+
+func (f fdProvider) Write(_ func(fd uintptr) (done bool)) error {
+	return os.ErrInvalid
 }

@@ -50,7 +50,6 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     }
 
     override fun launch() {
-        box.setAsMain()
         super.launch() // start box
         runOnDefaultDispatcher {
             service?.let {

@@ -174,7 +174,7 @@ func (b *BoxInstance) EnableClashModeCallback(enable bool) {
 	clash.SetModeUpdateHook(b.clashModeHook)
 	go func() {
 		for range b.clashModeHook {
-			b.clashModeCallback(b.GetClashMode())
+			b.platformInterface.ClashModeCallback(clash.Mode())
 		}
 	}()
 }
