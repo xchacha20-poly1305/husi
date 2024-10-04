@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"context"
-	"io"
 	"time"
 
 	box "github.com/sagernet/sing-box"
@@ -13,6 +12,7 @@ import (
 	_ "github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/outbound"
+	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -39,19 +39,15 @@ const (
 
 type BoxInstance struct {
 	*box.Box
+	forTest bool
+	cancel  context.CancelFunc
+	state   atomic.TypedValue[boxState]
 
-	cancel context.CancelFunc
-
-	state atomic.TypedValue[boxState]
-
-	protectFun    protect.Protect
-	protectCloser io.Closer
-
-	selector         *outbound.Selector
-	selectorCallback selectorCallback
-
+	// services are BoxInstance' extra services.
+	services          []any
+	selector          *outbound.Selector
 	clashModeHook     chan struct{}
-	clashModeCallback func(mode string)
+	platformInterface PlatformInterface
 
 	pauseManager pause.Manager
 	servicePauseFields
@@ -99,12 +95,11 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	}
 
 	b = &BoxInstance{
-		Box:    instance,
-		cancel: cancel,
-		protectFun: func(fd int) error {
-			return platformInterface.AutoDetectInterfaceControl(int32(fd))
-		},
-		pauseManager: service.FromContext[pause.Manager](ctx),
+		Box:               instance,
+		forTest:           forTest,
+		cancel:            cancel,
+		platformInterface: platformInterface,
+		pauseManager:      service.FromContext[pause.Manager](ctx),
 	}
 
 	if !forTest {
@@ -112,13 +107,17 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
 			if selector, isSelector := proxy.(*outbound.Selector); isSelector {
 				b.selector = selector
-				b.selectorCallback = platformInterface.SelectorCallback
 			}
 		}
 
-		// Clash
-		if clash := b.Box.Router().ClashServer(); clash != nil {
-			b.clashModeCallback = platformInterface.ClashModeCallback
+		// Protect
+		protectServer, err := protect.New(ctx, log.StdLogger(), ProtectPath, func(fd int) error {
+			return platformInterface.AutoDetectInterfaceControl(int32(fd))
+		})
+		if err != nil {
+			log.WarnContext(ctx, "create protect service: ", err)
+		} else {
+			b.services = append(b.services, protectServer)
 		}
 	}
 
@@ -138,14 +137,26 @@ func (b *BoxInstance) Start() (err error) {
 		return err
 	}
 
-	if b.selector != nil {
-		oldCancel := b.cancel
-		ctx, cancel := context.WithCancel(context.Background())
-		b.cancel = func() {
-			oldCancel()
-			cancel()
+	if !b.forTest {
+		for i, extraService := range b.services {
+			if starter, isStarter := extraService.(interface {
+				Start() error
+			}); isStarter {
+				err := starter.Start()
+				if err != nil {
+					log.Warn("starting extra service [", i, "]: ", err)
+				}
+			}
 		}
-		go b.listenSelectorChange(ctx, b.selectorCallback)
+		if b.selector != nil {
+			oldCancel := b.cancel
+			ctx, cancel := context.WithCancel(context.Background())
+			b.cancel = func() {
+				oldCancel()
+				cancel()
+			}
+			go b.listenSelectorChange(ctx, b.platformInterface.SelectorCallback)
+		}
 	}
 
 	return nil
@@ -163,9 +174,8 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		return nil
 	}
 
-	if b.protectCloser != nil {
-		_ = b.protectCloser.Close()
-	}
+	_ = common.Close(b.services)
+
 	if b.clashModeHook != nil {
 		select {
 		case <-b.clashModeHook:
@@ -176,10 +186,7 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		}
 	}
 
-	// close box
 	done := make(chan struct{})
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
 	start := time.Now()
 	go func(done chan<- struct{}) {
 		defer catchPanic("box.Close", func(panicErr error) { err = panicErr })
@@ -188,9 +195,12 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		close(done)
 	}(done)
 	select {
-	case <-ctx.Done():
+	case <-time.After(timeout):
 		return E.New("sing-box did not close in time")
 	case <-done:
+		if b.forTest {
+			return nil
+		}
 		log.Info("sing-box closed in ", F.Seconds(time.Since(start).Seconds()), " s.")
 		return nil
 	}
@@ -198,11 +208,6 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 
 func (b *BoxInstance) NeedWIFIState() bool {
 	return b.Box.Router().NeedWIFIState()
-}
-
-// SetAsMain starts protect server listening.
-func (b *BoxInstance) SetAsMain() {
-	b.protectCloser = serveProtect(b.protectFun)
 }
 
 func (b *BoxInstance) QueryStats(tag, direct string) int64 {
@@ -218,8 +223,4 @@ func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {
 		return b.selector.SelectOutbound(tag)
 	}
 	return false
-}
-
-func serveProtect(protectFunc protect.Protect) io.Closer {
-	return protect.ServerProtect(ProtectPath, protectFunc)
 }
