@@ -114,12 +114,13 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 
 		if platformInterface.AllowDiscoveryByLan() {
 			var anchorOptions anchor.Options
+		Find:
 			for _, inbound := range options.Inbounds {
 				switch inbound.Type {
 				case C.TypeMixed:
 					listen := (*netip.Addr)(inbound.MixedOptions.Listen)
 					if !listen.IsUnspecified() {
-						break
+						break Find
 					}
 					anchorOptions.SocksPort = inbound.MixedOptions.ListenPort
 					if len(inbound.MixedOptions.Users) > 0 {
