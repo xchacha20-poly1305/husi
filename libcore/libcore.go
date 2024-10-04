@@ -16,7 +16,7 @@ func Kill() {
 }
 
 func InitCore(process, cachePath, internalAssets, externalAssets string,
-	maxLogSizeKb int32, logEnable bool,
+	maxLogSizeKb int32, logLevel int32,
 	useOfficialAssets bool,
 ) {
 	defer catchPanic("InitCore", func(panicErr error) { log.Error(panicErr) })
@@ -30,7 +30,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	if maxLogSizeKb < 50 {
 		maxLogSizeKb = 50
 	}
-	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(externalAssets, "stderr.log"), logEnable, isBgProcess)
+	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), isBgProcess)
 
 	// Set up some component
 	go func() {
