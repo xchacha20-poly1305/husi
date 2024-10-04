@@ -71,7 +71,7 @@ class SagerNet : Application(),
             filesDir.absolutePath + "/",
             externalAssets.absolutePath + "/",
             DataStore.logBufSize,
-            DataStore.logLevel > 0,
+            DataStore.logLevel,
             DataStore.rulesProvider == 0,
         )
         Libcore.updateRootCACerts(DataStore.enabledCazilla)
