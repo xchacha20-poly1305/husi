@@ -81,7 +81,7 @@ dependencies {
 
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
     implementation("com.jakewharton:process-phoenix:3.0.0")
-    implementation("com.esotericsoftware:kryo:5.6.0")
+    implementation("com.esotericsoftware:kryo:5.6.1")
     implementation("org.ini4j:ini4j:0.5.4")
 
     implementation("com.simplecityapps:recyclerview-fastscroll:2.0.1") {
