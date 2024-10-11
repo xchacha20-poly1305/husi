@@ -421,7 +421,7 @@
     <string name="ssh_private_key_passphrase">Парольная фраза закрытого ключа</string>
     <string name="ssh_private_key">Закрытый ключ</string>
     <string name="ssh_public_key">Открытый ключ</string>
-    <string name="ssh_auth_type_none">Без аутентификации</string>
+    <string name="ssh_auth_type_none">Отсутствует</string>
     <string name="profile_traffic_statistics">Статистика трафика профиля</string>
     <string name="profile_traffic_statistics_summary">Когда отключено, использованный трафик не
         будет отображаться
@@ -485,7 +485,7 @@
     <string name="show_bottom_bar">Показать нижнюю панель, как в SagerNet</string>
     <string name="log_level">Тип журнала</string>
     <string name="bypass_lan_in_core">Обход LAN в ядре</string>
-    <string name="landing_proxy">Конечный прокси</string>
+    <string name="landing_proxy">Обратный прокси</string>
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
     <string name="menu_dashboard">Панель sing-box</string>
     <string name="action_copy">Копировать</string>
@@ -507,7 +507,7 @@
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>
     <string name="use_selector">Использовать селектор</string>
-    <string name="front_proxy">Внешний прокси</string>
+    <string name="front_proxy">Прямой прокси</string>
     <string name="reset_connections">Сбросить соединения</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
     <string name="sniff_routing">Перехватывать результат для Маршрутизации</string>
