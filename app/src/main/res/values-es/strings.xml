@@ -17,7 +17,7 @@
     <string name="document">Documentación</string>
     <string name="group_default">Sin grupo</string>
     <string name="quick_toggle">Alternar</string>
-    <string name="tile_title">Conmutador</string>
+    <string name="tile_title">Interruptor</string>
     <string name="menu_traffic">Tráfico</string>
     <!-- externel -->
     <string name="action_copy">Copiar</string>
