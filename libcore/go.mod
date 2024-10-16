@@ -4,13 +4,13 @@ module libcore
 go 1.23.0
 
 require (
-	github.com/gofrs/uuid/v5 v5.2.0
+	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.62
 	github.com/sagernet/gomobile v0.1.4
-	github.com/sagernet/sing v0.5.0-beta.2
-	github.com/sagernet/sing-box v1.10.0-beta.11
-	github.com/sagernet/sing-dns v0.3.0-beta.14
-	github.com/sagernet/sing-tun v0.4.0-beta.16
+	github.com/sagernet/sing v0.5.0-rc.2
+	github.com/sagernet/sing-box v1.10.0
+	github.com/sagernet/sing-dns v0.3.0-rc.2
+	github.com/sagernet/sing-tun v0.4.0-rc.3
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
 	github.com/xchacha20-poly1305/cazilla v0.3.3
 	github.com/xchacha20-poly1305/libping v0.7.1
@@ -73,7 +73,7 @@ require (
 	github.com/sagernet/quic-go v0.47.0-beta.2 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
-	github.com/sagernet/sing-quic v0.3.0-beta.3 // indirect
+	github.com/sagernet/sing-quic v0.3.0-rc.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
