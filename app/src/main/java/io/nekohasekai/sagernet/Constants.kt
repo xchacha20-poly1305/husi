@@ -49,6 +49,7 @@ object Key {
 
     const val MIXED_PORT = "mixedPort"
     const val ALLOW_ACCESS = "allowAccess"
+    const val DISCOVERY_IN_LAN = "discoveryInLan"
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
     const val LOCAL_DNS_PORT = "portLocalDns"
