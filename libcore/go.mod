@@ -4,18 +4,18 @@ module libcore
 go 1.23.0
 
 require (
-	github.com/gofrs/uuid/v5 v5.2.0
+	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.62
 	github.com/sagernet/gomobile v0.1.4
-	github.com/sagernet/sing v0.5.0-beta.2
-	github.com/sagernet/sing-box v1.10.0-beta.11
-	github.com/sagernet/sing-dns v0.3.0-beta.14
-	github.com/sagernet/sing-tun v0.4.0-beta.16
+	github.com/sagernet/sing v0.5.0-rc.2
+	github.com/sagernet/sing-box v1.11.0-alpha.1
+	github.com/sagernet/sing-dns v0.3.0-rc.2
+	github.com/sagernet/sing-tun v0.4.0-rc.4
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
 	github.com/xchacha20-poly1305/cazilla v0.3.3
 	github.com/xchacha20-poly1305/libping v0.7.1
-	golang.org/x/crypto v0.27.0
-	golang.org/x/sys v0.25.0
+	golang.org/x/crypto v0.28.0
+	golang.org/x/sys v0.26.0
 )
 
 // cmd
@@ -56,7 +56,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
 	github.com/mdlayher/socket v0.4.1 // indirect
-	github.com/metacubex/tfo-go v0.0.0-20240821025650-e9be0afd5e7d // indirect
+	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa // indirect
 	github.com/mholt/acmez v1.2.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.10.0 // indirect
 	github.com/ooni/go-libtor v1.1.8 // indirect
@@ -70,10 +70,10 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/quic-go v0.47.0-beta.2 // indirect
+	github.com/sagernet/quic-go v0.48.0-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.2.0 // indirect
-	github.com/sagernet/sing-quic v0.3.0-beta.3 // indirect
+	github.com/sagernet/sing-quic v0.3.0-rc.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.1.4 // indirect
@@ -89,12 +89,12 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/mod v0.19.0 // indirect
-	golang.org/x/net v0.29.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
+	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/text v0.18.0 // indirect
+	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.23.0 // indirect
+	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
