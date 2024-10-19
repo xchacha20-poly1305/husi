@@ -289,6 +289,7 @@
             app:title="@string/connection_test_url"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
+            app:defaultValue="true"
             app:icon="@drawable/baseline_developer_board_24"
             app:key="acquireWakeLock"
             app:summary="@string/acquire_wake_lock_summary"
@@ -299,7 +300,6 @@
             app:summary="@string/cazilla_long"
             app:title="@string/cazilla" />
         <EditTextPreference
-            app:defaultValue="127.0.0.1:9090"
             app:icon="@drawable/baseline_construction_24"
             app:key="clashAPIListen"
             app:title="@string/enable_clash_api"
