@@ -21,6 +21,8 @@ import (
 //go:linkname systemRoots crypto/x509.systemRoots
 var systemRoots *x509.CertPool
 
+const customCaFile = "ca.pem"
+
 // UpdateRootCACerts appends externalAssetsPath/ca.pem to root CA.
 // By the way, if enabledCazilla == true, it will use the CA trusted by mozilla.
 func UpdateRootCACerts(enabledCazilla bool) {
@@ -39,7 +41,7 @@ func UpdateRootCACerts(enabledCazilla bool) {
 		roots = sysRoots
 	}
 
-	externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, "ca.pem"))
+	externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, customCaFile))
 	if len(externalPem) > 0 {
 		if roots.AppendCertsFromPEM(externalPem) {
 			log.Info("external ca.pem was loaded")

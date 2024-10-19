@@ -3,8 +3,11 @@ package libcore
 import (
 	"crypto/tls"
 	"net"
+	"os"
 	"testing"
+	"time"
 
+	aTLS "github.com/sagernet/sing-box/common/tls"
 	"github.com/sagernet/sing/common"
 	N "github.com/sagernet/sing/common/network"
 )
@@ -20,9 +23,13 @@ func TestUpdateRootCACerts(t *testing.T) {
 	defer listener.Close()
 	listen := listener.Addr().String()
 
+	privateKey, publicKey := common.Must2(aTLS.GenerateKeyPair(time.Now, husi, time.Now().Add(5*time.Minute)))
+	common.Must(os.WriteFile(customCaFile, publicKey, os.ModePerm))
+	defer os.Remove(customCaFile)
+
 	done := make(chan struct{})
 	go func(listener net.Listener, done chan struct{}) {
-		cert := common.Must1(tls.LoadX509KeyPair("ca.pem", "ca.key"))
+		cert := common.Must1(tls.X509KeyPair(publicKey, privateKey))
 		config := &tls.Config{
 			Certificates: []tls.Certificate{cert},
 			ServerName:   husi,
