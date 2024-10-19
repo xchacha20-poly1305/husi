@@ -70,7 +70,7 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle.kts') }}
       - uses: actions/setup-java@v4
         with:
-          java-version: "17"
+          java-version: "21"
           distribution: "temurin"
       - name: Release Build
         env:
