@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-java@v4
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          java-version: "17"
+          java-version: "21"
           distribution: "temurin"
       - name: Patch Go
         if: steps.cache.outputs.cache-hit != 'true'
@@ -80,7 +80,7 @@ jobs:
           path: app/libs/libcore.aar
       - uses: actions/setup-java@v4
         with:
-          java-version: "17"
+          java-version: "21"
           distribution: "temurin"
       - name: Gradle cache
         uses: actions/cache@v4

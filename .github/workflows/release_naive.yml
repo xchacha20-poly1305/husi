@@ -55,7 +55,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: 21
       - name: Naive Cache (armeabi-v7a)
         uses: actions/cache@v4
         with:
