@@ -223,6 +223,15 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
             put("fastOpen", true)
             put("lazy", true)
 
+            if (obfuscation.isNotBlank()) {
+                put("obfs", JSONObject().apply {
+                    put("type", "salamander")
+                    put("salamander", JSONObject().apply {
+                        put("password", obfuscation)
+                    })
+                })
+            }
+
             put("quic", JSONObject().apply {
                 put("sockopts", JSONObject().apply {
                     put("fdControlUnixSocket", Libcore.ProtectPath)
