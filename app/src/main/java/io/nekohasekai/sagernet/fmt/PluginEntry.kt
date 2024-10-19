@@ -15,7 +15,7 @@ enum class PluginEntry(
         "fr.husi.plugin.mieru",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=mieru",
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-mieru",
         ),
     ),
     NaiveProxy(
@@ -24,7 +24,7 @@ enum class PluginEntry(
         "fr.husi.plugin.naive",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=naive",
+            downloadLink = "https://github.com/klzgrad/naiveproxy/releases",
         ),
     ),
     Hysteria(
@@ -33,7 +33,7 @@ enum class PluginEntry(
         "moe.matsuri.exe.hysteria",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=Hysteria"
+            downloadLink = "https://github.com/dyhkwong/Exclave/releases?q=hysteria-plugin-1"
         ),
     ),
     Hysteria2(
@@ -42,7 +42,7 @@ enum class PluginEntry(
         "fr.husi.plugin.hysteria2",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=Hysteria2",
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-hysteria2",
         ),
     ),
     Juicity(
@@ -51,7 +51,7 @@ enum class PluginEntry(
         "fr.husi.plugin.juicity",
         DownloadSource(
             fdroid = false,
-            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=juicity",
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-juicity",
         ),
     )
     ;
