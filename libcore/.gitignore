@@ -3,3 +3,4 @@ binary*.go
 .idea
 .vscode
 inited
+*.pem
