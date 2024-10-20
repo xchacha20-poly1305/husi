@@ -17,7 +17,7 @@ import (
 
 // extractAssets extract assets in apk.
 func extractAssets(useOfficialAssets bool) {
-	deleteLocalDashboard()
+	deleteDeprecated()
 
 	if useOfficialAssets {
 		// Prepare directory
@@ -98,10 +98,17 @@ func extractAssetToFile(assetFile asset.File, path string) error {
 	return err
 }
 
-// deleteLocalDashboard deletes the dashboard of old user.
-func deleteLocalDashboard() {
+// deleteDeprecated deletes the unused file in current version.
+// Now will delete:
+//
+// Clash dashboard,
+//
+// "geo/pax_global_header", which was added by invalid untargz implementation.
+func deleteDeprecated() {
 	dashboardPath := filepath.Join(internalAssetsPath, "dashboard")
 	_ = os.RemoveAll(dashboardPath)
 	_ = os.Remove(dashboardPath + tgzSuffix)
 	_ = os.Remove(dashboardPath + versionSuffix)
+
+	_ = os.Remove(filepath.Join(externalAssetsPath, "geo", "pax_global_header"))
 }
