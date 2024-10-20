@@ -39,9 +39,11 @@ func UntargzWithoutDir(archive, path string) (err error) {
 			}
 			return err
 		}
+		if header.Typeflag != tar.TypeReg {
+			continue
+		}
 
 		fileInfo := header.FileInfo()
-
 		if fileInfo.IsDir() {
 			continue
 		}
