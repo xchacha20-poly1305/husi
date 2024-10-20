@@ -443,7 +443,6 @@
     <string name="test_concurrency">測試並發</string>
     <string name="mux_type">Mux 協議</string>
     <string name="sniff_routing">探測結果用於路由判斷</string>
-    <string name="allow_insecure_on_request_sum">更新訂閱時禁用憑證檢查</string>
     <string name="vpn_golang_version">Go 版本</string>
     <string name="vpn_app_type_other">其他</string>
     <string name="vpn_core_type_unknown">未知</string>

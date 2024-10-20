@@ -503,7 +503,6 @@
     <string name="inbound_username">Nombre de usuario entrante</string>
     <string name="http_upgrade_host">Host HTTPUpgrade</string>
     <string name="http_upgrade_path">Ruta HTTPUpgrade</string>
-    <string name="allow_insecure_on_request_sum">Desactivar comprobación de certificados al actualizar suscripciones</string>
     <string name="scan_vpn_app_introduce">Comprueba la VPN instalada en el dispositivo y su tipo.</string>
     <string name="vpn_app_type">Tipo de app</string>
     <string name="vpn_core_path">Ruta detectada</string>

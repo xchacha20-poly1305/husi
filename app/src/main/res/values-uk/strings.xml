@@ -244,7 +244,6 @@
     <string name="test_concurrency">Число паралельних підключень</string>
     <string name="mux_type">Протокол мультиплексування</string>
     <string name="sniff_routing">Перехоплювати результат для Маршрутизації</string>
-    <string name="allow_insecure_on_request_sum">Вимкнути перевірку сертифікатів під час оновлення підписок</string>
     <string name="assets_update">Оновити геодані</string>
     <string name="sekai">nekohasekai</string>
     <string name="cazilla">Використовувати програму сертифікації Mozilla CA</string>

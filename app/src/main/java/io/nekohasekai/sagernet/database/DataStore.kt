@@ -89,10 +89,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
     var interruptSelector by configurationStore.boolean(Key.INTERRUPT_SELECTOR)
 
-    var allowInsecureOnRequest by configurationStore.boolean(Key.ALLOW_INSECURE_ON_REQUEST)
-
-    //
-
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
