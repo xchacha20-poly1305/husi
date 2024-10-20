@@ -489,7 +489,6 @@
     <string name="enable_clash_api">آدرس گوش کردن Clash API</string>
     <string name="test_concurrency">تست همزمانی</string>
     <string name="enable_brutal">فعال کردن کنترل کننده TCP Brutal congestion</string>
-    <string name="allow_insecure_on_request_sum">غیرفعال سازی بررسی کردن مجوز در هنگام بروزرسانی اشتراک ها</string>
     <string name="scan_vpn_app_introduce">بررسی کردن نصب شدن VPN و نوع آن روی دستگاه.</string>
     <string name="vpn_core_path">مسیر شناسایی شده</string>
     <string name="cazilla_long">ممکن است بتواند از حمله افرادی که می توانند CA را کنترل کنند جلوگیری کند و می تواند به دستگاه قدیمی اجازه دهد از گواهی جدید استفاده کند.</string>

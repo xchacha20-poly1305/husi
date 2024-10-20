@@ -189,8 +189,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         }
 
                         Key.CONNECTION_TEST_URL, Key.APP_TLS_VERSION,
-                        Key.SHOW_BOTTOM_BAR, Key.ALLOW_INSECURE_ON_REQUEST,
-                        -> Unit
+                        Key.SHOW_BOTTOM_BAR -> Unit
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }

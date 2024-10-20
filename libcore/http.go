@@ -46,9 +46,6 @@ type HTTPClient interface {
 	// KeepAlive force use HTTP/2 and enable keep alive.
 	KeepAlive()
 
-	// SetInsecure disables TLS secure verifying.
-	SetInsecure(allow bool)
-
 	// NewRequest creates a new HTTPRequest base settings.
 	NewRequest() HTTPRequest
 
@@ -195,10 +192,6 @@ func (c *httpClient) TrySocks5(port int32, username, password string) {
 	}
 }
 
-func (c *httpClient) SetInsecure(allow bool) {
-	c.tls.InsecureSkipVerify = allow
-}
-
 func (c *httpClient) KeepAlive() {
 	c.transport.ForceAttemptHTTP2 = true
 	c.transport.DisableKeepAlives = false
@@ -207,7 +200,7 @@ func (c *httpClient) KeepAlive() {
 func (c *httpClient) NewRequest() HTTPRequest {
 	req := &httpRequest{httpClient: c}
 	req.request = http.Request{
-		Method: "GET",
+		Method: http.MethodGet,
 		Header: http.Header{},
 	}
 	return req

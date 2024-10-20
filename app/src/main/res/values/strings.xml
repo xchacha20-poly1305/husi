@@ -562,9 +562,6 @@
     <string name="inbound_password">Inbound password</string>
     <string name="http_upgrade_host">HTTPUpgrade Host</string>
     <string name="http_upgrade_path">HTTPUpgrade Path</string>
-    <string name="allow_insecure_on_request_sum">Disable certificate checking when updating
-        subscriptions
-    </string>
     <string name="global_allow_insecure">Always allow insecure</string>
     <string name="scan_vpn_app">Scan VPN apps</string>
     <string name="scan_vpn_app_introduce">Check the VPN installed on the device and its type.
