@@ -446,7 +446,7 @@
     <string name="tuic_disable_sni">غیرفعال کردن SNI</string>
     <string name="tuic_reduce_rtt">فعال‌سازی 0-RTT ارتباط QUIC</string>
     <string name="connection_test_delete_unavailable">پاک‌سازی غیرقابل دسترس‌ها</string>
-    <string name="neko_plugin_internal_error">خطای داخلی %s</string>
+    <string name="neko_plugin_internal_error">%s خطای داخلی</string>
     <string name="move">انتقال</string>
     <string name="create_shortcut">ایجاد میانبر</string>
     <string name="app_tls_version">حداقل نسخه TLS اشتراک</string>
@@ -465,9 +465,9 @@
     <string name="need_restart">راه اندازی مجدد برنامه برای اعمال تغییرات</string>
     <string name="protocol_version">نسخه پروتکل</string>
     <string name="show_group_in_notification">نمایش اسم گروه در اعلان</string>
-    <string name="reset_connections">بازنشانی اتصال ها</string>
+    <string name="reset_connections">بازنشانی اتصال‌ها</string>
     <string name="use_selector">استفاده از انتخابگر</string>
-    <string name="share_subscription">هم رسانی اشتراک</string>
+    <string name="share_subscription">هم‌رسانی اشتراک</string>
     <string name="mtu_help">برای تنظیم MTU سفارشی، ترجیح را طولانی فشار دهید.</string>
     <string name="remove_duplicate">حذف سرورهای تکراری</string>
     <string name="sniff_routing">نتیجه Sniff برای مسیریابی</string>
@@ -517,8 +517,8 @@
     <string name="no_thanks">خیر،ممنون</string>
     <string name="location_permission_background_description">در اندوید ۱۰ و بالاتر، مجوز موقعیت یابی در پس زمینه لازم است. گزینه ی تایید برای همیشه را برای دادن این مجوز انتخاب کنید.</string>
     <string name="xtls_flow">جریان (پروتکل فرعی VLESS)</string>
-    <string name="landing_proxy">پروکسی فرود</string>
-    <string name="front_proxy">پروکسی جلو</string>
+    <string name="landing_proxy">پروکسی فرود آمدن</string>
+    <string name="front_proxy">پروکسی فرانت</string>
     <string name="authenticated_length">طول تایید شده</string>
     <string name="insecure_warn">مشاوره امنیتی</string>
     <string name="mux_preference">تنظیمات مالتی پلکس</string>
