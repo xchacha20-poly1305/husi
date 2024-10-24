@@ -64,6 +64,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var bypassLan: SwitchPreference
         lateinit var bypassLanInCore: SwitchPreference
 
+        lateinit var allowAccess: SwitchPreference
+        lateinit var discoveryInLan: SwitchPreference
+
         lateinit var logLevel: LongClickListPreference
         lateinit var alwaysShowAddress: SwitchPreference
         lateinit var blurredAddress: SwitchPreference
@@ -177,6 +180,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 Key.INBOUND_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
                         Key.MIXED_PORT, Key.LOCAL_DNS_PORT -> (preference as EditTextPreference).setPortEdit()
+                        Key.ALLOW_ACCESS -> allowAccess = preference as SwitchPreference
+                        Key.DISCOVERY_IN_LAN -> discoveryInLan = preference as SwitchPreference
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
@@ -270,6 +275,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         bypassLanInCore.onPreferenceChangeListener = reloadListener
         bypassLan.setOnPreferenceChangeListener { _, newValue ->
             bypassLanInCore.isEnabled = newValue as Boolean
+            needReload()
+            true
+        }
+
+        discoveryInLan.isEnabled = bypassLan.isChecked
+        discoveryInLan.onPreferenceChangeListener = reloadListener
+        allowAccess.setOnPreferenceChangeListener { _, newValue ->
+            discoveryInLan.isEnabled = newValue as Boolean
             needReload()
             true
         }

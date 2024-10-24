@@ -12,6 +12,7 @@ require (
 	github.com/sagernet/sing-dns v0.3.0-rc.2
 	github.com/sagernet/sing-tun v0.4.0-rc.4
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
+	github.com/xchacha20-poly1305/anchor v0.2.0-beta.0
 	github.com/xchacha20-poly1305/cazilla v0.3.3
 	github.com/xchacha20-poly1305/libping v0.7.1
 	golang.org/x/crypto v0.27.0

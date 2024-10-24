@@ -162,4 +162,8 @@ class NativeInterface : PlatformInterface {
         return SDK_INT >= Build.VERSION_CODES.R // SDK 30 (Android 11)
     }
 
+    override fun allowDiscoveryByLan(): Boolean {
+        return DataStore.discoveryInLan
+    }
+
 }

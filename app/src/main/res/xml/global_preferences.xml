@@ -267,6 +267,10 @@
             app:key="allowAccess"
             app:summary="@string/allow_access_sum"
             app:title="@string/allow_access" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_location_on_24"
+            app:key="discoveryInLan"
+            app:title="@string/enable_local_network_discovery" />
         <EditTextPreference
             app:icon="@drawable/ic_baseline_person_24"
             app:key="inboundUsername"

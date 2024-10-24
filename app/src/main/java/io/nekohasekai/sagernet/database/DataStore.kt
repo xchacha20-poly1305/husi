@@ -108,6 +108,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var inboundPassword by configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
+    var discoveryInLan by configurationStore.boolean(Key.DISCOVERY_IN_LAN)
     var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL)
     var showGroupInNotification by configurationStore.boolean("showGroupInNotification")
 

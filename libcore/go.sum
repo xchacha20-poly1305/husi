@@ -154,6 +154,8 @@ github.com/vishvananda/netns v0.0.4 h1:Oeaw1EM2JMxD51g9uhtC0D7erkIjgmj8+JZc26m1Y
 github.com/vishvananda/netns v0.0.4/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xchacha20-poly1305/TLS-scribe v0.6.1 h1:eMe562VUOSjoumbom/XS1O5mw0A3/QOKPyLgwAjVDgo=
 github.com/xchacha20-poly1305/TLS-scribe v0.6.1/go.mod h1:2suBWLi3ESUbkp97tMz1okYK6Dh9XpjRzyO7eMA5s6Q=
+github.com/xchacha20-poly1305/anchor v0.2.0-beta.0 h1:qic4oHg2TNeOaRSyDIPkeEDqAXzgITjiR01FIFhqm18=
+github.com/xchacha20-poly1305/anchor v0.2.0-beta.0/go.mod h1:/QUPDmgmJ0q7m5vuPte9Bve9vXLS/SNophSntKuCrX4=
 github.com/xchacha20-poly1305/cazilla v0.3.3 h1:9qKZHKexlzGHmXeAHVOwj0dnc9/WEftGSwwWC3703wM=
 github.com/xchacha20-poly1305/cazilla v0.3.3/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.7.1 h1:MQkq6gxn67SZlBgG2Wp7ek0QYQsxKnKSbg0h235S6+o=
