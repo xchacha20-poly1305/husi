@@ -19,7 +19,7 @@ translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
 
 ### 🔨 Learn to Compilation
 
-In Linux, you can build husi reproducibly for relase version.
+In Linux, you can build husi reproducibly for release version.
 
 For this, you should use the same version of JDK, NDK as below. And Go version should as same as [version.sh](./buildScript/init/version.sh).
 
@@ -35,11 +35,16 @@ cd husi/
 
 Environment:
 
-* Go But should apply patch
+* In some version need to apply patch.
 
-  Go1.22.5: Apply [this patch](./libcore/patches/cgo_go1225.diff) to `${GOROOT}/src/runtime/cgocall.go`
+  <details>
+    <summary>Unfold</summary>
 
-  Go1.23: Apply [this patch](https://go-review.googlesource.com/changes/go~600296/revisions/1/patch) (You should decode base64 first) to `${GOROOT}`
+  1.23.5: Apply [this patch](./libcore/patches/cgo_go1225.diff) to `${GOROOT}/src/runtime/cgocall.go`
+
+  1.23.x to 1.23.2: Apply [this patch](https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch) to `${GOROOT}`
+
+  </details>
 
 * Openjdk-21 (Later is OK, too.)
 

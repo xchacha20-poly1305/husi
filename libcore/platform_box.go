@@ -164,3 +164,6 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network
 	packageName, _ := w.iif.PackageNameByUid(uid)
 	return &process.Info{UserId: uid, PackageName: packageName}, nil
 }
+
+func (w *boxPlatformInterfaceWrapper) OpenURL(url string) {
+}

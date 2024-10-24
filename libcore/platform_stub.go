@@ -108,3 +108,6 @@ func (i interfaceMonitorStub) RegisterCallback(_ tun.DefaultInterfaceUpdateCallb
 
 func (i interfaceMonitorStub) UnregisterCallback(_ *list.Element[tun.DefaultInterfaceUpdateCallback]) {
 }
+
+func (p platformInterfaceStub) OpenURL(url string) {
+}
