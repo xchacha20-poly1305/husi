@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -119,6 +120,7 @@ type httpClient struct {
 func NewHttpClient() HTTPClient {
 	client := new(httpClient)
 	client.client.Transport = &client.transport
+	client.transport.TLSHandshakeTimeout = C.TCPTimeout
 	client.transport.TLSClientConfig = &client.tls
 	client.transport.DisableKeepAlives = true
 	return client
