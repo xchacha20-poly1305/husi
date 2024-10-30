@@ -557,4 +557,6 @@
     <string name="mux_max_connections">Максимум з\'єднань</string>
     <string name="override_address">Перевизначити адресу</string>
     <string name="override_port">Перевизначити порт</string>
+    <string name="allow_apps_bypass_vpn">Дозволити застосункам ігнорувати VPN</string>
+    <string name="clash_mode">Режим Clash</string>
 </resources>
