@@ -26,8 +26,8 @@
     <string name="connection_test_error_status_code">Код ошибки: #%d</string>
     <string name="connection_test_fail">Интернет недоступен</string>
     <string name="connection_test_error">Ошибка: %s</string>
-    <string name="connection_test_available_http">Успех: рукопожатие HTTP заняло %d мс</string>
-    <string name="connection_test_available">Успех: рукопожатие HTTPS заняло %d мс</string>
+    <string name="connection_test_available_http">Успех: HTTP-соединение установлено за %d мс</string>
+    <string name="connection_test_available">Успех: HTTPS-соединение установлено за %d мс</string>
     <string name="connection_test_testing">Тестирование…</string>
     <string name="speed_detail">Прокси ：%1$s↑ %2$s↓
         \nПрямой ：%3$s↑%4$s↓
