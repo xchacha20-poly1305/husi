@@ -50,10 +50,9 @@ jobs:
           distribution: "temurin"
       - name: Patch Go
         if: steps.cache.outputs.cache-hit != 'true'
-        # https://github.com/golang/go/commit/3560cf0afb3c29300a6c88ccd98256949ca7a6f6
         run: |
           cd "$(go env GOROOT)"
-          curl "https://go-review.googlesource.com/changes/go~600296/revisions/1/patch" | base64 -d | patch --verbose -p 1
+          curl "https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch" | patch --verbose -p 1
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
