@@ -15,60 +15,52 @@
             app:showAsAction="always" />
 
     <item
-            android:id="@+id/action_misc"
-            android:icon="@drawable/ic_baseline_more_vert_24"
-            android:title=""
-            app:showAsAction="ifRoom">
+            android:id="@+id/action_sort"
+            android:title="@string/sort"
+            app:showAsAction="never">
 
         <menu>
-            <item
-                    android:id="@+id/action_sort"
-                    android:title="@string/sort">
-
-                <menu>
-                    <group android:checkableBehavior="single">
-                        <item
-                                android:id="@+id/action_sort_ascending"
-                                android:title="@string/ascending" />
-                        <item
-                                android:id="@+id/action_sort_descending"
-                                android:title="@string/descending" />
-                    </group>
-                </menu>
-            </item>
+            <group android:checkableBehavior="single">
+                <item
+                        android:id="@+id/action_sort_ascending"
+                        android:title="@string/ascending" />
+                <item
+                        android:id="@+id/action_sort_descending"
+                        android:title="@string/descending" />
+            </group>
+        </menu>
+    </item>
 
 
-            <item
-                    android:id="@+id/action_sort_method"
-                    android:title="@string/sort_mode">
+    <item
+            android:id="@+id/action_sort_method"
+            android:title="@string/sort_mode"
+            app:showAsAction="never">
 
-                <menu>
-                    <group android:checkableBehavior="single">
-                        <item
-                                android:id="@+id/action_sort_time"
-                                android:title="@string/by_time" />
-                        <item
-                                android:id="@+id/action_sort_inbound"
-                                android:title="@string/by_inbound" />
-                        <item
-                                android:id="@+id/action_sort_upload"
-                                android:title="@string/by_upload" />
-                        <item
-                                android:id="@+id/action_sort_download"
-                                android:title="@string/by_download" />
-                        <item
-                                android:id="@+id/action_sort_source"
-                                android:title="@string/by_source" />
-                        <item
-                                android:id="@+id/action_sort_destination"
-                                android:title="@string/by_destination" />
-                        <item
-                                android:id="@+id/action_sort_rule"
-                                android:title="@string/by_matched_rule" />
-                    </group>
-                </menu>
-            </item>
-
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                        android:id="@+id/action_sort_time"
+                        android:title="@string/by_time" />
+                <item
+                        android:id="@+id/action_sort_inbound"
+                        android:title="@string/by_inbound" />
+                <item
+                        android:id="@+id/action_sort_upload"
+                        android:title="@string/by_upload" />
+                <item
+                        android:id="@+id/action_sort_download"
+                        android:title="@string/by_download" />
+                <item
+                        android:id="@+id/action_sort_source"
+                        android:title="@string/by_source" />
+                <item
+                        android:id="@+id/action_sort_destination"
+                        android:title="@string/by_destination" />
+                <item
+                        android:id="@+id/action_sort_rule"
+                        android:title="@string/by_matched_rule" />
+            </group>
         </menu>
     </item>
 
