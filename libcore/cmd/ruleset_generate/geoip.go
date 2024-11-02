@@ -33,18 +33,7 @@ func parseGeoip(binary []byte) (countryMap map[string][]*net.IPNet, err error) {
 		if err != nil {
 			return
 		}
-		var code string
-		if country.Country.IsoCode != "" {
-			code = strings.ToLower(country.Country.IsoCode)
-		} else if country.RegisteredCountry.IsoCode != "" {
-			code = strings.ToLower(country.RegisteredCountry.IsoCode)
-		} else if country.RepresentedCountry.IsoCode != "" {
-			code = strings.ToLower(country.RepresentedCountry.IsoCode)
-		} else if country.Continent.Code != "" {
-			code = strings.ToLower(country.Continent.Code)
-		} else {
-			continue
-		}
+		code := strings.ToLower(country.RegisteredCountry.IsoCode)
 		countryMap[code] = append(countryMap[code], ipNet)
 	}
 	err = networks.Err()
