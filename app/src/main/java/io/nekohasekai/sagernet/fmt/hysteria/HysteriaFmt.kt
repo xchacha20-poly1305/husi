@@ -215,6 +215,10 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
             put("resolver", "udp://127.0.0.1:" + DataStore.localDNSPort)
 
             put("hop_interval", hopInterval)
+
+            // speed > 0 is enforced for Hysteria 1
+            put("up_mbps", getUploadSpeed())
+            put("down_mbps", getDownloadSpeed())
         }.toStringPretty()
 
         2 -> JSONObject().apply {
