@@ -270,7 +270,7 @@ fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
 }
 
 fun <T : Any> T.asMap(): MutableMap<String, Any> {
-    if (!shouldAsMap(this)) throw RuntimeException("invalid type to as map")
+    if (!shouldAsMap(this)) throw RuntimeException("invalid type to as map: " + javaClass.name)
 
     val map = mutableMapOf<String, Any>()
 
@@ -294,40 +294,29 @@ fun <T : Any> T.asMap(): MutableMap<String, Any> {
 }
 
 private fun shouldAsMap(value: Any?): Boolean = when (value) {
-    null, is String, is Number, is Boolean, is Map<*, *> -> false
+    null, is String, is Number, is Boolean, is Map<*, *>, is List<*> -> false
     else -> true
 }
 
 private fun mappedValue(value: Any?): Any? = when (value) {
     null -> null
 
-    is List<*> -> when (value.size) {
-        0 -> null
-
-        // Listable
-        1 -> if (shouldAsMap(value[0])) {
-            value.asMap()
-        } else {
-            value[0]
-        }
-
-        else -> {
-            val needAsMap = shouldAsMap(value[0])
-            value.map {
-                if (needAsMap) {
-                    it?.asMap()
-                } else {
-                    it
-                }
+    is List<*> -> if (value.isEmpty()) {
+        null
+    } else {
+        val needAsMap = shouldAsMap(value[0])
+        value.map {
+            if (needAsMap) {
+                it?.asMap()
+            } else {
+                it
             }
         }
     }
 
-    else -> if (shouldAsMap(value)) {
-        value.asMap()
-    } else {
-        value
-    }
+    is String, is Number, is Boolean -> value
+
+    else -> value.asMap()
 }
 
 operator fun <F> KProperty0<F>.getValue(thisRef: Any?, property: KProperty<*>): F = get()
