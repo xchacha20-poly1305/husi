@@ -732,46 +732,6 @@ fun buildConfig(
             }
         }
 
-        var ruleSetResource: String? = null
-        var geositeLink: String? = null
-        var geoipLink: String? = null
-        if (forExport) {
-            // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
-            val pathPrefix = "https://raw.githubusercontent.com"
-            val provider = DataStore.rulesProvider
-
-            val normalBranch = "rule-set"
-            val geoipBranch = normalBranch
-            val geositeBranch = if (RuleProvider.hasUnstableBranch(provider)) {
-                "rule-set-unstable"
-            } else {
-                normalBranch
-            }
-
-            when (provider) {
-                RuleProvider.OFFICIAL -> {
-                    geositeLink = "$pathPrefix/SagerNet/sing-geosite/$geositeBranch"
-                    geoipLink = "$pathPrefix/SagerNet/sing-geoip/$geoipBranch"
-                }
-
-                RuleProvider.LOYALSOLDIER -> {
-                    geositeLink = "$pathPrefix/xchacha20-poly1305/sing-geosite/$geositeBranch"
-                    geoipLink = "$pathPrefix/xchacha20-poly1305/sing-geoip/$geoipBranch"
-                }
-
-                RuleProvider.CHOCOLATE4U -> {
-                    geositeLink = "$pathPrefix/Chocolate4U/sing-geosite/$geositeBranch"
-                    geoipLink = "$pathPrefix/Chocolate4U/sing-geoip/$geoipBranch"
-                }
-
-                RuleProvider.CUSTOM -> {} // Can't generate.
-            }
-        }
-        if (geositeLink == null) {
-            ruleSetResource = SagerNet.application.externalAssets.absolutePath + "/geo"
-        }
-        buildRuleSets(geoipLink, geositeLink, ruleSetResource)
-
         outbounds.add(Outbound().apply {
             tag = TAG_DIRECT
             type = "direct"
@@ -974,6 +934,46 @@ fun buildConfig(
             }
         }
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
+
+        var ruleSetResource: String? = null
+        var geositeLink: String? = null
+        var geoipLink: String? = null
+        if (forExport) {
+            // "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs"
+            val pathPrefix = "https://raw.githubusercontent.com"
+            val provider = DataStore.rulesProvider
+
+            val normalBranch = "rule-set"
+            val geoipBranch = normalBranch
+            val geositeBranch = if (RuleProvider.hasUnstableBranch(provider)) {
+                "rule-set-unstable"
+            } else {
+                normalBranch
+            }
+
+            when (provider) {
+                RuleProvider.OFFICIAL -> {
+                    geositeLink = "$pathPrefix/SagerNet/sing-geosite/$geositeBranch"
+                    geoipLink = "$pathPrefix/SagerNet/sing-geoip/$geoipBranch"
+                }
+
+                RuleProvider.LOYALSOLDIER -> {
+                    geositeLink = "$pathPrefix/xchacha20-poly1305/sing-geosite/$geositeBranch"
+                    geoipLink = "$pathPrefix/xchacha20-poly1305/sing-geoip/$geoipBranch"
+                }
+
+                RuleProvider.CHOCOLATE4U -> {
+                    geositeLink = "$pathPrefix/Chocolate4U/sing-geosite/$geositeBranch"
+                    geoipLink = "$pathPrefix/Chocolate4U/sing-geoip/$geoipBranch"
+                }
+
+                RuleProvider.CUSTOM -> {} // Can't generate.
+            }
+        }
+        if (geositeLink == null) {
+            ruleSetResource = SagerNet.application.externalAssets.absolutePath + "/geo"
+        }
+        buildRuleSets(geoipLink, geositeLink, ruleSetResource)
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {
