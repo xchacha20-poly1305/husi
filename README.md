@@ -42,7 +42,7 @@ Environment:
 
   1.23.5: Apply [this patch](./libcore/patches/cgo_go1225.diff) to `${GOROOT}/src/runtime/cgocall.go`
 
-  1.23.x to 1.23.2: Apply [this patch](https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch) to `${GOROOT}`
+  1.23.x: Apply [this patch](https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch) to `${GOROOT}`
 
   </details>
 
