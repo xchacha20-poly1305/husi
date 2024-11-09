@@ -314,7 +314,7 @@ private fun mappedValue(value: Any?): Any? = when (value) {
         }
     }
 
-    is String, is Number, is Boolean -> value
+    is String, is Number, is Boolean, is Map<*, *> -> value
 
     else -> value.asMap()
 }
