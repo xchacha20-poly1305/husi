@@ -1,5 +1,3 @@
-// libbox/dns.go
-
 package libcore
 
 import (

@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"reflect"
 	"strings"
-	"unsafe"
 
+	"github.com/sagernet/sing-box/option"
 	F "github.com/sagernet/sing/common/format"
+
+	"libcore/named"
 )
+
+// TODO ignore deprecated
 
 const (
 	classSpace = "    "     // 4
@@ -17,46 +22,21 @@ const (
 	extends     = "extends "
 )
 
-const (
-	extendsBox = "SingBoxOption"
-)
+const extendsBox = "SingBoxOption"
 
-var (
-	// builder is a shared strings.Builder for building class content.
-	// It is safe because we just use one thread.
-	builder = &strings.Builder{}
+// mainBuilder is shared buffer for building class content.
+// It is safe because we just use one thread.
+var mainBuilder = bytes.NewBuffer(make([]byte, mainBuilderSize))
 
-	// builderAddr is the first field of builder.
-	builderAddr **strings.Builder
-	// builderBuf points to builder.buf.
-	// Because builder.Reset() will clean the buf, but we want to reuse the buf.
-	// Reuse the buf can reduce the stress of GC.
-	builderBuf *[]byte
-)
+// mainBuilderSize is the maximum size of the mainBuilder.
+// We found this is the max size the mainBuilder will use.
+const mainBuilderSize = 2048
 
-// maxBuilderSize is the maximum size of the builder.
-// We found this is the max size the builder will use.
-const maxBuilderSize = 2048
-
-func init() {
-	builderAddr = (**strings.Builder)(unsafe.Pointer(reflect.ValueOf(builder).Elem().Field(0).UnsafeAddr()))
-	builderBuf = (*[]byte)(unsafe.Pointer(reflect.ValueOf(builder).Elem().Field(1).UnsafeAddr()))
-
-	*builderBuf = make([]byte, maxBuilderSize)
-}
-
-// resetBuilder resets the builder but keeps its buf with large capcity.
-func resetBuilder() {
-	*builderAddr = nil
-	clear(*builderBuf)
-	*builderBuf = (*builderBuf)[:0]
-}
-
-func buildClass(opt any, belongs string) string {
+func buildClass(opt any, belongs string) []byte {
 	value := reflect.Indirect(reflect.ValueOf(opt))
 	valueType := value.Type()
 
-	resetBuilder()
+	mainBuilder.Reset()
 
 	var fieldName string
 	if belongs != extendsBox {
@@ -65,7 +45,7 @@ func buildClass(opt any, belongs string) string {
 		fieldName = valueType.Name()
 	}
 	// public static class ClashAPIOptions extends SingBoxOption {
-	builder.WriteString(
+	mainBuilder.WriteString(
 		F.ToString(
 			classSpace, public, staticClass,
 			fieldName, " ",
@@ -77,35 +57,41 @@ func buildClass(opt any, belongs string) string {
 	// public String xxx;
 	// public Boolean xxx;
 	// public Integer xxx;
-	builder.WriteString(buildContent(valueType))
+	mainBuilder.Write(buildContent(valueType))
 
 	// }
-	builder.WriteString(F.ToString(classSpace, "}\n"))
+	mainBuilder.WriteString(F.ToString(classSpace, "}\n"))
 
-	// log.Trace("Builder cap: ", builder.Cap(), " Length: ", builder.Len())
-
-	// builder.String() returns an unsafe point of buf, so copy a new string here.
-	return string(*builderBuf)
+	return mainBuilder.Bytes()
 }
 
-func buildContent(valueType reflect.Type) string {
-	builder := &strings.Builder{}
+func buildContent(valueType reflect.Type) []byte {
+	builder := bytes.NewBuffer(nil)
+
 	for i := 0; i < valueType.NumField(); i++ {
 		field := valueType.Field(i)
 
 		tag := field.Tag.Get("json")
-		if tag == "-" {
-			continue
-		}
-		tag, _ = strings.CutSuffix(tag, ",omitempty")
+		tag = strings.TrimSuffix(tag, ",omitempty")
 
-		if field.Type.Kind() == reflect.Struct {
-			builder.WriteString(F.ToString(fieldSpace, "// Generate note: nested type ", field.Name, "\n"))
-			builder.WriteString(buildContent(field.Type))
+		switch tag {
+		case "-":
 			continue
-		}
-
-		if tag == reservedDefault || tag == reservedFinal {
+		case "":
+			if field.Type.Kind() != reflect.Struct {
+				panic("no tag and not struct: " + field.Name)
+			}
+			switch field.Name {
+			case "RuleAction":
+				_, _ = builder.Write(ruleActionFields)
+			case "DNSRuleAction":
+				_, _ = builder.Write(dnsRuleActionFields)
+			default:
+				_, _ = builder.WriteString(F.ToString(fieldSpace, "// Generate note: nested type ", field.Name, "\n"))
+				_, _ = builder.Write(buildContent(field.Type))
+			}
+			continue
+		case reservedDefault, reservedFinal:
 			// @SerializedName("default")
 			// public String default_;
 			builder.WriteString(F.ToString(fieldSpace, "@SerializedName(\"", tag, "\")\n"))
@@ -118,7 +104,7 @@ func buildContent(valueType reflect.Type) string {
 		builder.WriteString(F.ToString(fieldSpace, public, typeName, " ", tag, ";\n\n"))
 	}
 
-	return builder.String()
+	return builder.Bytes()
 }
 
 const (
@@ -138,14 +124,16 @@ func className(valueType reflect.Type) string {
 	case reflect.Bool:
 		return javaBoolean
 	case reflect.Uint16:
-		if valueType.Name() == "DNSQueryType" {
+		switch valueType.Name() {
+		case "DNSQueryType":
 			return javaString
 		}
 		return javaInteger
 	case reflect.Int, reflect.Int32, reflect.Uint32:
 		return javaInteger
 	case reflect.Int64:
-		if valueType.Name() == "Duration" {
+		switch valueType.Name() {
+		case "Duration":
 			return javaString
 		}
 		return javaLong
@@ -164,12 +152,16 @@ func className(valueType reflect.Type) string {
 		return "Map<" + className(valueType.Key()) + ", " + className(valueType.Elem()) + ">"
 	case reflect.Struct:
 		valueName := valueType.Name()
-		if valueName == "ListenAddress" || valueName == "AddrPrefix" || valueName == "Prefix" {
+		switch valueName {
+		case "Addr", "Prefix", "Prefixable", "Regexp":
 			return javaString
+		case "NetworkList":
+			return "Named<String>"
 		}
 		return valueType.Name()
 	case reflect.Uint8:
-		if valueType.Name() == "DomainStrategy" {
+		switch valueType.Name() {
+		case "DomainStrategy":
 			return javaString
 		}
 		return javaInteger
@@ -177,3 +169,62 @@ func className(valueType reflect.Type) string {
 		panic(F.ToString("[", valueType.Name(), "] is not  included"))
 	}
 }
+
+// Build rule action
+func init() {
+	ruleActions := []named.Named[any]{
+		{
+			Name:    "RouteActionOptions",
+			Content: option.RouteActionOptions{},
+		},
+		{
+			Name:    "RouteOptionsActionOptions",
+			Content: option.RouteOptionsActionOptions{},
+		},
+		{
+			Name:    "DirectActionOptions",
+			Content: option.DirectActionOptions{},
+		},
+		{
+			Name:    "RejectActionOptions",
+			Content: option.RejectActionOptions{},
+		},
+		{
+			Name:    "RouteActionSniff",
+			Content: option.RouteActionSniff{},
+		},
+		{
+			Name:    "RouteActionResolve",
+			Content: option.RouteActionResolve{},
+		},
+	}
+	for _, field := range ruleActions {
+		ruleActionFields = append(ruleActionFields, buildContent(reflect.TypeOf(field.Content))...)
+	}
+
+	dnsRuleActions := []named.Named[any]{
+		{
+			Name:    "RouteOptions",
+			Content: option.DNSRouteActionOptions{},
+		},
+		{
+			Name:    "RouteOptionsOptions",
+			Content: option.DNSRouteOptionsActionOptions{},
+		},
+		{
+			Name:    "RejectOptions",
+			Content: option.RejectActionOptions{},
+		},
+	}
+	for _, field := range dnsRuleActions {
+		dnsRuleActionFields = append(dnsRuleActionFields, buildContent(reflect.TypeOf(field.Content))...)
+	}
+}
+
+const actionPrefix = fieldSpace + "// Generate Note: Action\n" +
+	fieldSpace + "public String action;\n\n"
+
+var (
+	ruleActionFields    = []byte(actionPrefix)
+	dnsRuleActionFields = []byte(actionPrefix)
+)

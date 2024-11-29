@@ -8,9 +8,7 @@ import (
 
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing/common/control"
-	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
 
 	"github.com/xchacha20-poly1305/libping"
 )
@@ -43,7 +41,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
-	l, err := libping.TcpPing(ctx, ignoreProtectError(ProtectPath), M.ParseSocksaddrHostPortStr(host, port))
+	l, err := libping.TcpPing(ctx, M.ParseSocksaddrHostPortStr(host, port), ignoreProtectError(ProtectPath))
 	if err != nil {
 		return -1, err
 	}
@@ -55,11 +53,6 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 func (b *BoxInstance) UrlTest(link string, timeout int32) (latency int32, err error) {
 	defer catchPanic("box.UrlTest", func(panicErr error) { err = panicErr })
 
-	defaultOutbound, err := b.Router().DefaultOutbound(N.NetworkTCP)
-	if err != nil {
-		return -1, E.Cause(err, "find default outbound")
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
@@ -67,7 +60,7 @@ func (b *BoxInstance) UrlTest(link string, timeout int32) (latency int32, err er
 	chLatency := make(chan uint16, 1)
 	go func() {
 		var t uint16
-		t, err = urltest.URLTest(ctx, link, defaultOutbound)
+		t, err = urltest.URLTest(ctx, link, b.Outbound().Default())
 		if err != nil {
 			close(chLatency)
 			return

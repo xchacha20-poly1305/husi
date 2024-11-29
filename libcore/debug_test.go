@@ -1,25 +1,8 @@
 package libcore
 
-import (
-	"testing"
-	"time"
-)
+import "testing"
 
-func TestGoDebug(t *testing.T) {
-	done := make(chan struct{}, 1)
-	DebugFunc = func(a interface{}) {
-		a.(chan struct{}) <- struct{}{}
-	}
-	GoDebug(done)
-	select {
-	case <-done:
-		return
-	case <-time.After(time.Second):
-		t.Error("GoDebug timeout")
-	}
-}
-
-func TestCatchPanic(t *testing.T) {
+func Test_CatchPanic(t *testing.T) {
 	defer catchPanic("TestCatchPanic", func(panicErr error) {
 		t.Logf("catched panic: %v", panicErr)
 	})

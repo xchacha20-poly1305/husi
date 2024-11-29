@@ -15,7 +15,7 @@ import io.nekohasekai.sagernet.fmt.tuic.buildSingBoxOutboundTuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
-import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireGuardBean
+import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 
@@ -29,7 +29,7 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
         is SOCKSBean -> buildSingBoxOutboundSocksBean(bean)
         is SSHBean -> buildSingBoxOutboundSSHBean(bean)
         is TuicBean -> buildSingBoxOutboundTuicBean(bean)
-        is WireGuardBean -> buildSingBoxOutboundWireGuardBean(bean)
+        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean) // is it outbound?
         else -> error("invalid bean: ${bean.javaClass.simpleName}")
     }
     map.type = bean.outboundType()

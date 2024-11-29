@@ -21,21 +21,27 @@ fun genReserved(anyStr: String): String {
         } else {
             return anyStr
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         return anyStr
     }
 }
 
-fun buildSingBoxOutboundWireGuardBean(bean: WireGuardBean): SingBoxOptions.Outbound_WireGuardOptions {
-    return SingBoxOptions.Outbound_WireGuardOptions().apply {
+fun buildSingBoxEndpointWireGuardBean(bean: WireGuardBean): SingBoxOptions.Endpoint_WireGuardOptions {
+    return SingBoxOptions.Endpoint_WireGuardOptions().apply {
         type = bean.outboundType()
-        server = bean.serverAddress
-        server_port = bean.serverPort
-        local_address = bean.localAddress.listByLineOrComma()
+        peers = listOf(SingBoxOptions.WireGuardPeer().apply {
+            address = bean.serverAddress
+            port = bean.serverPort
+            public_key = bean.peerPublicKey
+            pre_shared_key = bean.peerPreSharedKey
+            allowed_ips = listOf(
+                "0.0.0.0/0",
+                "::/0",
+            )
+            if (bean.reserved.isNotBlank()) reserved = genReserved(bean.reserved)
+        })
+        address = bean.localAddress.listByLineOrComma()
         private_key = bean.privateKey
-        peer_public_key = bean.peerPublicKey
-        pre_shared_key = bean.peerPreSharedKey
         mtu = bean.mtu
-        if (bean.reserved.isNotBlank()) reserved = genReserved(bean.reserved)
     }
 }

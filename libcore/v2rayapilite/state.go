@@ -1,6 +1,7 @@
 package v2rayapilite
 
 import (
+	"context"
 	"net"
 	"sync"
 	"time"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	_ adapter.V2RayStatsService = (*StatsService)(nil)
+	_ adapter.ConnectionTracker = (*StatsService)(nil)
 	_ StatsGetter               = (*StatsService)(nil)
 )
 
@@ -50,7 +51,8 @@ func (s *StatsService) QueryStats(name string) int64 {
 	return counter.Swap(0)
 }
 
-func (s *StatsService) RoutedConnection(inbound string, outbound string, user string, conn net.Conn) net.Conn {
+func (s *StatsService) RoutedConnection(_ context.Context, conn net.Conn, _ adapter.InboundContext, _ adapter.Rule, matchOutbound adapter.Outbound) net.Conn {
+	outbound := matchOutbound.Tag()
 	var readCounter []*atomic.Int64
 	var writeCounter []*atomic.Int64
 	countOutbound := outbound != "" && s.outbounds[outbound]
@@ -64,7 +66,8 @@ func (s *StatsService) RoutedConnection(inbound string, outbound string, user st
 	return bufio.NewInt64CounterConn(conn, readCounter, writeCounter)
 }
 
-func (s *StatsService) RoutedPacketConnection(inbound string, outbound string, user string, conn N.PacketConn) N.PacketConn {
+func (s *StatsService) RoutedPacketConnection(_ context.Context, conn N.PacketConn, _ adapter.InboundContext, _ adapter.Rule, matchOutbound adapter.Outbound) N.PacketConn {
+	outbound := matchOutbound.Tag()
 	var readCounter []*atomic.Int64
 	var writeCounter []*atomic.Int64
 	countOutbound := outbound != "" && s.outbounds[outbound]

@@ -19,7 +19,7 @@ var _ platform.Interface = platformInterfaceStub{}
 
 type platformInterfaceStub struct{}
 
-func (p platformInterfaceStub) Initialize(_ context.Context, _ adapter.Router) error {
+func (p platformInterfaceStub) Initialize(_ adapter.NetworkManager) error {
 	return nil
 }
 
@@ -35,10 +35,6 @@ func (p platformInterfaceStub) OpenTun(_ *tun.Options, _ option.TunPlatformOptio
 	return nil, os.ErrInvalid
 }
 
-func (p platformInterfaceStub) UsePlatformDefaultInterfaceMonitor() bool {
-	return true
-}
-
 func (p platformInterfaceStub) CreateDefaultInterfaceMonitor(_ logger.Logger) tun.DefaultInterfaceMonitor {
 	return interfaceMonitorStub{}
 }
@@ -47,7 +43,7 @@ func (p platformInterfaceStub) UsePlatformInterfaceGetter() bool {
 	return true
 }
 
-func (p platformInterfaceStub) Interfaces() ([]control.Interface, error) {
+func (p platformInterfaceStub) Interfaces() ([]adapter.NetworkInterface, error) {
 	return nil, os.ErrInvalid
 }
 
@@ -86,16 +82,8 @@ func (i interfaceMonitorStub) Close() error {
 	return nil
 }
 
-func (i interfaceMonitorStub) DefaultInterfaceName(_ netip.Addr) string {
-	return ""
-}
-
-func (i interfaceMonitorStub) DefaultInterfaceIndex(_ netip.Addr) int {
-	return -1
-}
-
-func (i interfaceMonitorStub) DefaultInterface(_ netip.Addr) (string, int) {
-	return "", -1
+func (i interfaceMonitorStub) DefaultInterface() *control.Interface {
+	return nil
 }
 
 func (i interfaceMonitorStub) OverrideAndroidVPN() bool {

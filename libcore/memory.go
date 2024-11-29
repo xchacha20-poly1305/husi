@@ -18,5 +18,5 @@ func SetMemoryLimit() {
 	conntrack.KillerEnabled = true
 	conntrack.MemoryLimit = memoryLimit
 
-	log.Trace("Setted memory limit")
+	log.Trace("Set memory limit")
 }

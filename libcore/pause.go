@@ -31,6 +31,6 @@ func (b *BoxInstance) Wake() {
 }
 
 func (b *BoxInstance) ResetNetwork() {
-	_ = b.Box.Router().ResetNetwork()
+	b.Box.Router().ResetNetwork()
 	log.Debug("Reset network.")
 }

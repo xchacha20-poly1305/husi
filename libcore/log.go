@@ -3,7 +3,6 @@ package libcore
 import (
 	"context"
 	"io"
-	stdlog "log"
 	"os"
 	"time"
 
@@ -68,7 +67,7 @@ func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bo
 	}
 
 	if err != nil {
-		stdlog.Println(E.Cause(err, "open log"))
+		_, _ = os.Stderr.WriteString(E.Cause(err, "open log").Error())
 	}
 
 	platformLogWrapper = &logWriter{
@@ -88,9 +87,6 @@ func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bo
 	)
 	factory.SetLevel(level)
 	log.SetStdLogger(factory.Logger())
-	// setup std log
-	stdlog.SetFlags(stdlog.LstdFlags | stdlog.LUTC)
-	stdlog.SetOutput(platformLogWrapper)
 
 	return
 }

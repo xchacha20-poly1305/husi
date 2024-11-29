@@ -59,7 +59,7 @@ const (
 )
 
 func GetCert(address, serverName string, mode int32) (cert string, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), C.QUICTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), C.ProtocolTimeouts[C.ProtocolQUIC])
 	defer cancel()
 
 	var certs []*x509.Certificate

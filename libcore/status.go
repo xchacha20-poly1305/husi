@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/experimental/clashapi"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
@@ -15,14 +14,13 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
-// GetTrackerInfos returns TrackerInfo list. If not set clash API, it will returns error.
+// GetTrackerInfos returns TrackerInfo list. If not set clash API, it will return error.
 func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator, err error) {
-	clash := b.Router().ClashServer().(*clashapi.Server)
-	if clash == nil {
-		return nil, E.New("failed to get clash server")
+	if b.clash == nil {
+		return nil, E.New("not include clash server")
 	}
 
-	connections := clash.TrafficManager().Snapshot().Connections
+	connections := b.clash.TrafficManager().Snapshot().Connections
 	trackerInfos := make([]*TrackerInfo, 0, len(connections))
 	for _, conn := range connections {
 		metadata := conn.Metadata()
@@ -48,12 +46,11 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 
 // CloseConnection closes the connection, whose UUID is `id`.
 func (b *BoxInstance) CloseConnection(id string) {
-	clash := b.Router().ClashServer().(*clashapi.Server)
-	if clash == nil {
+	if b.clash == nil {
 		return
 	}
 
-	trackerList := clash.TrafficManager().Snapshot().Connections
+	trackerList := b.clash.TrafficManager().Snapshot().Connections
 	for _, tracker := range trackerList {
 		if tracker.Metadata().ID.String() == id {
 			_ = tracker.Close()
@@ -140,22 +137,20 @@ func GetGoroutines() int32 {
 
 // GetClashModeList returns the clash mode you have set.
 func (b *BoxInstance) GetClashModeList() StringIterator {
-	clash := b.Router().ClashServer()
-	if clash == nil {
+	if b.clash == nil {
 		return nil
 	}
-	return &iterator[string]{clash.ModeList()}
+	return &iterator[string]{b.clash.ModeList()}
 }
 
 // EnableClashModeCallback set whether enable clash mode callbck.
 func (b *BoxInstance) EnableClashModeCallback(enable bool) {
-	clash := b.Router().ClashServer().(*clashapi.Server)
-	if clash == nil {
+	if b.clash == nil {
 		return
 	}
 
 	// clean old
-	clash.SetModeUpdateHook(nil)
+	b.clash.SetModeUpdateHook(nil)
 	if b.clashModeHook != nil {
 		select {
 		case <-b.clashModeHook:
@@ -171,28 +166,26 @@ func (b *BoxInstance) EnableClashModeCallback(enable bool) {
 	}
 
 	b.clashModeHook = make(chan struct{})
-	clash.SetModeUpdateHook(b.clashModeHook)
+	b.clash.SetModeUpdateHook(b.clashModeHook)
 	go func() {
 		for range b.clashModeHook {
-			b.platformInterface.ClashModeCallback(clash.Mode())
+			b.platformInterface.ClashModeCallback(b.clash.Mode())
 		}
 	}()
 }
 
 // GetClashMode returns the clash mode that being selected.
 func (b *BoxInstance) GetClashMode() string {
-	clash := b.Router().ClashServer()
-	if clash == nil {
+	if b.clash == nil {
 		return ""
 	}
-	return clash.Mode()
+	return b.clash.Mode()
 }
 
 // SetClashMode sets clash mode.
 func (b *BoxInstance) SetClashMode(mode string) {
-	clash := b.Router().ClashServer().(*clashapi.Server)
-	if clash == nil {
+	if b.clash == nil {
 		return
 	}
-	clash.SetMode(mode)
+	b.clash.SetMode(mode)
 }

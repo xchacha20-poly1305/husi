@@ -1,10 +1,8 @@
 package libcore
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestIterator(t *testing.T) {
+func Test_Iterator(t *testing.T) {
 	tests := []uint8{9, 5, 2, 7}
 	factory := iterator[uint8]{
 		values: tests,

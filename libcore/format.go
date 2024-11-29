@@ -6,6 +6,7 @@ import (
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/humanize"
+	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
@@ -22,8 +23,8 @@ func FormatMemoryBytes(length int64) string {
 }
 
 // parseConfig parses configContent to option.Options.
-func parseConfig(configContent string) (option.Options, error) {
-	options, err := json.UnmarshalExtended[option.Options]([]byte(configContent))
+func parseConfig(ctx context.Context, configContent string) (option.Options, error) {
+	options, err := json.UnmarshalExtendedContext[option.Options](ctx, []byte(configContent))
 	if err != nil {
 		return option.Options{}, E.Cause(err, "decode config")
 	}
@@ -32,7 +33,8 @@ func parseConfig(configContent string) (option.Options, error) {
 
 // FormatConfig formats json.
 func FormatConfig(configContent string) (string, error) {
-	configMap, err := json.UnmarshalExtended[map[string]any]([]byte(configContent))
+	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
+	configMap, err := json.UnmarshalExtendedContext[map[string]any](ctx, []byte(configContent))
 	if err != nil {
 		return "", err
 	}
@@ -48,18 +50,18 @@ func FormatConfig(configContent string) (string, error) {
 	return buffer.String(), nil
 }
 
-// CheckConfig checks configContent wheather can run as sing-box configuration.
+// CheckConfig checks configContent whether can run as sing-box configuration.
 func CheckConfig(configContent string) error {
-	options, err := parseConfig(configContent)
+	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
+	options, err := parseConfig(ctx, configContent)
 	if err != nil {
 		return E.Cause(err, "parse config")
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	instance, err := box.New(box.Options{
-		Options:           options,
-		Context:           ctx,
-		PlatformInterface: platformInterfaceStub{},
+		Options: options,
+		Context: ctx,
 	})
 	if err != nil {
 		return E.Cause(err, "create box")

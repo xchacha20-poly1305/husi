@@ -6,7 +6,7 @@ import (
 	"github.com/sagernet/sing-box/common/humanize"
 )
 
-func TestFormatBytes(t *testing.T) {
+func Test_FormatBytes(t *testing.T) {
 	tt := []int64{
 		humanize.IByte, humanize.KByte, humanize.MByte, humanize.GByte,
 		humanize.TByte, humanize.TByte, humanize.EByte,
@@ -18,7 +18,7 @@ func TestFormatBytes(t *testing.T) {
 	}
 }
 
-func TestFormatConfig(t *testing.T) {
+func Test_FormatConfig(t *testing.T) {
 	tt := []struct {
 		name    string
 		config  string
@@ -97,7 +97,7 @@ func TestFormatConfig(t *testing.T) {
 	}
 }
 
-func TestCheckConfig(t *testing.T) {
+func Test_CheckConfig(t *testing.T) {
 	tests := []struct {
 		name    string
 		config  string

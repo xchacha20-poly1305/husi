@@ -6,6 +6,6 @@ import (
 	"github.com/sagernet/sing-box/option"
 )
 
-func TestBuildClass(t *testing.T) {
-	t.Log(buildClass(option.ClashAPIOptions{}, extendsBox))
+func Test_BuildClass(t *testing.T) {
+	t.Log(string(buildClass(option.WireGuardEndpointOptions{}, extendsBox)) + "\n")
 }

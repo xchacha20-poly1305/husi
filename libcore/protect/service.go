@@ -20,10 +20,7 @@ const (
 	ProtectSuccess
 )
 
-var (
-	_ adapter.Service = (*Protect)(nil)
-	_ E.Handler       = (*Protect)(nil)
-)
+var _ adapter.Service = (*Protect)(nil)
 
 type Protect struct {
 	logger   logger.ContextLogger
@@ -79,7 +76,7 @@ func (p *Protect) loop() {
 		conn, err := p.listener.Accept()
 		if err != nil {
 			stop()
-			p.NewError(p.ctx, err)
+			p.handleError(err)
 			return
 		}
 		go p.handle(conn.(*net.UnixConn))
@@ -124,28 +121,28 @@ func (p *Protect) handle(conn *net.UnixConn) {
 	})
 	if controlErr != nil {
 		_, _ = conn.Write([]byte{ProtectFailed})
-		p.NewError(p.ctx, controlErr)
+		p.handleError(controlErr)
 		return
 	}
 	if err != nil {
 		_, _ = conn.Write([]byte{ProtectFailed})
-		p.NewError(p.ctx, err)
+		p.handleError(err)
 		return
 	}
 	err = p.do(receivedFd)
 	if err != nil {
 		_, _ = conn.Write([]byte{ProtectFailed})
-		p.NewError(p.ctx, err)
+		p.handleError(err)
 		return
 	}
 	_, _ = conn.Write([]byte{ProtectSuccess})
 }
 
-func (p *Protect) NewError(ctx context.Context, err error) {
+func (p *Protect) handleError(err error) {
 	if E.IsClosedOrCanceled(err) {
 		return
 	}
-	p.logger.DebugContext(ctx, "protect server: ", err)
+	p.logger.DebugContext(p.ctx, "protect server: ", err)
 }
 
 func (p *Protect) Close() error {

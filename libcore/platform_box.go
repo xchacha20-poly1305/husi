@@ -3,10 +3,12 @@ package libcore
 import (
 	"context"
 	"net/netip"
+	"sync"
 	"syscall"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/process"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/option"
 	tun "github.com/sagernet/sing-tun"
@@ -21,9 +23,14 @@ import (
 )
 
 type boxPlatformInterfaceWrapper struct {
-	useProcFS bool // Store iif.UseProcFS()
-	iif       PlatformInterface
-	router    adapter.Router
+	useProcFS              bool // Store iif.UseProcFS()
+	iif                    PlatformInterface
+	networkManager         adapter.NetworkManager
+	myTunName              string
+	defaultInterfaceAccess sync.Mutex
+	defaultInterface       *control.Interface
+	isExpensive            bool
+	isConstrained          bool
 }
 
 var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
@@ -45,8 +52,8 @@ func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
 	return (adapter.WIFIState)(*wifiState)
 }
 
-func (w *boxPlatformInterfaceWrapper) Initialize(_ context.Context, router adapter.Router) error {
-	w.router = router
+func (w *boxPlatformInterfaceWrapper) Initialize(networkManager adapter.NetworkManager) error {
+	w.networkManager = networkManager
 	return nil
 }
 
@@ -79,6 +86,7 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	}
 	//
 	options.FileDescriptor = tunFd
+	w.myTunName = options.Name
 	return tun.New(*options)
 }
 
@@ -86,34 +94,38 @@ func (w *boxPlatformInterfaceWrapper) CloseTun() error {
 	return nil
 }
 
-func (w *boxPlatformInterfaceWrapper) UsePlatformDefaultInterfaceMonitor() bool {
-	return true
-}
-
-func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(_ logger.Logger) tun.DefaultInterfaceMonitor {
+func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(logger logger.Logger) tun.DefaultInterfaceMonitor {
 	return &interfaceMonitor{
 		boxPlatformInterfaceWrapper: w,
-		defaultInterfaceIndex:       -1,
+		logger:                      logger,
 	}
 }
 
-func (w *boxPlatformInterfaceWrapper) UsePlatformInterfaceGetter() bool {
-	return w.iif.UsePlatformInterfaceGetter()
-}
-
-func (w *boxPlatformInterfaceWrapper) Interfaces() ([]control.Interface, error) {
+func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, error) {
 	interfaceIterator, err := w.iif.GetInterfaces()
 	if err != nil {
 		return nil, err
 	}
-	var interfaces []control.Interface
+	var interfaces []adapter.NetworkInterface
 	for _, netInterface := range iteratorToArray[*NetworkInterface](interfaceIterator) {
-		interfaces = append(interfaces, control.Interface{
-			Index:     int(netInterface.Index),
-			MTU:       int(netInterface.MTU),
-			Name:      netInterface.Name,
-			Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
-			Flags:     linkFlags(uint32(netInterface.Flags)),
+		if netInterface.Name == w.myTunName {
+			continue
+		}
+		w.defaultInterfaceAccess.Lock()
+		isDefault := w.defaultInterface != nil && int(netInterface.Index) == w.defaultInterface.Index
+		w.defaultInterfaceAccess.Unlock()
+		interfaces = append(interfaces, adapter.NetworkInterface{
+			Interface: control.Interface{
+				Index:     int(netInterface.Index),
+				MTU:       int(netInterface.MTU),
+				Name:      netInterface.Name,
+				Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
+				Flags:     linkFlags(uint32(netInterface.Flags)),
+			},
+			Type:        C.InterfaceType(netInterface.Type),
+			DNSServers:  iteratorToArray[string](netInterface.DNSServer),
+			Expensive:   netInterface.Metered || isDefault && w.isExpensive,
+			Constrained: isDefault && w.isConstrained,
 		})
 	}
 	return interfaces, nil
