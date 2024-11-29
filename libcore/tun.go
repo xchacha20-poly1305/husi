@@ -11,12 +11,31 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/common/x/list"
+
+	"golang.org/x/sys/unix"
 )
 
 var (
 	_ tun.DefaultInterfaceMonitor = (*interfaceMonitor)(nil)
 	_ InterfaceUpdateListener     = (*interfaceMonitor)(nil)
 )
+
+type InterfaceUpdateListener interface {
+	UpdateDefaultInterface(interfaceName string, interfaceIndex int32)
+}
+
+type NetworkInterface struct {
+	Index     int32
+	MTU       int32
+	Name      string
+	Addresses StringIterator
+	Flags     int32
+}
+
+type NetworkInterfaceIterator interface {
+	Next() *NetworkInterface
+	HasNext() bool
+}
 
 type interfaceMonitor struct {
 	*boxPlatformInterfaceWrapper
@@ -176,4 +195,28 @@ func (m *interfaceMonitor) updateInterfacesPlatform() error {
 	}
 	m.networkAddresses = addresses
 	return nil
+}
+
+// copied from net.linkFlags
+func linkFlags(rawFlags uint32) net.Flags {
+	var f net.Flags
+	if rawFlags&unix.IFF_UP != 0 {
+		f |= net.FlagUp
+	}
+	if rawFlags&unix.IFF_RUNNING != 0 {
+		f |= net.FlagRunning
+	}
+	if rawFlags&unix.IFF_BROADCAST != 0 {
+		f |= net.FlagBroadcast
+	}
+	if rawFlags&unix.IFF_LOOPBACK != 0 {
+		f |= net.FlagLoopback
+	}
+	if rawFlags&unix.IFF_POINTOPOINT != 0 {
+		f |= net.FlagPointToPoint
+	}
+	if rawFlags&unix.IFF_MULTICAST != 0 {
+		f |= net.FlagMulticast
+	}
+	return f
 }
