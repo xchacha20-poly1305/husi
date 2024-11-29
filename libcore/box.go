@@ -5,13 +5,15 @@ import (
 	"time"
 
 	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/clashapi"
+	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
-	_ "github.com/sagernet/sing-box/include"
+	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing-box/outbound"
+	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -38,14 +40,16 @@ const (
 )
 
 type BoxInstance struct {
+	ctx    context.Context
+	cancel context.CancelFunc
 	*box.Box
 	forTest bool
-	cancel  context.CancelFunc
 	state   atomic.TypedValue[boxState]
 
-	// services are BoxInstance' extra services.
-	services          []any
-	selector          *outbound.Selector
+	selector          *group.Selector
+	v2ray             *v2rayapilite.V2rayServer
+	clash             *clashapi.Server
+	protect           *protect.Protect
 	clashModeHook     chan struct{}
 	platformInterface PlatformInterface
 
@@ -59,33 +63,31 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	forTest := platformInterface == nil
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 
-	options, err := parseConfig(config)
+	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
+	options, err := parseConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	// create box
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	ctx = pause.WithDefaultManager(ctx)
-	var interfaceWrapper platform.Interface
-	if forTest {
-		interfaceWrapper = platformInterfaceStub{}
-	} else {
-		interfaceWrapper = &boxPlatformInterfaceWrapper{
+	var platformLogWriter log.PlatformWriter
+	if !forTest {
+		interfaceWrapper := &boxPlatformInterfaceWrapper{
 			useProcFS: platformInterface.UseProcFS(),
 			iif:       platformInterface,
 		}
+		service.MustRegister[platform.Interface](ctx, interfaceWrapper)
+		service.MustRegister[deprecated.Manager](ctx, deprecated.NewStderrManager(log.StdLogger()))
+
+		// If set PlatformLogWrapper, box will set something about cache file,
+		// which will panic with simple configuration (when URL test).
+		platformLogWriter = platformLogWrapper
 	}
 	boxOption := box.Options{
 		Options:           options,
 		Context:           ctx,
-		PlatformInterface: interfaceWrapper,
-	}
-
-	// If set PlatformLogWrapper, box will set something about cache file,
-	// which will panic with simple configuration (when URL test).
-	if !forTest {
-		boxOption.PlatformLogWriter = platformLogWrapper
+		PlatformLogWriter: platformLogWriter,
 	}
 
 	instance, err := box.New(boxOption)
@@ -95,6 +97,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	}
 
 	b = &BoxInstance{
+		ctx:               ctx,
 		Box:               instance,
 		forTest:           forTest,
 		cancel:            cancel,
@@ -104,21 +107,24 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 
 	if !forTest {
 		// selector
-		if proxy, haveProxyOutbound := b.Box.Router().Outbound("proxy"); haveProxyOutbound {
-			if selector, isSelector := proxy.(*outbound.Selector); isSelector {
+		if proxy, haveProxyOutbound := b.Box.Outbound().Outbound("proxy"); haveProxyOutbound {
+			if selector, isSelector := proxy.(*group.Selector); isSelector {
 				b.selector = selector
 			}
 		}
 
 		// Protect
-		protectServer, err := protect.New(ctx, log.StdLogger(), ProtectPath, func(fd int) error {
+		b.protect, err = protect.New(ctx, log.StdLogger(), ProtectPath, func(fd int) error {
 			return platformInterface.AutoDetectInterfaceControl(int32(fd))
 		})
 		if err != nil {
 			log.WarnContext(ctx, "create protect service: ", err)
-		} else {
-			b.services = append(b.services, protectServer)
 		}
+
+		// API
+		b.clash = service.FromContext[adapter.ClashServer](b.ctx).(*clashapi.Server)
+		b.v2ray = service.FromContext[adapter.V2RayServer](b.ctx).(*v2rayapilite.V2rayServer)
+
 	}
 
 	return b, nil
@@ -130,33 +136,19 @@ func (b *BoxInstance) Start() (err error) {
 	if b.state.Load() != boxStateNeverStarted {
 		return E.New("box already started")
 	}
-
 	b.state.Store(boxStateRunning)
 	err = b.Box.Start()
 	if err != nil {
 		return err
 	}
 
-	if !b.forTest {
-		for i, extraService := range b.services {
-			if starter, isStarter := extraService.(interface {
-				Start() error
-			}); isStarter {
-				err := starter.Start()
-				if err != nil {
-					log.Warn("starting extra service [", i, "]: ", err)
-				}
-			}
+	if b.protect != nil {
+		if err := b.protect.Start(); err != nil {
+			log.Warn(E.Cause(err))
 		}
-		if b.selector != nil {
-			oldCancel := b.cancel
-			ctx, cancel := context.WithCancel(context.Background())
-			b.cancel = func() {
-				oldCancel()
-				cancel()
-			}
-			go b.listenSelectorChange(ctx, b.platformInterface.SelectorCallback)
-		}
+	}
+	if b.selector != nil {
+		go b.listenSelectorChange(b.ctx, b.platformInterface.SelectorCallback)
 	}
 
 	return nil
@@ -174,14 +166,14 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		return nil
 	}
 
-	_ = common.Close(b.services)
+	_ = common.Close(b.v2ray, b.protect)
 
 	if b.clashModeHook != nil {
 		select {
 		case <-b.clashModeHook:
 			// closed
 		default:
-			b.Router().ClashServer().(*clashapi.Server).SetModeUpdateHook(nil)
+			b.clash.SetModeUpdateHook(nil)
 			close(b.clashModeHook)
 		}
 	}
@@ -211,11 +203,7 @@ func (b *BoxInstance) NeedWIFIState() bool {
 }
 
 func (b *BoxInstance) QueryStats(tag, direct string) int64 {
-	statsGetter := b.Router().V2RayServer().(v2rayapilite.StatsGetter)
-	if statsGetter == nil {
-		return 0
-	}
-	return statsGetter.QueryStats("outbound>>>" + tag + ">>>traffic>>>" + direct)
+	return b.v2ray.QueryStats("outbound>>>" + tag + ">>>traffic>>>" + direct)
 }
 
 func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {

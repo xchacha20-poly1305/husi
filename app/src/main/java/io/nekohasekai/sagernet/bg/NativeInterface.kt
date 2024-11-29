@@ -1,21 +1,29 @@
 package io.nekohasekai.sagernet.bg
 
 import android.annotation.SuppressLint
+import android.net.NetworkCapabilities
+import android.os.Process
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
+import android.system.OsConstants
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
-import libcore.*
+import libcore.InterfaceUpdateListener
+import libcore.Libcore
+import libcore.NetworkInterfaceIterator
+import libcore.PlatformInterface
+import libcore.StringIterator
+import libcore.WIFIState
 import libcore.NetworkInterface as LibcoreNetworkInterface
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.NetworkInterface
-import java.util.*
 
 class NativeInterface : PlatformInterface {
 
@@ -34,10 +42,16 @@ class NativeInterface : PlatformInterface {
         }
     }
 
+    override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener?) {
+        DefaultNetworkMonitor.setListener(listener)
+    }
+
+    override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener?) {
+        DefaultNetworkMonitor.setListener(null)
+    }
+
     override fun openTun(singTunOptionsJson: String, tunPlatformOptionsJson: String): Long {
-        if (DataStore.vpnService == null) {
-            throw Exception("no VpnService")
-        }
+        if (DataStore.vpnService == null) throw Exception("no VpnService")
         return DataStore.vpnService!!.startVpn(singTunOptionsJson, tunPlatformOptionsJson).toLong()
     }
 
@@ -47,11 +61,24 @@ class NativeInterface : PlatformInterface {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun findConnectionOwner(
-        ipProto: Int, srcIp: String, srcPort: Int, destIp: String, destPort: Int,
+        ipProtocol: Int,
+        sourceAddress: String,
+        sourcePort: Int,
+        destinationAddress: String,
+        destinationPort: Int,
     ): Int {
-        return SagerNet.connectivity.getConnectionOwnerUid(
-            ipProto, InetSocketAddress(srcIp, srcPort), InetSocketAddress(destIp, destPort)
-        )
+        try {
+            val uid = SagerNet.connectivity.getConnectionOwnerUid(
+                ipProtocol,
+                InetSocketAddress(sourceAddress, sourcePort),
+                InetSocketAddress(destinationAddress, destinationPort),
+            )
+            if (uid == Process.INVALID_UID) error("android: connection owner not found")
+            return uid
+        } catch (e: Exception) {
+            Logs.e(e)
+            throw e
+        }
     }
 
     override fun packageNameByUid(uid: Int): String {
@@ -98,62 +125,76 @@ class NativeInterface : PlatformInterface {
         // TODO API 34
         @Suppress("DEPRECATION") val wifiInfo = SagerNet.wifi.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
+        if (ssid == "<unknown ssid>") return WIFIState("", "")
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
             ssid = ssid.substring(1, ssid.length - 1)
         }
         return WIFIState(ssid, wifiInfo.bssid)
     }
 
-    override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        DefaultNetworkMonitor.setListener(listener)
-    }
-
-    override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener?) {
-        DefaultNetworkMonitor.setListener(null)
-    }
-
     override fun getInterfaces(): NetworkInterfaceIterator {
-        return InterfaceArray(NetworkInterface.getNetworkInterfaces())
+        @Suppress("DEPRECATION") val networks = SagerNet.connectivity.allNetworks
+        val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
+        val interfaces = mutableListOf<LibcoreNetworkInterface>()
+        for (network in networks) {
+            val boxInterface = LibcoreNetworkInterface()
+            val linkProperties = SagerNet.connectivity.getLinkProperties(network) ?: continue
+            val networkCapabilities =
+                SagerNet.connectivity.getNetworkCapabilities(network) ?: continue
+            boxInterface.name = linkProperties.interfaceName
+            val networkInterface =
+                networkInterfaces.find { it.name == boxInterface.name } ?: continue
+            boxInterface.dnsServer =
+                StringArray(linkProperties.dnsServers.mapNotNull { it.hostAddress }.iterator())
+            boxInterface.type = when {
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Libcore.InterfaceTypeWIFI
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Libcore.InterfaceTypeCellular
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> Libcore.InterfaceTypeEthernet
+                else -> Libcore.InterfaceTypeOther
+            }
+            boxInterface.index = networkInterface.index
+            runCatching {
+                boxInterface.mtu = networkInterface.mtu
+            }.onFailure { e ->
+                Logs.e("failed to get mtu for interface ${boxInterface.name}", e)
+            }
+            boxInterface.addresses = StringArray(
+                networkInterface.interfaceAddresses.map {
+                    it.toPrefix()
+                }.iterator()
+            )
+            var dumpFlags = 0
+            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                dumpFlags = OsConstants.IFF_UP or OsConstants.IFF_RUNNING
+            }
+            if (networkInterface.isLoopback) {
+                dumpFlags = dumpFlags or OsConstants.IFF_LOOPBACK
+            }
+            if (networkInterface.isPointToPoint) {
+                dumpFlags = dumpFlags or OsConstants.IFF_POINTOPOINT
+            }
+            if (networkInterface.supportsMulticast()) {
+                dumpFlags = dumpFlags or OsConstants.IFF_MULTICAST
+            }
+            boxInterface.flags = dumpFlags
+            boxInterface.metered =
+                !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+            interfaces.add(boxInterface)
+        }
+        return InterfaceArray(interfaces.iterator())
     }
 
-    private class InterfaceArray(private val iterator: Enumeration<NetworkInterface>) :
+    private class InterfaceArray(private val iterator: Iterator<LibcoreNetworkInterface>) :
         NetworkInterfaceIterator {
 
         override fun hasNext(): Boolean {
-            return iterator.hasMoreElements()
+            return iterator.hasNext()
         }
 
         override fun next(): LibcoreNetworkInterface {
-            val element = iterator.nextElement()
-            return LibcoreNetworkInterface().apply {
-                name = element.name
-                index = element.index
-                runCatching {
-                    mtu = element.mtu
-                }
-                addresses = StringArray(
-                    element.interfaceAddresses.map { it.toPrefix() }.iterator()
-                )
-                runCatching {
-                    flags = element.flags
-                }
-            }
+            return iterator.next()
         }
 
-        private fun InterfaceAddress.toPrefix(): String {
-            return if (address is Inet6Address) {
-                "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
-            } else {
-                "${address.hostAddress}/${networkPrefixLength}"
-            }
-        }
-
-        private val NetworkInterface.flags: Int
-            @SuppressLint("SoonBlockedPrivateApi")
-            get() {
-                val getFlagsMethod = NetworkInterface::class.java.getDeclaredMethod("getFlags")
-                return getFlagsMethod.invoke(this) as Int
-            }
     }
 
     private class StringArray(private val iterator: Iterator<String>) : StringIterator {
@@ -165,10 +206,18 @@ class NativeInterface : PlatformInterface {
         override fun next(): String {
             return iterator.next()
         }
+
     }
 
     override fun usePlatformInterfaceGetter(): Boolean {
         return SDK_INT >= Build.VERSION_CODES.R // SDK 30 (Android 11)
     }
 
+    private fun InterfaceAddress.toPrefix(): String {
+        return if (address is Inet6Address) {
+            "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
+        } else {
+            "${address.hostAddress}/${networkPrefixLength}"
+        }
+    }
 }

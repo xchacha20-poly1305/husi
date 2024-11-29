@@ -11,9 +11,10 @@ import (
 
 	"github.com/v2fly/v2ray-core/v5/app/router/routercommon"
 	"google.golang.org/protobuf/proto"
+	"libcore/named"
 )
 
-func generateGeosite(data []byte) ([]*NamedList[geosite.Item], error) {
+func generateGeosite(data []byte) ([]*named.Named[[]geosite.Item], error) {
 	domainMap, err := parseGeosite(data)
 	if err != nil {
 		return nil, err
@@ -21,7 +22,7 @@ func generateGeosite(data []byte) ([]*NamedList[geosite.Item], error) {
 	filterGeositeTags(domainMap)
 	mergeGeositeTags(domainMap)
 
-	list := FromMap(domainMap)
+	list := named.FromMap(domainMap)
 	return list, nil
 }
 
@@ -72,10 +73,10 @@ func parseGeosite(vGeositeData []byte) (map[string][]geosite.Item, error) {
 			}
 		}
 		domainMap[code] = common.Uniq(domains)
-		attributesList := FromMap(attributes)
+		attributesList := named.FromMap(attributes)
 		for _, attribute := range attributesList {
-			attributeDomains := make([]geosite.Item, 0, len(attribute.content)*2)
-			for _, domain := range attribute.content {
+			attributeDomains := make([]geosite.Item, 0, len(attribute.Content)*2)
+			for _, domain := range attribute.Content {
 				switch domain.Type {
 				case routercommon.Domain_Plain:
 					attributeDomains = append(attributeDomains, geosite.Item{
@@ -105,7 +106,7 @@ func parseGeosite(vGeositeData []byte) (map[string][]geosite.Item, error) {
 					})
 				}
 			}
-			domainMap[code+"@"+attribute.name] = common.Uniq(attributeDomains)
+			domainMap[code+"@"+attribute.Name] = common.Uniq(attributeDomains)
 		}
 	}
 	return domainMap, nil

@@ -1,10 +1,8 @@
 package libcore
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestParseUrl(t *testing.T) {
+func Test_ParseUrl(t *testing.T) {
 	type args struct {
 		rawURL string
 	}

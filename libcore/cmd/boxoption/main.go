@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"io"
 	"os"
-	"strings"
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/memory"
+
+	"libcore/named"
 )
 
 var output string
@@ -16,7 +17,7 @@ func main() {
 	flag.StringVar(&output, "o", "", "Output file.")
 	flag.Parse()
 
-	var writer io.Writer
+	var writer *os.File
 	switch output {
 	case "", "stdout":
 		writer = os.Stdout
@@ -31,33 +32,25 @@ func main() {
 		writer = file
 	}
 
-	allList := []withExtends{
-		{boxList, extendsBox},
-		{ruleList, "Rule"},
-		{dnsRuleList, "DNSRule"},
-		{ruleSetList, "RuleSet"},
-		{transportList, "V2RayTransportOptions"},
-		{inboundList, "Inbound"},
-		{outboundList, "Outbound"},
+	all := []named.Named[[]any]{
+		{extendsBox, boxList},
+		{"Rule", ruleList},
+		{"DNSRule", dnsRuleList},
+		{"RuleSet", ruleSetList},
+		{"V2RayTransportOptions", transportList},
+		{"Inbound", inboundList},
+		{"Outbound", outboundList},
+		{"Endpoint", endpointList},
 	}
-	var finalLength int
-	for _, list := range allList {
-		finalLength += len(list.list)
-	}
-	classes := make([]string, 0, finalLength)
-	for _, list := range allList {
-		for _, opt := range list.list {
-			classes = append(classes, buildClass(opt, list.extends))
+	for _, classes := range all {
+		for _, class := range classes.Content {
+			_, _ = writer.Write(buildClass(class, classes.Name))
+			_, _ = writer.WriteString("\n")
 		}
 	}
-	_, _ = io.WriteString(writer, strings.Join(classes, "\n"))
 
-	log.Debug("Constant cap: ", maxBuilderSize, ", Final bulder cap: ", builder.Cap())
-}
-
-type withExtends struct {
-	list    []any
-	extends string
+	log.Debug("Constant cap: ", mainBuilderSize, ", Final mainBuilder cap: ", mainBuilder.Cap())
+	log.Debug("Used memory: ", memory.Total())
 }
 
 var boxList = []any{
@@ -83,6 +76,7 @@ var boxList = []any{
 	// Route
 	option.RouteOptions{},
 	// option.Rule{},
+	// option.RuleAction{},
 	option.RuleSet{},
 	option.HeadlessRule{},
 
@@ -96,6 +90,7 @@ var boxList = []any{
 	option.OutboundECHOptions{},
 	option.InboundTLSOptions{},
 	option.Hysteria2Obfs{},
+	option.WireGuardPeer{},
 	// option.V2RayTransportOptions{},
 }
 
@@ -124,7 +119,6 @@ var transportList = []any{
 }
 
 var inboundList = []any{
-	option.InboundOptions{},
 	option.HTTPMixedInboundOptions{},
 	option.TunInboundOptions{},
 	option.TunPlatformOptions{},
@@ -137,7 +131,7 @@ var outboundList = []any{
 	option.ShadowsocksOutboundOptions{},
 	option.ShadowTLSOutboundOptions{},
 	option.SelectorOutboundOptions{},
-	option.SocksOutboundOptions{},
+	option.SOCKSOutboundOptions{},
 	option.HTTPOutboundOptions{},
 	option.SSHOutboundOptions{},
 	option.TrojanOutboundOptions{},
@@ -146,6 +140,8 @@ var outboundList = []any{
 	option.TUICOutboundOptions{},
 	option.VLESSOutboundOptions{},
 	option.VMessOutboundOptions{},
-	option.WireGuardOutboundOptions{},
-	option.WireGuardPeer{},
+}
+
+var endpointList = []any{
+	option.WireGuardEndpointOptions{},
 }

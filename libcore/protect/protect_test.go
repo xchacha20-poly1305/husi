@@ -14,7 +14,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
-func TestProtect(t *testing.T) {
+func Test_Protect(t *testing.T) {
 	const (
 		testProtectPath = "protect_test"
 		timeout         = 5 * time.Second

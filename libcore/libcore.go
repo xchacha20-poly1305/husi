@@ -35,7 +35,6 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	// Set up some component
 	go func() {
 		defer catchPanic("InitCore-go", func(panicErr error) { log.Error(panicErr) })
-		GoDebug(process)
 
 		externalAssetsPath = externalAssets
 		internalAssetsPath = internalAssets

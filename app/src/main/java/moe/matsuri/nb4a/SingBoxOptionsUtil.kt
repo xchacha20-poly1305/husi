@@ -217,3 +217,8 @@ private fun collectSet(set: HashSet<String>, rules: List<SingBoxOptions.SingBoxO
 
     return
 }
+
+fun isEndpoint(type: String): Boolean = when (type) {
+    SingBoxOptions.TYPE_WIREGUARD -> true
+    else -> false
+}

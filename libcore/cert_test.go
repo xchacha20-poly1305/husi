@@ -12,7 +12,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 )
 
-func TestUpdateRootCACerts(t *testing.T) {
+func Test_UpdateRootCACerts(t *testing.T) {
 	const (
 		chinaRailway     = "www.12306.cn" // Use CA from China
 		trustAsiaAddress = chinaRailway + ":443"

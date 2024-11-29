@@ -28,7 +28,7 @@ const (
 // NATType is the type of NAT described by int.
 type NATType int
 
-// NAT behavior type
+// BehaviorType is NAT behavior type
 type BehaviorType int
 
 type NATBehavior struct {

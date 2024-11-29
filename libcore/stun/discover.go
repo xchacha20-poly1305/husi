@@ -66,13 +66,13 @@ import (
 //	                               +------>Restricted
 func (c *Client) discover(conn net.PacketConn, addr *net.UDPAddr) (_ NATType, _ *Host, _ error, fakeFullCone bool) {
 	// Perform test1 to check if it is under NAT.
-	c.logger.Debugln("Do Test1")
-	c.logger.Debugln("Send To:", addr)
+	c.logger.DebugContext(c.logCtx, "Do Test1")
+	c.logger.DebugContext(c.logCtx, "Send To:", addr)
 	resp, err := c.test1(conn, addr)
 	if err != nil {
 		return NATError, nil, err, fakeFullCone
 	}
-	c.logger.Debugln("Received:", resp)
+	c.logger.DebugContext(c.logCtx, "Received:", resp)
 	if resp == nil {
 		return NATBlocked, nil, nil, fakeFullCone
 	}
@@ -98,13 +98,13 @@ func (c *Client) discover(conn net.PacketConn, addr *net.UDPAddr) (_ NATType, _ 
 	}
 	// Perform test2 to see if the client can receive packet sent from
 	// another IP and port.
-	c.logger.Debugln("Do Test2")
-	c.logger.Debugln("Send To:", addr)
+	c.logger.DebugContext(c.logCtx, "Do Test2")
+	c.logger.DebugContext(c.logCtx, "Send To:", addr)
 	resp, err = c.test2(conn, addr)
 	if err != nil {
 		return NATError, mappedAddr, err, fakeFullCone
 	}
-	c.logger.Debugln("Received:", resp)
+	c.logger.DebugContext(c.logCtx, "Received:", resp)
 	// Make sure IP and port are changed.
 	if resp != nil &&
 		(resp.serverAddr.IP() == addr.IP.String() ||
@@ -122,17 +122,17 @@ func (c *Client) discover(conn net.PacketConn, addr *net.UDPAddr) (_ NATType, _ 
 	}
 	// Perform test1 to another IP and port to see if the NAT use the same
 	// external IP.
-	c.logger.Debugln("Do Test1")
-	c.logger.Debugln("Send To:", changedAddr)
+	c.logger.DebugContext(c.logCtx, "Do Test1")
+	c.logger.DebugContext(c.logCtx, "Send To:", changedAddr)
 	caddr, err := net.ResolveUDPAddr("udp", changedAddr.String())
 	if err != nil {
-		c.logger.Debugf("ResolveUDPAddr error: %v", err)
+		c.logger.DebugContext(c.logCtx, "ResolveUDPAddr error: ", err)
 	}
 	resp, err = c.test1(conn, caddr)
 	if err != nil {
 		return NATError, mappedAddr, err, fakeFullCone
 	}
-	c.logger.Debugln("Received:", resp)
+	c.logger.DebugContext(c.logCtx, "Received:", resp)
 	if resp == nil {
 		// It should be NAT_BLOCKED, but will be detected in the first
 		// step. So this will never happen.
@@ -146,13 +146,13 @@ func (c *Client) discover(conn net.PacketConn, addr *net.UDPAddr) (_ NATType, _ 
 	if mappedAddr.IP() == resp.mappedAddr.IP() && mappedAddr.Port() == resp.mappedAddr.Port() {
 		// Perform test3 to see if the client can receive packet sent
 		// from another port.
-		c.logger.Debugln("Do Test3")
-		c.logger.Debugln("Send To:", caddr)
+		c.logger.DebugContext(c.logCtx, "Do Test3")
+		c.logger.DebugContext(c.logCtx, "Send To:", caddr)
 		resp, err = c.test3(conn, caddr)
 		if err != nil {
 			return NATError, mappedAddr, err, fakeFullCone
 		}
-		c.logger.Debugln("Received:", resp)
+		c.logger.DebugContext(c.logCtx, "Received:", resp)
 		if resp == nil {
 			return NATPortRestricted, mappedAddr, nil, fakeFullCone
 		}
@@ -171,7 +171,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 
 	// Test1   ->(IP1,port1)
 	// Perform test to check if it is under NAT.
-	c.logger.Debugln("Do Test1")
+	c.logger.DebugContext(c.logCtx, "Do Test1")
 	resp1, err := c.test(conn, addr)
 	if err != nil {
 		return nil, err
@@ -193,7 +193,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 	// Test2   ->(IP2,port1)
 	// Perform test to see if mapping to the same IP and port when
 	// send to another IP.
-	c.logger.Debugln("Do Test2")
+	c.logger.DebugContext(c.logCtx, "Do Test2")
 	tmpAddr := &net.UDPAddr{IP: net.ParseIP(otherAddr.IP()), Port: addr.Port}
 	resp2, err := c.test(conn, tmpAddr)
 	if err != nil {
@@ -208,7 +208,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 	// Perform test to see if mapping to the same IP and port when
 	// send to another port.
 	if natBehavior.MappingType == BehaviorTypeUnknown {
-		c.logger.Debugln("Do Test3")
+		c.logger.DebugContext(c.logCtx, "Do Test3")
 		tmpAddr.Port = int(otherAddr.Port())
 		resp3, err := c.test(conn, tmpAddr)
 		if err != nil {
@@ -225,7 +225,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 	// Test4   ->(IP1,port1)   (IP2,port2)->
 	// Perform test to see if the client can receive packet sent from
 	// another IP and port.
-	c.logger.Debugln("Do Test4")
+	c.logger.DebugContext(c.logCtx, "Do Test4")
 	resp4, err := c.testChangeBoth(conn, addr)
 	if err != nil {
 		return natBehavior, err
@@ -238,7 +238,7 @@ func (c *Client) behaviorTest(conn net.PacketConn, addr *net.UDPAddr) (*NATBehav
 	// Perform test to see if the client can receive packet sent from
 	// another port.
 	if natBehavior.FilteringType == BehaviorTypeUnknown {
-		c.logger.Debugln("Do Test5")
+		c.logger.DebugContext(c.logCtx, "Do Test5")
 		resp5, err := c.testChangePort(conn, addr)
 		if err != nil {
 			return natBehavior, err

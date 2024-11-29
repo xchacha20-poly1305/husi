@@ -15,9 +15,13 @@
 package stun
 
 import (
+	"context"
 	"errors"
 	"net"
 	"strconv"
+
+	"github.com/sagernet/sing-box/log"
+	slogger "github.com/sagernet/sing/common/logger"
 )
 
 // Client is a STUN client, which can be set STUN server address and is used
@@ -26,7 +30,8 @@ type Client struct {
 	serverAddr   string
 	softwareName string
 	conn         net.PacketConn
-	logger       *Logger
+	logger       slogger.ContextLogger
+	logCtx       context.Context
 }
 
 // NewClient returns a client without network connection. The network
@@ -34,7 +39,8 @@ type Client struct {
 func NewClient() *Client {
 	c := new(Client)
 	c.SetSoftwareName(DefaultSoftwareName)
-	c.logger = NewLogger()
+	c.logger = log.StdLogger()
+	c.logCtx = log.ContextWithOverrideLevel(context.Background(), log.LevelPanic)
 	return c
 }
 
@@ -44,20 +50,13 @@ func NewClientWithConnection(conn net.PacketConn) *Client {
 	c := new(Client)
 	c.conn = conn
 	c.SetSoftwareName(DefaultSoftwareName)
-	c.logger = NewLogger()
+	c.logger = log.StdLogger()
+	c.logCtx = log.ContextWithOverrideLevel(context.Background(), log.LevelPanic)
 	return c
 }
 
-// SetVerbose sets the client to be in the verbose mode, which prints
-// information in the discover process.
-func (c *Client) SetVerbose(v bool) {
-	c.logger.SetDebug(v)
-}
-
-// SetVVerbose sets the client to be in the double verbose mode, which prints
-// information and packet in the discover process.
-func (c *Client) SetVVerbose(v bool) {
-	c.logger.SetInfo(v)
+func (c *Client) SetLogLevel(level log.Level) {
+	c.logCtx = log.ContextWithOverrideLevel(context.Background(), level)
 }
 
 // SetServerHost allows user to set the STUN hostname and port.

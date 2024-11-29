@@ -6,16 +6,17 @@ import (
 
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"
+	"libcore/named"
 )
 
-func generateGeoip(data []byte) (ips []*NamedList[*net.IPNet], err error) {
+func generateGeoip(data []byte) (ips []*named.Named[[]*net.IPNet], err error) {
 	var countryMap map[string][]*net.IPNet
 	countryMap, err = parseGeoip(data)
 	if err != nil {
 		return
 	}
 
-	ips = FromMap(countryMap)
+	ips = named.FromMap(countryMap)
 	return
 }
 

@@ -20,12 +20,12 @@ import (
 )
 
 func (c *Client) sendWithLog(conn net.PacketConn, addr *net.UDPAddr, changeIP bool, changePort bool) (*response, error) {
-	c.logger.Debugln("Send To:", addr)
+	c.logger.DebugContext(c.logCtx, "Send To:", addr)
 	resp, err := c.sendBindingReq(conn, addr, changeIP, changePort)
 	if err != nil {
 		return nil, err
 	}
-	c.logger.Debugln("Received:", resp)
+	c.logger.DebugContext(c.logCtx, "Received:", resp)
 	if resp == nil && !changeIP && !changePort {
 		return nil, errors.New("NAT blocked")
 	}

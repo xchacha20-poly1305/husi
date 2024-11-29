@@ -24,9 +24,24 @@ public class SingBoxOptions {
     public static final String TYPE_VLESS = "vless";
     public static final String TYPE_WIREGUARD = "wireguard";
 
+    public static final String TYPE_LOGICAL = "logical";
+
+    public static final String ACTION_ROUTE = "route";
+    public static final String ACTION_ROUTE_OPTIONS = "route-options";
+    public static final String ACTION_REJECT = "reject";
+    public static final String ACTION_HIJACK_DNS = "hijack-dns";
+    public static final String ACTION_SNIFF = "sniff";
+    public static final String ACTION_RESOLVE = "resolve";
+
+    public static final String LOGICAL_OR = "or";
+    public static final String LOGICAL_AND = "and";
+
+    public static final String SNIFF_DNS = "dns";
+
     // base
 
-    public static class SingBoxOption {}
+    public static class SingBoxOption {
+    }
 
     // custom classes
 
@@ -46,13 +61,15 @@ public class SingBoxOptions {
 
         public List<Map<String, Object>> outbounds;
 
+        public List<Map<String, Object>> endpoints;
+
         public RouteOptions route;
 
         public ExperimentalOptions experimental;
     }
 
     // Classes have optional field
-    // Generated in line 169
+    // Generated in line 194
 
     public static class Inbound extends SingBoxOption {
 
@@ -136,6 +153,12 @@ public class SingBoxOptions {
 
     }
 
+    public static class Endpoint extends Outbound {
+
+        // Generate note: option type:  public WireGuardEndpointOptions WireGuardEndpointOptions;
+
+    }
+
     public static class Rule extends SingBoxOption {
 
         public String type;
@@ -171,6 +194,24 @@ public class SingBoxOptions {
         // Generate note: option type:  public V2RayHTTPUpgradeOptions HTTPUpgradeOptions;
     }
 
+//    public static class RuleAction extends SingBoxOptions {
+//
+//        public String action;
+//
+////        public RouteActionOptions RouteActionOptions;
+////
+////        public RouteOptionsActionOptions RouteOptionsActionOptions;
+////
+////        public DirectActionOptions DirectActionOptions;
+////
+////        public RejectActionOptions RejectActionOptions;
+////
+////        public RouteActionSniff RouteActionSniff;
+////
+////        public RouteActionResolve RouteActionResolve;
+//
+//    }
+
     // Paste generate output here.
     // Use libcore/cmd/boxoption to generate
 
@@ -183,6 +224,8 @@ public class SingBoxOptions {
         public DNSOptions dns;
 
         public NTPOptions ntp;
+
+        public List<Endpoint> endpoints;
 
         public List<Inbound> inbounds;
 
@@ -244,7 +287,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
     }
 
@@ -269,6 +320,8 @@ public class SingBoxOptions {
         public Boolean disable_expire;
 
         public Boolean independent_cache;
+
+        public Integer cache_capacity;
 
         public String client_subnet;
 
@@ -303,6 +356,8 @@ public class SingBoxOptions {
         public Boolean disable_expire;
 
         public Boolean independent_cache;
+
+        public Integer cache_capacity;
 
         public String client_subnet;
 
@@ -438,6 +493,14 @@ public class SingBoxOptions {
         public String default_interface;
 
         public Integer default_mark;
+
+        public Integer default_network_strategy;
+
+        public String default_network_type;
+
+        public String default_fallback_network_type;
+
+        public String default_fallback_delay;
 
     }
 
@@ -595,8 +658,27 @@ public class SingBoxOptions {
 
     }
 
+    public static class WireGuardPeer extends SingBoxOption {
+
+        public String address;
+
+        public Integer port;
+
+        public String public_key;
+
+        public String pre_shared_key;
+
+        public List<String> allowed_ips;
+
+        public Integer persistent_keepalive_interval;
+
+        public String reserved;
+
+    }
+
     public static class Rule_Default extends Rule {
 
+        // Generate note: nested type RawDefaultRule
         public List<String> inbound;
 
         public Integer ip_version;
@@ -643,6 +725,8 @@ public class SingBoxOptions {
 
         public List<String> process_path;
 
+        public List<String> process_path_regex;
+
         public List<String> package_name;
 
         public List<String> user;
@@ -650,6 +734,12 @@ public class SingBoxOptions {
         public List<Integer> user_id;
 
         public String clash_mode;
+
+        public String network_type;
+
+        public Boolean network_is_expensive;
+
+        public Boolean network_is_constrained;
 
         public List<String> wifi_ssid;
 
@@ -661,26 +751,144 @@ public class SingBoxOptions {
 
         public Boolean invert;
 
+        public Boolean rule_set_ipcidr_match_source;
+
+        // Generate Note: Action
+        public String action;
+
         public String outbound;
 
-        public Boolean rule_set_ipcidr_match_source;
+        // Generate note: nested type RawRouteOptionsActionOptions
+        public String override_address;
+
+        public Integer override_port;
+
+        public Integer network_strategy;
+
+        public Integer fallback_delay;
+
+        public Boolean udp_disable_domain_unmapping;
+
+        public Boolean udp_connect;
+
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public String fallback_network_type;
+
+        public String network_fallback_delay;
+
+        public String method;
+
+        public Boolean no_drop;
+
+        public List<String> sniffer;
+
+        public String timeout;
+
+        public String strategy;
+
+        public String server;
 
     }
 
     public static class Rule_Logical extends Rule {
 
+        // Generate note: nested type RawLogicalRule
         public String mode;
 
         public List<Rule> rules;
 
         public Boolean invert;
 
+        // Generate Note: Action
+        public String action;
+
         public String outbound;
+
+        // Generate note: nested type RawRouteOptionsActionOptions
+        public String override_address;
+
+        public Integer override_port;
+
+        public Integer network_strategy;
+
+        public Integer fallback_delay;
+
+        public Boolean udp_disable_domain_unmapping;
+
+        public Boolean udp_connect;
+
+        public String udp_timeout;
+
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
+        public String network_fallback_delay;
+
+        public String method;
+
+        public Boolean no_drop;
+
+        public List<String> sniffer;
+
+        public String timeout;
+
+        public String strategy;
+
+        public String server;
 
     }
 
     public static class DNSRule_Default extends DNSRule {
 
+        // Generate note: nested type RawDefaultDNSRule
         public List<String> inbound;
 
         public Integer ip_version;
@@ -727,6 +935,8 @@ public class SingBoxOptions {
 
         public List<String> process_path;
 
+        public List<String> process_path_regex;
+
         public List<String> package_name;
 
         public List<String> user;
@@ -736,6 +946,12 @@ public class SingBoxOptions {
         public List<String> outbound;
 
         public String clash_mode;
+
+        public String network_type;
+
+        public Boolean network_is_expensive;
+
+        public Boolean network_is_constrained;
 
         public List<String> wifi_ssid;
 
@@ -749,6 +965,11 @@ public class SingBoxOptions {
 
         public Boolean invert;
 
+        public Boolean rule_set_ipcidr_match_source;
+
+        // Generate Note: Action
+        public String action;
+
         public String server;
 
         public Boolean disable_cache;
@@ -757,18 +978,24 @@ public class SingBoxOptions {
 
         public String client_subnet;
 
-        public Boolean rule_set_ipcidr_match_source;
+        public String method;
+
+        public Boolean no_drop;
 
     }
 
     public static class DNSRule_Logical extends DNSRule {
 
+        // Generate note: nested type RawLogicalDNSRule
         public String mode;
 
         public List<DNSRule> rules;
 
         public Boolean invert;
 
+        // Generate Note: Action
+        public String action;
+
         public String server;
 
         public Boolean disable_cache;
@@ -776,6 +1003,10 @@ public class SingBoxOptions {
         public Integer rewrite_ttl;
 
         public String client_subnet;
+
+        public String method;
+
+        public Boolean no_drop;
 
     }
 
@@ -855,26 +1086,16 @@ public class SingBoxOptions {
 
     }
 
-    public static class Inbound_Options extends Inbound {
-
-        public Boolean sniff;
-
-        public Boolean sniff_override_destination;
-
-        public String sniff_timeout;
-
-        public String domain_strategy;
-
-        public Boolean udp_disable_domain_unmapping;
-
-    }
-
     public static class Inbound_HTTPMixedOptions extends Inbound {
 
         // Generate note: nested type ListenOptions
         public String listen;
 
         public Integer listen_port;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean tcp_fast_open;
 
@@ -888,8 +1109,6 @@ public class SingBoxOptions {
 
         public Boolean proxy_protocol_accept_no_header;
 
-        public String detour;
-
         // Generate note: nested type InboundOptions
         public Boolean sniff;
 
@@ -900,6 +1119,8 @@ public class SingBoxOptions {
         public String domain_strategy;
 
         public Boolean udp_disable_domain_unmapping;
+
+        public String detour;
 
         public List<User> users;
 
@@ -915,8 +1136,6 @@ public class SingBoxOptions {
         public String interface_name;
 
         public Integer mtu;
-
-        public Boolean gso;
 
         public List<String> address;
 
@@ -960,8 +1179,6 @@ public class SingBoxOptions {
 
         public List<String> exclude_package;
 
-        public Boolean endpoint_independent_nat;
-
         public Long udp_timeout;
 
         public String stack;
@@ -979,6 +1196,10 @@ public class SingBoxOptions {
 
         public Boolean udp_disable_domain_unmapping;
 
+        public String detour;
+
+        public Boolean gso;
+
         public List<String> inet4_address;
 
         public List<String> inet6_address;
@@ -990,6 +1211,8 @@ public class SingBoxOptions {
         public List<String> inet4_route_exclude_address;
 
         public List<String> inet6_route_exclude_address;
+
+        public Boolean endpoint_independent_nat;
 
     }
 
@@ -1021,6 +1244,10 @@ public class SingBoxOptions {
 
         public Integer listen_port;
 
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
@@ -1033,8 +1260,6 @@ public class SingBoxOptions {
 
         public Boolean proxy_protocol_accept_no_header;
 
-        public String detour;
-
         // Generate note: nested type InboundOptions
         public Boolean sniff;
 
@@ -1045,6 +1270,8 @@ public class SingBoxOptions {
         public String domain_strategy;
 
         public Boolean udp_disable_domain_unmapping;
+
+        public String detour;
 
         public String network;
 
@@ -1081,7 +1308,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         public String override_address;
 
@@ -1118,7 +1353,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1168,7 +1411,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1195,7 +1446,7 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_SocksOptions extends Outbound {
+    public static class Outbound_SOCKSOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1222,7 +1473,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1268,7 +1527,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1315,7 +1582,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1367,7 +1642,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1414,7 +1697,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1475,7 +1766,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1526,7 +1825,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1581,7 +1888,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1632,7 +1947,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
+
+        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1662,7 +1985,25 @@ public class SingBoxOptions {
 
     }
 
-    public static class Outbound_WireGuardOptions extends Outbound {
+    public static class Endpoint_WireGuardOptions extends Endpoint {
+
+        public Boolean system;
+
+        public String name;
+
+        public Integer mtu;
+
+        public List<String> address;
+
+        public String private_key;
+
+        public Integer listen_port;
+
+        public List<WireGuardPeer> peers;
+
+        public String udp_timeout;
+
+        public Integer workers;
 
         // Generate note: nested type DialerOptions
         public String detour;
@@ -1689,53 +2030,15 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Integer network_strategy;
+
+        public String network_type;
+
+        public String fallback_network_type;
+
         public String fallback_delay;
 
-        public Boolean system_interface;
-
-        public Boolean gso;
-
-        public String interface_name;
-
-        public List<String> local_address;
-
-        public String private_key;
-
-        public List<Outbound_WireGuardPeer> peers;
-
-        // Generate note: nested type ServerOptions
-        public String server;
-
-        public Integer server_port;
-
-        public String peer_public_key;
-
-        public String pre_shared_key;
-
-        public String reserved;
-
-        public Integer workers;
-
-        public Integer mtu;
-
-        public String network;
-
-    }
-
-    public static class Outbound_WireGuardPeer extends Outbound {
-
-        // Generate note: nested type ServerOptions
-        public String server;
-
-        public Integer server_port;
-
-        public String public_key;
-
-        public String pre_shared_key;
-
-        public List<String> allowed_ips;
-
-        public String reserved;
+        public String network_fallback_delay;
 
     }
 
