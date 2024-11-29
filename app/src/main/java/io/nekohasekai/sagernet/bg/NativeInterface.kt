@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
@@ -130,11 +131,12 @@ class NativeInterface : PlatformInterface {
                 runCatching {
                     mtu = element.mtu
                 }
-                addresses =
-                    StringArray(
-                        element.interfaceAddresses.mapTo(mutableListOf()) { it.toPrefix() }
-                            .iterator()
-                    )
+                addresses = StringArray(
+                    element.interfaceAddresses.map { it.toPrefix() }.iterator()
+                )
+                runCatching {
+                    flags = element.flags
+                }
             }
         }
 
@@ -145,6 +147,13 @@ class NativeInterface : PlatformInterface {
                 "${address.hostAddress}/${networkPrefixLength}"
             }
         }
+
+        private val NetworkInterface.flags: Int
+            @SuppressLint("SoonBlockedPrivateApi")
+            get() {
+                val getFlagsMethod = NetworkInterface::class.java.getDeclaredMethod("getFlags")
+                return getFlagsMethod.invoke(this) as Int
+            }
     }
 
     private class StringArray(private val iterator: Iterator<String>) : StringIterator {

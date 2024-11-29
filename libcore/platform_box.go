@@ -54,13 +54,9 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformAutoDetectInterfaceControl() bo
 	return true
 }
 
-func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl() control.Func {
+func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl(fd int) error {
 	// "protect"
-	return func(network, address string, conn syscall.RawConn) error {
-		return control.Raw(conn, func(fd uintptr) error {
-			return w.iif.AutoDetectInterfaceControl(int32(fd))
-		})
-	}
+	return w.iif.AutoDetectInterfaceControl(int32(fd))
 }
 
 func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
@@ -117,6 +113,7 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]control.Interface, error) 
 			MTU:       int(netInterface.MTU),
 			Name:      netInterface.Name,
 			Addresses: common.Map(iteratorToArray[string](netInterface.Addresses), netip.MustParsePrefix),
+			Flags:     linkFlags(uint32(netInterface.Flags)),
 		})
 	}
 	return interfaces, nil
@@ -165,5 +162,6 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network
 	return &process.Info{UserId: uid, PackageName: packageName}, nil
 }
 
-func (w *boxPlatformInterfaceWrapper) OpenURL(url string) {
+func (w *boxPlatformInterfaceWrapper) SendNotification(_ *platform.Notification) error {
+	return nil
 }

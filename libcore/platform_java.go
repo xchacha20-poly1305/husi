@@ -17,19 +17,3 @@ type PlatformInterface interface {
 	SelectorCallback(tag string)
 	ClashModeCallback(mode string)
 }
-
-type InterfaceUpdateListener interface {
-	UpdateDefaultInterface(interfaceName string, interfaceIndex int32)
-}
-
-type NetworkInterface struct {
-	Index     int32
-	MTU       int32
-	Name      string
-	Addresses StringIterator
-}
-
-type NetworkInterfaceIterator interface {
-	Next() *NetworkInterface
-	HasNext() bool
-}

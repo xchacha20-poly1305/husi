@@ -27,7 +27,7 @@ func (p platformInterfaceStub) UsePlatformAutoDetectInterfaceControl() bool {
 	return true
 }
 
-func (p platformInterfaceStub) AutoDetectInterfaceControl() control.Func {
+func (p platformInterfaceStub) AutoDetectInterfaceControl(_ int) error {
 	return nil
 }
 
@@ -70,6 +70,10 @@ func (p platformInterfaceStub) FindProcessInfo(_ context.Context, _ string, _ ne
 	return &process.Info{}, nil
 }
 
+func (p platformInterfaceStub) SendNotification(_ *platform.Notification) error {
+	return nil
+}
+
 var _ tun.DefaultInterfaceMonitor = interfaceMonitorStub{}
 
 type interfaceMonitorStub struct{}
@@ -107,7 +111,4 @@ func (i interfaceMonitorStub) RegisterCallback(_ tun.DefaultInterfaceUpdateCallb
 }
 
 func (i interfaceMonitorStub) UnregisterCallback(_ *list.Element[tun.DefaultInterfaceUpdateCallback]) {
-}
-
-func (p platformInterfaceStub) OpenURL(url string) {
 }

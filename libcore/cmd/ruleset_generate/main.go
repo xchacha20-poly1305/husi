@@ -77,7 +77,7 @@ func main() {
 				},
 			}
 			buf.Reset()
-			err = srs.Write(buf, plainRuleSet, true)
+			err = srs.Write(buf, plainRuleSet, C.RuleSetVersionCurrent)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -133,7 +133,7 @@ func main() {
 				},
 			}
 			buf.Reset()
-			err = srs.Write(buf, plainRuleSet, true)
+			err = srs.Write(buf, plainRuleSet, C.RuleSetVersionCurrent)
 			if err != nil {
 				log.Fatal(err)
 			}
