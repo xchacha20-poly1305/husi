@@ -39,7 +39,12 @@ class ConnectionFragment(private val conn: Connection) :
     private fun bind() {
         binding.connNetwork.text = conn.network.uppercase()
         binding.connTime.text = conn.start
-        binding.connIPVersion.text = conn.ipVersion
+        if (conn.ipVersion > 0) {
+            binding.connIPVersionLayout.isVisible = true
+            binding.connIPVersion.text = conn.ipVersion.toString()
+        } else {
+            binding.connIPVersionLayout.isVisible = false
+        }
         binding.connUpload.text = Libcore.formatBytes(conn.uploadTotal)
         binding.connDownload.text = Libcore.formatBytes(conn.downloadTotal)
         binding.connInbound.text = conn.inbound
