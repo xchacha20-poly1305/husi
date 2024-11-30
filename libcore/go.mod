@@ -8,7 +8,7 @@ require (
 	github.com/miekg/dns v1.1.62
 	github.com/sagernet/gomobile v0.1.4
 	github.com/sagernet/sing v0.5.1
-	github.com/sagernet/sing-box v1.10.4-0.20241128045756-5a661cde678e
+	github.com/sagernet/sing-box v1.10.4-0.20241130042048-6e7ecbd4f53f
 	github.com/sagernet/sing-dns v0.3.0
 	github.com/sagernet/sing-tun v0.4.2
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
