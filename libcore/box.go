@@ -22,6 +22,7 @@ import (
 	"github.com/sagernet/sing/service/pause"
 
 	"libcore/protect"
+	"libcore/trackerchain"
 	"libcore/v2rayapilite"
 )
 
@@ -124,6 +125,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		// API
 		b.clash = service.FromContext[adapter.ClashServer](b.ctx).(*clashapi.Server)
 		b.v2ray = service.FromContext[adapter.V2RayServer](b.ctx).(*v2rayapilite.V2rayServer)
+		b.Router().SetTracker(trackerchain.New(b.v2ray.StatsService(), b.clash))
 
 	}
 
