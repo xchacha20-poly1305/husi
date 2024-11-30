@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class Connection(
     var uuid: String = "",
     var inbound: String = "",
-    var ipVersion: String = "",
+    var ipVersion: Short = 0,
     var network: String = "",
     var uploadTotal: Long = 0L,
     var downloadTotal: Long = 0L,

@@ -3,10 +3,12 @@ package libcore
 import (
 	"cmp"
 	"runtime"
+	"strings"
 	"time"
 
-	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/experimental/clashapi"
+	"github.com/sagernet/sing-box/experimental/clashapi/trafficontrol"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
@@ -22,26 +24,29 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 		return nil, E.New("failed to get clash server")
 	}
 
-	connections := clash.TrafficManager().Snapshot().Connections
-	trackerInfos := make([]*TrackerInfo, 0, len(connections))
-	for _, conn := range connections {
-		metadata := conn.Metadata()
-		trackerInfos = append(trackerInfos, &TrackerInfo{
-			UUID:          metadata.ID,
-			Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
-			IPVersion:     F.ToString(metadata.Metadata.IPVersion),
-			Network:       metadata.Metadata.Network,
-			Src:           metadata.Metadata.Source,
-			Dst:           metadata.Metadata.Destination,
-			Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
-			MatchedRule:   generateRule(metadata.Rule, metadata.Metadata.Outbound),
-			UploadTotal:   metadata.Upload.Load(),
-			DownloadTotal: metadata.Download.Load(),
-			Start:         metadata.CreatedAt,
-			Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
-			Chain:         chainToString(metadata.Chain),
-		})
-	}
+	trackerInfos := common.Map(clash.TrafficManager().Connections(), func(it trafficontrol.TrackerMetadata) *TrackerInfo {
+		var rule string
+		if it.Rule == nil {
+			rule = "final"
+		} else {
+			rule = F.ToString(it.Rule, " => ", it.Rule.Outbound())
+		}
+		return &TrackerInfo{
+			UUID:          it.ID,
+			Inbound:       generateBound(it.Metadata.Inbound, it.Metadata.InboundType),
+			IPVersion:     int16(it.Metadata.IPVersion),
+			Network:       it.Metadata.Network,
+			Src:           it.Metadata.Source,
+			Dst:           it.Metadata.Destination,
+			Host:          cmp.Or(it.Metadata.Domain, it.Metadata.Destination.Fqdn),
+			MatchedRule:   rule,
+			UploadTotal:   it.Upload.Load(),
+			DownloadTotal: it.Download.Load(),
+			Start:         it.CreatedAt,
+			Outbound:      generateBound(it.Outbound, it.OutboundType),
+			Chain:         strings.Join(it.Chain, " => "),
+		}
+	})
 
 	return &iterator[*TrackerInfo]{trackerInfos}, nil
 }
@@ -73,7 +78,7 @@ type TrackerInfoIterator interface {
 type TrackerInfo struct {
 	UUID          uuid.UUID
 	Inbound       string
-	IPVersion     string
+	IPVersion     int16
 	Network       string
 	Src, Dst      M.Socksaddr
 	Host          string
@@ -101,31 +106,12 @@ func (t *TrackerInfo) GetStart() string {
 	return t.Start.Format(time.DateTime)
 }
 
-// generateBound formats inbound/outbound's name.
+// generateBound formats inbound/outbound name.
 func generateBound(bound, boundType string) string {
 	if bound == "" {
 		return boundType
 	}
 	return bound + "/" + boundType
-}
-
-// generateRule formats the rule chain.
-func generateRule(rule adapter.Rule, outbound string) string {
-	if rule != nil {
-		return F.ToString(rule.String(), " => ", outbound)
-	}
-	return "final"
-}
-
-// chainToString formats connection chain.
-func chainToString(raw []string) (chain string) {
-	for i, c := range raw {
-		chain += c
-		if i != len(raw)-1 {
-			chain += " >> "
-		}
-	}
-	return
 }
 
 // GetMemory returns memory status.
