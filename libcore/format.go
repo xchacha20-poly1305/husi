@@ -3,6 +3,8 @@ package libcore
 import (
 	"bytes"
 	"context"
+	"time"
+	_ "unsafe"
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/humanize"
@@ -69,3 +71,12 @@ func CheckConfig(configContent string) error {
 	defer instance.Close()
 	return nil
 }
+
+// ParseDuration parses Go style duration.
+func ParseDuration(raw string) (int64, error) {
+	duration, err := parseMyDuration(raw)
+	return int64(duration), err
+}
+
+//go:linkname parseMyDuration github.com/sagernet/sing/common/json/badoption/internal/my_time.ParseDuration
+func parseMyDuration(raw string) (time.Duration, error)

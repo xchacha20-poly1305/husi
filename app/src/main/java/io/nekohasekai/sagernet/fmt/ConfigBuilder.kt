@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SniffPolicy
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.DataStore
@@ -196,8 +197,8 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
-    val needSniff = DataStore.trafficSniffing > 0
-    val needSniffOverride = DataStore.trafficSniffing == 2 // TODO readd
+    val needSniff = DataStore.trafficSniffing > SniffPolicy.DISABLED
+    val needSniffOverride = DataStore.trafficSniffing == SniffPolicy.OVERRIDE // TODO re-add
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
 
@@ -930,6 +931,7 @@ fun buildConfig(
             if (needSniff) {
                 route.rules.add(0, Rule_Default().apply {
                     action = SingBoxOptions.ACTION_SNIFF
+                    timeout = DataStore.sniffTimeout
                 })
             }
         }
