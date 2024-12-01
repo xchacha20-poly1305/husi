@@ -201,6 +201,7 @@ fun buildConfig(
     val needSniffOverride = DataStore.trafficSniffing == SniffPolicy.OVERRIDE // TODO re-add
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
+    var udpDisableUnmapping = DataStore.udpDisableUnmapping
 
     fun genDomainStrategy(noAsIs: Boolean): String {
         return when {
@@ -430,6 +431,10 @@ fun buildConfig(
                         server = LOCALHOST4
                         server_port = localPort
                     }.asMap()
+
+                    // https://github.com/juicity/juicity/issues/140
+                    // We can't ensure that each plugin can handle packet in a right way.
+                    udpDisableUnmapping = true
                 } else { // internal outbound
                     currentOutbound = when (bean) {
                         is ConfigBean -> gson.fromJson(bean.config, currentOutbound.javaClass)
@@ -928,6 +933,10 @@ fun buildConfig(
                 })
             }
 
+            if (udpDisableUnmapping) route.rules.add(0, Rule_Default().apply {
+                action = SingBoxOptions.ACTION_ROUTE_OPTIONS
+                udp_disable_domain_unmapping = true
+            })
             if (needSniff) {
                 route.rules.add(0, Rule_Default().apply {
                     action = SingBoxOptions.ACTION_SNIFF
