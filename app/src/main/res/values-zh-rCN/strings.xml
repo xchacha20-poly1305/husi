@@ -588,4 +588,5 @@
     <string name="allow_apps_bypass_vpn">允许应用绕过 VPN</string>
     <string name="clash_mode">Clash 模式</string>
     <string name="sniff_timeout">嗅探超时</string>
+    <string name="udp_disable_unmapping">为 UDP 禁用未映射的域</string>
 </resources>

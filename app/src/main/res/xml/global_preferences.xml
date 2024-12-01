@@ -140,6 +140,11 @@
             app:key="resolveDestination"
             app:summary="@string/resolve_destination_summary"
             app:title="@string/resolve_destination" />
+        <SwitchPreference
+            app:defaultValue="true"
+            app:icon="@drawable/ic_maps_directions"
+            app:key="udpDisableUnmapping"
+            app:title="@string/udp_disable_unmapping" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:defaultValue="1"
             app:entries="@array/ipv6_mode"
