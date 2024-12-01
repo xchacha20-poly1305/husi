@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/clashapi/trafficontrol"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -22,7 +23,10 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 		return nil, E.New("not include clash server")
 	}
 
-	trackerInfos := common.Map(b.clash.TrafficManager().Connections(), func(it trafficontrol.TrackerMetadata) *TrackerInfo {
+	connections := common.Filter(b.clash.TrafficManager().Connections(), func(it trafficontrol.TrackerMetadata) bool {
+		return it.Metadata.Protocol != C.ProtocolDNS
+	})
+	trackerInfos := common.Map(connections, func(it trafficontrol.TrackerMetadata) *TrackerInfo {
 		var rule string
 		if it.Rule == nil {
 			rule = "final"
@@ -43,6 +47,7 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 			Start:         it.CreatedAt,
 			Outbound:      generateBound(it.Outbound, it.OutboundType),
 			Chain:         strings.Join(it.Chain, " => "),
+			Protocol:      it.Metadata.Protocol,
 		}
 	})
 
@@ -85,6 +90,7 @@ type TrackerInfo struct {
 	Start         time.Time
 	Outbound      string
 	Chain         string
+	Protocol      string
 }
 
 func (t *TrackerInfo) GetSrc() string {
@@ -92,6 +98,9 @@ func (t *TrackerInfo) GetSrc() string {
 }
 
 func (t *TrackerInfo) GetDst() string {
+	if !t.Dst.IsValid() {
+		return ""
+	}
 	return t.Dst.String()
 }
 
