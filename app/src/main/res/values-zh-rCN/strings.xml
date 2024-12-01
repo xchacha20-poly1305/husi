@@ -589,4 +589,8 @@
     <string name="clash_mode">Clash 模式</string>
     <string name="sniff_timeout">嗅探超时</string>
     <string name="udp_disable_unmapping">为 UDP 禁用未映射的域</string>
+    <string name="network_type">网络类型</string>
+    <string name="network_cellular">移动数据</string>
+    <string name="network_ethernet">以太网</string>
+    <string name="network_expensive">昂贵的网络</string>
 </resources>

@@ -27,6 +27,8 @@ data class RuleEntity(
     var bssid: String = "",
     @ColumnInfo(defaultValue = "") var clientType: String = "",
     @ColumnInfo(defaultValue = "") var clashMode: String = "",
+    @ColumnInfo(defaultValue = "") var networkType: String = "",
+    @ColumnInfo(defaultValue = "0") var networkIsExpensive: Boolean = false,
 ) : Parcelable {
 
     companion object {
@@ -60,7 +62,9 @@ data class RuleEntity(
         if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
         if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
         if (clientType.isNotBlank()) summary += "client: $clientType\n"
-        if (clashMode.isNotBlank()) summary += "Clash mode: $clashMode\n"
+        if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
+        if (networkType.isNotBlank()) summary += "networkType: $networkType\n"
+        if (networkIsExpensive) summary += "networkIsExpensive\n"
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {
             lines.subList(0, 3).joinToString("\n", postfix = "\n...")

@@ -10,6 +10,13 @@
         app:icon="@drawable/ic_baseline_legend_toggle_24"
         app:key="routePackages"
         app:title="@string/apps" />
+    <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        app:entries="@array/network_type_entry"
+        app:entryValues="@array/network_type_value"
+        app:icon="@drawable/baseline_public_24"
+        app:key="routeNetworkType"
+        app:title="@string/network_type"
+        app:useSimpleSummaryProvider="true" />
     <PreferenceCategory app:title="@string/cag_route">
         <EditTextPreference
             app:icon="@drawable/ic_baseline_domain_24"
@@ -69,6 +76,11 @@
             app:icon="@drawable/baseline_public_24"
             app:key="routeClashMode"
             app:title="@string/clash_mode"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_card_giftcard_24"
+            app:key="routeNetworkIsExpensive"
+            app:title="@string/network_expensive"
             app:useSimpleSummaryProvider="true" />
         <io.nekohasekai.sagernet.widget.OutboundPreference
             app:icon="@drawable/ic_hardware_router"

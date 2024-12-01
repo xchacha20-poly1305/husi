@@ -538,4 +538,20 @@
         <item>SIP008</item>
     </string-array>
 
+    <string-array name="network_type_entry">
+        <item>@string/not_set</item>
+        <item>@string/network_wifi</item>
+        <item>@string/network_cellular</item>
+        <item>@string/network_ethernet</item>
+        <item>@string/vpn_app_type_other</item>
+    </string-array>
+
+    <string-array name="network_type_value">
+        <item></item>
+        <item>wifi</item>
+        <item>cellular</item>
+        <item>ethernet</item>
+        <item>other</item>
+    </string-array>
+
 </resources>

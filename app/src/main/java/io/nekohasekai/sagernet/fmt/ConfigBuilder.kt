@@ -675,6 +675,12 @@ fun buildConfig(
                 if (rule.clashMode.isNotBlank()) {
                     clash_mode = rule.clashMode
                 }
+                if (rule.networkType.isNotBlank()) {
+                    network_type = rule.networkType
+                }
+                if (rule.networkIsExpensive) {
+                    network_is_expensive = true
+                }
 
                 fun makeDnsRuleObj(): DNSRule_Default {
                     return DNSRule_Default().apply {

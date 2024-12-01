@@ -149,6 +149,8 @@ fun Rule_Default.checkEmpty(): Boolean {
     if (wifi_ssid?.isNotEmpty() == true) return false
     if (wifi_bssid?.isNotEmpty() == true) return false
     if (clash_mode?.isNotEmpty() == true) return false
+    if (network_type?.isNotEmpty() == true) return false
+    if (network_is_expensive == true) return false
     return true
 }
 
