@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"testing"
+	"time"
 
 	"github.com/sagernet/sing-box/common/humanize"
 )
@@ -145,5 +146,97 @@ func Test_CheckConfig(t *testing.T) {
 			continue
 		}
 		t.Logf("TestCheckConfig [%s] passed", tt.name)
+	}
+}
+
+func Test_ParseDuration(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		want    int64
+		wantErr bool
+	}{
+		{
+			name:    "valid duration",
+			raw:     "30s",
+			want:    int64(30 * time.Second),
+			wantErr: false,
+		},
+		{
+			name:    "valid duration with milliseconds",
+			raw:     "30.5s",
+			want:    int64(30500 * time.Millisecond),
+			wantErr: false,
+		},
+		{
+			name:    "valid duration with microseconds",
+			raw:     "30.000005s",
+			want:    int64(30000005 * time.Microsecond),
+			wantErr: false,
+		},
+
+		{
+			name:    "valid duration with nanoseconds",
+			raw:     "30.000000005s",
+			want:    int64(30000000005 * time.Nanosecond),
+			wantErr: false,
+		},
+
+		{
+			name:    "zero duration",
+			raw:     "0s",
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name:    "negative duration",
+			raw:     "-30s",
+			want:    int64(-30 * time.Second),
+			wantErr: false,
+		},
+		{
+			name:    "invalid duration",
+			raw:     "invalid",
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "empty duration",
+			raw:     "",
+			want:    0,
+			wantErr: true,
+		},
+
+		{
+			name:    "minutes",
+			raw:     "1m",
+			want:    int64(time.Minute),
+			wantErr: false,
+		},
+		{
+			name:    "hours",
+			raw:     "1h",
+			want:    int64(time.Hour),
+			wantErr: false,
+		},
+
+		{
+			name:    "days",
+			raw:     "24h", // One day
+			want:    int64(24 * time.Hour),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseDuration(tt.raw)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseDuration() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ParseDuration() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

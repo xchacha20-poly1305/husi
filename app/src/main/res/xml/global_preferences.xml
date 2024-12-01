@@ -125,10 +125,15 @@
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:defaultValue="1"
             app:entries="@array/traffic_sniffing_values"
-            app:entryValues="@array/int_array_3"
+            app:entryValues="@array/int_array_2"
             app:icon="@drawable/ic_baseline_manage_search_24"
             app:key="trafficSniffing"
             app:title="@string/traffic_sniffing"
+            app:useSimpleSummaryProvider="true" />
+        <io.nekohasekai.sagernet.widget.DurationPreference
+            app:icon="@drawable/ic_baseline_bolt"
+            app:key="sniffTimeout"
+            app:title="@string/sniff_timeout"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
             app:icon="@drawable/baseline_wrap_text_24"
@@ -308,8 +313,8 @@
             app:icon="@drawable/ic_baseline_shutter_speed_24"
             app:key="interruptSelector"
             app:title="@string/interrupt_selector" />
-        <EditTextPreference
-            app:defaultValue="15"
+        <io.nekohasekai.sagernet.widget.DurationPreference
+            app:defaultValue="15s"
             app:icon="@drawable/ic_baseline_flip_camera_android_24"
             app:key="tcpKeepAliveInterval"
             app:title="@string/tcp_keep_alive_interval"

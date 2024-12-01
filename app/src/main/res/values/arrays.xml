@@ -232,7 +232,7 @@
     </string-array>
 
     <string-array name="route_protocol_value">
-        <item/>
+        <item />
         <item>tcp</item>
         <item>udp</item>
     </string-array>
@@ -370,7 +370,7 @@
         <item>@string/leastPing</item>
     </string-array>
     <string-array name="balancer_strategy_value">
-        <item/>
+        <item />
         <item>leastPing</item>
     </string-array>
 
@@ -443,7 +443,7 @@
         <item>yamux</item>
     </string-array>
 
-    <string-array name="mux_strategies" >
+    <string-array name="mux_strategies">
         <item>@string/mux_max_connections</item>
         <item>@string/mux_min_streams</item>
         <item>@string/mux_max_streams</item>
@@ -517,7 +517,7 @@
     <string-array name="traffic_sniffing_values">
         <item>@string/off</item>
         <item>@string/sniff_routing</item>
-        <item>@string/sniff_override</item>
+        <!--        <item>@string/sniff_override</item>-->
     </string-array>
 
     <string-array name="plugin_providers">
