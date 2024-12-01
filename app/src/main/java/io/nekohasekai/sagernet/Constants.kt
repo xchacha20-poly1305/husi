@@ -40,6 +40,7 @@ object Key {
     const val METERED_NETWORK = "meteredNetwork"
 
     const val TRAFFIC_SNIFFING = "trafficSniffing"
+    const val SNIFF_TIMEOUT = "sniffTimeout"
     const val RESOLVE_DESTINATION = "resolveDestination"
 
     const val BYPASS_LAN = "bypassLan"
@@ -138,7 +139,6 @@ object Key {
     const val SERVER_TLS_CAMOUFLAGE_CATEGORY = "serverTlsCamouflageCategory"
     const val SERVER_ECH_CATEGORY = "serverEchCategory"
     const val SERVER_WS_CATEGORY = "serverWsCategory"
-    const val SERVER_SS_CATEGORY = "serverSsCategory"
     const val SERVER_MUX_CATEGORY = "serverMuxCategory"
     const val SERVER_HEADERS = "serverHeaders"
     const val SERVER_ALLOW_INSECURE = "serverAllowInsecure"
@@ -273,4 +273,10 @@ object RuleProvider {
     fun hasUnstableBranch(provider: Int): Boolean {
         return provider in OFFICIAL..LOYALSOLDIER
     }
+}
+
+object SniffPolicy {
+    const val DISABLED = 0
+    const val ENABLED = 1
+    const val OVERRIDE = 2 // TODO: re-add
 }
