@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -24,7 +23,6 @@ import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -40,6 +38,7 @@ import io.nekohasekai.sagernet.widget.AppListPreference
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.OutboundPreference
 import kotlinx.parcelize.Parcelize
+import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class RouteSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_settings_activity,
@@ -69,6 +68,8 @@ class RouteSettingsActivity(
         DataStore.routeBSSID = bssid
         DataStore.routeClient = clientType
         DataStore.routeClashMode = clashMode
+        DataStore.routeNetworkType = networkType
+        DataStore.routeNetworkIsExpensive = networkIsExpensive
         DataStore.routeOutbound = when (outbound) {
             RuleEntity.OUTBOUND_PROXY -> 0
             RuleEntity.OUTBOUND_DIRECT -> 1
@@ -91,6 +92,8 @@ class RouteSettingsActivity(
         bssid = DataStore.routeBSSID
         clientType = DataStore.routeClient
         clashMode = DataStore.routeClashMode
+        networkType = DataStore.routeNetworkType
+        networkIsExpensive = DataStore.routeNetworkIsExpensive
         outbound = when (DataStore.routeOutbound) {
             0 -> RuleEntity.OUTBOUND_PROXY
             1 -> RuleEntity.OUTBOUND_DIRECT
@@ -120,6 +123,8 @@ class RouteSettingsActivity(
             DataStore.routeBSSID.isBlank() &&
             DataStore.routeClient.isBlank() &&
             DataStore.routeClashMode.isBlank() &&
+            DataStore.routeNetworkType.isBlank() &&
+            DataStore.routeNetworkIsExpensive &&
             DataStore.routeOutbound == 0
         ) {
             return false
@@ -137,7 +142,7 @@ class RouteSettingsActivity(
     val selectProfileForAdd = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { (resultCode, data) ->
-        if (resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+        if (resultCode == RESULT_OK) runOnDefaultDispatcher {
             val profile = ProfileManager.getProfile(
                 data!!.getLongExtra(
                     ProfileSelectActivity.EXTRA_PROFILE_ID, 0
@@ -158,10 +163,16 @@ class RouteSettingsActivity(
 
     lateinit var outbound: OutboundPreference
     lateinit var apps: AppListPreference
+    lateinit var networkType: SimpleMenuPreference
+    lateinit var ssid: EditTextPreference
+    lateinit var bssid: EditTextPreference
 
     fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
         outbound = findPreference(Key.ROUTE_OUTBOUND)!!
         apps = findPreference(Key.ROUTE_PACKAGES)!!
+        networkType = findPreference(Key.ROUTE_NETWORK_TYPE)!!
+        ssid = findPreference(Key.ROUTE_SSID)!!
+        bssid = findPreference(Key.ROUTE_BSSID)!!
 
         outbound.setOnPreferenceChangeListener { _, newValue ->
             if (newValue.toString() == "3") {
@@ -182,6 +193,17 @@ class RouteSettingsActivity(
                     this@RouteSettingsActivity, AppListActivity::class.java
                 )
             )
+            true
+        }
+
+        fun updateNetwork(newValue: String = networkType.value) {
+            val visible = newValue == NETWORK_TYPE_WIFI
+            ssid.isVisible = visible
+            bssid.isVisible = visible
+        }
+        updateNetwork()
+        networkType.setOnPreferenceChangeListener { _, newValue ->
+            updateNetwork(newValue as String)
             true
         }
     }
@@ -223,6 +245,8 @@ class RouteSettingsActivity(
     companion object {
         const val EXTRA_ROUTE_ID = "id"
         const val EXTRA_PACKAGE_NAME = "pkg"
+
+        const val NETWORK_TYPE_WIFI = "wifi"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -344,9 +368,9 @@ class RouteSettingsActivity(
                 }
             } catch (e: Exception) {
                 Toast.makeText(
-                    SagerNet.application,
+                    app,
                     "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 Logs.e(e)
             }

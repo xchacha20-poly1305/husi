@@ -276,7 +276,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeSSID by profileCacheStore.string(Key.ROUTE_SSID)
     var routeBSSID by profileCacheStore.string(Key.ROUTE_BSSID)
     var routeClient by profileCacheStore.string(Key.ROUTE_CLIENT)
-    var routeClashMode by profileCacheStore.string(Key.CLASH_MODE)
+    var routeClashMode by profileCacheStore.string(Key.ROUTE_CLASH_MODE)
+    var routeNetworkType by profileCacheStore.string(Key.ROUTE_NETWORK_TYPE)
+    var routeNetworkIsExpensive by profileCacheStore.boolean(Key.ROUTE_NETWORK_IS_EXPENSIVE)
 
     var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")
     var landingProxy by profileCacheStore.long(Key.GROUP_LANDING_PROXY + "Long")
