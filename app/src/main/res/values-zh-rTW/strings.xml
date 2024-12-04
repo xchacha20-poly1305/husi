@@ -27,7 +27,7 @@
     <string name="group_no_difference">%s: 沒有變化</string>
     <string name="group_updated">%s: 更新了 %d 個代理</string>
     <string name="group_show_diff">變化</string>
-    <string name="group_delete_confirm_prompt">您真的希望刪除這個群組嗎？</string>
+    <string name="group_delete_confirm_prompt">確認刪除此分組？</string>
     <string name="group_added">新增：
         \n%s
     </string>
@@ -585,4 +585,12 @@
     <string name="mux_max_streams">最大流數</string>
     <string name="override_address">覆寫位址</string>
     <string name="override_port">覆蓋連接埠</string>
+    <string name="allow_apps_bypass_vpn">允許應用程式繞過 VPN</string>
+    <string name="udp_disable_unmapping">禁用取消映射 UDP</string>
+    <string name="network_type">網路類型</string>
+    <string name="network_cellular">蜂窩數據</string>
+    <string name="network_ethernet">乙太網路</string>
+    <string name="network_expensive">高資費網路</string>
+    <string name="clash_mode">Clash 模式</string>
+    <string name="sniff_timeout">嗅探超時</string>
 </resources>
