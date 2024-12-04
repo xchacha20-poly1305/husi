@@ -599,4 +599,10 @@
     <string name="override_port">Anular puerto</string>
     <string name="allow_apps_bypass_vpn">Permitir que las aplicaciones eviten la VPN</string>
     <string name="clash_mode">Modo de enfrentamiento</string>
+    <string name="network_cellular">Datos móviles</string>
+    <string name="network_ethernet">Ethernet</string>
+    <string name="sniff_timeout">Tiempo de espera de rastreo</string>
+    <string name="network_expensive">La red es costosa</string>
+    <string name="udp_disable_unmapping">Desactivar el desmapeo UDP</string>
+    <string name="network_type">Tipo de red</string>
 </resources>
