@@ -12,7 +12,7 @@
 
 ### 📚 Localization
 
-Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the 
+Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the
 translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
 
 [![Translation status](https://hosted.weblate.org/widgets/husi/-/horizontal-auto.svg)](https://hosted.weblate.org/engage/husi/)
@@ -21,7 +21,8 @@ translations on our [Weblate](https://hosted.weblate.org/engage/husi/).
 
 In Linux, you can build husi reproducibly for release version.
 
-For this, you should use the same version of JDK, NDK as below. And Go version should as same as [version.sh](./buildScript/init/version.sh).
+For this, you should use the same version of JDK, NDK as below. And Go version should as same
+as [version.sh](./buildScript/init/version.sh).
 
 #### 🧰 Get the Source Code
 
@@ -42,11 +43,14 @@ Environment:
 
   1.23.5: Apply [this patch](./libcore/patches/cgo_go1225.diff) to `${GOROOT}/src/runtime/cgocall.go`
 
-  1.23.x: Apply [this patch](https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch) to `${GOROOT}`
+  1.23.0-1.23.3: Apply [this patch](https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch)
+  to`${GOROOT}`. `make patch_go1230`
+
+  1.23.4+: Apply [this patch](./libcore/patches/cgo_go1234.diff) to `$(GOROOT)`. `make patch_go1234`
 
   </details>
 
-* Openjdk-21 (Later is OK, too.)
+* Openjdk-21 (Later may OK, too.)
 
 Run:
 
@@ -67,13 +71,15 @@ Environment:
 * jdk-21
 * ndk 27.0.12077973
 
-If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script `buildScript/init/env_ndk.sh`:
+If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script
+`buildScript/init/env_ndk.sh`:
 
 ```shell
 echo "sdk.dir=${ANDROID_HOME}" > local.properties
 ```
 
-Signing preparation (optional, it is recommended to sign after compilation): Replace `release.keystore` with your own keystore.
+Signing preparation (optional, it is recommended to sign after compilation): Replace `release.keystore` with your own
+keystore.
 
 ```shell
 echo "KEYSTORE_PASS=" >> local.properties
