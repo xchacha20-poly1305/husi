@@ -45,6 +45,7 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 			Start:         it.CreatedAt,
 			Outbound:      generateBound(it.Outbound, it.OutboundType),
 			Chain:         strings.Join(it.Chain, " => "),
+			Protocol:      it.Metadata.Protocol,
 		}
 	})
 
@@ -88,6 +89,7 @@ type TrackerInfo struct {
 	Start         time.Time
 	Outbound      string
 	Chain         string
+	Protocol      string
 }
 
 func (t *TrackerInfo) GetSrc() string {
