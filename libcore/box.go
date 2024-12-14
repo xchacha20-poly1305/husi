@@ -14,7 +14,6 @@ import (
 	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
-	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -84,6 +83,9 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		// If set PlatformLogWrapper, box will set something about cache file,
 		// which will panic with simple configuration (when URL test).
 		platformLogWriter = platformLogWrapper
+	} else {
+		// Make the behavior like platform.
+		service.MustRegister[platform.Interface](ctx, platformInterfaceStub{})
 	}
 	boxOption := box.Options{
 		Options:           options,
@@ -168,7 +170,9 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		return nil
 	}
 
-	_ = common.Close(b.v2ray, b.protect)
+	if b.protect != nil {
+		_ = b.protect.Close()
+	}
 
 	if b.clashModeHook != nil {
 		select {

@@ -146,6 +146,9 @@ func (p *Protect) handleError(err error) {
 }
 
 func (p *Protect) Close() error {
+	if p.done == nil {
+		return os.ErrInvalid
+	}
 	select {
 	case <-p.done:
 		return net.ErrClosed

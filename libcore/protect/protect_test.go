@@ -21,6 +21,7 @@ func Test_Protect(t *testing.T) {
 	)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	ctx = log.ContextWithOverrideLevel(ctx, log.LevelTrace)
 	service, err := New(ctx, log.StdLogger(), testProtectPath, func(fd int) error {
 		if fd < 0 {
 			return E.New("invalid fd: ", fd)
@@ -76,7 +77,7 @@ func Test_Protect(t *testing.T) {
 		do := control.ProtectPath(test.arg.path)
 		err := do(netUnix, "", fdProvider(test.arg.fd))
 		if (err != nil) != test.wantErr {
-			t.Errorf("protect failed for [%s]", test.name)
+			t.Errorf("protect failed for [%s]: %v", test.name, err)
 			return
 		}
 	}
