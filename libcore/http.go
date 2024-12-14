@@ -84,20 +84,8 @@ type HTTPResponse interface {
 	// GetHeader returns the header corresponding to the key.
 	GetHeader(key string) string
 
-	// GetContent returns server content in response.
-	// Check GetError to get error.
-	GetContent() []byte
 	// GetContentString returns server content string in response.
-	// Check GetError to get error.
-	GetContentString() string
-
-	// GetError returns the error after content.
-	// According to https://github.com/golang/go/issues/46893 ,
-	// We will get "fatal error: bulkBarrierPreWrite: unaligned arguments"
-	// in some cases that return []byte.
-	// So not returns error directly.
-	// Invoke it to get http error instead of parse content error.
-	GetError() error
+	GetContentString() (*StringWrapper, error)
 
 	// WriteTo writes content to the file of `path`.
 	// callback could be nil
@@ -278,37 +266,30 @@ type httpResponse struct {
 }
 
 func (h *httpResponse) errorString() string {
-	content := h.GetContentString()
-	if h.contentError != nil {
+	content, err := h.GetContentString()
+	if err != nil {
 		return F.ToString("HTTP ", h.Response.Status)
 	}
-	if len(content) > 100 {
-		content = content[:100] + " ..."
+	httpValue := content.Value
+	if len(httpValue) > 100 {
+		httpValue = httpValue[:100] + " ..."
 	}
-	return F.ToString("HTTP ", h.Response.Status, ": ", content)
+	return F.ToString("HTTP ", h.Response.Status, ": ", httpValue)
 }
 
 func (h *httpResponse) GetHeader(key string) string {
 	return h.Response.Header.Get(key)
 }
 
-func (h *httpResponse) GetContent() []byte {
+func (h *httpResponse) GetContentString() (*StringWrapper, error) {
 	h.getContentOnce.Do(func() {
 		defer h.Body.Close()
 		h.content, h.contentError = io.ReadAll(h.Body)
 	})
 	if h.contentError != nil {
-		return nil
+		return nil, h.contentError
 	}
-	return h.content
-}
-
-func (h *httpResponse) GetContentString() string {
-	content := h.GetContent()
-	if h.contentError != nil {
-		return ""
-	}
-	return string(content)
+	return wrapString(string(h.content)), nil
 }
 
 func (h *httpResponse) GetError() error {
