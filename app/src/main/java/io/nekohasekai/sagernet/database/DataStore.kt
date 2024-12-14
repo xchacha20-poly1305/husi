@@ -99,7 +99,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { SniffPolicy.ENABLED }
     var sniffTimeout by configurationStore.string(Key.SNIFF_TIMEOUT)
     var resolveDestination by configurationStore.boolean(Key.RESOLVE_DESTINATION)
-    var udpDisableUnmapping by configurationStore.boolean(Key.UDP_DISABLE_UNMAPPING) { true }
 
     //    var tcpKeepAliveInterval by configurationStore.stringToInt(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
     var mtu by configurationStore.stringToInt(Key.MTU) { 9000 }

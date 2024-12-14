@@ -42,7 +42,6 @@ object Key {
     const val TRAFFIC_SNIFFING = "trafficSniffing"
     const val SNIFF_TIMEOUT = "sniffTimeout"
     const val RESOLVE_DESTINATION = "resolveDestination"
-    const val UDP_DISABLE_UNMAPPING = "udpDisableUnmapping"
 
     const val BYPASS_LAN = "bypassLan"
     const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
