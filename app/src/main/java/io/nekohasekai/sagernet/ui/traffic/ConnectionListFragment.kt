@@ -69,7 +69,9 @@ class ConnectionListFragment : Fragment(R.layout.layout_connection_list) {
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
-            binding.connectionNetwork.text = connection.network.uppercase()
+            var networkText = connection.network.uppercase()
+            connection.protocol?.let { networkText += "/" + it.uppercase() }
+            binding.connectionNetwork.text = networkText
             binding.connectionInbound.text = connection.inbound
             binding.connectionDestination.text = connection.dst
             binding.connectionHost.let {
