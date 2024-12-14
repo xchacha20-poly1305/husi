@@ -653,7 +653,6 @@
     <string name="allow_apps_bypass_vpn">Allow Apps to bypass VPN</string>
     <string name="clash_mode">Clash Mode</string>
     <string name="sniff_timeout">Sniff timeout</string>
-    <string name="udp_disable_unmapping">Disable unmapping UDP</string>
     <string name="network_type">Network Type</string>
     <string name="network_wifi" translatable="false">Wi-Fi</string>
     <string name="network_cellular">Cellular Data</string>

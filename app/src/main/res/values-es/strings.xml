@@ -603,6 +603,5 @@
     <string name="network_ethernet">Ethernet</string>
     <string name="sniff_timeout">Tiempo de espera de rastreo</string>
     <string name="network_expensive">La red es costosa</string>
-    <string name="udp_disable_unmapping">Desactivar el desmapeo UDP</string>
     <string name="network_type">Tipo de red</string>
 </resources>
