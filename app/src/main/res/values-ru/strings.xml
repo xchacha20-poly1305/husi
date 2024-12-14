@@ -627,4 +627,8 @@
     <string name="override_port">Переопределить порт</string>
     <string name="allow_apps_bypass_vpn">Разрешить приложениям обходить VPN</string>
     <string name="clash_mode">Режим Cash</string>
+    <string name="network_type">Тип сети</string>
+    <string name="sniff_timeout">Таймаут перехвата</string>
+    <string name="network_ethernet">Проводное подключение</string>
+    <string name="network_cellular">Сотовая связь</string>
 </resources>
