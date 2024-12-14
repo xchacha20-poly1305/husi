@@ -104,8 +104,8 @@ github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4Wk
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
 github.com/sagernet/sing v0.5.1 h1:mhL/MZVq0TjuvHcpYcFtmSD1BFOxZ/+8ofbNZcg1k1Y=
 github.com/sagernet/sing v0.5.1/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.10.4-0.20241130042048-6e7ecbd4f53f h1:0iGXiLBM9N+9HdjTL/dXscsYD9JEO6gw26/MtcUW+Rw=
-github.com/sagernet/sing-box v1.10.4-0.20241130042048-6e7ecbd4f53f/go.mod h1:u67UniOxg+rs31hx4tLwabkai0H2vL+psjAGBPz4Osc=
+github.com/sagernet/sing-box v1.10.4-0.20241214122102-f5e3b6de09a6 h1:QdiPCctHPfHkDQZJIBoSK9T0f7pbvEdHawIRaraJHX0=
+github.com/sagernet/sing-box v1.10.4-0.20241214122102-f5e3b6de09a6/go.mod h1:0RYMTcsOCr/x7Sl67j2oVQvUcj15ETSTinvQzPNSXS0=
 github.com/sagernet/sing-dns v0.3.0 h1:uHCIlbCwBxALJwXcEK1d75d7t3vzCSVEQsPfZR1cxQE=
 github.com/sagernet/sing-dns v0.3.0/go.mod h1:TqLIelI+FAbVEdiTRolhGLOwvhVjY7oT+wezlOJUQ7M=
 github.com/sagernet/sing-mux v0.2.1 h1:N/3MHymfnFZRd29tE3TaXwPUVVgKvxhtOkiCMLp9HVo=
@@ -118,8 +118,8 @@ github.com/sagernet/sing-shadowsocks2 v0.2.0 h1:wpZNs6wKnR7mh1wV9OHwOyUr21VkS3wK
 github.com/sagernet/sing-shadowsocks2 v0.2.0/go.mod h1:RnXS0lExcDAovvDeniJ4IKa2IuChrdipolPYWBv9hWQ=
 github.com/sagernet/sing-shadowtls v0.1.5 h1:uXxmq/HXh8DIiBGLzpMjCbWnzIAFs+lIxiTOjdgG5qo=
 github.com/sagernet/sing-shadowtls v0.1.5/go.mod h1:tvrDPTGLrSM46Wnf7mSr+L8NHvgvF8M4YnJF790rZX4=
-github.com/sagernet/sing-tun v0.4.2 h1:GCP7TI/gwDH/iFIugYS3WcVhCcbDE6qwAbjYQ5W/m+E=
-github.com/sagernet/sing-tun v0.4.2/go.mod h1:1WQVMelJQjrtlzhzHwwPTSa7n41b3zSWP2DeJqWxruk=
+github.com/sagernet/sing-tun v0.4.5 h1:GgZR9pNRem0TigZw1AgdrCE/v2oRexjmyAytvp89kW0=
+github.com/sagernet/sing-tun v0.4.5/go.mod h1:1WQVMelJQjrtlzhzHwwPTSa7n41b3zSWP2DeJqWxruk=
 github.com/sagernet/sing-vmess v0.1.12 h1:2gFD8JJb+eTFMoa8FIVMnknEi+vCSfaiTXTfEYAYAPg=
 github.com/sagernet/sing-vmess v0.1.12/go.mod h1:luTSsfyBGAc9VhtCqwjR+dt1QgqBhuYBCONB/POhF8I=
 github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7 h1:DImB4lELfQhplLTxeq2z31Fpv8CQqqrUwTbrIRumZqQ=
