@@ -12,6 +12,7 @@ import (
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
+	"github.com/sagernet/sing/service"
 )
 
 // FormatBytes formats the bytes length to humanize.
@@ -52,15 +53,23 @@ func FormatConfig(configContent string) (*StringWrapper, error) {
 	return wrapString(buffer.String()), nil
 }
 
-// CheckConfig checks configContent whether can run as sing-box configuration.
+// CheckConfig checks whether configContent can run as sing-box configuration.
 func CheckConfig(configContent string) error {
 	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
 	options, err := parseConfig(ctx, configContent)
 	if err != nil {
 		return E.Cause(err, "parse config")
 	}
+
+	if options.Route != nil {
+		// AutoDetectInterface will be automatically enabled by platform interface,
+		// while platformInterfaceStub not including it. (tun.ErrNetlinkBanned)
+		options.Route.AutoDetectInterface = false
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	service.MustRegister[platformInterfaceStub](ctx, platformInterfaceStub{})
 	instance, err := box.New(box.Options{
 		Options: options,
 		Context: ctx,
