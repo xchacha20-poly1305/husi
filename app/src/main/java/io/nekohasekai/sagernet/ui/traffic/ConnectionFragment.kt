@@ -38,8 +38,14 @@ class ConnectionFragment(private val conn: Connection) :
 
     private fun bind() {
         binding.connNetwork.text = conn.network.uppercase()
+        if (conn.protocol != null) {
+            binding.connProtocol.isVisible = true
+            binding.connProtocol.text = conn.protocol!!.uppercase()
+        } else {
+            binding.connProtocol.isVisible = false
+        }
         binding.connTime.text = conn.start
-        if (conn.ipVersion > 0) {
+        if (conn.ipVersion != null) {
             binding.connIPVersionLayout.isVisible = true
             binding.connIPVersion.text = conn.ipVersion.toString()
         } else {

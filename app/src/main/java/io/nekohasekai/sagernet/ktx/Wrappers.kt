@@ -43,7 +43,7 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
                 Connection(
                     uuid = trackerInfo.uuid,
                     inbound = trackerInfo.inbound,
-                    ipVersion = trackerInfo.ipVersion,
+                    ipVersion = trackerInfo.ipVersion.let { if (it > 0) it else null },
                     network = trackerInfo.network,
                     uploadTotal = trackerInfo.uploadTotal,
                     downloadTotal = trackerInfo.downloadTotal,
@@ -53,7 +53,8 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
                     host = trackerInfo.host,
                     matchedRule = trackerInfo.matchedRule,
                     outbound = trackerInfo.outbound,
-                    chain = trackerInfo.chain
+                    chain = trackerInfo.chain,
+                    protocol = trackerInfo.protocol.let { if (it.isBlank()) null else it },
                 )
             )
         }
