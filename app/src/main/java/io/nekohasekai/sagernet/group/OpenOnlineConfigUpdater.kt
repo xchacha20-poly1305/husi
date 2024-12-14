@@ -40,11 +40,11 @@ import libcore.Libcore
 import libcore.URL
 import org.json.JSONObject
 
-const val OOC_VERSION = 1
-val OOC_PROTOCOLS = listOf("shadowsocks")
-
 /** https://github.com/Shadowsocks-NET/OpenOnlineConfig */
 object OpenOnlineConfigUpdater : GroupUpdater() {
+
+    const val OOC_VERSION = 1
+    val OOC_PROTOCOLS = listOf("shadowsocks")
 
     override suspend fun doUpdate(
         proxyGroup: ProxyGroup,
@@ -105,7 +105,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             setUserAgent(generateUserAgent(subscription.customUserAgent))
         }.execute()
 
-        val oocResponse = JSONObject(response.contentString.also { response.getError() })
+        val oocResponse = JSONObject(response.contentString.value)
 
         val protocols = oocResponse.getJSONArray("protocols").filterIsInstance<String>()
         for (protocol in protocols) {

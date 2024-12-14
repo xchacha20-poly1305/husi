@@ -328,8 +328,7 @@ class AssetsActivity : ThemedActivity() {
                 setURL("https://api.github.com/repos/$repo/releases/latest")
                 setUserAgent(USER_AGENT)
             }.execute()
-            return JSONObject(response.contentString.also { response.getError() })
-                .optString("tag_name")
+            return JSONObject(response.contentString.value).optString("tag_name")
         }
 
         private fun download(repo: String): File {
