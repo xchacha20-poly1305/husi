@@ -36,9 +36,9 @@ object Cloudflare {
                 setUserAgent("okhttp/3.12.1")
             }.execute()
 
-            Logs.d(response.contentString)
-            response.getError()
-            val device = gson.fromJson(response.contentString, DeviceResponse::class.java)
+            val content = response.contentString.value
+            Logs.d(content)
+            val device = gson.fromJson(content, DeviceResponse::class.java)
             val accessToken = device.token
 
             client.newRequest().apply {

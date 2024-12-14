@@ -132,10 +132,12 @@ class ConfigEditActivity : ThemedActivity() {
             if (txt.isBlank()) {
                 return ""
             }
-            return Libcore.formatConfig(txt)
+            return Libcore.formatConfig(txt).value
         } catch (e: Exception) {
-            MaterialAlertDialogBuilder(this).setTitle(R.string.error_title)
-                .setMessage(e.readableMessage).show()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.error_title)
+                .setMessage(e.readableMessage)
+                .show()
             return null
         }
     }
