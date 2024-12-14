@@ -7,15 +7,15 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.62
 	github.com/sagernet/gomobile v0.1.4
-	github.com/sagernet/sing v0.6.0-beta.2
-	github.com/sagernet/sing-box v1.11.0-beta.4
+	github.com/sagernet/sing v0.6.0-beta.6
+	github.com/sagernet/sing-box v1.11.0-beta.9
 	github.com/sagernet/sing-dns v0.4.0-beta.1
-	github.com/sagernet/sing-tun v0.6.0-beta.2
+	github.com/sagernet/sing-tun v0.6.0-beta.6
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
-	github.com/xchacha20-poly1305/cazilla v0.3.3
+	github.com/xchacha20-poly1305/cazilla v0.3.4
 	github.com/xchacha20-poly1305/libping v0.8.1
-	golang.org/x/crypto v0.29.0
-	golang.org/x/sys v0.27.0
+	golang.org/x/crypto v0.31.0
+	golang.org/x/sys v0.28.0
 )
 
 // cmd
@@ -75,7 +75,7 @@ require (
 	github.com/sagernet/sing-vmess v0.2.0-beta.1 // indirect
 	github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7 // indirect
 	github.com/sagernet/utls v1.6.7 // indirect
-	github.com/sagernet/wireguard-go v0.0.1-beta.4 // indirect
+	github.com/sagernet/wireguard-go v0.0.1-beta.5 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/u-root/uio v0.0.0-20230220225925-ffce2a382923 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
@@ -86,8 +86,8 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
