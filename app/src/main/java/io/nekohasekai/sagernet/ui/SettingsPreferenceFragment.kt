@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.utils.Theme
+import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
@@ -60,12 +61,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var ntpEnable: SwitchPreference
         lateinit var ntpAddress: EditTextPreference
         lateinit var ntpPort: EditTextPreference
-        lateinit var ntpInterval: SimpleMenuPreference
+        lateinit var ntpInterval: DurationPreference
 
         lateinit var bypassLan: SwitchPreference
         lateinit var bypassLanInCore: SwitchPreference
         lateinit var trafficSniff: SimpleMenuPreference
-        lateinit var sniffTimeout: EditTextPreference
+        lateinit var sniffTimeout: DurationPreference
 
         lateinit var logLevel: LongClickListPreference
         lateinit var alwaysShowAddress: SwitchPreference
@@ -162,8 +163,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                                 it.isVisible = DataStore.rulesProvider == RuleProvider.CUSTOM
                             }
                         }
+
                         Key.TRAFFIC_SNIFFING -> trafficSniff = preference as SimpleMenuPreference
-                        Key.SNIFF_TIMEOUT -> sniffTimeout = preference as EditTextPreference
+                        Key.SNIFF_TIMEOUT -> sniffTimeout = preference as DurationPreference
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
@@ -205,7 +207,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         Key.ENABLE_NTP -> ntpEnable = preference as SwitchPreference
                         Key.NTP_SERVER -> ntpAddress = preference as EditTextPreference
                         Key.NTP_PORT -> ntpPort = preference as EditTextPreference
-                        Key.NTP_INTERVAL -> ntpInterval = preference as SimpleMenuPreference
+                        Key.NTP_INTERVAL -> ntpInterval = preference as DurationPreference
                     }
                 }
 
@@ -216,24 +218,21 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
         }
 
-        ntpAddress.isEnabled = ntpEnable.isChecked
-        ntpPort.isEnabled = ntpEnable.isChecked
-        ntpInterval.isEnabled = ntpEnable.isChecked
+        ntpEnable.isChecked.let {
+            ntpAddress.isEnabled = it
+            ntpPort.isEnabled = it
+            ntpInterval.isEnabled = it
+        }
         ntpAddress.onPreferenceChangeListener = reloadListener
         ntpPort.onPreferenceChangeListener = reloadListener
         ntpPort.setPortEdit()
         ntpInterval.onPreferenceChangeListener = reloadListener
         ntpEnable.setOnPreferenceChangeListener { _, newValue ->
             needReload()
-            if (newValue as Boolean) {
-                ntpAddress.isEnabled = true
-                ntpPort.isEnabled = true
-                ntpInterval.isEnabled = true
-            } else {
-                ntpAddress.isEnabled = false
-                ntpPort.isEnabled = false
-                ntpInterval.isEnabled = false
-            }
+            newValue as Boolean
+            ntpAddress.isEnabled = newValue
+            ntpPort.isEnabled = newValue
+            ntpInterval.isEnabled = newValue
             true
         }
 
@@ -261,11 +260,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        profileTrafficStatistics.isEnabled = speedInterval.value.toString() != "0"
-        showDirectSpeed.isEnabled = speedInterval.value.toString() != "0"
+        profileTrafficStatistics.isEnabled = speedInterval.value != "0"
+        showDirectSpeed.isEnabled = speedInterval.value != "0"
         speedInterval.setOnPreferenceChangeListener { _, newValue ->
-            profileTrafficStatistics.isEnabled = newValue.toString() != "0"
-            showDirectSpeed.isEnabled = newValue.toString() != "0"
+            newValue as String
+            profileTrafficStatistics.isEnabled = newValue != "0"
+            showDirectSpeed.isEnabled = newValue != "0"
             needReload()
             true
         }
@@ -294,7 +294,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         ruleProvider.setOnPreferenceChangeListener { _, newValue ->
-            customRuleProvider.isVisible = (newValue as String).toInt() == RuleProvider.CUSTOM
+            customRuleProvider.isVisible = (newValue as String) == RuleProvider.CUSTOM.toString()
             true
         }
 
