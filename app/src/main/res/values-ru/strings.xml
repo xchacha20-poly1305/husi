@@ -522,7 +522,6 @@
     <string name="mtu_help">Удерживайте для настройки своего MTU.</string>
     <string name="route_opt_block_quic">Блокировать QUIC</string>
     <string name="get_cert">Получение сертификатов</string>
-    <string name="global_allow_insecure">Всегда разрешать небезопасные</string>
     <string name="dns_mode">Режим DNS</string>
     <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
     <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена.</string>

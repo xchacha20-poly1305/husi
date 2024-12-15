@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.fmt.tuic
 
-import io.nekohasekai.sagernet.database.DataStore
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
@@ -97,7 +96,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 }
             }
             disable_sni = bean.disableSNI
-            insecure = bean.allowInsecure || DataStore.globalAllowInsecure
+            insecure = bean.allowInsecure
             enabled = true
         }
     }

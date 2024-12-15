@@ -192,7 +192,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     // protocol
 
-    var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
     var uploadSpeed by configurationStore.stringToInt(Key.UPLOAD_SPEED) { 0 }
     var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
