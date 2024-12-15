@@ -34,6 +34,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireGuardBean
 import io.nekohasekai.sagernet.ktx.asMap
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -798,10 +799,7 @@ fun buildConfig(
                 address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
                 detour = TAG_PROXY
-
-                if (DataStore.ednsClientSubnet.isNotBlank()) {
-                    client_subnet = DataStore.ednsClientSubnet
-                }
+                client_subnet = DataStore.ednsClientSubnet.blankAsNull()
             })
         }
 
@@ -815,10 +813,7 @@ fun buildConfig(
                     address_resolver = TAG_DNS_LOCAL
                 }
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-
-                if (DataStore.ednsClientSubnet.isNotBlank()) {
-                    client_subnet = DataStore.ednsClientSubnet
-                }
+                client_subnet = DataStore.ednsClientSubnet.blankAsNull()
             })
         }
 
