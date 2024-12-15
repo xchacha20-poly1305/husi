@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -30,18 +29,19 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.ListListener
-import io.nekohasekai.sagernet.widget.OutboundPreference
 import io.nekohasekai.sagernet.widget.UserAgentPreference
+import io.nekohasekai.sagernet.widget.setOutbound
+import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import kotlinx.parcelize.Parcelize
-import moe.matsuri.nb4a.ui.SimpleMenuPreference
+import rikka.preference.SimpleMenuPreference
 
 class GroupSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
 ) : ThemedActivity(resId),
     OnPreferenceDataStoreChangeListener {
 
-    private lateinit var frontProxyPreference: OutboundPreference
-    private lateinit var landingProxyPreference: OutboundPreference
+    private lateinit var frontProxyPreference: SimpleMenuPreference
+    private lateinit var landingProxyPreference: SimpleMenuPreference
 
     fun ProxyGroup.init() {
         DataStore.groupName = name ?: ""
@@ -101,35 +101,20 @@ class GroupSettingsActivity(
     ) {
         addPreferencesFromResource(R.xml.group_preferences)
 
+
+
         frontProxyPreference = findPreference(Key.GROUP_FRONT_PROXY)!!
-        frontProxyPreference.apply {
-            setEntries(R.array.front_proxy_entry)
-            setEntryValues(R.array.front_proxy_value)
-            setOnPreferenceChangeListener { _, newValue ->
-                if (newValue.toString() == "3") {
-                    selectProfileForAddFront.launch(
-                        Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
-                    )
-                    false
-                } else {
-                    true
-                }
-            }
+        frontProxyPreference.setOutbound(OUTBOUND_POSITION) {
+            selectProfileForAddFront.launch(
+                Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
+            )
         }
+
         landingProxyPreference = findPreference(Key.GROUP_LANDING_PROXY)!!
-        landingProxyPreference.apply {
-            setEntries(R.array.front_proxy_entry)
-            setEntryValues(R.array.front_proxy_value)
-            setOnPreferenceChangeListener { _, newValue ->
-                if (newValue.toString() == "3") {
-                    selectProfileForAddLanding.launch(
-                        Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
-                    )
-                    false
-                } else {
-                    true
-                }
-            }
+        landingProxyPreference.setOutbound(OUTBOUND_POSITION) {
+            selectProfileForAddLanding.launch(
+                Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
+            )
         }
 
         val groupType = findPreference<SimpleMenuPreference>(Key.GROUP_TYPE)!!
@@ -150,7 +135,8 @@ class GroupSettingsActivity(
         val subscriptionType = findPreference<SimpleMenuPreference>(Key.SUBSCRIPTION_TYPE)!!
         val subscriptionLink = findPreference<EditTextPreference>(Key.SUBSCRIPTION_LINK)!!
         val subscriptionToken = findPreference<EditTextPreference>(Key.SUBSCRIPTION_TOKEN)!!
-        val subscriptionUserAgent = findPreference<UserAgentPreference>(Key.SUBSCRIPTION_USER_AGENT)!!
+        val subscriptionUserAgent =
+            findPreference<UserAgentPreference>(Key.SUBSCRIPTION_USER_AGENT)!!
 
         fun updateSubscriptionType(subscriptionType: Int = DataStore.subscriptionType) {
             subscriptionLink.isVisible = subscriptionType != SubscriptionType.OOCv1
@@ -215,6 +201,8 @@ class GroupSettingsActivity(
 
     companion object {
         const val EXTRA_GROUP_ID = "id"
+
+        const val OUTBOUND_POSITION = "1"
     }
 
     @SuppressLint("CommitTransaction")
@@ -389,13 +377,14 @@ class GroupSettingsActivity(
     val selectProfileForAddFront = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        if (it.resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+        if (it.resultCode == RESULT_OK) runOnDefaultDispatcher {
             val profile = ProfileManager.getProfile(
                 it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
             ) ?: return@runOnDefaultDispatcher
             DataStore.frontProxy = profile.id
             onMainDispatcher {
-                frontProxyPreference.value = "3"
+                frontProxyPreference.value = OUTBOUND_POSITION
+                frontProxyPreference.updateOutboundSummary()
             }
         }
     }
@@ -403,13 +392,14 @@ class GroupSettingsActivity(
     val selectProfileForAddLanding = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        if (it.resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+        if (it.resultCode == RESULT_OK) runOnDefaultDispatcher {
             val profile = ProfileManager.getProfile(
                 it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
             ) ?: return@runOnDefaultDispatcher
             DataStore.landingProxy = profile.id
             onMainDispatcher {
-                landingProxyPreference.value = "3"
+                landingProxyPreference.value = OUTBOUND_POSITION
+                landingProxyPreference.updateOutboundSummary()
             }
         }
     }

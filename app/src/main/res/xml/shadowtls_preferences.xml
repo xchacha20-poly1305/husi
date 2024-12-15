@@ -16,7 +16,7 @@
                 app:key="serverPort"
                 app:title="@string/server_port"
                 app:useSimpleSummaryProvider="true"/>
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:entries="@array/shadowtls_version_value"
                 app:entryValues="@array/shadowtls_version_value"
                 app:icon="@drawable/ic_baseline_update_24"
@@ -62,7 +62,7 @@
                 app:key="allowInsecure"
                 app:summary="@string/allow_insecure_sum"
                 app:title="@string/allow_insecure"/>
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:defaultValue=""
                 app:entries="@array/utls_fingerprint_entry"
                 app:entryValues="@array/utls_fingerprint_entry"

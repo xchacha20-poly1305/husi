@@ -30,7 +30,7 @@ import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
-import moe.matsuri.nb4a.ui.SimpleMenuPreference
+import rikka.preference.SimpleMenuPreference
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 

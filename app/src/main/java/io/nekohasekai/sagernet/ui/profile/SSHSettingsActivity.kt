@@ -8,7 +8,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
-import moe.matsuri.nb4a.ui.SimpleMenuPreference
+import rikka.preference.SimpleMenuPreference
 
 class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
 

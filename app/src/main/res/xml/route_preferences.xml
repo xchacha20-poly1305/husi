@@ -10,7 +10,7 @@
         app:icon="@drawable/ic_baseline_legend_toggle_24"
         app:key="routePackages"
         app:title="@string/apps" />
-    <moe.matsuri.nb4a.ui.SimpleMenuPreference
+    <rikka.preference.SimpleMenuPreference
         app:entries="@array/network_type_entry"
         app:entryValues="@array/network_type_value"
         app:icon="@drawable/baseline_public_24"
@@ -40,7 +40,7 @@
             app:key="routeSourcePort"
             app:title="sourcePort"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:entries="@array/route_protocol_entry"
             app:entryValues="@array/route_protocol_value"
             app:icon="@drawable/ic_baseline_compare_arrows_24"
@@ -82,10 +82,11 @@
             app:key="routeNetworkIsExpensive"
             app:title="@string/network_expensive"
             app:useSimpleSummaryProvider="true" />
-        <io.nekohasekai.sagernet.widget.OutboundPreference
+        <rikka.preference.SimpleMenuPreference
+            app:entries="@array/outbound_entry"
+            app:entryValues="@array/int_array_4"
             app:icon="@drawable/ic_hardware_router"
             app:key="routeOutbound"
-            app:title="outbound"
-            app:useSimpleSummaryProvider="true" />
+            app:title="outbound" />
     </PreferenceCategory>
 </PreferenceScreen>
