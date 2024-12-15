@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.SagerDatabase
-import moe.matsuri.nb4a.ui.SimpleMenuPreference
+import rikka.preference.SimpleMenuPreference
 
 class GroupPreference
 @JvmOverloads constructor(

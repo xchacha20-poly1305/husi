@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -24,7 +23,6 @@ import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -38,8 +36,10 @@ import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.AppListPreference
 import io.nekohasekai.sagernet.widget.ListListener
-import io.nekohasekai.sagernet.widget.OutboundPreference
+import io.nekohasekai.sagernet.widget.setOutbound
+import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import kotlinx.parcelize.Parcelize
+import rikka.preference.SimpleMenuPreference
 
 class RouteSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_settings_activity,
@@ -137,7 +137,7 @@ class RouteSettingsActivity(
     val selectProfileForAdd = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { (resultCode, data) ->
-        if (resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+        if (resultCode == RESULT_OK) runOnDefaultDispatcher {
             val profile = ProfileManager.getProfile(
                 data!!.getLongExtra(
                     ProfileSelectActivity.EXTRA_PROFILE_ID, 0
@@ -145,7 +145,8 @@ class RouteSettingsActivity(
             ) ?: return@runOnDefaultDispatcher
             DataStore.routeOutboundRule = profile.id
             onMainDispatcher {
-                outbound.value = "3"
+                outbound.value = OUTBOUND_POSITION
+                outbound.updateOutboundSummary()
             }
         }
     }
@@ -156,31 +157,22 @@ class RouteSettingsActivity(
         apps.postUpdate()
     }
 
-    lateinit var outbound: OutboundPreference
+    lateinit var outbound: SimpleMenuPreference
     lateinit var apps: AppListPreference
 
     fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
         outbound = findPreference(Key.ROUTE_OUTBOUND)!!
         apps = findPreference(Key.ROUTE_PACKAGES)!!
 
-        outbound.setOnPreferenceChangeListener { _, newValue ->
-            if (newValue.toString() == "3") {
-                selectProfileForAdd.launch(
-                    Intent(
-                        this@RouteSettingsActivity, ProfileSelectActivity::class.java
-                    )
-                )
-                false
-            } else {
-                true
-            }
+        outbound.setOutbound(OUTBOUND_POSITION) {
+            selectProfileForAdd.launch(
+                Intent(this@RouteSettingsActivity, ProfileSelectActivity::class.java)
+            )
         }
 
         apps.setOnPreferenceClickListener {
             selectAppList.launch(
-                Intent(
-                    this@RouteSettingsActivity, AppListActivity::class.java
-                )
+                Intent(this@RouteSettingsActivity, AppListActivity::class.java)
             )
             true
         }
@@ -223,6 +215,8 @@ class RouteSettingsActivity(
     companion object {
         const val EXTRA_ROUTE_ID = "id"
         const val EXTRA_PACKAGE_NAME = "pkg"
+
+        const val OUTBOUND_POSITION = "3"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -344,9 +338,9 @@ class RouteSettingsActivity(
                 }
             } catch (e: Exception) {
                 Toast.makeText(
-                    SagerNet.application,
+                    app,
                     "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 Logs.e(e)
             }

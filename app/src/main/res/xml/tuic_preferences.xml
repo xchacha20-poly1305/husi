@@ -38,7 +38,7 @@
                 app:key="serverCertificates"
                 app:title="@string/certificates"
                 app:useSimpleSummaryProvider="true"/>
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:defaultValue="https"
                 app:entries="@array/tuic_udp_relay_mode_value"
                 app:entryValues="@array/tuic_udp_relay_mode_value"
@@ -46,7 +46,7 @@
                 app:key="serverUDPRelayMode"
                 app:title="@string/tuic_udp_relay_mode"
                 app:useSimpleSummaryProvider="true"/>
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:defaultValue="https"
                 app:entries="@array/tuic_congestion_controller_value"
                 app:entryValues="@array/tuic_congestion_controller_value"
