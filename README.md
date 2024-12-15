@@ -46,7 +46,7 @@ Environment:
   1.23.0-1.23.3: Apply [this patch](https://github.com/golang/go/commit/76a8409eb81eda553363783dcdd9d6224368ae0e.patch)
   to`${GOROOT}`. `make patch_go1230`
 
-  1.23.4+: Apply [this patch](./libcore/patches/cgo_go1234.diff) to `$(GOROOT)`. `make patch_go1234`
+  1.23.4+: Apply [this patch](https://github.com/golang/go/commit/59b7d40774b29bd1da1aa624f13233111aff4ad2.patch) to `$(GOROOT)`. `make patch_go1234`
 
   </details>
 
