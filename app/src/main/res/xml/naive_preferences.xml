@@ -29,7 +29,7 @@
                 app:icon="@drawable/ic_settings_password"
                 app:key="serverPassword"
                 app:title="@string/password_opt" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 android:layout_height="match_parent"
                 app:defaultValue="https"
                 app:entries="@array/naive_proto_entry"
