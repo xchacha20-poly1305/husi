@@ -185,10 +185,6 @@
             app:key="providerHysteria2"
             app:title="@string/hysteria2_provider"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
-            app:icon="@drawable/ic_action_lock_open"
-            app:key="globalAllowInsecure"
-            app:title="@string/global_allow_insecure" />
         <EditTextPreference
             app:icon="@drawable/ic_action_copyright"
             app:key="customPluginPrefix"

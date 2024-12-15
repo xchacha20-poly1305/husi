@@ -508,7 +508,6 @@
     <string name="sniff_override">探測結果用於目標位址</string>
     <string name="resolve_server">根據IPv6策略解析伺服器位址</string>
     <string name="scan_vpn_app_introduce">檢查裝置上安裝的 VPN 及其類型。</string>
-    <string name="global_allow_insecure">總是跳過 TLS 憑證驗證</string>
     <string name="scan_vpn_app">掃描 VPN 應用程式</string>
     <string name="vpn_app_type">應用程式類型</string>
     <string name="vpn_core_type">核心類型</string>

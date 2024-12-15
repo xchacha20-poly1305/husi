@@ -521,7 +521,6 @@
     <string name="resolve_server">Resolver dirección del servidor según política IPv6</string>
     <string name="get_cert_success">¡Obtenido correctamente! Certificados copiados en el portapapeles.</string>
     <string name="inbound_password">Contraseña entrante</string>
-    <string name="global_allow_insecure">Permitir siempre inseguras</string>
     <string name="vpn_core_type">Tipo de núcleo</string>
     <string name="vpn_golang_version">Versión Go</string>
     <string name="assets_update">Actualizar activos geográficos</string>

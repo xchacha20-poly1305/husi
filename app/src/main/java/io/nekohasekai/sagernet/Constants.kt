@@ -78,7 +78,6 @@ object Key {
     const val NTP_INTERVAL = "ntpInterval"
 
     // Protocol Settings
-    const val GLOBAL_ALLOW_INSECURE = "globalAllowInsecure"
     const val UPLOAD_SPEED = "uploadSpeed"
     const val DOWNLOAD_SPEED = "downloadSpeed"
     const val PROVIDER_HYSTERIA2 = "providerHysteria2"
