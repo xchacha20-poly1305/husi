@@ -348,3 +348,5 @@ operator fun <K, V> MutableMap<K, V>.setValue(thisRef: K, property: KProperty<*>
 
     }
 }
+
+fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this

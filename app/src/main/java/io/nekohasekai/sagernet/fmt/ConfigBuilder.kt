@@ -35,6 +35,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import io.nekohasekai.sagernet.ktx.asMap
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -285,7 +286,7 @@ fun buildConfig(
 
         if (!forTest) {
             if (isVPN) inbounds.add(Inbound_TunOptions().apply {
-                type = "tun"
+                type = SingBoxOptions.TYPE_TUN
                 tag = TAG_TUN
                 stack = when (DataStore.tunImplementation) {
                     TunImplementation.GVISOR -> "gvisor"
@@ -313,7 +314,7 @@ fun buildConfig(
                 }
             })
             inbounds.add(Inbound_HTTPMixedOptions().apply {
-                type = "mixed"
+                type = SingBoxOptions.TYPE_MIXED
                 tag = TAG_MIXED
                 listen = bind
                 listen_port = DataStore.mixedPort
@@ -796,10 +797,7 @@ fun buildConfig(
                 address_resolver = TAG_DNS_DIRECT
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
                 detour = TAG_PROXY
-
-                if (DataStore.ednsClientSubnet.isNotBlank()) {
-                    client_subnet = DataStore.ednsClientSubnet
-                }
+                client_subnet = DataStore.ednsClientSubnet.blankAsNull()
             })
         }
 
@@ -813,10 +811,7 @@ fun buildConfig(
                     address_resolver = TAG_DNS_LOCAL
                 }
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-
-                if (DataStore.ednsClientSubnet.isNotBlank()) {
-                    client_subnet = DataStore.ednsClientSubnet
-                }
+                client_subnet = DataStore.ednsClientSubnet.blankAsNull()
             })
         }
 
@@ -937,7 +932,7 @@ fun buildConfig(
             if (needSniff) {
                 route.rules.add(0, Rule_Default().apply {
                     action = SingBoxOptions.ACTION_SNIFF
-                    if (DataStore.sniffTimeout.isNotBlank()) timeout = DataStore.sniffTimeout
+                    timeout = DataStore.sniffTimeout.blankAsNull()
                 })
             }
         }
