@@ -38,21 +38,21 @@
                 app:key="alterId"
                 app:title="@string/alter_id"
                 app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:entries="@array/vmess_encryption_value"
                 app:entryValues="@array/vmess_encryption_value"
                 app:icon="@drawable/ic_notification_enhanced_encryption"
                 app:key="encryption"
                 app:title="@string/encryption"
                 app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:entries="@array/packet_encoding_entry"
                 app:entryValues="@array/int_array_3"
                 app:icon="@drawable/baseline_widgets_24"
                 app:key="packetEncoding"
                 app:title="@string/packet_encoding"
                 app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:entries="@array/networks_value"
                 app:entryValues="@array/networks_value"
                 app:icon="@drawable/ic_baseline_compare_arrows_24"
@@ -69,7 +69,7 @@
                 app:key="path"
                 app:title="@string/http_path"
                 app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:entries="@array/transport_layer_encryption_value"
                 app:entryValues="@array/transport_layer_encryption_value"
                 app:icon="@drawable/ic_baseline_layers_24"
@@ -123,7 +123,7 @@
     <PreferenceCategory
             app:key="serverTlsCamouflageCategory"
             app:title="@string/tls_camouflage_settings">
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:defaultValue=""
                 app:entries="@array/utls_fingerprint_entry"
                 app:entryValues="@array/utls_fingerprint_entry"
@@ -155,14 +155,14 @@
                 app:key="serverBrutal"
                 app:icon="@drawable/ic_baseline_bolt"
                 app:title="@string/enable_brutal" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/mux_types"
                 app:entryValues="@array/int_array_3"
                 app:key="serverMuxType"
                 app:title="@string/mux_type"
                 app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
                 app:defaultValue="0"
                 app:entries="@array/mux_strategies"
                 app:entryValues="@array/int_array_3"

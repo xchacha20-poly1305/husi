@@ -14,7 +14,7 @@
             android:title="@string/theme"
             app:icon="@drawable/ic_baseline_color_lens_24"
             app:key="appTheme" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="0"
             app:entries="@array/night_mode"
             app:entryValues="@array/int_array_4"
@@ -22,7 +22,7 @@
             app:key="nightTheme"
             app:title="@string/night_mode"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="vpn"
             app:entries="@array/service_modes"
             app:entryValues="@array/service_mode_values"
@@ -35,7 +35,7 @@
             app:icon="@drawable/ic_baseline_local_bar_24"
             app:key="memoryLimit"
             app:title="@string/memory_limit" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="2"
             app:entries="@array/tun_implementation"
             app:entryValues="@array/int_array_3"
@@ -54,7 +54,7 @@
             app:icon="@drawable/ic_baseline_transform_24"
             app:key="allowAppsBypassVpn"
             app:title="@string/allow_apps_bypass_vpn" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="1000"
             app:entries="@array/notification_entry"
             app:entryValues="@array/notification_value"
@@ -122,7 +122,7 @@
         <SwitchPreference
             app:key="bypassLanInCore"
             app:title="@string/bypass_lan_in_core" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="1"
             app:entries="@array/traffic_sniffing_values"
             app:entryValues="@array/int_array_2"
@@ -140,7 +140,7 @@
             app:key="resolveDestination"
             app:summary="@string/resolve_destination_summary"
             app:title="@string/resolve_destination" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="1"
             app:entries="@array/ipv6_mode"
             app:entryValues="@array/int_array_4"
@@ -148,7 +148,7 @@
             app:key="ipv6Mode"
             app:title="@string/ipv6"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="0"
             app:entries="@array/rules_dat_provider"
             app:entryValues="@array/int_array_4"
@@ -177,7 +177,7 @@
             app:key="downloadSpeed"
             app:title="@string/hysteria_download_mbps"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="0"
             app:entries="@array/plugin_providers"
             app:entryValues="@array/int_array_2"
@@ -201,7 +201,7 @@
             app:key="remoteDns"
             app:title="@string/remote_dns"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="auto"
             app:entries="@array/dns_network_select"
             app:entryValues="@array/dns_network_select"
@@ -218,14 +218,14 @@
             app:key="directDns"
             app:title="@string/direct_dns"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="auto"
             app:entries="@array/dns_network_select"
             app:entryValues="@array/dns_network_select"
             app:key="domain_strategy_for_direct"
             app:title="@string/domain_strategy_for_direct"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="auto"
             app:entries="@array/dns_network_select"
             app:entryValues="@array/dns_network_select"
@@ -315,7 +315,7 @@
             app:key="tcpKeepAliveInterval"
             app:title="@string/tcp_keep_alive_interval"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="1.2"
             app:entries="@array/app_tls_version"
             app:entryValues="@array/app_tls_version"
