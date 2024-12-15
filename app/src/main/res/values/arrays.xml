@@ -525,13 +525,6 @@
         <item>@string/plugin</item>
     </string-array>
 
-    <string-array name="ntp_intervals">
-        <item>5m</item>
-        <item>10m</item>
-        <item>30m</item>
-        <item>60m</item>
-    </string-array>
-
     <string-array name="subscription_types">
         <item>@string/raw</item>
         <item>OOCv1</item>
