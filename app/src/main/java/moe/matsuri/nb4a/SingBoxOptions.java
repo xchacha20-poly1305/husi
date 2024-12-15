@@ -11,6 +11,8 @@ public class SingBoxOptions {
     public static final String RULE_SET_TYPE_REMOTE = "remote";
     public static final String RULE_SET_TYPE_LOCAL = "local";
 
+    public static final String TYPE_TUN = "tun";
+    public static final String TYPE_MIXED = "mixed";
     public static final String TYPE_DIRECT = "direct";
     public static final String TYPE_HTTP = "http";
     public static final String TYPE_HYSTERIA = "hysteria";
