@@ -652,4 +652,7 @@
     <string name="override_port">Override Port</string>
     <string name="allow_apps_bypass_vpn">Allow Apps to bypass VPN</string>
     <string name="clash_mode">Clash Mode</string>
+    <string name="low">Low</string>
+    <string name="middle">Middle</string>
+    <string name="high">High</string>
 </resources>

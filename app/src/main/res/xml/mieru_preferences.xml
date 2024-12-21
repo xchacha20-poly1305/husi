@@ -41,6 +41,13 @@
             app:key="serverMTU"
             app:title="@string/mtu"
             app:useSimpleSummaryProvider="true" />
+        <rikka.preference.SimpleMenuPreference
+            app:entries="@array/mieru_mux_level_value"
+            app:entryValues="@array/int_array_4"
+            app:icon="@drawable/ic_baseline_compare_arrows_24"
+            app:key="serverMuxNumber"
+            app:title="@string/mux_preference"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
 </PreferenceScreen>

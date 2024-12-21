@@ -587,4 +587,7 @@
     <string name="override_port">覆写端口</string>
     <string name="allow_apps_bypass_vpn">允许应用绕过 VPN</string>
     <string name="clash_mode">Clash 模式</string>
+    <string name="low">低</string>
+    <string name="middle">中</string>
+    <string name="high">高</string>
 </resources>
