@@ -31,6 +31,7 @@ import io.nekohasekai.sagernet.fmt.juicity.buildJuicityConfig
 import io.nekohasekai.sagernet.fmt.juicity.toUri
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
+import io.nekohasekai.sagernet.fmt.mieru.toUri
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.naive.toUri
@@ -282,6 +283,7 @@ data class ProxyEntity(
             is HysteriaBean -> toUri()
             is TuicBean -> toUri()
             is JuicityBean -> toUri()
+            is MieruBean -> toUri()
             else -> toUniversalLink()
         }
     }
@@ -308,7 +310,7 @@ data class ProxyEntity(
                         when (val bean = profile.requireBean()) {
                             is MieruBean -> {
                                 append("\n\n")
-                                append(bean.buildMieruConfig(port))
+                                append(bean.buildMieruConfig(port, DataStore.logLevel))
                             }
 
                             is NaiveBean -> {

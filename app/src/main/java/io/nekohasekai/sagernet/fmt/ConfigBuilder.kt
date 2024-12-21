@@ -39,6 +39,7 @@ import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
+import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
 import moe.matsuri.nb4a.RuleItem
@@ -182,6 +183,7 @@ fun buildConfig(
         return list
     }
 
+    val logLevel = DataStore.logLevel
     val extraRules = if (forTest) listOf() else SagerDatabase.rulesDao.enabledRules()
     val extraProxies =
         if (forTest) mapOf() else SagerDatabase.proxyDao.getEntities(extraRules.mapNotNull { rule ->
@@ -241,16 +243,7 @@ fun buildConfig(
         }
 
         log = LogOptions().apply {
-            level = when (DataStore.logLevel) {
-                0 -> "panic"
-                1 -> "fatal"
-                2 -> "error"
-                3 -> "warn"
-                4 -> "info"
-                5 -> "debug"
-                6 -> "trace"
-                else -> "info"
-            }
+            level = logLevelString(logLevel)
         }
 
         if (DataStore.ntpEnable) ntp = NTPOptions().apply {

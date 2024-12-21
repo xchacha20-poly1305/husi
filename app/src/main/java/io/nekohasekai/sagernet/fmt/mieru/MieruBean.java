@@ -46,7 +46,7 @@ public class MieruBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(protocol);
         output.writeString(username);
