@@ -253,7 +253,8 @@ fun Context.getColorAttr(@AttrRes resId: Int): Int {
     }.resourceId)
 }
 
-val isExpert: Boolean by lazy { BuildConfig.DEBUG || DataStore.isExpert }
+val isExpert: Boolean
+    get() = BuildConfig.DEBUG || DataStore.isExpert
 
 fun <T> Continuation<T>.tryResume(value: T) {
     try {

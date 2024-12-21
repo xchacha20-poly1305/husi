@@ -23,6 +23,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.utils.Theme
@@ -120,14 +121,13 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             true
                         }
 
-                        Key.MEMORY_LIMIT -> {
-                            preference.onPreferenceChangeListener = restartListener
-                        }
+                        Key.MEMORY_LIMIT -> preference.onPreferenceChangeListener = restartListener
 
                         Key.LOG_LEVEL -> logLevel = preference as LongClickListPreference
 
-                        Key.ALWAYS_SHOW_ADDRESS -> alwaysShowAddress =
-                            preference as SwitchPreference
+                        Key.ALWAYS_SHOW_ADDRESS -> {
+                            alwaysShowAddress = preference as SwitchPreference
+                        }
 
                         Key.BLURRED_ADDRESS -> blurredAddress = preference as SwitchPreference
 
@@ -137,6 +137,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         Key.SPEED_INTERVAL -> speedInterval = preference as SimpleMenuPreference
 
                         Key.SHOW_DIRECT_SPEED -> showDirectSpeed = preference as SwitchPreference
+
+                        Key.DEBUG_LISTEN -> {
+                            preference.isVisible = isExpert
+                            preference.onPreferenceChangeListener = reloadListener
+                        }
 
                         Key.PERSIST_ACROSS_REBOOT, Key.SECURITY_ADVISORY -> {}
                         else -> preference.onPreferenceChangeListener = reloadListener

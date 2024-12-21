@@ -35,6 +35,12 @@
             app:icon="@drawable/ic_baseline_local_bar_24"
             app:key="memoryLimit"
             app:title="@string/memory_limit" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_bug_report_24"
+            app:key="debugListen"
+            app:shouldDisableView="true"
+            app:title="Debug Listen"
+            app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="2"
             app:entries="@array/tun_implementation"

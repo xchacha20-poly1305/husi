@@ -37,6 +37,7 @@ import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.logLevelString
@@ -219,13 +220,20 @@ fun buildConfig(
 
     return MyOptions().apply {
         if (!forTest) experimental = ExperimentalOptions().apply {
-            if (!forExport) v2ray_api = V2RayAPIOptions().apply {
-                listen = "$LOCALHOST4:0" // Never really listen
-                stats = V2RayStatsServiceOptions().also {
-                    it.enabled = true
-                    it.outbounds = tagMap.values.toMutableList().also { list ->
-                        list.add(TAG_PROXY)
-                        list.add(TAG_DIRECT)
+            if (!forExport) {
+                v2ray_api = V2RayAPIOptions().apply {
+                    listen = "$LOCALHOST4:0" // Never really listen
+                    stats = V2RayStatsServiceOptions().also {
+                        it.enabled = true
+                        it.outbounds = tagMap.values.toMutableList().also { list ->
+                            list.add(TAG_PROXY)
+                            list.add(TAG_DIRECT)
+                        }
+                    }
+                }
+                if (isExpert) DataStore.debugListen.blankAsNull()?.let {
+                    debug = SingBoxOptions.DebugOptions().apply {
+                        listen = it
                     }
                 }
             }
