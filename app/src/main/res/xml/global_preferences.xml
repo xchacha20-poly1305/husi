@@ -346,7 +346,7 @@
             app:key="ntpPort"
             app:title="@string/ntp_server_port"
             app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="30m"
             app:entries="@array/ntp_intervals"
             app:entryValues="@array/ntp_intervals"
