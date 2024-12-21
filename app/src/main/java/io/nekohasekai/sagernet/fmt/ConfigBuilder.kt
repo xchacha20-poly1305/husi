@@ -294,7 +294,6 @@ fun buildConfig(
                     TunImplementation.SYSTEM -> "system"
                     else -> "mixed"
                 }
-                endpoint_independent_nat = true
                 mtu = DataStore.mtu
                 domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 when (ipv6Mode) {
