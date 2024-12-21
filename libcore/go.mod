@@ -7,8 +7,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.62
 	github.com/sagernet/gomobile v0.1.4
-	github.com/sagernet/sing v0.6.0-beta.6
-	github.com/sagernet/sing-box v1.11.0-beta.9
+	github.com/sagernet/sing v0.6.0-beta.8
+	github.com/sagernet/sing-box v1.10.4-0.20241220113737-5bf5fc35dbdb
 	github.com/sagernet/sing-dns v0.4.0-beta.1
 	github.com/sagernet/sing-tun v0.6.0-beta.6
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
@@ -85,7 +85,7 @@ require (
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.20.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
