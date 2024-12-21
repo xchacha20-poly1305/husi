@@ -64,7 +64,8 @@ abstract class BoxInstance(
 
                     is MieruBean -> {
                         initPlugin("mieru-plugin")
-                        pluginConfigs[port] = profile.type to bean.buildMieruConfig(port)
+                        pluginConfigs[port] =
+                            profile.type to bean.buildMieruConfig(port, DataStore.logLevel)
                     }
 
                     is NaiveBean -> {

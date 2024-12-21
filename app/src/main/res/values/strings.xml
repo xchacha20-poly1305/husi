@@ -657,4 +657,7 @@
     <string name="network_cellular">Cellular Data</string>
     <string name="network_ethernet">Ethernet</string>
     <string name="network_expensive">Network is Expensive</string>
+    <string name="low">Low</string>
+    <string name="middle">Middle</string>
+    <string name="high">High</string>
 </resources>

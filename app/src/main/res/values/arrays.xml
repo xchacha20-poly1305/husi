@@ -535,4 +535,11 @@
         <item>other</item>
     </string-array>
 
+    <string-array name="mieru_mux_level_value">
+        <item>@string/off</item>
+        <item>@string/low</item>
+        <item>@string/middle</item>
+        <item>@string/high</item>
+    </string-array>
+
 </resources>
