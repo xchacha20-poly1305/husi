@@ -225,9 +225,7 @@ fun buildConfig(
                 }
             }
             clash_api = ClashAPIOptions().apply {
-                external_controller = DataStore.clashAPIListen.ifBlank {
-                    "$LOCALHOST4:${mkPort()}"
-                }
+                external_controller = DataStore.clashAPIListen.blankAsNull()
                 default_mode = RuleEntity.MODE_RULE
             }
             cache_file = CacheFileOptions().apply {
