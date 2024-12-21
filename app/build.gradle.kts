@@ -52,7 +52,7 @@ dependencies {
 
     implementation(fileTree("libs"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.activity:activity-ktx:1.9.3")
@@ -92,7 +92,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.8") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.3.1-android")
+    implementation("com.google.guava:guava:33.4.0-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
