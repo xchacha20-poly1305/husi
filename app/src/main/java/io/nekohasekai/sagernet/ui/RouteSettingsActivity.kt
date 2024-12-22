@@ -176,6 +176,7 @@ class RouteSettingsActivity(
         ssid = findPreference(Key.ROUTE_SSID)!!
         bssid = findPreference(Key.ROUTE_BSSID)!!
 
+        outbound.updateOutboundSummary()
         outbound.setOutbound(OUTBOUND_POSITION) {
             selectProfileForAdd.launch(
                 Intent(this@RouteSettingsActivity, ProfileSelectActivity::class.java)

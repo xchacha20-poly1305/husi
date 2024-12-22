@@ -9,11 +9,7 @@ import rikka.preference.SimpleMenuPreference
  * @param position The position of outbound.
  * @param launch Launch outbound picking UI.
  */
-fun SimpleMenuPreference.setOutbound(
-    position: String,
-    launch: () -> Unit
-) {
-    updateOutboundSummary()
+fun SimpleMenuPreference.setOutbound(position: String, launch: () -> Unit) {
     setOnPreferenceChangeListener { _, newValue ->
         if (newValue.toString() == position) {
             launch()
