@@ -81,7 +81,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var customRuleProvider: EditTextPreference
 
 
-        preferenceManager.sharedPreferences
         preferenceScreen.forEach { preferenceCategory ->
             preferenceCategory as PreferenceCategory
             when (preferenceCategory.key) {

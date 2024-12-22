@@ -113,6 +113,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:initialExpandedChildrenCount="0"
         app:key="routeSettings"
         app:title="@string/cag_route">
         <SwitchPreference
@@ -171,6 +172,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:initialExpandedChildrenCount="0"
         app:key="protocolSettings"
         app:title="@string/protocol_settings">
         <EditTextPreference
@@ -199,6 +201,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:initialExpandedChildrenCount="0"
         app:key="dnsSettings"
         app:title="@string/cag_dns">
         <EditTextPreference
@@ -253,6 +256,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:initialExpandedChildrenCount="0"
         app:key="inboundSettings"
         app:title="@string/inbound_settings">
         <EditTextPreference
@@ -293,6 +297,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:initialExpandedChildrenCount="0"
         app:key="miscSettings"
         app:title="@string/cag_misc">
         <moe.matsuri.nb4a.ui.UrlTestPreference
@@ -341,6 +346,7 @@
 
     <PreferenceCategory
         app:icon="@drawable/ic_baseline_timelapse_24"
+        app:initialExpandedChildrenCount="0"
         app:key="ntpSettings"
         app:title="@string/ntp_category">
         <SwitchPreference
