@@ -164,6 +164,7 @@ class RouteSettingsActivity(
         outbound = findPreference(Key.ROUTE_OUTBOUND)!!
         apps = findPreference(Key.ROUTE_PACKAGES)!!
 
+        outbound.updateOutboundSummary()
         outbound.setOutbound(OUTBOUND_POSITION) {
             selectProfileForAdd.launch(
                 Intent(this@RouteSettingsActivity, ProfileSelectActivity::class.java)
