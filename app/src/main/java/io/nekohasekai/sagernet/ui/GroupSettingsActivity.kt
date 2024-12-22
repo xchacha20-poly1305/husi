@@ -51,8 +51,8 @@ class GroupSettingsActivity(
 
         DataStore.frontProxy = frontProxy
         DataStore.landingProxy = landingProxy
-        DataStore.frontProxyTmp = if (frontProxy >= 0) 3 else 0
-        DataStore.landingProxyTmp = if (landingProxy >= 0) 3 else 0
+        DataStore.frontProxyTmp = if (frontProxy >= 0) OUTBOUND_POSITION else 0
+        DataStore.landingProxyTmp = if (landingProxy >= 0) OUTBOUND_POSITION else 0
 
         val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
         DataStore.subscriptionType = subscription.type
@@ -72,8 +72,8 @@ class GroupSettingsActivity(
         order = DataStore.groupOrder
         isSelector = DataStore.groupIsSelector
 
-        frontProxy = if (DataStore.frontProxyTmp == 3) DataStore.frontProxy else -1
-        landingProxy = if (DataStore.landingProxyTmp == 3) DataStore.landingProxy else -1
+        frontProxy = if (DataStore.frontProxyTmp == OUTBOUND_POSITION) DataStore.frontProxy else -1
+        landingProxy = if (DataStore.landingProxyTmp == OUTBOUND_POSITION) DataStore.landingProxy else -1
 
         val isSubscription = type == GroupType.SUBSCRIPTION
         if (isSubscription) {
@@ -101,17 +101,17 @@ class GroupSettingsActivity(
     ) {
         addPreferencesFromResource(R.xml.group_preferences)
 
-
-
         frontProxyPreference = findPreference(Key.GROUP_FRONT_PROXY)!!
-        frontProxyPreference.setOutbound(OUTBOUND_POSITION) {
+        frontProxyPreference.updateOutboundSummary()
+        frontProxyPreference.setOutbound(OUTBOUND_POSITION.toString()) {
             selectProfileForAddFront.launch(
                 Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
             )
         }
 
         landingProxyPreference = findPreference(Key.GROUP_LANDING_PROXY)!!
-        landingProxyPreference.setOutbound(OUTBOUND_POSITION) {
+        landingProxyPreference.updateOutboundSummary()
+        landingProxyPreference.setOutbound(OUTBOUND_POSITION.toString()) {
             selectProfileForAddLanding.launch(
                 Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
             )
@@ -202,7 +202,7 @@ class GroupSettingsActivity(
     companion object {
         const val EXTRA_GROUP_ID = "id"
 
-        const val OUTBOUND_POSITION = "1"
+        const val OUTBOUND_POSITION = 1
     }
 
     @SuppressLint("CommitTransaction")
@@ -383,7 +383,7 @@ class GroupSettingsActivity(
             ) ?: return@runOnDefaultDispatcher
             DataStore.frontProxy = profile.id
             onMainDispatcher {
-                frontProxyPreference.value = OUTBOUND_POSITION
+                frontProxyPreference.value = OUTBOUND_POSITION.toString()
                 frontProxyPreference.updateOutboundSummary()
             }
         }
@@ -398,7 +398,7 @@ class GroupSettingsActivity(
             ) ?: return@runOnDefaultDispatcher
             DataStore.landingProxy = profile.id
             onMainDispatcher {
-                landingProxyPreference.value = OUTBOUND_POSITION
+                landingProxyPreference.value = OUTBOUND_POSITION.toString()
                 landingProxyPreference.updateOutboundSummary()
             }
         }
