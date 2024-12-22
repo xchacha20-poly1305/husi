@@ -33,7 +33,11 @@ func LogClear() {
 	platformLogWrapper.truncate()
 }
 
-var platformLogWrapper *logWriter
+var (
+	platformLogWrapper *logWriter
+
+	logFactory log.Factory
+)
 
 func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bool) (err error) {
 	if platformLogWrapper != nil {
@@ -73,7 +77,7 @@ func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bo
 	platformLogWrapper = &logWriter{
 		writer: file,
 	}
-	factory := log.NewDefaultFactory(
+	logFactory = log.NewDefaultFactory(
 		context.Background(),
 		log.Formatter{
 			BaseTime:         time.Now(),
@@ -85,8 +89,8 @@ func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bo
 		platformLogWrapper,
 		false,
 	)
-	factory.SetLevel(level)
-	log.SetStdLogger(factory.Logger())
+	logFactory.SetLevel(level)
+	log.SetStdLogger(logFactory.Logger())
 
 	return
 }

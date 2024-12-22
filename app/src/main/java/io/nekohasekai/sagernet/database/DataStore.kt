@@ -96,6 +96,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
     var memoryLimit by configurationStore.boolean(Key.MEMORY_LIMIT) { false }
     var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
+    var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)
 
     var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { SniffPolicy.ENABLED }
     var sniffTimeout by configurationStore.string(Key.SNIFF_TIMEOUT)

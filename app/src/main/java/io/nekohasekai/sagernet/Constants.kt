@@ -48,6 +48,7 @@ object Key {
     const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
     const val INBOUND_USERNAME = "inboundUsername"
     const val INBOUND_PASSWORD = "inboundPassword"
+    const val ANCHOR_SSID = "anchorSSID"
 
     const val MIXED_PORT = "mixedPort"
     const val ALLOW_ACCESS = "allowAccess"

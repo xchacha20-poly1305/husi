@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.bg
 
-import android.annotation.SuppressLint
 import android.net.NetworkCapabilities
 import android.os.Process
 import android.os.Build
@@ -11,6 +10,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
@@ -79,6 +79,15 @@ class NativeInterface : PlatformInterface {
             Logs.e(e)
             throw e
         }
+    }
+
+    override fun getDataStoreString(key: String): String? = try {
+        DataStore.javaClass.getField(key).let {
+            it.isAccessible = true
+            it.get(DataStore) as? String
+        }
+    } catch (_: Exception) {
+        null
     }
 
     override fun packageNameByUid(uid: Int): String {

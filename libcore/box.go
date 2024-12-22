@@ -23,6 +23,8 @@ import (
 	"libcore/protect"
 	"libcore/trackerchain"
 	"libcore/v2rayapilite"
+
+	"github.com/xchacha20-poly1305/anchor/anchorservice"
 )
 
 func ResetAllConnections() {
@@ -46,12 +48,13 @@ type BoxInstance struct {
 	forTest bool
 	state   atomic.TypedValue[boxState]
 
+	platformInterface PlatformInterface
 	selector          *group.Selector
+	protect           *protect.Protect
 	v2ray             *v2rayapilite.V2rayServer
 	clash             *clashapi.Server
-	protect           *protect.Protect
 	clashModeHook     chan struct{}
-	platformInterface PlatformInterface
+	anchor            *anchorservice.Anchor
 
 	pauseManager pause.Manager
 	servicePauseFields
@@ -129,6 +132,14 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		b.v2ray = service.FromContext[adapter.V2RayServer](b.ctx).(*v2rayapilite.V2rayServer)
 		b.Router().SetTracker(trackerchain.New(b.v2ray.StatsService(), b.clash))
 
+		// Anchor
+		socksPort := publicMixedPort(options.Inbounds)
+		if socksPort > 0 {
+			b.anchor, err = b.createAnchor(socksPort)
+			if err != nil {
+				log.WarnContext(b.ctx, "create anchor: ", err)
+			}
+		}
 	}
 
 	return b, nil
@@ -154,6 +165,12 @@ func (b *BoxInstance) Start() (err error) {
 	if b.selector != nil {
 		go b.listenSelectorChange(b.ctx, b.platformInterface.SelectorCallback)
 	}
+	if b.anchor != nil {
+		err = b.anchor.Start()
+		if err != nil {
+			return E.Cause(err, "start anchor service")
+		}
+	}
 
 	return nil
 }
@@ -172,6 +189,9 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 
 	if b.protect != nil {
 		_ = b.protect.Close()
+	}
+	if b.anchor != nil {
+		_ = b.anchor.Close()
 	}
 
 	if b.clashModeHook != nil {
