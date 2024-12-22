@@ -334,7 +334,7 @@ fun buildConfig(
 
         // init routing object
         route = RouteOptions().apply {
-            auto_detect_interface = true
+            if (!forTest) auto_detect_interface = true
             rules = mutableListOf()
             rule_set = mutableListOf()
         }
