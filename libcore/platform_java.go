@@ -14,6 +14,8 @@ type PlatformInterface interface {
 	GetInterfaces() (NetworkInterfaceIterator, error)
 	UsePlatformInterfaceGetter() bool
 
+	GetDataStoreString(key string) string
+
 	SelectorCallback(tag string)
 	ClashModeCallback(mode string)
 }

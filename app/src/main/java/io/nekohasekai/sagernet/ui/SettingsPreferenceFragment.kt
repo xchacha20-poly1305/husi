@@ -189,6 +189,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 Key.INBOUND_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
                         Key.MIXED_PORT, Key.LOCAL_DNS_PORT -> (preference as EditTextPreference).setPortEdit()
+                        Key.ANCHOR_SSID -> {
+                            preference.isVisible = isExpert
+                            preference.onPreferenceChangeListener = reloadListener
+                        }
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }

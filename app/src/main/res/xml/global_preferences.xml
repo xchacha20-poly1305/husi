@@ -284,6 +284,12 @@
             app:icon="@drawable/ic_settings_password"
             app:key="inboundPassword"
             app:title="@string/inbound_password" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_wifi"
+            app:isPreferenceVisible="false"
+            app:key="anchorSSID"
+            app:title="Anchor SSIDs"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory

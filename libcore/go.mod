@@ -12,6 +12,7 @@ require (
 	github.com/sagernet/sing-dns v0.4.0-beta.1
 	github.com/sagernet/sing-tun v0.6.0-beta.6
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
+	github.com/xchacha20-poly1305/anchor v0.3.1
 	github.com/xchacha20-poly1305/cazilla v0.3.4
 	github.com/xchacha20-poly1305/libping v0.8.1
 	golang.org/x/crypto v0.31.0
@@ -88,7 +89,7 @@ require (
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	golang.org/x/time v0.7.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
