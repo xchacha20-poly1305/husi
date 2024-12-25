@@ -603,4 +603,7 @@
     <string name="sniff_timeout">Tiempo de espera de rastreo</string>
     <string name="network_expensive">La red es costosa</string>
     <string name="network_type">Tipo de red</string>
+    <string name="middle">Media</string>
+    <string name="high">Alta</string>
+    <string name="low">Baja</string>
 </resources>
