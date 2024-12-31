@@ -3,7 +3,6 @@ package libcore
 import (
 	"net"
 	"net/netip"
-	"os"
 	"regexp"
 	"strings"
 
@@ -17,22 +16,33 @@ import (
 	"github.com/xchacha20-poly1305/anchor/anchorservice"
 )
 
-func publicMixedPort(inbounds []option.Inbound) (socksPort uint16) {
+func sharedPublicPort(inbounds []option.Inbound) (socksPort, dnsPort uint16) {
 	for _, inbound := range inbounds {
 		switch inbound.Type {
 		case C.TypeMixed:
 			mixedOption := inbound.Options.(*option.HTTPMixedInboundOptions)
 			if mixedOption.Listen.Build(netip.Addr{}).IsLoopback() {
-				break
+				// Not for public
+				return 0, 0
 			}
-			return mixedOption.ListenPort
+			socksPort = mixedOption.ListenPort
+		case C.TypeDirect:
+			directOption := inbound.Options.(*option.DirectInboundOptions)
+			if directOption.OverridePort > 0 {
+				dnsPort = directOption.OverridePort
+			}
 		}
 	}
-	return 0
+	return
 }
 
-func (b *BoxInstance) createAnchor(socksPort uint16) (*anchorservice.Anchor, error) {
-	ssids := strings.Split(b.platformInterface.GetDataStoreString("anchorSSID"), "\n")
+func (b *BoxInstance) createAnchor(socksPort, dnsPort uint16) (*anchorservice.Anchor, error) {
+	ssid := b.platformInterface.AnchorSSIDs()
+	if ssid == "" {
+		// Not set any rule, unnecessary to start service.
+		return nil, nil
+	}
+	ssids := strings.Split(ssid, "\n")
 	ssidRules := make([]*regexp.Regexp, 0, len(ssids))
 	for _, ssid := range ssids {
 		regex, err := regexp.Compile(ssid)
@@ -41,19 +51,16 @@ func (b *BoxInstance) createAnchor(socksPort uint16) (*anchorservice.Anchor, err
 		}
 		ssidRules = append(ssidRules, regex)
 	}
-	deviceName, _ := os.Hostname()
 	anchorResponse := &anchor.Response{
 		Version:    anchor.Version,
-		DeviceName: deviceName,
+		DnsPort:    dnsPort,
+		DeviceName: b.platformInterface.DeviceName(),
 		SocksPort:  socksPort,
 	}
 	return anchorservice.New(
 		log.ContextWithNewID(b.ctx),
 		logFactory.NewLogger("anchor"),
-		&net.UDPAddr{
-			IP:   net.IPv4zero,
-			Port: anchor.Port,
-		},
+		nil,
 		anchorResponse, func(_ net.Addr, _ string) bool {
 			return b.shouldRejectAnchorRequest(ssidRules)
 		},
@@ -63,8 +70,8 @@ func (b *BoxInstance) createAnchor(socksPort uint16) (*anchorservice.Anchor, err
 func (b *BoxInstance) shouldRejectAnchorRequest(rules []*regexp.Regexp) bool {
 	networkManager := b.Network()
 	switch networkManager.DefaultNetworkInterface().Type {
-	// Just allow connections from trusted Wi-Fi
 	case C.InterfaceTypeWIFI:
+		// Just allow connections from trusted Wi-Fi
 		ssid := networkManager.WIFIState().SSID
 		if common.Any(rules, func(it *regexp.Regexp) bool {
 			return it.MatchString(ssid)

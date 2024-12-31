@@ -84,7 +84,7 @@ class VpnService : BaseVpnService(),
             } else return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
         }
         stopRunner()
-        return Service.START_NOT_STICKY
+        return START_NOT_STICKY
     }
 
     inner class NullConnectionException : NullPointerException(),
@@ -92,13 +92,12 @@ class VpnService : BaseVpnService(),
         override fun getLocalizedMessage() = getString(R.string.reboot_required)
     }
 
-    fun startVpn(tunOptionsJson: String, tunPlatformOptionsJson: String): Int {
+    fun startVpn(): Int {
 //        Logs.d(tunOptionsJson)
 //        Logs.d(tunPlatformOptionsJson)
 //        val tunOptions = JSONObject(tunOptionsJson)
-        val platformOptions = JSONObject(tunPlatformOptionsJson)
 
-        // address & route & MTU ...... use NB4A GUI config
+        // address & route & MTU ...... use GUI config
         val builder = Builder().setConfigureIntent(SagerNet.configureIntent(this))
             .setSession(getString(R.string.app_name))
             .setMtu(DataStore.mtu)
@@ -198,17 +197,10 @@ class VpnService : BaseVpnService(),
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy &&
             DataStore.inboundUsername.isEmpty() && DataStore.inboundPassword.isEmpty()
         ) {
-            var bypassList = listOf<String>()
-            try {
-                bypassList = platformOptions.getJSONArray("bypass_domain").toList()
-            } catch (_: Exception) {
-            }
-
             builder.setHttpProxy(
                 ProxyInfo.buildDirectProxy(
                     LOCALHOST4,
                     DataStore.mixedPort,
-                    bypassList
                 )
             )
         }

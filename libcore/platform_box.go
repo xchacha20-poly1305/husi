@@ -3,6 +3,7 @@ package libcore
 import (
 	"context"
 	"net/netip"
+	"os"
 	"sync"
 	"syscall"
 
@@ -15,11 +16,12 @@ import (
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
-	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/logger"
 	N "github.com/sagernet/sing/common/network"
 
 	"libcore/procfs"
+
+	"golang.org/x/sys/unix"
 )
 
 type boxPlatformInterfaceWrapper struct {
@@ -73,14 +75,12 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	if len(options.IncludeAndroidUser) > 0 {
 		return nil, E.New("android: unsupported android_user option")
 	}
-	a, _ := json.Marshal(options)
-	b, _ := json.Marshal(platformOptions)
-	tunFd, err := w.iif.OpenTun(string(a), string(b))
+	tunFd, err := w.iif.OpenTun()
 	if err != nil {
 		return nil, E.Cause(err, "iif.OpenTun")
 	}
 	// Do you want to close it?
-	tunFd, err = syscall.Dup(tunFd)
+	tunFd, err = unix.Dup(tunFd)
 	if err != nil {
 		return nil, E.Cause(err, "syscall.Dup")
 	}
@@ -88,6 +88,10 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	options.FileDescriptor = tunFd
 	w.myTunName = options.Name
 	return tun.New(*options)
+}
+
+func (w *boxPlatformInterfaceWrapper) UpdateRouteOptions(options *tun.Options, platformOptions option.TunPlatformOptions) error {
+	return os.ErrInvalid
 }
 
 func (w *boxPlatformInterfaceWrapper) CloseTun() error {
