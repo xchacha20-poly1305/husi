@@ -10,7 +10,6 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
@@ -28,6 +27,8 @@ import java.net.NetworkInterface
 class NativeInterface : PlatformInterface {
 
     //  libbox interface
+
+    override fun anchorSSIDs(): String = DataStore.anchorSSID
 
     override fun autoDetectInterfaceControl(fd: Int) {
         DataStore.vpnService?.protect(fd)
@@ -50,9 +51,11 @@ class NativeInterface : PlatformInterface {
         DefaultNetworkMonitor.setListener(null)
     }
 
-    override fun openTun(singTunOptionsJson: String, tunPlatformOptionsJson: String): Long {
-        if (DataStore.vpnService == null) throw Exception("no VpnService")
-        return DataStore.vpnService!!.startVpn(singTunOptionsJson, tunPlatformOptionsJson).toLong()
+    override fun deviceName(): String = Build.MODEL
+
+    override fun openTun(): Long {
+        if (DataStore.vpnService == null) throw NullPointerException("no vpnService")
+        return DataStore.vpnService!!.startVpn().toLong()
     }
 
     override fun useProcFS(): Boolean {
@@ -79,15 +82,6 @@ class NativeInterface : PlatformInterface {
             Logs.e(e)
             throw e
         }
-    }
-
-    override fun getDataStoreString(key: String): String? = try {
-        DataStore.javaClass.getField(key).let {
-            it.isAccessible = true
-            it.get(DataStore) as? String
-        }
-    } catch (_: Exception) {
-        null
     }
 
     override fun packageNameByUid(uid: Int): String {

@@ -20,11 +20,11 @@ import (
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 
+	"github.com/xchacha20-poly1305/anchor/anchorservice"
+
 	"libcore/protect"
 	"libcore/trackerchain"
 	"libcore/v2rayapilite"
-
-	"github.com/xchacha20-poly1305/anchor/anchorservice"
 )
 
 func ResetAllConnections() {
@@ -133,9 +133,9 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		b.Router().SetTracker(trackerchain.New(b.v2ray.StatsService(), b.clash))
 
 		// Anchor
-		socksPort := publicMixedPort(options.Inbounds)
+		socksPort, dnsPort := sharedPublicPort(options.Inbounds)
 		if socksPort > 0 {
-			b.anchor, err = b.createAnchor(socksPort)
+			b.anchor, err = b.createAnchor(socksPort, dnsPort)
 			if err != nil {
 				log.WarnContext(b.ctx, "create anchor: ", err)
 			}
@@ -225,7 +225,7 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 }
 
 func (b *BoxInstance) NeedWIFIState() bool {
-	return b.Box.Router().NeedWIFIState()
+	return b.anchor != nil || b.Box.Router().NeedWIFIState()
 }
 
 func (b *BoxInstance) QueryStats(tag, direct string) int64 {

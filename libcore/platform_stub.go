@@ -70,6 +70,10 @@ func (p platformInterfaceStub) SendNotification(_ *platform.Notification) error 
 	return nil
 }
 
+func (p platformInterfaceStub) UpdateRouteOptions(options *tun.Options, platformOptions option.TunPlatformOptions) error {
+	return os.ErrInvalid
+}
+
 var _ tun.DefaultInterfaceMonitor = interfaceMonitorStub{}
 
 type interfaceMonitorStub struct{}
