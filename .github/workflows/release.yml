@@ -128,7 +128,7 @@ jobs:
           path: artifacts/
       - name: Release
         run: |
-          curl -Lo - https://github.com/tcnksm/ghr/releases/download/v0.16.2/ghr_v0.16.2_linux_amd64.tar.gz | tar xzv
+          curl -Lo - https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz | tar xzv
           mv ghr*linux_amd64/ghr .
-          ./ghr -delete -prerelease -t "${{ github.token }}" -n "${{ github.ref }}" "${{ github
-          .ref }}" ./artifacts/
+          ./ghr -delete -prerelease -t "${{ github.token }}" -n "${{ github.ref_name }}" "${{ github
+          .ref_name }}" ./artifacts/
