@@ -95,79 +95,100 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         super.onDestroyView()
     }
 
-    override fun onMenuItemClick(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_reset_network -> (requireActivity() as? MainActivity)?.let {
-                val size =
-                    (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
-                        ?.adapter?.data?.size ?: 0
-                MaterialAlertDialogBuilder(it)
-                    .setTitle(R.string.reset_connections)
-                    .setMessage(
-                        getString(
-                            R.string.ensure_close_all,
-                            size.toString(),
-                        )
+    override fun onMenuItemClick(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_reset_network -> {
+            val mainActivity = (requireActivity() as? MainActivity) ?: return true
+            val size =
+                (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
+                    ?.adapter?.data?.size ?: 0
+            MaterialAlertDialogBuilder(mainActivity)
+                .setTitle(R.string.reset_connections)
+                .setMessage(
+                    getString(
+                        R.string.ensure_close_all,
+                        size.toString(),
                     )
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        it.connection.service?.resetNetwork()
-                        snackbar(R.string.have_reset_network).show()
-                    }
-                    .setNegativeButton(R.string.no_thanks) { _, _ -> }
-                    .show()
-            }
-
-            // Sort
-
-            R.id.action_sort_ascending -> {
-                DataStore.trafficDescending = false
-                item.isChecked = true
-            }
-
-            R.id.action_sort_descending -> {
-                DataStore.trafficDescending = true
-                item.isChecked = true
-            }
-
-            R.id.action_sort_time -> {
-                DataStore.trafficSortMode = TrafficSortMode.START
-                item.isChecked = true
-            }
-
-            R.id.action_sort_inbound -> {
-                DataStore.trafficSortMode = TrafficSortMode.INBOUND
-                item.isChecked = true
-            }
-
-            R.id.action_sort_source -> {
-                DataStore.trafficSortMode = TrafficSortMode.SRC
-                item.isChecked = true
-            }
-
-            R.id.action_sort_destination -> {
-                DataStore.trafficSortMode = TrafficSortMode.DST
-                item.isChecked = true
-            }
-
-            R.id.action_sort_upload -> {
-                DataStore.trafficSortMode = TrafficSortMode.UPLOAD
-                item.isChecked = true
-            }
-
-            R.id.action_sort_download -> {
-                DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
-                item.isChecked = true
-            }
-
-            R.id.action_sort_rule -> {
-                DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
-                item.isChecked = true
-            }
-
-            else -> return false
+                )
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    mainActivity.connection.service?.resetNetwork()
+                    snackbar(R.string.have_reset_network).show()
+                }
+                .setNegativeButton(R.string.no_thanks) { _, _ -> }
+                .show()
+            true
         }
-        return true
+
+        R.id.action_traffic_pause -> {
+            if (isPausing) {
+                isPausing = false
+                item.setIcon(android.R.drawable.ic_media_pause)
+            } else {
+                isPausing = true
+                item.setIcon(android.R.drawable.ic_media_play)
+            }
+            true
+        }
+
+        // Sort
+
+        R.id.action_sort_ascending -> {
+            DataStore.trafficDescending = false
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_descending -> {
+            DataStore.trafficDescending = true
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_time -> {
+            DataStore.trafficSortMode = TrafficSortMode.START
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_inbound -> {
+            DataStore.trafficSortMode = TrafficSortMode.INBOUND
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_source -> {
+            DataStore.trafficSortMode = TrafficSortMode.SRC
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_destination -> {
+            DataStore.trafficSortMode = TrafficSortMode.DST
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_upload -> {
+            DataStore.trafficSortMode = TrafficSortMode.UPLOAD
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_download -> {
+            DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
+            item.isChecked = true
+            true
+        }
+
+        R.id.action_sort_rule -> {
+            DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
+            item.isChecked = true
+            true
+        }
+
+        else -> false
     }
+
+    private var isPausing = false
 
     fun emitStats(dashboardStatus: DashboardStatus) {
         when (binding.trafficPager.currentItem) {
@@ -181,6 +202,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             }
 
             POSITION_CONNECTIONS -> {
+                if (isPausing) return
                 val connectionFragment =
                     getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment ?: return
                 connectionFragment.emitStats(dashboardStatus.connections)
