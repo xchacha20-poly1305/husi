@@ -337,7 +337,7 @@ object RawUpdater : GroupUpdater() {
                     }
 
                     "hysteria" -> proxies.add(HysteriaBean().apply {
-                        protocolVersion = 1
+                        protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
                         for (opt in proxy) {
                             when (opt.key) {
                                 "tag" -> name = opt.value.toString()
@@ -383,12 +383,14 @@ object RawUpdater : GroupUpdater() {
                     })
 
                     "hysteria2" -> proxies.add(HysteriaBean().apply {
-                        protocolVersion = 2
+                        protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
                         for (opt in proxy) {
                             when (opt.key) {
                                 "tag" -> name = opt.value.toString()
                                 "server" -> serverAddress = opt.value.toString()
                                 "server_port" -> serverPorts = opt.value.toString()
+                                "server_ports" -> listable<String>(opt.value)?.joinToString(",")
+                                "hop_interval" -> hopInterval = opt.value.toString()
                                 "obfs" -> for (obfsOpt in (opt.value as Map<String, Any>)) {
                                     when (obfsOpt.key) {
                                         "password" -> obfuscation = obfsOpt.value.toString()

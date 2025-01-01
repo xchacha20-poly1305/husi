@@ -75,8 +75,8 @@ abstract class BoxInstance(
 
                     is HysteriaBean -> {
                         when (bean.protocolVersion) {
-                            1 -> initPlugin("hysteria-plugin")
-                            2 -> initPlugin("hysteria2-plugin")
+                            HysteriaBean.PROTOCOL_VERSION_1 -> initPlugin("hysteria-plugin")
+                            HysteriaBean.PROTOCOL_VERSION_2 -> initPlugin("hysteria2-plugin")
                         }
                         pluginConfigs[port] = profile.type to bean.buildHysteriaConfig(port) {
                             File(
@@ -163,25 +163,28 @@ abstract class BoxInstance(
 
                         val envMap = mutableMapOf("HYSTERIA_DISABLE_UPDATE_CHECK" to "1")
 
-                        val commands = if (bean.protocolVersion == 1) {
-                            mutableListOf(
-                                initPlugin("hysteria-plugin").path,
-                                "--no-check",
-                                "--config",
-                                configFile.absolutePath,
-                                "--log-level",
-                                if (DataStore.logLevel > 0) "trace" else "warn",
-                                "client"
-                            )
-                        } else {
-                            mutableListOf(
-                                initPlugin("hysteria2-plugin").path, "client",
-                                "--config", configFile.absolutePath,
-                                "--log-level", if (DataStore.logLevel > 0) "warn" else "error"
-                            )
-                        }
+                        val commands =
+                            if (bean.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+                                mutableListOf(
+                                    initPlugin("hysteria-plugin").path,
+                                    "--no-check",
+                                    "--config",
+                                    configFile.absolutePath,
+                                    "--log-level",
+                                    if (DataStore.logLevel > 0) "trace" else "warn",
+                                    "client",
+                                )
+                            } else {
+                                mutableListOf(
+                                    initPlugin("hysteria2-plugin").path, "client",
+                                    "--config", configFile.absolutePath,
+                                    "--log-level", if (DataStore.logLevel > 0) "warn" else "error",
+                                )
+                            }
 
-                        if (bean.protocolVersion == 1 && bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
+                        if (bean.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2
+                            && bean.protocol == HysteriaBean.PROTOCOL_FAKETCP
+                        ) {
                             commands.addAll(0, listOf("su", "-c"))
                         }
 

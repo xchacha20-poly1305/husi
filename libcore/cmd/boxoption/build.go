@@ -30,7 +30,7 @@ var mainBuilder = bytes.NewBuffer(make([]byte, mainBuilderSize))
 
 // mainBuilderSize is the maximum size of the mainBuilder.
 // We found this is the max size the mainBuilder will use.
-const mainBuilderSize = 2048
+const mainBuilderSize = 4096
 
 func buildClass(opt any, belongs string) []byte {
 	value := reflect.Indirect(reflect.ValueOf(opt))

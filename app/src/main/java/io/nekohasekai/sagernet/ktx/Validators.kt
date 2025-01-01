@@ -75,7 +75,7 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is HysteriaBean -> {
             if (allowInsecure) return ResultInsecure(R.raw.insecure)
-            if (protocolVersion < 2) return ResultDeprecated(R.raw.hysteria_legacy)
+            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ResultDeprecated(R.raw.hysteria_legacy)
         }
 
         // Should we said that TUIC died?

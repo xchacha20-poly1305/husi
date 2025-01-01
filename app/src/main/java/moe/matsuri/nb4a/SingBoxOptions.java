@@ -71,7 +71,7 @@ public class SingBoxOptions {
     }
 
     // Classes have optional field
-    // Generated in line 194
+    // Generated in line + 145
 
     public static class Inbound extends SingBoxOption {
 
@@ -296,8 +296,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
     }
 
@@ -773,6 +771,8 @@ public class SingBoxOptions {
 
         public Boolean udp_connect;
 
+        public String udp_timeout;
+
         public String detour;
 
         public String bind_interface;
@@ -798,8 +798,6 @@ public class SingBoxOptions {
         public String domain_strategy;
 
         public String fallback_network_type;
-
-        public String network_fallback_delay;
 
         public String method;
 
@@ -871,8 +869,6 @@ public class SingBoxOptions {
         public String network_type;
 
         public String fallback_network_type;
-
-        public String network_fallback_delay;
 
         public String method;
 
@@ -1318,8 +1314,6 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
-        public String network_fallback_delay;
-
         public String override_address;
 
         public Integer override_port;
@@ -1362,8 +1356,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1420,8 +1412,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1483,8 +1473,6 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
-        public String network_fallback_delay;
-
         // Generate note: nested type ServerOptions
         public String server;
 
@@ -1536,8 +1524,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1591,8 +1577,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1652,8 +1636,6 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
-        public String network_fallback_delay;
-
         // Generate note: nested type ServerOptions
         public String server;
 
@@ -1706,8 +1688,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1776,12 +1756,14 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
-        public String network_fallback_delay;
-
         // Generate note: nested type ServerOptions
         public String server;
 
         public Integer server_port;
+
+        public List<String> server_ports;
+
+        public String hop_interval;
 
         public Integer up_mbps;
 
@@ -1834,8 +1816,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1898,8 +1878,6 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
-        public String network_fallback_delay;
-
         // Generate note: nested type ServerOptions
         public String server;
 
@@ -1956,8 +1934,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -2039,8 +2015,6 @@ public class SingBoxOptions {
         public String fallback_network_type;
 
         public String fallback_delay;
-
-        public String network_fallback_delay;
 
     }
 
