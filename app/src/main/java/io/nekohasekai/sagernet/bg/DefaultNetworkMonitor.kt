@@ -39,9 +39,7 @@ object DefaultNetworkMonitor {
         checkDefaultInterfaceUpdate(defaultNetwork)
     }
 
-    private fun checkDefaultInterfaceUpdate(
-        newNetwork: Network?
-    ) {
+    private fun checkDefaultInterfaceUpdate(newNetwork: Network?) {
         val listener = listener ?: return
         if (newNetwork != null) {
             val interfaceName =
@@ -50,14 +48,14 @@ object DefaultNetworkMonitor {
                 var interfaceIndex: Int
                 try {
                     interfaceIndex = NetworkInterface.getByName(interfaceName).index
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Thread.sleep(100)
                     continue
                 }
-                listener.updateDefaultInterface(interfaceName, interfaceIndex, false, false)
+                listener.updateDefaultInterface(interfaceName, interfaceIndex)
             }
         } else {
-            listener.updateDefaultInterface("", -1, false, false)
+            listener.updateDefaultInterface("", -1)
         }
     }
 }

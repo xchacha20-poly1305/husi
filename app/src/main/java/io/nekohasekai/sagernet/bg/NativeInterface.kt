@@ -28,7 +28,7 @@ class NativeInterface : PlatformInterface {
 
     //  libbox interface
 
-    override fun anchorSSIDs(): String = DataStore.anchorSSID
+    override fun anchorSSID(): String = DataStore.anchorSSID
 
     override fun autoDetectInterfaceControl(fd: Int) {
         DataStore.vpnService?.protect(fd)
@@ -43,11 +43,11 @@ class NativeInterface : PlatformInterface {
         }
     }
 
-    override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener?) {
+    override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
         DefaultNetworkMonitor.setListener(listener)
     }
 
-    override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener?) {
+    override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
         DefaultNetworkMonitor.setListener(null)
     }
 
@@ -128,11 +128,11 @@ class NativeInterface : PlatformInterface {
         // TODO API 34
         @Suppress("DEPRECATION") val wifiInfo = SagerNet.wifi.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
-        if (ssid == "<unknown ssid>") return WIFIState("", "")
+        if (ssid == "<unknown ssid>") return WifiState("", "")
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
             ssid = ssid.substring(1, ssid.length - 1)
         }
-        return WIFIState(ssid, wifiInfo.bssid)
+        return WifiState(ssid, wifiInfo.bssid)
     }
 
     override fun getInterfaces(): NetworkInterfaceIterator {
@@ -212,15 +212,16 @@ class NativeInterface : PlatformInterface {
 
     }
 
-    override fun usePlatformInterfaceGetter(): Boolean {
-        return SDK_INT >= Build.VERSION_CODES.R // SDK 30 (Android 11)
-    }
-
     private fun InterfaceAddress.toPrefix(): String {
         return if (address is Inet6Address) {
             "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
         } else {
             "${address.hostAddress}/${networkPrefixLength}"
         }
+    }
+
+    private class WifiState(var mSSID: String, var mBSSID: String) : WIFIState {
+        override fun getSSID(): String = mSSID
+        override fun getBSSID(): String = mBSSID
     }
 }
