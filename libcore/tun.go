@@ -2,10 +2,9 @@ package libcore
 
 import (
 	"net"
-	"net/netip"
 
 	C "github.com/sagernet/sing-box/constant"
-	tun "github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
@@ -20,7 +19,7 @@ var (
 )
 
 type InterfaceUpdateListener interface {
-	UpdateDefaultInterface(interfaceName string, interfaceIndex int32, isExpensive bool, isConstrained bool)
+	UpdateDefaultInterface(interfaceName string, interfaceIndex int32)
 }
 
 const (
@@ -52,12 +51,6 @@ type interfaceMonitor struct {
 	element   *list.Element[tun.NetworkUpdateCallback]
 	callbacks list.List[tun.DefaultInterfaceUpdateCallback]
 	logger    logger.Logger
-}
-
-type networkAddress struct {
-	interfaceName  string
-	interfaceIndex int
-	addresses      []netip.Prefix
 }
 
 func (m *interfaceMonitor) Start() error {
@@ -94,9 +87,9 @@ func (m *interfaceMonitor) UnregisterCallback(element *list.Element[tun.DefaultI
 	m.callbacks.Remove(element)
 }
 
-func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfaceIndex32 int32, isExpensive bool, isConstrained bool) {
-	m.isExpensive = isExpensive
-	m.isConstrained = isConstrained
+func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfaceIndex32 int32) {
+	/*m.isExpensive = isExpensive
+	m.isConstrained = isConstrained*/
 	err := m.networkManager.UpdateInterfaces()
 	if err != nil {
 		m.logger.Error(E.Cause(err, "update interfaces"))

@@ -72,13 +72,11 @@ class BaseService {
             when (intent.action) {
                 Action.RELOAD -> service.reload()
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
-                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        if (SagerNet.power.isDeviceIdleMode) {
-                            proxy?.box?.pause()
-                        } else {
-                            proxy?.box?.wake()
-                        }
+                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (SagerNet.power.isDeviceIdleMode) {
+                        proxy?.box?.pause()
+                    } else {
+                        proxy?.box?.wake()
                     }
                 }
 
@@ -163,7 +161,7 @@ class BaseService {
             try {
                 return data!!.proxy!!.box.urlTest(
                     DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout
+                    DataStore.connectionTestTimeout,
                 )
             } catch (e: Exception) {
                 Logs.e(e)

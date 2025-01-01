@@ -12,7 +12,7 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/option"
-	tun "github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -31,19 +31,17 @@ type boxPlatformInterfaceWrapper struct {
 	myTunName              string
 	defaultInterfaceAccess sync.Mutex
 	defaultInterface       *control.Interface
-	isExpensive            bool
-	isConstrained          bool
+
+	// Set by interface monitor, which can't provide these information on Android.
+	/*isExpensive            bool
+	isConstrained          bool*/
 }
 
 var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
 
-type WIFIState struct {
-	SSID  string
-	BSSID string
-}
-
-func NewWIFIState(wifiSSID string, wifiBSSID string) *WIFIState {
-	return &WIFIState{wifiSSID, wifiBSSID}
+type WIFIState interface {
+	GetSSID() string
+	GetBSSID() string
 }
 
 func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
@@ -51,7 +49,10 @@ func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
 	if wifiState == nil {
 		return adapter.WIFIState{}
 	}
-	return (adapter.WIFIState)(*wifiState)
+	return adapter.WIFIState{
+		SSID:  wifiState.GetSSID(),
+		BSSID: wifiState.GetBSSID(),
+	}
 }
 
 func (w *boxPlatformInterfaceWrapper) Initialize(networkManager adapter.NetworkManager) error {
@@ -90,14 +91,6 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	return tun.New(*options)
 }
 
-func (w *boxPlatformInterfaceWrapper) UpdateRouteOptions(options *tun.Options, platformOptions option.TunPlatformOptions) error {
-	return os.ErrInvalid
-}
-
-func (w *boxPlatformInterfaceWrapper) CloseTun() error {
-	return nil
-}
-
 func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(logger logger.Logger) tun.DefaultInterfaceMonitor {
 	return &interfaceMonitor{
 		boxPlatformInterfaceWrapper: w,
@@ -116,7 +109,7 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, 
 			continue
 		}
 		w.defaultInterfaceAccess.Lock()
-		isDefault := w.defaultInterface != nil && int(netInterface.Index) == w.defaultInterface.Index
+		// isDefault := w.defaultInterface != nil && int(netInterface.Index) == w.defaultInterface.Index
 		w.defaultInterfaceAccess.Unlock()
 		interfaces = append(interfaces, adapter.NetworkInterface{
 			Interface: control.Interface{
@@ -128,25 +121,11 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, 
 			},
 			Type:        C.InterfaceType(netInterface.Type),
 			DNSServers:  iteratorToArray[string](netInterface.DNSServer),
-			Expensive:   netInterface.Metered || isDefault && w.isExpensive,
-			Constrained: isDefault && w.isConstrained,
+			Expensive:   netInterface.Metered, /*|| isDefault && w.isExpensive*/
+			Constrained: false,                // Not for Android
 		})
 	}
 	return interfaces, nil
-}
-
-// Android not using
-
-func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {
-	return false
-}
-
-func (w *boxPlatformInterfaceWrapper) IncludeAllNetworks() bool {
-	// https://sing-box.sagernet.org/manual/misc/tunnelvision/#android
-	return false
-}
-
-func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 }
 
 // process.Searcher
@@ -178,6 +157,30 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network
 	return &process.Info{UserId: uid, PackageName: packageName}, nil
 }
 
+// Android not using
+
+func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) IncludeAllNetworks() bool {
+	// https://sing-box.sagernet.org/manual/misc/tunnelvision/#android
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
+}
+
 func (w *boxPlatformInterfaceWrapper) SendNotification(_ *platform.Notification) error {
+	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) UpdateRouteOptions(options *tun.Options, platformOptions option.TunPlatformOptions) error {
+	// Some *table rules, can't use for Android
+	return os.ErrInvalid
+}
+
+func (w *boxPlatformInterfaceWrapper) CloseTun() error {
+	// Close by core
 	return nil
 }

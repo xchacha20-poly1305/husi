@@ -45,9 +45,11 @@ object DefaultNetworkListener {
 
             is NetworkMessage.Get -> {
                 check(listeners.isNotEmpty()) { "Getting network without any listeners is not supported" }
-                if (network == null) pendingRequests += message else message.response.complete(
-                    network
-                )
+                if (network == null) {
+                    pendingRequests += message
+                } else {
+                    message.response.complete(network)
+                }
             }
 
             is NetworkMessage.Stop -> if (listeners.isNotEmpty() && // was not empty
@@ -65,9 +67,7 @@ object DefaultNetworkListener {
             }
 
             is NetworkMessage.Update -> if (network == message.network) listeners.values.forEach {
-                it(
-                    network
-                )
+                it(network)
             }
 
             is NetworkMessage.Lost -> if (network == message.network) {
@@ -80,7 +80,7 @@ object DefaultNetworkListener {
     suspend fun start(key: Any, listener: (Network?) -> Unit) = networkActor.send(
         NetworkMessage.Start(
             key,
-            listener
+            listener,
         )
     )
 
@@ -98,9 +98,7 @@ object DefaultNetworkListener {
     private object Callback : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) = runBlocking {
             networkActor.send(
-                NetworkMessage.Put(
-                    network
-                )
+                NetworkMessage.Put(network)
             )
         }
 
@@ -114,9 +112,7 @@ object DefaultNetworkListener {
 
         override fun onLost(network: Network) = runBlocking {
             networkActor.send(
-                NetworkMessage.Lost(
-                    network
-                )
+                NetworkMessage.Lost(network)
             )
         }
     }
@@ -148,7 +144,7 @@ object DefaultNetworkListener {
                 SagerNet.connectivity.registerBestMatchingNetworkCallback(
                     request,
                     Callback,
-                    mainHandler
+                    mainHandler,
                 )
             }
 
@@ -167,9 +163,9 @@ object DefaultNetworkListener {
             else -> try {
                 fallback = false
                 SagerNet.connectivity.requestNetwork(request, Callback)
-            } catch (e: RuntimeException) {
-                fallback =
-                    true     // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
+            } catch (_: RuntimeException) {
+                // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
+                fallback = true
             }
         }
     }
