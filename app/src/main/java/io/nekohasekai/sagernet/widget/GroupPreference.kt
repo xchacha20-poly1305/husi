@@ -2,13 +2,14 @@ package io.nekohasekai.sagernet.widget
 
 import android.content.Context
 import android.util.AttributeSet
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.SagerDatabase
 import rikka.preference.SimpleMenuPreference
 
 class GroupPreference
 @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyle: Int = R.attr.dropdownPreferenceStyle
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = androidx.preference.R.attr.dropdownPreferenceStyle,
 ) : SimpleMenuPreference(context, attrs, defStyle, 0) {
 
     init {

@@ -112,7 +112,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                                     Intent.EXTRA_STREAM, FileProvider.getUriForFile(
                                         app, BuildConfig.APPLICATION_ID + ".cache", cacheFile
                                     )
-                                ), app.getString(R.string.abc_shareactionprovider_share_with)
+                                ), app.getString(androidx.appcompat.R.string.abc_shareactionprovider_share_with)
                         )
                     )
                 }

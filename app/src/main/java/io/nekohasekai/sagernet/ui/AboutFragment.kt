@@ -184,7 +184,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
 
-            view.findViewById<RecyclerView>(R.id.mal_recyclerview).apply {
+            view.findViewById<RecyclerView>(com.danielstone.materialaboutlibrary.R.id.mal_recyclerview).apply {
                 overScrollMode = RecyclerView.OVER_SCROLL_NEVER
             }
         }
