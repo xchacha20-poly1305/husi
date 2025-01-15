@@ -4,12 +4,13 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceViewHolder
-import io.nekohasekai.sagernet.R
 import rikka.preference.SimpleMenuPreference
 
 class LongClickMenuPreference
 @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyle: Int = R.attr.dropdownPreferenceStyle,
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = androidx.preference.R.attr.dropdownPreferenceStyle,
 ) : SimpleMenuPreference(context, attrs, defStyle, 0) {
     private var mLongClickListener: View.OnLongClickListener? = null
 

@@ -95,7 +95,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                 binding.clashModeButton.isClickable = false
             } else {
                 binding.clashModeButtonText.setTextColor(
-                    binding.root.context.getColorAttr(R.attr.colorOnSurface)
+                    binding.root.context.getColorAttr(com.google.android.material.R.attr.colorOnSurface)
                 )
                 binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle)
                 binding.clashModeButton.setOnClickListener {

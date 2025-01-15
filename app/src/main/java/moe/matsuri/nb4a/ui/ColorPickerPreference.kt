@@ -45,9 +45,9 @@ class ColorPickerPreference
 
             widgetFrame.addView(
                 getNekoImageViewAtColor(
-                    context.getColorAttr(R.attr.colorPrimary),
+                    context.getColorAttr(androidx.appcompat.R.attr.colorPrimary),
                     48,
-                    0
+                    0,
                 )
             )
             widgetFrame.visibility = View.VISIBLE
