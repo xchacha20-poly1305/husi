@@ -4,9 +4,10 @@ import (
 	"net"
 	"strings"
 
+	"libcore/named"
+
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"
-	"libcore/named"
 )
 
 func generateGeoip(data []byte) (ips []*named.Named[[]*net.IPNet], err error) {

@@ -9,7 +9,5 @@ oneway interface ISagerNetServiceCallback {
   void missingPlugin(String profileName, String pluginName);
   void cbSpeedUpdate(in SpeedDisplayData stats);
   void cbTrafficUpdate(in TrafficData stats);
-  void cbSelectorUpdate(long id);
   void dashboardStatusUpdate(in DashboardStatus status);
-  void clashModeUpdate(in String mode);
 }

@@ -13,11 +13,9 @@ type iterator[T any] struct {
 	values []T
 }
 
-/*
 func newIterator[T any](values []T) *iterator[T] {
 	return &iterator[T]{values}
 }
-*/
 
 func (i *iterator[T]) Next() T {
 	if len(i.values) == 0 {

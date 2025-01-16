@@ -171,7 +171,6 @@ class BaseService {
 
         override fun enableDashboardStatus(enable: Boolean) {
             val proxy = data?.proxy ?: return
-            proxy.box.enableClashModeCallback(enable)
             proxy.dashboardStatusLooper?.stop()
             if (enable) {
                 proxy.dashboardStatusLooper?.start()

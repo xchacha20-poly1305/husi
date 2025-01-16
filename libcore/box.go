@@ -8,12 +8,12 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/experimental/clashapi"
 	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
+	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -22,9 +22,8 @@ import (
 
 	"github.com/xchacha20-poly1305/anchor/anchorservice"
 
+	"libcore/combinedapi"
 	"libcore/protect"
-	"libcore/trackerchain"
-	"libcore/v2rayapilite"
 )
 
 func ResetAllConnections() {
@@ -51,9 +50,7 @@ type BoxInstance struct {
 	platformInterface PlatformInterface
 	selector          *group.Selector
 	protect           *protect.Service
-	v2ray             *v2rayapilite.V2rayServer
-	clash             *clashapi.Server
-	clashModeHook     chan struct{}
+	api               *combinedapi.CombinedAPI
 	anchor            *anchorservice.Anchor
 
 	pauseManager pause.Manager
@@ -128,9 +125,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		}
 
 		// API
-		b.clash = service.FromContext[adapter.ClashServer](b.ctx).(*clashapi.Server)
-		b.v2ray = service.FromContext[adapter.V2RayServer](b.ctx).(*v2rayapilite.V2rayServer)
-		b.Router().SetTracker(trackerchain.New(b.v2ray.StatsService(), b.clash))
+		b.api = service.FromContext[adapter.ClashServer](b.ctx).(*combinedapi.CombinedAPI)
 
 		// Anchor
 		socksPort, dnsPort := sharedPublicPort(options.Inbounds)
@@ -161,9 +156,6 @@ func (b *BoxInstance) Start() (err error) {
 		// Never return error
 		_ = b.protect.Start()
 	}
-	if b.selector != nil {
-		go b.listenSelectorChange(b.ctx, b.platformInterface.SelectorCallback)
-	}
 	if b.anchor != nil {
 		err = b.anchor.Start()
 		if err != nil {
@@ -186,22 +178,10 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		return nil
 	}
 
-	if b.protect != nil {
-		_ = b.protect.Close()
-	}
-	if b.anchor != nil {
-		_ = b.anchor.Close()
-	}
-
-	if b.clashModeHook != nil {
-		select {
-		case <-b.clashModeHook:
-			// closed
-		default:
-			b.clash.SetModeUpdateHook(nil)
-			close(b.clashModeHook)
-		}
-	}
+	_ = common.Close(
+		common.PtrOrNil(b.protect),
+		common.PtrOrNil(b.anchor),
+	)
 
 	done := make(chan struct{})
 	start := time.Now()
@@ -228,7 +208,7 @@ func (b *BoxInstance) NeedWIFIState() bool {
 }
 
 func (b *BoxInstance) QueryStats(tag, direct string) int64 {
-	return b.v2ray.QueryStats("outbound>>>" + tag + ">>>traffic>>>" + direct)
+	return b.api.QueryStats("outbound>>>" + tag + ">>>traffic>>>" + direct)
 }
 
 func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {

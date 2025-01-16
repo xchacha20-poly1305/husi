@@ -317,11 +317,6 @@
             app:key="enabledCazilla"
             app:summary="@string/cazilla_long"
             app:title="@string/cazilla" />
-        <EditTextPreference
-            app:icon="@drawable/baseline_construction_24"
-            app:key="clashAPIListen"
-            app:title="@string/enable_clash_api"
-            app:useSimpleSummaryProvider="true" />
         <SwitchPreference
             app:icon="@drawable/ic_baseline_shutter_speed_24"
             app:key="interruptSelector"

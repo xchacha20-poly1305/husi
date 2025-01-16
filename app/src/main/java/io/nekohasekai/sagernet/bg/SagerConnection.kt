@@ -86,24 +86,10 @@ class SagerConnection(
             }
         }
 
-        override fun cbSelectorUpdate(id: Long) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.cbSelectorUpdate(id)
-            }
-        }
-
         override fun dashboardStatusUpdate(dashboardStatus: DashboardStatus) {
             val callback = callback ?: return
             runOnMainDispatcher {
                 callback.statusUpdate(dashboardStatus)
-            }
-        }
-
-        override fun clashModeUpdate(mode: String) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.clashModeUpdate(mode)
             }
         }
 

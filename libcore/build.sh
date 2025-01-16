@@ -13,7 +13,6 @@ TAGS=(
     "with_quic"
     "with_wireguard"
     "with_utls"
-    "with_clash_api"
     "with_ech"
 )
 

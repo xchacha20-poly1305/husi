@@ -1,46 +1,30 @@
-package v2rayapilite
+package combinedapi
 
 import (
-	"context"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/atomic"
 	"github.com/sagernet/sing/common/bufio"
 	N "github.com/sagernet/sing/common/network"
 )
 
-var (
-	_ adapter.ConnectionTracker = (*StatsService)(nil)
-	_ StatsGetter               = (*StatsService)(nil)
-)
-
-type StatsService struct {
+type statsService struct {
 	createdAt time.Time
-	outbounds map[string]bool
 	access    sync.Mutex
 	counters  map[string]*atomic.Int64
 }
 
-func NewStatsService(options option.V2RayStatsServiceOptions) *StatsService {
-	if !options.Enabled {
-		return nil
-	}
-	outbounds := make(map[string]bool)
-	for _, outbound := range options.Outbounds {
-		outbounds[outbound] = true
-	}
-	return &StatsService{
+func newStatsService() *statsService {
+	return &statsService{
 		createdAt: time.Now(),
-		outbounds: outbounds,
 		counters:  make(map[string]*atomic.Int64),
 	}
 }
 
-func (s *StatsService) QueryStats(name string) int64 {
+func (s *statsService) queryStats(name string) int64 {
 	s.access.Lock()
 	counter, loaded := s.counters[name]
 	s.access.Unlock()
@@ -51,14 +35,10 @@ func (s *StatsService) QueryStats(name string) int64 {
 	return counter.Swap(0)
 }
 
-func (s *StatsService) RoutedConnection(_ context.Context, conn net.Conn, _ adapter.InboundContext, _ adapter.Rule, matchOutbound adapter.Outbound) net.Conn {
+func (s *statsService) routedConnection(conn net.Conn, matchOutbound adapter.Outbound) net.Conn {
 	outbound := matchOutbound.Tag()
 	var readCounter []*atomic.Int64
 	var writeCounter []*atomic.Int64
-	countOutbound := outbound != "" && s.outbounds[outbound]
-	if !countOutbound {
-		return conn
-	}
 	s.access.Lock()
 	readCounter = append(readCounter, s.loadOrCreateCounter("outbound>>>"+outbound+">>>traffic>>>uplink"))
 	writeCounter = append(writeCounter, s.loadOrCreateCounter("outbound>>>"+outbound+">>>traffic>>>downlink"))
@@ -66,14 +46,10 @@ func (s *StatsService) RoutedConnection(_ context.Context, conn net.Conn, _ adap
 	return bufio.NewInt64CounterConn(conn, readCounter, writeCounter)
 }
 
-func (s *StatsService) RoutedPacketConnection(_ context.Context, conn N.PacketConn, _ adapter.InboundContext, _ adapter.Rule, matchOutbound adapter.Outbound) N.PacketConn {
+func (s *statsService) routedPacketConnection(conn N.PacketConn, matchOutbound adapter.Outbound) N.PacketConn {
 	outbound := matchOutbound.Tag()
 	var readCounter []*atomic.Int64
 	var writeCounter []*atomic.Int64
-	countOutbound := outbound != "" && s.outbounds[outbound]
-	if !countOutbound {
-		return conn
-	}
 	s.access.Lock()
 	readCounter = append(readCounter, s.loadOrCreateCounter("outbound>>>"+outbound+">>>traffic>>>uplink"))
 	writeCounter = append(writeCounter, s.loadOrCreateCounter("outbound>>>"+outbound+">>>traffic>>>downlink"))
@@ -81,8 +57,7 @@ func (s *StatsService) RoutedPacketConnection(_ context.Context, conn N.PacketCo
 	return bufio.NewInt64CounterPacketConn(conn, readCounter, writeCounter)
 }
 
-//nolint:staticcheck
-func (s *StatsService) loadOrCreateCounter(name string) *atomic.Int64 {
+func (s *statsService) loadOrCreateCounter(name string) *atomic.Int64 {
 	counter, loaded := s.counters[name]
 	if loaded {
 		return counter
