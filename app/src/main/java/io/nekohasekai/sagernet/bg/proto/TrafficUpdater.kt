@@ -29,8 +29,8 @@ class TrafficUpdater(
         }
 
         // query
-        val tx = box.queryStats(item.tag, "uplink")
-        val rx = box.queryStats(item.tag, "downlink")
+        val tx = box.queryStats(item.tag, true)
+        val rx = box.queryStats(item.tag, false)
 
         // add diff
         item.rx += rx

@@ -86,7 +86,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     }
 
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
-    var clashAPIListen by configurationStore.string(Key.CLASH_API_LISTEN)
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
     var interruptSelector by configurationStore.boolean(Key.INTERRUPT_SELECTOR)
 

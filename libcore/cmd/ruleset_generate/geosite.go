@@ -9,9 +9,10 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 
+	"libcore/named"
+
 	"github.com/v2fly/v2ray-core/v5/app/router/routercommon"
 	"google.golang.org/protobuf/proto"
-	"libcore/named"
 )
 
 func generateGeosite(data []byte) ([]*named.Named[[]geosite.Item], error) {

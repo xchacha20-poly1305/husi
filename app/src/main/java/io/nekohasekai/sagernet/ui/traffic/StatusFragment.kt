@@ -44,11 +44,6 @@ class StatusFragment : Fragment(R.layout.layout_status) {
         binding.goroutinesText.text = getString(R.string.no_statistics)
     }
 
-    fun clashModeUpdate(mode: String) {
-        adapter.selected = mode
-        adapter.notifyDataSetChanged()
-    }
-
     fun refreshClashMode() {
         val service = (requireActivity() as MainActivity).connection.service
         adapter.items = service?.clashModes ?: emptyList()
@@ -77,15 +72,18 @@ class StatusFragment : Fragment(R.layout.layout_status) {
         }
 
         override fun onBindViewHolder(holder: ClashModeItemView, position: Int) {
-            val modeName = items[position]
-            holder.bind(modeName, modeName == selected)
+            val mode = items[position]
+            holder.bind(mode, mode == selected) {
+                adapter.selected = mode
+                adapter.notifyDataSetChanged()
+            }
         }
     }
 
     private inner class ClashModeItemView(val binding: ViewClashModeBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: String, isSelected: Boolean) {
+        fun bind(item: String, isSelected: Boolean, updateSelected: () -> Unit) {
             binding.clashModeButtonText.text = item
             if (isSelected) {
                 binding.clashModeButtonText.setTextColor(
@@ -100,6 +98,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                 binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle)
                 binding.clashModeButton.setOnClickListener {
                     (requireActivity() as MainActivity).connection.service?.setClashMode(item)
+                    updateSelected()
                 }
             }
         }

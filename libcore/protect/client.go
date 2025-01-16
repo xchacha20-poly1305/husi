@@ -1,6 +1,10 @@
 package protect
 
-import _ "unsafe"
+import (
+	_ "unsafe"
+
+	_ "github.com/sagernet/sing/common/control"
+)
 
 // Protect sends fileDescriptors to protectPath,
 // expecting to make fileDescriptors protected by Android VPN service.
