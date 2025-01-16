@@ -341,6 +341,7 @@ object RawUpdater : GroupUpdater() {
                     "hysteria" -> proxies.add(HysteriaBean().apply {
                         protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
                         for (opt in proxy) {
+                            if (opt.value == null) continue
                             when (opt.key) {
                                 "tag" -> name = opt.value.toString()
                                 "server" -> serverAddress = opt.value.toString()
@@ -387,6 +388,7 @@ object RawUpdater : GroupUpdater() {
                     "hysteria2" -> proxies.add(HysteriaBean().apply {
                         protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
                         for (opt in proxy) {
+                            if (opt.value == null) continue
                             when (opt.key) {
                                 "tag" -> name = opt.value.toString()
                                 "server" -> serverAddress = opt.value.toString()
@@ -552,10 +554,11 @@ object RawUpdater : GroupUpdater() {
     }
 
     private fun AbstractBean.applyFromMap(
-        opts: Map<String, Any?>,
-        block: (Map.Entry<String, Any?>) -> Unit,
+        opts: Map<String, Any>,
+        block: (Map.Entry<String, Any>) -> Unit,
     ) {
         for (opt in opts) {
+            if (opt.value == null) continue // could be null, do not delete it.
             when (opt.key) {
                 "tag" -> name = opt.value.toString()
                 "server" -> serverAddress = opt.value.toString()
