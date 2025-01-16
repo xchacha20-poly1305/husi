@@ -1,6 +1,7 @@
 package protect
 
 import (
+	"cmp"
 	"context"
 	"net"
 	"os"
@@ -20,9 +21,11 @@ const (
 	ProtectSuccess
 )
 
-var _ adapter.Service = (*Protect)(nil)
+var _ adapter.Service = (*Service)(nil)
 
-type Protect struct {
+// Service is a service that accept unix connection
+// and invoke do with the received fd, which should be protected.
+type Service struct {
 	logger   logger.ContextLogger
 	ctx      context.Context
 	listener net.Listener
@@ -30,7 +33,7 @@ type Protect struct {
 	done     chan struct{}
 }
 
-func New(ctx context.Context, ctxLogger logger.ContextLogger, path string, do func(fd int) error) (*Protect, error) {
+func New(ctx context.Context, ctxLogger logger.ContextLogger, path string, do func(fd int) error) (*Service, error) {
 	if path == "" {
 		return nil, E.New("missing path")
 	}
@@ -46,7 +49,7 @@ func New(ctx context.Context, ctxLogger logger.ContextLogger, path string, do fu
 		return nil, E.Cause(err, "listen unix")
 	}
 	_ = os.Chmod(path, os.ModePerm)
-	return &Protect{
+	return &Service{
 		logger:   ctxLogger,
 		ctx:      ctx,
 		listener: listener,
@@ -55,16 +58,13 @@ func New(ctx context.Context, ctxLogger logger.ContextLogger, path string, do fu
 	}, nil
 }
 
-func (p *Protect) Start() error {
+func (p *Service) Start() error {
 	go p.loop()
 	return nil
 }
 
-func (p *Protect) loop() {
-	stop := context.AfterFunc(p.ctx, func() {
-		_ = p.Close()
-	})
-	p.logger.DebugContext(p.ctx, "Protect: start loop")
+func (p *Service) loop() {
+	p.logger.DebugContext(p.ctx, "start loop")
 	for {
 		select {
 		case <-p.ctx.Done():
@@ -75,7 +75,6 @@ func (p *Protect) loop() {
 		}
 		conn, err := p.listener.Accept()
 		if err != nil {
-			stop()
 			p.handleError(err)
 			return
 		}
@@ -83,7 +82,7 @@ func (p *Protect) loop() {
 	}
 }
 
-func (p *Protect) handle(conn *net.UnixConn) {
+func (p *Service) handle(conn *net.UnixConn) {
 	defer conn.Close()
 	rawConn, err := conn.SyscallConn()
 	if err != nil {
@@ -119,11 +118,7 @@ func (p *Protect) handle(conn *net.UnixConn) {
 		}
 		receivedFd = fds[0]
 	})
-	if controlErr != nil {
-		_, _ = conn.Write([]byte{ProtectFailed})
-		p.handleError(controlErr)
-		return
-	}
+	err = cmp.Or(controlErr, err)
 	if err != nil {
 		_, _ = conn.Write([]byte{ProtectFailed})
 		p.handleError(err)
@@ -138,14 +133,14 @@ func (p *Protect) handle(conn *net.UnixConn) {
 	_, _ = conn.Write([]byte{ProtectSuccess})
 }
 
-func (p *Protect) handleError(err error) {
+func (p *Service) handleError(err error) {
 	if E.IsClosedOrCanceled(err) {
 		return
 	}
-	p.logger.DebugContext(p.ctx, "protect server: ", err)
+	p.logger.DebugContext(p.ctx, err)
 }
 
-func (p *Protect) Close() error {
+func (p *Service) Close() error {
 	if p.done == nil {
 		return os.ErrInvalid
 	}
@@ -155,5 +150,10 @@ func (p *Protect) Close() error {
 	default:
 		close(p.done)
 	}
-	return common.Close(p.listener)
+	err := common.Close(p.listener)
+	if err != nil {
+		return err
+	}
+	p.logger.InfoContext(p.ctx, "protect service closed")
+	return nil
 }

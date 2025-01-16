@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	box "github.com/sagernet/sing-box"
+	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
@@ -50,7 +50,7 @@ type BoxInstance struct {
 
 	platformInterface PlatformInterface
 	selector          *group.Selector
-	protect           *protect.Protect
+	protect           *protect.Service
 	v2ray             *v2rayapilite.V2rayServer
 	clash             *clashapi.Server
 	clashModeHook     chan struct{}
@@ -120,7 +120,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		}
 
 		// Protect
-		b.protect, err = protect.New(ctx, log.StdLogger(), ProtectPath, func(fd int) error {
+		b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
 			return platformInterface.AutoDetectInterfaceControl(int32(fd))
 		})
 		if err != nil {
@@ -158,9 +158,8 @@ func (b *BoxInstance) Start() (err error) {
 	}
 
 	if b.protect != nil {
-		if err := b.protect.Start(); err != nil {
-			log.Warn(E.Cause(err))
-		}
+		// Never return error
+		_ = b.protect.Start()
 	}
 	if b.selector != nil {
 		go b.listenSelectorChange(b.ctx, b.platformInterface.SelectorCallback)

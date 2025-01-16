@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	_ "unsafe"
 
 	"github.com/sagernet/sing-box/log"
 )
