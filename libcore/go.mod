@@ -19,6 +19,8 @@ require (
 	golang.org/x/sys v0.29.0
 )
 
+//replace github.com/sagernet/sing-box => ../../sing-box
+
 // cmd
 require (
 	github.com/oschwald/geoip2-golang v1.9.0

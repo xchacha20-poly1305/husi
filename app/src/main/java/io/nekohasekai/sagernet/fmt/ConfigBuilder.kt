@@ -334,7 +334,7 @@ fun buildConfig(
 
         // init routing object
         route = RouteOptions().apply {
-            if (!forTest) auto_detect_interface = true
+            auto_detect_interface = true
             rules = mutableListOf()
             rule_set = mutableListOf()
         }
@@ -462,10 +462,6 @@ fun buildConfig(
                     currentOutbound.apply {
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
-
-                        if (outboundProtect) {
-                            this["protect_path"] = Libcore.ProtectPath
-                        }
 
                         if (!muxApplied && proxyEntity.needCoreMux()) {
                             muxApplied = true
