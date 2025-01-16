@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/experimental/clashapi/trafficontrol"
+	"libcore/combinedapi/trafficcontrol"
+
 	"github.com/sagernet/sing/common"
-	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
 	M "github.com/sagernet/sing/common/metadata"
@@ -19,54 +18,43 @@ import (
 
 // GetTrackerInfos returns TrackerInfo list. If not set clash API, it will return error.
 func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator, err error) {
-	if b.clash == nil {
-		return nil, E.New("not include clash server")
-	}
-
-	connections := common.Filter(b.clash.TrafficManager().Connections(), func(it trafficontrol.TrackerMetadata) bool {
-		return it.Metadata.Protocol != C.ProtocolDNS
-	})
-	trackerInfos := common.Map(connections, func(it trafficontrol.TrackerMetadata) *TrackerInfo {
+	connections := b.api.TrafficManager().Connections()
+	trackerInfos := common.Map(connections, func(it trafficcontrol.Tracker) *TrackerInfo {
+		metadata := it.Metadata()
 		var rule string
-		if it.Rule == nil {
+		if metadata.Rule == nil {
 			rule = "final"
 		} else {
-			rule = F.ToString(it.Rule, " => ", it.Rule.Action())
+			rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
 		}
 		return &TrackerInfo{
-			UUID:          it.ID,
-			Inbound:       generateBound(it.Metadata.Inbound, it.Metadata.InboundType),
-			IPVersion:     int16(it.Metadata.IPVersion),
-			Network:       it.Metadata.Network,
-			Src:           it.Metadata.Source,
-			Dst:           it.Metadata.Destination,
-			Host:          cmp.Or(it.Metadata.Domain, it.Metadata.Destination.Fqdn),
+			UUID:          metadata.ID,
+			Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
+			IPVersion:     int16(metadata.Metadata.IPVersion),
+			Network:       metadata.Metadata.Network,
+			Src:           metadata.Metadata.Source,
+			Dst:           metadata.Metadata.Destination,
+			Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
 			MatchedRule:   rule,
-			UploadTotal:   it.Upload.Load(),
-			DownloadTotal: it.Download.Load(),
-			Start:         it.CreatedAt,
-			Outbound:      generateBound(it.Outbound, it.OutboundType),
-			Chain:         strings.Join(it.Chain, " => "),
-			Protocol:      it.Metadata.Protocol,
+			UploadTotal:   metadata.Upload.Load(),
+			DownloadTotal: metadata.Download.Load(),
+			Start:         metadata.CreatedAt,
+			Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
+			Chain:         strings.Join(metadata.Chain, " => "),
+			Protocol:      metadata.Metadata.Protocol,
 		}
 	})
 
-	return &iterator[*TrackerInfo]{trackerInfos}, nil
+	return newIterator(trackerInfos), nil
 }
 
 // CloseConnection closes the connection, whose UUID is `id`.
 func (b *BoxInstance) CloseConnection(id string) {
-	if b.clash == nil {
+	tracker := b.api.TrafficManager().Connection(uuid.Must(uuid.FromString(id)))
+	if tracker == nil {
 		return
 	}
-
-	trackerList := b.clash.TrafficManager().Snapshot().Connections
-	for _, tracker := range trackerList {
-		if tracker.Metadata().ID.String() == id {
-			_ = tracker.Close()
-			break
-		}
-	}
+	_ = tracker.Close()
 }
 
 var _ TrackerInfoIterator = (*iterator[*TrackerInfo])(nil)
@@ -132,55 +120,15 @@ func GetGoroutines() int32 {
 
 // GetClashModeList returns the clash mode you have set.
 func (b *BoxInstance) GetClashModeList() StringIterator {
-	if b.clash == nil {
-		return nil
-	}
-	return &iterator[string]{b.clash.ModeList()}
-}
-
-// EnableClashModeCallback set whether enable clash mode callbck.
-func (b *BoxInstance) EnableClashModeCallback(enable bool) {
-	if b.clash == nil {
-		return
-	}
-
-	// clean old
-	b.clash.SetModeUpdateHook(nil)
-	if b.clashModeHook != nil {
-		select {
-		case <-b.clashModeHook:
-			// closed
-		default:
-			close(b.clashModeHook)
-		}
-		b.clashModeHook = nil
-	}
-
-	if !enable {
-		return
-	}
-
-	b.clashModeHook = make(chan struct{})
-	b.clash.SetModeUpdateHook(b.clashModeHook)
-	go func() {
-		for range b.clashModeHook {
-			b.platformInterface.ClashModeCallback(b.clash.Mode())
-		}
-	}()
+	return newIterator(b.api.ModeList())
 }
 
 // GetClashMode returns the clash mode that being selected.
 func (b *BoxInstance) GetClashMode() string {
-	if b.clash == nil {
-		return ""
-	}
-	return b.clash.Mode()
+	return b.api.Mode()
 }
 
 // SetClashMode sets clash mode.
 func (b *BoxInstance) SetClashMode(mode string) {
-	if b.clash == nil {
-		return
-	}
-	b.clash.SetMode(mode)
+	b.api.SetMode(mode)
 }

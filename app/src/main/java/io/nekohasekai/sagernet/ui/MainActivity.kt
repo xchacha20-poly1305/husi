@@ -436,24 +436,9 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    override fun cbSelectorUpdate(id: Long) {
-        val old = DataStore.selectedProxy
-        DataStore.selectedProxy = id
-        DataStore.currentProfile = id
-        runOnDefaultDispatcher {
-            ProfileManager.postUpdate(old, true)
-            ProfileManager.postUpdate(id, true)
-        }
-    }
-
     override fun statusUpdate(dashboardStatus: DashboardStatus) {
         (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)
             ?.emitStats(dashboardStatus)
-    }
-
-    override fun clashModeUpdate(mode: String) {
-        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)
-            ?.clashModeUpdate(mode)
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
@@ -570,7 +555,7 @@ class MainActivity : ThemedActivity(),
             try {
                 MIUIUtils.openPermissionSettings(this)
                 return
-            } catch (ignored: Exception) {
+            } catch (_: Exception) {
             }
         }
 

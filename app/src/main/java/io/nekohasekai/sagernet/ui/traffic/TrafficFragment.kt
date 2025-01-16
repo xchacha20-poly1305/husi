@@ -210,11 +210,6 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
     }
 
-    fun clashModeUpdate(mode: String) {
-        if (binding.trafficPager.currentItem != POSITION_STATUS) return
-        (getFragment(POSITION_STATUS) as? StatusFragment)?.clashModeUpdate(mode)
-    }
-
     fun refreshClashMode() {
         if (binding.trafficPager.currentItem != POSITION_STATUS) return
         (getFragment(POSITION_STATUS) as? StatusFragment)?.refreshClashMode()

@@ -8,9 +8,7 @@ import android.system.OsConstants
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
 import libcore.Libcore
@@ -32,15 +30,6 @@ class NativeInterface : PlatformInterface {
 
     override fun autoDetectInterfaceControl(fd: Int) {
         DataStore.vpnService?.protect(fd)
-    }
-
-    override fun clashModeCallback(mode: String?) {
-        val data = DataStore.baseService?.data ?: return
-        runOnDefaultDispatcher {
-            data.binder.broadcast { work ->
-                work.clashModeUpdate(data.proxy?.box?.clashMode ?: return@broadcast)
-            }
-        }
     }
 
     override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
@@ -97,31 +86,6 @@ class NativeInterface : PlatformInterface {
         }
 
         error("unknown uid $uid")
-    }
-
-    override fun uidByPackageName(packageName: String): Int {
-        PackageCache.awaitLoadSync()
-        return PackageCache[packageName] ?: 0
-    }
-
-    override fun selectorCallback(tag: String) {
-        DataStore.baseService?.apply {
-            runOnDefaultDispatcher {
-                val id = data.proxy!!.config.profileTagMap
-                    .filterValues { it == tag }.keys.firstOrNull() ?: -1
-                val ent = SagerDatabase.proxyDao.getById(id) ?: return@runOnDefaultDispatcher
-                // traffic & title
-                data.proxy?.apply {
-                    trafficLooper?.selectMain(id)
-                    displayProfileName = ServiceNotification.genTitle(ent)
-                    data.notification?.postNotificationTitle(displayProfileName)
-                }
-                // post binder
-                data.binder.broadcast { b ->
-                    b.cbSelectorUpdate(id)
-                }
-            }
-        }
     }
 
     override fun readWIFIState(): WIFIState? {
