@@ -121,9 +121,11 @@ object RawUpdater : GroupUpdater() {
 
                 val json = gson.fromJson(text, Map::class.java)
 
-                val proxyList = listable<Map<String, Any>>(json["outbounds"])
+                var proxyList = json["outbounds"] as? List<Map<String, Any>>
                     ?: error(app.getString(R.string.no_proxies_found_in_file))
-                listable<Map<String, Any>>(json["endpoints"])?.mapNotNullTo(proxyList) { it }
+                (json["endpoints"] as? List<Map<String, Any>>)?.let {
+                    proxyList += it
+                }
                 for (proxy in proxyList) when (proxy["type"].toString()) {
                     "socks" -> proxies.add(SOCKSBean().apply {
                         applyFromMap(proxy) { opt ->
