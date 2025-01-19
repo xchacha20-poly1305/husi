@@ -3,10 +3,15 @@ package libcore
 import (
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/sagernet/sing-box/log"
 )
+
+func init() {
+	debug.SetTraceback("all")
+}
 
 const ProtectPath = "protect_path"
 

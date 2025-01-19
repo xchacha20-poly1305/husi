@@ -183,23 +183,21 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 		common.PtrOrNil(b.anchor),
 	)
 
-	done := make(chan struct{})
+	done := make(chan error, 1)
 	start := time.Now()
-	go func(done chan<- struct{}) {
-		defer catchPanic("box.Close", func(panicErr error) { err = panicErr })
+	go func() {
+		defer catchPanic("box.Close", func(panicErr error) { done <- panicErr })
 		b.cancel()
-		_ = b.Box.Close()
-		close(done)
-	}(done)
+		done <- b.Box.Close()
+	}()
 	select {
 	case <-time.After(timeout):
 		return E.New("sing-box did not close in time")
-	case <-done:
-		if b.forTest {
-			return nil
+	case err = <-done:
+		if !b.forTest {
+			log.Info("sing-box closed in ", F.Seconds(time.Since(start).Seconds()), " s.")
 		}
-		log.Info("sing-box closed in ", F.Seconds(time.Since(start).Seconds()), " s.")
-		return nil
+		return
 	}
 }
 
