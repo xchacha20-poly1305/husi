@@ -19,7 +19,7 @@ require (
 	golang.org/x/sys v0.29.0
 )
 
-//replace github.com/sagernet/sing-box => ../../sing-box
+// replace github.com/sagernet/sing-box => ../../sing-box
 
 // cmd
 require (
