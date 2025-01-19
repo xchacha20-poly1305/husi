@@ -45,10 +45,6 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-      - name: Patch Go
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          make patch_go1234
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
