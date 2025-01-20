@@ -7,6 +7,9 @@ import java.util.Map;
 
 public class SingBoxOptions {
 
+    public static final String NetworkTCP = "tcp";
+    public static final String NetworkUDP = "udp";
+
     public static final String RULE_SET_FORMAT_BINARY = "binary";
     public static final String RULE_SET_TYPE_REMOTE = "remote";
     public static final String RULE_SET_TYPE_LOCAL = "local";
