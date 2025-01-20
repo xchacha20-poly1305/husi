@@ -2,7 +2,13 @@ package io.nekohasekai.sagernet.fmt.hysteria
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.getBool
+import io.nekohasekai.sagernet.ktx.getIntOrNull
+import io.nekohasekai.sagernet.ktx.getStr
+import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.linkBoolean
+import io.nekohasekai.sagernet.ktx.toStringPretty
+import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
@@ -24,9 +30,7 @@ fun parseHysteria1(link: String): HysteriaBean {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
         }
-        url.queryParameterNotBlank("insecure").also {
-            allowInsecure = it == "1" || it == "true"
-        }
+        allowInsecure = url.queryParameterNotBlank("insecure").linkBoolean()
         alpn = url.queryParameterNotBlank("alpn")
         obfuscation = url.queryParameterNotBlank("obfsParam")
         protocol = when (url.queryParameterNotBlank("protocol")) {
@@ -61,13 +65,11 @@ fun parseHysteria2(link: String): HysteriaBean {
         name = url.fragment
 
         sni = url.queryParameterNotBlank("sni")
-        url.queryParameterNotBlank("insecure").also {
-            allowInsecure = it == "1" || it == "true"
-        }
+        allowInsecure = url.queryParameterNotBlank("insecure").linkBoolean()
         obfuscation = url.queryParameterNotBlank("obfs-password")
-        url.queryParameterNotBlank("pinSHA256").also {
+        /*url.queryParameterNotBlank("pinSHA256").also {
             // TODO your box do not support it
-        }
+        }*/
     }
 }
 
@@ -79,7 +81,11 @@ fun HysteriaBean.toUri(): String {
         }
     ).apply {
         host = serverAddress
-        ports = serverPorts
+        ports = when (val ports = HopPort.from(serverPorts)) {
+            is HopPort.Single -> serverPorts
+            // URL just support Hysteria style.
+            is HopPort.Ports -> ports.hyStyle().joinToString(HopPort.SPLIT_FLAG)
+        }
         username = authPayload
     }
 
