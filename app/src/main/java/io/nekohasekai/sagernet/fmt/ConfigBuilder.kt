@@ -47,7 +47,6 @@ import moe.matsuri.nb4a.RuleItem
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
-import moe.matsuri.nb4a.SingBoxOptions.ClashAPIOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSFakeIPOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSServerOptions
@@ -68,8 +67,6 @@ import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_SOCKSOptions
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Logical
-import moe.matsuri.nb4a.SingBoxOptions.V2RayAPIOptions
-import moe.matsuri.nb4a.SingBoxOptions.V2RayStatsServiceOptions
 import moe.matsuri.nb4a.buildRuleSets
 import moe.matsuri.nb4a.checkEmpty
 import moe.matsuri.nb4a.isEndpoint
@@ -207,6 +204,7 @@ fun buildConfig(
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
     var hasJuicity = false
+    var needSpecialFinalRule = false
 
     fun genDomainStrategy(noAsIs: Boolean): String {
         return when {
@@ -436,7 +434,9 @@ fun buildConfig(
 
                         is ShadowsocksBean -> buildSingBoxOutboundShadowsocksBean(bean).asMap()
 
-                        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asMap()
+                        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asMap().also {
+                            needSpecialFinalRule = true
+                        }
 
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asMap()
 
@@ -917,13 +917,20 @@ fun buildConfig(
 
             // https://github.com/juicity/juicity/issues/140
             // FIXME: improve this workaround or remove it when juicity fix it.
-            if (!forTest && hasJuicity && useFakeDns) route.rules.add(0, Rule_Default().apply {
+            if (hasJuicity && useFakeDns) route.rules.add(0, Rule_Default().apply {
                 action = SingBoxOptions.ACTION_RESOLVE
-                network = listOf("udp")
+                network = listOf(SingBoxOptions.NetworkUDP)
             })
             if (needSniff) route.rules.add(0, Rule_Default().apply {
                 action = SingBoxOptions.ACTION_SNIFF
                 timeout = DataStore.sniffTimeout.blankAsNull()
+            })
+            // If we just run a WireGuard config, it will be added in endpoints settings,
+            // when the first outbound is direct.
+            // So we use this rule to make final rule become that WireGuard proxy.
+            if (needSpecialFinalRule) route.rules.add(Rule_Default().apply {
+                network = listOf(SingBoxOptions.NetworkTCP, SingBoxOptions.NetworkUDP)
+                outbound = TAG_PROXY
             })
         }
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
