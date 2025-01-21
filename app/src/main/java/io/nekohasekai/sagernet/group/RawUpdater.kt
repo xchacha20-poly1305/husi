@@ -234,7 +234,8 @@ object RawUpdater : GroupUpdater() {
 
                         bean.applyFromMap(proxy) { opt ->
                             when (opt.key) {
-                                "uuid" -> bean.uuid = opt.value.toString()
+                                "uuid" -> if (protocol != 2) bean.uuid = opt.value.toString()
+                                "password" -> (bean as? TrojanBean)?.password = opt.value.toString()
                                 "flow" -> if (protocol == 0) bean.encryption = opt.value.toString()
 
                                 "security" -> if (protocol == 1) bean.encryption =
@@ -527,7 +528,7 @@ object RawUpdater : GroupUpdater() {
         try {
             val json = JSONTokener(text).nextValue()
             return parseJSON(json)
-        } catch (ignored: Exception) {
+        } catch (_: Exception) {
         }
 
         try {
@@ -568,8 +569,8 @@ object RawUpdater : GroupUpdater() {
                     if (muxMap["enabled"] != true) continue
 
                     serverMux = true
-                    serverMuxPadding = muxMap["padding"]?.toString() == "true"
-                    muxMap["protocol"]?.toString()?.let {
+                    serverMuxPadding = muxMap["padding"] as? Boolean ?: false
+                    muxMap["protocol"]?.let {
                         serverMuxType = when (it) {
                             "smux" -> MuxType.SMUX
                             "yamux" -> MuxType.YAMUX
@@ -590,8 +591,8 @@ object RawUpdater : GroupUpdater() {
                         serverMuxNumber = it
                     }
 
-                    (muxMap["brutal"] as? Map<String, Any?>)?.get("enabled")?.toString()?.let {
-                        serverBrutal = it == "true"
+                    if ((muxMap["brutal"] as? Map<String, Any>)?.get("enabled") as? Boolean == true) {
+                        serverBrutal = true
                     }
                 }
 
