@@ -157,6 +157,21 @@
             app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="0"
+            app:entries="@array/network_interface_strategies"
+            app:entryValues="@array/int_array_3"
+            app:icon="@drawable/baseline_construction_24"
+            app:key="networkInterfaceStrategy"
+            app:title="@string/network_interface_strategy"
+            app:useSimpleSummaryProvider="true" />
+        <MultiSelectListPreference
+            app:defaultValue="@array/empty"
+            app:entries="@array/network_type_entry"
+            app:entryValues="@array/network_type_value"
+            app:icon="@drawable/baseline_public_24"
+            app:key="networkPreferredInterfaces"
+            app:title="@string/network_interface_preference" />
+        <rikka.preference.SimpleMenuPreference
+            app:defaultValue="0"
             app:entries="@array/rules_dat_provider"
             app:entryValues="@array/int_array_4"
             app:icon="@drawable/ic_baseline_rule_folder_24"

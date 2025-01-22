@@ -16,8 +16,7 @@
         app:entryValues="@array/network_type_value"
         app:icon="@drawable/baseline_public_24"
         app:key="routeNetworkType"
-        app:title="@string/network_type"
-        app:useSimpleSummaryProvider="true" />
+        app:title="@string/network_type" />
     <PreferenceCategory app:title="@string/cag_route">
         <EditTextPreference
             app:icon="@drawable/ic_baseline_domain_24"

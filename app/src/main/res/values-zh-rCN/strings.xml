@@ -593,4 +593,9 @@
     <string name="middle">中</string>
     <string name="high">高</string>
     <string name="pause">暂停</string>
+    <string name="network_interface_strategy">网络接口策略</string>
+    <string name="network_interface_preference">网络接口偏好</string>
+    <string name="network_interface_preference_detail">启用多网络接口拨号</string>
+    <string name="hybrid">混连</string>
+    <string name="fallback">回退</string>
 </resources>

@@ -540,7 +540,13 @@
         <item>@string/high</item>
     </string-array>
 
-    <!--For MultiSelectListPreference initialize-->
+    <!-- For MultiSelectListPreference initialization -->
     <string-array name="empty" />
+
+    <string-array name="network_interface_strategies">
+        <item>@string/keep_default</item>
+        <item>@string/hybrid</item>
+        <item>@string/fallback</item>
+    </string-array>
 
 </resources>

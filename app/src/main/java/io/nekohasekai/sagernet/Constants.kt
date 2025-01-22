@@ -40,6 +40,10 @@ object Key {
     const val INDIVIDUAL = "individual"
     const val METERED_NETWORK = "meteredNetwork"
 
+    const val NETWORK_INTERFACE_STRATEGY = "networkInterfaceStrategy"
+    const val NETWORK_PREFERRED_INTERFACES = "networkPreferredInterfaces"
+    const val RULES_PROVIDER = "rulesProvider"
+    const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
     const val TRAFFIC_SNIFFING = "trafficSniffing"
     const val SNIFF_TIMEOUT = "sniffTimeout"
     const val RESOLVE_DESTINATION = "resolveDestination"
@@ -64,8 +68,6 @@ object Key {
 
     const val SECURITY_ADVISORY = "securityAdvisory"
     const val TCP_KEEP_ALIVE_INTERVAL = "tcpKeepAliveInterval"
-    const val RULES_PROVIDER = "rulesProvider"
-    const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
     const val LOG_LEVEL = "logLevel"
     const val LOG_BUF_SIZE = "logBufSize"
     const val MTU = "mtu"
@@ -292,4 +294,10 @@ object SniffPolicy {
     const val DISABLED = 0
     const val ENABLED = 1
     const val OVERRIDE = 2 // TODO: re-add
+}
+
+object NetworkInterfaceStrategy {
+    const val DEFAULT = 0
+    const val HYBRID = 1
+    const val FALLBACK = 2
 }

@@ -5,6 +5,7 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
+import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
@@ -55,7 +56,6 @@ import moe.matsuri.nb4a.SingBoxOptions.ExperimentalOptions
 import moe.matsuri.nb4a.SingBoxOptions.LogOptions
 import moe.matsuri.nb4a.SingBoxOptions.MyOptions
 import moe.matsuri.nb4a.SingBoxOptions.NTPOptions
-import moe.matsuri.nb4a.SingBoxOptions.Outbound
 import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
 import moe.matsuri.nb4a.SingBoxOptionsUtil
@@ -64,6 +64,7 @@ import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_TunOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundMultiplexOptions
+import moe.matsuri.nb4a.SingBoxOptions.Outbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_SOCKSOptions
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
@@ -204,6 +205,8 @@ fun buildConfig(
     val needSniffOverride = DataStore.trafficSniffing == SniffPolicy.OVERRIDE // TODO re-add
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
+    val networkInterfaceStrategy = DataStore.networkInterfaceType
+    val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
     var needSpecialFinalRule = false
 
@@ -445,6 +448,14 @@ fun buildConfig(
                     currentOutbound.apply {
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
+
+                        if (!forTest) {
+                            if (networkPreferredInterfaces.isNotEmpty()) {
+                                this["network_type"] = networkPreferredInterfaces
+                                this["network_strategy"] =
+                                    mapNetworkInterfaceStrategy(networkInterfaceStrategy)
+                            }
+                        }
 
                         if (!muxApplied && proxyEntity.needCoreMux()) {
                             muxApplied = true
@@ -724,9 +735,16 @@ fun buildConfig(
             }
         }
 
-        outbounds.add(Outbound().apply {
+        outbounds.add(Outbound_DirectOptions().apply {
             tag = TAG_DIRECT
             type = SingBoxOptions.TYPE_DIRECT
+
+            if (!forTest) {
+                if (networkPreferredInterfaces.isNotEmpty()) {
+                    network_type = networkPreferredInterfaces
+                    network_strategy = mapNetworkInterfaceStrategy(networkInterfaceStrategy)
+                }
+            }
         }.asMap())
 
         if (!forTest) {
@@ -994,4 +1012,11 @@ fun MyOptions.partitionEndpoints() {
     val pair = outbounds.partition { isEndpoint(it["type"].toString()) }
     endpoints = pair.first
     outbounds = pair.second
+}
+
+fun mapNetworkInterfaceStrategy(strategy: Int): String = when (strategy) {
+    NetworkInterfaceStrategy.DEFAULT -> SingBoxOptions.STRATEGY_DEFAULT
+    NetworkInterfaceStrategy.HYBRID -> SingBoxOptions.STRATEGY_HYBRID
+    NetworkInterfaceStrategy.FALLBACK -> SingBoxOptions.STRATEGY_FALLBACK
+    else -> throw IllegalStateException()
 }

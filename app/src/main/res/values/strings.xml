@@ -661,4 +661,9 @@
     <string name="middle">Middle</string>
     <string name="high">High</string>
     <string name="pause">Pause</string>
+    <string name="network_interface_strategy">Network Interface Strategy</string>
+    <string name="network_interface_preference">Network Interface Preference</string>
+    <string name="network_interface_preference_detail">Enable multi network interfaces dialing</string>
+    <string name="hybrid">Hybrid</string>
+    <string name="fallback">Fallback</string>
 </resources>
