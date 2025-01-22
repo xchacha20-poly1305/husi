@@ -15,6 +15,7 @@ public class SingBoxOptions {
     public static final String RULE_SET_TYPE_LOCAL = "local";
 
     public static final String TYPE_TUN = "tun";
+    public static final String TYPE_SELECTOR = "selector";
     public static final String TYPE_MIXED = "mixed";
     public static final String TYPE_DIRECT = "direct";
     public static final String TYPE_HTTP = "http";
@@ -294,9 +295,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -499,9 +500,9 @@ public class SingBoxOptions {
 
         public Integer default_network_strategy;
 
-        public String default_network_type;
+        public List<String> default_network_type;
 
-        public String default_fallback_network_type;
+        public List<String> default_fallback_network_type;
 
         public String default_fallback_delay;
 
@@ -738,7 +739,7 @@ public class SingBoxOptions {
 
         public String clash_mode;
 
-        public String network_type;
+        public List<String> network_type;
 
         public Boolean network_is_expensive;
 
@@ -800,7 +801,6 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public String fallback_network_type;
 
         public String method;
 
@@ -869,9 +869,9 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String method;
 
@@ -948,7 +948,7 @@ public class SingBoxOptions {
 
         public String clash_mode;
 
-        public String network_type;
+        public List<String> network_type;
 
         public Boolean network_is_expensive;
 
@@ -1311,9 +1311,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1354,9 +1354,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1410,9 +1410,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1470,9 +1470,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1522,9 +1522,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1575,9 +1575,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1633,9 +1633,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1686,9 +1686,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1753,9 +1753,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1814,9 +1814,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1875,9 +1875,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -1932,9 +1932,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 
@@ -2013,9 +2013,9 @@ public class SingBoxOptions {
 
         public Integer network_strategy;
 
-        public String network_type;
+        public List<String> network_type;
 
-        public String fallback_network_type;
+        public List<String> fallback_network_type;
 
         public String fallback_delay;
 

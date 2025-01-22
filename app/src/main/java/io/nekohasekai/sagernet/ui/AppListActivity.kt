@@ -84,8 +84,9 @@ class AppListActivity : ThemedActivity() {
 
         override fun onClick(v: View?) {
             if (isProxiedApp(item)) proxiedUids.delete(item.uid) else proxiedUids[item.uid] = true
-            DataStore.routePackages = apps.filter { isProxiedApp(it) }
-                .joinToString("\n") { it.packageName }
+            DataStore.routePackages = apps.filter { isProxiedApp(it) }.let {
+                it.mapTo(HashSet(it.size)) { it.packageName }
+            }
 
             appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
         }
@@ -155,10 +156,10 @@ class AppListActivity : ThemedActivity() {
     private var apps = emptyList<ProxiedApp>()
     private val appsAdapter = AppsAdapter()
 
-    private fun initProxiedUids(str: String = DataStore.routePackages) {
+    private fun initProxiedUids(packages: Set<String> = DataStore.routePackages) {
         proxiedUids.clear()
         val apps = getCachedApps()
-        for (line in str.lineSequence()) proxiedUids[(apps[line]
+        for (packageName in packages) proxiedUids[(apps[packageName]
             ?: continue).applicationInfo!!.uid] = true
     }
 
@@ -236,8 +237,9 @@ class AppListActivity : ThemedActivity() {
                             proxiedUids[app.uid] = true
                         }
                     }
-                    DataStore.routePackages = apps.filter { isProxiedApp(it) }
-                        .joinToString("\n") { it.packageName }
+                    DataStore.routePackages = apps.filter { isProxiedApp(it) }.let {
+                        it.mapTo(HashSet(it.size)) { it.packageName }
+                    }
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
                         appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
@@ -250,7 +252,7 @@ class AppListActivity : ThemedActivity() {
             R.id.action_clear_selections -> {
                 runOnDefaultDispatcher {
                     proxiedUids.clear()
-                    DataStore.routePackages = ""
+                    DataStore.routePackages = emptySet()
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
                         appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
@@ -274,7 +276,11 @@ class AppListActivity : ThemedActivity() {
                 if (!proxiedAppString.isNullOrEmpty()) {
                     val i = proxiedAppString.indexOf('\n')
                     try {
-                        val apps = if (i < 0) "" else proxiedAppString.substring(i + 1)
+                        val apps = if (i < 0) {
+                            emptySet()
+                        } else {
+                            proxiedAppString.substring(i + 1).split("\n").toSet()
+                        }
                         DataStore.routePackages = apps
                         Snackbar.make(
                             binding.list, R.string.action_import_msg, Snackbar.LENGTH_LONG

@@ -353,7 +353,7 @@ fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
 /**
  * Designed to replace map(), which only distribute 10 as initial length.
  */
-fun <T, R> List<T>.mapX(transform: (T) -> R): List<R> {
+fun <T, R> Collection<T>.mapX(transform: (T) -> R): List<R> {
     val list = ArrayList<R>(size)
     for (item in this) {
         list.add(transform(item))

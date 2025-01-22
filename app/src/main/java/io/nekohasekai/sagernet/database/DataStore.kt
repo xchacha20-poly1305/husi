@@ -22,6 +22,7 @@ import io.nekohasekai.sagernet.ktx.int
 import io.nekohasekai.sagernet.ktx.long
 import io.nekohasekai.sagernet.ktx.parsePort
 import io.nekohasekai.sagernet.ktx.string
+import io.nekohasekai.sagernet.ktx.stringSet
 import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
 import moe.matsuri.nb4a.TempDatabase
@@ -271,12 +272,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeProtocol by profileCacheStore.string(Key.ROUTE_PROTOCOL)
     var routeOutbound by profileCacheStore.stringToInt(Key.ROUTE_OUTBOUND)
     var routeOutboundRule by profileCacheStore.long(Key.ROUTE_OUTBOUND + "Long")
-    var routePackages by profileCacheStore.string(Key.ROUTE_PACKAGES)
+    var routePackages by profileCacheStore.stringSet(Key.ROUTE_PACKAGES)
     var routeSSID by profileCacheStore.string(Key.ROUTE_SSID)
     var routeBSSID by profileCacheStore.string(Key.ROUTE_BSSID)
     var routeClient by profileCacheStore.string(Key.ROUTE_CLIENT)
     var routeClashMode by profileCacheStore.string(Key.ROUTE_CLASH_MODE)
-    var routeNetworkType by profileCacheStore.string(Key.ROUTE_NETWORK_TYPE)
+    var routeNetworkType by profileCacheStore.stringSet(Key.ROUTE_NETWORK_TYPE)
     var routeNetworkIsExpensive by profileCacheStore.boolean(Key.ROUTE_NETWORK_IS_EXPENSIVE)
 
     var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")

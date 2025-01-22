@@ -15,6 +15,7 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.preference.EditTextPreference
+import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
@@ -49,7 +50,7 @@ class RouteSettingsActivity(
     fun init(packageName: String?) {
         RuleEntity().apply {
             if (!packageName.isNullOrBlank()) {
-                packages = listOf(packageName)
+                packages = setOf(packageName)
                 name = app.getString(R.string.route_for, PackageCache.loadLabel(packageName))
             }
         }.init()
@@ -77,7 +78,7 @@ class RouteSettingsActivity(
             RuleEntity.OUTBOUND_BLOCK -> 2
             else -> 3
         }
-        DataStore.routePackages = packages.joinToString("\n")
+        DataStore.routePackages = packages
     }
 
     fun RuleEntity.serialize() {
@@ -101,8 +102,8 @@ class RouteSettingsActivity(
             2 -> RuleEntity.OUTBOUND_BLOCK
             else -> DataStore.routeOutboundRule
         }
-        if (DataStore.routePackages.isNotBlank()) {
-            packages = DataStore.routePackages.split("\n").filter { it.isNotBlank() }
+        if (DataStore.routePackages.isNotEmpty()) {
+            packages = DataStore.routePackages.filterTo(hashSetOf()) { it.isNotBlank() }
         }
 
         if (DataStore.editingId == 0L) {
@@ -112,7 +113,7 @@ class RouteSettingsActivity(
 
     fun needSave(): Boolean {
         if (!DataStore.dirty) return false
-        if (DataStore.routePackages.isBlank() &&
+        if (DataStore.routePackages.isEmpty() &&
             DataStore.routeDomain.isBlank() &&
             DataStore.routeIP.isBlank() &&
             DataStore.routePort.isBlank() &&
@@ -124,7 +125,7 @@ class RouteSettingsActivity(
             DataStore.routeBSSID.isBlank() &&
             DataStore.routeClient.isBlank() &&
             DataStore.routeClashMode.isBlank() &&
-            DataStore.routeNetworkType.isBlank() &&
+            DataStore.routeNetworkType.isEmpty() &&
             DataStore.routeNetworkIsExpensive &&
             DataStore.routeOutbound == 0
         ) {
@@ -165,7 +166,7 @@ class RouteSettingsActivity(
 
     lateinit var outbound: SimpleMenuPreference
     lateinit var apps: AppListPreference
-    lateinit var networkType: SimpleMenuPreference
+    lateinit var networkType: MultiSelectListPreference
     lateinit var ssid: EditTextPreference
     lateinit var bssid: EditTextPreference
 
@@ -190,14 +191,20 @@ class RouteSettingsActivity(
             true
         }
 
-        fun updateNetwork(newValue: String = networkType.value) {
-            val visible = newValue == NETWORK_TYPE_WIFI
+        fun updateNetwork(newValue: Set<String> = networkType.values) {
+            networkType.summary = if (newValue.isEmpty()) {
+                networkType.context.getString(androidx.preference.R.string.not_set)
+            } else {
+                newValue.joinToString(",")
+            }
+            val visible = newValue.contains( NETWORK_TYPE_WIFI)
             ssid.isVisible = visible
             bssid.isVisible = visible
         }
         updateNetwork()
         networkType.setOnPreferenceChangeListener { _, newValue ->
-            updateNetwork(newValue as String)
+            @Suppress("UNCHECKED_CAST")
+            updateNetwork(newValue as Set<String>)
             true
         }
     }

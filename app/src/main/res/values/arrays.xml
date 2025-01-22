@@ -520,7 +520,6 @@
     </string-array>
 
     <string-array name="network_type_entry">
-        <item>@string/not_set</item>
         <item>@string/network_wifi</item>
         <item>@string/network_cellular</item>
         <item>@string/network_ethernet</item>
@@ -528,7 +527,6 @@
     </string-array>
 
     <string-array name="network_type_value">
-        <item></item>
         <item>wifi</item>
         <item>cellular</item>
         <item>ethernet</item>
@@ -541,5 +539,8 @@
         <item>@string/middle</item>
         <item>@string/high</item>
     </string-array>
+
+    <!--For MultiSelectListPreference initialize-->
+    <string-array name="empty" />
 
 </resources>

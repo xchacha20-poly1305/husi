@@ -10,7 +10,8 @@
         app:icon="@drawable/ic_baseline_legend_toggle_24"
         app:key="routePackages"
         app:title="@string/apps" />
-    <rikka.preference.SimpleMenuPreference
+    <MultiSelectListPreference
+        app:defaultValue="@array/empty"
         app:entries="@array/network_type_entry"
         app:entryValues="@array/network_type_value"
         app:icon="@drawable/baseline_public_24"
