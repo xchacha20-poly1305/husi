@@ -39,6 +39,7 @@ import io.nekohasekai.sagernet.widget.AppListPreference
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
+import io.nekohasekai.sagernet.widget.updateSummary
 import kotlinx.parcelize.Parcelize
 import rikka.preference.SimpleMenuPreference
 
@@ -192,12 +193,8 @@ class RouteSettingsActivity(
         }
 
         fun updateNetwork(newValue: Set<String> = networkType.values) {
-            networkType.summary = if (newValue.isEmpty()) {
-                networkType.context.getString(androidx.preference.R.string.not_set)
-            } else {
-                newValue.joinToString(",")
-            }
-            val visible = newValue.contains( NETWORK_TYPE_WIFI)
+            networkType.updateSummary(newValue)
+            val visible = newValue.contains(NETWORK_TYPE_WIFI)
             ssid.isVisible = visible
             bssid.isVisible = visible
         }

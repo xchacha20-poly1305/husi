@@ -151,7 +151,7 @@ func className(valueType reflect.Type) string {
 				// Go json save []uint8 or []byte as base64 string.
 				return javaString
 			default:
-			    // May custom enum types
+			    // Others may custom enum types
 			}
 		}
 		return javaList + className(elem) + ">"
@@ -168,7 +168,8 @@ func className(valueType reflect.Type) string {
 		return valueType.Name()
 	case reflect.Uint8:
 		switch valueType.Name() {
-		case "DomainStrategy", "InterfaceType":
+		// Custom enum types
+		case "DomainStrategy", "InterfaceType", "NetworkStrategy":
 			return javaString
 		}
 		return javaInteger

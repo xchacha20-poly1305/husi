@@ -44,6 +44,10 @@ public class SingBoxOptions {
 
     public static final String SNIFF_DNS = "dns";
 
+    public static final String STRATEGY_DEFAULT = "default";
+    public static final String STRATEGY_HYBRID = "hybrid";
+    public static final String STRATEGY_FALLBACK = "fallback";
+
     // base
 
     public static class SingBoxOption {
@@ -293,7 +297,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -498,7 +502,7 @@ public class SingBoxOptions {
 
         public Integer default_mark;
 
-        public Integer default_network_strategy;
+        public String default_network_strategy;
 
         public List<String> default_network_type;
 
@@ -767,7 +771,7 @@ public class SingBoxOptions {
 
         public Integer override_port;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public Integer fallback_delay;
 
@@ -801,6 +805,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public List<String> fallback_network_type;
 
         public String method;
 
@@ -835,7 +840,7 @@ public class SingBoxOptions {
 
         public Integer override_port;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public Integer fallback_delay;
 
@@ -1309,7 +1314,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1352,7 +1357,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1408,7 +1413,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1468,7 +1473,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1520,7 +1525,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1573,7 +1578,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1631,7 +1636,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1684,7 +1689,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1751,7 +1756,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1812,7 +1817,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1873,7 +1878,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -1930,7 +1935,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 
@@ -2011,7 +2016,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        public Integer network_strategy;
+        public String network_strategy;
 
         public List<String> network_type;
 

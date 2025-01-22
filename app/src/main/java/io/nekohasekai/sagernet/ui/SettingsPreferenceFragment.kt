@@ -8,6 +8,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.core.app.ActivityCompat
 import androidx.preference.EditTextPreference
+import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
@@ -29,6 +30,7 @@ import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
+import io.nekohasekai.sagernet.widget.updateSummary
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
 import rikka.preference.SimpleMenuPreference
@@ -160,6 +162,16 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                         Key.BYPASS_LAN -> bypassLan = preference as SwitchPreference
                         Key.BYPASS_LAN_IN_CORE -> bypassLanInCore = preference as SwitchPreference
+                        Key.NETWORK_PREFERRED_INTERFACES -> (preference as MultiSelectListPreference).let {
+                            it.updateSummary()
+                            it.setOnPreferenceChangeListener { _, newValue ->
+                                @Suppress("UNCHECKED_CAST")
+                                it.updateSummary(newValue as Set<String>)
+                                needReload()
+                                true
+                            }
+                        }
+
                         Key.RULES_PROVIDER -> ruleProvider = preference as SimpleMenuPreference
                         Key.CUSTOM_RULE_PROVIDER -> {
                             customRuleProvider = (preference as LinkOrContentPreference).also {
@@ -192,6 +204,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.isVisible = isExpert
                             preference.onPreferenceChangeListener = reloadListener
                         }
+
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
@@ -317,6 +330,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     }
 
     private fun EditTextPreference.setPortEdit() {
+        @Suppress("UsePropertyAccessSyntax") // Android studio bug
         setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         onPreferenceChangeListener = reloadListener
     }

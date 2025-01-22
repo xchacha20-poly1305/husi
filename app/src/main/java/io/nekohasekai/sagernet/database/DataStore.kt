@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
+import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.SniffPolicy
 import io.nekohasekai.sagernet.TrafficSortMode
@@ -98,6 +99,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
     var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)
 
+    var networkInterfaceType by configurationStore.stringToInt(Key.NETWORK_INTERFACE_STRATEGY) {
+        NetworkInterfaceStrategy.DEFAULT
+    }
+    var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
     var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { SniffPolicy.ENABLED }
     var sniffTimeout by configurationStore.string(Key.SNIFF_TIMEOUT)
     var resolveDestination by configurationStore.boolean(Key.RESOLVE_DESTINATION)
