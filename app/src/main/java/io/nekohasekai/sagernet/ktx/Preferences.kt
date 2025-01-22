@@ -20,7 +20,7 @@ fun PreferenceDataStore.int(
 
 fun PreferenceDataStore.stringSet(
     name: String,
-    defaultValue: () -> Set<String> = { setOf() },
+    defaultValue: () -> Set<String> = { emptySet() },
 ) = PreferenceProxy(name, defaultValue, ::getStringSet, ::putStringSet)
 
 fun PreferenceDataStore.stringToInt(

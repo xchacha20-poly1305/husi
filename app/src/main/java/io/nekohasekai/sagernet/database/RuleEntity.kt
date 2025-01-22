@@ -8,7 +8,7 @@ import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
 @Parcelize
-@TypeConverters(ListConverter::class)
+@TypeConverters(StringCollectionConverter::class)
 data class RuleEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var name: String = "",
@@ -22,12 +22,12 @@ data class RuleEntity(
     var source: String = "",
     var protocol: String = "",
     var outbound: Long = 0,
-    var packages: List<String> = listOf(),
+    var packages: Set<String> = emptySet(),
     var ssid: String = "",
     var bssid: String = "",
     @ColumnInfo(defaultValue = "") var clientType: String = "",
     @ColumnInfo(defaultValue = "") var clashMode: String = "",
-    @ColumnInfo(defaultValue = "") var networkType: String = "",
+    @ColumnInfo(defaultValue = "") var networkType: Set<String> = emptySet(),
     @ColumnInfo(defaultValue = "0") var networkIsExpensive: Boolean = false,
 ) : Parcelable {
 
@@ -63,7 +63,7 @@ data class RuleEntity(
         if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
         if (clientType.isNotBlank()) summary += "client: $clientType\n"
         if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
-        if (networkType.isNotBlank()) summary += "networkType: $networkType\n"
+        if (networkType.isNotEmpty()) summary += "networkType: $networkType\n"
         if (networkIsExpensive) summary += "networkIsExpensive\n"
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {

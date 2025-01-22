@@ -352,10 +352,6 @@ fun buildConfig(
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
 
-                // For: test but not interrupt VPN service
-                val outboundProtect =
-                    forTest && !proxyEntity.needExternal() && DataStore.serviceState.started
-
                 // tagOut: v2ray outbound tag for a profile
                 // profile2 (in) (global)   tag g-(id)
                 // profile1                 tag (chainTag)-(id)
@@ -563,7 +559,7 @@ fun buildConfig(
                 tagMap[it.id] = buildChain(it.id, it)
             }
             outbounds.add(0, Outbound_SelectorOptions().apply {
-                type = "selector"
+                type = SingBoxOptions.TYPE_SELECTOR
                 tag = TAG_PROXY
                 default_ = tagMap[proxy.id]
                 outbounds = tagMap.values.toList()
@@ -658,8 +654,8 @@ fun buildConfig(
                 if (rule.clashMode.isNotBlank()) {
                     clash_mode = rule.clashMode
                 }
-                if (rule.networkType.isNotBlank()) {
-                    network_type = rule.networkType
+                if (rule.networkType.isNotEmpty()) {
+                    network_type = rule.networkType.toList()
                 }
                 if (rule.networkIsExpensive) {
                     network_is_expensive = true
