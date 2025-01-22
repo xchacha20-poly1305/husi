@@ -1,10 +1,13 @@
 package libcore
 
-import "github.com/sagernet/sing/common"
+import (
+	"github.com/sagernet/sing/common"
+)
 
 type StringIterator interface {
 	Next() string
 	HasNext() bool
+	Length() int32
 }
 
 var _ StringIterator = (*iterator[string])(nil)
@@ -30,16 +33,21 @@ func (i *iterator[T]) HasNext() bool {
 	return len(i.values) > 0
 }
 
+func (i *iterator[T]) Length() int32 {
+	return int32(len(i.values))
+}
+
 type abstractIterator[T any] interface {
 	Next() T
 	HasNext() bool
+	Length() int32
 }
 
 func iteratorToArray[T any](iterator abstractIterator[T]) []T {
 	if iterator == nil {
 		return nil
 	}
-	var values []T
+	values := make([]T, 0, iterator.Length())
 	for iterator.HasNext() {
 		values = append(values, iterator.Next())
 	}

@@ -39,6 +39,7 @@ import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -581,7 +582,7 @@ fun buildConfig(
             if (rule.packages.isNotEmpty()) {
                 PackageCache.awaitLoadSync()
             }
-            val uidList = rule.packages.map {
+            val uidList = rule.packages.mapX {
                 if (!isVPN) {
                     Toast.makeText(
                         SagerNet.application,
@@ -609,7 +610,7 @@ fun buildConfig(
                 if (rule.port.isNotBlank()) {
                     port = mutableListOf()
                     port_range = mutableListOf()
-                    rule.port.listByLineOrComma().map {
+                    rule.port.listByLineOrComma().mapX {
                         if (it.contains(":")) {
                             port_range.add(it)
                         } else {
@@ -620,7 +621,7 @@ fun buildConfig(
                 if (rule.sourcePort.isNotBlank()) {
                     source_port = mutableListOf()
                     source_port_range = mutableListOf()
-                    rule.sourcePort.listByLineOrComma().map {
+                    rule.sourcePort.listByLineOrComma().mapX {
                         if (it.contains(":")) {
                             source_port_range.add(it)
                         } else {

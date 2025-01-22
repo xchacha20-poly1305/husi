@@ -30,9 +30,8 @@ type AndroidVPNType struct {
 }
 
 func ReadAndroidVPNType(publicSourceDirList StringIterator) (*AndroidVPNType, error) {
-	apkPathList := iteratorToArray[string](publicSourceDirList)
 	var lastError error
-	for _, apkPath := range apkPathList {
+	for apkPath := publicSourceDirList.Next(); publicSourceDirList.HasNext(); apkPath = publicSourceDirList.Next() {
 		androidVPNType, err := readAndroidVPNType(apkPath)
 		if androidVPNType == nil {
 			if err != nil {

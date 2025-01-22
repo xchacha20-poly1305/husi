@@ -73,6 +73,7 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.isInsecure
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -1338,7 +1339,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             override fun commit(actions: List<Pair<Int, ProxyEntity>>) {
-                val profiles = actions.map { it.second }
+                val profiles = actions.mapX { it.second }
                 runOnDefaultDispatcher {
                     for (entity in profiles) {
                         ProfileManager.deleteProfile(entity.groupId, entity.id)
@@ -1446,7 +1447,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 configurationList.clear()
                 configurationList.putAll(newProfiles.associateBy { it.id })
-                val newProfileIds = newProfiles.map { it.id }
+                val newProfileIds = newProfiles.mapX { it.id }
 
                 var selectedProfileIndex = -1
 

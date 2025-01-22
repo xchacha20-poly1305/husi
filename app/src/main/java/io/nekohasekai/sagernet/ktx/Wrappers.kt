@@ -5,7 +5,7 @@ import libcore.StringIterator
 import libcore.TrackerInfo
 import libcore.TrackerInfoIterator
 
-fun Iterable<String>.toStringIterator(): StringIterator {
+fun Iterable<String>.toStringIterator(size: Int): StringIterator {
     return object : StringIterator {
         val iterator = iterator()
 
@@ -16,27 +16,25 @@ fun Iterable<String>.toStringIterator(): StringIterator {
         override fun next(): String {
             return iterator.next()
         }
+
+        override fun length(): Int = size
     }
 }
 
-fun StringIterator.toList(): List<String> {
-    return mutableListOf<String>().apply {
-        while (hasNext()) {
-            add(next())
-        }
+fun StringIterator.toList(): List<String> = ArrayList<String>(length()).apply {
+    while (hasNext()) {
+        add(next())
     }
 }
 
-fun TrackerInfoIterator.toList(): List<TrackerInfo> {
-    return mutableListOf<TrackerInfo>().apply {
-        while (hasNext()) {
-            add(next())
-        }
+fun TrackerInfoIterator.toList(): List<TrackerInfo> = ArrayList<TrackerInfo>(length()).apply {
+    while (hasNext()) {
+        add(next())
     }
 }
 
 fun TrackerInfoIterator.toConnectionList(): List<Connection> {
-    return mutableListOf<Connection>().apply {
+    return ArrayList<Connection>(length()).apply {
         while (hasNext()) {
             val trackerInfo = next()
             add(

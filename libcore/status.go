@@ -62,6 +62,7 @@ var _ TrackerInfoIterator = (*iterator[*TrackerInfo])(nil)
 type TrackerInfoIterator interface {
 	Next() *TrackerInfo
 	HasNext() bool
+	Length() int32
 }
 
 // TrackerInfo recodes a connection's information.

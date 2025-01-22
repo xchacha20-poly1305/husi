@@ -44,6 +44,7 @@ type NetworkInterface struct {
 type NetworkInterfaceIterator interface {
 	Next() *NetworkInterface
 	HasNext() bool
+	Length() int32
 }
 
 type interfaceMonitor struct {

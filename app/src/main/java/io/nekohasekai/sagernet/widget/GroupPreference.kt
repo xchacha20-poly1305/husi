@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.widget
 import android.content.Context
 import android.util.AttributeSet
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.mapX
 import rikka.preference.SimpleMenuPreference
 
 class GroupPreference
@@ -15,8 +16,8 @@ class GroupPreference
     init {
         val groups = SagerDatabase.groupDao.allGroups()
 
-        entries = groups.map { it.displayName() }.toTypedArray()
-        entryValues = groups.map { "${it.id}" }.toTypedArray()
+        entries = groups.mapX { it.displayName() }.toTypedArray()
+        entryValues = groups.mapX { "${it.id}" }.toTypedArray()
     }
 
     override fun getSummary(): CharSequence? {

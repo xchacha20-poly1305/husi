@@ -21,6 +21,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.getValue
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.setValue
@@ -183,7 +184,7 @@ abstract class GroupUpdater {
                 }
             }
             uniqueProxies.retainAll(uniqueNames.keys)
-            newProxies = uniqueProxies.toList().map { it.bean }
+            newProxies = uniqueProxies.toList().mapX { it.bean }
         }
 
         Logs.d("New profiles: ${newProxies.size}")
@@ -209,7 +210,7 @@ abstract class GroupUpdater {
         val toUpdate = ArrayList<ProxyEntity>()
         val added = mutableListOf<String>()
         val updated = mutableMapOf<String, String>()
-        val deleted = toDelete.map { it.displayName() }
+        val deleted = toDelete.mapX { it.displayName() }
 
         var userOrder = 1L
         var changed = toDelete.size

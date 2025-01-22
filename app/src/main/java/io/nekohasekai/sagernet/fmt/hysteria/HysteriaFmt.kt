@@ -7,6 +7,7 @@ import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.linkBoolean
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
@@ -441,7 +442,7 @@ sealed class HopPort {
 
     class Single(val port: Int) : HopPort()
     class Ports(val raw: List<String>) : HopPort() {
-        fun singStyle(): List<String> = raw.map {
+        fun singStyle(): List<String> = raw.mapX {
             val basic = it.replace(HYSTERIA_RANGE, BOX_RANGE)
             if (basic.contains(BOX_RANGE)) {
                 basic
@@ -450,7 +451,7 @@ sealed class HopPort {
             }
         }
 
-        fun hyStyle(): List<String> = raw.map { it.replace(BOX_RANGE, HYSTERIA_RANGE) }
+        fun hyStyle(): List<String> = raw.mapX { it.replace(BOX_RANGE, HYSTERIA_RANGE) }
     }
 }
 

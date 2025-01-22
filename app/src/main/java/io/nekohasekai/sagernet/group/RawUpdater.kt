@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
@@ -328,7 +329,7 @@ object RawUpdater : GroupUpdater() {
                                     "reserved" -> reserved = when (val v = opt.value) {
                                         is String? -> v
 
-                                        is List<*>? -> v?.map {
+                                        is List<*>? -> v?.mapX {
                                             it.toString()
                                         }?.joinToString(",")
 
@@ -515,7 +516,7 @@ object RawUpdater : GroupUpdater() {
         } else if (text.contains("[Interface]")) {
             // wireguard
             try {
-                proxies.addAll(parseWireGuard(text).map {
+                proxies.addAll(parseWireGuard(text).mapX {
                     if (fileName.isNotBlank()) it.name = fileName.removeSuffix(".conf")
                     it
                 })

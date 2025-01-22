@@ -306,7 +306,7 @@ private fun mappedValue(value: Any?): Any? = when (value) {
         null
     } else {
         val needAsMap = shouldAsMap(value[0])
-        value.map {
+        value.mapX {
             if (needAsMap) {
                 it?.asMap()
             } else {
@@ -343,11 +343,20 @@ operator fun <K, V> Map<K, V>.getValue(thisRef: K, property: KProperty<*>) = get
 operator fun <K, V> MutableMap<K, V>.setValue(thisRef: K, property: KProperty<*>, value: V?) {
     if (value != null) {
         put(thisRef, value)
-
     } else {
         remove(thisRef)
-
     }
 }
 
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
+
+/**
+ * Designed to replace map(), which only distribute 10 as initial length.
+ */
+fun <T, R> List<T>.mapX(transform: (T) -> R): List<R> {
+    val list = ArrayList<R>(size)
+    for (item in this) {
+        list.add(transform(item))
+    }
+    return list
+}

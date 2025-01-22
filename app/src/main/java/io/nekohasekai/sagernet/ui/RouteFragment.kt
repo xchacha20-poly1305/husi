@@ -228,7 +228,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         }
 
         override fun commit(actions: List<Pair<Int, RuleEntity>>) {
-            val rules = actions.map { it.second }
+            val rules = actions.mapX { it.second }
             runOnDefaultDispatcher {
                 ProfileManager.deleteRules(rules)
             }
