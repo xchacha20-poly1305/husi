@@ -32,6 +32,7 @@ import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.dp2px
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -251,7 +252,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         }
 
         override fun commit(actions: List<Pair<Int, ProxyGroup>>) {
-            val groups = actions.map { it.second }
+            val groups = actions.mapX { it.second }
             runOnDefaultDispatcher {
                 GroupManager.deleteGroup(groups)
                 reload()

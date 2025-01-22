@@ -20,6 +20,7 @@ import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -225,7 +226,7 @@ class AssetsActivity : ThemedActivity() {
         }
 
         override fun commit(actions: List<Pair<Int, File>>) {
-            val groups = actions.map { it.second }.toTypedArray()
+            val groups = actions.mapX { it.second }.toTypedArray()
             runOnDefaultDispatcher {
                 groups.forEach { it.deleteRecursively() }
             }

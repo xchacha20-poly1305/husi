@@ -103,8 +103,8 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, 
 	if err != nil {
 		return nil, err
 	}
-	var interfaces []adapter.NetworkInterface
-	for _, netInterface := range iteratorToArray[*NetworkInterface](interfaceIterator) {
+	interfaces := make([]adapter.NetworkInterface, 0, interfaceIterator.Length())
+	for netInterface := interfaceIterator.Next(); interfaceIterator.HasNext(); netInterface = interfaceIterator.Next() {
 		if netInterface.Name == w.myTunName {
 			continue
 		}

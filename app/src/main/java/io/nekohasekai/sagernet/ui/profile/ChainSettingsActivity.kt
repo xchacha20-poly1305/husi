@@ -27,6 +27,7 @@ import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
@@ -44,7 +45,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
     override fun ChainBean.serialize() {
         name = DataStore.profileName
-        proxies = proxyList.map { it.id }
+        proxies = proxyList.mapX { it.id }
         initializeDefaultValues()
     }
 
@@ -126,7 +127,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             val idList = DataStore.serverProtocol.split(",")
                 .mapNotNull { it.takeIf { it.isNotBlank() }?.toLong() }
             if (idList.isNotEmpty()) {
-                val profiles = ProfileManager.getProfiles(idList).map { it.id to it }.toMap()
+                val profiles = ProfileManager.getProfiles(idList).mapX { it.id to it }.toMap()
                 for (id in idList) {
                     proxyList.add(profiles[id] ?: continue)
                 }

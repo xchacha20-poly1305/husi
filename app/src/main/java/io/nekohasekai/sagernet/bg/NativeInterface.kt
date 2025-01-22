@@ -9,12 +9,13 @@ import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.toStringIterator
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
 import libcore.Libcore
 import libcore.NetworkInterfaceIterator
 import libcore.PlatformInterface
-import libcore.StringIterator
 import libcore.WIFIState
 import libcore.NetworkInterface as LibcoreNetworkInterface
 import java.net.Inet6Address
@@ -111,8 +112,9 @@ class NativeInterface : PlatformInterface {
             boxInterface.name = linkProperties.interfaceName
             val networkInterface =
                 networkInterfaces.find { it.name == boxInterface.name } ?: continue
-            boxInterface.dnsServer =
-                StringArray(linkProperties.dnsServers.mapNotNull { it.hostAddress }.iterator())
+            boxInterface.dnsServer = linkProperties.dnsServers.mapNotNull { it.hostAddress }.let {
+                it.toStringIterator(it.size)
+            }
             boxInterface.type = when {
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Libcore.InterfaceTypeWIFI
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Libcore.InterfaceTypeCellular
@@ -125,11 +127,9 @@ class NativeInterface : PlatformInterface {
             }.onFailure { e ->
                 Logs.e("failed to get mtu for interface ${boxInterface.name}", e)
             }
-            boxInterface.addresses = StringArray(
-                networkInterface.interfaceAddresses.map {
-                    it.toPrefix()
-                }.iterator()
-            )
+            boxInterface.addresses = networkInterface.interfaceAddresses.mapX { it.toPrefix() }.let {
+                it.toStringIterator(it.size)
+            }
             var dumpFlags = 0
             if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
                 dumpFlags = OsConstants.IFF_UP or OsConstants.IFF_RUNNING
@@ -148,10 +148,13 @@ class NativeInterface : PlatformInterface {
                 !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
             interfaces.add(boxInterface)
         }
-        return InterfaceArray(interfaces.iterator())
+        return InterfaceArray(interfaces.iterator(), interfaces.size)
     }
 
-    private class InterfaceArray(private val iterator: Iterator<LibcoreNetworkInterface>) :
+    private class InterfaceArray(
+        private val iterator: Iterator<LibcoreNetworkInterface>,
+        private val size: Int,
+    ) :
         NetworkInterfaceIterator {
 
         override fun hasNext(): Boolean {
@@ -162,17 +165,7 @@ class NativeInterface : PlatformInterface {
             return iterator.next()
         }
 
-    }
-
-    private class StringArray(private val iterator: Iterator<String>) : StringIterator {
-
-        override fun hasNext(): Boolean {
-            return iterator.hasNext()
-        }
-
-        override fun next(): String {
-            return iterator.next()
-        }
+        override fun length(): Int = size
 
     }
 

@@ -254,8 +254,8 @@ class VPNScannerActivity : ThemedActivity() {
             packageFiles.addAll(it)
         }
         val vpnType = try {
-            Libcore.readAndroidVPNType(packageFiles.toStringIterator())
-        } catch (ignored: Exception) {
+            Libcore.readAndroidVPNType(packageFiles.let { it.toStringIterator(it.size) })
+        } catch (_: Exception) {
             return null
         }
         return VPNCoreType(vpnType.coreType, vpnType.corePath, vpnType.goVersion)

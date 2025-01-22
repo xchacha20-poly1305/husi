@@ -37,6 +37,7 @@ import io.nekohasekai.sagernet.databinding.LayoutAppsBinding
 import io.nekohasekai.sagernet.databinding.LayoutAppsItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutLoadingBinding
 import io.nekohasekai.sagernet.ktx.crossFadeFrom
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -361,7 +362,7 @@ class AppManagerActivity : ThemedActivity() {
                 // var changed = false
 
                 onMainDispatcher {
-                    text.text = (txt + " " + app.packageName + "\n\n" + chinaApps.map { it.second }
+                    text.text = (txt + " " + app.packageName + "\n\n" + chinaApps.mapX { it.second }
                         .reversed()
                         .joinToString("\n", postfix = "\n")).trim()
                 }
