@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.utils.SendLog
@@ -65,7 +66,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         binding.logView.scrollToPosition(logAdapter.itemCount - 1)
 
         fileObserver.startWatching()
-        freshJob = runOnDefaultDispatcher {
+        freshJob = runOnIoDispatcher {
             updateLog(RandomAccessFile(SendLog.logFile, "r"))
         }
     }
@@ -177,7 +178,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                         if (!pinLog) binding.logView.scrollToPosition(logAdapter.itemCount - 1)
                     }
                 }
-                lastPosition = file.filePointer
+		lastPosition = file.filePointer
             }
         } catch (_: IOException) {
         } catch (_: CancellationException) {
