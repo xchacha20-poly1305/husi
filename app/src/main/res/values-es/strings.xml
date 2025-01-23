@@ -413,10 +413,6 @@
     <string name="wireguard_local_address">Dirección local</string>
     <string name="wireguard_public_key">Clave pública de pares</string>
     <string name="wireguard_psk">Clave precompartida de pares</string>
-    <string name="cloudflare_wrap" translatable="false">Cloudflare Warp</string>
-    <string name="warp_license">CloudFlare Warp es un proveedor gratuito de la VPN WireGuard. Al utilizarlo, aceptas las condiciones del servicio.</string>
-    <string name="warp_generate">Generar configuración</string>
-    <string name="generating">Generando…</string>
     <string name="tun_implementation">Implementación TUN</string>
     <string name="destination_override">Sobrescribir destino</string>
     <string name="destination_override_summary">Utiliza el dominio rastreado para sobrescribir la dirección de destino, no solo para el enrutamiento</string>

@@ -428,8 +428,6 @@
     </string>
     <string name="app_statistics_disabled">Статистика трафика приложений отключена в настройках
     </string>
-    <string name="warp_generate">Создать конфигурацию</string>
-    <string name="generating">Создание…</string>
     <string name="tun_implementation">Реализация TUN</string>
     <string name="wireguard_local_address">Частный адрес</string>
     <string name="destination_override">Переопределять адрес назначения</string>
@@ -459,7 +457,6 @@
     <string name="stun_test_summary">Определить поведение сопоставления адресов NAT и поведение
         фильтрации NAT в соответствии с RFC 5780 при помощи STUN.
     </string>
-    <string name="warp_license">[CloudFlare Warp](https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/) - это бесплатный провайдер WireGuard VPN. Используя его, вы соглашаетесь с [условиями использования](https://www.cloudflare.com/application/terms/).</string>
     <string name="tools_network">Сеть</string>
     <string name="backup">Резервная копия</string>
     <string name="backup_rules">Правила маршрутизации</string>

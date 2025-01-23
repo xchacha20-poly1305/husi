@@ -407,11 +407,6 @@
     </string>
     <string name="destination_override">覆盖目标地址</string>
     <string name="tun_implementation">TUN 实现</string>
-    <string name="generating">正在生成…</string>
-    <string name="warp_generate">生成配置</string>
-    <string name="warp_license">CloudFlare Warp 是一个免费的 WireGuard VPN 提供源. 使用它,
-        代表您同意其服务条款。
-    </string>
     <string name="profile_traffic_statistics_summary">禁用后将不统计使用的流量</string>
     <string name="app_statistics_disabled">应用流量统计已禁用</string>
     <string name="pcap_notice">Pcap 文件将被保存到 %s</string>
