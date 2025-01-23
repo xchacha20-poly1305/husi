@@ -15,7 +15,6 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.4.3
 	github.com/xchacha20-poly1305/cazilla v0.3.4
 	github.com/xchacha20-poly1305/libping v0.8.1
-	golang.org/x/crypto v0.32.0
 	golang.org/x/sys v0.29.0
 )
 
@@ -86,6 +85,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
