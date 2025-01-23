@@ -29,6 +29,6 @@ fun SimpleMenuPreference.updateOutboundSummary() {
         sum = ProfileManager.getProfile(outbound)?.displayName()
     }
 
-    if (sum == null) sum = entries[value.toString().toInt()]
+    if (sum == null) sum = entries[value.toInt()]
     summary = sum
 }
