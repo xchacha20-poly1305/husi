@@ -4,7 +4,9 @@ Welcome and thank you for contributing! 🎉
 
 # Overview
 
-Readable > Useful > High performance but poorly readable
+Readable > Useful > High performance but poorly readable.
+
+Truly readable code is more than just clear; it's understandable even without context. (Contextless readable)
 
 # Coding detail
 
