@@ -627,4 +627,7 @@
     <string name="sniff_timeout">Таймаут перехвата</string>
     <string name="network_ethernet">Проводное подключение</string>
     <string name="network_cellular">Сотовая связь</string>
+    <string name="network_interface_preference_detail">Включение набора с использованием нескольких сетевых интерфейсов</string>
+    <string name="network_interface_preference">Настройки сетевого интерфейса</string>
+    <string name="network_interface_strategy">Стратегия сетевого интерфейса</string>
 </resources>
