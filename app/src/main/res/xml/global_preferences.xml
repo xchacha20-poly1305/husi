@@ -312,7 +312,7 @@
         app:initialExpandedChildrenCount="0"
         app:key="miscSettings"
         app:title="@string/cag_misc">
-        <moe.matsuri.nb4a.ui.UrlTestPreference
+        <io.nekohasekai.sagernet.widget.UrlTestPreference
             app:defaultValue="http://cp.cloudflare.com/"
             app:icon="@drawable/ic_baseline_cast_connected_24"
             app:key="connectionTestURL"
