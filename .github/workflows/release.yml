@@ -45,8 +45,18 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
+      - name: Setup Android NDK
+        # Pin NDK version for `gomobile`.
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          add-to-path: true
+          ndk-version: r27c
+          local-cache: true
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           ./run lib core
       - name: Upload libcore
