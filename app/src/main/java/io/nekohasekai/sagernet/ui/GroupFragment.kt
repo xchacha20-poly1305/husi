@@ -31,6 +31,7 @@ import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -350,24 +351,30 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             when (item.itemId) {
-                R.id.action_universal_qr -> {
-                    QRCodeDialog(
-                        proxyGroup.toUniversalLink(), proxyGroup.displayName()
-                    ).showAllowingStateLoss(parentFragmentManager)
+                R.id.action_standard_clipboard -> {
+                    proxyGroup.subscription!!.link.blankAsNull()?.let {
+                        export(it)
+                    } ?: snackbar(androidx.preference.R.string.not_set).show()
                 }
 
-                R.id.action_universal_clipboard -> {
-                    export(proxyGroup.toUniversalLink())
-                }
+                R.id.action_standard_qr -> proxyGroup.subscription!!.link.blankAsNull()?.let {
+                    QRCodeDialog(it, proxyGroup.displayName())
+                        .showAllowingStateLoss(parentFragmentManager)
+                } ?: snackbar(androidx.preference.R.string.not_set).show()
 
-                R.id.action_export_clipboard -> {
-                    runOnDefaultDispatcher {
-                        val profiles = SagerDatabase.proxyDao.getByGroup(selectedGroup.id)
-                        val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
-                        onMainDispatcher {
-                            SagerNet.trySetPrimaryClip(links)
-                            snackbar(getString(androidx.browser.R.string.copy_toast_msg)).show()
-                        }
+                R.id.action_universal_qr -> QRCodeDialog(
+                    proxyGroup.toUniversalLink(),
+                    proxyGroup.displayName(),
+                ).showAllowingStateLoss(parentFragmentManager)
+
+                R.id.action_universal_clipboard -> export(proxyGroup.toUniversalLink())
+
+                R.id.action_export_clipboard -> runOnDefaultDispatcher {
+                    val profiles = SagerDatabase.proxyDao.getByGroup(selectedGroup.id)
+                    val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
+                    onMainDispatcher {
+                        SagerNet.trySetPrimaryClip(links)
+                        snackbar(getString(androidx.browser.R.string.copy_toast_msg)).show()
                     }
                 }
 
@@ -375,17 +382,15 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     startFilesForResult(exportProfiles, "profiles_${proxyGroup.displayName()}.txt")
                 }
 
-                R.id.action_clear -> {
-                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
-                        .setMessage(R.string.clear_profiles_message)
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            runOnDefaultDispatcher {
-                                GroupManager.clearGroup(proxyGroup.id)
-                            }
+                R.id.action_clear -> MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                    .setMessage(R.string.clear_profiles_message)
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        runOnDefaultDispatcher {
+                            GroupManager.clearGroup(proxyGroup.id)
                         }
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show()
-                }
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
             }
 
             return true
@@ -418,7 +423,10 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 popup.menuInflater.inflate(R.menu.group_action_menu, popup.menu)
 
                 if (proxyGroup.type != GroupType.SUBSCRIPTION) {
-                    popup.menu.removeItem(R.id.action_share_subscription)
+                    popup.menu.let { menu ->
+                        menu.removeItem(R.id.action_share_subscription)
+                        menu.removeItem(R.id.action_share_subscription_universe)
+                    }
                 }
                 popup.setOnMenuItemClickListener(this)
                 popup.show()
