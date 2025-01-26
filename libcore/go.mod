@@ -5,10 +5,10 @@ go 1.23.0
 
 require (
 	github.com/gofrs/uuid/v5 v5.3.0
-	github.com/miekg/dns v1.1.62
+	github.com/miekg/dns v1.1.63
 	github.com/sagernet/gomobile v0.1.4
 	github.com/sagernet/sing v0.6.0-beta.12
-	github.com/sagernet/sing-box v1.11.0-beta.24
+	github.com/sagernet/sing-box v1.11.0-rc.1
 	github.com/sagernet/sing-dns v0.4.0-beta.2
 	github.com/sagernet/sing-tun v0.6.0-beta.8
 	github.com/xchacha20-poly1305/TLS-scribe v0.6.1
@@ -22,10 +22,10 @@ require (
 
 // cmd
 require (
-	github.com/oschwald/geoip2-golang v1.9.0
-	github.com/oschwald/maxminddb-golang v1.12.0
-	github.com/v2fly/v2ray-core/v5 v5.25.0
-	google.golang.org/protobuf v1.36.3
+	github.com/oschwald/geoip2-golang v1.11.0
+	github.com/oschwald/maxminddb-golang v1.13.1
+	github.com/v2fly/v2ray-core/v5 v5.26.0
+	google.golang.org/protobuf v1.36.4
 )
 
 require (
@@ -94,7 +94,7 @@ require (
 	golang.org/x/time v0.8.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
-	google.golang.org/grpc v1.69.4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
+	google.golang.org/grpc v1.70.0 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
