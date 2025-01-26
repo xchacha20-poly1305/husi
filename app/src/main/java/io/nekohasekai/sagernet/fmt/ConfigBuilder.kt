@@ -208,7 +208,6 @@ fun buildConfig(
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
-    var needSpecialFinalRule = false
 
     fun genDomainStrategy(noAsIs: Boolean): String {
         return when {
@@ -434,9 +433,7 @@ fun buildConfig(
 
                         is ShadowsocksBean -> buildSingBoxOutboundShadowsocksBean(bean).asMap()
 
-                        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asMap().also {
-                            needSpecialFinalRule = true
-                        }
+                        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asMap()
 
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asMap()
 
@@ -940,13 +937,8 @@ fun buildConfig(
                 action = SingBoxOptions.ACTION_SNIFF
                 timeout = DataStore.sniffTimeout.blankAsNull()
             })
-            // If we just run a WireGuard config, it will be added in endpoints settings,
-            // when the first outbound is direct.
-            // So we use this rule to make final rule become that WireGuard proxy.
-            if (needSpecialFinalRule) route.rules.add(Rule_Default().apply {
-                network = listOf(SingBoxOptions.NetworkTCP, SingBoxOptions.NetworkUDP)
-                outbound = TAG_PROXY
-            })
+
+            route.final_ = TAG_PROXY
         }
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
 
