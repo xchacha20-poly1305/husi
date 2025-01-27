@@ -44,7 +44,7 @@ object Key {
     const val NETWORK_PREFERRED_INTERFACES = "networkPreferredInterfaces"
     const val RULES_PROVIDER = "rulesProvider"
     const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
-    const val TRAFFIC_SNIFFING = "trafficSniffing"
+    const val ENABLE_SNIFF = "enableSniff"
     const val SNIFF_TIMEOUT = "sniffTimeout"
     const val RESOLVE_DESTINATION = "resolveDestination"
 
@@ -288,12 +288,6 @@ object RuleProvider {
     fun hasUnstableBranch(provider: Int): Boolean {
         return provider in OFFICIAL..LOYALSOLDIER
     }
-}
-
-object SniffPolicy {
-    const val DISABLED = 0
-    const val ENABLED = 1
-    const val OVERRIDE = 2 // TODO: re-add
 }
 
 object NetworkInterfaceStrategy {

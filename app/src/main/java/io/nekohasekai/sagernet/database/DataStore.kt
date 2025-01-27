@@ -10,7 +10,6 @@ import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.SPEED_TEST_URL
-import io.nekohasekai.sagernet.SniffPolicy
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.BaseService
@@ -103,7 +102,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         NetworkInterfaceStrategy.DEFAULT
     }
     var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
-    var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { SniffPolicy.ENABLED }
+    var enableSniff by configurationStore.boolean(Key.ENABLE_SNIFF) { true }
     var sniffTimeout by configurationStore.string(Key.SNIFF_TIMEOUT)
     var resolveDestination by configurationStore.boolean(Key.RESOLVE_DESTINATION)
 

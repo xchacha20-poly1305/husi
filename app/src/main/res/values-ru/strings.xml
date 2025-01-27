@@ -430,11 +430,7 @@
     </string>
     <string name="tun_implementation">Реализация TUN</string>
     <string name="wireguard_local_address">Частный адрес</string>
-    <string name="destination_override">Переопределять адрес назначения</string>
     <string name="resolve_destination_summary">Если адрес назначения является доменом, то он передается в соответствии со стратегией IPv6 (конфликтует с FakeDNS)</string>
-    <string name="destination_override_summary">Использовать перехваченный домен для переопределения
-        адреса назначения, а не только для маршрутизации
-    </string>
     <string name="pcap_notice">Pcap файлы будут сохранены в %s</string>
     <string name="route_play_store">Правило Play Store для %s</string>
     <string name="route_opt_block_analysis">Блокировать аналитику</string>
@@ -490,7 +486,6 @@
     <string name="log_level_help">Удерживайте для настройки размера буфера.</string>
     <string name="mux_type">Протокол мультиплексирования</string>
     <string name="subscription_expire">Истекает: %s</string>
-    <string name="sniff_override">Перехватывать результат для Назначения</string>
     <string name="tuic_disable_sni">Отключить SNI</string>
     <string name="neko_plugin_internal_error">%s внутренняя ошибка</string>
     <string name="domain_strategy_for_direct">Стратегия домена для Прямого</string>
