@@ -414,8 +414,6 @@
     <string name="wireguard_public_key">Clave pública de pares</string>
     <string name="wireguard_psk">Clave precompartida de pares</string>
     <string name="tun_implementation">Implementación TUN</string>
-    <string name="destination_override">Sobrescribir destino</string>
-    <string name="destination_override_summary">Utiliza el dominio rastreado para sobrescribir la dirección de destino, no solo para el enrutamiento</string>
     <string name="resolve_destination">Resolver destino</string>
     <string name="resolve_destination_summary">Si la dirección de destino es un dominio, entonces se transmite en función de la estrategia IPv6 (conflictos con FakeDNS)</string>
     <string name="pcap" translatable="false">Pcap</string>
@@ -490,7 +488,6 @@
     <string name="log_level_help">Mantén pulsada la preferencia para establecer el tamaño del búfer.</string>
     <string name="test_concurrency">Concurrencia de prueba</string>
     <string name="sniff_routing">Resultado de rastreo para enrutamiento</string>
-    <string name="sniff_override">Resultado de rastreo para el destino</string>
     <string name="get_cert_server_hint">Servidor de destino</string>
     <string name="get_cert">Obtener certificados</string>
     <string name="get_cert_summary">Obtiene los certificados TLS del servidor de destino. Admite HTTPS y QUIC.</string>

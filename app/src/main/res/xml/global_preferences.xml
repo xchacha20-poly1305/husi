@@ -129,14 +129,11 @@
         <SwitchPreference
             app:key="bypassLanInCore"
             app:title="@string/bypass_lan_in_core" />
-        <rikka.preference.SimpleMenuPreference
-            app:defaultValue="1"
-            app:entries="@array/traffic_sniffing_values"
-            app:entryValues="@array/int_array_2"
+        <SwitchPreference
+            app:defaultValue="true"
             app:icon="@drawable/ic_baseline_manage_search_24"
-            app:key="trafficSniffing"
-            app:title="@string/traffic_sniffing"
-            app:useSimpleSummaryProvider="true" />
+            app:key="enableSniff"
+            app:title="@string/traffic_sniffing" />
         <io.nekohasekai.sagernet.widget.DurationPreference
             app:icon="@drawable/ic_baseline_bolt"
             app:key="sniffTimeout"

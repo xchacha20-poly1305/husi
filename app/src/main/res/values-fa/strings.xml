@@ -399,8 +399,6 @@
     <string name="wireguard_public_key">کلید عمومی همتا</string>
     <string name="wireguard_psk">کلید از پیش مشترک همتا</string>
     <string name="tun_implementation">پیاده سازی TUN</string>
-    <string name="destination_override">لغو مقصد</string>
-    <string name="destination_override_summary">از دامنه sniff شده برای بازنویسی آدرس مقصد استفاده کنید، نه فقط برای مسیریابی</string>
     <string name="resolve_destination">حل کردن مقصد</string>
     <string name="resolve_destination_summary">اگر آدرس مقصد یک دامنه باشد، بر اساس استراتژی IPv6 ارسال می‌شود (در تضاد با FakeDNS).</string>
     <string name="pcap_notice">فایل های Pcap در %s ذخیره می شوند</string>
@@ -501,7 +499,6 @@
     <string name="cazilla">استفاده از Mozilla CA Certificate Program</string>
     <string name="log_level_help">برای تنظیم اندازه بافر ترجیح را طولانی فشار دهید.</string>
     <string name="tls_camouflage_settings">تنظیمات استتار TLS</string>
-    <string name="sniff_override">نتیجه Sniff برای مقصد</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>
     <string name="get_cert_success">با موفقیت انجام شد! گواهی ها در کلیپ بورد کپی شدند.</string>
     <string name="blurred_address">آدرس سرور را تار کن</string>

@@ -403,9 +403,6 @@
         冲突）
     </string>
     <string name="resolve_destination">解析目标地址</string>
-    <string name="destination_override_summary">使用探测的域来覆盖目标地址, 而不是仅用于路由
-    </string>
-    <string name="destination_override">覆盖目标地址</string>
     <string name="tun_implementation">TUN 实现</string>
     <string name="profile_traffic_statistics_summary">禁用后将不统计使用的流量</string>
     <string name="app_statistics_disabled">应用流量统计已禁用</string>
@@ -482,7 +479,6 @@
     <string name="test_concurrency">测试并发</string>
     <string name="mux_type">Mux 协议</string>
     <string name="sniff_routing">探测结果用于路由判断</string>
-    <string name="sniff_override">探测结果用于目标地址</string>
     <string name="resolve_server">根据 IPv6 策略解析服务器地址</string>
     <string name="get_cert_server_hint">目标服务器</string>
     <string name="get_cert">获取证书</string>

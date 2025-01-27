@@ -502,12 +502,6 @@
         <item>3</item>
     </string-array>
 
-    <string-array name="traffic_sniffing_values">
-        <item>@string/off</item>
-        <item>@string/sniff_routing</item>
-        <!--        <item>@string/sniff_override</item>-->
-    </string-array>
-
     <string-array name="plugin_providers">
         <item>sing-box</item>
         <item>@string/plugin</item>

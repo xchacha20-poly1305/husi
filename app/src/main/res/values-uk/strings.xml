@@ -402,7 +402,6 @@
     <string name="app_statistics_disabled">Статистика трафіку застосунків вимкнена у налаштуваннях</string>
     <string name="wireguard_public_key">Відкритий ключ сервера</string>
     <string name="wireguard_psk">Пароль сервера</string>
-    <string name="destination_override">Перевизначити адресу призначення</string>
     <string name="resolve_destination">Вирішити адресу призначення</string>
     <string name="pcap_notice">Pcap файли будуть збережені в %s</string>
     <string name="naive_insecure_concurrency">Небезпечний паралелізм</string>
@@ -432,7 +431,6 @@
     <string name="get_cert">Отримання сертифікатів</string>
     <string name="get_cert_success">Сертифікат отримано та скопійовано до буферу обміну.</string>
     <string name="ech_config">Конфігурація ECH</string>
-    <string name="sniff_override">Перехоплювати результат для Призначення</string>
     <string name="get_cert_summary">Отримати TLS сертифікати цільового сервера. Підтримка https та QUIC.</string>
     <string name="inbound_username">Ім\'я користувача SOCKS5</string>
     <string name="inbound_password">Пароль користувача SOCKS5</string>
@@ -477,7 +475,6 @@
     <string name="no_proxies_found_in_file">У файлі не знайдено проксі</string>
     <string name="copy_failed">Не вдалося скопіювати.</string>
     <string name="ooc_warning">Попередження</string>
-    <string name="destination_override_summary">Використовувати перехвачений домен для перевизначення адреси призначення, а не тільки для маршрутизації</string>
     <string name="resolve_destination_summary">Якщо адреса призначення є доменом, то вона передається у відповідности до стратегії IPv6 (конфліктує з FakeDNS)</string>
     <string name="naive_insecure_concurrency_summary">Використовувати N паралельних з\'єднань для збільшення відмовостійкості в умовах ненадійної мережі. Більша кількість з\'єднань збільшує ризик виявлення тунелів та зменшує безпеку. Цей проект прагне максимального захисту від аналізу трафіку, тому використання його таким чином суперечить даній меті.
 \n
