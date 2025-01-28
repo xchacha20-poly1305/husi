@@ -58,7 +58,6 @@ import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
-import io.nekohasekai.sagernet.fmt.v2ray.toV2rayN
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
@@ -748,7 +747,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                         address = this[0].hostAddress
                                     }
                                 }
-                            } catch (ignored: UnknownHostException) {
+                            } catch (_: UnknownHostException) {
                             }
                         }
                         if (!isActive) break
@@ -1272,7 +1271,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             override fun onBindViewHolder(holder: ConfigurationHolder, position: Int) {
                 try {
                     holder.bind(getItemAt(position))
-                } catch (ignored: NullPointerException) { // when group deleted
+                } catch (_: NullPointerException) { // when group deleted
                 }
             }
 
@@ -1623,8 +1622,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                val selectOrChain = select || proxyEntity.type == ProxyEntity.TYPE_CHAIN
-                shareLayout.isGone = selectOrChain
+                shareLayout.isGone = select
                 editButton.isGone = select
                 removeButton.isGone = select
 
@@ -1642,23 +1640,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                         val popup = PopupMenu(requireContext(), anchor)
                         popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
 
-                        if (proxyEntity.type != ProxyEntity.TYPE_VMESS) {
-                            popup.menu
-                                .findItem(R.id.action_group_qr).subMenu
-                                ?.removeItem(R.id.action_v2rayn_qr)
-                            popup.menu
-                                .findItem(R.id.action_group_clipboard).subMenu
-                                ?.removeItem(R.id.action_v2rayn_clipboard)
-
-                            if (!proxyEntity.haveStandardLink()) {
-                                popup.menu
-                                    .findItem(R.id.action_group_qr).subMenu
-                                    ?.removeItem(R.id.action_standard_qr)
-
-                                popup.menu
-                                    .findItem(R.id.action_group_clipboard).subMenu
-                                    ?.removeItem(R.id.action_standard_clipboard)
-                            }
+                        if (!proxyEntity.haveStandardLink()) {
+                            popup.menu.findItem(R.id.action_group_qr)
+                                .subMenu?.removeItem(R.id.action_standard_qr)
+                            popup.menu.findItem(R.id.action_group_clipboard)
+                                .subMenu?.removeItem(R.id.action_standard_clipboard)
                         }
 
                         if (!proxyEntity.haveLink()) {
@@ -1667,7 +1653,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                         }
 
                         val bean = proxyEntity.requireBean()
-                        if (proxyEntity.mustUsePlugin()
+                        if (proxyEntity.type == ProxyEntity.TYPE_CHAIN
+                            || proxyEntity.mustUsePlugin()
                             || (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
                         ) {
                             popup.menu.removeItem(R.id.action_group_outbound)
@@ -1677,7 +1664,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         popup.show()
                     }
 
-                    if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
+                    if (!select) {
                         val validateResult =
                             if ((parentFragment as? ConfigurationFragment)?.securityAdvisory == true) {
                                 proxyEntity.requireBean().isInsecure()
@@ -1766,9 +1753,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     when (item.itemId) {
                         R.id.action_standard_qr -> showCode(entity.toStdLink())
                         R.id.action_standard_clipboard -> export(entity.toStdLink())
-
-                        R.id.action_v2rayn_qr -> showCode(entity.vmessBean!!.toV2rayN())
-                        R.id.action_v2rayn_clipboard -> export(entity.vmessBean!!.toV2rayN())
 
                         R.id.action_universal_qr -> showCode(entity.requireBean().toUniversalLink())
                         R.id.action_universal_clipboard -> export(

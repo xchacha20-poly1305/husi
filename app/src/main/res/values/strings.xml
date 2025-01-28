@@ -320,7 +320,6 @@
     <string name="api_port">API Port</string>
     <string name="probe_interval">Balancer observation interval</string>
     <string name="standard">Standard</string>
-    <string name="v2rayn" translatable="false">V2RayN</string>
     <string name="available" translatable="false">%dms</string>
     <string name="unavailable">Unavailable</string>
     <string name="always_show_address">Always Show Address</string>
