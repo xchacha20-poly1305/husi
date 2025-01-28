@@ -11,7 +11,7 @@ import android.service.quicksettings.TileService as BaseTileService
 
 @RequiresApi(24)
 class TileService : BaseTileService(), SagerConnection.Callback {
-    private val iconIdle by lazy { Icon.createWithResource(this, R.drawable.ic_service_idle) }
+    private val iconIdle by lazy { Icon.createWithResource(this, R.drawable.ic_service_rest) }
     private val iconBusy by lazy { Icon.createWithResource(this, R.drawable.ic_service_busy) }
     private val iconConnected by lazy {
         Icon.createWithResource(this, R.drawable.ic_service_active)
@@ -23,7 +23,7 @@ class TileService : BaseTileService(), SagerConnection.Callback {
         updateTile(state, profileName)
 
     override fun onServiceConnected(service: ISagerNetService) {
-        updateTile(BaseService.State.values()[service.state], service.profileName)
+        updateTile(BaseService.State.entries[service.state], service.profileName)
         if (tapPending) {
             tapPending = false
             onClick()
@@ -84,7 +84,7 @@ class TileService : BaseTileService(), SagerConnection.Callback {
     private fun toggle() {
         val service = connection.service
         if (service == null) tapPending =
-            true else BaseService.State.values()[service.state].let { state ->
+            true else BaseService.State.entries[service.state].let { state ->
             when {
                 state.canStop -> SagerNet.stopService()
                 state == BaseService.State.Stopped -> SagerNet.startService()
