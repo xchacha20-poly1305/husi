@@ -294,7 +294,6 @@
     <string name="api_port">Puerto de API</string>
     <string name="probe_interval">Intervalo de observación del equilibrador</string>
     <string name="standard">Estándar</string>
-    <string name="v2rayn" translatable="false">V2RayN</string>
     <string name="available" translatable="false">%dms</string>
     <string name="unavailable">No disponible</string>
     <string name="always_show_address">Mostrar siempre la dirección</string>

@@ -8,7 +8,6 @@ import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions.*
-import moe.matsuri.nb4a.utils.NGUtil
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
 data class VmessQRCode(
@@ -351,52 +350,6 @@ private fun parseCsvVMess(csv: String): VMessBean {
 
     return bean
 
-}
-
-fun VMessBean.toV2rayN(): String {
-    val bean = this
-    val protocol = if (isVLESS) "vless" else "vmess"
-    return "${protocol}://" + VmessQRCode().apply {
-        v = "2"
-        ps = bean.name
-        add = bean.serverAddress
-        port = bean.serverPort.toString()
-        id = bean.uuid
-        aid = bean.alterId.toString()
-        net = bean.type
-
-        when (bean.packetEncoding) {
-            0 -> packetEncoding = ""
-            1 -> packetEncoding = "packetaddr"
-            2 -> packetEncoding = "xudp"
-        }
-
-        host = bean.host
-        path = bean.path
-
-        when (net) {
-            "http" -> {
-                if (!isTLS()) {
-                    type = "http"
-                    net = "tcp"
-                }
-            }
-        }
-
-        if (isTLS()) {
-            tls = "tls"
-            if (bean.realityPubKey.isNotBlank()) {
-                tls = "reality"
-            }
-        }
-
-        scy = bean.encryption
-        sni = bean.sni
-        alpn = bean.alpn.replace("\n", ",")
-        fp = bean.utlsFingerprint
-    }.let {
-        NGUtil.encode(Gson().toJson(it))
-    }
 }
 
 fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
