@@ -126,10 +126,10 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
             val inputStream = process.inputStream
             val bufferedReader = BufferedReader(InputStreamReader(inputStream))
             var line: String?
-            var key: String
-            var value: String
+            var key: String?
+            var value: String?
             while (bufferedReader.readLine().also { line = it } != null) {
-                val matcher = propertiesPattern.matcher(line)
+                val matcher = propertiesPattern.matcher(line!!)
                 if (matcher.matches()) {
                     key = matcher.group(1)
                     value = matcher.group(2)

@@ -25,5 +25,4 @@ open class ToolbarFragment : Fragment {
     }
 
     open fun onKeyDown(ketCode: Int, event: KeyEvent) = false
-    open fun onBackPressed(): Boolean = false
 }
