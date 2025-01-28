@@ -582,4 +582,13 @@
     <string name="network_expensive">高資費網路</string>
     <string name="clash_mode">Clash 模式</string>
     <string name="sniff_timeout">嗅探超時</string>
+    <string name="hybrid">混合</string>
+    <string name="fallback">回退</string>
+    <string name="network_interface_strategy">網路介面策略</string>
+    <string name="network_interface_preference">網路介面偏好</string>
+    <string name="network_interface_preference_detail">啟用多網路介面撥號</string>
+    <string name="middle">中</string>
+    <string name="low">低</string>
+    <string name="high">高</string>
+    <string name="pause">暫停</string>
 </resources>
