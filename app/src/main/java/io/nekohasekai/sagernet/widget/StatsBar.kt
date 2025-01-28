@@ -8,9 +8,8 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.withStarted
 import com.google.android.material.bottomappbar.BottomAppBar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
@@ -85,7 +84,7 @@ class StatsBar @JvmOverloads constructor(
         val activity = context as MainActivity
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
-            activity.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            activity.withStarted {
                 what()
             }
         }

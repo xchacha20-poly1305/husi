@@ -41,6 +41,7 @@ import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import io.nekohasekai.sagernet.widget.updateSummary
 import kotlinx.parcelize.Parcelize
+import androidx.activity.addCallback
 import rikka.preference.SimpleMenuPreference
 
 class RouteSettingsActivity(
@@ -285,9 +286,17 @@ class RouteSettingsActivity(
                 }
             }
 
-
         }
 
+        onBackPressedDispatcher.addCallback {
+            if (needSave()) {
+                UnsavedChangesDialogFragment().apply {
+                    key()
+                }.show(supportFragmentManager, null)
+            } else {
+                finish()
+            }
+        }
     }
 
     suspend fun saveAndExit() {
@@ -321,23 +330,32 @@ class RouteSettingsActivity(
 
     }
 
-    val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = child.onOptionsItemSelected(item)
-
-    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
-    override fun onBackPressed() {
-        if (needSave()) {
-            UnsavedChangesDialogFragment().apply { key() }.show(supportFragmentManager, null)
-        } else {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_delete -> {
+            if (DataStore.editingId == 0L) {
+                finish()
+            } else {
+                DeleteConfirmationDialogFragment().apply {
+                    arg(ProfileIdArg(DataStore.editingId))
+                    key()
+                }.show(supportFragmentManager, null)
+            }
+            true
         }
+
+        R.id.action_apply -> {
+            runOnDefaultDispatcher {
+                saveAndExit()
+            }
+            true
+        }
+
+        else -> false
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -384,30 +402,6 @@ class RouteSettingsActivity(
             activity?.apply {
                 viewCreated(view, savedInstanceState)
             }
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-            R.id.action_delete -> {
-                if (DataStore.editingId == 0L) {
-                    requireActivity().finish()
-                } else {
-                    DeleteConfirmationDialogFragment().apply {
-                        arg(ProfileIdArg(DataStore.editingId))
-                        key()
-                    }.show(parentFragmentManager, null)
-                }
-                true
-            }
-
-            R.id.action_apply -> {
-                runOnDefaultDispatcher {
-                    activity?.saveAndExit()
-                }
-                true
-            }
-
-            else -> false
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {

@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.annotation.SuppressLint
+import androidx.activity.addCallback
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.Menu
@@ -124,6 +125,15 @@ class ConfigEditActivity : ThemedActivity() {
         extendedKeyboard.setHasFixedSize(true)
         extendedKeyboard.submitList("{},:_\"".map { it.toString() })
         extendedKeyboard.setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
+
+        onBackPressedDispatcher.addCallback {
+            if (dirty) UnsavedChangesDialogFragment().apply {
+                key()
+            }.show(supportFragmentManager, null)
+            else {
+                finish()
+            }
+        }
     }
 
     private fun formatText(): String? {
@@ -146,16 +156,6 @@ class ConfigEditActivity : ThemedActivity() {
         formatText()?.let {
             DataStore.profileCacheStore.putString(key, it)
             finish()
-        }
-    }
-
-    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
-    override fun onBackPressed() {
-        if (dirty) {
-            UnsavedChangesDialogFragment().apply { key() }.show(supportFragmentManager, null)
-        } else {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
         }
     }
 

@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.widget.UserAgentPreference
 import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import kotlinx.parcelize.Parcelize
+import androidx.activity.addCallback
 import rikka.preference.SimpleMenuPreference
 
 class GroupSettingsActivity(
@@ -73,7 +74,8 @@ class GroupSettingsActivity(
         isSelector = DataStore.groupIsSelector
 
         frontProxy = if (DataStore.frontProxyTmp == OUTBOUND_POSITION) DataStore.frontProxy else -1
-        landingProxy = if (DataStore.landingProxyTmp == OUTBOUND_POSITION) DataStore.landingProxy else -1
+        landingProxy =
+            if (DataStore.landingProxyTmp == OUTBOUND_POSITION) DataStore.landingProxy else -1
 
         val isSubscription = type == GroupType.SUBSCRIPTION
         if (isSubscription) {
@@ -242,6 +244,16 @@ class GroupSettingsActivity(
                 }
             }
 
+            onBackPressedDispatcher.addCallback {
+                if (needSave()) {
+                    UnsavedChangesDialogFragment().apply {
+                        key()
+                    }.show(supportFragmentManager, null)
+                } else {
+                    finish()
+                }
+            }
+
         }
 
     }
@@ -274,23 +286,32 @@ class GroupSettingsActivity(
 
     }
 
-    val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = child.onOptionsItemSelected(item)
-
-    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
-    override fun onBackPressed() {
-        if (needSave()) {
-            UnsavedChangesDialogFragment().apply { key() }.show(supportFragmentManager, null)
-        } else {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_delete -> {
+            if (DataStore.editingId == 0L) {
+                finish()
+            } else {
+                DeleteConfirmationDialogFragment().apply {
+                    arg(GroupIdArg(DataStore.editingId))
+                    key()
+                }.show(supportFragmentManager, null)
+            }
+            true
         }
+
+        R.id.action_apply -> {
+            runOnDefaultDispatcher {
+                saveAndExit()
+            }
+            true
+        }
+
+        else -> false
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -333,30 +354,6 @@ class GroupSettingsActivity(
             super.onViewCreated(view, savedInstanceState)
 
             ViewCompat.setOnApplyWindowInsetsListener(listView, ListListener)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-            R.id.action_delete -> {
-                if (DataStore.editingId == 0L) {
-                    requireActivity().finish()
-                } else {
-                    DeleteConfirmationDialogFragment().apply {
-                        arg(GroupIdArg(DataStore.editingId))
-                        key()
-                    }.show(parentFragmentManager, null)
-                }
-                true
-            }
-
-            R.id.action_apply -> {
-                runOnDefaultDispatcher {
-                    activity?.saveAndExit()
-                }
-                true
-            }
-
-            else -> false
         }
 
     }
