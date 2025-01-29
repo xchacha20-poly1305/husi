@@ -58,10 +58,9 @@ type BoxInstance struct {
 }
 
 // NewBoxInstance creates a new BoxInstance.
-// If platformInterface is nil, it will use test mode.
 func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxInstance, err error) {
-	forTest := platformInterface == nil
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
+	forTest := platformInterface.IsForTest()
 
 	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
 	options, err := parseConfig(ctx, config)
@@ -72,21 +71,20 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	ctx, cancel := context.WithCancel(ctx)
 	ctx = pause.WithDefaultManager(ctx)
 	var platformLogWriter log.PlatformWriter
-	if !forTest {
-		interfaceWrapper := &boxPlatformInterfaceWrapper{
-			useProcFS: platformInterface.UseProcFS(),
-			iif:       platformInterface,
-		}
-		service.MustRegister[platform.Interface](ctx, interfaceWrapper)
-		service.MustRegister[deprecated.Manager](ctx, deprecated.NewStderrManager(log.StdLogger()))
+	interfaceWrapper := &boxPlatformInterfaceWrapper{
+		useProcFS: platformInterface.UseProcFS(),
+		iif:       platformInterface,
+		forTest:   forTest,
+	}
+	service.MustRegister[platform.Interface](ctx, interfaceWrapper)
 
+	if !forTest {
+		service.MustRegister[deprecated.Manager](ctx, deprecated.NewStderrManager(log.StdLogger()))
 		// If set PlatformLogWrapper, box will set something about cache file,
 		// which will panic with simple configuration (when URL test).
 		platformLogWriter = platformLogWrapper
-	} else {
-		// Make the behavior like platform.
-		service.MustRegister[platform.Interface](ctx, platformInterfaceStub{})
 	}
+
 	boxOption := box.Options{
 		Options:           options,
 		Context:           ctx,
@@ -118,7 +116,8 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 
 		// Protect
 		b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
-			return platformInterface.AutoDetectInterfaceControl(int32(fd))
+			_ = platformInterface.AutoDetectInterfaceControl(int32(fd))
+			return nil
 		})
 		if err != nil {
 			log.WarnContext(ctx, "create protect service: ", err)

@@ -5,7 +5,6 @@ import (
 	"net/netip"
 	"os"
 	"sync"
-	"syscall"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/process"
@@ -20,6 +19,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 
 	"libcore/procfs"
+	"libcore/protect"
 
 	"golang.org/x/sys/unix"
 )
@@ -31,6 +31,7 @@ type boxPlatformInterfaceWrapper struct {
 	myTunName              string
 	defaultInterfaceAccess sync.Mutex
 	defaultInterface       *control.Interface
+	forTest                bool
 
 	// Set by interface monitor, which can't provide these information on Android.
 	/*isExpensive            bool
@@ -66,7 +67,11 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformAutoDetectInterfaceControl() bo
 
 func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl(fd int) error {
 	// "protect"
-	return w.iif.AutoDetectInterfaceControl(int32(fd))
+	ok := w.iif.AutoDetectInterfaceControl(int32(fd))
+	if !ok {
+		_ = protect.Protect(ProtectPath, fd)
+	}
+	return nil
 }
 
 func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
@@ -83,7 +88,7 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	// Do you want to close it?
 	tunFd, err = unix.Dup(tunFd)
 	if err != nil {
-		return nil, E.Cause(err, "syscall.Dup")
+		return nil, E.Cause(err, "unix.Dup")
 	}
 	//
 	options.FileDescriptor = tunFd
@@ -142,9 +147,9 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network
 		var ipProtocol int32
 		switch N.NetworkName(network) {
 		case N.NetworkTCP:
-			ipProtocol = syscall.IPPROTO_TCP
+			ipProtocol = unix.IPPROTO_TCP
 		case N.NetworkUDP:
-			ipProtocol = syscall.IPPROTO_UDP
+			ipProtocol = unix.IPPROTO_UDP
 		default:
 			return nil, E.New("unknown network: ", network)
 		}
