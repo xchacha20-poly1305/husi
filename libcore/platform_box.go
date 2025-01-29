@@ -104,13 +104,14 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, 
 		return nil, err
 	}
 	interfaces := make([]adapter.NetworkInterface, 0, interfaceIterator.Length())
-	for netInterface := interfaceIterator.Next(); interfaceIterator.HasNext(); netInterface = interfaceIterator.Next() {
+	for interfaceIterator.HasNext() {
+		netInterface := interfaceIterator.Next()
 		if netInterface.Name == w.myTunName {
 			continue
 		}
-		w.defaultInterfaceAccess.Lock()
+		// w.defaultInterfaceAccess.Lock()
 		// isDefault := w.defaultInterface != nil && int(netInterface.Index) == w.defaultInterface.Index
-		w.defaultInterfaceAccess.Unlock()
+		// w.defaultInterfaceAccess.Unlock()
 		interfaces = append(interfaces, adapter.NetworkInterface{
 			Interface: control.Interface{
 				Index:     int(netInterface.Index),
@@ -178,9 +179,4 @@ func (w *boxPlatformInterfaceWrapper) SendNotification(_ *platform.Notification)
 func (w *boxPlatformInterfaceWrapper) UpdateRouteOptions(options *tun.Options, platformOptions option.TunPlatformOptions) error {
 	// Some *table rules, can't use for Android
 	return os.ErrInvalid
-}
-
-func (w *boxPlatformInterfaceWrapper) CloseTun() error {
-	// Close by core
-	return nil
 }
