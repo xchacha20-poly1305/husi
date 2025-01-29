@@ -8,7 +8,7 @@ import (
 
 // Protect sends fileDescriptors to protectPath,
 // expecting to make fileDescriptors protected by Android VPN service.
-func Protect(protectPath string, fileDescriptors []int) error {
+func Protect(protectPath string, fileDescriptors ...int) error {
 	return sendAncillaryFileDescriptors(protectPath, fileDescriptors)
 }
 

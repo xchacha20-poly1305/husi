@@ -2,7 +2,7 @@ package libcore
 
 // PlatformInterface also named "iif".
 type PlatformInterface interface {
-	AutoDetectInterfaceControl(fd int32) error
+	AutoDetectInterfaceControl(fd int32) bool
 	OpenTun() (int, error)
 	UseProcFS() bool
 	FindConnectionOwner(ipProtocol int32, sourceAddress string, sourcePort int32, destinationAddress string, destinationPort int32) (int32, error)
@@ -13,4 +13,6 @@ type PlatformInterface interface {
 	GetInterfaces() (NetworkInterfaceIterator, error)
 	DeviceName() string
 	AnchorSSID() string
+
+	IsForTest() bool
 }

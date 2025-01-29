@@ -23,34 +23,35 @@ import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.NetworkInterface
 
-class NativeInterface : PlatformInterface {
+class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
     //  libbox interface
 
     override fun anchorSSID(): String = DataStore.anchorSSID
 
-    override fun autoDetectInterfaceControl(fd: Int) {
-        DataStore.vpnService?.protect(fd)
+    override fun autoDetectInterfaceControl(fd: Int): Boolean {
+        return DataStore.vpnService?.protect(fd) == true
     }
 
     override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
+        if (forTest) throw IllegalArgumentException()
         DefaultNetworkMonitor.setListener(listener)
     }
 
     override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
+        if (forTest) throw IllegalArgumentException()
         DefaultNetworkMonitor.setListener(null)
     }
 
     override fun deviceName(): String = Build.MODEL
 
     override fun openTun(): Long {
+        if (forTest) throw IllegalArgumentException()
         if (DataStore.vpnService == null) throw NullPointerException("no vpnService")
         return DataStore.vpnService!!.startVpn().toLong()
     }
 
-    override fun useProcFS(): Boolean {
-        return SDK_INT < Build.VERSION_CODES.Q
-    }
+    override fun useProcFS(): Boolean = SDK_INT < Build.VERSION_CODES.Q
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun findConnectionOwner(
@@ -127,7 +128,9 @@ class NativeInterface : PlatformInterface {
             }.onFailure { e ->
                 Logs.e("failed to get mtu for interface ${boxInterface.name}", e)
             }
-            boxInterface.addresses = networkInterface.interfaceAddresses.mapX { it.toPrefix() }.let {
+            boxInterface.addresses = networkInterface.interfaceAddresses.mapX {
+                it.toPrefix()
+            }.let {
                 it.toStringIterator(it.size)
             }
             var dumpFlags = 0
@@ -150,6 +153,8 @@ class NativeInterface : PlatformInterface {
         }
         return InterfaceArray(interfaces.iterator(), interfaces.size)
     }
+
+    override fun isForTest(): Boolean = forTest
 
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,
