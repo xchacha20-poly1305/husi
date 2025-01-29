@@ -49,6 +49,7 @@ jobs:
           java-version: "21"
           distribution: "temurin"
       - name: Setup Android NDK
+        if: steps.cache.outputs.cache-hit != 'true'
         # Pin NDK version for `gomobile`.
         id: setup-ndk
         uses: nttld/setup-ndk@v1
