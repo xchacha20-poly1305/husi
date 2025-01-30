@@ -3,7 +3,6 @@ package libcore
 import (
 	"context"
 	"net/netip"
-	"os"
 	"sync"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -179,9 +178,4 @@ func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 
 func (w *boxPlatformInterfaceWrapper) SendNotification(_ *platform.Notification) error {
 	return nil
-}
-
-func (w *boxPlatformInterfaceWrapper) UpdateRouteOptions(options *tun.Options, platformOptions option.TunPlatformOptions) error {
-	// Some *table rules, can't use for Android
-	return os.ErrInvalid
 }

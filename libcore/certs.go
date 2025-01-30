@@ -13,6 +13,7 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/cazilla"
@@ -62,12 +63,20 @@ func GetCert(address, serverName string, mode int32) (cert string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), C.ProtocolTimeouts[C.ProtocolQUIC])
 	defer cancel()
 
+	target := M.ParseSocksaddr(address)
+	if target.Port == 0 {
+		target.Port = 443
+	}
+	options := scribe.Option{
+		Target: target,
+		SNI:    serverName,
+	}
 	var certs []*x509.Certificate
 	switch mode {
 	case ScribeTLS:
-		certs, err = scribe.GetCert(ctx, address, serverName)
+		certs, err = scribe.GetCert(ctx, options)
 	case ScribeQUIC:
-		certs, err = scribe.GetCertQuic(ctx, address, serverName)
+		certs, err = scribe.GetCertQuic(ctx, options)
 	default:
 		err = E.New("unknown mode: ", mode)
 	}
