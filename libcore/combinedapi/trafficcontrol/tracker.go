@@ -78,9 +78,11 @@ func NewTCPTracker(conn net.Conn, manager *Manager, metadata adapter.InboundCont
 		next         string
 		outbound     string
 		outboundType string
+		counter      *outboundCounter
 	)
 	if matchOutbound != nil {
 		next = matchOutbound.Tag()
+		counter = manager.loadOrCreateTraffic(next)
 	} else {
 		next = outboundManager.Default().Tag()
 	}
@@ -100,15 +102,18 @@ func NewTCPTracker(conn net.Conn, manager *Manager, metadata adapter.InboundCont
 	}
 	upload := new(atomic.Int64)
 	download := new(atomic.Int64)
-	counter := manager.loadOrCreateTraffic(matchOutbound.Tag())
 	tracker := &TCPConn{
 		ExtendedConn: bufio.NewCounterConn(conn, []N.CountFunc{func(n int64) {
 			upload.Add(n)
-			counter.upload.Add(n)
+			if counter != nil {
+				counter.upload.Add(n)
+			}
 			// manager.PushUploaded(n)
 		}}, []N.CountFunc{func(n int64) {
 			download.Add(n)
-			counter.download.Add(n)
+			if counter != nil {
+				counter.download.Add(n)
+			}
 			// manager.PushDownloaded(n)
 		}}),
 		metadata: TrackerMetadata{
@@ -162,9 +167,11 @@ func NewUDPTracker(conn N.PacketConn, manager *Manager, metadata adapter.Inbound
 		next         string
 		outbound     string
 		outboundType string
+		counter      *outboundCounter
 	)
 	if matchOutbound != nil {
 		next = matchOutbound.Tag()
+		counter = manager.loadOrCreateTraffic(next)
 	} else {
 		next = outboundManager.Default().Tag()
 	}
@@ -184,15 +191,18 @@ func NewUDPTracker(conn N.PacketConn, manager *Manager, metadata adapter.Inbound
 	}
 	upload := new(atomic.Int64)
 	download := new(atomic.Int64)
-	counter := manager.loadOrCreateTraffic(matchOutbound.Tag())
 	trackerConn := &UDPConn{
 		PacketConn: bufio.NewCounterPacketConn(conn, []N.CountFunc{func(n int64) {
 			upload.Add(n)
-			counter.upload.Add(n)
+			if counter != nil {
+				counter.upload.Add(n)
+			}
 			// manager.PushUploaded(n)
 		}}, []N.CountFunc{func(n int64) {
 			download.Add(n)
-			counter.download.Add(n)
+			if counter != nil {
+				counter.download.Add(n)
+			}
 			// manager.PushDownloaded(n)
 		}}),
 		metadata: TrackerMetadata{
