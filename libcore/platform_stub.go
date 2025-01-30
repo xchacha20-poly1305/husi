@@ -66,9 +66,20 @@ func (p platformInterfaceStub) SendNotification(_ *platform.Notification) error 
 	return nil
 }
 
+func (p platformInterfaceStub) SystemCertificates() []string {
+	return nil
+}
+
 var _ tun.DefaultInterfaceMonitor = interfaceMonitorStub{}
 
 type interfaceMonitorStub struct{}
+
+func (i interfaceMonitorStub) RegisterMyInterface(_ string) {
+}
+
+func (i interfaceMonitorStub) MyInterface() string {
+	return ""
+}
 
 func (i interfaceMonitorStub) Start() error {
 	return nil

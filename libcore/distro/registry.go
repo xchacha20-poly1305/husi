@@ -4,6 +4,13 @@ import (
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
 	"github.com/sagernet/sing-box/adapter/outbound"
+	"github.com/sagernet/sing-box/dns"
+	"github.com/sagernet/sing-box/dns/transport"
+	"github.com/sagernet/sing-box/dns/transport/fakeip"
+	"github.com/sagernet/sing-box/dns/transport/hosts"
+	"github.com/sagernet/sing-box/dns/transport/local"
+	"github.com/sagernet/sing-box/dns/transport/quic"
+	"github.com/sagernet/sing-box/protocol/anytls"
 	"github.com/sagernet/sing-box/protocol/direct"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing-box/protocol/http"
@@ -21,7 +28,6 @@ import (
 	"github.com/sagernet/sing-box/protocol/vmess"
 	"github.com/sagernet/sing-box/protocol/wireguard"
 	_ "github.com/sagernet/sing-box/transport/v2rayquic"
-	_ "github.com/sagernet/sing-dns/quic"
 )
 
 func InboundRegistry() *inbound.Registry {
@@ -62,6 +68,7 @@ func OutboundRegistry() *outbound.Registry {
 	ssh.RegisterOutbound(registry)
 	shadowtls.RegisterOutbound(registry)
 	vless.RegisterOutbound(registry)
+	anytls.RegisterOutbound(registry)
 
 	registerQUICOutbounds(registry)
 	registerWireGuardOutbound(registry)
@@ -97,4 +104,25 @@ func registerWireGuardOutbound(registry *outbound.Registry) {
 
 func registerWireGuardEndpoint(registry *endpoint.Registry) {
 	wireguard.RegisterEndpoint(registry)
+}
+
+func DNSTransportRegistry() *dns.TransportRegistry {
+	registry := dns.NewTransportRegistry()
+
+	transport.RegisterTCP(registry)
+	transport.RegisterUDP(registry)
+	transport.RegisterTLS(registry)
+	transport.RegisterHTTPS(registry)
+	hosts.RegisterTransport(registry)
+	local.RegisterTransport(registry)
+	fakeip.RegisterTransport(registry)
+
+	registerQUICTransports(registry)
+
+	return registry
+}
+
+func registerQUICTransports(registry *dns.TransportRegistry) {
+	quic.RegisterTransport(registry)
+	quic.RegisterHTTP3Transport(registry)
 }

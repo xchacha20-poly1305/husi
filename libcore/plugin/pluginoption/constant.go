@@ -1,5 +1,3 @@
 package pluginoption
 
-const (
-	TypeAnyTLS = "anytls"
-)
+const ()

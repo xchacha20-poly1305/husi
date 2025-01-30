@@ -1,27 +1,28 @@
 package io.nekohasekai.sagernet.bg
 
 import android.net.NetworkCapabilities
-import android.os.Process
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
+import android.os.Process
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
 import libcore.Libcore
+import libcore.LocalDNSTransport
 import libcore.NetworkInterfaceIterator
 import libcore.PlatformInterface
 import libcore.WIFIState
-import libcore.NetworkInterface as LibcoreNetworkInterface
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.NetworkInterface
+import libcore.NetworkInterface as LibcoreNetworkInterface
 
 class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
@@ -45,10 +46,10 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
     override fun deviceName(): String = Build.MODEL
 
-    override fun openTun(): Long {
+    override fun openTun(): Int {
         if (forTest) throw IllegalArgumentException()
         if (DataStore.vpnService == null) throw NullPointerException("no vpnService")
-        return DataStore.vpnService!!.startVpn().toLong()
+        return DataStore.vpnService!!.startVpn()
     }
 
     override fun useProcFS(): Boolean = SDK_INT < Build.VERSION_CODES.Q
@@ -155,6 +156,8 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
     }
 
     override fun isForTest(): Boolean = forTest
+
+    override fun localDNSTransport(): LocalDNSTransport = LocalResolver
 
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,

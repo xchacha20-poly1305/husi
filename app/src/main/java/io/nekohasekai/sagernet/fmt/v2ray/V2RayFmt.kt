@@ -2,16 +2,42 @@ package io.nekohasekai.sagernet.fmt.v2ray
 
 import android.text.TextUtils
 import com.google.gson.Gson
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundRealityOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundTLSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundUTLSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_HTTPOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_TrojanOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_VLESSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_VMessOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TRANSPORT_GRPC
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TRANSPORT_HTTP
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TRANSPORT_HTTPUPGRADE
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TRANSPORT_QUIC
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TRANSPORT_WS
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_TROJAN
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_VLESS
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_VMESS
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayGRPCOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayHTTPOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayHTTPUpgradeOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayQUICOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayWebsocketOptions
 import io.nekohasekai.sagernet.fmt.buildSingBoxMux
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
+import io.nekohasekai.sagernet.ktx.map
+import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 import libcore.URL
-import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 
@@ -472,7 +498,6 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
                 pq_signature_schemes_enabled = echList.size > 5
                 dynamic_record_sizing_disabled = true
                 config = echList
-
             }
         }
     }
@@ -506,6 +531,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
             flow = bean.encryption
         }
         packet_encoding = when (bean.packetEncoding) {
+
             1 -> "packetaddr"
             2 -> "xudp"
             else -> null
@@ -521,6 +547,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         alter_id = bean.alterId
         security = bean.encryption.takeIf { it.isNotBlank() } ?: "auto"
         packet_encoding = when (bean.packetEncoding) {
+
             1 -> "packetaddr"
             2 -> "xudp"
             else -> null

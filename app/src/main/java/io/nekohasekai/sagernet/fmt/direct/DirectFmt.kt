@@ -1,6 +1,6 @@
 package io.nekohasekai.sagernet.fmt.direct
 
-import moe.matsuri.nb4a.SingBoxOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 
 fun buildSingBoxOutboundDirectBean(bean: DirectBean): SingBoxOptions.Outbound_DirectOptions {
     return SingBoxOptions.Outbound_DirectOptions().apply {

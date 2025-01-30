@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.fmt.shadowtls
 
 import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundTLS
-import moe.matsuri.nb4a.SingBoxOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 
 fun buildSingBoxOutboundShadowTLSBean(bean: ShadowTLSBean): SingBoxOptions.Outbound_ShadowTLSOptions {
     return SingBoxOptions.Outbound_ShadowTLSOptions().apply {

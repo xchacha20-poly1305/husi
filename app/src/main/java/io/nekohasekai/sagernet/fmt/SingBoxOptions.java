@@ -1,10 +1,11 @@
-package moe.matsuri.nb4a;
+package io.nekohasekai.sagernet.fmt;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings({"unused", "SpellCheckingInspection"})
 public class SingBoxOptions {
 
     public static final String NetworkTCP = "tcp";
@@ -56,6 +57,18 @@ public class SingBoxOptions {
     public static final String STRATEGY_HYBRID = "hybrid";
     public static final String STRATEGY_FALLBACK = "fallback";
 
+    // Custom for URL, not belongs to box.
+    public static final String DNS_TYPE_LOCAL = "local";
+    public static final String DNS_TYPE_UDP = "udp";
+    public static final String DNS_TYPE_TCP = "tcp";
+    public static final String DNS_TYPE_TLS = "tls";
+    public static final String DNS_TYPE_HTTPS = "https";
+    public static final String DNS_TYPE_QUIC = "quic";
+    public static final String DNS_TYPE_HTTP3 = "http3";
+    public static final String DNS_TYPE_PREDEFINED = "predefined";
+    public static final String DNS_TYPE_RCODE = "rcode";
+    public static final String DNS_TYPE_FAKEIP = "fakeip";
+
     // base
 
     public static class SingBoxOption {
@@ -84,10 +97,14 @@ public class SingBoxOptions {
         public RouteOptions route;
 
         public ExperimentalOptions experimental;
+
+        // public MITMOptions mitm;
+
+        // public List<Script> scripts;
     }
 
     // Classes have optional field
-    // Generated in line + 145
+    // Generated in line + 155
 
     public static class Inbound extends SingBoxOption {
 
@@ -212,6 +229,15 @@ public class SingBoxOptions {
         // Generate note: option type:  public V2RayHTTPUpgradeOptions HTTPUpgradeOptions;
     }
 
+
+    public static class NewDNSServerOptions extends SingBoxOption {
+
+        public String type;
+
+        public String tag;
+
+    }
+
 //    public static class RuleAction extends SingBoxOptions {
 //
 //        public String action;
@@ -243,6 +269,8 @@ public class SingBoxOptions {
         public DNSOptions dns;
 
         public NTPOptions ntp;
+
+        public CertificateOptions certificate;
 
         public List<Endpoint> endpoints;
 
@@ -304,7 +332,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -314,11 +342,26 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
+        public String domain_strategy;
+
+    }
+
+    public static class CertificateOptions extends SingBoxOption {
+
+        public String store;
+
+        public List<String> certificate;
+
+        public List<String> certificate_path;
+
+        public List<String> certificate_directory_path;
+
     }
 
     public static class DNSOptions extends SingBoxOption {
 
-        public List<DNSServerOptions> servers;
+        // Generate note: nested type RawDNSOptions
+        public List<NewDNSServerOptions> servers;
 
         public List<DNSRule> rules;
 
@@ -326,8 +369,6 @@ public class SingBoxOptions {
         public String final_;
 
         public Boolean reverse_mapping;
-
-        public DNSFakeIPOptions fakeip;
 
         // Generate note: nested type DNSClientOptions
         public String strategy;
@@ -339,26 +380,6 @@ public class SingBoxOptions {
         public Boolean independent_cache;
 
         public Integer cache_capacity;
-
-        public String client_subnet;
-
-    }
-
-    public static class DNSServerOptions extends SingBoxOption {
-
-        public String tag;
-
-        public String address;
-
-        public String address_resolver;
-
-        public String address_strategy;
-
-        public String address_fallback_delay;
-
-        public String strategy;
-
-        public String detour;
 
         public String client_subnet;
 
@@ -377,16 +398,6 @@ public class SingBoxOptions {
         public Integer cache_capacity;
 
         public String client_subnet;
-
-    }
-
-    public static class DNSFakeIPOptions extends SingBoxOption {
-
-        public Boolean enabled;
-
-        public String inet4_range;
-
-        public String inet6_range;
 
     }
 
@@ -511,6 +522,8 @@ public class SingBoxOptions {
 
         public Integer default_mark;
 
+        public DomainResolveOptions default_domain_resolver;
+
         public String default_network_strategy;
 
         public List<String> default_network_type;
@@ -625,13 +638,13 @@ public class SingBoxOptions {
 
         public Boolean enabled;
 
-        public Boolean pq_signature_schemes_enabled;
-
-        public Boolean dynamic_record_sizing_disabled;
-
         public List<String> config;
 
         public String config_path;
+
+        public Boolean pq_signature_schemes_enabled;
+
+        public Boolean dynamic_record_sizing_disabled;
 
     }
 
@@ -690,6 +703,20 @@ public class SingBoxOptions {
         public Integer persistent_keepalive_interval;
 
         public String reserved;
+
+    }
+
+    public static class DomainResolveOptions extends SingBoxOption {
+
+        public String server;
+
+        public String strategy;
+
+        public Boolean disable_cache;
+
+        public Integer rewrite_ttl;
+
+        public String client_subnet;
 
     }
 
@@ -790,6 +817,10 @@ public class SingBoxOptions {
 
         public String udp_timeout;
 
+        public Boolean tls_fragment;
+
+        public String tls_fragment_fallback_delay;
+
         public String detour;
 
         public String bind_interface;
@@ -812,9 +843,11 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public List<String> fallback_network_type;
+
+        public String domain_strategy;
 
         public String method;
 
@@ -824,9 +857,15 @@ public class SingBoxOptions {
 
         public String timeout;
 
+        public String server;
+
         public String strategy;
 
-        public String server;
+        public Boolean disable_cache;
+
+        public Integer rewrite_ttl;
+
+        public String client_subnet;
 
     }
 
@@ -859,6 +898,10 @@ public class SingBoxOptions {
 
         public String udp_timeout;
 
+        public Boolean tls_fragment;
+
+        public String tls_fragment_fallback_delay;
+
         public String detour;
 
         public String bind_interface;
@@ -881,11 +924,13 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public List<String> network_type;
 
         public List<String> fallback_network_type;
+
+        public String domain_strategy;
 
         public String method;
 
@@ -895,9 +940,15 @@ public class SingBoxOptions {
 
         public String timeout;
 
+        public String server;
+
         public String strategy;
 
-        public String server;
+        public Boolean disable_cache;
+
+        public Integer rewrite_ttl;
+
+        public String client_subnet;
 
     }
 
@@ -933,6 +984,8 @@ public class SingBoxOptions {
         public List<String> ip_cidr;
 
         public Boolean ip_is_private;
+
+        public Boolean ip_accept_any;
 
         public List<String> source_ip_cidr;
 
@@ -987,11 +1040,21 @@ public class SingBoxOptions {
 
         public String server;
 
+        public String strategy;
+
         public Boolean disable_cache;
 
         public Integer rewrite_ttl;
 
         public String client_subnet;
+
+        public String rcode;
+
+        public List<String> answer;
+
+        public List<String> ns;
+
+        public List<String> extra;
 
         public String method;
 
@@ -1013,11 +1076,21 @@ public class SingBoxOptions {
 
         public String server;
 
+        public String strategy;
+
         public Boolean disable_cache;
 
         public Integer rewrite_ttl;
 
         public String client_subnet;
+
+        public String rcode;
+
+        public List<String> answer;
+
+        public List<String> ns;
+
+        public List<String> extra;
 
         public String method;
 
@@ -1321,7 +1394,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1330,6 +1403,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         public String override_address;
 
@@ -1364,7 +1439,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1373,6 +1448,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1420,7 +1497,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1429,6 +1506,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1480,7 +1559,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1489,6 +1568,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1532,7 +1613,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1541,6 +1622,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1585,7 +1668,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1594,6 +1677,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1643,7 +1728,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1652,6 +1737,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1696,7 +1783,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1706,10 +1793,16 @@ public class SingBoxOptions {
 
         public String fallback_delay;
 
+        public String domain_strategy;
+
         // Generate note: nested type ServerOptions
         public String server;
 
         public Integer server_port;
+
+        public List<String> server_ports;
+
+        public String hop_interval;
 
         public String up;
 
@@ -1763,7 +1856,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1772,6 +1865,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1824,7 +1919,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1833,6 +1928,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1885,7 +1982,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1894,6 +1991,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -1942,7 +2041,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -1951,6 +2050,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -2005,7 +2106,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -2014,6 +2115,8 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
 
         // Generate note: nested type ServerOptions
         public String server;
@@ -2076,7 +2179,7 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
-        public String domain_strategy;
+        public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
 
@@ -2085,6 +2188,213 @@ public class SingBoxOptions {
         public List<String> fallback_network_type;
 
         public String fallback_delay;
+
+        public String domain_strategy;
+
+    }
+
+    public static class NewDNSServerOptions_HostsDNSServerOptions extends NewDNSServerOptions {
+
+        public List<String> path;
+
+        public Map<String, List<String>> predefined;
+
+    }
+
+    public static class NewDNSServerOptions_LocalDNSServerOptions extends NewDNSServerOptions {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+    }
+
+    public static class NewDNSServerOptions_RemoteDNSServerOptions extends NewDNSServerOptions {
+
+        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+    }
+
+    public static class NewDNSServerOptions_RemoteTLSDNSServerOptions extends NewDNSServerOptions {
+
+        // Generate note: nested type RemoteDNSServerOptions
+        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+    }
+
+    public static class NewDNSServerOptions_RemoteHTTPSDNSServerOptions extends NewDNSServerOptions {
+
+        // Generate note: nested type RemoteTLSDNSServerOptions
+        // Generate note: nested type RemoteDNSServerOptions
+        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+        public String path;
+
+        public String method;
+
+        public Map<String, List<String>> headers;
+
+    }
+
+    public static class NewDNSServerOptions_FakeIPDNSServerOptions extends NewDNSServerOptions {
+
+        public String inet4_range;
+
+        public String inet6_range;
 
     }
 

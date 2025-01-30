@@ -16,9 +16,7 @@ import io.nekohasekai.sagernet.ktx.toJSONMap
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
-import moe.matsuri.nb4a.SingBoxOptions
-import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
-import moe.matsuri.nb4a.SingBoxOptions.OutboundTLSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
@@ -348,7 +346,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             if (bean.connectionReceiveWindow > 0) {
                 recv_window_conn = bean.connectionReceiveWindow.toLong()
             }
-            tls = OutboundTLSOptions().apply {
+            tls = SingBoxOptions.OutboundTLSOptions().apply {
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
@@ -360,7 +358,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 }
                 if (bean.ech) {
                     val echList = bean.echConfig.split("\n")
-                    ech = OutboundECHOptions().apply {
+                    ech = SingBoxOptions.OutboundECHOptions().apply {
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
                         dynamic_record_sizing_disabled = true
@@ -397,7 +395,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
 //            if (bean.connectionReceiveWindow > 0) {
 //                recv_window_conn = bean.connectionReceiveWindow.toLong()
 //            }
-            tls = OutboundTLSOptions().apply {
+            tls = SingBoxOptions.OutboundTLSOptions().apply {
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
@@ -407,7 +405,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 }
                 if (bean.ech) {
                     val echList = bean.echConfig.split("\n")
-                    ech = OutboundECHOptions().apply {
+                    ech = SingBoxOptions.OutboundECHOptions().apply {
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
                         dynamic_record_sizing_disabled = true
@@ -553,7 +551,7 @@ fun parseHysteria2Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
     serverPorts = tmpPorts.joinToString(HopPort.SPLIT_FLAG)
 }
 
-private fun HysteriaBean.loadTLS(tls: OutboundTLSOptions) {
+private fun HysteriaBean.loadTLS(tls: SingBoxOptions.OutboundTLSOptions) {
     sni = tls.server_name
     allowInsecure = tls.insecure
     certificates = tls.certificate?.joinToString("\n")

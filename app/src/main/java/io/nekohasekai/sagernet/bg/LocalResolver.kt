@@ -58,7 +58,7 @@ object LocalResolver : LocalDNSTransport {
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
                     signal,
-                    callback
+                    callback,
                 )
             }
         }
@@ -107,7 +107,7 @@ object LocalResolver : LocalDNSTransport {
                             DnsResolver.FLAG_NO_RETRY,
                             Dispatchers.IO.asExecutor(),
                             signal,
-                            callback
+                            callback,
                         )
                     } else {
                         DnsResolver.getInstance().query(
@@ -116,14 +116,14 @@ object LocalResolver : LocalDNSTransport {
                             DnsResolver.FLAG_NO_RETRY,
                             Dispatchers.IO.asExecutor(),
                             signal,
-                            callback
+                            callback,
                         )
                     }
                 }
             } else {
                 val answer = try {
                     defaultNetwork.getAllByName(domain)
-                } catch (e: UnknownHostException) {
+                } catch (_: UnknownHostException) {
                     ctx.errorCode(RCODE_NXDOMAIN)
                     return@runBlocking
                 }

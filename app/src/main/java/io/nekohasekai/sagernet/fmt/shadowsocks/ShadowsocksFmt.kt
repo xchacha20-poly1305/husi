@@ -10,7 +10,7 @@ import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.unUrlSafe
 import libcore.Libcore
 import libcore.URL
-import moe.matsuri.nb4a.SingBoxOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import moe.matsuri.nb4a.utils.Util
 import org.json.JSONObject
 
