@@ -9,6 +9,7 @@ import (
 	"strings"
 	_ "unsafe" // for go:linkname
 
+	_ "github.com/sagernet/sing-box/common/certificate"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
@@ -16,11 +17,13 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
-	"github.com/xchacha20-poly1305/cazilla"
 )
 
 //go:linkname systemRoots crypto/x509.systemRoots
 var systemRoots *x509.CertPool
+
+//go:linkname mozillaRoots github.com/sagernet/sing-box/common/certificate.mozillaIncluded
+var mozillaRoots *x509.CertPool
 
 const customCaFile = "ca.pem"
 
@@ -38,7 +41,7 @@ func UpdateRootCACerts(enableCazilla bool, certFromJava StringIterator) {
 
 	var roots *x509.CertPool
 	if enableCazilla {
-		roots = cazilla.CA
+		roots = mozillaRoots.Clone()
 	} else {
 		if certFromJava == nil {
 			roots = sysRoots
@@ -46,6 +49,7 @@ func UpdateRootCACerts(enableCazilla bool, certFromJava StringIterator) {
 			roots = x509.NewCertPool()
 			for certFromJava.HasNext() {
 				cert := certFromJava.Next()
+				// Unsupported: CatCert(SHA1WithRSA) since Go 1.24
 				if !tryAddCert(roots, []byte(cert)) {
 					log.Warn("failed to load java cert: ", cert)
 				}

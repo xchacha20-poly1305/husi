@@ -84,13 +84,16 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	if err != nil {
 		return nil, E.Cause(err, "iif.OpenTun")
 	}
-	// Do you want to close it?
-	tunFd, err = unix.Dup(tunFd)
+	options.Name, err = tunnelName(tunFd)
+	if err != nil {
+		return nil, E.Cause(err, "tunnelName")
+	}
+	options.InterfaceMonitor.RegisterMyInterface(options.Name)
+	dupFd, err := unix.Dup(int(tunFd))
 	if err != nil {
 		return nil, E.Cause(err, "unix.Dup")
 	}
-	//
-	options.FileDescriptor = tunFd
+	options.FileDescriptor = dupFd
 	w.myTunName = options.Name
 	return tun.New(*options)
 }
@@ -177,5 +180,10 @@ func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 }
 
 func (w *boxPlatformInterfaceWrapper) SendNotification(_ *platform.Notification) error {
+	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) SystemCertificates() []string {
+	// Already set in certs.go
 	return nil
 }

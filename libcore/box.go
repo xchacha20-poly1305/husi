@@ -23,7 +23,6 @@ import (
 	"github.com/xchacha20-poly1305/anchor/anchorservice"
 
 	"libcore/combinedapi"
-	"libcore/distro"
 	"libcore/protect"
 )
 
@@ -62,7 +61,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 	forTest := platformInterface.IsForTest()
 
-	ctx := box.Context(context.Background(), distro.InboundRegistry(), distro.OutboundRegistry(), distro.EndpointRegistry())
+	ctx := baseContext(platformInterface)
 	options, err := parseConfig(ctx, config)
 	if err != nil {
 		return nil, err

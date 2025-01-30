@@ -86,6 +86,9 @@ func buildContent(valueType reflect.Type) []byte {
 			case "DNSRuleAction":
 				_, _ = builder.Write(dnsRuleActionFields)
 			default:
+				if strings.HasPrefix(field.Name, "Legacy") {
+					continue
+				}
 				_, _ = builder.WriteString(F.ToString(fieldSpace, "// Generate note: nested type ", field.Name, "\n"))
 				_, _ = builder.Write(buildContent(field.Type))
 			}
@@ -112,6 +115,7 @@ const (
 	javaLong    = "Long"
 	javaString  = "String"
 	javaList    = "List<"
+	javaMap     = "Map<"
 
 	reservedDefault = "default"
 	reservedFinal   = "final"
@@ -123,21 +127,18 @@ func className(valueType reflect.Type) string {
 		return className(valueType.Elem())
 	case reflect.Bool:
 		return javaBoolean
-	case reflect.Uint16:
+	case reflect.Int, reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Uint8:
 		switch valueType.Name() {
-		case "DNSQueryType":
+		case "DNSRCode", "DNSQueryType",
+			/* Custom enum types */ "DomainStrategy", "InterfaceType", "NetworkStrategy":
 			return javaString
 		}
 		return javaInteger
-	case reflect.Int, reflect.Int32, reflect.Uint32:
-		return javaInteger
-	case reflect.Int64:
+	case reflect.Int64, reflect.Uint64:
 		switch valueType.Name() {
 		case "Duration":
 			return javaString
 		}
-		return javaLong
-	case reflect.Uint64:
 		return javaLong
 	case reflect.String:
 		return javaString
@@ -150,30 +151,44 @@ func className(valueType reflect.Type) string {
 				// Go json save []uint8 or []byte as base64 string.
 				return javaString
 			default:
-				// Others may custom enum types
+				// Others may be custom enum types
 			}
 		}
 		return javaList + className(elem) + ">"
 	case reflect.Map:
-		return "Map<" + className(valueType.Key()) + ", " + className(valueType.Elem()) + ">"
+		return javaMap + className(valueType.Key()) + ", " + className(valueType.Elem()) + ">"
 	case reflect.Struct:
 		valueName := valueType.Name()
 		switch valueName {
-		case "Addr", "Prefix", "Prefixable", "Regexp":
+		case "Addr", "Prefix", "Prefixable",
+			"Regexp", "DNSRecordOptions":
 			return javaString
 		case "NetworkList":
-			return "List<String>"
+			return javaList + javaString + ">"
+		case "SurgeURLRewriteLine", "SurgeHeaderRewriteLine",
+			"SurgeBodyRewriteLine", "SurgeMapLocalLine":
+			// Script
+			return javaString
+		default:
+			if strings.HasPrefix(valueName, "TypedMap") {
+				// What a great foot binding cloth
+				linkedHashMap := valueType.Field(0).Type
+				rawMap := linkedHashMap.Field(1).Type
+				key := className(rawMap.Key())
+
+				listElement := rawMap.Elem().Elem()       // map value + unwrap pointer => list.Element
+				elementValue := listElement.Field(3).Type // MapEntry
+				mapValue := elementValue.Field(1).Type    // Something that can get name easily
+				value := className(mapValue)
+				return javaMap + key + ", " + value + ">"
+			}
 		}
 		return valueType.Name()
-	case reflect.Uint8:
-		switch valueType.Name() {
-		// Custom enum types
-		case "DomainStrategy", "InterfaceType", "NetworkStrategy":
-			return javaString
-		}
-		return javaInteger
+	case reflect.Interface:
+		// any
+		return javaString
 	default:
-		panic(F.ToString("[", valueType.Name(), "] is not  included"))
+		panic(F.ToString("[ ", valueType.Name(), " ] is not included"))
 	}
 }
 
@@ -219,7 +234,11 @@ func init() {
 			Value: option.DNSRouteOptionsActionOptions{},
 		},
 		{
-			Key:   "RejectOptions",
+			Key:    "Predefined",
+			Value: option.DNSRouteActionPredefined{},
+		},
+		{
+			Key:    "RejectOptions",
 			Value: option.RejectActionOptions{},
 		},
 	}

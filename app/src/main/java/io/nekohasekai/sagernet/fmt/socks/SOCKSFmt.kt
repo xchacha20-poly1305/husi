@@ -5,7 +5,7 @@ import io.nekohasekai.sagernet.fmt.parseBoxUot
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import libcore.Libcore
-import moe.matsuri.nb4a.SingBoxOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 
 fun parseSOCKS(link: String): SOCKSBean {
     val url = Libcore.parseURL(link)

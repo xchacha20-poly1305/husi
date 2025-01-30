@@ -8,8 +8,6 @@ import (
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/memory"
 	"github.com/sagernet/sing/common/x/collections"
-
-	"libcore/plugin/pluginoption"
 )
 
 var output string
@@ -42,6 +40,7 @@ func main() {
 		{"Inbound", inboundList},
 		{"Outbound", outboundList},
 		{"Endpoint", endpointList},
+		{"NewDNSServerOptions", newDNSServerList},
 	}
 	for _, classes := range all {
 		for _, class := range classes.Value {
@@ -58,13 +57,13 @@ var boxList = []any{
 	option.Options{},
 	option.LogOptions{},
 	option.NTPOptions{},
+	option.CertificateOptions{},
 
 	// DNS
 	option.DNSOptions{},
-	option.DNSServerOptions{},
+	// option.NewDNSServerOptions{},
 	option.DNSClientOptions{},
 	// option.DNSRule{},
-	option.DNSFakeIPOptions{},
 
 	// Experimental
 	option.ExperimentalOptions{},
@@ -93,6 +92,15 @@ var boxList = []any{
 	option.Hysteria2Obfs{},
 	option.WireGuardPeer{},
 	// option.V2RayTransportOptions{},
+	option.DomainResolveOptions{},
+
+	// MITM
+	// option.MITMOptions{},
+	// option.TLSDecryptionOptions{},
+	// option.MITMRouteOptions{},
+	// option.Script{},
+	// option.LocalScriptSource{},
+	// option.RemoteScriptSource{},
 }
 
 var ruleList = []any{
@@ -141,9 +149,18 @@ var outboundList = []any{
 	option.TUICOutboundOptions{},
 	option.VLESSOutboundOptions{},
 	option.VMessOutboundOptions{},
-	pluginoption.AnyTLSOutboundOptions{},
+	option.AnyTLSOutboundOptions{},
 }
 
 var endpointList = []any{
 	option.WireGuardEndpointOptions{},
+}
+
+var newDNSServerList = []any{
+	option.HostsDNSServerOptions{},
+	option.LocalDNSServerOptions{},
+	option.RemoteDNSServerOptions{},
+	option.RemoteTLSDNSServerOptions{},
+	option.RemoteHTTPSDNSServerOptions{},
+	option.FakeIPDNSServerOptions{},
 }

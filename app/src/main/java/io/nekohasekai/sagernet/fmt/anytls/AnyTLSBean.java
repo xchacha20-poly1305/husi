@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
-import moe.matsuri.nb4a.SingBoxOptions;
+import io.nekohasekai.sagernet.fmt.SingBoxOptions;
 
 public class AnyTLSBean extends AbstractBean {
 

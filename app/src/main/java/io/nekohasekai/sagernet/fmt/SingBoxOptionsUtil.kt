@@ -1,14 +1,23 @@
 package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.database.DataStore
-import moe.matsuri.nb4a.SingBoxOptions
-import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
-import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Logical
-import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_FORMAT_BINARY
-import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_TYPE_LOCAL
-import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_TYPE_REMOTE
-import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
-import moe.matsuri.nb4a.SingBoxOptions.Rule_Logical
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Logical
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteHTTPSDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteTLSDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundTLSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
+import libcore.Libcore
 
 object SingBoxOptionsUtil {
 
@@ -160,7 +169,7 @@ fun Rule_Default.checkEmpty(): Boolean {
  * This will crate route if route is null,
  * and will refreshes route.rule_set.
  * */
-fun SingBoxOptions.MyOptions.buildRuleSets(
+fun MyOptions.buildRuleSets(
     ipURL: String?,
     domainURL: String?,
     localPath: String?,
@@ -171,26 +180,26 @@ fun SingBoxOptions.MyOptions.buildRuleSets(
 
     if (names.isEmpty()) return
 
-    if (route == null) route = SingBoxOptions.RouteOptions()
+    if (route == null) route = RouteOptions()
     for (set in route.rule_set) names.add(set.tag)
-    val list = ArrayList<SingBoxOptions.RuleSet>(names.size)
+    val list = ArrayList<RuleSet>(names.size)
 
     val isRemote = ipURL != null
     for (name in names.sorted()) {
-        if (isRemote) list.add(SingBoxOptions.RuleSet_Remote().apply {
+        if (isRemote) list.add(RuleSet_Remote().apply {
             tag = name
-            type = RULE_SET_TYPE_REMOTE
-            format = RULE_SET_FORMAT_BINARY
+            type = SingBoxOptions.RULE_SET_TYPE_REMOTE
+            format = SingBoxOptions.RULE_SET_FORMAT_BINARY
             val isIP = name.startsWith("geoip-")
             url = if (isIP) {
                 "${ipURL}/${name}.srs"
             } else {
                 "${domainURL}/${name}.srs"
             }
-        }) else list.add(SingBoxOptions.RuleSet_Local().apply {
+        }) else list.add(RuleSet_Local().apply {
             tag = name
-            type = RULE_SET_TYPE_LOCAL
-            format = RULE_SET_FORMAT_BINARY
+            type = SingBoxOptions.RULE_SET_TYPE_LOCAL
+            format = SingBoxOptions.RULE_SET_FORMAT_BINARY
             path = "$localPath/$name.srs"
         })
     }
@@ -224,4 +233,66 @@ private fun collectSet(set: HashSet<String>, rules: List<SingBoxOptions.SingBoxO
 fun isEndpoint(type: String): Boolean = when (type) {
     SingBoxOptions.TYPE_WIREGUARD -> true
     else -> false
+}
+
+/**
+ * Turn link to new DNS options without tag.
+ */
+fun toDNSServer(
+    link: String,
+    out: String?,
+    domainResolver: DomainResolveOptions?,
+): NewDNSServerOptions {
+    if (link == "local") return NewDNSServerOptions_LocalDNSServerOptions().apply {
+        type = SingBoxOptions.DNS_TYPE_LOCAL
+        domain_resolver = domainResolver
+    }
+
+    val url = try {
+        Libcore.parseURL(link)
+    } catch (_: Exception) {
+        Libcore.newURL(SingBoxOptions.DNS_TYPE_UDP).apply {
+            fullHost = link
+        }
+    }
+    return when (val scheme = url.scheme) {
+        SingBoxOptions.DNS_TYPE_TLS, SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
+            type = scheme
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            tls = OutboundTLSOptions().apply {
+                enabled = true
+            }
+            detour = out
+        }
+
+        "h3", SingBoxOptions.DNS_TYPE_HTTPS, SingBoxOptions.DNS_TYPE_HTTP3 -> NewDNSServerOptions_RemoteHTTPSDNSServerOptions().apply {
+            type = if (scheme == "h3") {
+                SingBoxOptions.DNS_TYPE_HTTP3
+            } else {
+                scheme
+            }
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            tls = OutboundTLSOptions().apply {
+                enabled = true
+            }
+            path = url.path
+            detour = out
+        }
+
+        // "", SingBoxOptions.DNS_TYPE_UDP, SingBoxOptions.DNS_TYPE_TCP ->
+        else -> NewDNSServerOptions_RemoteDNSServerOptions().apply {
+            type = scheme.ifBlank {
+                SingBoxOptions.DNS_TYPE_UDP
+            }
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            detour = out
+        }
+
+    }
 }

@@ -48,28 +48,30 @@ import io.nekohasekai.sagernet.ktx.mergeJson
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.BrutalOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.CacheFileOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ExperimentalOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.LogOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NTPOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.User
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_DirectOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_HTTPMixedOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_TunOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundMultiplexOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.toJsonMap
-import moe.matsuri.nb4a.SingBoxOptions
-import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
-import moe.matsuri.nb4a.SingBoxOptions.DNSFakeIPOptions
-import moe.matsuri.nb4a.SingBoxOptions.DNSOptions
-import moe.matsuri.nb4a.SingBoxOptions.DNSServerOptions
-import moe.matsuri.nb4a.SingBoxOptions.ExperimentalOptions
-import moe.matsuri.nb4a.SingBoxOptions.LogOptions
-import moe.matsuri.nb4a.SingBoxOptions.MyOptions
-import moe.matsuri.nb4a.SingBoxOptions.NTPOptions
-import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
-import moe.matsuri.nb4a.SingBoxOptions.User
-import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
-import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
-import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
-import moe.matsuri.nb4a.SingBoxOptions.Inbound_TunOptions
-import moe.matsuri.nb4a.SingBoxOptions.Outbound_DirectOptions
-import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
-import moe.matsuri.nb4a.SingBoxOptions.Outbound_SOCKSOptions
-import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
-import moe.matsuri.nb4a.SingBoxOptions.Rule_Logical
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
@@ -79,7 +81,6 @@ const val TAG_TUN = "tun-in"
 const val TAG_DNS_IN = "dns-in"
 
 // Outbound
-const val TAG_ANY = "any" // "special for outbound domain"
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
 
@@ -91,13 +92,7 @@ const val TAG_DNS_FAKE = "dns-fake"
 
 const val LOCALHOST4 = "127.0.0.1"
 
-// Note: You shouldn't set strategy and detour for "local"
-const val LOCAL_DNS_SERVER = "local"
-
 val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
-
-val ERR_NO_REMOTE_DNS by lazy { Exception("No remote DNS, check your settings!") }
-val ERR_NO_DIRECT_DNS by lazy { Exception("No direct DNS, check your settings!") }
 
 class ConfigBuildResult(
     var config: String,
@@ -746,35 +741,39 @@ fun buildConfig(
         }
 
         // remote dns obj
-        remoteDns.firstOrNull().let {
-            dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw ERR_NO_REMOTE_DNS
+        remoteDns.firstOrNull()?.let {
+            dns.servers.add(toDNSServer(
+                it,
+                TAG_PROXY,
+                DomainResolveOptions().apply {
+                    server = TAG_DNS_DIRECT
+                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(server))
+                    client_subnet = DataStore.ednsClientSubnet.blankAsNull()
+                },
+            ).apply {
                 tag = TAG_DNS_REMOTE
-                address_resolver = TAG_DNS_DIRECT
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-                detour = TAG_PROXY
-                client_subnet = DataStore.ednsClientSubnet.blankAsNull()
             })
-        }
+        } ?: error("missing remote DNS")
 
         // add directDNS objects here
-        directDNS.firstOrNull().let {
-            dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw ERR_NO_DIRECT_DNS
-                tag = TAG_DNS_DIRECT
-                if (address != LOCAL_DNS_SERVER) {
-                    detour = TAG_DIRECT
-                    address_resolver = TAG_DNS_LOCAL
+        directDNS.firstOrNull()?.let {
+            dns.servers.add(toDNSServer(
+                it,
+                TAG_DIRECT,
+                DomainResolveOptions().apply {
+                    server = TAG_DNS_LOCAL
+                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(server))
+                    client_subnet = DataStore.ednsClientSubnet.blankAsNull()
                 }
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-                client_subnet = DataStore.ednsClientSubnet.blankAsNull()
+            ).apply {
+                tag = TAG_DNS_DIRECT
             })
-        }
+        } ?: error("missing direct DNS")
 
         // underlyingDns
-        dns.servers.add(DNSServerOptions().apply {
-            address = LOCAL_DNS_SERVER
+        dns.servers.add(NewDNSServerOptions_LocalDNSServerOptions().apply {
             tag = TAG_DNS_LOCAL
+            type = SingBoxOptions.DNS_TYPE_LOCAL
         })
 
         // dns object user rules
@@ -786,12 +785,10 @@ fun buildConfig(
 
         if (forTest) {
             // Always use system DNS for urlTest
-            dns.servers = listOf(
-                DNSServerOptions().apply {
-                    address = LOCAL_DNS_SERVER
-                    tag = TAG_DNS_LOCAL
-                }
-            )
+            dns.servers = listOf(NewDNSServerOptions_LocalDNSServerOptions().apply {
+                tag = TAG_DNS_LOCAL
+                type = SingBoxOptions.DNS_TYPE_LOCAL
+            })
             dns.rules = mutableListOf()
         } else {
             // clash mode
@@ -841,14 +838,11 @@ fun buildConfig(
 
             // FakeDNS obj
             if (useFakeDns) {
-                dns.fakeip = DNSFakeIPOptions().apply {
-                    enabled = true
+                dns.servers.add(NewDNSServerOptions_FakeIPDNSServerOptions().apply {
+                    type = SingBoxOptions.DNS_TYPE_FAKEIP
+                    tag = TAG_DNS_FAKE
                     inet4_range = "198.18.0.0/15"
                     inet6_range = "fc00::/18"
-                }
-                dns.servers.add(DNSServerOptions().apply {
-                    address = "fakeip"
-                    tag = TAG_DNS_FAKE
                 })
                 dns.rules.add(DNSRule_Default().apply {
                     inbound = listOf(TAG_TUN)
@@ -871,18 +865,17 @@ fun buildConfig(
                 clash_mode = RuleEntity.MODE_BLOCK
                 action = SingBoxOptions.ACTION_REJECT
             })
-            // force bypass (always top DNS rule)
-            dns.rules.add(0, DNSRule_Default().apply {
-                outbound = listOf(TAG_ANY)
-                server = TAG_DNS_DIRECT
-            })
+
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
-                    makeCommonRule(
-                        RuleItem.parseRules(domainListDNSDirectForce.distinct()),
-                    )
+                    makeCommonRule(RuleItem.parseRules(domainListDNSDirectForce.distinct()))
                     server = TAG_DNS_DIRECT
                 })
+            }
+
+            // force bypass (always top DNS rule)
+            route.default_domain_resolver = DomainResolveOptions().apply {
+                server = TAG_DNS_DIRECT
             }
 
             // https://github.com/juicity/juicity/issues/140

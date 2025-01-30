@@ -33,7 +33,7 @@ type CombinedAPI struct {
 	trafficManager *trafficcontrol.Manager
 	mode           string
 	modeList       []string
-	urlTestHistory *urltest.HistoryStorage
+	urlTestHistory adapter.URLTestHistoryStorage
 }
 
 func New(ctx context.Context, logFactory log.ObservableFactory, options option.ClashAPIOptions) (adapter.ClashServer, error) {
@@ -49,7 +49,7 @@ func New(ctx context.Context, logFactory log.ObservableFactory, options option.C
 		trafficManager: trafficcontrol.NewManager(),
 		modeList:       options.ModeList,
 	}
-	c.urlTestHistory = service.PtrFromContext[urltest.HistoryStorage](ctx)
+	c.urlTestHistory = service.FromContext[adapter.URLTestHistoryStorage](ctx)
 	if c.urlTestHistory == nil {
 		c.urlTestHistory = urltest.NewHistoryStorage()
 	}
@@ -140,7 +140,7 @@ func (c *CombinedAPI) TrafficManager() *trafficcontrol.Manager {
 	return c.trafficManager
 }
 
-func (c *CombinedAPI) HistoryStorage() *urltest.HistoryStorage {
+func (c *CombinedAPI) HistoryStorage() adapter.URLTestHistoryStorage {
 	return c.urlTestHistory
 }
 

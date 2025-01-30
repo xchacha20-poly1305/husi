@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
-import moe.matsuri.nb4a.SingBoxOptions;
+import io.nekohasekai.sagernet.fmt.SingBoxOptions;
 import moe.matsuri.nb4a.utils.JavaUtil;
 
 import org.jetbrains.annotations.NotNull;

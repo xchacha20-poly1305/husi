@@ -4,8 +4,8 @@ import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.ktx.JSONMap
 import libcore.Libcore
-import moe.matsuri.nb4a.SingBoxOptions
-import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
 // https://github.com/daeuniverse/dae/discussions/182
