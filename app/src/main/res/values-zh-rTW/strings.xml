@@ -4,18 +4,18 @@
     <string name="project">專案</string>
     <string name="github">原始碼</string>
     <string name="telegram">Telegram 更新頻道</string>
-    <string name="oss_licenses">開放原始碼授權協定</string>
+    <string name="oss_licenses">開源授權</string>
     <string name="app_version">版本</string>
-    <string name="logcat">匯出 debug 所需資訊</string>
-    <string name="menu_configuration">設定檔</string>
+    <string name="logcat">匯出除錯資訊</string>
+    <string name="menu_configuration">配置</string>
     <string name="menu_group">組</string>
     <string name="menu_about">關於</string>
     <string name="quick_toggle">切換</string>
     <!-- group -->
-    <string name="group_name">群組名稱</string>
+    <string name="group_name">組名稱</string>
     <string name="group_update">更新</string>
-    <string name="group_subscription_link">訂閱連接</string>
-    <string name="group_name_required">需要群組名稱</string>
+    <string name="group_subscription_link">訂閱連結</string>
+    <string name="group_name_required">需要組名稱</string>
     <string name="group_create">建立新組</string>
     <string name="group_create_subscription">建立新訂閱</string>
     <string name="group_edit">編輯</string>
@@ -26,8 +26,8 @@
     <string name="group_status_proxies_subscription">%d 個代理 | 更新於 %s</string>
     <string name="group_no_difference">%s: 沒有變化</string>
     <string name="group_updated">%s: 更新了 %d 個代理</string>
-    <string name="group_show_diff">變化</string>
-    <string name="group_delete_confirm_prompt">確認刪除此分組？</string>
+    <string name="group_show_diff">差異</string>
+    <string name="group_delete_confirm_prompt">確認刪除此組？</string>
     <string name="group_added">新增：
         \n%s
     </string>
@@ -39,7 +39,7 @@
     </string>
     <!-- misc -->
     <string name="service_mode">執行模式</string>
-    <string name="service_mode_proxy">代理</string>
+    <string name="service_mode_proxy">僅代理</string>
     <string name="port_proxy">代理連接埠</string>
     <string name="port_http">HTTP 代理連接埠</string>
     <string name="port_local_dns">本地 DNS 連接埠</string>
@@ -60,7 +60,7 @@
     </string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">測試中……</string>
-    <string name="connection_test_available">成功：HTTPS 握手花費 %dms</string>
+    <string name="connection_test_available">成功：HTTPS 握手耗時 %d 毫秒</string>
     <string name="connection_test_error">失敗：%s</string>
     <string name="connection_test_fail">網路不可用</string>
     <string name="connection_test_error_status_code">錯誤碼：#%d</string>
@@ -72,7 +72,7 @@
     <string name="password_opt">密碼（可選）</string>
     <string name="password">密碼</string>
     <string name="enc_method">加密方式</string>
-    <string name="protocol">設定</string>
+    <string name="protocol">協定</string>
     <string name="protocol_param">協定參數</string>
     <string name="obfs">混淆</string>
     <string name="obfs_param">混淆參數</string>
@@ -104,7 +104,7 @@
     <!-- notification category -->
     <string name="service_vpn">VPN 服務</string>
     <string name="service_proxy">代理服務</string>
-    <string name="forward_success">SagerNet 已啟動。</string>
+    <string name="forward_success">代理已啟動。</string>
     <string name="invalid_server">伺服器名稱無效</string>
     <string name="stop">停止</string>
     <string name="stopping">關閉中……</string>
@@ -120,7 +120,7 @@
     <string name="edit">編輯</string>
     <string name="share">分享</string>
     <string name="add_profile">新增設定檔</string>
-    <string name="action_create_group">空白群組</string>
+    <string name="action_create_group">空組</string>
     <string name="action_from_link">來自訂閱</string>
     <string name="action_scan_china_apps">掃描中國應用程式</string>
     <string name="action_export_file">匯出至檔案</string>
@@ -153,7 +153,7 @@
     <string name="not_connected">未連線</string>
     <!-- subscriptions -->
     <string name="subscriptions">訂閱</string>
-    <string name="cleartext_http_warning">純文字 HTTP 流量並不安全</string>
+    <string name="cleartext_http_warning">明文 HTTP 流量是不安全的</string>
     <string name="error_title">錯誤</string>
     <string name="no_proxies_found">此連接不包含任何代理</string>
     <!-- plugin -->
@@ -189,9 +189,9 @@
     <string name="direct_dns">直連 DNS</string>
     <string name="remote_dns">遠端 DNS</string>
     <string name="connection_test_available_http">成功：HTTP 握手花費 %d 毫秒</string>
-    <string name="allow_insecure_sum">停用憑證檢查。當啟用時，此設定檔將和純文字同等安全</string>
+    <string name="allow_insecure_sum">停用憑證檢查。啟用後，此配置就跟明文一樣沒有安全性可言</string>
     <string name="allow_insecure">允許不安全的連線</string>
-    <string name="security_settings">安全設定</string>
+    <string name="security_settings">TLS 安全設定</string>
     <string name="show_direct_speed_sum">在通知中一併顯示未被代理的流量速度</string>
     <string name="show_direct_speed">顯示直連速度</string>
     <string name="show_stop_sum">如果您不想使用快速設定圖塊進行切換</string>
@@ -205,9 +205,9 @@
     <string name="group_default">未分組</string>
     <string name="version_x">版本 (%s)</string>
     <string name="extra_headers">額外標頭</string>
-    <string name="config_type">設定類型</string>
+    <string name="config_type">配置類型</string>
     <string name="theme">主題</string>
-    <string name="edit_config">編輯設定</string>
+    <string name="edit_config">編輯配置</string>
     <string name="ipv6">IPv6 路由</string>
     <string name="prefer">優先</string>
     <string name="only">僅</string>
@@ -219,7 +219,7 @@
     <string name="route_block">封鎖</string>
     <string name="route_profile">選擇設定檔…</string>
     <string name="empty_route">空白路由規則</string>
-    <string name="empty_route_notice">在儲存前設定一些規則</string>
+    <string name="empty_route_notice">在儲存前需設定一些規則</string>
     <string name="route_bypass_domain">%s 網域規則</string>
     <string name="route_bypass_ip">%s IP 規則</string>
     <string name="route_reset">重設</string>
@@ -293,12 +293,12 @@
     <string name="trojan_provider">Trojan 提供程式</string>
     <string name="protocol_settings">協議設定</string>
     <string name="group_basic">基本</string>
-    <string name="group_settings">群組設定</string>
+    <string name="group_settings">組設定</string>
     <string name="subscription">訂閱</string>
     <string name="subscription_settings">訂閱設定</string>
-    <string name="group_type">群組類型</string>
+    <string name="group_type">組類型</string>
     <string name="subscription_type">訂閱類型</string>
-    <string name="delete_group_prompt">您真的希望移除此群組嗎？</string>
+    <string name="delete_group_prompt">您真的希望移除此組嗎？</string>
     <string name="force_resolve">強制解析</string>
     <string name="force_resolve_sum">在更新時將所有網域解析為
         IP。主機名和伺服器名稱指示將在可能時被自動附加
@@ -337,7 +337,7 @@
     </string>
     <string name="profile_import">匯入設定檔</string>
     <string name="profile_import_message">您確定要匯入設定檔 %s 嗎？</string>
-    <string name="clear_profiles_message">您確定要清除此群組嗎？</string>
+    <string name="clear_profiles_message">您確定要清除此組嗎？</string>
     <string name="apps">應用程式</string>
     <string name="select_apps">選擇應用程式</string>
     <string name="apps_message">%d 個應用程式</string>
@@ -396,8 +396,7 @@
     <string name="wireguard_psk">節點預先共用金鑰</string>
     <string name="pcap_notice">Pcap 檔案將被儲存至 %s</string>
     <string name="profile_traffic_statistics">設定檔流量統計資料</string>
-    <string name="resolve_destination_summary">如果目的地位址是一個網域，則基於 IPv6 策略傳出。
-    </string>
+    <string name="resolve_destination_summary">如果目的地位址是一個網域，則基於 IPv6 策略傳出（與 FakeDNS 衝突）</string>
     <string name="route_opt_block_analysis">封鎖分析</string>
     <string name="route_play_store">%s 谷歌Play商店規則</string>
     <string name="naive_insecure_concurrency">不安全並發</string>
@@ -429,7 +428,7 @@
     <string name="app_name_long">匪兕匪虎 率彼曠野</string>
     <string name="is_outbound_only">設定的 JSON 是出站</string>
     <string name="save">儲存</string>
-    <string name="show_group_in_notification">在通知中顯示群組名</string>
+    <string name="show_group_in_notification">在通知中顯示組名</string>
     <string name="log_level_help">長按首選項可設定緩衝區大小。</string>
     <string name="tls_camouflage_settings">TLS 偽裝設定</string>
     <string name="test_concurrency">測試並發</string>
@@ -440,7 +439,7 @@
     <string name="vpn_core_type_unknown">未知</string>
     <string name="cazilla">使用 Mozilla 憑證 CA 機構</string>
     <string name="enable_brutal">啟用 TCP Brutal 擁塞控制演算法</string>
-    <string name="menu_dashboard">sing-box 儀表板</string>
+    <string name="menu_dashboard">Sing-Box 儀表板</string>
     <string name="action_copy">複製</string>
     <string name="update_all_subscription">更新全部訂閱</string>
     <string name="route_opt_block_quic">屏蔽 QUIC</string>
@@ -484,7 +483,7 @@
     <string name="nat_stun_server_hint">STUN 伺服器</string>
     <string name="action_open">打開</string>
     <string name="enable_fakedns">啟用 FakeDNS</string>
-    <string name="fakedns_message">可能導致其他應用程式在代理停止後需要重新啟動以重新連接到網絡</string>
+    <string name="fakedns_message">在代理停止後，可能會導致其他應用程式需要重新啟動，才能重新連線到網路</string>
     <string name="mux_sum">Mux 的設計目的是減少連線握手延遲，而不是增加連線吞吐量。使用 Mux 觀看影片、下載或測試速度通常會適得其反。如果伺服器不支援它，你將無法連接到網際網路。</string>
     <string name="nat_result_hint">NAT 測試結果</string>
     <string name="tuic_reduce_rtt">啟用 0-RTT QUIC 握手</string>
@@ -525,7 +524,7 @@
     <string name="memory_limit">記憶體限制</string>
     <string name="ntp_category">NTP 客戶端設定</string>
     <string name="enable_ntp">啟用 NTP</string>
-    <string name="ntp_sum">啟用內建的 NTP 客戶端，並使用其提供的時間取代系統時間。</string>
+    <string name="ntp_sum">啟用內建的 NTP 客戶端，並使用其提供的時間取代系統時間</string>
     <string name="ntp_server_address">NTP 伺服器地址</string>
     <string name="ntp_server_port">NTP 伺服器埠</string>
     <string name="ntp_sync_interval">NTP 同步間隔</string>
@@ -547,7 +546,7 @@
     <string name="destination_address">目標地址</string>
     <string name="by_inbound">根據入站</string>
     <string name="by_matched_rule">根據命中規則</string>
-    <string name="upload">上行</string>
+    <string name="upload">上傳</string>
     <string name="by_destination">根據目標</string>
     <string name="inbound">入站</string>
     <string name="ip_version">IP 版本</string>
