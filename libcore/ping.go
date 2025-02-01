@@ -58,7 +58,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 func (b *BoxInstance) UrlTest(link string, timeout int32) (latency int32, err error) {
 	defer catchPanic("box.UrlTest", func(panicErr error) { err = panicErr })
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(b.ctx, time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
 	// cancel context can't interrupt it in time.

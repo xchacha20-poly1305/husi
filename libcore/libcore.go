@@ -3,6 +3,7 @@ package libcore
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/debug"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 
 func init() {
 	debug.SetTraceback("all")
+	runtime.SetMutexProfileFraction(1)
+	runtime.SetBlockProfileRate(1)
 }
 
 const ProtectPath = "protect_path"
