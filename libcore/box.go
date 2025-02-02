@@ -10,7 +10,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
-	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
@@ -23,6 +22,7 @@ import (
 	"github.com/xchacha20-poly1305/anchor/anchorservice"
 
 	"libcore/combinedapi"
+	"libcore/distro"
 	"libcore/protect"
 )
 
@@ -62,7 +62,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
 	forTest := platformInterface.IsForTest()
 
-	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
+	ctx := box.Context(context.Background(), distro.InboundRegistry(), distro.OutboundRegistry(), distro.EndpointRegistry())
 	options, err := parseConfig(ctx, config)
 	if err != nil {
 		return nil, err

@@ -23,7 +23,7 @@ func Test_UpdateRootCACerts(t *testing.T) {
 	defer listener.Close()
 	listen := listener.Addr().String()
 
-	privateKey, publicKey := common.Must2(aTLS.GenerateKeyPair(time.Now, husi, time.Now().Add(5*time.Minute)))
+	privateKey, publicKey := common.Must2(aTLS.GenerateCertificate(nil, nil, time.Now, husi, time.Now().Add(5*time.Minute)))
 	common.Must(os.WriteFile(customCaFile, publicKey, os.ModePerm))
 	defer os.Remove(customCaFile)
 

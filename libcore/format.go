@@ -8,11 +8,12 @@ import (
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/common/humanize"
-	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
+
+	"libcore/distro"
 )
 
 // FormatBytes formats the bytes length to humanize.
@@ -36,7 +37,7 @@ func parseConfig(ctx context.Context, configContent string) (option.Options, err
 
 // FormatConfig formats json.
 func FormatConfig(configContent string) (*StringWrapper, error) {
-	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
+	ctx := box.Context(context.Background(), distro.InboundRegistry(), distro.OutboundRegistry(), distro.EndpointRegistry())
 	configMap, err := json.UnmarshalExtendedContext[map[string]any](ctx, []byte(configContent))
 	if err != nil {
 		return nil, err
@@ -55,7 +56,7 @@ func FormatConfig(configContent string) (*StringWrapper, error) {
 
 // CheckConfig checks whether configContent can run as sing-box configuration.
 func CheckConfig(configContent string) error {
-	ctx := box.Context(context.Background(), include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry())
+	ctx := box.Context(context.Background(), distro.InboundRegistry(), distro.OutboundRegistry(), distro.EndpointRegistry())
 	options, err := parseConfig(ctx, configContent)
 	if err != nil {
 		return E.Cause(err, "parse config")

@@ -12,7 +12,6 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/experimental"
-	_ "github.com/sagernet/sing-box/include" // Register clash api after not-include information being registered to override it.
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
