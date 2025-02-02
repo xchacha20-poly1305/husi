@@ -1,7 +1,12 @@
 package io.nekohasekai.sagernet
 
 import android.annotation.SuppressLint
-import android.app.*
+import android.app.ActivityManager
+import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.UiModeManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -21,6 +26,7 @@ import go.Seq
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.utils.CrashHandler
@@ -72,6 +78,7 @@ class SagerNet : Application(),
             DataStore.logBufSize,
             DataStore.logLevel,
             DataStore.rulesProvider == 0,
+            isExpert,
         )
         Libcore.updateRootCACerts(DataStore.enabledCazilla)
 
