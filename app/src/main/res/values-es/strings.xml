@@ -274,7 +274,6 @@
     <string name="proxy_cat">Ajustes del servidor</string>
     <string name="ss_cat">Ajustes de Shadowsocks</string>
     <string name="unsaved_changes_prompt">Cambios no guardados. ¿Quieres guardar?</string>
-    <string name="yes">Sí</string>
     <string name="no">No</string>
     <string name="apply">Aplicar</string>
     <string name="need_reload">Vuelve a cargar el servicio de proxy para aplicar los cambios</string>
@@ -523,7 +522,6 @@
     <string name="action_flash_off">Apagar el flash</string>
     <string name="action_flash_on">Encender el flash</string>
     <string name="location_permission_title">Permiso de ubicación</string>
-    <string name="ok">Aceptar</string>
     <string name="no_thanks">No, gracias</string>
     <string name="location_permission_description">Tu regla de ruta contiene reglas de enrutamiento Wi-Fi SSID o Wi-Fi BSSID. Para que funcionen, husi utiliza el permiso de ubicación en segundo plano para obtener información sobre la red Wi-Fi conectada. La información se utilizará únicamente con fines de enrutamiento.</string>
     <string name="location_permission_background_description">A partir de Android 10, se requiere permiso de ubicación en segundo plano. Seleccione Permitir siempre para otorgar el permiso.</string>

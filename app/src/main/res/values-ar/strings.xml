@@ -323,7 +323,6 @@
     <string name="need_reload">أعد تحميل خدمة البروکسی لتطبيق التغييرات</string>
     <string name="apply">تطبيق</string>
     <string name="no">لا</string>
-    <string name="yes">نعم</string>
     <string name="unsaved_changes_prompt">لم يتم حفظ التغييرات. هل تريد حفظ؟</string>
     <string name="ss_cat">إعدادات Shadowsocks</string>
     <string name="proxy_cat">اعدادات الخادم</string>

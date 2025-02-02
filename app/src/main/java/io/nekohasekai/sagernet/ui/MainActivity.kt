@@ -141,7 +141,7 @@ class MainActivity : ThemedActivity(),
                 MaterialAlertDialogBuilder(this@MainActivity)
                     .setTitle("LICENSE")
                     .setMessage(this.assets.open("LICENSE").bufferedReader().readText())
-                    .setPositiveButton(R.string.yes) { _, _ ->
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
                         f.createNewFile()
                     }
                     .setNegativeButton(android.R.string.cancel) { _, _ ->
@@ -221,7 +221,7 @@ class MainActivity : ThemedActivity(),
 
             MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.subscription_import)
                 .setMessage(getString(R.string.subscription_import_message, name))
-                .setPositiveButton(R.string.yes) { _, _ ->
+                .setPositiveButton(android.R.string.ok) { _, _ ->
                     runOnDefaultDispatcher {
                         finishImportSubscription(group)
                     }
@@ -251,7 +251,7 @@ class MainActivity : ThemedActivity(),
         onMainDispatcher {
             MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.profile_import)
                 .setMessage(getString(R.string.profile_import_message, profile.displayName()))
-                .setPositiveButton(R.string.yes) { _, _ ->
+                .setPositiveButton(android.R.string.ok) { _, _ ->
                     runOnDefaultDispatcher {
                         finishImportProfile(profile)
                     }
@@ -519,7 +519,7 @@ class MainActivity : ThemedActivity(),
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.location_permission_title)
             .setMessage(R.string.location_permission_description)
-            .setPositiveButton(R.string.ok) { _, _ ->
+            .setPositiveButton(android.R.string.ok) { _, _ ->
                 requestFineLocationPermission0()
             }
             .setNegativeButton(R.string.no_thanks, null)
@@ -542,7 +542,7 @@ class MainActivity : ThemedActivity(),
             .setMessage(
                 R.string.location_permission_background_description
             )
-            .setPositiveButton(R.string.ok) { _, _ ->
+            .setPositiveButton(android.R.string.ok) { _, _ ->
                 backgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             }
             .setNegativeButton(R.string.no_thanks, null)

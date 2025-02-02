@@ -220,7 +220,6 @@
     <string name="need_reload">Перезагрузите прокси-сервис, чтобы применить изменения</string>
     <string name="apply">Применить</string>
     <string name="no">Нет</string>
-    <string name="yes">Да</string>
     <string name="unsaved_changes_prompt">Есть несохраненные изменения. Сохранить\?</string>
     <string name="ss_cat">Настройки Shadowsocks</string>
     <string name="proxy_cat">Настройки сервера</string>
@@ -553,7 +552,6 @@
     <string name="location_permission_background_description">На Android 10 и выше требуется разрешение на определение местоположения в фоновом режиме. Выберите Разрешить все время, чтобы предоставить разрешение.</string>
     <string name="mux_preference">Настройки мультиплексирования</string>
     <string name="location_permission_title">Разрешение геолокации</string>
-    <string name="ok">Ок</string>
     <string name="hysteria2_provider">Провайдер Hysteria2</string>
     <string name="authenticated_length">Аутентифицированнная длина</string>
     <string name="insecure_warn">Советы по безопасности</string>

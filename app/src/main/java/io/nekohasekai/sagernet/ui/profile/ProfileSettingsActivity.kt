@@ -51,7 +51,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
-            setPositiveButton(R.string.yes) { _, _ ->
+            setPositiveButton(android.R.string.ok) { _, _ ->
                 runOnDefaultDispatcher {
                     (requireActivity() as ProfileSettingsActivity<*>).saveAndExit()
                 }
@@ -68,13 +68,13 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     class DeleteConfirmationDialogFragment : AlertDialogFragment<ProfileIdArg, Empty>() {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_confirm_prompt)
-            setPositiveButton(R.string.yes) { _, _ ->
+            setPositiveButton(android.R.string.ok) { _, _ ->
                 runOnDefaultDispatcher {
                     ProfileManager.deleteProfile(arg.groupId, arg.profileId)
                 }
                 requireActivity().finish()
             }
-            setNegativeButton(R.string.no, null)
+            setNegativeButton(android.R.string.cancel, null)
         }
     }
 

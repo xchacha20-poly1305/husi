@@ -18,8 +18,8 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
             runOnMainDispatcher {
                 MaterialAlertDialogBuilder(context).setTitle(R.string.confirm)
                     .setMessage(message)
-                    .setPositiveButton(R.string.yes) { _, _ -> it.resume(true) }
-                    .setNegativeButton(R.string.no) { _, _ -> it.resume(false) }
+                    .setPositiveButton(android.R.string.ok) { _, _ -> it.resume(true) }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> it.resume(false) }
                     .setOnCancelListener { _ -> it.resume(false) }
                     .show()
             }
