@@ -172,7 +172,6 @@
     <string name="plugin_auto_connect_unlock_only">此插件可能不支持自动连接</string>
     <string name="proxy_cat">服务器设置</string>
     <string name="unsaved_changes_prompt">是否要保存修改？</string>
-    <string name="yes">是</string>
     <string name="no">否</string>
     <string name="apply">应用</string>
     <string name="license">授权协议</string>
@@ -511,7 +510,6 @@
     <string name="action_camera_switch">切换摄像头</string>
     <string name="action_flash_off">关闭闪光灯</string>
     <string name="location_permission_title">位置权限</string>
-    <string name="ok">好</string>
     <string name="no_thanks">不了，谢谢</string>
     <string name="location_permission_description">您的路由规则包含 Wi-Fi SSID 或 Wi-Fi BSSID 路由规则。为使其正常工作，虎兕 使用后台位置权限获取有关已连接 Wi-Fi 网络的信息。此信息仅用于路由目的。</string>
     <string name="location_permission_background_description">在 Android 10 及更高版本上，需要后台位置权限。选择“始终允许”以授予权限。</string>

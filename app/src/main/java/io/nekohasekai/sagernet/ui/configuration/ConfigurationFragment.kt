@@ -523,7 +523,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         onMainDispatcher {
                             MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                                 .setMessage(R.string.delete_confirm_prompt)
-                                .setPositiveButton(R.string.yes) { _, _ ->
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
                                     for (profile in toClear) {
                                         adapter.groupFragments[DataStore.selectedGroup]?.adapter?.apply {
                                             val index = configurationIdList.indexOf(profile.id)
@@ -542,7 +542,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                         }
                                     }
                                 }
-                                .setNegativeButton(R.string.no, null)
+                                .setNegativeButton(android.R.string.cancel, null)
                                 .show()
                         }
                     }
@@ -575,7 +575,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                                 }
                                             }.joinToString("\n")
                                 )
-                                .setPositiveButton(R.string.yes) { _, _ ->
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
                                     for (profile in toClear) {
                                         adapter.groupFragments[DataStore.selectedGroup]?.adapter?.apply {
                                             val index = configurationIdList.indexOf(profile.id)
@@ -594,7 +594,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                         }
                                     }
                                 }
-                                .setNegativeButton(R.string.no, null)
+                                .setNegativeButton(android.R.string.cancel, null)
                                 .show()
                         }
                     }

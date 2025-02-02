@@ -266,7 +266,6 @@
     <string name="proxy_cat">تنظیمات سرور</string>
     <string name="ss_cat">تنظیمات شدوساکس</string>
     <string name="unsaved_changes_prompt">تغییرات ذخیره نشد. آیا می خواهید ذخیره کنید؟</string>
-    <string name="yes">آره</string>
     <string name="no">نه</string>
     <string name="apply">اعمال کردن</string>
     <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگذاری کنید</string>
@@ -504,7 +503,6 @@
     <string name="blurred_address">آدرس سرور را تار کن</string>
     <string name="action_flash_off">خاموش کردن فلاش</string>
     <string name="action_flash_on">روشن کردن فلاش</string>
-    <string name="ok">تایید</string>
     <string name="no_thanks">خیر،ممنون</string>
     <string name="location_permission_background_description">در اندوید ۱۰ و بالاتر، مجوز موقعیت یابی در پس زمینه لازم است. گزینه ی تایید برای همیشه را برای دادن این مجوز انتخاب کنید.</string>
     <string name="xtls_flow">جریان (پروتکل فرعی VLESS)</string>

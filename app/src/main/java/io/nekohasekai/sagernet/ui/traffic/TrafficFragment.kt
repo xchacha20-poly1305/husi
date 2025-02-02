@@ -109,7 +109,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                         size.toString(),
                     )
                 )
-                .setPositiveButton(R.string.ok) { _, _ ->
+                .setPositiveButton(android.R.string.ok) { _, _ ->
                     mainActivity.connection.service?.resetNetwork()
                     snackbar(R.string.have_reset_network).show()
                 }
