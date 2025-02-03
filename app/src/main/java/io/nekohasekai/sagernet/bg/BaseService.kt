@@ -408,7 +408,7 @@ class BaseService {
 
                     Executable.killAll()    // clean up old processes
                     preInit()
-                    proxy.init()
+                    proxy.init(data.proxy?.service is VpnService)
                     DataStore.currentProfile = profile.id
 
                     proxy.processes = GuardedProcessPool {

@@ -320,7 +320,7 @@ data class ProxyEntity(
 
                             is HysteriaBean -> {
                                 append("\n\n")
-                                append(bean.buildHysteriaConfig(port, null))
+                                append(bean.buildHysteriaConfig(port, false, null))
                             }
 
                             is JuicityBean -> {

@@ -27,7 +27,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
             runOnDefaultDispatcher {
                 use {
                     try {
-                        init()
+                        init(false)
                         launch()
                         if (processes.processCount > 0) {
                             // wait for plugin start

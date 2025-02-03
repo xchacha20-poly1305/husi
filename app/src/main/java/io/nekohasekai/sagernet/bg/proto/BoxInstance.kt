@@ -56,7 +56,7 @@ abstract class BoxInstance(
         box = BoxInstance(config.config, NativeInterface(false))
     }
 
-    open suspend fun init() {
+    open suspend fun init(isVPN: Boolean) {
         buildConfig()
         for ((chain) in config.externalIndex) {
             chain.entries.forEach { (port, profile) ->
@@ -78,14 +78,16 @@ abstract class BoxInstance(
                             HysteriaBean.PROTOCOL_VERSION_1 -> initPlugin("hysteria-plugin")
                             HysteriaBean.PROTOCOL_VERSION_2 -> initPlugin("hysteria2-plugin")
                         }
-                        pluginConfigs[port] = profile.type to bean.buildHysteriaConfig(port) {
-                            File(
-                                app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
-                            ).apply {
-                                parentFile?.mkdirs()
-                                cacheFiles.add(this)
+                        pluginConfigs[port] =
+                            profile.type to bean.buildHysteriaConfig(port, isVPN) {
+                                File(
+                                    app.cacheDir,
+                                    "hysteria_" + SystemClock.elapsedRealtime() + ".ca",
+                                ).apply {
+                                    parentFile?.mkdirs()
+                                    cacheFiles.add(this)
+                                }
                             }
-                        }
                     }
 
                     is JuicityBean -> {

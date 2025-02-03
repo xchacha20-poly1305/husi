@@ -174,7 +174,11 @@ fun JSONObject.parseHysteria1Json(): HysteriaBean {
     }
 }
 
-fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): String {
+fun HysteriaBean.buildHysteriaConfig(
+    port: Int,
+    shouldProtect: Boolean,
+    cacheFile: (() -> File)?,
+): String {
     val address = when (val hopPort = HopPort.from(serverPorts)) {
         is HopPort.Single -> serverAddress.wrapIPV6Host() + ":" + hopPort.port
         is HopPort.Ports -> serverAddress.wrapIPV6Host() + ":" + hopPort.hyStyle().joinToString(",")
@@ -191,13 +195,9 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
                     put("protocol", "wechat-video")
                 }
             }
-            put(
-                "socks5", JSONObject(
-                    mapOf(
-                        "listen" to "$LOCALHOST4:$port",
-                    )
-                )
-            )
+            put("socks5", JSONObject().apply {
+                put("listen", "$LOCALHOST4:$port")
+            })
             put("retry", 5)
             put("fast_open", true)
             put("lazy_start", true)
@@ -247,16 +247,14 @@ fun HysteriaBean.buildHysteriaConfig(port: Int, cacheFile: (() -> File)?): Strin
             put("fastOpen", true)
             put("lazy", true)
 
-            if (obfuscation.isNotBlank()) {
-                put("obfs", JSONObject().apply {
-                    put("type", "salamander")
-                    put("salamander", JSONObject().apply {
-                        put("password", obfuscation)
-                    })
+            if (obfuscation.isNotBlank()) put("obfs", JSONObject().apply {
+                put("type", "salamander")
+                put("salamander", JSONObject().apply {
+                    put("password", obfuscation)
                 })
-            }
+            })
 
-            put("quic", JSONObject().apply {
+            if (shouldProtect) put("quic", JSONObject().apply {
                 put("sockopts", JSONObject().apply {
                     put("fdControlUnixSocket", Libcore.ProtectPath)
                 })
