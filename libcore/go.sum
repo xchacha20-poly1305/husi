@@ -91,8 +91,8 @@ github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4Wk
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
 github.com/sagernet/sing v0.6.0-beta.12 h1:2DnTJcvypK3/PM/8JjmgG8wVK48gdcpRwU98c4J/a7s=
 github.com/sagernet/sing v0.6.0-beta.12/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.11.1-0.20250201114933-7f79458b4f3d h1:eDKPX1ZdKvbwuPXivUv2mDeAqtQPiyLIlcXqyBWulCM=
-github.com/sagernet/sing-box v1.11.1-0.20250201114933-7f79458b4f3d/go.mod h1:DmL1WKyrfaAEu5z88CtUeQBfELaEdUyQzLS5nzmRg8o=
+github.com/sagernet/sing-box v1.11.1 h1:bs+LNhD/ikNPEtVGS69myDGkbhPArtzNMjAd8aSWO0M=
+github.com/sagernet/sing-box v1.11.1/go.mod h1:DmL1WKyrfaAEu5z88CtUeQBfELaEdUyQzLS5nzmRg8o=
 github.com/sagernet/sing-dns v0.4.0-beta.2 h1:HW94bUEp7K/vf5DlYz646LTZevQtJ0250jZa/UZRlbY=
 github.com/sagernet/sing-dns v0.4.0-beta.2/go.mod h1:8wuFcoFkWM4vJuQyg8e97LyvDwe0/Vl7G839WLcKDs8=
 github.com/sagernet/sing-mux v0.3.0-alpha.1 h1:IgNX5bJBpL41gGbp05pdDOvh/b5eUQ6cv9240+Ngipg=
@@ -127,8 +127,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.9.0 h1:sXxfAUkUuKTxjjRJbosvM/h7ywMYh
 github.com/xchacha20-poly1305/TLS-scribe v0.9.0/go.mod h1:tDoHAK0HLJxUEe9tQJMycVAjCfKnYetwXqkPxcxk0MY=
 github.com/xchacha20-poly1305/anchor v0.4.3 h1:irC78Q9aw70CiHSK5uxym2yhkjLjaSkI/NSqL2PvgHY=
 github.com/xchacha20-poly1305/anchor v0.4.3/go.mod h1:a+BFcxzgVVUG9IdWjsDgOpMRo2IqKpo4hpiaMbTMRiI=
-github.com/xchacha20-poly1305/cazilla v0.3.4 h1:Xc+XxUab4hIRoEHYdiQLiPJq9tjuKG86BPdtZ7dTOCs=
-github.com/xchacha20-poly1305/cazilla v0.3.4/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
+github.com/xchacha20-poly1305/cazilla v1.0.0 h1:C3sA58dD68RPNTQ4wsFQh2PyIty7u2yC9VJ+5iXVwSk=
+github.com/xchacha20-poly1305/cazilla v1.0.0/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.8.1 h1:w1dZfD+ZncdZSy3DUTAhmbPiz4Y+NyDtBnJmfcBuHg4=
 github.com/xchacha20-poly1305/libping v0.8.1/go.mod h1:l+sGCoGb5zwzDC2xCOl4O8KpzNaqbx+ijmoM03RgUig=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
