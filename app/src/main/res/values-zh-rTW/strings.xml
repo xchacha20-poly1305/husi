@@ -41,7 +41,6 @@
     <string name="service_mode">執行模式</string>
     <string name="service_mode_proxy">僅代理</string>
     <string name="port_proxy">代理連接埠</string>
-    <string name="port_http">HTTP 代理連接埠</string>
     <string name="port_local_dns">本地 DNS 連接埠</string>
     <string name="allow_access">允許來自區域網路的連線</string>
     <string name="allow_access_sum">繫結傳入伺服器至 0.0.0.0</string>
@@ -49,7 +48,6 @@
     <string name="cag_route">路由設定</string>
     <string name="inbound_settings">傳入設定</string>
     <string name="general_settings">應用程式設定</string>
-    <string name="require_http">啟用 HTTP 傳入伺服器</string>
     <string name="cag_ws">WebSocket 設定</string>
     <string name="ws_browser_forwarding">瀏覽器轉發</string>
     <string name="ws_browser_forwarding_sum">轉傳對應的 WebSocket 連線至瀏覽器。</string>
@@ -270,7 +268,6 @@
     <string name="enable_log_sum">用於除錯用途</string>
     <string name="list">列表</string>
     <string name="random">隨機</string>
-    <string name="api_port">API 連接埠</string>
     <string name="probe_interval">負載平衡器觀測間隔</string>
     <string name="standard">標準</string>
     <string name="unavailable">無法使用</string>
@@ -460,8 +457,6 @@
     <string name="custom_config_json">自訂配置 JSON</string>
     <string name="utls_fingerprint">uTLS 指紋</string>
     <string name="log_level">日誌等級</string>
-    <string name="set_panel_url">設定面板 URL</string>
-    <string name="enable_clash_api">Clash API 監聽位址</string>
     <string name="xtls_flow">Flow（VLESS 子協定）</string>
     <string name="protocol_version">協議版本</string>
     <string name="share_subscription">分享訂閱</string>

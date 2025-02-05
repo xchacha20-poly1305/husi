@@ -32,14 +32,15 @@ fun buildSingBoxEndpointWireGuardBean(bean: WireGuardBean): SingBoxOptions.Endpo
         peers = listOf(SingBoxOptions.WireGuardPeer().apply {
             address = bean.serverAddress
             port = bean.serverPort
-            public_key = bean.peerPublicKey
-            pre_shared_key = bean.peerPreSharedKey
+            public_key = bean.publicKey
+            pre_shared_key = bean.preSharedKey
             allowed_ips = listOf(
                 "0.0.0.0/0",
                 "::/0",
             )
             if (bean.reserved.isNotBlank()) reserved = genReserved(bean.reserved)
         })
+        listen_port = bean.listenPort.takeIf { it > 0 }
         address = bean.localAddress.listByLineOrComma()
         private_key = bean.privateKey
         mtu = bean.mtu

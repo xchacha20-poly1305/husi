@@ -202,15 +202,13 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
-    // old cache, DO NOT ADD
-
     var dirty by profileCacheStore.boolean(Key.PROFILE_DIRTY)
     var editingId by profileCacheStore.long(Key.PROFILE_ID)
     var editingGroup by profileCacheStore.long(Key.PROFILE_GROUP)
     var profileName by profileCacheStore.string(Key.PROFILE_NAME)
     var serverAddress by profileCacheStore.string(Key.SERVER_ADDRESS)
     var serverPort by profileCacheStore.stringToInt(Key.SERVER_PORT)
-    var serverPorts by profileCacheStore.string("serverPorts")
+    var serverPorts by profileCacheStore.string(Key.SERVER_PORTS)
     var serverUsername by profileCacheStore.string(Key.SERVER_USERNAME)
     var serverPassword by profileCacheStore.string(Key.SERVER_PASSWORD)
     var serverPassword1 by profileCacheStore.string(Key.SERVER_PASSWORD1)
@@ -234,6 +232,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU)
     var serverHeaders by profileCacheStore.string(Key.SERVER_HEADERS)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
+    var serverReserved by profileCacheStore.string(Key.SERVER_RESERVED)
+    var localAddress by profileCacheStore.string(Key.LOCAL_ADDRESS)
+    var listenPort by profileCacheStore.stringToInt(Key.LISTEN_PORT)
+    var privateKey by profileCacheStore.string(Key.PRIVATE_KEY)
+    var publicKey by profileCacheStore.string(Key.PUBLIC_KEY)
+    var preSharedKey by profileCacheStore.string(Key.PRE_SHARED_KEY)
 
     var serverMux by profileCacheStore.boolean(Key.SERVER_MUX) { false }
     var serverBrutal by profileCacheStore.boolean(Key.SERVER_BRUTAL) { false }

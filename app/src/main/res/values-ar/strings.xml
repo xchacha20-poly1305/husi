@@ -30,7 +30,6 @@
     <string name="menu_about">حول</string>
     <string name="group_status_proxies_subscription">%d البروکسیز | تم التحديث في %s</string>
     <string name="group_updated">%s: تم تحديث %d البروکسیز</string>
-    <string name="port_http">منفذ بروکسی HTTP</string>
     <string name="port_proxy">منفذ بروکسی SOCKS5</string>
     <string name="service_mode_proxy">البروکسی فقط</string>
     <string name="service_mode">وضع الخدمة</string>
@@ -116,7 +115,6 @@
     </string>
     <string name="ws_browser_forwarding">إعادة توجيه المتصفح</string>
     <string name="cag_ws">إعدادات WebSocket</string>
-    <string name="require_http">تفعيل HTTP الوارد</string>
     <string name="general_settings">إعدادات التطبيقات</string>
     <string name="inbound_settings">إعدادات الواردة</string>
     <string name="allow_access">السماح بالاتصالات من الشبكة المحلية</string>
@@ -305,7 +303,6 @@
     <string name="unavailable">غير متوفره</string>
     <string name="standard">معيار</string>
     <string name="probe_interval">الفاصل الزمني لرصد الموازن</string>
-    <string name="api_port">منفذ API</string>
     <string name="random">عشوائي</string>
     <string name="list">قائمة</string>
     <string name="enable_log_sum">من أجل إصلاح الخلل</string>

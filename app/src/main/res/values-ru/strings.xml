@@ -52,13 +52,11 @@
     </string>
     <string name="ws_browser_forwarding">Пересылка через браузер</string>
     <string name="cag_ws">Настройки WebSocket</string>
-    <string name="require_http">Включить входящий HTTP-трафик</string>
     <string name="general_settings">Настройки приложения</string>
     <string name="inbound_settings">Входящие настройки</string>
     <string name="allow_access_sum">Сервер будет слушать на адресе 0.0.0.0</string>
     <string name="allow_access">Разрешить подключения из локальной сети</string>
     <string name="cag_route">Настройки маршрута</string>
-    <string name="port_http">Порт прокси HTTP</string>
     <string name="service_mode_proxy">Только прокси</string>
     <string name="service_mode">Сервисный режим</string>
     <string name="group_duplicate">Дубликат:
@@ -202,7 +200,6 @@
     <string name="unavailable">Недоступен</string>
     <string name="standard">Стандарт</string>
     <string name="probe_interval">Интервал наблюдения балансировщика</string>
-    <string name="api_port">Порт API</string>
     <string name="random">Случайный</string>
     <string name="list">Список</string>
     <string name="enable_log_sum">В целях отладки</string>
@@ -490,9 +487,7 @@
     <string name="domain_strategy_for_direct">Стратегия домена для Прямого</string>
     <string name="domain_strategy_for_server">Стратегия домена для Адреса сервера</string>
     <string name="utls_fingerprint">Отпечаток uTLS</string>
-    <string name="set_panel_url">Изменить адрес панели</string>
     <string name="is_outbound_only">Сделать JSON исходящим</string>
-    <string name="enable_clash_api">Адрес подключения Clash API</string>
     <string name="need_restart">Перезапустите приложение для принятия изменений</string>
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>

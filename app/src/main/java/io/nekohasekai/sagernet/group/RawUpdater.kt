@@ -317,6 +317,7 @@ object RawUpdater : GroupUpdater() {
                             mtu = proxy["mtu"]?.toString()?.toIntOrNull()
                             localAddress =
                                 listable<String>(proxy["address"])?.joinToString("\n")
+                            listenPort = proxy["listen_port"]?.toString()?.toIntOrNull()
                             privateKey = proxy["private_key"]?.toString()
 
                             for (opt in peer) {
@@ -324,8 +325,8 @@ object RawUpdater : GroupUpdater() {
                                 when (opt.key) {
                                     "address" -> serverAddress = opt.value.toString()
                                     "port" -> serverPort = opt.value.toString().toInt()
-                                    "public_key" -> peerPublicKey = opt.value.toString()
-                                    "pre_shared_key" -> peerPreSharedKey = opt.value.toString()
+                                    "public_key" -> publicKey = opt.value.toString()
+                                    "pre_shared_key" -> preSharedKey = opt.value.toString()
                                     "reserved" -> reserved = when (val v = opt.value) {
                                         is String? -> v
 
@@ -611,6 +612,7 @@ object RawUpdater : GroupUpdater() {
         bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
         bean.privateKey = iface["PrivateKey"]
         bean.mtu = iface["MTU"]?.toIntOrNull() ?: 1408
+        bean.listenPort = iface["ListenPort"]?.toInt()
         val peers = ini.getAll("Peer")
         if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
         val beans = mutableListOf<WireGuardBean>()
@@ -624,8 +626,8 @@ object RawUpdater : GroupUpdater() {
                         peerBean.serverAddress = keyValue.substringBeforeLast(":")
                     }
 
-                    "publickey" -> peerBean.peerPublicKey = keyValue ?: continue@loopPeer
-                    "presharedkey" -> peerBean.peerPreSharedKey = keyValue
+                    "publickey" -> peerBean.publicKey = keyValue ?: continue@loopPeer
+                    "presharedkey" -> peerBean.preSharedKey = keyValue
                 }
             }
             beans.add(peerBean.applyDefaultValues())

@@ -49,13 +49,11 @@
     <string name="service_mode_proxy">Solo proxy</string>
     <string name="service_mode_vpn" translatable="false">VPN</string>
     <string name="port_proxy">Puerto proxy</string>
-    <string name="port_http">Puerto proxy HTTP</string>
     <string name="cag_route">Ajustes de ruta</string>
     <string name="allow_access">Permitir conexiones desde la LAN</string>
     <string name="allow_access_sum">Vincula los servidores de entrada a 0.0.0.0</string>
     <string name="inbound_settings">Ajustes de entrada</string>
     <string name="general_settings">Ajustes de la app</string>
-    <string name="require_http">Activar HTTP entrante</string>
     <string name="cag_ws">Ajustes de WebSocket</string>
     <string name="ws_max_early_data" translatable="false">Max early data</string>
     <string name="ws_browser_forwarding">Reenvío del navegador</string>
@@ -290,7 +288,6 @@
     <string name="list">Lista</string>
     <string name="random">Aleatorio</string>
     <string name="leastPing" translatable="false">Ping</string>
-    <string name="api_port">Puerto de API</string>
     <string name="probe_interval">Intervalo de observación del equilibrador</string>
     <string name="standard">Estándar</string>
     <string name="available" translatable="false">%dms</string>
@@ -468,7 +465,6 @@
     <string name="custom_config_json">JSON de config. personalizada</string>
     <string name="is_outbound_only">El conjunto JSON es saliente</string>
     <string name="save">Guardar</string>
-    <string name="set_panel_url">Establecer URL del panel</string>
     <string name="log_level">Nivel de registro</string>
     <string name="xtls_flow">Flow (Subprotocolo VLESS)</string>
     <string name="utls_fingerprint">Huella digital uTLS</string>
@@ -478,7 +474,6 @@
     <string name="domain_strategy_for_server">Est. de dominio para direc. del servidor</string>
     <string name="bypass_lan_in_core">Omitir LAN en el núcleo</string>
     <string name="need_restart">Reiniciar app para aplicar los cambios</string>
-    <string name="enable_clash_api">Dirección de escucha de la API de Clash</string>
     <string name="protocol_version">Versión del protocolo</string>
     <string name="reset_connections">Restablecer conexiones</string>
     <string name="remove_duplicate">Eliminar servidores duplicados</string>
