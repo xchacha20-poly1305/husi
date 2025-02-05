@@ -19,6 +19,7 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.broadcastReceiver
@@ -224,36 +225,35 @@ class BaseService {
         fun onBind(intent: Intent): IBinder? =
             if (intent.action == Action.SERVICE) data.binder else null
 
-        // FIXME apply config change should not use this!
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
                 stopRunner(false, (this as Context).getString(R.string.profile_empty))
             }
-            if (canReloadSelector()) {
-                val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                val tag = data.proxy!!.config.profileTagMap[ent?.id] ?: ""
-                if (tag.isNotBlank() && ent != null) {
-                    // select from GUI
-                    data.proxy!!.box.selectOutbound(tag)
-                    // or select from webui
-                    // => SelectorCallback
+
+            // If in a selector group, call selector instead of reloading it.
+            SagerDatabase.proxyDao.getById(DataStore.selectedProxy)?.let {
+                val currentGroupID = data.proxy?.config?.selectorGroupId ?: return@let
+                if (currentGroupID < 0) return@let // Not selector
+                if (it.groupId != currentGroupID) return@let // Not in the same group
+                if (SagerDatabase.groupDao.getById(it.groupId)?.isSelector != true) {
+                    // Not selector
+                    return@let
                 }
-                return
+
+                val tag = data.proxy!!.config.profileTagMap[it.id] ?: return@let
+                if (tag.isNotBlank()) {
+                    // Call selector directly, needn't reload.
+                    data.proxy!!.box.selectOutbound(tag)
+                    return
+                }
             }
+
             val s = data.state
             when {
                 s == State.Stopped -> startRunner()
                 s.canStop -> stopRunner(true)
                 else -> Logs.w("Illegal state $s when invoking use")
             }
-        }
-
-        fun canReloadSelector(): Boolean {
-            if ((data.proxy?.config?.selectorGroupId ?: -1L) < 0) return false
-            val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy) ?: return false
-            val tmpBox = ProxyInstance(ent)
-            tmpBox.buildConfigTmp()
-            return tmpBox.lastSelectorGroupId == data.proxy?.lastSelectorGroupId
         }
 
         suspend fun startProcesses() {
@@ -270,11 +270,11 @@ class BaseService {
                 }
             }
 
-            // override cache in cache file
-            if (canReloadSelector()) {
-                val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                val tag = data.proxy!!.config.profileTagMap[ent?.id] ?: ""
-                if (tag.isNotBlank() && ent != null) {
+            // Selector: override selected cache.
+            // https://github.com/SagerNet/sing-box/blob/43f96c427946a9406ad5f739bd33a7a5faa10cad/protocol/group/selector.go#L81-L93
+            SagerDatabase.proxyDao.getById(DataStore.selectedProxy)?.let {
+                val tag = data.proxy!!.config.profileTagMap[it.id] ?: return@let
+                if (tag.isNotBlank()) {
                     data.proxy!!.box.selectOutbound(tag)
                 }
             }
