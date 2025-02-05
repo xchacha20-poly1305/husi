@@ -31,13 +31,11 @@
     </string>
     <string name="ws_browser_forwarding">Переадресація браузера</string>
     <string name="cag_ws">Налаштування WebSocket</string>
-    <string name="require_http">Увімкнути вхідний HTTP-трафік</string>
     <string name="general_settings">Налаштування застосунку</string>
     <string name="inbound_settings">Вхідні налаштування</string>
     <string name="allow_access_sum">Прив\'язати вхідні сервери до 0.0.0.0</string>
     <string name="allow_access">Дозволити підключення з локальної мережі</string>
     <string name="cag_route">Налаштування маршруту</string>
-    <string name="port_http">Порт проксі HTTP</string>
     <string name="port_proxy">Порт проксі SOCKS5</string>
     <string name="service_mode_proxy">Тільки проксі</string>
     <string name="service_mode">Режим обслуговування</string>
@@ -340,7 +338,6 @@
     <string name="disable">Вимкнути</string>
     <string name="enable_log">Увімкнути журнал</string>
     <string name="list">Список</string>
-    <string name="api_port">Порт API</string>
     <string name="probe_interval">Інтервал спостереження балансера</string>
     <string name="standard">Стандарт</string>
     <string name="connection_test">Тест підключення</string>
@@ -494,8 +491,6 @@
     <string name="show_group_in_notification">Показувати назву групи у сповіщенні</string>
     <string name="log_level_help">Утримуйте для нашалтування розміру буфера.</string>
     <string name="save">Зберегти</string>
-    <string name="set_panel_url">Змінити адрес панелі</string>
-    <string name="enable_clash_api">Адреса підключення Clash API</string>
     <string name="log_level">Тип журналу</string>
     <string name="get_cert_fail">Не вдалося отримати сертифікати!</string>
     <string name="experimental_authenticated_length">Зробити довжину кожного сегменту корисного навантаження незмінною. Цей експеримент потребує, аби клієнт та сервер обидва використовували однакову версію v2ray-core. Більше оновлень з часом.</string>

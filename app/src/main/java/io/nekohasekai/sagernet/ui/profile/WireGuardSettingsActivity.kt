@@ -3,34 +3,40 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
-import moe.matsuri.nb4a.proxy.PreferenceBinding
-import moe.matsuri.nb4a.proxy.PreferenceBindingManager
-import moe.matsuri.nb4a.proxy.Type
 
 class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
 
     override fun createEntity() = WireGuardBean()
 
-    private val pbm = PreferenceBindingManager()
-    private val name = pbm.add(PreferenceBinding(Type.Text, "name"))
-    private val serverAddress = pbm.add(PreferenceBinding(Type.Text, "serverAddress"))
-    private val serverPort = pbm.add(PreferenceBinding(Type.TextToInt, "serverPort"))
-    private val localAddress = pbm.add(PreferenceBinding(Type.Text, "localAddress"))
-    private val privateKey = pbm.add(PreferenceBinding(Type.Text, "privateKey"))
-    private val peerPublicKey = pbm.add(PreferenceBinding(Type.Text, "peerPublicKey"))
-    private val peerPreSharedKey = pbm.add(PreferenceBinding(Type.Text, "peerPreSharedKey"))
-    private val mtu = pbm.add(PreferenceBinding(Type.TextToInt, "mtu"))
-    private val reserved = pbm.add(PreferenceBinding(Type.Text, "reserved"))
-
     override fun WireGuardBean.init() {
-        pbm.writeToCacheAll(this)
+        DataStore.profileName = name
+        DataStore.serverAddress = serverAddress
+        DataStore.serverPort = serverPort
+        DataStore.localAddress = localAddress
+        DataStore.listenPort = listenPort
+        DataStore.privateKey = privateKey
+        DataStore.publicKey = publicKey
+        DataStore.preSharedKey = preSharedKey
+        DataStore.serverMTU = mtu
+        DataStore.serverReserved = reserved
     }
 
     override fun WireGuardBean.serialize() {
-        pbm.fromCacheAll(this)
+        name = DataStore.profileName
+        serverAddress = DataStore.serverAddress
+        serverPort = DataStore.serverPort
+        localAddress = DataStore.localAddress
+        listenPort = DataStore.listenPort
+        privateKey = DataStore.privateKey
+        publicKey = DataStore.publicKey
+        preSharedKey = DataStore.preSharedKey
+        mtu = DataStore.serverMTU
+        reserved = DataStore.serverReserved
     }
 
     override fun PreferenceFragmentCompat.createPreferences(
@@ -38,12 +44,22 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
         rootKey: String?,
     ) {
         addPreferencesFromResource(R.xml.wireguard_preferences)
-        pbm.setPreferenceFragment(this)
 
-        (serverPort.preference as EditTextPreference)
-            .setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-        (privateKey.preference as EditTextPreference).summaryProvider = PasswordSummaryProvider
-        (mtu.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.setOnBindEditTextListener(
+            EditTextPreferenceModifiers.Port
+        )
+        findPreference<EditTextPreference>(Key.LISTEN_PORT)!!.setOnBindEditTextListener(
+            EditTextPreferenceModifiers.Port
+        )
+        findPreference<EditTextPreference>(Key.PRIVATE_KEY)!!.setSummaryProvider(
+            PasswordSummaryProvider
+        )
+        findPreference<EditTextPreference>(Key.PRE_SHARED_KEY)!!.setSummaryProvider(
+            PasswordSummaryProvider
+        )
+        findPreference<EditTextPreference>(Key.SERVER_MTU)!!.setOnBindEditTextListener(
+            EditTextPreferenceModifiers.Number
+        )
     }
 
 }

@@ -1,8 +1,10 @@
 package io.nekohasekai.sagernet.fmt.wireguard;
 
 import androidx.annotation.NonNull;
+
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import moe.matsuri.nb4a.SingBoxOptions;
@@ -25,32 +27,38 @@ public class WireGuardBean extends AbstractBean {
     };
     public String localAddress;
     public String privateKey;
-    public String peerPublicKey;
-    public String peerPreSharedKey;
+    public String publicKey;
+    public String preSharedKey;
     public Integer mtu;
     public String reserved;
+    /**
+     * Enable listen if it > 0
+     */
+    public Integer listenPort;
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
         if (localAddress == null) localAddress = "";
         if (privateKey == null) privateKey = "";
-        if (peerPublicKey == null) peerPublicKey = "";
-        if (peerPreSharedKey == null) peerPreSharedKey = "";
+        if (publicKey == null) publicKey = "";
+        if (preSharedKey == null) preSharedKey = "";
         if (mtu == null || mtu < 1000 || mtu > 65535) mtu = 1420;
         if (reserved == null) reserved = "";
+        if (listenPort == null) listenPort = 0;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(localAddress);
         output.writeString(privateKey);
-        output.writeString(peerPublicKey);
-        output.writeString(peerPreSharedKey);
+        output.writeString(publicKey);
+        output.writeString(preSharedKey);
         output.writeInt(mtu);
         output.writeString(reserved);
+        output.writeInt(listenPort);
     }
 
     @Override
@@ -59,10 +67,13 @@ public class WireGuardBean extends AbstractBean {
         super.deserialize(input);
         localAddress = input.readString();
         privateKey = input.readString();
-        peerPublicKey = input.readString();
-        peerPreSharedKey = input.readString();
+        publicKey = input.readString();
+        preSharedKey = input.readString();
         mtu = input.readInt();
         reserved = input.readString();
+        if (version >= 1) {
+            listenPort = input.readInt();
+        }
     }
 
     @Override

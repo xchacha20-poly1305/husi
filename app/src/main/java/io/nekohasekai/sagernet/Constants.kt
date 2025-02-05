@@ -104,6 +104,7 @@ object Key {
 
     const val SERVER_ADDRESS = "serverAddress"
     const val SERVER_PORT = "serverPort"
+    const val SERVER_PORTS = "serverPorts"
     const val SERVER_USERNAME = "serverUsername"
     const val SERVER_PASSWORD = "serverPassword"
     const val SERVER_METHOD = "serverMethod"
@@ -163,6 +164,13 @@ object Key {
     const val SERVER_CONGESTION_CONTROLLER = "serverCongestionController"
     const val SERVER_DISABLE_SNI = "serverDisableSNI"
     const val SERVER_REDUCE_RTT = "serverReduceRTT"
+
+    const val SERVER_RESERVED = "serverReserved"
+    const val LOCAL_ADDRESS = "localAddress"
+    const val LISTEN_PORT = "listenPort"
+    const val PRIVATE_KEY = "privateKey"
+    const val PUBLIC_KEY = "publicKey"
+    const val PRE_SHARED_KEY = "preSharedKey"
 
     const val ROUTE_NAME = "routeName"
     const val ROUTE_DOMAIN = "routeDomain"

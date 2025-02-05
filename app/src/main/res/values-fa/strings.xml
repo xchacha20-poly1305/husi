@@ -49,13 +49,11 @@
     <string name="service_mode">حالت سرویس</string>
     <string name="service_mode_proxy">فقط پروکسی</string>
     <string name="port_proxy">پورت پروکسی</string>
-    <string name="port_http">پورت پروکسی HTTP</string>
     <string name="cag_route">تنظیمات مسیر</string>
     <string name="allow_access">مجاز کردن اتصالات از LAN</string>
     <string name="allow_access_sum">سرورهای ورودی را به 0.0.0.0 متصل کنید</string>
     <string name="inbound_settings">تنظیمات ورودی</string>
     <string name="general_settings">تنظیمات برنامه</string>
-    <string name="require_http">ورودی HTTP را فعال کنید</string>
     <string name="cag_ws">تنظیمات وب سوکت</string>
     <string name="ws_browser_forwarding">ارسال مرورگر</string>
     <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.
@@ -283,7 +281,6 @@
     <string name="enable_log_sum">برای اهداف اشکال زدایی</string>
     <string name="list">فهرست</string>
     <string name="random">تصادفی</string>
-    <string name="api_port">پورت API</string>
     <string name="probe_interval">فاصله مشاهده متعادل کننده</string>
     <string name="standard">استاندارد</string>
     <string name="unavailable">غیر قابل دسترسی</string>
@@ -478,7 +475,6 @@
     <string name="assets_update">به روزرسانی داده های جغرافیایی</string>
     <string name="save">ذخیره کردن</string>
     <string name="log_level">سطح گزارش</string>
-    <string name="enable_clash_api">آدرس گوش کردن Clash API</string>
     <string name="test_concurrency">تست همزمانی</string>
     <string name="enable_brutal">کنترل‌کننده ترافیک شدید TCP فعال شد</string>
     <string name="scan_vpn_app_introduce">بررسی کردن نصب شدن VPN و نوع آن روی دستگاه.</string>
@@ -491,7 +487,6 @@
     <string name="domain_strategy_for_direct">استراتژی دامنه برای اتصال مستقیم</string>
     <string name="domain_strategy_for_server">استراتژی دامنه برای آدرس سرور</string>
     <string name="is_outbound_only">مجموعه JSON خروجی است</string>
-    <string name="set_panel_url">تعیین نشانی اینترنتی پنل</string>
     <string name="http_upgrade_host">میزبان HTTPUpgrade</string>
     <string name="http_upgrade_path">مسیر HTTPUpgrade</string>
     <string name="vpn_golang_version">نسخه زبان Go</string>
