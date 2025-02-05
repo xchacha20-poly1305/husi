@@ -81,7 +81,7 @@ data class ProxyEntity(
     var userOrder: Long = 0L,
     var tx: Long = 0L,
     var rx: Long = 0L,
-    var status: Int = 0,
+    var status: Int = STATUS_INITIAL,
     var ping: Int = 0,
     var uuid: String = "",
     var error: String? = null,
@@ -109,7 +109,7 @@ data class ProxyEntity(
         const val TYPE_SS = 2
         const val TYPE_VMESS = 4 // And VLESS
         const val TYPE_TROJAN = 6
-        const val TYPE_TROJAN_GO = 7
+        const val TYPE_TROJAN_GO = 7 // Deleted
         const val TYPE_CHAIN = 8
         const val TYPE_NAIVE = 9
         const val TYPE_HYSTERIA = 15
@@ -121,7 +121,18 @@ data class ProxyEntity(
         const val TYPE_JUICITY = 22
         const val TYPE_DIRECT = 23
         const val TYPE_CONFIG = 998
-        const val TYPE_NEKO = 999
+        const val TYPE_NEKO = 999 // Deleted
+
+        /** Plugin not found or not support this ping type */
+        const val STATUS_INVALID = -1
+        const val STATUS_INITIAL = 0
+        const val STATUS_AVAILABLE = 1
+
+        /** Unclear */
+        const val STATUS_UNREACHABLE = 2
+
+        /** Has obvious error */
+        const val STATUS_UNAVAILABLE = 3
 
         val chainName by lazy { app.getString(R.string.proxy_chain) }
 

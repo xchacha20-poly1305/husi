@@ -139,8 +139,11 @@ object ProfileManager {
         }
     }
 
-    // postUpdate: post to listeners, don't change the DB
+    // postUpdate: post to listeners, not change the DB
 
+    /**
+     * If you already have ProxyEntity, please use it as first param instead of use id.
+     */
     suspend fun postUpdate(profileId: Long, noTraffic: Boolean = false) {
         postUpdate(getProfile(profileId) ?: return, noTraffic)
     }
