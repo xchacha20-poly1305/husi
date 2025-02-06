@@ -10,10 +10,10 @@ libcore:
 	./run lib core
 
 apk:
-	BUILD_PLUGIN=none ./gradlew app:assembleFossRelease
+	./gradlew app:assembleFossRelease
 
 apk_debug:
-	BUILD_PLUGIN=none ./gradlew app:assembleFossDebug
+	./gradlew app:assembleFossDebug
 
 assets:
 	./run lib assets

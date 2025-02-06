@@ -59,7 +59,6 @@ fun Project.requireLocalProperties(): Properties {
 
         val base64 = System.getenv("LOCAL_PROPERTIES")
         if (!base64.isNullOrBlank()) {
-
             localProperties.load(Base64.getDecoder().decode(base64).inputStream())
         } else if (project.rootProject.file("local.properties").exists()) {
             localProperties.load(rootProject.file("local.properties").inputStream())
