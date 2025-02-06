@@ -106,10 +106,9 @@ jobs:
           BUILD_PLUGIN: none
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
-          # export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
+          echo "${{ secrets.LOCAL_PROPERTIES }}" >> local.properties
           ./run init action gradle
-          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS}}" ./gradlew clean app:assembleFossRelease
-
+          ./gradlew clean app:assembleFossRelease
           APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname $APK)
           rm $APK/output-metadata.json

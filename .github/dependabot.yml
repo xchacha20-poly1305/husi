@@ -29,4 +29,3 @@ updates:
     allow:
       - dependency-name: "github.com/sagernet/gomobile"
       - dependency-name: "github.com/sagernet/sing-box"
-      - dependency-name: "github.com/xchacha20-poly1305/*"
