@@ -433,7 +433,6 @@
     <string name="vpn_golang_version">Go 版本</string>
     <string name="vpn_app_type_other">其他</string>
     <string name="vpn_core_type_unknown">未知</string>
-    <string name="cazilla">使用 Mozilla 憑證 CA 機構</string>
     <string name="enable_brutal">啟用 TCP Brutal 擁塞控制演算法</string>
     <string name="menu_dashboard">Sing-Box 儀表板</string>
     <string name="action_copy">複製</string>
@@ -473,7 +472,6 @@
     <string name="inbound_username">入站用戶名</string>
     <string name="inbound_password">入站密碼</string>
     <string name="http_upgrade_path">HTTPUpgrade 路徑</string>
-    <string name="cazilla_long">可能能防止能操縱 CA 機構的力量攻擊。也可以讓舊的設備得以使用新的憑證。</string>
     <string name="nat_stun_server_hint">STUN 伺服器</string>
     <string name="action_open">打開</string>
     <string name="enable_fakedns">啟用 FakeDNS</string>

@@ -522,7 +522,6 @@
     <string name="acquire_wake_lock">Включить WakeLock</string>
     <string name="domain_strategy_for_remote">Стратегия домена для Удаленного</string>
     <string name="resolve_server">Разрешить адрес сервера в соответствии с политикой IPv6</string>
-    <string name="cazilla">Использовать программу сертификации Mozilla CA</string>
     <string name="app_name">husi</string>
     <string name="tuic_congestion_controller">Контроллер перегруженности</string>
     <string name="custom_config_json">Пользовательская конфигурация JSON</string>
@@ -540,7 +539,6 @@
     <string name="hop_interval">Интервал переключения портов(второй)</string>
     <string name="test_timeout">Таймаут (мс)</string>
     <string name="get_cert_server_hint">Целевой сервер</string>
-    <string name="cazilla_long">Возможно, это позволит избежать атаки со стороны того, кто может контролировать центр сертификации и может позволить старому устройству использовать новый сертификат.</string>
     <string name="sekai">nekohasekai</string>
     <string name="no_thanks">Нет, спасибо</string>
     <string name="location_permission_description">Ваше правило маршрутизации содержит правила маршрутизации Wi-Fi SSID или Wi-Fi BSSID. Чтобы они работали, husi использует разрешение на определение местоположения в фоновом режиме, чтобы получать информацию о подключенной сети Wi-Fi. Информация будет использоваться только для целей маршрутизации.</string>

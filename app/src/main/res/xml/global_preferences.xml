@@ -324,11 +324,13 @@
             app:key="acquireWakeLock"
             app:summary="@string/acquire_wake_lock_summary"
             app:title="@string/acquire_wake_lock" />
-        <SwitchPreference
-            app:icon="@drawable/ic_baseline_multiline_chart_24"
-            app:key="enabledCazilla"
-            app:summary="@string/cazilla_long"
-            app:title="@string/cazilla" />
+        <rikka.preference.SimpleMenuPreference
+            app:entries="@array/cert_provider"
+            app:entryValues="@array/int_array_3"
+            app:icon="@drawable/ic_baseline_push_pin_24"
+            app:key="certProvider"
+            app:title="@string/certificate_authority"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreference
             app:icon="@drawable/ic_baseline_shutter_speed_24"
             app:key="interruptSelector"

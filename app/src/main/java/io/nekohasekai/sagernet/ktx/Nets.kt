@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
 package io.nekohasekai.sagernet.ktx
 
 import io.nekohasekai.sagernet.BuildConfig
@@ -9,6 +7,9 @@ import libcore.URL
 import moe.matsuri.nb4a.utils.NGUtil
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.security.KeyStore
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 var URL.pathSegments: List<String>
     get() = path.split("/").filter { it.isNotBlank() }
@@ -71,4 +72,21 @@ fun generateUserAgent(userAgent: String): String {
     return userAgent.replace("\$version", BuildConfig.VERSION_NAME)
         .replace("\$version_code", BuildConfig.VERSION_CODE.toString())
         .replace("\$box_version", Libcore.versionBox())
+}
+
+@OptIn(ExperimentalEncodingApi::class)
+val systemCertificates by lazy {
+    val certificates = mutableListOf<String>()
+    val keyStore = KeyStore.getInstance("AndroidCAStore")
+    if (keyStore != null) {
+        keyStore.load(null, null);
+        val aliases = keyStore.aliases()
+        while (aliases.hasMoreElements()) {
+            val cert = keyStore.getCertificate(aliases.nextElement())
+            certificates.add(
+                "-----BEGIN CERTIFICATE-----\n" + Base64.encode(cert.encoded) + "\n-----END CERTIFICATE-----"
+            )
+        }
+    }
+    certificates
 }

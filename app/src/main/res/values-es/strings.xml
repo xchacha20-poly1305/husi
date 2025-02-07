@@ -493,7 +493,6 @@
     <string name="vpn_app_type">Tipo de app</string>
     <string name="vpn_core_path">Ruta detectada</string>
     <string name="vpn_core_type_unknown">Desconocido</string>
-    <string name="cazilla">Utilizar programa de certificados CA de Mozilla</string>
     <string name="dns_mode">Modo DNS</string>
     <string name="landing_proxy">Proxy de aterrizaje</string>
     <string name="show_group_in_notification">Mostrar nombre del grupo en notificación</string>
@@ -510,7 +509,6 @@
     <string name="vpn_core_type">Tipo de núcleo</string>
     <string name="vpn_golang_version">Versión Go</string>
     <string name="assets_update">Actualizar activos geográficos</string>
-    <string name="cazilla_long">Se puede evitar el ataque de quien pueda controlar CA. Y puede permitir que el dispositivo antiguo utilice un certificado nuevo.</string>
     <string name="enable_brutal">Activar controlador de congestión TCP Brutal</string>
     <string name="blurred_address">Difuminar la dirección del servidor</string>
     <string name="action_camera_switch">Cambiar de cámara</string>

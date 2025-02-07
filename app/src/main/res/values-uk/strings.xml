@@ -243,7 +243,6 @@
     <string name="sniff_routing">Перехоплювати результат для Маршрутизації</string>
     <string name="assets_update">Оновити геодані</string>
     <string name="sekai">nekohasekai</string>
-    <string name="cazilla">Використовувати програму сертифікації Mozilla CA</string>
     <plurals name="removed">
         <item quantity="one">Видалено</item>
         <item quantity="few">%d елемента видалено</item>
@@ -449,7 +448,6 @@
     <string name="no_thanks">Ні, дякую</string>
     <string name="test_timeout">Таймаут (мс)</string>
     <string name="memory_limit">Ліміт пам\'яті</string>
-    <string name="cazilla_long">Можливо, це допоможе запобігти атаці з боку того, хто контролює центр сертифікації та може дозволити старому пристрою використовувати новий сертифікат.</string>
     <string name="ntp_category">Налаштування клієнта NTP</string>
     <string name="enable_ntp">Увімкнути NTP</string>
     <string name="ntp_sum">Увімкнути вбудований NTP-клієнт та використовувати час, що ним надається, замість системного</string>

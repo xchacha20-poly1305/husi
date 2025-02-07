@@ -554,8 +554,6 @@
     <string name="vpn_app_type_other">Other</string>
     <string name="vpn_core_type_unknown">Unknown</string>
     <string name="assets_update">Update geo assets</string>
-    <string name="cazilla">Use Mozilla CA Certificate Program</string>
-    <string name="cazilla_long">May be can avoid attack from who can control CA. And can let old device use new certificate.</string>
     <string name="sekai">nekohasekai</string>
     <string name="test_timeout">Test timeout (ms)</string>
     <string name="mux_preference">Multiplex Settings</string>
@@ -649,4 +647,7 @@
     <string name="fallback">Fallback</string>
     <string name="listen_port">Listen Port</string>
     <string name="reserved" translatable="false">Reserved</string>
+    <string name="certificate_authority">Certificate Authority</string>
+    <string name="mozilla" translatable="false">Mozilla</string>
+    <string name="system_and_user">System and User</string>
 </resources>

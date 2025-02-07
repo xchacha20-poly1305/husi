@@ -93,6 +93,10 @@ object Key {
     const val TUN_IMPLEMENTATION = "tunImplementation"
     const val PROFILE_TRAFFIC_STATISTICS = "profileTrafficStatistics"
 
+    const val APP_TLS_VERSION = "appTLSVersion"
+    const val CERT_PROVIDER = "certProvider"
+    const val INTERRUPT_SELECTOR = "interruptSelector"
+
     const val PROFILE_DIRTY = "profileDirty"
     const val PROFILE_ID = "profileId"
     const val PROFILE_NAME = "profileName"
@@ -208,11 +212,6 @@ object Key {
     const val SUBSCRIPTION_AUTO_UPDATE = "subscriptionAutoUpdate"
     const val SUBSCRIPTION_AUTO_UPDATE_DELAY = "subscriptionAutoUpdateDelay"
 
-    //
-
-    const val APP_TLS_VERSION = "appTLSVersion"
-    const val ENABLED_CAZILLA = "enabledCazilla"
-    const val INTERRUPT_SELECTOR = "interruptSelector"
 }
 
 fun logLevelString(level: Int): String = when (level) {
@@ -302,4 +301,10 @@ object NetworkInterfaceStrategy {
     const val DEFAULT = 0
     const val HYBRID = 1
     const val FALLBACK = 2
+}
+
+object CertProvider {
+    const val SYSTEM = 0
+    const val MOZILLA = 1
+    const val SYSTEM_AND_USER = 2 // Put it last because Go may fix the bug one day.
 }
