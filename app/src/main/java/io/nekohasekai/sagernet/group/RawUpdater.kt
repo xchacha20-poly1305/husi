@@ -80,25 +80,26 @@ object RawUpdater : GroupUpdater() {
 
             // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
             // Subscription-Userinfo: upload=2375927198; download=12983696043; total=1099511627776; expire=1862111613
+            // Be careful that some value may be empty.
             val userInfo = response.getHeader("Subscription-Userinfo")
             if (userInfo.isNotBlank()) {
                 var used = 0L
                 var total = 0L
-                var expired = -1L
+                var expired = 0L
                 for (info in userInfo.split("; ")) {
                     info.split("=", limit = 2).let {
                         if (it.size != 2) return@let
                         when (it[0]) {
-                            "upload", "download" -> used += it[1].toLong()
-                            "total" -> total = it[1].toLong()
-                            "expire" -> expired = it[1].toLong()
+                            "upload", "download" -> used += it[1].toLongOrNull() ?: 0
+                            "total" -> total = it[1].toLongOrNull() ?: 0
+                            "expire" -> expired = it[1].toLongOrNull() ?: 0
                         }
                     }
                 }
                 subscription.apply {
                     bytesUsed = used
                     bytesRemaining = total - used
-                    if (expired > 0) expiryDate = expired
+                    expiryDate = expired
                 }
             }
         }
