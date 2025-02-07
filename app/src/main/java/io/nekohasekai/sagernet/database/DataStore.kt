@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.database
 import android.os.Binder
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
+import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
@@ -172,6 +173,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     val persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
+    var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
     var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
     var connectionTestConcurrent by configurationStore.int(Key.CONNECTION_TEST_CONCURRENT) { 5 }
     var connectionTestTimeout by configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }

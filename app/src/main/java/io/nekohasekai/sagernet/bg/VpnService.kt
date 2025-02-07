@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.bg
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ProxyInfo
@@ -20,8 +19,6 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
-import moe.matsuri.nb4a.utils.toList
-import org.json.JSONObject
 import android.net.VpnService as BaseVpnService
 
 class VpnService : BaseVpnService(),
@@ -200,7 +197,12 @@ class VpnService : BaseVpnService(),
                 ProxyInfo.buildDirectProxy(
                     LOCALHOST4,
                     DataStore.mixedPort,
-                )
+                    DataStore.httpProxyBypass.lines().mapNotNull { line ->
+                        line.trim().takeIf { it.isNotBlank() && !it.startsWith("#") }
+                    },
+                ).also {
+                    Logs.d("Appended HTTP info: $it")
+                }
             )
         }
 

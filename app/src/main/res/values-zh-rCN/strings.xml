@@ -583,4 +583,5 @@
     <string name="listen_port">监听端口</string>
     <string name="certificate_authority">数字证书认证机构</string>
     <string name="system_and_user">系统和用户</string>
+    <string name="http_proxy_bypass">HTTP 代理绕过列表</string>
 </resources>

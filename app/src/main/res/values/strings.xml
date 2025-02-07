@@ -650,4 +650,5 @@
     <string name="certificate_authority">Certificate Authority</string>
     <string name="mozilla" translatable="false">Mozilla</string>
     <string name="system_and_user">System and User</string>
+    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
 </resources>

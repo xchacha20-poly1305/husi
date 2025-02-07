@@ -50,6 +50,9 @@ object Key {
 
     const val BYPASS_LAN = "bypassLan"
     const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
+
+    const val APPEND_HTTP_PROXY = "appendHttpProxy"
+    const val HTTP_PROXY_BYPASS = "httpProxyBypass"
     const val INBOUND_USERNAME = "inboundUsername"
     const val INBOUND_PASSWORD = "inboundPassword"
     const val ANCHOR_SSID = "anchorSSID"
@@ -59,8 +62,6 @@ object Key {
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
     const val LOCAL_DNS_PORT = "portLocalDns"
-
-    const val APPEND_HTTP_PROXY = "appendHttpProxy"
 
     const val CONNECTION_TEST_URL = "connectionTestURL"
     const val CONNECTION_TEST_CONCURRENT = "connectionTestConcurrent"
@@ -308,3 +309,25 @@ object CertProvider {
     const val MOZILLA = 1
     const val SYSTEM_AND_USER = 2 // Put it last because Go may fix the bug one day.
 }
+
+// https://github.com/chen08209/FlClash/blob/6c27f2e2f1ac033e62f09b7b30b2710dd0d13bb4/lib/models/config.dart#L110-L128
+const val DEFAULT_HTTP_BYPASS = """# If you are annoyed with default value, just set a "#"
+# Chinese apps that can't work with http proxy
+*zhihu.com
+*zhimg.com
+*jd.com
+100ime-iat-api.xfyun.cn
+*360buyimg.com
+# local
+localhost
+*.local
+127.*
+10.*
+172.16.*
+172.17.*
+172.18.*
+172.19.*
+172.2*
+172.30.*
+172.31.*
+192.168.*"""
