@@ -185,7 +185,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var trafficDescending by configurationStore.boolean("trafficDescending") { false }
     var trafficSortMode by configurationStore.int("trafficSortMode") { TrafficSortMode.START }
-    var enabledCazilla by configurationStore.boolean(Key.ENABLED_CAZILLA) { false }
+    var certProvider by configurationStore.stringToInt(Key.CERT_PROVIDER)
 
     var speedTestUrl by configurationStore.string("speedTestUrl") { SPEED_TEST_URL }
     var speedTestTimeout by configurationStore.int("speedTestTimeout") { 20000 }

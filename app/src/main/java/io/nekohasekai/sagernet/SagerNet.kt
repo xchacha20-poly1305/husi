@@ -28,6 +28,8 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.systemCertificates
+import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.utils.CrashHandler
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -35,6 +37,7 @@ import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
+import libcore.StringIterator
 import moe.matsuri.nb4a.utils.JavaUtil
 import java.io.File
 import androidx.work.Configuration as WorkConfiguration
@@ -80,7 +83,17 @@ class SagerNet : Application(),
             DataStore.rulesProvider == 0,
             isExpert,
         )
-        Libcore.updateRootCACerts(DataStore.enabledCazilla)
+
+        var enableCazilla = false
+        var certList: StringIterator? = null
+        when (DataStore.certProvider) {
+            CertProvider.SYSTEM -> {}
+            CertProvider.MOZILLA -> enableCazilla = true
+            CertProvider.SYSTEM_AND_USER -> certList = systemCertificates.let {
+                it.toStringIterator(it.size)
+            }
+        }
+        Libcore.updateRootCACerts(enableCazilla, certList)
 
         if (isMainProcess) {
             Theme.apply(this)

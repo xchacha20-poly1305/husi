@@ -218,6 +218,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         Key.CONNECTION_TEST_URL, Key.APP_TLS_VERSION,
                         Key.SHOW_BOTTOM_BAR -> Unit
 
+                        Key.CERT_PROVIDER -> preference.onPreferenceChangeListener = restartListener
+
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }

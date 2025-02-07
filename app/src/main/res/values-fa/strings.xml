@@ -479,7 +479,6 @@
     <string name="enable_brutal">کنترل‌کننده ترافیک شدید TCP فعال شد</string>
     <string name="scan_vpn_app_introduce">بررسی کردن نصب شدن VPN و نوع آن روی دستگاه.</string>
     <string name="vpn_core_path">مسیر شناسایی شده</string>
-    <string name="cazilla_long">ممکن است بتواند از حمله افرادی که می توانند CA را کنترل کنند جلوگیری کند و می تواند به دستگاه قدیمی اجازه دهد از گواهی جدید استفاده کند.</string>
     <string name="action_camera_switch">عوض کردن دوربین</string>
     <string name="location_permission_title">اجازه دادن موقعیت مکانی</string>
     <string name="location_permission_description">قوانین route شما شامل قوانین مسیریابی Wi-Fi SSID و Wi-Fi BSSID می باشد. برای اینکه کار کنند، husi مجوز موقعیت یابی را در پس زمینه میخواهد تا اطلاعاتی درباره شبکه ی وای فای بدست آورد. این اطلاعات فقط برای اهداف مسیریابی استفاده خواهد شد.</string>
@@ -490,7 +489,6 @@
     <string name="http_upgrade_host">میزبان HTTPUpgrade</string>
     <string name="http_upgrade_path">مسیر HTTPUpgrade</string>
     <string name="vpn_golang_version">نسخه زبان Go</string>
-    <string name="cazilla">استفاده از Mozilla CA Certificate Program</string>
     <string name="log_level_help">برای تنظیم اندازه بافر ترجیح را طولانی فشار دهید.</string>
     <string name="tls_camouflage_settings">تنظیمات استتار TLS</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>

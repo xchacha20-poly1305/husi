@@ -543,4 +543,10 @@
         <item>@string/fallback</item>
     </string-array>
 
+    <string-array name="cert_provider">
+        <item>@string/follow_system</item>
+        <item>@string/mozilla</item>
+        <item>@string/system_and_user</item>
+    </string-array>
+
 </resources>

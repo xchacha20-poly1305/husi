@@ -493,8 +493,6 @@
     <string name="vpn_app_type_other">其他</string>
     <string name="vpn_core_type_unknown">未知</string>
     <string name="assets_update">更新 geo 资源</string>
-    <string name="cazilla">使用 Mozilla 证书 CA 机构</string>
-    <string name="cazilla_long">可能能防止能操纵 CA 机构的力量攻击。也可以让旧的设备得以使用新的证书。</string>
     <string name="sekai">世界</string>
     <string name="test_timeout">测试超时 (ms)</string>
     <string name="mux_preference">多路复用设置</string>
@@ -583,4 +581,6 @@
     <string name="hybrid">混连</string>
     <string name="fallback">回退</string>
     <string name="listen_port">监听端口</string>
+    <string name="certificate_authority">数字证书认证机构</string>
+    <string name="system_and_user">系统和用户</string>
 </resources>
