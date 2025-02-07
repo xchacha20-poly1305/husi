@@ -15,6 +15,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
@@ -81,6 +82,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var ruleProvider: SimpleMenuPreference
         lateinit var customRuleProvider: EditTextPreference
 
+        lateinit var appendHttpProxy: SwitchPreference
+        lateinit var httpProxyBypass: EditTextPreference
 
         preferenceScreen.forEach { preferenceCategory ->
             preferenceCategory as PreferenceCategory
@@ -204,6 +207,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.onPreferenceChangeListener = reloadListener
                         }
 
+                        Key.APPEND_HTTP_PROXY -> appendHttpProxy = preference as SwitchPreference
+                        Key.HTTP_PROXY_BYPASS -> httpProxyBypass = preference as EditTextPreference
+
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
@@ -317,6 +323,26 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         ruleProvider.setOnPreferenceChangeListener { _, newValue ->
             customRuleProvider.isVisible = (newValue as String) == RuleProvider.CUSTOM.toString()
+            true
+        }
+
+        httpProxyBypass.apply {
+            isEnabled = appendHttpProxy.isChecked
+            onPreferenceChangeListener = reloadListener
+
+            // I Don't want to set a long default value in xml,
+            // but set default value here can't show default value in editor.
+            // If you don't want to set bypass, just set a "#".
+            setOnBindEditTextListener {
+                val txt = it.text
+                if (txt.isNullOrBlank()) {
+                    it.setText(DEFAULT_HTTP_BYPASS)
+                }
+            }
+        }
+        appendHttpProxy.setOnPreferenceChangeListener { _, newValue ->
+            httpProxyBypass.isEnabled = newValue as Boolean
+            needReload()
             true
         }
 

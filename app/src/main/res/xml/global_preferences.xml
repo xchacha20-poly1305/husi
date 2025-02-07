@@ -103,7 +103,7 @@
             app:summary="@string/metered_summary"
             app:title="@string/metered" />
         <moe.matsuri.nb4a.ui.LongClickListPreference
-            app:defaultValue="0"
+            app:defaultValue="2"
             app:entries="@array/log_level"
             app:entryValues="@array/int_array_7"
             app:icon="@drawable/ic_baseline_bug_report_24"
@@ -285,6 +285,10 @@
             app:key="appendHttpProxy"
             app:summary="@string/append_http_proxy_sum"
             app:title="@string/append_http_proxy" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_domain_24"
+            app:key="httpProxyBypass"
+            app:title="@string/http_proxy_bypass" />
         <SwitchPreference
             app:icon="@drawable/ic_baseline_nat_24"
             app:key="allowAccess"
