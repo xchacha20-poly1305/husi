@@ -126,17 +126,22 @@
 
                 <data android:scheme="husi" />
                 <data android:scheme="ss" />
-                <data android:scheme="ssr" />
                 <data android:scheme="socks" />
                 <data android:scheme="socks4" />
-                <data android:scheme="socksa" />
+                <data android:scheme="socks4a" />
                 <data android:scheme="sock5" />
                 <data android:scheme="vmess" />
+                <data android:scheme="vless" />
                 <data android:scheme="trojan" />
                 <data android:scheme="trojan-go" />
                 <data android:scheme="naive+https" />
                 <data android:scheme="naive+quic" />
                 <data android:scheme="hysteria" />
+                <data android:scheme="hysteria2" />
+                <data android:scheme="hy2" />
+                <data android:scheme="tuic" />
+                <data android:scheme="juicity" />
+                <data android:scheme="mieru" />
 
             </intent-filter>
 
