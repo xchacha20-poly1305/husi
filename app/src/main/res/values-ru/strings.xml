@@ -207,7 +207,7 @@
     <string name="auto">Авто</string>
     <string name="disable">Отключить</string>
     <string name="enable">Включить</string>
-    <string name="follow_system">Использовать системную тему</string>
+    <string name="follow_system">Система</string>
     <string name="night_mode">Ночной режим</string>
     <string name="lines">%d строк</string>
     <string name="route_warn">Перед добавлением собственных правил убедитесь, что вы прочитали
@@ -410,8 +410,8 @@
     <string name="hysteria_stream_receive_window">Окно приема потока QUIC</string>
     <string name="menu_traffic">Трафик</string>
     <string name="no_statistics">Статистики пока нет</string>
-    <string name="clear_logcat">Очистить Logcat</string>
-    <string name="menu_log">Логи</string>
+    <string name="clear_logcat">Очистить журнал</string>
+    <string name="menu_log">Журнал</string>
     <string name="menu_tools">Инструменты</string>
     <string name="translate_platform">Платформа локализации</string>
     <string name="ssh_private_key_passphrase">Парольная фраза закрытого ключа</string>
@@ -589,7 +589,7 @@
     <string name="close">Закрыть</string>
     <string name="client_type">Тип клиента</string>
     <string name="custom_rule_provider">Пользовательский поставщик ресурсов правил</string>
-    <string name="pin_log">Закрепить лог</string>
+    <string name="pin_log">Закрепить журнал</string>
     <string name="interrupt_selector">(Selector) Прервать все соединения при смене конфигурации</string>
     <string name="padding">Отступ</string>
     <string name="done">Готово</string>
@@ -616,4 +616,9 @@
     <string name="network_interface_preference_detail">Включение набора с использованием нескольких сетевых интерфейсов</string>
     <string name="network_interface_preference">Настройки сетевого интерфейса</string>
     <string name="network_interface_strategy">Стратегия сетевого интерфейса</string>
+    <string name="network_expensive">Платная сеть</string>
+    <string name="listen_port">Прослушиваемый порт</string>
+    <string name="certificate_authority">Центр сертификации</string>
+    <string name="system_and_user">Система и Пользователь</string>
+    <string name="http_proxy_bypass">Список обхода HTTP-прокси</string>
 </resources>
