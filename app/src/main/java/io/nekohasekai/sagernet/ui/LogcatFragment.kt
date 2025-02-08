@@ -25,13 +25,18 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.closeQuietly
+import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.RandomAccessFile
-import java.util.LinkedList
 import kotlin.coroutines.cancellation.CancellationException
 
 class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener {
+
+    companion object {
+        private const val SPLIT_FLAG_LENGTH = Libcore.LogSplitFlag.length
+    }
 
     lateinit var binding: LayoutLogcatBinding
     private lateinit var logAdapter: LogAdapter
@@ -54,13 +59,26 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         toolbar.inflateMenu(R.menu.logcat_menu)
         toolbar.setOnMenuItemClickListener(this)
-
         binding = LayoutLogcatBinding.bind(view)
         binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
-        binding.logView.adapter =
-            LogAdapter(LinkedList(SendLog.logFile.readText().split(Libcore.LogSplitFlag))).also {
-                logAdapter = it
-            }
+
+        logAdapter = LogAdapter(
+            SendLog.logFile
+                .inputStream()
+                .bufferedReader()
+                .use { reader ->
+                    // We just add new item on the tail of list,
+                    // and in many times array list has a better performance than linked list.
+                    val linesList = ArrayList<String>(64)
+                    while (true) {
+                        val line = reader.readLogLine() ?: break
+                        linesList.add(line)
+                    }
+                    linesList
+                }
+        )
+        binding.logView.adapter = logAdapter
+
         lastPosition = SendLog.logFile.length()
         binding.logView.scrollToPosition(logAdapter.itemCount - 1)
 
@@ -122,7 +140,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         super.onDestroyView()
     }
 
-    inner class LogAdapter(val logList: LinkedList<String>) :
+    inner class LogAdapter(val logList: MutableList<String>) :
         RecyclerView.Adapter<LogViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
             return LogViewHolder(
@@ -153,28 +171,56 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     private var lastPosition = 0L
 
     private suspend fun updateLog(file: RandomAccessFile) {
+        val sharedBuffer = ByteArrayOutputStream(256) // Initialize with a reasonable size
+
         try {
             while (true) {
                 if (file.length() <= lastPosition) {
-                    // Waiting for change
+                    // Wait for change
                     fileChange.receive()
                     continue
                 }
 
                 // Read new line and notify change
                 file.seek(lastPosition)
-                val remainingBytes = ByteArray((file.length() - lastPosition).toInt())
-                file.readFully(remainingBytes)
-                val lines = remainingBytes
-                    .decodeToString()
-                    .split(Libcore.LogSplitFlag)
-                    .filterNot { it.isBlank() }
-                if (lines.isNotEmpty()) {
-                    val startPosition = logAdapter.logList.size
-                    logAdapter.logList.addAll(lines)
-                    onMainDispatcher {
-                        logAdapter.notifyItemRangeInserted(startPosition, lines.size)
-                        if (!pinLog) binding.logView.scrollToPosition(logAdapter.itemCount - 1)
+                val currentFileSize = file.length()
+                val bytesToRead = (currentFileSize - lastPosition).toInt()
+
+                sharedBuffer.reset() // Clear buffer before reading new data
+
+                val buffer = ByteArray(
+                    minOf(bytesToRead, 8192)
+                ) // Read in chunks to avoid OOM for very large changes
+                var totalBytesRead = 0
+                while (totalBytesRead < bytesToRead) {
+                    val readLength = minOf(buffer.size, bytesToRead - totalBytesRead)
+                    val bytesRead = file.read(buffer, 0, readLength)
+                    if (bytesRead == -1) break // EOF reached unexpectedly
+                    if (bytesRead > 0) {
+                        sharedBuffer.write(buffer, 0, bytesRead)
+                        totalBytesRead += bytesRead
+                    } else {
+                        break // No bytes read
+                    }
+                }
+
+
+                if (sharedBuffer.size() > 0) {
+                    val lines = sharedBuffer.toString()
+                        .split(Libcore.LogSplitFlag)
+                        .filterNot { it.isBlank() }
+
+                    if (lines.isNotEmpty()) {
+                        val startPosition = logAdapter.logList.size
+                        logAdapter.logList.addAll(lines)
+                        onMainDispatcher {
+                            logAdapter.notifyItemRangeInserted(startPosition, lines.size)
+
+                            // Do not use ktx.scrollTo().
+                            // Because if the page is long, that will move very slow and
+                            // make very strange animation.
+                            if (!pinLog) binding.logView.scrollToPosition(logAdapter.itemCount - 1)
+                        }
                     }
                 }
                 lastPosition = file.filePointer
@@ -185,6 +231,22 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             Logs.w(e)
         } finally {
             file.closeQuietly()
+        }
+    }
+
+    private fun BufferedReader.readLogLine(): String? {
+        val line = StringBuilder()
+        while (true) {
+            val charCode = this.read()
+            if (charCode == -1) { // End of stream
+                return if (line.isNotEmpty()) line.toString() else null
+            }
+            val char = charCode.toChar()
+            line.append(char)
+            if (line.endsWith(Libcore.LogSplitFlag)) {
+                line.setLength(line.length - SPLIT_FLAG_LENGTH) // remove split flag
+                return line.toString()
+            }
         }
     }
 }
