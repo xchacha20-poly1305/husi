@@ -21,15 +21,15 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         DataStore.serverUsername = uuid
         DataStore.serverPassword = token
         DataStore.serverALPN = alpn
-        DataStore.serverCertificates = caText
+        DataStore.serverCertificates = certificates
         DataStore.serverUDPRelayMode = udpRelayMode
         DataStore.serverCongestionController = congestionController
         DataStore.serverDisableSNI = disableSNI
         DataStore.serverSNI = sni
         DataStore.serverReduceRTT = reduceRTT
         DataStore.serverAllowInsecure = allowInsecure
-        DataStore.ech = ech
-        DataStore.echCfg = echCfg
+        DataStore.serverECH = ech
+        DataStore.serverECHConfig = echConfig
     }
 
     override fun TuicBean.serialize() {
@@ -39,15 +39,15 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         uuid = DataStore.serverUsername
         token = DataStore.serverPassword
         alpn = DataStore.serverALPN
-        caText = DataStore.serverCertificates
+        certificates = DataStore.serverCertificates
         udpRelayMode = DataStore.serverUDPRelayMode
         congestionController = DataStore.serverCongestionController
         disableSNI = DataStore.serverDisableSNI
         sni = DataStore.serverSNI
         reduceRTT = DataStore.serverReduceRTT
         allowInsecure = DataStore.serverAllowInsecure
-        ech = DataStore.ech
-        echCfg = DataStore.echCfg
+        ech = DataStore.serverECH
+        echConfig = DataStore.serverECHConfig
     }
 
     override fun PreferenceFragmentCompat.createPreferences(

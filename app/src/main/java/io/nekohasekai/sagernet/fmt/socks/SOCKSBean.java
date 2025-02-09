@@ -27,40 +27,31 @@ public class SOCKSBean extends AbstractBean {
         }
     };
     public Integer protocol;
-    public Boolean sUoT;
+    public Boolean udpOverTcp;
     public String username;
     public String password;
 
     public int protocolVersion() {
-        switch (protocol) {
-            case 0:
-            case 1:
-                return 4;
-            default:
-                return 5;
-        }
+        return switch (protocol) {
+            case 0, 1 -> 4;
+            default -> 5;
+        };
     }
 
     public String protocolName() {
-        switch (protocol) {
-            case 0:
-                return "SOCKS4";
-            case 1:
-                return "SOCKS4A";
-            default:
-                return "SOCKS5";
-        }
+        return switch (protocol) {
+            case 0 -> "SOCKS4";
+            case 1 -> "SOCKS4A";
+            default -> "SOCKS5";
+        };
     }
 
     public String protocolVersionName() {
-        switch (protocol) {
-            case 0:
-                return "4";
-            case 1:
-                return "4a";
-            default:
-                return "5";
-        }
+        return switch (protocol) {
+            case 0 -> "4";
+            case 1 -> "4a";
+            default -> "5";
+        };
     }
 
     @Override
@@ -70,13 +61,18 @@ public class SOCKSBean extends AbstractBean {
     }
 
     @Override
+    public boolean canUdpOverTcp() {
+        return udpOverTcp;
+    }
+
+    @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
 
         if (protocol == null) protocol = PROTOCOL_SOCKS5;
         if (username == null) username = "";
         if (password == null) password = "";
-        if (sUoT == null) sUoT = false;
+        if (udpOverTcp == null) udpOverTcp = false;
     }
 
     @Override
@@ -86,7 +82,7 @@ public class SOCKSBean extends AbstractBean {
         output.writeInt(protocol);
         output.writeString(username);
         output.writeString(password);
-        output.writeBoolean(sUoT);
+        output.writeBoolean(udpOverTcp);
     }
 
     @Override
@@ -96,7 +92,7 @@ public class SOCKSBean extends AbstractBean {
         protocol = input.readInt();
         username = input.readString();
         password = input.readString();
-        sUoT = input.readBoolean();
+        udpOverTcp = input.readBoolean();
     }
 
     @NotNull

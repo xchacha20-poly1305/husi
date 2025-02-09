@@ -83,11 +83,11 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             if (bean.alpn.isNotBlank()) {
                 alpn = bean.alpn.listByLineOrComma()
             }
-            if (bean.caText.isNotBlank()) {
-                certificate = listOf(bean.caText)
+            if (bean.certificates.isNotBlank()) {
+                certificate = listOf(bean.certificates)
             }
             if (bean.ech) {
-                val echList = bean.echCfg.split("\n")
+                val echList = bean.echConfig.split("\n")
                 ech = OutboundECHOptions().apply {
                     enabled = true
                     pq_signature_schemes_enabled = echList.size > 5

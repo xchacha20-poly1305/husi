@@ -21,8 +21,8 @@ import io.nekohasekai.sagernet.fmt.v2ray.VMessBean;
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean;
 import io.nekohasekai.sagernet.ktx.KryosKt;
 import io.nekohasekai.sagernet.ktx.Logs;
-import moe.matsuri.nb4a.proxy.config.ConfigBean;
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean;
+import io.nekohasekai.sagernet.fmt.config.ConfigBean;
+import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
 
 import java.io.ByteArrayInputStream;

@@ -1,90 +1,89 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <EditTextPreference
-            app:icon="@drawable/ic_social_emoji_symbols"
-            app:key="profileName"
-            app:title="@string/profile_name"
-            app:useSimpleSummaryProvider="true"/>
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="profileName"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
 
     <PreferenceCategory app:title="@string/proxy_cat">
 
         <EditTextPreference
-                app:icon="@drawable/ic_hardware_router"
-                app:key="serverAddress"
-                app:title="@string/server_address"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_hardware_router"
+            app:key="serverAddress"
+            app:title="@string/server_address"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-                app:icon="@drawable/ic_maps_directions_boat"
-                app:key="serverPort"
-                app:title="@string/server_port"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_maps_directions_boat"
+            app:key="serverPort"
+            app:title="@string/server_port"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-                app:icon="@drawable/ic_baseline_person_24"
-                app:key="serverUsername"
-                app:title="@string/uuid"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_baseline_person_24"
+            app:key="serverUsername"
+            app:title="@string/uuid"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-                app:dialogLayout="@layout/layout_password_dialog"
-                app:icon="@drawable/ic_settings_password"
-                app:key="serverPassword"
-                app:title="@string/password"/>
+            app:icon="@drawable/ic_settings_password"
+            app:key="serverPassword"
+            app:title="@string/password" />
         <EditTextPreference
-                app:icon="@drawable/ic_baseline_legend_toggle_24"
-                app:key="serverALPN"
-                app:title="@string/alpn"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_baseline_legend_toggle_24"
+            app:key="serverALPN"
+            app:title="@string/alpn"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-                app:icon="@drawable/ic_baseline_vpn_key_24"
-                app:key="serverCertificates"
-                app:title="@string/certificates"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_baseline_vpn_key_24"
+            app:key="serverCertificates"
+            app:title="@string/certificates"
+            app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
-                app:defaultValue="https"
-                app:entries="@array/tuic_udp_relay_mode_value"
-                app:entryValues="@array/tuic_udp_relay_mode_value"
-                app:icon="@drawable/ic_baseline_add_road_24"
-                app:key="serverUDPRelayMode"
-                app:title="@string/tuic_udp_relay_mode"
-                app:useSimpleSummaryProvider="true"/>
+            app:defaultValue="https"
+            app:entries="@array/tuic_udp_relay_mode_value"
+            app:entryValues="@array/tuic_udp_relay_mode_value"
+            app:icon="@drawable/ic_baseline_add_road_24"
+            app:key="serverUDPRelayMode"
+            app:title="@string/tuic_udp_relay_mode"
+            app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
-                app:defaultValue="https"
-                app:entries="@array/tuic_congestion_controller_value"
-                app:entryValues="@array/tuic_congestion_controller_value"
-                app:icon="@drawable/ic_baseline_compare_arrows_24"
-                app:key="serverCongestionController"
-                app:title="@string/tuic_congestion_controller"
-                app:useSimpleSummaryProvider="true"/>
+            app:defaultValue="https"
+            app:entries="@array/tuic_congestion_controller_value"
+            app:entryValues="@array/tuic_congestion_controller_value"
+            app:icon="@drawable/ic_baseline_compare_arrows_24"
+            app:key="serverCongestionController"
+            app:title="@string/tuic_congestion_controller"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreference
-                app:icon="@drawable/ic_baseline_fingerprint_24"
-                app:key="serverDisableSNI"
-                app:title="@string/tuic_disable_sni"/>
+            app:icon="@drawable/ic_baseline_fingerprint_24"
+            app:key="serverDisableSNI"
+            app:title="@string/tuic_disable_sni" />
         <EditTextPreference
-                app:icon="@drawable/ic_action_copyright"
-                app:key="serverSNI"
-                app:title="@string/sni"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_action_copyright"
+            app:key="serverSNI"
+            app:title="@string/sni"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreference
-                app:icon="@drawable/baseline_flight_takeoff_24"
-                app:key="serverReduceRTT"
-                app:title="@string/tuic_reduce_rtt"/>
+            app:icon="@drawable/baseline_flight_takeoff_24"
+            app:key="serverReduceRTT"
+            app:title="@string/tuic_reduce_rtt" />
         <SwitchPreference
-                app:icon="@drawable/ic_notification_enhanced_encryption"
-                app:key="serverAllowInsecure"
-                app:title="@string/allow_insecure"/>
+            app:icon="@drawable/ic_notification_enhanced_encryption"
+            app:key="serverAllowInsecure"
+            app:title="@string/allow_insecure" />
     </PreferenceCategory>
 
     <PreferenceCategory
-            app:key="serverEchCategory"
-            app:title="ECH">
+        app:key="serverEchCategory"
+        app:title="@string/ech">
         <SwitchPreference
-                app:icon="@drawable/ic_baseline_security_24"
-                app:key="ech"
-                app:title="@string/enable"/>
+            app:icon="@drawable/ic_baseline_security_24"
+            app:key="serverECH"
+            app:title="@string/enable" />
         <EditTextPreference
-                app:icon="@drawable/ic_baseline_nfc_24"
-                app:key="echCfg"
-                app:title="@string/ech_config"
-                app:useSimpleSummaryProvider="true"/>
+            app:icon="@drawable/ic_baseline_nfc_24"
+            app:key="serverECHConfig"
+            app:title="@string/ech_config"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
 </PreferenceScreen>

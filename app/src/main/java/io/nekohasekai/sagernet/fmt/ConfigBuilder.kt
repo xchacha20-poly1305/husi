@@ -16,7 +16,10 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.fmt.shadowtls.buildSingBoxOutboundShadowTLSBean
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
+import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.fmt.direct.buildSingBoxOutboundDirectBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -73,9 +76,6 @@ import moe.matsuri.nb4a.checkEmpty
 import moe.matsuri.nb4a.isEndpoint
 import moe.matsuri.nb4a.makeCommonRule
 import moe.matsuri.nb4a.parseRules
-import moe.matsuri.nb4a.proxy.config.ConfigBean
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
-import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
@@ -488,13 +488,8 @@ fun buildConfig(
 
                 // internal & external
                 currentOutbound.apply {
-                    // udp over tcp
-                    try {
-                        val sUoT = bean.javaClass.getField("sUoT").get(bean)
-                        if (sUoT is Boolean && sUoT == true) {
-                            this["udp_over_tcp"] = true
-                        }
-                    } catch (_: Exception) {
+                    if (bean.canUdpOverTcp()) {
+                        this["udp_over_tcp"] = true
                     }
 
                     pastEntity?.requireBean()?.apply {
@@ -503,7 +498,6 @@ fun buildConfig(
                             domainListDNSDirectForce.add("full:$serverAddress")
                         }
                     }
-                    // domain_strategy
                     this["domain_strategy"] = if (forTest) {
                         ""
                     } else {

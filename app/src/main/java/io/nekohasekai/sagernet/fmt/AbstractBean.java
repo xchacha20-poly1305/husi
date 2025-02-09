@@ -1,10 +1,13 @@
 package io.nekohasekai.sagernet.fmt;
 
 import androidx.annotation.NonNull;
+
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+
 import io.nekohasekai.sagernet.ktx.NetsKt;
 import moe.matsuri.nb4a.utils.JavaUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -54,6 +57,10 @@ public abstract class AbstractBean extends Serializable {
 
     public boolean canMapping() {
         return true;
+    }
+
+    public boolean canUdpOverTcp() {
+        return false;
     }
 
     @Override

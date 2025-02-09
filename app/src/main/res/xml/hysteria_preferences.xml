@@ -33,7 +33,6 @@
             app:title="@string/hop_interval"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-            app:dialogLayout="@layout/layout_password_dialog"
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="serverObfs"
             app:title="@string/hysteria_obfs"
@@ -46,7 +45,6 @@
             app:title="@string/hysteria_auth_type"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-            app:dialogLayout="@layout/layout_password_dialog"
             app:icon="@drawable/ic_settings_password"
             app:key="serverPassword"
             app:title="@string/hysteria_auth_payload" />
@@ -96,14 +94,14 @@
 
     <PreferenceCategory
         app:key="serverEchCategory"
-        app:title="ECH">
+        app:title="@string/ech">
         <SwitchPreference
             app:icon="@drawable/ic_baseline_security_24"
-            app:key="ech"
+            app:key="serverECH"
             app:title="@string/enable" />
         <EditTextPreference
             app:icon="@drawable/ic_baseline_nfc_24"
-            app:key="echCfg"
+            app:key="serverECHConfig"
             app:title="@string/ech_config"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>

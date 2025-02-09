@@ -217,20 +217,29 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverMethod by profileCacheStore.string(Key.SERVER_METHOD)
     var overrideAddress by profileCacheStore.string(Key.OVERRIDE_ADDRESS)
     var overridePort by profileCacheStore.stringToInt(Key.OVERRIDE_PORT)
+    var pluginName by profileCacheStore.string(Key.PLUGIN_NAME)
+    var pluginConfig by profileCacheStore.string(Key.PLUGIN_CONFIG)
+    var udpOverTcp by profileCacheStore.boolean(Key.UDP_OVER_TCP)
 
     var sharedStorage by profileCacheStore.string("sharedStorage")
 
     var serverProtocol by profileCacheStore.string(Key.SERVER_PROTOCOL)
     var serverObfs by profileCacheStore.string(Key.SERVER_OBFS)
 
-    var serverNetwork by profileCacheStore.string(Key.SERVER_NETWORK)
+    var serverNetwork by profileCacheStore.string(Key.SERVER_V2RAY_TRANSPORT)
     var serverHost by profileCacheStore.string(Key.SERVER_HOST)
     var serverPath by profileCacheStore.string(Key.SERVER_PATH)
+    var serverWsMaxEarlyData by profileCacheStore.stringToInt(Key.SERVER_WS_MAX_EARLY_DATA)
+    var serverWsEarlyDataHeaderName by profileCacheStore.string(Key.SERVER_WS_EARLY_DATA_HEADER_NAME)
     var serverSNI by profileCacheStore.string(Key.SERVER_SNI)
+    var serverSecurity by profileCacheStore.string(Key.SERVER_SECURITY)
     var serverEncryption by profileCacheStore.string(Key.SERVER_ENCRYPTION)
     var serverALPN by profileCacheStore.string(Key.SERVER_ALPN)
     var serverCertificates by profileCacheStore.string(Key.SERVER_CERTIFICATES)
     var serverPinnedCertificateChain by profileCacheStore.string(Key.SERVER_PINNED_CERTIFICATE_CHAIN)
+    var serverUtlsFingerPrint by profileCacheStore.string(Key.SERVER_UTLS_FINGERPRINT)
+    var serverRealityPublicKey by profileCacheStore.string(Key.SERVER_REALITY_PUBLIC_KEY)
+    var serverRealityShortID by profileCacheStore.string(Key.SERVER_REALITY_SHORT_ID)
     var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU)
     var serverHeaders by profileCacheStore.string(Key.SERVER_HEADERS)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
@@ -248,11 +257,13 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverMuxNumber by profileCacheStore.stringToInt(Key.SERVER_MUX_NUMBER) { 8 }
     var serverMuxPadding by profileCacheStore.boolean(Key.SERVER_MUX_PADDING) { false }
 
-    var authenticatedLength by profileCacheStore.boolean(Key.AUTHENTICATED_LENGTH)
+    var serverUserID by profileCacheStore.string(Key.SERVER_USER_ID)
+    var serverAlterID by profileCacheStore.stringToInt(Key.SERVER_ALTER_ID)
+    var serverPacketEncoding by profileCacheStore.stringToInt(Key.SERVER_PACKET_ENCODING)
+    var serverAuthenticatedLength by profileCacheStore.boolean(Key.SERVER_AUTHENTICATED_LENGTH)
 
-    // ECH
-    var ech by profileCacheStore.boolean(Key.ECH)
-    var echCfg by profileCacheStore.string(Key.ECH_CFG)
+    var serverECH by profileCacheStore.boolean(Key.SERVER_ECH)
+    var serverECHConfig by profileCacheStore.string(Key.SERVER_ECH_CONFIG)
 
     var serverAuthType by profileCacheStore.stringToInt(Key.SERVER_AUTH_TYPE)
     var serverStreamReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_STREAM_RECEIVE_WINDOW)

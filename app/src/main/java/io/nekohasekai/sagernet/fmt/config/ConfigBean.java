@@ -1,4 +1,4 @@
-package moe.matsuri.nb4a.proxy.config;
+package io.nekohasekai.sagernet.fmt.config;
 
 import androidx.annotation.NonNull;
 
@@ -11,6 +11,9 @@ import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.internal.InternalBean;
 import moe.matsuri.nb4a.utils.JavaUtil;
 
+/**
+ * Custom config
+ */
 public class ConfigBean extends InternalBean {
 
     public static final Creator<ConfigBean> CREATOR = new CREATOR<ConfigBean>() {

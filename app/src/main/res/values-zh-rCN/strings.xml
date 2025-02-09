@@ -584,4 +584,5 @@
     <string name="certificate_authority">数字证书认证机构</string>
     <string name="system_and_user">系统和用户</string>
     <string name="http_proxy_bypass">HTTP 代理绕过列表</string>
+    <string name="v2ray_transport">V2Ray 传输层</string>
 </resources>

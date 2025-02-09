@@ -16,7 +16,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
-import moe.matsuri.nb4a.proxy.config.ConfigBean
+import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 
 fun buildSingBoxOutbound(bean: AbstractBean): String {
