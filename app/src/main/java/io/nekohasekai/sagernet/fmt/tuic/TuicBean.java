@@ -24,7 +24,7 @@ public class TuicBean extends AbstractBean {
         }
     };
     public String token;
-    public String caText;
+    public String certificates;
     public String udpRelayMode;
     public String congestionController;
     public String alpn;
@@ -41,13 +41,13 @@ public class TuicBean extends AbstractBean {
 
     // ECH
     public Boolean ech;
-    public String echCfg;
+    public String echConfig;
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
         if (token == null) token = "";
-        if (caText == null) caText = "";
+        if (certificates == null) certificates = "";
         if (udpRelayMode == null) udpRelayMode = "native";
         if (congestionController == null) congestionController = "cubic";
         if (alpn == null) alpn = "";
@@ -59,7 +59,7 @@ public class TuicBean extends AbstractBean {
         if (customJSON == null) customJSON = "";
         if (uuid == null) uuid = "";
         if (ech == null) ech = false;
-        if (echCfg == null) echCfg = "";
+        if (echConfig == null) echConfig = "";
     }
 
     @Override
@@ -67,7 +67,7 @@ public class TuicBean extends AbstractBean {
         output.writeInt(0);
         super.serialize(output);
         output.writeString(token);
-        output.writeString(caText);
+        output.writeString(certificates);
         output.writeString(udpRelayMode);
         output.writeString(congestionController);
         output.writeString(alpn);
@@ -79,7 +79,7 @@ public class TuicBean extends AbstractBean {
         output.writeString(customJSON);
         output.writeString(uuid);
         output.writeBoolean(ech);
-        output.writeString(echCfg);
+        output.writeString(echConfig);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class TuicBean extends AbstractBean {
         int version = input.readInt();
         super.deserialize(input);
         token = input.readString();
-        caText = input.readString();
+        certificates = input.readString();
         udpRelayMode = input.readString();
         congestionController = input.readString();
         alpn = input.readString();
@@ -100,7 +100,7 @@ public class TuicBean extends AbstractBean {
         uuid = input.readString();
 
         ech = input.readBoolean();
-        echCfg = input.readString();
+        echConfig = input.readString();
     }
 
     @Override

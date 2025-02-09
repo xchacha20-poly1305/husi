@@ -11,7 +11,7 @@ object Protocols {
     // Mux
 
     fun isProfileNeedMux(bean: StandardV2RayBean): Boolean {
-        return when (bean.type) {
+        return when (bean.v2rayTransport) {
             "tcp", "ws" -> true
             "http" -> !bean.isTLS()
             else -> false

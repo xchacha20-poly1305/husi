@@ -27,14 +27,14 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverPassword = authPayload
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
-        DataStore.serverCertificates = caText
+        DataStore.serverCertificates = certificates
         DataStore.serverAllowInsecure = allowInsecure
         DataStore.serverStreamReceiveWindow = streamReceiveWindow
         DataStore.serverConnectionReceiveWindow = connectionReceiveWindow
         DataStore.serverDisableMtuDiscovery = disableMtuDiscovery
         DataStore.serverHopInterval = hopInterval
-        DataStore.ech = ech
-        DataStore.echCfg = echCfg
+        DataStore.serverECH = ech
+        DataStore.serverECHConfig = echConfig
     }
 
     override fun HysteriaBean.serialize() {
@@ -48,15 +48,19 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         protocol = DataStore.serverProtocolInt
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
-        caText = DataStore.serverCertificates
+        certificates = DataStore.serverCertificates
         allowInsecure = DataStore.serverAllowInsecure
         streamReceiveWindow = DataStore.serverStreamReceiveWindow
         connectionReceiveWindow = DataStore.serverConnectionReceiveWindow
         disableMtuDiscovery = DataStore.serverDisableMtuDiscovery
         hopInterval = DataStore.serverHopInterval
-        ech = DataStore.ech
-        echCfg = DataStore.echCfg
+        ech = DataStore.serverECH
+        echConfig = DataStore.serverECHConfig
     }
+
+    lateinit var serverStreamReceiveWindow: EditTextPreference
+    lateinit var serverConnectionReceiveWindow: EditTextPreference
+    lateinit var serverDisableMTUDiscovery: SwitchPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -75,35 +79,32 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         val protocol = findPreference<SimpleMenuPreference>(Key.SERVER_PROTOCOL)!!
         val alpn = findPreference<EditTextPreference>(Key.SERVER_ALPN)!!
 
+        serverStreamReceiveWindow = findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!
+        serverConnectionReceiveWindow = findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!
+        serverDisableMTUDiscovery = findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!
         fun updateVersion(v: Int) {
             if (v == 2) {
                 authPayload.isVisible = true
-                //
+
                 authType.isVisible = false
                 protocol.isVisible = false
                 alpn.isVisible = false
-                //
-                findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!.isVisible =
-                    false
-                findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!.isVisible =
-                    false
-                findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
-                    false
-                //
+
+                serverStreamReceiveWindow.isVisible = false
+                serverConnectionReceiveWindow.isVisible = false
+                serverDisableMTUDiscovery.isVisible = false
+
                 authPayload.title = resources.getString(R.string.password)
             } else {
                 authType.isVisible = true
                 authPayload.isVisible = true
                 protocol.isVisible = true
                 alpn.isVisible = true
-                //
-                findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!.isVisible =
-                    true
-                findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!.isVisible =
-                    true
-                findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
-                    true
-                //
+
+                serverStreamReceiveWindow.isVisible = true
+                serverConnectionReceiveWindow.isVisible = true
+                serverDisableMTUDiscovery.isVisible = true
+
                 authPayload.title = resources.getString(R.string.hysteria_auth_payload)
             }
         }

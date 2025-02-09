@@ -27,7 +27,12 @@ public class ShadowsocksBean extends AbstractBean {
     public String method;
     public String password;
     public String plugin;
-    public Boolean sUoT;
+    public Boolean udpOverTcp;
+
+    @Override
+    public boolean canUdpOverTcp() {
+        return udpOverTcp;
+    }
 
     @Override
     public void initializeDefaultValues() {
@@ -37,7 +42,7 @@ public class ShadowsocksBean extends AbstractBean {
         if (method == null) method = "";
         if (password == null) password = "";
         if (plugin == null) plugin = "";
-        if (sUoT == null) sUoT = false;
+        if (udpOverTcp == null) udpOverTcp = false;
     }
 
     @Override
@@ -47,7 +52,7 @@ public class ShadowsocksBean extends AbstractBean {
         output.writeString(method);
         output.writeString(password);
         output.writeString(plugin);
-        output.writeBoolean(sUoT);
+        output.writeBoolean(udpOverTcp);
     }
 
     @Override
@@ -57,7 +62,7 @@ public class ShadowsocksBean extends AbstractBean {
         method = input.readString();
         password = input.readString();
         plugin = input.readString();
-        sUoT = input.readBoolean();
+        udpOverTcp = input.readBoolean();
         if (version < 2) {
             int ignored = input.readInt();
             return;
@@ -68,7 +73,7 @@ public class ShadowsocksBean extends AbstractBean {
     public void applyFeatureSettings(AbstractBean other) {
         if (!(other instanceof ShadowsocksBean)) return;
         ShadowsocksBean bean = ((ShadowsocksBean) other);
-        bean.sUoT = sUoT;
+        bean.udpOverTcp = udpOverTcp;
     }
 
     @NotNull

@@ -8,10 +8,11 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
+import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import rikka.preference.SimpleMenuPreference
 
 class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
-    override fun createEntity() = SOCKSBean()
+    override fun createEntity() = SOCKSBean().applyDefaultValues()
 
     override fun SOCKSBean.init() {
         DataStore.profileName = name
@@ -22,7 +23,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         DataStore.serverUsername = username
         DataStore.serverPassword = password
 
-        DataStore.profileCacheStore.putBoolean("sUoT", sUoT)
+        DataStore.udpOverTcp = udpOverTcp
     }
 
     override fun SOCKSBean.serialize() {
@@ -34,7 +35,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         username = DataStore.serverUsername
         password = DataStore.serverPassword
 
-        sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
+        udpOverTcp = DataStore.udpOverTcp
     }
 
     override fun PreferenceFragmentCompat.createPreferences(

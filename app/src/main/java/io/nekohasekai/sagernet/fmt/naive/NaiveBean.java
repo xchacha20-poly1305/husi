@@ -31,7 +31,7 @@ public class NaiveBean extends AbstractBean {
     public String sni;
     public Integer insecureConcurrency;
     // sing-box socks
-    public Boolean sUoT;
+    public Boolean udpOverTcp;
     // https://github.com/klzgrad/naiveproxy/blob/76e7bbed0fdd349fb8a8890cd082e90072dab734/USAGE.txt#L110
     // https://tldr.fail/
     public Boolean noPostQuantum;
@@ -46,7 +46,7 @@ public class NaiveBean extends AbstractBean {
         if (extraHeaders == null) extraHeaders = "";
         if (sni == null) sni = "";
         if (insecureConcurrency == null) insecureConcurrency = 0;
-        if (sUoT == null) sUoT = false;
+        if (udpOverTcp == null) udpOverTcp = false;
         if (noPostQuantum == null) noPostQuantum = false;
     }
 
@@ -60,7 +60,7 @@ public class NaiveBean extends AbstractBean {
         output.writeString(extraHeaders);
         output.writeString(sni);
         output.writeInt(insecureConcurrency);
-        output.writeBoolean(sUoT);
+        output.writeBoolean(udpOverTcp);
         output.writeBoolean(noPostQuantum);
     }
 
@@ -79,7 +79,7 @@ public class NaiveBean extends AbstractBean {
         extraHeaders = input.readString();
         sni = input.readString();
         insecureConcurrency = input.readInt();
-        sUoT = input.readBoolean();
+        udpOverTcp = input.readBoolean();
         if (version < 1) return;
         noPostQuantum = input.readBoolean();
     }

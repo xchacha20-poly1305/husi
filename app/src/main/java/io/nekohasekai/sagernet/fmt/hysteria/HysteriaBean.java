@@ -40,11 +40,11 @@ public class HysteriaBean extends AbstractBean {
     // Use serverPorts instead of serverPort
     public String serverPorts;
     public Boolean ech;
-    public String echCfg;
+    public String echConfig;
     public String authPayload;
     public String obfuscation;
     public String sni;
-    public String caText;
+    public String certificates;
 
     // HY1
     public Boolean allowInsecure;
@@ -73,7 +73,7 @@ public class HysteriaBean extends AbstractBean {
         if (obfuscation == null) obfuscation = "";
         if (sni == null) sni = "";
         if (alpn == null) alpn = "";
-        if (caText == null) caText = "";
+        if (certificates == null) certificates = "";
         if (allowInsecure == null) allowInsecure = false;
 
 
@@ -84,7 +84,7 @@ public class HysteriaBean extends AbstractBean {
         if (serverPorts == null) serverPorts = "443";
 
         if (ech == null) ech = false;
-        if (echCfg == null) echCfg = "";
+        if (echConfig == null) echConfig = "";
     }
 
     @Override
@@ -103,7 +103,7 @@ public class HysteriaBean extends AbstractBean {
 
         output.writeBoolean(allowInsecure);
 
-        output.writeString(caText);
+        output.writeString(certificates);
         output.writeInt(streamReceiveWindow);
         output.writeInt(connectionReceiveWindow);
         output.writeBoolean(disableMtuDiscovery);
@@ -111,7 +111,7 @@ public class HysteriaBean extends AbstractBean {
         output.writeString(serverPorts);
 
         output.writeBoolean(ech);
-        output.writeString(echCfg);
+        output.writeString(echConfig);
 
     }
 
@@ -128,7 +128,7 @@ public class HysteriaBean extends AbstractBean {
         sni = input.readString();
         alpn = input.readString();
         allowInsecure = input.readBoolean();
-        caText = input.readString();
+        certificates = input.readString();
         streamReceiveWindow = input.readInt();
         connectionReceiveWindow = input.readInt();
         disableMtuDiscovery = input.readBoolean();
@@ -141,7 +141,7 @@ public class HysteriaBean extends AbstractBean {
 
 
         ech = input.readBoolean();
-        echCfg = input.readString();
+        echConfig = input.readString();
     }
 
     @Override
@@ -152,7 +152,7 @@ public class HysteriaBean extends AbstractBean {
         bean.disableMtuDiscovery = disableMtuDiscovery;
         bean.hopInterval = hopInterval;
         bean.ech = ech;
-        bean.echCfg = echCfg;
+        bean.echConfig = echConfig;
     }
 
     @Override

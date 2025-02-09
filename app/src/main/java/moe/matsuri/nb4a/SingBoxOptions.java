@@ -29,6 +29,7 @@ public class SingBoxOptions {
     public static final String TYPE_VMESS = "vmess";
     public static final String TYPE_VLESS = "vless";
     public static final String TYPE_WIREGUARD = "wireguard";
+    public static final String TYPE_SHADOWTLS = "shadowtls";
 
     public static final String TYPE_LOGICAL = "logical";
 

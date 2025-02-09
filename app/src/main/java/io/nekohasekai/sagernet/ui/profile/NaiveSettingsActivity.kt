@@ -23,7 +23,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         DataStore.serverSNI = sni
         DataStore.serverHeaders = extraHeaders
         DataStore.serverInsecureConcurrency = insecureConcurrency
-        DataStore.profileCacheStore.putBoolean("sUoT", sUoT)
+        DataStore.udpOverTcp = udpOverTcp
         DataStore.serverNoPostQuantum = noPostQuantum
     }
 
@@ -37,7 +37,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         sni = DataStore.serverSNI
         extraHeaders = DataStore.serverHeaders.replace("\r\n", "\n")
         insecureConcurrency = DataStore.serverInsecureConcurrency
-        sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
+        udpOverTcp = DataStore.udpOverTcp
         noPostQuantum = DataStore.serverNoPostQuantum
     }
 

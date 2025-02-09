@@ -60,7 +60,7 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
         bean.name = url.fragment
 
         var protocol = url.username
-        bean.type = protocol
+        bean.v2rayTransport = protocol
         bean.alterId = url.password.substringAfterLast('-').toInt()
         bean.uuid = url.password.substringBeforeLast('-')
 
@@ -141,9 +141,9 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         uuid = url.username
     }
 
-    type = url.queryParameterNotBlank("type")
-    if (type.isNullOrBlank()) type = "tcp"
-    if (type == "h2") type = "http"
+    v2rayTransport = url.queryParameterNotBlank("type")
+    if (v2rayTransport.isNullOrBlank()) v2rayTransport = "tcp"
+    if (v2rayTransport == "h2") v2rayTransport = "http"
 
     security = url.queryParameterNotBlank("security")
     if (security.isNullOrBlank()) {
@@ -166,20 +166,20 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
                 certificates = it
             }
             url.queryParameterNotBlank("pbk").let {
-                realityPubKey = it
+                realityPublicKey = it
             }
             url.queryParameterNotBlank("sid").let {
-                realityShortId = it
+                realityShortID = it
             }
         }
     }
 
-    when (type) {
+    when (v2rayTransport) {
         "tcp" -> {
             // v2rayNG
             if (url.queryParameterNotBlank("headerType") == "http") {
                 url.queryParameterNotBlank("host").let {
-                    type = "http"
+                    v2rayTransport = "http"
                     host = it
                 }
             }
@@ -282,7 +282,7 @@ fun parseV2RayN(link: String): VMessBean {
     bean.encryption = vmessQRCode.scy
     bean.uuid = vmessQRCode.id
     bean.alterId = vmessQRCode.aid.toIntOrNull() ?: 0
-    bean.type = vmessQRCode.net
+    bean.v2rayTransport = vmessQRCode.net
     bean.host = vmessQRCode.host
     bean.path = vmessQRCode.path
     val headerType = vmessQRCode.type
@@ -297,10 +297,10 @@ fun parseV2RayN(link: String): VMessBean {
         }
     }
 
-    when (bean.type) {
+    when (bean.v2rayTransport) {
         "tcp" -> {
             if (headerType == "http") {
-                bean.type = "http"
+                bean.v2rayTransport = "http"
             }
         }
     }
@@ -333,7 +333,7 @@ private fun parseCsvVMess(csv: String): VMessBean {
         when {
             it == "over-tls=true" -> bean.security = "tls"
             it.startsWith("tls-host=") -> bean.host = it.substringAfter("=")
-            it.startsWith("obfs=") -> bean.type = it.substringAfter("=")
+            it.startsWith("obfs=") -> bean.v2rayTransport = it.substringAfter("=")
             it.startsWith("obfs-path=") || it.contains("Host:") -> {
                 runCatching {
                     bean.path = it.substringAfter("obfs-path=\"").substringBefore("\"obfs")
@@ -371,7 +371,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
         }
         host = serverAddress
         ports = serverPort.toString()
-        addQueryParameter("type", type)
+        addQueryParameter("type", v2rayTransport)
     }
 
     if (!isTrojan) {
@@ -391,7 +391,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
         }
     }
 
-    when (type) {
+    when (v2rayTransport) {
         "tcp" -> {}
         "ws", "http", "httpupgrade" -> {
             if (host.isNotBlank()) {
@@ -400,14 +400,14 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
             if (path.isNotBlank()) {
                 builder.addQueryParameter("path", path)
             }
-            if (type == "ws") {
+            if (v2rayTransport == "ws") {
                 if (wsMaxEarlyData > 0) {
                     builder.addQueryParameter("ed", "$wsMaxEarlyData")
                     if (earlyDataHeaderName.isNotBlank()) {
                         builder.addQueryParameter("eh", earlyDataHeaderName)
                     }
                 }
-            } else if (type == "http" && !isTLS()) {
+            } else if (v2rayTransport == "http" && !isTLS()) {
                 builder.setQueryParameter("type", "tcp")
                 builder.addQueryParameter("headerType", "http")
             }
@@ -439,10 +439,10 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                 if (utlsFingerprint.isNotBlank()) {
                     builder.addQueryParameter("fp", utlsFingerprint)
                 }
-                if (realityPubKey.isNotBlank()) {
+                if (realityPublicKey.isNotBlank()) {
                     builder.setQueryParameter("security", "reality")
-                    builder.addQueryParameter("pbk", realityPubKey)
-                    builder.addQueryParameter("sid", realityShortId)
+                    builder.addQueryParameter("pbk", realityPublicKey)
+                    builder.addQueryParameter("sid", realityShortID)
                 }
             }
         }
@@ -456,7 +456,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
 }
 
 fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportOptions? {
-    when (bean.type) {
+    when (bean.v2rayTransport) {
         "tcp" -> {
             return null
         }
@@ -539,11 +539,11 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
         if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
         var fp = bean.utlsFingerprint
-        if (bean.realityPubKey.isNotBlank()) {
+        if (bean.realityPublicKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
                 enabled = true
-                public_key = bean.realityPubKey
-                short_id = bean.realityShortId
+                public_key = bean.realityPublicKey
+                short_id = bean.realityShortID
             }
             if (fp.isNullOrBlank()) fp = "chrome"
         }
@@ -554,7 +554,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
             }
         }
         if (bean.ech) {
-            val echList = bean.echCfg.split("\n")
+            val echList = bean.echConfig.split("\n")
             ech = OutboundECHOptions().apply {
                 enabled = true
                 pq_signature_schemes_enabled = echList.size > 5

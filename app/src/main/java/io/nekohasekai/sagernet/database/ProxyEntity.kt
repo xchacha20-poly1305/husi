@@ -18,6 +18,7 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.buildSingBoxOutbound
+import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.http.toUri
@@ -66,10 +67,9 @@ import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import moe.matsuri.nb4a.Protocols
-import moe.matsuri.nb4a.proxy.config.ConfigBean
-import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
+import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 
 @Entity(
     tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
@@ -365,7 +365,7 @@ data class ProxyEntity(
             TYPE_TROJAN -> Protocols.isProfileNeedMux(trojanBean!!) && trojanBean!!.serverMux
 
             TYPE_SS -> ssBean!!.run {
-                !sUoT && serverMux
+                !udpOverTcp && serverMux
             }
 
             else -> false

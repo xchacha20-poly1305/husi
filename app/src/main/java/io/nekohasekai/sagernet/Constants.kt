@@ -114,20 +114,29 @@ object Key {
     const val SERVER_PASSWORD = "serverPassword"
     const val SERVER_METHOD = "serverMethod"
     const val SERVER_PASSWORD1 = "serverPassword1"
+    const val PLUGIN_NAME = "pluginName"
+    const val PLUGIN_CONFIG = "pluginConfig"
+    const val UDP_OVER_TCP = "udpOverTcp"
 
     const val PROTOCOL_VERSION = "protocolVersion"
 
     const val SERVER_PROTOCOL = "serverProtocol"
     const val SERVER_OBFS = "serverObfs"
 
-    const val SERVER_NETWORK = "serverNetwork"
+    const val SERVER_V2RAY_TRANSPORT = "serverV2rayTransport"
     const val SERVER_HOST = "serverHost"
     const val SERVER_PATH = "serverPath"
+    const val SERVER_WS_MAX_EARLY_DATA = "serverWsMaxEarlyData"
+    const val SERVER_WS_EARLY_DATA_HEADER_NAME = "serverWsEarlyDataHeaderName"
+    const val SERVER_SECURITY = "serverSecurity"
     const val SERVER_SNI = "serverSNI"
     const val SERVER_ENCRYPTION = "serverEncryption"
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
     const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"
+    const val SERVER_UTLS_FINGERPRINT = "serverUtlsFingerPrint"
+    const val SERVER_REALITY_PUBLIC_KEY = "serverRealityPublicKey"
+    const val SERVER_REALITY_SHORT_ID = "serverRealityShortID"
     const val SERVER_MTU = "serverMTU"
 
     const val SERVER_MUX = "serverMux"
@@ -137,8 +146,11 @@ object Key {
     const val SERVER_MUX_NUMBER = "serverMuxNumber"
     const val SERVER_MUX_PADDING = "serverMuxPadding"
 
+    const val SERVER_USER_ID = "serverUserID"
+    const val SERVER_ALTER_ID = "serverAlterID"
+    const val SERVER_PACKET_ENCODING = "serverPacketEncoding"
     const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
-    const val AUTHENTICATED_LENGTH = "authenticatedLength"
+    const val SERVER_AUTHENTICATED_LENGTH = "serverAuthenticatedLength"
 
     const val SERVER_CONFIG = "serverConfig"
     const val SERVER_CUSTOM = "serverCustom"
@@ -152,8 +164,8 @@ object Key {
     const val SERVER_HEADERS = "serverHeaders"
     const val SERVER_ALLOW_INSECURE = "serverAllowInsecure"
 
-    const val ECH = "ech"
-    const val ECH_CFG = "echCfg"
+    const val SERVER_ECH = "serverECH"
+    const val SERVER_ECH_CONFIG = "serverECHConfig"
 
     const val SERVER_AUTH_TYPE = "serverAuthType"
     const val SERVER_STREAM_RECEIVE_WINDOW = "serverStreamReceiveWindow"

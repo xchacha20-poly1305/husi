@@ -9,96 +9,103 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
-import moe.matsuri.nb4a.proxy.PreferenceBinding
-import moe.matsuri.nb4a.proxy.PreferenceBindingManager
-import moe.matsuri.nb4a.proxy.Type
+import rikka.preference.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
     override fun createEntity() = ShadowsocksBean()
 
-    private val pbm = PreferenceBindingManager()
-    private val name = pbm.add(PreferenceBinding(Type.Text, "name"))
-    private val serverAddress = pbm.add(PreferenceBinding(Type.Text, Key.SERVER_ADDRESS))
-    private val serverPort = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_PORT))
-    private val password = pbm.add(PreferenceBinding(Type.Text, "password"))
-    private val method = pbm.add(PreferenceBinding(Type.Text, "method"))
-    private val pluginName =
-        pbm.add(PreferenceBinding(Type.Text, "pluginName").apply { disable = true })
-    private val pluginConfig =
-        pbm.add(PreferenceBinding(Type.Text, "pluginConfig").apply { disable = true })
-
-    private val serverMux = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX))
-    private val serverBrutal = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_BRUTAL))
-    private val serverMuxType = pbm.add(PreferenceBinding(Type.Int, Key.SERVER_MUX_TYPE))
-    private val serverMuxStrategy = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_STRATEGY))
-    private val serverMuxNumber = pbm.add(PreferenceBinding(Type.TextToInt, Key.SERVER_MUX_NUMBER))
-    private val serverMuxPadding = pbm.add(PreferenceBinding(Type.Bool, Key.SERVER_MUX_PADDING))
-    private val sUoT = pbm.add(PreferenceBinding(Type.Bool, "sUoT"))
-
     override fun ShadowsocksBean.init() {
-        pbm.writeToCacheAll(this)
-
-        DataStore.profileCacheStore.putString("pluginName", plugin.substringBefore(";"))
-        DataStore.profileCacheStore.putString("pluginConfig", plugin.substringAfter(";"))
+        DataStore.profileName = name
+        DataStore.serverAddress = serverAddress
+        DataStore.serverPort = serverPort
+        DataStore.serverMethod = method
+        DataStore.serverPassword = password
+        DataStore.serverMux = serverMux
+        DataStore.serverBrutal = serverBrutal
+        DataStore.serverMuxType = serverMuxType
+        DataStore.serverMuxNumber = serverMuxNumber
+        DataStore.serverMuxStrategy = serverMuxStrategy
+        DataStore.serverMuxPadding = serverMuxPadding
+        DataStore.pluginName = plugin.substringBefore(";")
+        DataStore.pluginConfig = plugin.substringAfter(";")
+        DataStore.udpOverTcp = udpOverTcp
     }
 
     override fun ShadowsocksBean.serialize() {
-        pbm.fromCacheAll(this)
+        name = DataStore.profileName
+        serverAddress = DataStore.serverAddress
+        serverPort = DataStore.serverPort
+        method = DataStore.serverMethod
+        password = DataStore.serverPassword
+        serverMux = DataStore.serverMux
+        serverBrutal = DataStore.serverBrutal
+        serverMuxType = DataStore.serverMuxType
+        serverMuxNumber = DataStore.serverMuxNumber
+        serverMuxStrategy = DataStore.serverMuxStrategy
+        serverMuxPadding = DataStore.serverMuxPadding
+        udpOverTcp = DataStore.udpOverTcp
 
-        val pn = pluginName.readStringFromCache()
-        val pc = pluginConfig.readStringFromCache()
-        plugin = if (pn.isNotBlank()) "$pn;$pc" else ""
+        val pluginName = DataStore.pluginName
+        val pluginConfig = DataStore.pluginConfig
+        plugin = if (pluginName.isNotBlank()) {
+            "$pluginName;$pluginConfig"
+        } else {
+            ""
+        }
     }
+
+    private lateinit var serverBrutal: SwitchPreference
+    private lateinit var serverMuxType: SimpleMenuPreference
+    private lateinit var serverMuxNumber: EditTextPreference
+    private lateinit var serverMuxStrategy: SimpleMenuPreference
+    private lateinit var serverMuxPadding: SwitchPreference
+    private lateinit var udpOverTcp: SwitchPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
         rootKey: String?,
     ) {
         addPreferencesFromResource(R.xml.shadowsocks_preferences)
-        pbm.setPreferenceFragment(this)
 
+        serverMuxType = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_TYPE)!!
+        serverMuxStrategy = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_STRATEGY)!!
+        serverMuxPadding = findPreference<SwitchPreference>(Key.SERVER_MUX_PADDING)!!
+        serverMuxNumber = findPreference<EditTextPreference>(Key.SERVER_MUX_NUMBER)!!.also {
+            it.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
+        serverBrutal = findPreference<SwitchPreference>(Key.SERVER_BRUTAL)!!.also {
+            it.setOnPreferenceChangeListener { _, newValue ->
+                serverMuxNumber.isEnabled = !(newValue as Boolean)
+                true
+            }
+        }
+        udpOverTcp = findPreference<SwitchPreference>(Key.UDP_OVER_TCP)!!
         updateMuxState(DataStore.serverMux)
 
-        serverPort.preference.apply {
-            this as EditTextPreference
+        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         }
-        password.preference.apply {
-            this as EditTextPreference
+        findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
             summaryProvider = PasswordSummaryProvider
         }
-        serverMux.preference.apply {
-            this as SwitchPreference
+
+        findPreference<SwitchPreference>(Key.SERVER_MUX)!!.apply {
             setOnPreferenceChangeListener { _, newValue ->
                 updateMuxState(newValue as Boolean)
                 true
             }
         }
-        serverBrutal.preference.apply {
-            this as SwitchPreference
-            setOnPreferenceChangeListener { _, newValue ->
-                serverMuxNumber.preference.isEnabled = !(newValue as Boolean)
-                true
-            }
-        }
-        (serverMuxNumber.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
 
     private fun updateMuxState(enabled: Boolean) {
-        if (enabled) {
-            serverBrutal.preference.isVisible = true
-            serverMuxType.preference.isVisible = true
-            serverMuxStrategy.preference.isVisible = true
-            serverMuxNumber.preference.isVisible = true
-            serverMuxPadding.preference.isVisible = true
-        } else {
-            serverBrutal.preference.isVisible = false
-            serverMuxType.preference.isVisible = false
-            serverMuxStrategy.preference.isVisible = false
-            serverMuxNumber.preference.isVisible = false
-            serverMuxPadding.preference.isVisible = false
-        }
+        serverBrutal.isVisible = enabled
+        serverMuxType.isVisible = enabled
+        serverMuxStrategy.isVisible = enabled
+        serverMuxNumber.isVisible = enabled
+        serverMuxPadding.isVisible = enabled
+
+        udpOverTcp.isEnabled = !enabled
     }
 
 }

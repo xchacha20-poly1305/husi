@@ -1,4 +1,4 @@
-package moe.matsuri.nb4a.proxy.shadowtls;
+package io.nekohasekai.sagernet.fmt.shadowtls;
 
 import androidx.annotation.NonNull;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
@@ -21,7 +21,7 @@ public class ShadowTLSBean extends StandardV2RayBean {
             return new ShadowTLSBean[size];
         }
     };
-    public Integer version;
+    public Integer protocolVersion;
     public String password;
 
     @Override
@@ -29,7 +29,7 @@ public class ShadowTLSBean extends StandardV2RayBean {
         super.initializeDefaultValues();
 
         security = "tls";
-        if (version == null) version = 3;
+        if (protocolVersion == null) protocolVersion = 3;
         if (password == null) password = "";
     }
 
@@ -37,15 +37,15 @@ public class ShadowTLSBean extends StandardV2RayBean {
     public void serialize(ByteBufferOutput output) {
         output.writeInt(0);
         super.serialize(output);
-        output.writeInt(version);
+        output.writeInt(protocolVersion);
         output.writeString(password);
     }
 
     @Override
     public void deserialize(ByteBufferInput input) {
-        int version_ = input.readInt();
+        int version = input.readInt();
         super.deserialize(input);
-        version = input.readInt();
+        protocolVersion = input.readInt();
         password = input.readString();
     }
 

@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Json
@@ -37,7 +38,6 @@ import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
-import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import org.ini4j.Ini
 import org.json.JSONArray
@@ -140,7 +140,7 @@ object RawUpdater : GroupUpdater() {
                                     else -> SOCKSBean.PROTOCOL_SOCKS5
                                 }
 
-                                "udp_over_tcp" -> sUoT = parseUot(opt.value)
+                                "udp_over_tcp" -> udpOverTcp = parseUot(opt.value)
                             }
                         }
                     })
@@ -169,7 +169,7 @@ object RawUpdater : GroupUpdater() {
                                                 "enabled" -> ech =
                                                     echOpt.value.toString().toBoolean()
 
-                                                "config" -> echCfg =
+                                                "config" -> echConfig =
                                                     listable<String>(echOpt.value)?.joinToString("\n")
                                             }
                                         }
@@ -183,10 +183,10 @@ object RawUpdater : GroupUpdater() {
 
                                         "reality" -> for (realityOpt in (tlsOpt.value as Map<String, Any>)) {
                                             when (realityOpt.key) {
-                                                "public_key" -> realityPubKey =
+                                                "public_key" -> realityPublicKey =
                                                     realityOpt.value.toString()
 
-                                                "short_id" -> realityShortId =
+                                                "short_id" -> realityShortID =
                                                     realityOpt.value.toString()
                                             }
                                         }
@@ -205,7 +205,7 @@ object RawUpdater : GroupUpdater() {
                                 "method" -> method = opt.value.toString()
                                 "plugin" -> pluginName = opt.value.toString()
                                 "plugin_opts" -> pluginOpt = opt.value.toString()
-                                "udp_over_tcp" -> sUoT = parseUot(opt.value)
+                                "udp_over_tcp" -> udpOverTcp = parseUot(opt.value)
                             }
                         }
                         if (pluginName.isNotBlank()) plugin = "$pluginName;$pluginOpt"
@@ -245,7 +245,7 @@ object RawUpdater : GroupUpdater() {
 
                                 "transport" -> for (transportOpt in (opt.value as Map<String, Any>)) {
                                     when (transportOpt.key) {
-                                        "type" -> bean.type = transportOpt.value.toString()
+                                        "type" -> bean.v2rayTransport = transportOpt.value.toString()
                                         "host" -> listable<String>(transportOpt.value)?.firstOrNull()
                                         "path", "service_name" -> bean.path =
                                             transportOpt.value.toString()
@@ -279,7 +279,7 @@ object RawUpdater : GroupUpdater() {
                                                 "enabled" -> bean.ech =
                                                     echOpt.value.toString().toBoolean()
 
-                                                "config" -> bean.echCfg =
+                                                "config" -> bean.echConfig =
                                                     listable<String>(tlsOpt.value)
                                                         ?.joinToString("\n")
                                             }
@@ -294,10 +294,10 @@ object RawUpdater : GroupUpdater() {
 
                                         "reality" -> for (realityOpt in (tlsOpt.value as Map<String, Any>)) {
                                             when (realityOpt.key) {
-                                                "public_key" -> bean.realityPubKey =
+                                                "public_key" -> bean.realityPublicKey =
                                                     realityOpt.value.toString()
 
-                                                "short_id" -> bean.realityShortId =
+                                                "short_id" -> bean.realityShortID =
                                                     realityOpt.value.toString()
                                             }
                                         }
@@ -371,7 +371,7 @@ object RawUpdater : GroupUpdater() {
                                         "alpn" -> alpn =
                                             listable<String>(tlsOpt.value)?.joinToString("\n")
 
-                                        "certificate" -> caText =
+                                        "certificate" -> certificates =
                                             listable<String>(tlsOpt.value)?.joinToString("\n")
 
                                         "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
@@ -379,7 +379,7 @@ object RawUpdater : GroupUpdater() {
                                                 "enabled" -> ech =
                                                     echOpt.value.toString().toBoolean()
 
-                                                "config" -> echCfg =
+                                                "config" -> echConfig =
                                                     listable<String>(echOpt.value)?.joinToString("\n")
                                             }
                                         }
@@ -416,7 +416,7 @@ object RawUpdater : GroupUpdater() {
                                         "alpn" -> alpn = listable<String>(tlsOpt.value)
                                             ?.joinToString("\n")
 
-                                        "certificate" -> caText = listable<String>(tlsOpt.value)
+                                        "certificate" -> certificates = listable<String>(tlsOpt.value)
                                             ?.joinToString("\n")
 
                                         "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
@@ -424,7 +424,7 @@ object RawUpdater : GroupUpdater() {
                                                 "enabled" -> ech =
                                                     echOpt.value.toString().toBoolean()
 
-                                                "config" -> echCfg =
+                                                "config" -> echConfig =
                                                     listable<String>(echOpt.value)
                                                         ?.joinToString("\n")
                                             }
@@ -466,7 +466,7 @@ object RawUpdater : GroupUpdater() {
                                         "alpn" -> alpn = listable<String>(tlsOpt.value)
                                             ?.joinToString("\n")
 
-                                        "certificate" -> caText = listable<String>(tlsOpt.value)
+                                        "certificate" -> certificates = listable<String>(tlsOpt.value)
                                             ?.joinToString("\n")
 
                                         "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
@@ -474,7 +474,7 @@ object RawUpdater : GroupUpdater() {
                                                 "enabled" -> ech =
                                                     echOpt.value.toString().toBoolean()
 
-                                                "config" -> echCfg =
+                                                "config" -> echConfig =
                                                     listable<String>(echOpt.value)?.joinToString("\n")
                                             }
                                         }

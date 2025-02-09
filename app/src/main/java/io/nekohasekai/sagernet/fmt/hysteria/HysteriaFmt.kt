@@ -127,8 +127,8 @@ fun HysteriaBean.toUri(): String {
             url.addQueryParameter("obfs", "salamander")
             url.addQueryParameter("obfs-password", obfuscation)
         }
-        if (caText.isNotBlank()) {
-            url.addQueryParameter("pinSHA256", Libcore.sha256Hex(caText.toByteArray()))
+        if (certificates.isNotBlank()) {
+            url.addQueryParameter("pinSHA256", Libcore.sha256Hex(certificates.toByteArray()))
         }
     }
 
@@ -213,9 +213,9 @@ fun HysteriaBean.buildHysteriaConfig(
                 put("server_name", sni)
             }
             if (alpn.isNotBlank()) put("alpn", alpn)
-            if (caText.isNotBlank() && cacheFile != null) {
+            if (certificates.isNotBlank() && cacheFile != null) {
                 val caFile = cacheFile()
-                caFile.writeText(caText)
+                caFile.writeText(certificates)
                 put("ca", caFile.absolutePath)
             }
 
@@ -268,9 +268,9 @@ fun HysteriaBean.buildHysteriaConfig(
                 put("sni", sni)
                 put("insecure", allowInsecure)
 
-                if (caText.isNotBlank() && cacheFile != null) {
+                if (certificates.isNotBlank() && cacheFile != null) {
                     val caFile = cacheFile()
-                    caFile.writeText(caText)
+                    caFile.writeText(certificates)
                     put("ca", caFile.absolutePath)
                 }
             })
@@ -347,11 +347,11 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 if (bean.alpn.isNotBlank()) {
                     alpn = bean.alpn.listByLineOrComma()
                 }
-                if (bean.caText.isNotBlank()) {
-                    certificate = listOf(bean.caText)
+                if (bean.certificates.isNotBlank()) {
+                    certificate = listOf(bean.certificates)
                 }
                 if (bean.ech) {
-                    val echList = bean.echCfg.split("\n")
+                    val echList = bean.echConfig.split("\n")
                     ech = OutboundECHOptions().apply {
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5
@@ -394,11 +394,11 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     server_name = bean.sni
                 }
                 alpn = listOf("h3")
-                if (bean.caText.isNotBlank()) {
-                    certificate = listOf(bean.caText)
+                if (bean.certificates.isNotBlank()) {
+                    certificate = listOf(bean.certificates)
                 }
                 if (bean.ech) {
-                    val echList = bean.echCfg.split("\n")
+                    val echList = bean.echConfig.split("\n")
                     ech = OutboundECHOptions().apply {
                         enabled = true
                         pq_signature_schemes_enabled = echList.size > 5

@@ -97,6 +97,7 @@ import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -109,9 +110,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
-import moe.matsuri.nb4a.proxy.config.ConfigBean
-import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
+import io.nekohasekai.sagernet.fmt.config.ConfigBean
+import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import moe.matsuri.nb4a.utils.blur
 import moe.matsuri.nb4a.utils.closeQuietly
 import moe.matsuri.nb4a.utils.setOnFocusCancel
@@ -125,10 +125,8 @@ import kotlin.collections.set
 
 class ConfigurationFragment @JvmOverloads constructor(
     val select: Boolean = false, val selectedItem: ProxyEntity? = null, val titleRes: Int = 0,
-) : ToolbarFragment(R.layout.layout_group_list),
-    PopupMenu.OnMenuItemClickListener,
-    Toolbar.OnMenuItemClickListener,
-    SearchView.OnQueryTextListener,
+) : ToolbarFragment(R.layout.layout_group_list), PopupMenu.OnMenuItemClickListener,
+    Toolbar.OnMenuItemClickListener, SearchView.OnQueryTextListener,
     OnPreferenceDataStoreChangeListener {
 
     interface SelectCallback {
@@ -174,11 +172,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         super.onCreate(savedInstanceState)
 
         if (savedInstanceState != null) {
-            parentFragmentManager.beginTransaction()
-                .setReorderingAllowed(false)
-                .detach(this)
-                .attach(this)
-                .commit()
+            parentFragmentManager.beginTransaction().setReorderingAllowed(false).detach(this)
+                .attach(this).commit()
         }
     }
 
@@ -247,8 +242,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
 
         toolbar.setOnLongClickListener {
-            val selectedProxy = selectedItem
-                ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+            val selectedProxy =
+                selectedItem ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
                 ?: return@setOnLongClickListener true
             val groupIndex = adapter.groupList.indexOfFirst {
                 it.id == selectedProxy.groupId
@@ -541,9 +536,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                         )
                                     }
                                 }
-                            }
-                            .setNegativeButton(android.R.string.cancel, null)
-                            .show()
+                            }.setNegativeButton(android.R.string.cancel, null).show()
                     }
                 }
             }
@@ -562,18 +555,16 @@ class ConfigurationFragment @JvmOverloads constructor(
                     onMainDispatcher {
                         MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                             .setMessage(
-                                getString(R.string.delete_confirm_prompt) + "\n" +
-                                        toClear.mapIndexedNotNull { index, proxyEntity ->
-                                            if (index < 20) {
-                                                proxyEntity.displayName()
-                                            } else if (index == 20) {
-                                                "......"
-                                            } else {
-                                                null
-                                            }
-                                        }.joinToString("\n")
-                            )
-                            .setPositiveButton(android.R.string.ok) { _, _ ->
+                                getString(R.string.delete_confirm_prompt) + "\n" + toClear.mapIndexedNotNull { index, proxyEntity ->
+                                    if (index < 20) {
+                                        proxyEntity.displayName()
+                                    } else if (index == 20) {
+                                        "......"
+                                    } else {
+                                        null
+                                    }
+                                }.joinToString("\n")
+                            ).setPositiveButton(android.R.string.ok) { _, _ ->
                                 for (profile in toClear) {
                                     adapter.groupFragments[DataStore.selectedGroup]?.adapter?.apply {
                                         val index = configurationIdList.indexOf(profile.id)
@@ -591,9 +582,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                         )
                                     }
                                 }
-                            }
-                            .setNegativeButton(android.R.string.cancel, null)
-                            .show()
+                            }.setNegativeButton(android.R.string.cancel, null).show()
                     }
                 }
             }
@@ -618,11 +607,9 @@ class ConfigurationFragment @JvmOverloads constructor(
         val builder = MaterialAlertDialogBuilder(requireContext()).setView(binding.root)
             .setNegativeButton(android.R.string.cancel) { _, _ ->
                 cancel()
-            }
-            .setOnDismissListener {
+            }.setOnDismissListener {
                 cancel()
-            }
-            .setCancelable(false)
+            }.setCancelable(false)
 
         lateinit var cancel: () -> Unit
         val fragment by lazy { getCurrentGroupFragment() }
@@ -893,8 +880,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
     }
 
-    inner class GroupPagerAdapter : FragmentStateAdapter(this),
-        ProfileManager.Listener,
+    inner class GroupPagerAdapter : FragmentStateAdapter(this), ProfileManager.Listener,
         GroupManager.Listener {
 
         var selectedGroupIndex = 0
@@ -1054,11 +1040,11 @@ class ConfigurationFragment @JvmOverloads constructor(
         override fun onViewStateRestored(savedInstanceState: Bundle?) {
             super.onViewStateRestored(savedInstanceState)
 
-            @Suppress("DEPRECATION")
-            savedInstanceState?.getParcelable<ProxyGroup>("proxyGroup")?.also {
-                proxyGroup = it
-                onViewCreated(requireView(), null)
-            }
+            @Suppress("DEPRECATION") savedInstanceState?.getParcelable<ProxyGroup>("proxyGroup")
+                ?.also {
+                    proxyGroup = it
+                    onViewCreated(requireView(), null)
+                }
         }
 
         private val isEnabled: Boolean
@@ -1218,8 +1204,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
 
         inner class ConfigurationAdapter : RecyclerView.Adapter<ConfigurationHolder>(),
-            ProfileManager.Listener,
-            GroupManager.Listener,
+            ProfileManager.Listener, GroupManager.Listener,
             UndoSnackbarManager.Interface<ProxyEntity> {
 
             init {
@@ -1277,9 +1262,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                 configurationIdList.clear()
                 val lower = name.lowercase()
                 configurationIdList.addAll(configurationList.filter {
-                    it.value.displayName().lowercase().contains(lower) ||
-                            it.value.displayType().lowercase().contains(lower) ||
-                            it.value.displayAddress().lowercase().contains(lower)
+                    it.value.displayName().lowercase().contains(lower) || it.value.displayType()
+                        .lowercase().contains(lower) || it.value.displayAddress().lowercase()
+                        .contains(lower)
                 }.keys)
                 notifyDataSetChanged()
             }
@@ -1364,9 +1349,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         runOnDefaultDispatcher {
                             onUpdated(
                                 TrafficData(
-                                    id = profile.id,
-                                    rx = oldProfile.rx,
-                                    tx = oldProfile.tx
+                                    id = profile.id, rx = oldProfile.rx, tx = oldProfile.tx
                                 )
                             )
                         }
@@ -1427,14 +1410,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
 
                     GroupOrder.BY_DELAY -> {
-                        newProfiles =
-                            newProfiles.sortedBy {
-                                if (it.status == ProxyEntity.STATUS_AVAILABLE) {
-                                    it.ping
-                                } else {
-                                    Int.MAX_VALUE
-                                }
+                        newProfiles = newProfiles.sortedBy {
+                            if (it.status == ProxyEntity.STATUS_AVAILABLE) {
+                                it.ping
+                            } else {
+                                Int.MAX_VALUE
                             }
+                        }
                     }
                 }
 
@@ -1642,10 +1624,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                         popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
 
                         if (!proxyEntity.haveStandardLink()) {
-                            popup.menu.findItem(R.id.action_group_qr)
-                                .subMenu?.removeItem(R.id.action_standard_qr)
-                            popup.menu.findItem(R.id.action_group_clipboard)
-                                .subMenu?.removeItem(R.id.action_standard_clipboard)
+                            popup.menu.findItem(R.id.action_group_qr).subMenu?.removeItem(R.id.action_standard_qr)
+                            popup.menu.findItem(R.id.action_group_clipboard).subMenu?.removeItem(R.id.action_standard_clipboard)
                         }
 
                         if (!proxyEntity.haveLink()) {
@@ -1654,10 +1634,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         }
 
                         val bean = proxyEntity.requireBean()
-                        if (proxyEntity.type == ProxyEntity.TYPE_CHAIN
-                            || proxyEntity.mustUsePlugin()
-                            || (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
-                        ) {
+                        if (proxyEntity.type == ProxyEntity.TYPE_CHAIN || proxyEntity.mustUsePlugin() || (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG) {
                             popup.menu.removeItem(R.id.action_group_outbound)
                         }
 
@@ -1682,13 +1659,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 shareLayout.setOnClickListener {
                                     MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.insecure)
                                         .setMessage(resources.openRawResource(validateResult.textRes)
-                                            .bufferedReader()
-                                            .use { it.readText() })
+                                            .bufferedReader().use { it.readText() })
                                         .setPositiveButton(android.R.string.ok) { _, _ ->
                                             showShare(it)
-                                        }
-                                        .show()
-                                        .apply {
+                                        }.show().apply {
                                             findViewById<TextView>(android.R.id.message)?.apply {
                                                 Linkify.addLinks(this, Linkify.WEB_URLS)
                                                 movementMethod = LinkMovementMethod.getInstance()
@@ -1707,13 +1681,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 shareLayout.setOnClickListener {
                                     MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.deprecated)
                                         .setMessage(resources.openRawResource(validateResult.textRes)
-                                            .bufferedReader()
-                                            .use { it.readText() })
+                                            .bufferedReader().use { it.readText() })
                                         .setPositiveButton(android.R.string.ok) { _, _ ->
                                             showShare(it)
-                                        }
-                                        .show()
-                                        .apply {
+                                        }.show().apply {
                                             findViewById<TextView>(android.R.id.message)?.apply {
                                                 Linkify.addLinks(this, Linkify.WEB_URLS)
                                                 movementMethod = LinkMovementMethod.getInstance()
@@ -1788,8 +1759,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 runOnDefaultDispatcher {
                     try {
                         (requireActivity() as MainActivity).contentResolver.openOutputStream(data)!!
-                            .bufferedWriter()
-                            .use {
+                            .bufferedWriter().use {
                                 it.write(DataStore.serverConfig)
                             }
                         onMainDispatcher {
