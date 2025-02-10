@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ktx
 import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Serializable
+import io.nekohasekai.sagernet.fmt.http.NotHttpProxyException
 import io.nekohasekai.sagernet.fmt.http.parseHttp
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2
@@ -143,10 +144,12 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
 
             "http", "https" -> {
                 Logs.d("Try parse http link: $this")
-                runCatching {
+                try {
                     entities.add(parseHttp(this))
-                }.onFailure {
-                    Logs.w(it)
+                } catch (_: NotHttpProxyException) {
+                    throw SubscriptionFoundException(this)
+                } catch (e: Exception) {
+                    Logs.w(e)
                 }
             }
 

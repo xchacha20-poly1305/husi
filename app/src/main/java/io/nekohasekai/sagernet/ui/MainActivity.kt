@@ -48,6 +48,7 @@ import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alert
+import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -178,7 +179,16 @@ class MainActivity : ThemedActivity(),
     suspend fun importSubscription(uri: Uri) {
         val group: ProxyGroup
 
-        val url = uri.getQueryParameter("url")
+        val url = defaultOr(
+            "",
+            { uri.getQueryParameter("url") },
+            {
+                when (uri.scheme) {
+                    "http", "https" -> uri.toString()
+                    else -> null
+                }
+            }
+        )
         if (!url.isNullOrBlank()) {
             group = ProxyGroup(type = GroupType.SUBSCRIPTION)
             val subscription = SubscriptionBean()
@@ -191,12 +201,17 @@ class MainActivity : ThemedActivity(),
                 "sip008" -> SubscriptionType.SIP008
                 else -> SubscriptionType.RAW
             }
-            group.name = uri.getQueryParameter("name")
+            group.name = defaultOr(
+                "",
+                { uri.getQueryParameter("name") },
+                { uri.fragment },
+            )
         } else {
             val data = uri.encodedQuery.takeIf { !it.isNullOrBlank() } ?: return
             try {
                 group = KryoConverters.deserialize(
-                    ProxyGroup().apply { export = true }, Util.zlibDecompress(Util.b64Decode(data))
+                    ProxyGroup().apply { export = true },
+                    Util.zlibDecompress(Util.b64Decode(data)),
                 ).apply {
                     export = false
                 }
@@ -208,8 +223,9 @@ class MainActivity : ThemedActivity(),
             }
         }
 
-        val name = group.name.takeIf { !it.isNullOrBlank() } ?: group.subscription?.link
-        ?: group.subscription?.token
+        val name = group.name.takeIf { !it.isNullOrBlank() }
+            ?: group.subscription?.link
+            ?: group.subscription?.token
         if (name.isNullOrBlank()) return
 
         group.name = group.name.takeIf { !it.isNullOrBlank() }
@@ -386,7 +402,8 @@ class MainActivity : ThemedActivity(),
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
 
         // If is in dashboard, enable dashboard status loop.
-        val trafficFragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment
+        val trafficFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment
         if (trafficFragment != null && state == BaseService.State.Connected) {
             connection.service?.enableDashboardStatus(true)
             trafficFragment.refreshClashMode()

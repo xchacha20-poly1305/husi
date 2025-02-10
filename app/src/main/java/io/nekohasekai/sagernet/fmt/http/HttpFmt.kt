@@ -4,10 +4,12 @@ import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import libcore.Libcore
 
+class NotHttpProxyException() : RuntimeException("Not http proxy")
+
 fun parseHttp(link: String): HttpBean {
     val url = Libcore.parseURL(link)
 
-    if (url.rawPath != "/") error("Not http proxy")
+    if (url.rawPath != "/") throw NotHttpProxyException()
 
     return HttpBean().apply {
         serverAddress = url.host

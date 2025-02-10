@@ -360,3 +360,26 @@ fun <T, R> Collection<T>.mapX(transform: (T) -> R): List<R> {
     }
     return list
 }
+
+/**
+ * Returns the first non-default value from the provided getters.
+ *
+ * This function iterates over the provided getter functions and returns the first value
+ * that is not equal to the default value. If all values are equal to the default value,
+ * the default value is returned.
+ *
+ * Inspired by Go cmp.Or()
+ *
+ * @param default The default value to compare against.
+ * @param getters A variable number of getter functions that return values to be compared.
+ * @return The first non-default value from the getters, or the default value if all are equal to the default.
+ */
+fun <T> defaultOr(default: T, vararg getters: () -> T?): T {
+    for (getter in getters) {
+        val it = getter()
+        if (it?.equals(default) == false) {
+            return it
+        }
+    }
+    return default
+}
