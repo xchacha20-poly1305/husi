@@ -585,4 +585,5 @@
     <string name="system_and_user">系统和用户</string>
     <string name="http_proxy_bypass">HTTP 代理绕过列表</string>
     <string name="v2ray_transport">V2Ray 传输层</string>
+    <string name="reality_public_key">REALITY 公钥</string>
 </resources>
