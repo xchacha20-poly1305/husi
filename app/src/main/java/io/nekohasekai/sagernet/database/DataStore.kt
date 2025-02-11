@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.database
 import android.os.Binder
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
+import io.nekohasekai.sagernet.CertProvider
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.IPv6Mode
@@ -26,7 +27,6 @@ import io.nekohasekai.sagernet.ktx.string
 import io.nekohasekai.sagernet.ktx.stringSet
 import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
-import moe.matsuri.nb4a.TempDatabase
 
 object DataStore : OnPreferenceDataStoreChangeListener {
 
@@ -118,7 +118,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
     var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL)
-    var showGroupInNotification by configurationStore.boolean("showGroupInNotification")
+    var showGroupInNotification by configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
@@ -184,13 +184,13 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
+    var certProvider by configurationStore.stringToInt(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
 
-    var trafficDescending by configurationStore.boolean("trafficDescending") { false }
-    var trafficSortMode by configurationStore.int("trafficSortMode") { TrafficSortMode.START }
-    var certProvider by configurationStore.stringToInt(Key.CERT_PROVIDER)
+    var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
+    var trafficSortMode by configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }
 
-    var speedTestUrl by configurationStore.string("speedTestUrl") { SPEED_TEST_URL }
-    var speedTestTimeout by configurationStore.int("speedTestTimeout") { 20000 }
+    var speedTestUrl by configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
+    var speedTestTimeout by configurationStore.int(Key.SPEED_TEST_TIMEOUT) { 20000 }
 
     // ntp
     var ntpEnable by configurationStore.boolean(Key.ENABLE_NTP) { false }
@@ -220,8 +220,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var pluginName by profileCacheStore.string(Key.PLUGIN_NAME)
     var pluginConfig by profileCacheStore.string(Key.PLUGIN_CONFIG)
     var udpOverTcp by profileCacheStore.boolean(Key.UDP_OVER_TCP)
-
-    var sharedStorage by profileCacheStore.string("sharedStorage")
 
     var serverProtocol by profileCacheStore.string(Key.SERVER_PROTOCOL)
     var serverObfs by profileCacheStore.string(Key.SERVER_OBFS)
@@ -325,7 +323,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var subscriptionAutoUpdate by profileCacheStore.boolean(Key.SUBSCRIPTION_AUTO_UPDATE)
     var subscriptionAutoUpdateDelay by profileCacheStore.stringToInt(Key.SUBSCRIPTION_AUTO_UPDATE_DELAY) { 360 }
 
-    var rulesFirstCreate by profileCacheStore.boolean("rulesFirstCreate")
+    var rulesFirstCreate by profileCacheStore.boolean(Key.RULES_FIRST_CREATE)
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
     }

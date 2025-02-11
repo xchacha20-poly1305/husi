@@ -59,6 +59,7 @@ object Key {
 
     const val MIXED_PORT = "mixedPort"
     const val ALLOW_ACCESS = "allowAccess"
+    const val SHOW_GROUP_IN_NOTIFICATION = "showGroupInNotification"
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
     const val LOCAL_DNS_PORT = "portLocalDns"
@@ -97,6 +98,12 @@ object Key {
     const val APP_TLS_VERSION = "appTLSVersion"
     const val CERT_PROVIDER = "certProvider"
     const val INTERRUPT_SELECTOR = "interruptSelector"
+
+    const val TRAFFIC_DESCENDING = "trafficDescending"
+    const val TRAFFIC_SORT_MODE = "trafficSortMode"
+
+    const val SPEED_TEST_URL = "speedTestURL"
+    const val SPEED_TEST_TIMEOUT = "speedTestTimeout"
 
     const val PROFILE_DIRTY = "profileDirty"
     const val PROFILE_ID = "profileId"
@@ -205,6 +212,8 @@ object Key {
     const val ROUTE_CLASH_MODE = "routeClashMode"
     const val ROUTE_NETWORK_TYPE = "routeNetworkType"
     const val ROUTE_NETWORK_IS_EXPENSIVE = "routeNetworkIsExpensive"
+
+    const val RULES_FIRST_CREATE = "rulesFirstCreate"
 
     const val GROUP_NAME = "groupName"
     const val GROUP_TYPE = "groupType"

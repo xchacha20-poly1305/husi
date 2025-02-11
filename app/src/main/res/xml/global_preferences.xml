@@ -135,6 +135,7 @@
             app:key="enableSniff"
             app:title="@string/traffic_sniffing" />
         <io.nekohasekai.sagernet.widget.DurationPreference
+            app:defaultValue="300ms"
             app:icon="@drawable/ic_baseline_bolt"
             app:key="sniffTimeout"
             app:title="@string/sniff_timeout"
@@ -176,6 +177,7 @@
             app:title="@string/route_rules_provider"
             app:useSimpleSummaryProvider="true" />
         <io.nekohasekai.sagernet.widget.LinkOrContentPreference
+            app:defaultValue="0"
             app:icon="@drawable/ic_baseline_import_contacts_24"
             app:isPreferenceVisible="false"
             app:key="customRuleProvider"
@@ -235,6 +237,7 @@
             app:title="@string/edns_client_subnet"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
+            app:defaultValue="local"
             app:icon="@drawable/ic_action_dns"
             app:key="directDns"
             app:title="@string/direct_dns"
@@ -272,11 +275,13 @@
         app:key="inboundSettings"
         app:title="@string/inbound_settings">
         <EditTextPreference
+            app:defaultValue="2080"
             app:icon="@drawable/ic_maps_directions_boat"
             app:key="mixedPort"
             app:title="@string/port_proxy"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
+            app:defaultValue="6450"
             app:key="portLocalDns"
             app:title="@string/port_local_dns"
             app:useSimpleSummaryProvider="true" />
@@ -329,6 +334,7 @@
             app:summary="@string/acquire_wake_lock_summary"
             app:title="@string/acquire_wake_lock" />
         <rikka.preference.SimpleMenuPreference
+            app:defaultValue="1"
             app:entries="@array/cert_provider"
             app:entryValues="@array/int_array_3"
             app:icon="@drawable/ic_baseline_push_pin_24"
