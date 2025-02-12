@@ -656,4 +656,6 @@
     <string name="reality_short_id" translatable="false">REALITY Short ID</string>
     <string name="ech" translatable="false">ECH</string>
     <string name="v2ray_transport">V2Ray Transport</string>
+    <string name="http_headers" translatable="false">HTTP Headers</string>
+    <string name="import_http_url">You are importing a HTTP URL. Which action do you want?</string>
 </resources>
