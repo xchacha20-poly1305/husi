@@ -127,7 +127,7 @@ func (m *interfaceMonitor) UpdateDefaultInterface(interfaceName string, interfac
 	callbacks := m.callbacks.Array()
 	m.defaultInterfaceAccess.Unlock()
 	for _, callback := range callbacks {
-		callback(nil, 0)
+		callback(newInterface, 0)
 	}
 }
 
