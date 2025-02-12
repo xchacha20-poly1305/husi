@@ -142,7 +142,7 @@ object Key {
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
     const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"
-    const val SERVER_UTLS_FINGERPRINT = "serverUtlsFingerPrint"
+    const val SERVER_UTLS_FINGERPRINT = "serverUtlsFingerprint"
     const val SERVER_REALITY_PUBLIC_KEY = "serverRealityPublicKey"
     const val SERVER_REALITY_SHORT_ID = "serverRealityShortID"
     const val SERVER_MTU = "serverMTU"

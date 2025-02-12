@@ -137,12 +137,12 @@
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:icon="@drawable/ic_baseline_vpn_key_24"
-            app:key="serverRealityPubKey"
+            app:key="serverRealityPublicKey"
             app:title="@string/reality_public_key"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:icon="@drawable/ic_baseline_texture_24"
-            app:key="serverRealityShortId"
+            app:key="serverRealityShortID"
             app:title="@string/reality_short_id"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
