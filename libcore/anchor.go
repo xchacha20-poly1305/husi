@@ -68,14 +68,11 @@ func (b *BoxInstance) createAnchor(socksPort, dnsPort uint16) (*anchorservice.An
 }
 
 func (b *BoxInstance) shouldRejectAnchorRequest(rules []*regexp.Regexp) bool {
-	switch b.Network().DefaultNetworkInterface().Type {
+	networkManager := b.Network()
+	switch networkManager.DefaultNetworkInterface().Type {
 	case C.InterfaceTypeWIFI:
 		// Just allow connections from trusted Wi-Fi
-		wifiInfo := b.platformInterface.ReadWIFIState()
-		if wifiInfo == nil {
-			return true
-		}
-		ssid := wifiInfo.GetSSID()
+		ssid := networkManager.WIFIState().SSID
 		if common.Any(rules, func(it *regexp.Regexp) bool {
 			return it.MatchString(ssid)
 		}) {
