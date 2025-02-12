@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.ktx
 import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Serializable
-import io.nekohasekai.sagernet.fmt.http.NotHttpProxyException
 import io.nekohasekai.sagernet.fmt.http.parseHttp
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2
@@ -117,7 +116,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
     val entities = ArrayList<AbstractBean>()
     val entitiesByLine = ArrayList<AbstractBean>()
 
-    suspend fun String.parseLink(entities: ArrayList<AbstractBean>) {
+    suspend fun String.parseLink(entities: MutableList<AbstractBean>) {
         if (startsWith("sing-box://import-remote-profile?") || startsWith("husi://subscription?")) {
             throw SubscriptionFoundException(this)
         }
@@ -146,8 +145,6 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.d("Try parse http link: $this")
                 try {
                     entities.add(parseHttp(this))
-                } catch (_: NotHttpProxyException) {
-                    throw SubscriptionFoundException(this)
                 } catch (e: Exception) {
                     Logs.w(e)
                 }

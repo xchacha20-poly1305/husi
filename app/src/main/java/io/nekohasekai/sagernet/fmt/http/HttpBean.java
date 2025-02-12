@@ -9,7 +9,6 @@ import moe.matsuri.nb4a.SingBoxOptions;
 
 import org.jetbrains.annotations.NotNull;
 
-// TODO: add path
 public class HttpBean extends StandardV2RayBean {
 
     public static final Creator<HttpBean> CREATOR = new CREATOR<HttpBean>() {
@@ -36,10 +35,13 @@ public class HttpBean extends StandardV2RayBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(username);
         output.writeString(password);
+        output.writeString(host);
+        output.writeString(path);
+        output.writeString(headers);
     }
 
     @Override
@@ -48,6 +50,11 @@ public class HttpBean extends StandardV2RayBean {
         super.deserialize(input);
         username = input.readString();
         password = input.readString();
+        if (version >= 1) {
+            host = input.readString();
+            path = input.readString();
+            headers = input.readString();
+        }
     }
 
     @NotNull

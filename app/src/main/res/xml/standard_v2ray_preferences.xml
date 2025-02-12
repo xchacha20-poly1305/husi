@@ -68,6 +68,11 @@
             app:key="serverPath"
             app:title="@string/http_path"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_import_contacts_24"
+            app:key="serverHeaders"
+            app:title="@string/http_headers"
+            app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:entries="@array/transport_layer_encryption_value"
             app:entryValues="@array/transport_layer_encryption_value"

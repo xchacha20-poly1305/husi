@@ -87,42 +87,25 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
 //                }
 //            }
             "http" -> {
-                url.queryParameterNotBlank("path").let {
-                    bean.path = it
-                }
-                url.queryParameterNotBlank("host").let {
-                    bean.host = it.split("|").joinToString(",")
-                }
+                bean.path = url.queryParameterNotBlank("path")
+                bean.host = url.queryParameterNotBlank("host").split("|").joinToString(",")
             }
 
             "ws" -> {
-                url.queryParameterNotBlank("path").let {
-                    bean.path = it
-                }
-                url.queryParameterNotBlank("host").let {
-                    bean.host = it
-                }
+                bean.path = url.queryParameterNotBlank("path")
+                bean.host = url.queryParameterNotBlank("host")
             }
 
             "grpc" -> {
-                url.queryParameterNotBlank("serviceName").let {
-                    bean.path = it
-                }
+                bean.path = url.queryParameterNotBlank("serviceName")
             }
 
             "httpupgrade" -> {
-                url.queryParameterNotBlank("path").let {
-                    bean.path = it
-                }
-                url.queryParameterNotBlank("host").let {
-                    bean.host = it
-                }
+                bean.path = url.queryParameterNotBlank("path")
+                bean.host = url.queryParameterNotBlank("host")
             }
         }
-
-        bean.packetEncoding = 1 // It comes from V2Ray!
     } else {
-        // also vless format
         bean.parseDuckSoft(url)
     }
 
@@ -153,24 +136,13 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     when (security) {
         "tls", "reality" -> {
             security = "tls"
-            url.queryParameterNotBlank("sni").let {
-                sni = it
+            sni = url.queryParameterNotBlank("sni").ifBlank {
+                url.queryParameterNotBlank("host")
             }
-            url.queryParameterNotBlank("host").let {
-                if (sni.isNullOrBlank()) sni = it
-            }
-            url.queryParameterNotBlank("alpn").let {
-                alpn = it
-            }
-            url.queryParameterNotBlank("cert").let {
-                certificates = it
-            }
-            url.queryParameterNotBlank("pbk").let {
-                realityPublicKey = it
-            }
-            url.queryParameterNotBlank("sid").let {
-                realityShortID = it
-            }
+            alpn = url.queryParameterNotBlank("alpn")
+            certificates = url.queryParameterNotBlank("cert")
+            realityPublicKey = url.queryParameterNotBlank("pbk")
+            realityShortID = url.queryParameterNotBlank("sid")
         }
     }
 
@@ -186,21 +158,13 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         }
 
         "http" -> {
-            url.queryParameterNotBlank("host").let {
-                host = it
-            }
-            url.queryParameterNotBlank("path").let {
-                path = it
-            }
+            host = url.queryParameterNotBlank("host")
+            path = url.queryParameterNotBlank("path")
         }
 
         "ws" -> {
-            url.queryParameterNotBlank("host").let {
-                host = it
-            }
-            url.queryParameterNotBlank("path").let {
-                path = it
-            }
+            host = url.queryParameterNotBlank("host")
+            path = url.queryParameterNotBlank("path")
             url.queryParameterNotBlank("ed").let { ed ->
                 if (ed.isNotBlank()) {
                     wsMaxEarlyData = ed.toIntOrNull() ?: 2048
@@ -215,46 +179,30 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         }
 
         "grpc" -> {
-            url.queryParameterNotBlank("serviceName").let {
-                path = it
-            }
+            path = url.queryParameterNotBlank("serviceName")
         }
 
         "httpupgrade" -> {
-            url.queryParameterNotBlank("host").let {
-                host = it
-            }
-            url.queryParameterNotBlank("path").let {
-                path = it
-            }
+            host = url.queryParameterNotBlank("host")
+            path = url.queryParameterNotBlank("path")
         }
     }
 
     // maybe from Matsuri vmess export
-    if (this is VMessBean && !isVLESS) {
-        url.queryParameterNotBlank("encryption").let {
-            encryption = it
+    if (this is VMessBean) {
+        when (url.queryParameterNotBlank("packetEncoding")) {
+            "packetaddr" -> packetEncoding = 1
+            "xudp" -> packetEncoding = 2
+        }
+
+        encryption = if (isVLESS) {
+            url.queryParameterNotBlank("flow").removeSuffix("-udp443")
+        } else {
+            url.queryParameterNotBlank("encryption")
         }
     }
 
-    if (isVLESS) {
-        url.queryParameterNotBlank("packetEncoding").let {
-            when (it) {
-                "packetaddr" -> packetEncoding = 1
-                "xudp" -> packetEncoding = 2
-            }
-        }
-    }
-
-    url.queryParameterNotBlank("flow").let {
-        if (isVLESS) {
-            encryption = it.removeSuffix("-udp443")
-        }
-    }
-
-    url.queryParameterNotBlank("fp").let {
-        utlsFingerprint = it
-    }
+    utlsFingerprint = url.queryParameterNotBlank("fp")
 }
 
 // SagerNet's
@@ -465,9 +413,15 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
             return V2RayTransportOptions_V2RayWebsocketOptions().apply {
                 type = "ws"
                 headers = mutableMapOf()
+                for (line in bean.headers.lines()) {
+                    val pair = line.split(":", limit = 2)
+                    if (pair.size == 2) {
+                        headers[pair[0].trim()] = listOf(pair[1].trim())
+                    }
+                }
 
                 if (bean.host.isNotBlank()) {
-                    headers["Host"] = listOf(bean.host)
+                    headers["Host"] = bean.host.listByLineOrComma()
                 }
 
                 if (bean.path.contains("?ed=")) {
@@ -493,9 +447,17 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 type = "http"
                 if (!bean.isTLS()) method = "GET" // v2ray tcp header
                 if (bean.host.isNotBlank()) {
-                    host = bean.host.split(",")
+                    host = bean.host.listByLineOrComma()
                 }
                 path = bean.path.takeIf { it.isNotBlank() } ?: "/"
+
+                headers = mutableMapOf()
+                for (line in bean.headers.lines()) {
+                    val pair = line.split(":", limit = 2)
+                    if (pair.size == 2) {
+                        headers[pair[0].trim()] = listOf(pair[1].trim())
+                    }
+                }
             }
         }
 
@@ -515,17 +477,19 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         "httpupgrade" -> {
             return V2RayTransportOptions_V2RayHTTPUpgradeOptions().apply {
                 type = "httpupgrade"
-                host = bean.host
+                host = bean.host.listByLineOrComma().firstOrNull()
                 path = bean.path
+
+                headers = mutableMapOf()
+                for (line in bean.headers.lines()) {
+                    val pair = line.split(":", limit = 2)
+                    if (pair.size == 2) {
+                        headers[pair[0].trim()] = listOf(pair[1].trim())
+                    }
+                }
             }
         }
     }
-
-//    if (needKeepAliveInterval) {
-//        sockopt = StreamSettingsObject.SockoptObject().apply {
-//            tcpKeepAliveInterval = keepAliveInterval
-//        }
-//    }
 
     return null
 }
@@ -566,67 +530,67 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
     }
 }
 
-fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
-    when (bean) {
-        is HttpBean -> {
-            return Outbound_HTTPOptions().apply {
-                type = bean.outboundType()
-                server = bean.serverAddress
-                server_port = bean.serverPort
-                username = bean.username
-                password = bean.password
-                tls = buildSingBoxOutboundTLS(bean)
+fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = when (bean) {
+    is HttpBean -> Outbound_HTTPOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        username = bean.username
+        password = bean.password
+        path = bean.path
+        tls = buildSingBoxOutboundTLS(bean)
+
+        headers = mutableMapOf()
+        for (line in bean.headers.lines()) {
+            val pair = line.split(":", limit = 2)
+            if (pair.size == 2) {
+                headers[pair[0].trim()] = listOf(pair[1].trim())
             }
         }
-
-        is VMessBean -> {
-            if (bean.isVLESS) return Outbound_VLESSOptions().apply {
-                type = bean.outboundType()
-                server = bean.serverAddress
-                server_port = bean.serverPort
-                uuid = bean.uuid
-                if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
-                    flow = bean.encryption
-                }
-                when (bean.packetEncoding) {
-                    0 -> packet_encoding = ""
-                    1 -> packet_encoding = "packetaddr"
-                    2 -> packet_encoding = "xudp"
-                }
-                tls = buildSingBoxOutboundTLS(bean)
-                transport = buildSingBoxOutboundStreamSettings(bean)
-            }
-            return Outbound_VMessOptions().apply {
-                type = bean.outboundType()
-                server = bean.serverAddress
-                server_port = bean.serverPort
-                uuid = bean.uuid
-                alter_id = bean.alterId
-                security = bean.encryption.takeIf { it.isNotBlank() } ?: "auto"
-                when (bean.packetEncoding) {
-                    0 -> packet_encoding = ""
-                    1 -> packet_encoding = "packetaddr"
-                    2 -> packet_encoding = "xudp"
-                }
-                tls = buildSingBoxOutboundTLS(bean)
-                transport = buildSingBoxOutboundStreamSettings(bean)
-
-                global_padding = true
-                authenticated_length = bean.authenticatedLength
-            }
-        }
-
-        is TrojanBean -> {
-            return Outbound_TrojanOptions().apply {
-                type = bean.outboundType()
-                server = bean.serverAddress
-                server_port = bean.serverPort
-                password = bean.password
-                tls = buildSingBoxOutboundTLS(bean)
-                transport = buildSingBoxOutboundStreamSettings(bean)
-            }
-        }
-
-        else -> throw IllegalStateException("can't reach")
     }
+
+    is VMessBean -> if (bean.isVLESS) Outbound_VLESSOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        uuid = bean.uuid
+        if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
+            flow = bean.encryption
+        }
+        packet_encoding = when (bean.packetEncoding) {
+            1 -> "packetaddr"
+            2 -> "xudp"
+            else -> null
+        }
+        tls = buildSingBoxOutboundTLS(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)
+    } else Outbound_VMessOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        uuid = bean.uuid
+        alter_id = bean.alterId
+        security = bean.encryption.takeIf { it.isNotBlank() } ?: "auto"
+        packet_encoding = when (bean.packetEncoding) {
+            1 -> "packetaddr"
+            2 -> "xudp"
+            else -> null
+        }
+        tls = buildSingBoxOutboundTLS(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)
+
+        global_padding = true
+        authenticated_length = bean.authenticatedLength
+    }
+
+    is TrojanBean -> Outbound_TrojanOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        password = bean.password
+        tls = buildSingBoxOutboundTLS(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)
+    }
+
+    else -> throw IllegalStateException()
 }

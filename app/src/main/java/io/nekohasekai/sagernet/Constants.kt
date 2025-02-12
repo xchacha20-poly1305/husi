@@ -133,6 +133,7 @@ object Key {
     const val SERVER_V2RAY_TRANSPORT = "serverV2rayTransport"
     const val SERVER_HOST = "serverHost"
     const val SERVER_PATH = "serverPath"
+    const val SERVER_HEADERS = "serverHeaders"
     const val SERVER_WS_MAX_EARLY_DATA = "serverWsMaxEarlyData"
     const val SERVER_WS_EARLY_DATA_HEADER_NAME = "serverWsEarlyDataHeaderName"
     const val SERVER_SECURITY = "serverSecurity"
@@ -168,7 +169,6 @@ object Key {
     const val SERVER_ECH_CATEGORY = "serverEchCategory"
     const val SERVER_WS_CATEGORY = "serverWsCategory"
     const val SERVER_MUX_CATEGORY = "serverMuxCategory"
-    const val SERVER_HEADERS = "serverHeaders"
     const val SERVER_ALLOW_INSECURE = "serverAllowInsecure"
 
     const val SERVER_ECH = "serverECH"

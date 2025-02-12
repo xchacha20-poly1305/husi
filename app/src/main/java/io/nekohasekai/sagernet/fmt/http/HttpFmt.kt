@@ -2,27 +2,23 @@ package io.nekohasekai.sagernet.fmt.http
 
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import libcore.Libcore
 
-class NotHttpProxyException() : RuntimeException("Not http proxy")
-
-fun parseHttp(link: String): HttpBean {
+fun parseHttp(link: String): HttpBean = HttpBean().apply {
     val url = Libcore.parseURL(link)
 
-    if (url.rawPath != "/") throw NotHttpProxyException()
-
-    return HttpBean().apply {
-        serverAddress = url.host
-        serverPort = url.ports.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
-        username = url.username
-        try {
-            password = url.password
-        } catch (_: Exception) {
-        }
-        sni = url.queryParameterNotBlank("sni")
-        name = url.fragment
-        setTLS(url.scheme == "https")
+    serverAddress = url.host
+    serverPort = url.ports.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
+    username = url.username
+    try {
+        password = url.password
+    } catch (_: Exception) {
     }
+    sni = url.queryParameterNotBlank("sni")
+    name = url.fragment
+    setTLS(url.scheme == "https")
+    path = url.path
 }
 
 fun HttpBean.toUri(): String {
@@ -34,18 +30,12 @@ fun HttpBean.toUri(): String {
         url.ports = serverPort.toString()
     }
 
-    if (username.isNotBlank()) {
-        url.username = username
-    }
-    if (password.isNotBlank()) {
-        url.password = password
-    }
-    if (sni.isNotBlank()) {
-        url.addQueryParameter("sni", sni)
-    }
-    if (name.isNotBlank()) {
-        url.fragment = name
-    }
+    username?.blankAsNull()?.let { url.username = it }
+    password?.blankAsNull()?.let { url.password = it }
+    path?.blankAsNull()?.let { url.rawPath = it }
+    sni?.blankAsNull()?.let { url.addQueryParameter("sni", it) }
+    name?.blankAsNull()?.let { url.fragment = it }
+
 
     return url.string
 }

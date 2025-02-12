@@ -21,6 +21,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public String path;
 
+    public String headers;
+
     // --------------------------------------- tls?
 
     public String security;
@@ -71,6 +73,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (JavaUtil.isNullOrBlank(host)) host = "";
         if (JavaUtil.isNullOrBlank(path)) path = "";
+        if (JavaUtil.isNullOrBlank(headers)) headers = "";
 
         if (JavaUtil.isNullOrBlank(security)) {
             if (this instanceof TrojanBean || isVLESS()) {
@@ -99,7 +102,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(4);
+        output.writeInt(5);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -119,11 +122,13 @@ public abstract class StandardV2RayBean extends AbstractBean {
                 output.writeString(path);
                 output.writeInt(wsMaxEarlyData);
                 output.writeString(earlyDataHeaderName);
+                output.writeString(headers);
                 break;
             }
             case "http": {
                 output.writeString(host);
                 output.writeString(path);
+                output.writeString(headers);
                 break;
             }
             case "grpc": {
@@ -132,7 +137,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
             case "httpupgrade": {
                 output.writeString(host);
                 output.writeString(path);
-
+                output.writeString(headers);
             }
         }
 
@@ -177,11 +182,13 @@ public abstract class StandardV2RayBean extends AbstractBean {
                 path = input.readString();
                 wsMaxEarlyData = input.readInt();
                 earlyDataHeaderName = input.readString();
+                if (version >= 5) headers = input.readString();
                 break;
             }
             case "http": {
                 host = input.readString();
                 path = input.readString();
+                if (version >= 5) headers = input.readString();
                 break;
             }
             case "grpc": {
@@ -190,6 +197,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
             case "httpupgrade": {
                 host = input.readString();
                 path = input.readString();
+                if (version >= 5) headers = input.readString();
             }
         }
 

@@ -30,9 +30,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverNetwork = v2rayTransport
         DataStore.serverHost = host
         DataStore.serverPath = path
+        DataStore.serverHeaders = headers
         DataStore.serverWsMaxEarlyData = wsMaxEarlyData
         DataStore.serverWsEarlyDataHeaderName = earlyDataHeaderName
-
 
         DataStore.serverSecurity = security
         DataStore.serverSNI = sni
@@ -80,6 +80,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         v2rayTransport = DataStore.serverNetwork
         host = DataStore.serverHost
         path = DataStore.serverPath
+        headers = DataStore.serverHeaders
         wsMaxEarlyData = DataStore.serverWsMaxEarlyData
         earlyDataHeaderName = DataStore.serverWsEarlyDataHeaderName
 
@@ -131,6 +132,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var serverV2rayTransport: SimpleMenuPreference
     private lateinit var serverHost: EditTextPreference
     private lateinit var serverPath: EditTextPreference
+    private lateinit var serverHeaders: EditTextPreference
     private lateinit var serverSecurity: SimpleMenuPreference
 
     private lateinit var serverBrutal: SwitchPreference
@@ -154,6 +156,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
         serverHost = findPreference(Key.SERVER_HOST)!!
         serverPath = findPreference(Key.SERVER_PATH)!!
+        serverHeaders = findPreference(Key.SERVER_HEADERS)!!
 
         // vmess/vless/http/trojan
         val isHttp = bean is HttpBean
@@ -266,8 +269,14 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     }
 
     private fun updateView(isHttp: Boolean, network: String, isTLS: Boolean) {
-        serverHost.isVisible = false
-        serverPath.isVisible = false
+        if (isHttp) {
+            serverHost.setTitle(R.string.http_host)
+            serverPath.setTitle(R.string.http_path)
+        }
+
+        serverHost.isVisible = isHttp
+        serverPath.isVisible = isHttp
+        serverHeaders.isVisible = isHttp
         wsCategory.isVisible = false
         muxCategory.isVisible = !isHttp
 
@@ -286,6 +295,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                     setTitle(R.string.http_path)
                     isVisible = true
                 }
+                serverHeaders.apply {
+                    isVisible = true
+                }
 
                 // http + TLS = h2
                 if (isTLS) muxCategory.isVisible = false
@@ -298,6 +310,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 }
                 serverPath.apply {
                     setTitle(R.string.ws_path)
+                    isVisible = true
+                }
+                serverHeaders.apply {
                     isVisible = true
                 }
                 wsCategory.isVisible = true
@@ -323,6 +338,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 }
                 serverPath.apply {
                     setTitle(R.string.http_upgrade_path)
+                    isVisible = true
+                }
+                serverHeaders.apply {
                     isVisible = true
                 }
             }

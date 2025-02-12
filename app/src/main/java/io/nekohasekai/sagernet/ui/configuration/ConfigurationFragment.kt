@@ -378,19 +378,54 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (text.isBlank()) {
                     snackbar(getString(R.string.clipboard_empty)).show()
                 } else runOnDefaultDispatcher {
-                    try {
-                        val proxies = RawUpdater.parseRaw(text)
-                        if (proxies.isNullOrEmpty()) onMainDispatcher {
-                            snackbar(getString(R.string.no_proxies_found_in_clipboard)).show()
-                        } else import(proxies)
-                    } catch (e: SubscriptionFoundException) {
-                        (requireActivity() as MainActivity).importSubscription(Uri.parse(e.link))
-                    } catch (e: Exception) {
-                        Logs.w(e)
+                    suspend fun parseSubscription() {
+                        try {
+                            val proxies = RawUpdater.parseRaw(text)
+                            if (proxies.isNullOrEmpty()) onMainDispatcher {
+                                snackbar(getString(R.string.no_proxies_found_in_clipboard)).show()
+                            } else import(proxies)
+                        } catch (e: SubscriptionFoundException) {
+                            (requireActivity() as MainActivity).importSubscription(Uri.parse(e.link))
+                        } catch (e: Exception) {
+                            Logs.w(e)
 
-                        onMainDispatcher {
-                            snackbar(e.readableMessage).show()
+                            onMainDispatcher {
+                                snackbar(e.readableMessage).show()
+                            }
                         }
+                    }
+
+                    val singleURI = try {
+                        Uri.parse(text)
+                    } catch (_: Exception) {
+                        null
+                    }
+                    if (singleURI != null) {
+                        // Import as proxy or subscription
+                        when (singleURI.scheme) {
+                            "http", "https" -> onMainDispatcher {
+                                MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(R.string.subscription_import)
+                                    .setMessage(R.string.import_http_url)
+                                    .setPositiveButton(R.string.subscription_import) { _, _ ->
+                                        runOnDefaultDispatcher {
+                                            (requireActivity() as MainActivity).importSubscription(
+                                                singleURI
+                                            )
+                                        }
+                                    }
+                                    .setNegativeButton(R.string.profile_import) { _, _ ->
+                                        runOnDefaultDispatcher {
+                                            parseSubscription()
+                                        }
+                                    }
+                                    .show()
+                            }
+
+                            else -> parseSubscription()
+                        }
+                    } else {
+                        parseSubscription()
                     }
                 }
             }
