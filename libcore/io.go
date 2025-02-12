@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/sagernet/sing/common"
-	E "github.com/sagernet/sing/common/exceptions"
 )
 
 // UntargzWithoutDir untargz the archive to path,
@@ -24,11 +23,17 @@ func UntargzWithoutDir(archive, path string) (err error) {
 	defer file.Close()
 
 	_ = os.MkdirAll(path, os.ModePerm)
+	root, err := os.OpenRoot(path)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
 
 	gReader, err := gzip.NewReader(file)
 	if err != nil {
 		return
 	}
+	defer gReader.Close()
 	tReader := tar.NewReader(gReader)
 
 	for {
@@ -48,24 +53,13 @@ func UntargzWithoutDir(archive, path string) (err error) {
 			continue
 		}
 
-		err = copyToFile(filepath.Join(path, fileInfo.Name()), tReader)
+		err = copyToFile(root, fileInfo.Name(), tReader)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// copyToFile will try to open path as an *os.File, then use io.Copy to copy reader into it.
-func copyToFile(path string, reader io.Reader) error {
-	newFile, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer newFile.Close()
-
-	return common.Error(io.Copy(newFile, reader))
 }
 
 // UnzipWithoutDir unzip the archive to path,
@@ -78,38 +72,42 @@ func UnzipWithoutDir(archive, path string) error {
 	defer r.Close()
 
 	_ = os.MkdirAll(path, os.ModePerm)
+	root, err := os.OpenRoot(path)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
 
 	for _, file := range r.File {
 		fileInfo := file.FileInfo()
-
 		if fileInfo.IsDir() {
 			continue
 		}
 
-		filePath := filepath.Join(path, fileInfo.Name())
-
-		_ = os.Remove(filePath)
-		newFile, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-
 		zipFile, err := file.Open()
 		if err != nil {
-			_ = newFile.Close()
 			return err
 		}
 
-		err = E.Errors(
-			common.Error(io.Copy(newFile, zipFile)),
-			common.Close(zipFile, newFile),
-		)
+		err = copyToFile(root, fileInfo.Name(), zipFile)
+		_ = zipFile.Close()
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// copyToFile will try to open path in root, then use io.Copy to copy reader into it.
+func copyToFile(root *os.Root, name string, reader io.Reader) error {
+	newFile, err := root.Create(name)
+	if err != nil {
+		return err
+	}
+	defer newFile.Close()
+
+	return common.Error(io.Copy(newFile, reader))
 }
 
 // removeIfHasPrefix removes all files which starts with prefix in dir. But it will ignore any error.
@@ -142,6 +140,8 @@ type callbackWriter struct {
 
 func (c *callbackWriter) Write(p []byte) (n int, err error) {
 	n, err = c.writer.Write(p)
-	c.callback(int64(n))
+	if n > 0 {
+		c.callback(int64(n))
+	}
 	return
 }

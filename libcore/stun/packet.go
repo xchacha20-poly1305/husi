@@ -32,10 +32,7 @@ func newPacket() (*packet, error) {
 	v := new(packet)
 	v.transID = make([]byte, 16)
 	binary.BigEndian.PutUint32(v.transID[:4], magicCookie)
-	_, err := rand.Read(v.transID[4:])
-	if err != nil {
-		return nil, err
-	}
+	_, _ = rand.Read(v.transID[4:])
 	v.attributes = make([]attribute, 0, 10)
 	v.length = 0
 	return v, nil

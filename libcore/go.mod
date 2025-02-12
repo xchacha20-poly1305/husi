@@ -1,7 +1,6 @@
 module libcore
 
-// 1.23.0: https://go.dev/doc/go1.23#timer-changes
-go 1.23.0
+go 1.24
 
 require (
 	github.com/gofrs/uuid/v5 v5.3.0
