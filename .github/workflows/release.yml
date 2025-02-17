@@ -52,7 +52,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           add-to-path: true
-          ndk-version: r27c
+          ndk-version: r28
           local-cache: true
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
