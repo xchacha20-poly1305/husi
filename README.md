@@ -69,7 +69,7 @@ If you don't want to build it, you can download then in [actions](https://github
 Environment:
 
 * jdk-21
-* ndk 27.2.12479018
+* ndk 28.0.13004108
 
 If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script
 `buildScript/init/env_ndk.sh`:
