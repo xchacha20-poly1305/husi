@@ -245,7 +245,10 @@ object RawUpdater : GroupUpdater() {
 
                                 "transport" -> for (transportOpt in (opt.value as Map<String, Any>)) {
                                     when (transportOpt.key) {
-                                        "type" -> bean.v2rayTransport = transportOpt.value.toString()
+                                        "type" -> {
+                                            bean.v2rayTransport = transportOpt.value.toString()
+                                        }
+
                                         "host" -> listable<String>(transportOpt.value)?.firstOrNull()
                                         "path", "service_name" -> bean.path =
                                             transportOpt.value.toString()
@@ -344,12 +347,17 @@ object RawUpdater : GroupUpdater() {
 
                     "hysteria" -> proxies.add(HysteriaBean().apply {
                         protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
+                        val tmpPorts = mutableListOf<String>()
                         for (opt in proxy) {
                             if (opt.value == null) continue
                             when (opt.key) {
                                 "tag" -> name = opt.value.toString()
                                 "server" -> serverAddress = opt.value.toString()
-                                "server_port" -> serverPorts = opt.value.toString()
+                                "server_port" -> tmpPorts.add(opt.value.toString())
+                                "server_ports" -> listable<String>(opt.value)?.let {
+                                    tmpPorts.addAll(it)
+                                }
+
                                 "obfs" -> obfuscation = opt.value.toString()
 
                                 "auth" -> {
@@ -387,17 +395,22 @@ object RawUpdater : GroupUpdater() {
                                 }
                             }
                         }
+                        serverPorts = tmpPorts.joinToString(",")
                     })
 
                     "hysteria2" -> proxies.add(HysteriaBean().apply {
                         protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+                        val tmpPorts = mutableListOf<String>()
                         for (opt in proxy) {
                             if (opt.value == null) continue
                             when (opt.key) {
                                 "tag" -> name = opt.value.toString()
                                 "server" -> serverAddress = opt.value.toString()
-                                "server_port" -> serverPorts = opt.value.toString()
-                                "server_ports" -> listable<String>(opt.value)?.joinToString(",")
+                                "server_port" -> tmpPorts.add(opt.value.toString())
+                                "server_ports" -> listable<String>(opt.value)?.let {
+                                    tmpPorts.addAll(it)
+                                }
+
                                 "hop_interval" -> hopInterval = opt.value.toString()
                                 "obfs" -> for (obfsOpt in (opt.value as Map<String, Any>)) {
                                     when (obfsOpt.key) {
@@ -416,8 +429,10 @@ object RawUpdater : GroupUpdater() {
                                         "alpn" -> alpn = listable<String>(tlsOpt.value)
                                             ?.joinToString("\n")
 
-                                        "certificate" -> certificates = listable<String>(tlsOpt.value)
-                                            ?.joinToString("\n")
+                                        "certificate" -> {
+                                            certificates =
+                                                listable<String>(tlsOpt.value)?.joinToString("\n")
+                                        }
 
                                         "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
                                             when (echOpt.key) {
@@ -434,6 +449,7 @@ object RawUpdater : GroupUpdater() {
 
                             }
                         }
+                        serverPorts = tmpPorts.joinToString(",")
                     })
 
                     "tuic" -> proxies.add(TuicBean().apply {
@@ -466,8 +482,10 @@ object RawUpdater : GroupUpdater() {
                                         "alpn" -> alpn = listable<String>(tlsOpt.value)
                                             ?.joinToString("\n")
 
-                                        "certificate" -> certificates = listable<String>(tlsOpt.value)
-                                            ?.joinToString("\n")
+                                        "certificate" -> {
+                                            certificates = listable<String>(tlsOpt.value)
+                                                ?.joinToString("\n")
+                                        }
 
                                         "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
                                             when (echOpt.key) {
