@@ -196,6 +196,9 @@
             android:name="io.nekohasekai.sagernet.ui.profile.DirectSettingsActivity"
             android:configChanges="uiMode" />
         <activity
+            android:name=".ui.profile.AnyTLSSettingsActivity"
+            android:configChanges="uiMode" />
+        <activity
             android:name="io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity"
             android:configChanges="uiMode" />
         <activity

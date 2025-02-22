@@ -66,6 +66,8 @@ func OutboundRegistry() *outbound.Registry {
 	registerQUICOutbounds(registry)
 	registerWireGuardOutbound(registry)
 
+	registerPluginsOutbound(registry)
+
 	return registry
 }
 

@@ -111,6 +111,7 @@ import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
+import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import moe.matsuri.nb4a.utils.blur
 import moe.matsuri.nb4a.utils.closeQuietly
@@ -494,6 +495,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_shadowtls -> {
                 startActivity(Intent(requireActivity(), ShadowTLSSettingsActivity::class.java))
+            }
+
+            R.id.action_new_anytls -> {
+                startActivity(Intent(requireActivity(), AnyTLSSettingsActivity::class.java))
             }
 
             R.id.action_new_config -> {

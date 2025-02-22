@@ -9,6 +9,7 @@ import (
 	"github.com/sagernet/sing/common/memory"
 
 	"libcore/named"
+	"libcore/plugin/pluginoption"
 )
 
 var output string
@@ -140,6 +141,7 @@ var outboundList = []any{
 	option.TUICOutboundOptions{},
 	option.VLESSOutboundOptions{},
 	option.VMessOutboundOptions{},
+	pluginoption.AnyTLSOutboundOptions{},
 }
 
 var endpointList = []any{
