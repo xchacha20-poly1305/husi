@@ -19,6 +19,8 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.fmt.shadowtls.buildSingBoxOutboundShadowTLSBean
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
+import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
+import io.nekohasekai.sagernet.fmt.anytls.buildSingBoxOutboundAnyTLSBean
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.fmt.direct.buildSingBoxOutboundDirectBean
@@ -436,6 +438,8 @@ fun buildConfig(
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asMap()
 
                         is DirectBean -> buildSingBoxOutboundDirectBean(bean).asMap()
+
+                        is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean).asMap()
 
                         else -> throw IllegalStateException("can't reach")
                     }

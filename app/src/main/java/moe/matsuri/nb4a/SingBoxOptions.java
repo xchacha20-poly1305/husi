@@ -30,6 +30,7 @@ public class SingBoxOptions {
     public static final String TYPE_VLESS = "vless";
     public static final String TYPE_WIREGUARD = "wireguard";
     public static final String TYPE_SHADOWTLS = "shadowtls";
+    public static final String TYPE_ANYTLS = "anytls";
 
     public static final String TYPE_LOGICAL = "logical";
 
@@ -482,9 +483,9 @@ public class SingBoxOptions {
 
     public static class RouteOptions extends SingBoxOption {
 
-//        public GeoIPOptions geoip;
+        // public GeoIPOptions geoip;
 
-//        public GeositeOptions geosite;
+        // public GeositeOptions geosite;
 
         public List<Rule> rules;
 
@@ -651,11 +652,11 @@ public class SingBoxOptions {
 
         public String key_path;
 
-//        public InboundACMEOptions acme;
+        // public InboundACMEOptions acme;
 
-//        public InboundECHOptions ech;
+        // public InboundECHOptions ech;
 
-//        public InboundRealityOptions reality;
+        // public InboundRealityOptions reality;
 
     }
 
@@ -1969,6 +1970,57 @@ public class SingBoxOptions {
         public OutboundMultiplexOptions multiplex;
 
         public V2RayTransportOptions transport;
+
+    }
+
+    public static class Outbound_AnyTLSOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+        public String password;
+
+        public String idle_session_check_interval;
+
+        public String idle_session_timeout;
 
     }
 

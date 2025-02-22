@@ -151,7 +151,7 @@ func className(valueType reflect.Type) string {
 				// Go json save []uint8 or []byte as base64 string.
 				return javaString
 			default:
-			    // Others may custom enum types
+				// Others may custom enum types
 			}
 		}
 		return javaList + className(elem) + ">"

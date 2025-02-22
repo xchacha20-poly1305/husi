@@ -1,8 +1,9 @@
 package trafficcontrol
 
 import (
-	"github.com/gofrs/uuid/v5"
 	"github.com/sagernet/sing-box/experimental/clashapi/compatible"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 type Manager struct {

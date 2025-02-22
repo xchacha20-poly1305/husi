@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.fmt
 
+import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
+import io.nekohasekai.sagernet.fmt.anytls.buildSingBoxOutboundAnyTLSBean
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.fmt.direct.buildSingBoxOutboundDirectBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -30,6 +32,7 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
         is SSHBean -> buildSingBoxOutboundSSHBean(bean)
         is TuicBean -> buildSingBoxOutboundTuicBean(bean)
         is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean) // is it outbound?
+        is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean)
         else -> error("invalid bean: ${bean.javaClass.simpleName}")
     }
     map.type = bean.outboundType()

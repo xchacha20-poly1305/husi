@@ -8,9 +8,10 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
+import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class DirectSettingsActivity : ProfileSettingsActivity<DirectBean>() {
-    override fun createEntity() = DirectBean()
+    override fun createEntity() = DirectBean().applyDefaultValues()
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
