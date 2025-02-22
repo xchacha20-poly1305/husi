@@ -56,7 +56,7 @@ jobs:
         with:
           add-to-path: true
           ndk-version: r28
-          local-cache: true
+          local-cache: false
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         env:
