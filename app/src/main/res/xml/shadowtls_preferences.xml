@@ -58,7 +58,7 @@
             app:entries="@array/utls_fingerprint_entry"
             app:entryValues="@array/utls_fingerprint_entry"
             app:icon="@drawable/ic_baseline_fingerprint_24"
-            app:key="utlsFingerprint"
+            app:key="serverUtlsFingerprint"
             app:title="@string/utls_fingerprint"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
