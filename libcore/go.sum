@@ -2,6 +2,8 @@ github.com/adrg/xdg v0.5.3 h1:xRnxJXne7+oWDatRhR1JLnvuccuIeCoBu2rtuLqQB78=
 github.com/adrg/xdg v0.5.3/go.mod h1:nlTsY+NNiCBGCK2tpm09vRqfVzrc2fLmXGpBLF0zlTQ=
 github.com/andybalholm/brotli v1.0.6 h1:Yf9fFpf49Zrxb9NlQaluyE92/+X7UVHlhMNJN2sxfOI=
 github.com/andybalholm/brotli v1.0.6/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
+github.com/anytls/sing-anytls v0.0.2 h1:25azSh0o/LMcIkhS4ZutgRTIGwh8O3wuOhsThVM9K9o=
+github.com/anytls/sing-anytls v0.0.2/go.mod h1:7rjN6IukwysmdusYsrV51Fgu1uW6vsrdd6ctjnEAln8=
 github.com/caddyserver/certmagic v0.20.0 h1:bTw7LcEZAh9ucYCRXyCpIrSAGplplI0vGYJ4BpCQ/Fc=
 github.com/caddyserver/certmagic v0.20.0/go.mod h1:N4sXgpICQUskEWpj7zVzvWD41p3NYacrNoZYiRM2jTg=
 github.com/cloudflare/circl v1.6.0 h1:cr5JKic4HI+LkINy2lg3W2jF8sHCVTBncJr5gIIq7qk=
@@ -91,8 +93,6 @@ github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691/go.mod h1:B8lp4Wk
 github.com/sagernet/sing v0.2.18/go.mod h1:OL6k2F0vHmEzXz2KW19qQzu172FDgSbUSODylighuVo=
 github.com/sagernet/sing v0.6.1 h1:mJ6e7Ir2wtCoGLbdnnXWBsNJu5YHtbXmv66inoE0zFA=
 github.com/sagernet/sing v0.6.1/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.11.2 h1:EJs36Cw2+g71yw440AEv6deoLaiEWi2XSn0xBo7uIvw=
-github.com/sagernet/sing-box v1.11.2/go.mod h1:jFQqIlqNbX0DyqJ/yo+k62niRqcjhwRLJdmH+ozxyMY=
 github.com/sagernet/sing-box v1.11.4-0.20250218101459-093013687c0c h1:tg7SCA50s6V2JVvkZDrwORlQHdbl57xneK0Zp6Asx/s=
 github.com/sagernet/sing-box v1.11.4-0.20250218101459-093013687c0c/go.mod h1:jFQqIlqNbX0DyqJ/yo+k62niRqcjhwRLJdmH+ozxyMY=
 github.com/sagernet/sing-dns v0.4.0 h1:+mNoOuR3nljjouCH+qMg4zHI1+R9T2ReblGFkZPEndc=
