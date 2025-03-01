@@ -22,6 +22,8 @@ open class ToolbarFragment : Fragment {
         toolbar.setNavigationOnClickListener {
             (activity as MainActivity).binding.drawerLayout.openDrawer(GravityCompat.START)
         }
+
+        (requireActivity() as? MainActivity)?.onBackPressedCallback?.isEnabled = true
     }
 
     open fun onKeyDown(ketCode: Int, event: KeyEvent) = false

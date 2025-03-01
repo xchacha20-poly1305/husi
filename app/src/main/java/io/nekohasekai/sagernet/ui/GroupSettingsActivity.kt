@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AlertDialog
@@ -33,13 +34,20 @@ import io.nekohasekai.sagernet.widget.UserAgentPreference
 import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import kotlinx.parcelize.Parcelize
-import androidx.activity.addCallback
 import rikka.preference.SimpleMenuPreference
 
 class GroupSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
 ) : ThemedActivity(resId),
     OnPreferenceDataStoreChangeListener {
+
+    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
+        override fun handleOnBackPressed() {
+            UnsavedChangesDialogFragment().apply {
+                key()
+            }.show(supportFragmentManager, null)
+        }
+    }
 
     private lateinit var frontProxyPreference: SimpleMenuPreference
     private lateinit var landingProxyPreference: SimpleMenuPreference
@@ -244,16 +252,6 @@ class GroupSettingsActivity(
                 }
             }
 
-            onBackPressedDispatcher.addCallback {
-                if (needSave()) {
-                    UnsavedChangesDialogFragment().apply {
-                        key()
-                    }.show(supportFragmentManager, null)
-                } else {
-                    finish()
-                }
-            }
-
         }
 
     }
@@ -327,6 +325,7 @@ class GroupSettingsActivity(
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
         if (key != Key.PROFILE_DIRTY) {
             DataStore.dirty = true
+            onBackPressedCallback.isEnabled = true
         }
     }
 
