@@ -281,6 +281,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverDisableSNI by profileCacheStore.boolean(Key.SERVER_DISABLE_SNI)
     var serverReduceRTT by profileCacheStore.boolean(Key.SERVER_REDUCE_RTT)
 
+    var serverIdleSessionCheckInterval by profileCacheStore.string(Key.SERVER_IDLE_SESSION_CHECK_INTERVAL) {
+        "30s"
+    }
+    var serverIdleSessionTimeout by profileCacheStore.string(Key.SERVER_IDLE_SESSION_TIMEOUT) { "30s" }
+    var serverMinIdleSession by profileCacheStore.stringToInt(Key.SERVER_MIN_IDLE_SESSION) { 0 }
+
     var routeName by profileCacheStore.string(Key.ROUTE_NAME)
     var routeDomain by profileCacheStore.string(Key.ROUTE_DOMAIN)
     var routeIP by profileCacheStore.string(Key.ROUTE_IP)

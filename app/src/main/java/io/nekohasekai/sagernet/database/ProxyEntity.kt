@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
+import io.nekohasekai.sagernet.fmt.anytls.toUri
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.buildSingBoxOutbound
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
@@ -283,13 +284,12 @@ data class ProxyEntity(
         TYPE_SSH -> false
         TYPE_WG -> false
         TYPE_SHADOWTLS -> false
-        TYPE_ANYTLS -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
         else -> true
     }
 
-    fun toStdLink(compact: Boolean = false): String = with(requireBean()) {
+    fun toStdLink(): String = with(requireBean()) {
         when (this) {
             is SOCKSBean -> toUri()
             is HttpBean -> toUri()
@@ -301,6 +301,7 @@ data class ProxyEntity(
             is TuicBean -> toUri()
             is JuicityBean -> toUri()
             is MieruBean -> toUri()
+            is AnyTLSBean -> toUri()
             else -> toUniversalLink()
         }
     }
