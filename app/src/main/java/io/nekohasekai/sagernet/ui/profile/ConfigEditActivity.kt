@@ -1,11 +1,11 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.annotation.SuppressLint
-import androidx.activity.addCallback
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import com.blacksquircle.ui.editorkit.insert
@@ -31,6 +31,14 @@ class ConfigEditActivity : ThemedActivity() {
 
     private var dirty = false
     var key = Key.SERVER_CONFIG
+
+    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
+        override fun handleOnBackPressed() {
+            UnsavedChangesDialogFragment().apply {
+                key()
+            }.show(supportFragmentManager, null)
+        }
+    }
 
     class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
@@ -73,6 +81,7 @@ class ConfigEditActivity : ThemedActivity() {
                 if (!dirty) {
                     dirty = true
                     DataStore.dirty = true
+                    onBackPressedCallback.isEnabled = true
                 }
             }
         }
@@ -125,15 +134,6 @@ class ConfigEditActivity : ThemedActivity() {
         extendedKeyboard.setHasFixedSize(true)
         extendedKeyboard.submitList("{},:_\"".map { it.toString() })
         extendedKeyboard.setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
-
-        onBackPressedDispatcher.addCallback {
-            if (dirty) UnsavedChangesDialogFragment().apply {
-                key()
-            }.show(supportFragmentManager, null)
-            else {
-                finish()
-            }
-        }
     }
 
     private fun formatText(): String? {

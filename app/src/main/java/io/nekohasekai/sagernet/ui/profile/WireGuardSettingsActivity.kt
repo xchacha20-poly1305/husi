@@ -8,10 +8,11 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
+import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
 
-    override fun createEntity() = WireGuardBean()
+    override fun createEntity() = WireGuardBean().applyDefaultValues()
 
     override fun WireGuardBean.init() {
         DataStore.profileName = name

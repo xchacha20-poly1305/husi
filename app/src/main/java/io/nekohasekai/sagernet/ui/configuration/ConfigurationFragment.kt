@@ -181,6 +181,8 @@ class ConfigurationFragment @JvmOverloads constructor(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        activity = requireActivity() as MainActivity
+
         if (!select) {
             toolbar.inflateMenu(R.menu.add_profile_menu)
             toolbar.setOnMenuItemClickListener(this)
@@ -196,8 +198,9 @@ class ConfigurationFragment @JvmOverloads constructor(
         if (searchView != null) {
             searchView.setOnQueryTextListener(this)
             searchView.maxWidth = Int.MAX_VALUE
-            searchView.setOnFocusCancel()
-
+            searchView.setOnFocusCancel { hasFocus ->
+                activity.onBackPressedCallback.isEnabled = hasFocus
+            }
         }
 
         groupPager = view.findViewById(R.id.group_pager)
@@ -266,6 +269,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
 
         DataStore.profileCacheStore.registerChangeListener(this)
+
+        activity.onBackPressedCallback.isEnabled = false
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
@@ -641,6 +646,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
         return true
     }
+
+    private lateinit var activity: MainActivity
 
     inner class TestDialog {
         val binding = LayoutProgressListBinding.inflate(layoutInflater)

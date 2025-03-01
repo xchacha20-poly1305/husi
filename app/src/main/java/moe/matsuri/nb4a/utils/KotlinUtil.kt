@@ -77,11 +77,12 @@ fun <T> JSONArray.toList(turn: (Any) -> T): MutableList<T> {
 
 // View
 
-fun SearchView.setOnFocusCancel() {
+fun SearchView.setOnFocusCancel(callback: ((hasFocus: Boolean)->Unit)? = null) {
     setOnQueryTextFocusChangeListener { _, hasFocus ->
         if (!hasFocus) {
             onActionViewCollapsed()
             clearFocus()
         }
+        callback?.invoke(hasFocus)
     }
 }

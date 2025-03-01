@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,13 +42,20 @@ import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import io.nekohasekai.sagernet.widget.updateSummary
 import kotlinx.parcelize.Parcelize
-import androidx.activity.addCallback
 import rikka.preference.SimpleMenuPreference
 
 class RouteSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_settings_activity,
 ) : ThemedActivity(resId),
     OnPreferenceDataStoreChangeListener {
+
+    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
+        override fun handleOnBackPressed() {
+            UnsavedChangesDialogFragment().apply {
+                key()
+            }.show(supportFragmentManager, null)
+        }
+    }
 
     fun init(packageName: String?) {
         RuleEntity().apply {
@@ -288,15 +296,6 @@ class RouteSettingsActivity(
 
         }
 
-        onBackPressedDispatcher.addCallback {
-            if (needSave()) {
-                UnsavedChangesDialogFragment().apply {
-                    key()
-                }.show(supportFragmentManager, null)
-            } else {
-                finish()
-            }
-        }
     }
 
     suspend fun saveAndExit() {
@@ -371,6 +370,7 @@ class RouteSettingsActivity(
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
         if (key != Key.PROFILE_DIRTY) {
             DataStore.dirty = true
+            onBackPressedCallback.isEnabled = true
         }
     }
 
