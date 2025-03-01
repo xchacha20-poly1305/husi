@@ -55,17 +55,10 @@ type interfaceMonitor struct {
 }
 
 func (m *interfaceMonitor) Start() error {
-	if m.forTest {
-		// Just make dialer has available interface.
-		return m.networkManager.UpdateInterfaces()
-	}
 	return m.iif.StartDefaultInterfaceMonitor(m)
 }
 
 func (m *interfaceMonitor) Close() error {
-	if m.forTest {
-		return nil
-	}
 	return m.iif.CloseDefaultInterfaceMonitor(m)
 }
 

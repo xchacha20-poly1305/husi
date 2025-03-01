@@ -64,7 +64,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
 
     override suspend fun loadConfig() {
         if (BuildConfig.DEBUG) Logs.d(config.config)
-        box = libcore.BoxInstance(config.config, NativeInterface(true))
+        box = libcore.BoxInstance(config.config, null)
     }
 
 }

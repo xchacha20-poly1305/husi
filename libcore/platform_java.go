@@ -13,6 +13,4 @@ type PlatformInterface interface {
 	GetInterfaces() (NetworkInterfaceIterator, error)
 	DeviceName() string
 	AnchorSSID() string
-
-	IsForTest() bool
 }

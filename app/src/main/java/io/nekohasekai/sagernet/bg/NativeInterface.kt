@@ -23,7 +23,7 @@ import java.net.InetSocketAddress
 import java.net.InterfaceAddress
 import java.net.NetworkInterface
 
-class NativeInterface(val forTest: Boolean) : PlatformInterface {
+class NativeInterface : PlatformInterface {
 
     //  libbox interface
 
@@ -34,19 +34,16 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
     }
 
     override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        if (forTest) throw IllegalArgumentException()
         DefaultNetworkMonitor.setListener(listener)
     }
 
     override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        if (forTest) throw IllegalArgumentException()
         DefaultNetworkMonitor.setListener(null)
     }
 
     override fun deviceName(): String = Build.MODEL
 
     override fun openTun(): Long {
-        if (forTest) throw IllegalArgumentException()
         if (DataStore.vpnService == null) throw NullPointerException("no vpnService")
         return DataStore.vpnService!!.startVpn().toLong()
     }
@@ -153,8 +150,6 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
         }
         return InterfaceArray(interfaces.iterator(), interfaces.size)
     }
-
-    override fun isForTest(): Boolean = forTest
 
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,
