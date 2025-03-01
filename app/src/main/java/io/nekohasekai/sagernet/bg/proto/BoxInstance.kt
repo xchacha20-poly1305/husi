@@ -53,7 +53,7 @@ abstract class BoxInstance(
     }
 
     protected open suspend fun loadConfig() {
-        box = BoxInstance(config.config, NativeInterface())
+        box = BoxInstance(config.config, NativeInterface(false))
     }
 
     open suspend fun init(isVPN: Boolean) {
