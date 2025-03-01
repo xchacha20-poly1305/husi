@@ -2,15 +2,11 @@ package libcore
 
 import (
 	"context"
-	"net"
 	"net/netip"
 	"os"
 
-	"libcore/protect"
-
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/process"
-	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-tun"
@@ -23,17 +19,15 @@ var _ platform.Interface = platformInterfaceStub{}
 
 type platformInterfaceStub struct{}
 
-func (p platformInterfaceStub) Initialize(networkManager adapter.NetworkManager) error {
-	return networkManager.UpdateInterfaces()
+func (p platformInterfaceStub) Initialize(_ adapter.NetworkManager) error {
+	return nil
 }
 
 func (p platformInterfaceStub) UsePlatformAutoDetectInterfaceControl() bool {
 	return true
 }
 
-// AutoDetectInterfaceControl try to protect fd via ProtectPath.
-func (p platformInterfaceStub) AutoDetectInterfaceControl(fd int) error {
-	_ = protect.Protect(ProtectPath, fd)
+func (p platformInterfaceStub) AutoDetectInterfaceControl(_ int) error {
 	return nil
 }
 
@@ -45,20 +39,8 @@ func (p platformInterfaceStub) CreateDefaultInterfaceMonitor(_ logger.Logger) tu
 	return interfaceMonitorStub{}
 }
 
-func (p platformInterfaceStub) UsePlatformInterfaceGetter() bool {
-	return true
-}
-
 func (p platformInterfaceStub) Interfaces() ([]adapter.NetworkInterface, error) {
-	return []adapter.NetworkInterface{
-		{
-			Interface:   *fakeInterface(),
-			Type:        C.InterfaceTypeOther,
-			DNSServers:  nil,
-			Expensive:   false,
-			Constrained: false,
-		},
-	}, nil
+	return nil, os.ErrInvalid
 }
 
 func (p platformInterfaceStub) UnderNetworkExtension() bool {
@@ -113,14 +95,4 @@ func (i interfaceMonitorStub) RegisterCallback(_ tun.DefaultInterfaceUpdateCallb
 }
 
 func (i interfaceMonitorStub) UnregisterCallback(_ *list.Element[tun.DefaultInterfaceUpdateCallback]) {
-}
-
-func fakeInterface() *control.Interface {
-	return &control.Interface{
-		Index:        0,
-		MTU:          1420,
-		Name:         "fake",
-		HardwareAddr: nil,
-		Flags:        net.FlagUp | net.FlagRunning,
-	}
 }
