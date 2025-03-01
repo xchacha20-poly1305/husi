@@ -2022,6 +2022,8 @@ public class SingBoxOptions {
 
         public String idle_session_timeout;
 
+        public Integer min_idle_session;
+
     }
 
     public static class Endpoint_WireGuardOptions extends Endpoint {

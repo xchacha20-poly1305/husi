@@ -587,4 +587,7 @@
     <string name="v2ray_transport">V2Ray 传输层</string>
     <string name="reality_public_key">REALITY 公钥</string>
     <string name="import_http_url">您正在导入一个 HTTP URL，您需要进行？</string>
+    <string name="idle_session_check_interval">空闲会话检查间隔</string>
+    <string name="idle_session_timeout">空闲会话超时</string>
+    <string name="min_idle_session">最小闲置会话数</string>
 </resources>

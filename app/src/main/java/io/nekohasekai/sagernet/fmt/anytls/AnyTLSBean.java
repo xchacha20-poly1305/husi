@@ -26,6 +26,9 @@ public class AnyTLSBean extends AbstractBean {
         }
     };
     public String password;
+    public String idleSessionCheckInterval;
+    public String idleSessionTimeout;
+    public Integer minIdleSession;
     public String serverName;
     public String alpn;
     public String certificates;
@@ -34,13 +37,15 @@ public class AnyTLSBean extends AbstractBean {
     // In sing-box, this seemed can be used with REALITY.
     // But even mihomo appended many options, it still not provide REALITY.
     // https://github.com/anytls/anytls-go/blob/4636d90462fa21a510420512d7706a9acf69c7b9/docs/faq.md?plain=1#L25-L37
-
     public String echConfig;
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
         if (password == null) password = "";
+        if (idleSessionCheckInterval == null) idleSessionCheckInterval = "30s";
+        if (idleSessionTimeout == null) idleSessionTimeout = "30s";
+        if (minIdleSession == null) minIdleSession = 0;
         if (serverName == null) serverName = "";
         if (alpn == null) alpn = "";
         if (certificates == null) certificates = "";
@@ -51,7 +56,7 @@ public class AnyTLSBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(password);
         output.writeString(serverName);
@@ -60,6 +65,11 @@ public class AnyTLSBean extends AbstractBean {
         output.writeString(utlsFingerprint);
         output.writeBoolean(allowInsecure);
         output.writeString(echConfig);
+
+        // version 1
+        output.writeString(idleSessionCheckInterval);
+        output.writeString(idleSessionTimeout);
+        output.writeInt(minIdleSession);
     }
 
     @Override
@@ -73,6 +83,12 @@ public class AnyTLSBean extends AbstractBean {
         utlsFingerprint = input.readString();
         allowInsecure = input.readBoolean();
         echConfig = input.readString();
+
+        if (version >= 1) {
+            idleSessionCheckInterval = input.readString();
+            idleSessionTimeout = input.readString();
+            minIdleSession = input.readInt();
+        }
     }
 
     @NotNull

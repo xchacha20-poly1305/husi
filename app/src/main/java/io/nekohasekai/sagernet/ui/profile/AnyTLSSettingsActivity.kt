@@ -18,6 +18,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         serverAddress = DataStore.serverAddress
         serverPort = DataStore.serverPort
         password = DataStore.serverPassword
+        idleSessionCheckInterval = DataStore.serverIdleSessionCheckInterval
+        idleSessionTimeout = DataStore.serverIdleSessionTimeout
+        minIdleSession = DataStore.serverMinIdleSession
         serverName = DataStore.serverSNI
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
@@ -31,6 +34,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         DataStore.serverAddress = serverAddress
         DataStore.serverPort = serverPort
         DataStore.serverPassword = password
+        DataStore.serverIdleSessionCheckInterval = idleSessionCheckInterval
+        DataStore.serverIdleSessionTimeout = idleSessionTimeout
+        DataStore.serverMinIdleSession = minIdleSession
         DataStore.serverSNI = serverName
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates

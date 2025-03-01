@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -514,6 +515,47 @@ object RawUpdater : GroupUpdater() {
                                 }
 
                                 "host_key" -> listable<String>(opt.value)?.firstOrNull()
+                            }
+                        }
+                    })
+
+                    "anytls" -> proxies.add(AnyTLSBean().apply {
+                        applyFromMap(proxy) { opt ->
+                            when (opt.key) {
+                                "idle_session_check_interval" -> {
+                                    idleSessionCheckInterval = opt.value.toString()
+                                }
+
+                                "idle_session_timeout" -> {
+                                    idleSessionTimeout = opt.value.toString()
+                                }
+
+                                "min_idle_session" -> {
+                                    minIdleSession = opt.value.toString().toIntOrNull() ?: 0
+                                }
+
+                                "tls" -> for (tlsOpt in opt.value as Map<String, Any?>) {
+                                    when (tlsOpt.key) {
+                                        "server_name" -> serverName = tlsOpt.value.toString()
+                                        "insecure" -> allowInsecure =
+                                            tlsOpt.value.toString().toBoolean()
+
+                                        "alpn" -> alpn = listable<String>(tlsOpt.value)
+                                            ?.joinToString("\n")
+
+                                        "certificate" -> certificates =
+                                            listable<String>(tlsOpt.value)?.joinToString("\n")
+
+                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
+                                            when (echOpt.key) {
+                                                "config" -> echConfig =
+                                                    listable<String>(echOpt.value)?.joinToString("\n")
+                                            }
+                                        }
+                                    }
+                                }
+
+                                else -> null
                             }
                         }
                     })

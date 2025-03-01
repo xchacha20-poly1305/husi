@@ -189,6 +189,10 @@ object Key {
     const val SERVER_DISABLE_SNI = "serverDisableSNI"
     const val SERVER_REDUCE_RTT = "serverReduceRTT"
 
+    const val SERVER_IDLE_SESSION_CHECK_INTERVAL = "serverIdleSessionCheckInterval"
+    const val SERVER_IDLE_SESSION_TIMEOUT = "serverIdleSessionTimeout"
+    const val SERVER_MIN_IDLE_SESSION = "serverMinIdleSession"
+
     const val SERVER_RESERVED = "serverReserved"
     const val LOCAL_ADDRESS = "localAddress"
     const val LISTEN_PORT = "listenPort"
