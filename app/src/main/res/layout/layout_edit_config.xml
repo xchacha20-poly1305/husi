@@ -1,109 +1,108 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
         <include
-                layout="@layout/layout_appbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            layout="@layout/layout_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@android:color/darker_gray" />
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@android:color/darker_gray" />
 
         <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
             <com.blacksquircle.ui.editorkit.widget.TextProcessor
-                    android:id="@+id/editor"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@null"
-                    android:completionThreshold="2"
-                    android:importantForAutofill="no"
-                    android:scrollbars="none" />
+                android:id="@+id/editor"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:completionThreshold="2"
+                android:importantForAutofill="no"
+                android:scrollbars="none" />
 
             <com.blacksquircle.ui.editorkit.widget.TextScroller
-                    android:id="@+id/scroller"
-                    android:layout_width="30dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    app:thumbTint="?colorPrimary" />
+                android:id="@+id/scroller"
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                app:thumbTint="?colorPrimary" />
 
         </FrameLayout>
 
         <LinearLayout
-                android:id="@+id/keyboard_container"
-                android:layout_width="match_parent"
+            android:id="@+id/keyboard_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="2dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/action_tab"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/colorPrimary"
+                android:padding="8dp"
+                android:src="@drawable/baseline_keyboard_tab_24"
+                app:tint="@color/chip_text_color" />
+
+            <io.nekohasekai.sagernet.widget.ExtendedKeyboard
+                android:id="@+id/extended_keyboard"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:elevation="2dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:itemCount="6"
+                tools:listitem="@layout/item_keyboard_key" />
 
             <ImageView
-                    android:id="@+id/action_tab"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="?primaryOrTextPrimary"
-                    android:padding="8dp"
-                    android:src="@drawable/baseline_keyboard_tab_24"
-                    app:tint="?colorOnSurface" />
-
-            <moe.matsuri.nb4a.ui.ExtendedKeyboard
-                    android:id="@+id/extended_keyboard"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?colorSecondaryVariant"
-                    android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:itemCount="6"
-                    tools:listitem="@layout/item_keyboard_key" />
+                android:id="@+id/action_undo"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/colorPrimary"
+                android:padding="8dp"
+                android:src="@drawable/baseline_undo_24"
+                app:tint="@color/chip_text_color" />
 
             <ImageView
-                    android:id="@+id/action_undo"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="?primaryOrTextPrimary"
-                    android:padding="8dp"
-                    android:src="@drawable/baseline_undo_24"
-                    app:tint="?colorOnSurface" />
+                android:id="@+id/action_redo"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/colorPrimary"
+                android:padding="8dp"
+                android:src="@drawable/baseline_redo_24"
+                app:tint="@color/chip_text_color" />
 
             <ImageView
-                    android:id="@+id/action_redo"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="?primaryOrTextPrimary"
-                    android:padding="8dp"
-                    android:src="@drawable/baseline_redo_24"
-                    app:tint="?colorOnSurface" />
+                android:id="@+id/action_format"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/colorPrimary"
+                android:padding="8dp"
+                android:src="@drawable/ic_baseline_format_align_left_24"
+                app:tint="@color/chip_text_color" />
 
             <ImageView
-                    android:id="@+id/action_format"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="?primaryOrTextPrimary"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_baseline_format_align_left_24"
-                    app:tint="?colorOnSurface" />
-
-            <ImageView
-                    android:id="@+id/action_config_test"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="?primaryOrTextPrimary"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_baseline_info_24"
-                    app:tint="?colorOnSurface" />
+                android:id="@+id/action_config_test"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/colorPrimary"
+                android:padding="8dp"
+                android:src="@drawable/ic_baseline_info_24"
+                app:tint="@color/chip_text_color" />
 
         </LinearLayout>
 

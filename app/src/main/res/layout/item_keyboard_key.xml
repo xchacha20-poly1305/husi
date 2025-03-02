@@ -15,13 +15,14 @@
   -->
 
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          android:id="@+id/item_title"
-          android:layout_width="36dp"
-          android:layout_height="36dp"
-          android:background="?selectableItemBackground"
-          android:gravity="center"
-          android:paddingBottom="2dp"
-          android:textSize="16sp"
-          android:typeface="monospace"
-          tools:text="{"/>
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_title"
+    android:layout_width="36dp"
+    android:layout_height="36dp"
+    android:background="?attr/colorPrimary"
+    android:gravity="center"
+    android:paddingBottom="2dp"
+    android:textColor="@color/chip_text_color"
+    android:textSize="16sp"
+    android:typeface="monospace"
+    tools:text="{" />

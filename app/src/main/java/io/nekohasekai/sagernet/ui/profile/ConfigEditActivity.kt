@@ -25,7 +25,7 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import libcore.Libcore
-import moe.matsuri.nb4a.ui.ExtendedKeyboard
+import io.nekohasekai.sagernet.widget.ExtendedKeyboard
 
 class ConfigEditActivity : ThemedActivity() {
 
