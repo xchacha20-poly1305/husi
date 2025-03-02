@@ -111,6 +111,7 @@ import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import moe.matsuri.nb4a.utils.blur
@@ -134,6 +135,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         fun returnProfile(profileId: Long)
     }
 
+    val activity: ThemedActivity? get() = super.getActivity() as? ThemedActivity
     lateinit var adapter: GroupPagerAdapter
     lateinit var tabLayout: TabLayout
     lateinit var groupPager: ViewPager2
@@ -173,15 +175,16 @@ class ConfigurationFragment @JvmOverloads constructor(
         super.onCreate(savedInstanceState)
 
         if (savedInstanceState != null) {
-            parentFragmentManager.beginTransaction().setReorderingAllowed(false).detach(this)
-                .attach(this).commit()
+            parentFragmentManager.beginTransaction()
+                .setReorderingAllowed(false)
+                .detach(this)
+                .attach(this)
+                .commit()
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        activity = requireActivity() as MainActivity
 
         if (!select) {
             toolbar.inflateMenu(R.menu.add_profile_menu)
@@ -194,12 +197,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
+        val activity = activity
         val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
         if (searchView != null) {
             searchView.setOnQueryTextListener(this)
             searchView.maxWidth = Int.MAX_VALUE
             searchView.setOnFocusCancel { hasFocus ->
-                activity.onBackPressedCallback.isEnabled = hasFocus
+                activity?.onBackPressedCallback?.isEnabled = hasFocus
             }
         }
 
@@ -270,7 +274,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         DataStore.profileCacheStore.registerChangeListener(this)
 
-        activity.onBackPressedCallback.isEnabled = false
+        activity?.onBackPressedCallback?.isEnabled = false
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
@@ -646,8 +650,6 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
         return true
     }
-
-    private lateinit var activity: MainActivity
 
     inner class TestDialog {
         val binding = LayoutProgressListBinding.inflate(layoutInflater)
