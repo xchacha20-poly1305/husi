@@ -1,6 +1,7 @@
-package moe.matsuri.nb4a
+package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.database.DataStore
+import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
 import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Logical
 import moe.matsuri.nb4a.SingBoxOptions.RULE_SET_FORMAT_BINARY
