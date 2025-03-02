@@ -3,7 +3,7 @@ module libcore
 go 1.24
 
 require (
-	github.com/anytls/sing-anytls v0.0.5
+	github.com/anytls/sing-anytls v0.0.6
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.63
 	github.com/sagernet/gomobile v0.1.4
