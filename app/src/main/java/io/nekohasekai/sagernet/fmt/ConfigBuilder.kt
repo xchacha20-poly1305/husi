@@ -49,7 +49,7 @@ import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import moe.matsuri.nb4a.RuleItem
+import io.nekohasekai.sagernet.fmt.RuleItem
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
@@ -62,7 +62,6 @@ import moe.matsuri.nb4a.SingBoxOptions.MyOptions
 import moe.matsuri.nb4a.SingBoxOptions.NTPOptions
 import moe.matsuri.nb4a.SingBoxOptions.RouteOptions
 import moe.matsuri.nb4a.SingBoxOptions.User
-import moe.matsuri.nb4a.SingBoxOptionsUtil
 import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
@@ -73,11 +72,6 @@ import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_SOCKSOptions
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Logical
-import moe.matsuri.nb4a.buildRuleSets
-import moe.matsuri.nb4a.checkEmpty
-import moe.matsuri.nb4a.isEndpoint
-import moe.matsuri.nb4a.makeCommonRule
-import moe.matsuri.nb4a.parseRules
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
@@ -601,11 +595,11 @@ fun buildConfig(
                 }
                 var domainList: List<RuleItem> = listOf()
                 if (rule.domains.isNotBlank()) {
-                    domainList = parseRules(rule.domains.listByLineOrComma())
+                    domainList = RuleItem.parseRules(rule.domains.listByLineOrComma())
                     makeCommonRule(domainList, false)
                 }
                 if (rule.ip.isNotBlank()) {
-                    makeCommonRule(parseRules(rule.ip.listByLineOrComma()), true)
+                    makeCommonRule(RuleItem.parseRules(rule.ip.listByLineOrComma()), true)
                 }
                 if (rule.port.isNotBlank()) {
                     port = mutableListOf()
@@ -668,7 +662,7 @@ fun buildConfig(
                 fun makeDnsRuleObj(): DNSRule_Default {
                     return DNSRule_Default().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
-                        val ips = parseRules(rule.ip.listByLineOrComma()).filter {
+                        val ips = RuleItem.parseRules(rule.ip.listByLineOrComma()).filter {
                             it.dns
                         }
                         makeCommonRule(domainList + ips)
@@ -917,7 +911,7 @@ fun buildConfig(
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
                     makeCommonRule(
-                        parseRules(domainListDNSDirectForce.distinct()),
+                        RuleItem.parseRules(domainListDNSDirectForce.distinct()),
                     )
                     server = TAG_DNS_DIRECT
                 })
