@@ -46,10 +46,12 @@ import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.mkPort
+import io.nekohasekai.sagernet.ktx.mergeJson
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import io.nekohasekai.sagernet.fmt.RuleItem
+import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.toJsonMap
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
@@ -73,7 +75,6 @@ import moe.matsuri.nb4a.SingBoxOptions.Outbound_SOCKSOptions
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Rule_Logical
 import moe.matsuri.nb4a.utils.JavaUtil.gson
-import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
 // Inbound
@@ -330,13 +331,13 @@ fun buildConfig(
                 add(entity)
             }
 
-            var currentOutbound = mutableMapOf<String, Any>()
-            lateinit var pastOutbound: MutableMap<String, Any>
+            var currentOutbound = mutableMapOf<String, Any?>()
+            lateinit var pastOutbound: JSONMap
             lateinit var pastInboundTag: String
             var pastEntity: ProxyEntity? = null
             val externalChainMap = LinkedHashMap<Int, ProxyEntity>()
             externalIndexMap.add(IndexEntity(externalChainMap))
-            val chainOutbounds = ArrayList<MutableMap<String, Any>>()
+            val chainOutbounds = ArrayList<JSONMap>()
 
             // chainTagOut: v2ray outbound tag for this chain
             var chainTagOut = ""
@@ -411,7 +412,7 @@ fun buildConfig(
                     if (bean is JuicityBean) hasJuicity = true
                 } else { // internal outbound
                     currentOutbound = when (bean) {
-                        is ConfigBean -> gson.fromJson(bean.config, currentOutbound.javaClass)
+                        is ConfigBean -> bean.config.toJsonMap()
 
                         is ShadowTLSBean -> // before StandardV2RayBean
                             buildSingBoxOutboundShadowTLSBean(bean).asMap()
@@ -503,8 +504,8 @@ fun buildConfig(
                     }
 
                     // custom JSON merge
-                    if (bean.customOutboundJson.isNotBlank()) {
-                        Util.mergeJSON(bean.customOutboundJson, currentOutbound)
+                    bean.customOutboundJson.blankAsNull()?.toJsonMap()?.let {
+                        mergeJson(it, currentOutbound)
                     }
                 }
 
@@ -750,10 +751,9 @@ fun buildConfig(
             var serverAddr = it.serverAddress
 
             if (it is ConfigBean) {
-                var config = mutableMapOf<String, Any>()
-                config = gson.fromJson(it.config, config.javaClass)
-                config["server"]?.apply {
-                    serverAddr = toString()
+                val config = it.config.toJsonMap()
+                config["server"]?.let { server ->
+                    serverAddr = server.toString()
                 }
             }
 
@@ -975,7 +975,9 @@ fun buildConfig(
     }.let {
         ConfigBuildResult(
             gson.toJson(it.asMap().apply {
-                Util.mergeJSON(optionsToMerge, this)
+                optionsToMerge.blankAsNull()?.toJsonMap()?.let { jsonMap ->
+                    mergeJson(jsonMap, this)
+                }
             }),
             externalIndexMap,
             proxy.id,

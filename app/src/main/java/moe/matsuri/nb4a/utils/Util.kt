@@ -5,39 +5,11 @@ import android.content.Context
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 import java.util.zip.Deflater
 import java.util.zip.Inflater
 
 object Util {
-
-    /**
-     * 取两个文本之间的文本值
-     *
-     * @param text  源文本 比如：欲取全文本为 12345
-     * @param left  文本前面
-     * @param right 后面文本
-     * @return 返回 String
-     */
-    fun getSubString(text: String, left: String?, right: String?): String {
-        var zLen: Int
-        if (left.isNullOrEmpty()) {
-            zLen = 0
-        } else {
-            zLen = text.indexOf(left)
-            if (zLen > -1) {
-                zLen += left.length
-            } else {
-                zLen = 0
-            }
-        }
-        var yLen = if (right == null) -1 else text.indexOf(right, zLen)
-        if (yLen < 0 || right.isNullOrEmpty()) {
-            yLen = text.length
-        }
-        return text.substring(zLen, yLen)
-    }
-
     // Base64 for all
 
     fun b64EncodeUrlSafe(s: String): String {
@@ -110,21 +82,6 @@ object Util {
 
             inflater.end()
             outputStream.toByteArray()
-        }
-    }
-
-
-    fun mergeJSON(j: String, to: MutableMap<String, Any>) {
-        if (j.isBlank()) return
-        val m = JavaUtil.gson.fromJson(j, to.javaClass)
-        m.forEach { (k, v) ->
-            if (v is Map<*, *> && to[k] is Map<*, *>) {
-                val currentMap = (to[k] as Map<*, *>).toMutableMap()
-                currentMap += v
-                to[k] = currentMap
-            } else {
-                to[k] = v
-            }
         }
     }
 
