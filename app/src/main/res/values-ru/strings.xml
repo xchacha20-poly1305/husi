@@ -26,8 +26,8 @@
     <string name="connection_test_error_status_code">Код ошибки: #%d</string>
     <string name="connection_test_fail">Интернет недоступен</string>
     <string name="connection_test_error">Ошибка: %s</string>
-    <string name="connection_test_available_http">Успех: HTTP-соединение установлено за %d мс</string>
-    <string name="connection_test_available">Успех: HTTPS-соединение установлено за %d мс</string>
+    <string name="connection_test_available_http">HTTP-соединение установлено за %d мс</string>
+    <string name="connection_test_available">HTTPS-соединение установлено за %d мс</string>
     <string name="connection_test_testing">Тестирование…</string>
     <string name="speed_detail">Прокси ：%1$s↑ %2$s↓
         \nПрямой ：%3$s↑%4$s↓
@@ -621,4 +621,8 @@
     <string name="certificate_authority">Центр сертификации</string>
     <string name="system_and_user">Система и Пользователь</string>
     <string name="http_proxy_bypass">Список обхода HTTP-прокси</string>
+    <string name="idle_session_check_interval">Интервал проверки сеанса IDLE</string>
+    <string name="idle_session_timeout">Тайм -аут сеанса IDLE</string>
+    <string name="min_idle_session">Минимальный сеанс IDLE</string>
+    <string name="import_http_url">Импортирт HTTP URL.</string>
 </resources>
