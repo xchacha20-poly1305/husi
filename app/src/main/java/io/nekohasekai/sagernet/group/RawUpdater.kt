@@ -522,6 +522,7 @@ object RawUpdater : GroupUpdater() {
                     "anytls" -> proxies.add(AnyTLSBean().apply {
                         applyFromMap(proxy) { opt ->
                             when (opt.key) {
+                                "password" -> password = opt.value.toString()
                                 "idle_session_check_interval" -> {
                                     idleSessionCheckInterval = opt.value.toString()
                                 }
