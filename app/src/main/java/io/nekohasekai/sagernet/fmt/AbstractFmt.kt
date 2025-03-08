@@ -37,6 +37,18 @@ import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundRealityOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundTLSOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundUTLSOptions
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_ANYTLS
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_HTTP
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_HYSTERIA
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_HYSTERIA2
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_SHADOWSOCKS
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_SOCKS
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_SSH
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_TROJAN
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_TUIC
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_VLESS
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_VMESS
+import moe.matsuri.nb4a.SingBoxOptions.TYPE_WIREGUARD
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import org.json.JSONArray
 import org.json.JSONObject
@@ -61,25 +73,25 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
 }
 
 fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString()) {
-    "socks" -> parseSocksOutbound(json)
+    TYPE_SOCKS -> parseSocksOutbound(json)
 
-    "http" -> parseHttpOutbound(json)
+    TYPE_HTTP -> parseHttpOutbound(json)
 
-    "shadowsocks" -> parseShadowsocksOutbound(json)
+    TYPE_SHADOWSOCKS -> parseShadowsocksOutbound(json)
 
-    "vmess", "vless", "trojan" -> parseStandardV2RayOutbound(json)
+    TYPE_VMESS, TYPE_VLESS, TYPE_TROJAN -> parseStandardV2RayOutbound(json)
 
-    "wireguard" -> parseWireGuardEndpoint(json)
+    TYPE_WIREGUARD -> parseWireGuardEndpoint(json)
 
-    "hysteria" -> parseHysteria1Outbound(json)
+    TYPE_HYSTERIA -> parseHysteria1Outbound(json)
 
-    "hysteria2" -> parseHysteria2Outbound(json)
+    TYPE_HYSTERIA2 -> parseHysteria2Outbound(json)
 
-    "tuic" -> parseTuicOutbound(json)
+    TYPE_TUIC -> parseTuicOutbound(json)
 
-    "ssh" -> parseSSHOutbound(json)
+    TYPE_SSH -> parseSSHOutbound(json)
 
-    "anytls" -> parseAnyTLSOutbound(json)
+    TYPE_ANYTLS -> parseAnyTLSOutbound(json)
 
     else -> null
 }

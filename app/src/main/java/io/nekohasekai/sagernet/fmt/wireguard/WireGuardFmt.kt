@@ -2,10 +2,12 @@ package io.nekohasekai.sagernet.fmt.wireguard
 
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
+import org.json.JSONArray
 
 fun genReserved(anyStr: String): String {
     try {
@@ -52,16 +54,16 @@ fun buildSingBoxEndpointWireGuardBean(bean: WireGuardBean): SingBoxOptions.Endpo
 
 @Suppress("UNCHECKED_CAST")
 fun parseWireGuardEndpoint(json: JSONMap): WireGuardBean? {
-    val bean = WireGuardBean()
-    val peer = (json["peers"] as? List<JSONMap>)?.firstOrNull() ?: return null
+    val peer = (json["peers"] as? JSONArray)?.optJSONObject(0) ?: return null
 
+    val bean = WireGuardBean()
     bean.name = json["tag"].toString()
     bean.mtu = json["mtu"]?.toString()?.toIntOrNull()
     bean.localAddress = listable<String>(json["address"])?.joinToString("\n")
     bean.listenPort = json["listen_port"]?.toString()?.toIntOrNull()
     bean.privateKey = json["private_key"]?.toString()
 
-    for (entry in peer) {
+    for (entry in peer.map) {
         val value = entry.value ?: continue
         when (entry.key) {
             "address" -> bean.serverAddress = value.toString()
