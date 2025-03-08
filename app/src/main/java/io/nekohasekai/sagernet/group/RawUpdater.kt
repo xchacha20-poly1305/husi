@@ -8,7 +8,6 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Json
 import io.nekohasekai.sagernet.fmt.parseOutbound
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
@@ -27,7 +26,6 @@ import io.nekohasekai.sagernet.ktx.isJsonObjectValid
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.parseProxies
-import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
 import org.ini4j.Ini
 import org.json.JSONArray
@@ -53,7 +51,7 @@ object RawUpdater : GroupUpdater() {
                 ?.readText()
 
             proxies = contentText?.let { parseRaw(contentText) }
-                ?: error(app.getString(R.string.no_proxies_found_in_subscription))
+                ?: errNotFound()
         } else {
 
             val response = Libcore.newHttpClient().apply {
@@ -65,8 +63,7 @@ object RawUpdater : GroupUpdater() {
                 setURL(subscription.link)
                 setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
-            proxies = parseRaw(response.contentString.value)
-                ?: error(app.getString(R.string.no_proxies_found))
+            proxies = parseRaw(response.contentString.value) ?: errNotFound()
 
             // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
             // Subscription-Userinfo: upload=2375927198; download=12983696043; total=1099511627776; expire=1862111613
@@ -118,7 +115,8 @@ object RawUpdater : GroupUpdater() {
         try {
             val json = JSONTokener(text).nextValue()
             return parseJSON(json)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Logs.w(e)
         }
 
         try {
@@ -132,7 +130,8 @@ object RawUpdater : GroupUpdater() {
             return parseProxies(text).takeIf { it.isNotEmpty() } ?: error("Not found")
         } catch (e: SubscriptionFoundException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Logs.w(e)
         }
 
         return null
@@ -176,7 +175,7 @@ object RawUpdater : GroupUpdater() {
 
         if (json is JSONObject) {
             when {
-                json.has("outbounds") -> {
+                json.has("outbounds") || json.has("endpoints") -> {
                     // sing-box
 
                     val outbounds = json.optJSONArray("outbounds")
@@ -184,7 +183,7 @@ object RawUpdater : GroupUpdater() {
                     var length = outbounds?.length() ?: 0
                     endpoints?.length()?.let { length += it }
                     if (length == 0) {
-                        error(app.getString(R.string.no_proxies_found))
+                        errNotFound<Unit>()
                     }
 
                     fun add(outbound: Any) {
@@ -208,9 +207,11 @@ object RawUpdater : GroupUpdater() {
                     }
                 }
 
-                json.has("server") && json.has("server_port") -> {
+                (json.has("server") && json.has("server_port")) || json.has("peers") -> {
                     // Single sing-box outbound
-                    return listOf(parseOutbound(json.map)!!)
+                    return parseOutbound(json.map)?.let {
+                        listOf(it)
+                    } ?: errNotFound()
                 }
 
                 json.has("server") && (json.has("up") || json.has("up_mbps")) -> {
@@ -221,12 +222,6 @@ object RawUpdater : GroupUpdater() {
                     return listOf(json.parseShadowsocks())
                 }
 
-                json.has("outbounds") -> {
-                    return listOf(ConfigBean().applyDefaultValues().apply {
-                        config = json.toStringPretty()
-                    })
-                }
-
                 json.has("version") && json.has("servers") -> {
                     // try to parse SIP008
                     json.getJSONArray("servers").forEach { _, it ->
@@ -234,6 +229,10 @@ object RawUpdater : GroupUpdater() {
                             proxies.add(it.parseShadowsocks())
                         }
                     }
+                }
+
+                else -> {
+                    errNotFound()
                 }
             }
         } else {
@@ -255,5 +254,9 @@ object RawUpdater : GroupUpdater() {
             }
         }
         return proxies
+    }
+
+    private fun <T> errNotFound(): T {
+        error(app.getString(R.string.no_proxies_found))
     }
 }
