@@ -30,8 +30,11 @@ class ConnectionFragment(private val conn: Connection) :
             setNavigationIcon(R.drawable.baseline_arrow_back_24)
             setNavigationOnClickListener {
                 parentFragmentManager.popBackStack()
+                (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
             }
         }
+
+        (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = false
 
         bind()
     }
