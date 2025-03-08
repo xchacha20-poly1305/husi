@@ -2,20 +2,27 @@ package io.nekohasekai.sagernet.fmt.hysteria
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
+import io.nekohasekai.sagernet.fmt.listable
+import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.getBool
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.linkBoolean
+import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.toJSONMap
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
+import moe.matsuri.nb4a.SingBoxOptions.OutboundTLSOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
+import kotlin.collections.iterator
 
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
 fun parseHysteria1(link: String): HysteriaBean {
@@ -340,7 +347,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             if (bean.connectionReceiveWindow > 0) {
                 recv_window_conn = bean.connectionReceiveWindow.toLong()
             }
-            tls = SingBoxOptions.OutboundTLSOptions().apply {
+            tls = OutboundTLSOptions().apply {
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
@@ -389,7 +396,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
 //            if (bean.connectionReceiveWindow > 0) {
 //                recv_window_conn = bean.connectionReceiveWindow.toLong()
 //            }
-            tls = SingBoxOptions.OutboundTLSOptions().apply {
+            tls = OutboundTLSOptions().apply {
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
@@ -470,5 +477,88 @@ fun HysteriaBean.generateUploadSpeed(): Int = DataStore.uploadSpeed.let {
         DEFAULT_SPEED
     } else {
         it
+    }
+}
+
+fun parseHysteria1Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
+    protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
+
+    var tmpPorts = mutableListOf<String>()
+    for (entry in json) {
+        val value = entry.value ?: continue
+
+        when (entry.key) {
+            "tag" -> name = value.toString()
+            "server" -> serverAddress = value.toString()
+            "server_port" -> tmpPorts.add(value.toString())
+            "server_ports" -> listable<String>(value)?.let {
+                tmpPorts.addAll(it)
+            }
+
+            "hop_interval" -> hopInterval = value.toString()
+            "obfs" -> obfuscation = value.toString()
+
+            "auth" -> {
+                authPayloadType = HysteriaBean.TYPE_BASE64
+                authPayload = value.toString()
+            }
+
+            "auth_str" -> {
+                authPayloadType = HysteriaBean.TYPE_STRING
+                authPayload = value.toString()
+            }
+
+            "tls" -> {
+                loadTLS(parseBoxTLS((value as JSONObject).map))
+            }
+        }
+    }
+
+    serverPorts = tmpPorts.joinToString(HopPort.SPLIT_FLAG)
+}
+
+fun parseHysteria2Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
+    protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+
+    val tmpPorts = mutableListOf<String>()
+    for (entry in json) {
+        val value = entry.value ?: continue
+
+        when (entry.key) {
+            "tag" -> name = value.toString()
+            "server" -> serverAddress = value.toString()
+            "server_port" -> tmpPorts.add(value.toString())
+            "server_ports" -> listable<String>(value)?.let {
+                tmpPorts.addAll(it)
+            }
+
+            "hop_interval" -> hopInterval = value.toString()
+            "obfs" -> {
+                val obfsField = value as? Map<*, *> ?: continue
+                obfsField["password"]?.toString()?.let {
+                    obfuscation = it
+                }
+            }
+
+            "password" -> authPayload = value.toString()
+
+            "tls" -> {
+                loadTLS(parseBoxTLS((value as JSONObject).map))
+            }
+
+        }
+    }
+
+    serverPorts = tmpPorts.joinToString(HopPort.SPLIT_FLAG)
+}
+
+private fun HysteriaBean.loadTLS(tls: OutboundTLSOptions) {
+    sni = tls.server_name
+    allowInsecure = tls.insecure
+    certificates = tls.certificate?.joinToString("\n")
+    alpn = tls.alpn?.joinToString("\n")
+    tls.ech?.let {
+        ech = it.enabled
+        echConfig = it.config?.joinToString("\n")
     }
 }

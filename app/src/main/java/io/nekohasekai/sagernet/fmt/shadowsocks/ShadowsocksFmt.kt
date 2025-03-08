@@ -1,5 +1,8 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxUot
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
@@ -14,7 +17,7 @@ const val SIMPLE_OBFS = "simple-obfs"
 const val OBFS_LOCAL = "obfs-local"
 
 fun ShadowsocksBean.pluginToLocal() {
-    if (plugin.startsWith(SIMPLE_OBFS)) {
+    if (plugin?.startsWith(SIMPLE_OBFS) == true) {
         plugin = plugin.replaceFirst(SIMPLE_OBFS, OBFS_LOCAL)
     }
 }
@@ -153,4 +156,24 @@ fun URL.encodeShadowsocksUserInfo(pass: String, method: String) {
 
     // use base64 to stay compatible
     username = Util.b64EncodeUrlSafe("${method}:${pass}")
+}
+
+fun parseShadowsocksOutbound(json: JSONMap): ShadowsocksBean = ShadowsocksBean().apply {
+    var pluginName = ""
+    var pluginOpts = ""
+
+    parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "password" -> password = value.toString()
+            "method" -> method = value.toString()
+            "plugin" -> pluginName = value.toString()
+            "plugin_opts" -> pluginOpts = value.toString()
+            "udp_over_tcp" -> udpOverTcp = parseBoxUot(value)
+        }
+    }
+
+    if (pluginName.isNotBlank()) {
+        plugin = "$pluginName;$pluginOpts"
+    }
+    pluginToLocal()
 }

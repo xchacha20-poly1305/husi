@@ -1,5 +1,8 @@
 package io.nekohasekai.sagernet.fmt.tuic
 
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.ktx.JSONMap
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
@@ -98,6 +101,38 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             disable_sni = bean.disableSNI
             insecure = bean.allowInsecure
             enabled = true
+        }
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun parseTuicOutbound(json: JSONMap): TuicBean = TuicBean().apply {
+    parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "uuid" -> uuid = value.toString()
+            "password" -> token = value.toString()
+            "congestion_control" -> congestionController = value.toString()
+            "udp_relay_mode" -> udpRelayMode = value.toString()
+            "zero_rtt_handshake" -> reduceRTT = value.toString().toBoolean()
+
+            "udp_over_stream" -> if (value.toString().toBoolean()) {
+                udpRelayMode = "UDP over Stream"
+            }
+
+            "tls" -> {
+                val tlsField = value as? JSONMap ?: return@parseBoxOutbound
+                val tls = parseBoxTLS(tlsField)
+
+                sni = tls.server_name
+                allowInsecure = tls.insecure
+                disableSNI = tls.disable_sni
+                certificates = tls.certificate?.joinToString("\n")
+                alpn = tls.alpn?.joinToString("\n")
+                tls.ech?.let {
+                    ech = it.enabled
+                    echConfig = it.config.joinToString("\n")
+                }
+            }
         }
     }
 }

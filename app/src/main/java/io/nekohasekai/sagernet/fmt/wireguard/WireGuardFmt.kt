@@ -1,5 +1,8 @@
 package io.nekohasekai.sagernet.fmt.wireguard
 
+import io.nekohasekai.sagernet.fmt.listable
+import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.mapX
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
@@ -45,4 +48,37 @@ fun buildSingBoxEndpointWireGuardBean(bean: WireGuardBean): SingBoxOptions.Endpo
         private_key = bean.privateKey
         mtu = bean.mtu
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun parseWireGuardEndpoint(json: JSONMap): WireGuardBean? {
+    val bean = WireGuardBean()
+    val peer = (json["peers"] as? List<JSONMap>)?.firstOrNull() ?: return null
+
+    bean.name = json["tag"].toString()
+    bean.mtu = json["mtu"]?.toString()?.toIntOrNull()
+    bean.localAddress = listable<String>(json["address"])?.joinToString("\n")
+    bean.listenPort = json["listen_port"]?.toString()?.toIntOrNull()
+    bean.privateKey = json["private_key"]?.toString()
+
+    for (entry in peer) {
+        val value = entry.value ?: continue
+        when (entry.key) {
+            "address" -> bean.serverAddress = value.toString()
+            "port" -> bean.serverPort = value.toString().toInt()
+            "public_key" -> bean.publicKey = value.toString()
+            "pre_shared_key" -> bean.preSharedKey = value.toString()
+            "reserved" -> bean.reserved = when (value) {
+                is String -> value
+
+                is List<*> -> value.mapX {
+                    it.toString()
+                }.joinToString(",")
+
+                else -> null
+            }
+        }
+    }
+
+    return bean
 }

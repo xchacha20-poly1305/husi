@@ -3,12 +3,16 @@ package io.nekohasekai.sagernet.fmt.v2ray
 import android.text.TextUtils
 import com.google.gson.Gson
 import io.nekohasekai.sagernet.fmt.http.HttpBean
+import io.nekohasekai.sagernet.fmt.listable
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import libcore.URL
 import moe.matsuri.nb4a.SingBoxOptions.*
 import moe.matsuri.nb4a.utils.listByLineOrComma
+import org.json.JSONObject
 
 data class VmessQRCode(
     var v: String = "",
@@ -411,7 +415,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
 
         "ws" -> {
             return V2RayTransportOptions_V2RayWebsocketOptions().apply {
-                type = "ws"
+                type = TRANSPORT_WS
                 headers = mutableMapOf()
                 for (line in bean.headers.lines()) {
                     val pair = line.split(":", limit = 2)
@@ -444,7 +448,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
 
         "http" -> {
             return V2RayTransportOptions_V2RayHTTPOptions().apply {
-                type = "http"
+                type = TRANSPORT_HTTP
                 if (!bean.isTLS()) method = "GET" // v2ray tcp header
                 if (bean.host.isNotBlank()) {
                     host = bean.host.listByLineOrComma()
@@ -463,20 +467,20 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
 
         "quic" -> {
             return V2RayTransportOptions().apply {
-                type = "quic"
+                type = TRANSPORT_QUIC
             }
         }
 
         "grpc" -> {
             return V2RayTransportOptions_V2RayGRPCOptions().apply {
-                type = "grpc"
+                type = TRANSPORT_GRPC
                 service_name = bean.path
             }
         }
 
         "httpupgrade" -> {
             return V2RayTransportOptions_V2RayHTTPUpgradeOptions().apply {
-                type = "httpupgrade"
+                type = TRANSPORT_HTTPUPGRADE
                 host = bean.host.listByLineOrComma().firstOrNull()
                 path = bean.path
 
@@ -593,4 +597,147 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
     }
 
     else -> throw IllegalStateException()
+}
+
+@Suppress("UNCHECKED_CAST")
+fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
+    var v2ray: VMessBean? = null
+    var vmess: VMessBean? = null
+    var vless: VMessBean? = null
+    var trojan: TrojanBean? = null
+    val bean = when (json["type"]!!.toString()) {
+        TYPE_VMESS -> VMessBean().also {
+            v2ray = it
+            vmess = it
+        }
+
+        TYPE_VLESS -> VMessBean().also {
+            v2ray = it
+            vless = it
+            it.alterId = -1
+        }
+
+        TYPE_TROJAN -> TrojanBean().also {
+            trojan = it
+        }
+
+        else -> throw IllegalStateException()
+    }
+
+    bean.parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "alter_id" -> vmess?.alterId = value.toString().toIntOrNull()
+            "authenticated_length" -> vmess?.authenticatedLength = value.toString().toBoolean()
+            "uuid" -> v2ray?.uuid = value.toString()
+            "flow" -> vless?.encryption = value.toString().removeSuffix("-udp443")
+            "password" -> trojan?.password = value.toString()
+            "security" -> vmess?.security = value.toString()
+            "packet_encoding" -> v2ray?.packetEncoding = when (value.toString()) {
+                "packetaddr" -> 1
+                "xudp" -> 2
+                else -> 0
+            }
+
+            "transport" -> {
+                val transport = parseTransport((value as JSONObject).map) ?: return@parseBoxOutbound
+
+                bean.v2rayTransport = transport.type
+                when (transport) {
+                    is V2RayTransportOptions_V2RayWebsocketOptions -> {
+                        bean.host = transport.headers["Host"]?.joinToString("\n") ?: ""
+                        bean.path = transport.path
+                        bean.wsMaxEarlyData = transport.max_early_data
+                        bean.earlyDataHeaderName = transport.early_data_header_name
+                    }
+
+                    is V2RayTransportOptions_V2RayHTTPOptions -> {
+                        bean.host = transport.host?.joinToString("\n")
+                        bean.path = transport.path
+                        bean.headers = transport.headers?.let {
+                            headerToString(it)
+                        }
+                    }
+
+                    is V2RayTransportOptions_V2RayQUICOptions -> {}
+
+                    is V2RayTransportOptions_V2RayGRPCOptions -> {
+                        bean.path = transport.service_name
+                    }
+
+                    is V2RayTransportOptions_V2RayHTTPUpgradeOptions -> {
+                        bean.host = transport.host
+                        bean.path = transport.path
+                        bean.headers = transport.headers?.let {
+                            headerToString(it)
+                        }
+                    }
+                }
+            }
+
+            "tls" -> {
+                val tls = parseBoxTLS((value as JSONObject).map)
+
+                bean.setTLS(tls.enabled)
+                bean.sni = tls.server_name
+                bean.allowInsecure = tls.insecure
+                bean.alpn = tls.alpn?.joinToString(",")
+                bean.certificates = tls.certificate?.joinToString("\n")
+                bean.utlsFingerprint = tls.utls?.fingerprint
+                tls.ech?.let {
+                    bean.ech = it.enabled
+                    bean.echConfig = it.config?.joinToString("\n")
+                }
+                tls.reality?.let {
+                    bean.realityPublicKey = it.public_key
+                    bean.realityShortID = it.short_id
+                }
+            }
+        }
+    }
+
+    return bean
+}
+
+@Suppress("UNCHECKED_CAST")
+fun parseTransport(json: JSONMap): V2RayTransportOptions? = when (json["type"]?.toString()) {
+    TRANSPORT_WS -> V2RayTransportOptions_V2RayWebsocketOptions().apply {
+        type = TRANSPORT_WS
+        headers = json["headers"] as? Map<String, List<String>> ?: emptyMap()
+        path = json["path"]?.toString()
+        max_early_data = json["max_early_data"]?.toString()?.toIntOrNull()
+        early_data_header_name = json["early_data_header_name"]?.toString()
+    }
+
+    TRANSPORT_HTTP -> V2RayTransportOptions_V2RayHTTPOptions().apply {
+        type = TRANSPORT_HTTP
+        host = listable<String>(json["host"])
+        path = json["path"]?.toString()
+        headers = json["headers"] as? Map<String, List<String>> ?: emptyMap()
+    }
+
+    TRANSPORT_QUIC -> V2RayTransportOptions_V2RayQUICOptions().apply {
+        type = TRANSPORT_QUIC
+    }
+
+    TRANSPORT_GRPC -> V2RayTransportOptions_V2RayGRPCOptions().apply {
+        type = TRANSPORT_GRPC
+        service_name = json["service_name"]?.toString()
+    }
+
+    TRANSPORT_HTTPUPGRADE -> V2RayTransportOptions_V2RayHTTPUpgradeOptions().apply {
+        type = TRANSPORT_HTTPUPGRADE
+        host = json["host"]?.toString()
+        path = json["path"]?.toString()
+        headers = json["headers"] as? Map<String, List<String>> ?: emptyMap()
+    }
+
+    else -> null
+}
+
+fun headerToString(header: Map<*, *>): String {
+    val builder = ArrayList<String>(header.size)
+    for (entry in header) {
+        builder.add(entry.key.toString() + ":" + entry.value.toString())
+    }
+    return builder.joinToString("\n")
 }
