@@ -1,7 +1,10 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package io.nekohasekai.sagernet.ktx
 
 import com.google.gson.annotations.SerializedName
 import moe.matsuri.nb4a.utils.JavaUtil.gson
+import org.json.JSONObject
 import java.lang.reflect.Modifier
 import kotlin.reflect.KProperty
 
@@ -129,3 +132,9 @@ fun mergeJson(from: JSONMap, to: JSONMap, listAppend: Boolean = false) {
         }
     }
 }
+
+val JSONObject.map: LinkedHashMap<String, Any?>
+    get() = javaClass.getDeclaredField("nameValuePairs").let {
+        it.isAccessible = true
+        it.get(this)
+    } as LinkedHashMap<String, Any?>

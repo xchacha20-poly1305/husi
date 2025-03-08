@@ -32,6 +32,12 @@ public class SingBoxOptions {
     public static final String TYPE_SHADOWTLS = "shadowtls";
     public static final String TYPE_ANYTLS = "anytls";
 
+    public static final String TRANSPORT_WS = "ws";
+    public static final String TRANSPORT_HTTPUPGRADE = "httpupgrade";
+    public static final String TRANSPORT_HTTP = "http";
+    public static final String TRANSPORT_QUIC = "quic";
+    public static final String TRANSPORT_GRPC = "grpc";
+
     public static final String TYPE_LOGICAL = "logical";
 
     public static final String ACTION_ROUTE = "route";
@@ -210,17 +216,18 @@ public class SingBoxOptions {
 //
 //        public String action;
 //
-////        public RouteActionOptions RouteActionOptions;
-////
-////        public RouteOptionsActionOptions RouteOptionsActionOptions;
-////
-////        public DirectActionOptions DirectActionOptions;
-////
-////        public RejectActionOptions RejectActionOptions;
-////
-////        public RouteActionSniff RouteActionSniff;
-////
-////        public RouteActionResolve RouteActionResolve;
+
+    /// /        public RouteActionOptions RouteActionOptions;
+    /// /
+    /// /        public RouteOptionsActionOptions RouteOptionsActionOptions;
+    /// /
+    /// /        public DirectActionOptions DirectActionOptions;
+    /// /
+    /// /        public RejectActionOptions RejectActionOptions;
+    /// /
+    /// /        public RouteActionSniff RouteActionSniff;
+    /// /
+    /// /        public RouteActionResolve RouteActionResolve;
 //
 //    }
 

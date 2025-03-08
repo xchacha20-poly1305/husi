@@ -1,8 +1,13 @@
 package io.nekohasekai.sagernet.fmt.http
 
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.fmt.v2ray.headerToString
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.toJSONMap
 import libcore.Libcore
 
 fun parseHttp(link: String): HttpBean = HttpBean().apply {
@@ -38,4 +43,40 @@ fun HttpBean.toUri(): String {
 
 
     return url.string
+}
+
+fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
+    parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "username" -> username = value.toString()
+            "password" -> password = value.toString()
+            "path" -> path = value.toString()
+            "headers" -> (value as? Map<*, *>)?.let {
+                headers = headerToString(it)
+            }
+
+            "tls" -> {
+                val tlsJson = (value as? Map<*, *>)?.let {
+                    toJSONMap(it)
+                } ?: return@parseBoxOutbound
+                val tls = parseBoxTLS(tlsJson)
+                if (!tls.enabled) return@parseBoxOutbound
+
+                setTLS(true)
+                sni = tls.server_name
+                alpn = tls.alpn?.joinToString(",")
+                utlsFingerprint = tls.utls?.fingerprint
+                allowInsecure = tls.insecure
+                certificates = tls.certificate?.joinToString("\n")
+                tls.reality?.let {
+                    realityPublicKey = it.public_key
+                    realityShortID = it.short_id
+                }
+                tls.ech?.let {
+                    ech = it.enabled
+                    echConfig = it.config?.joinToString("\n")
+                }
+            }
+        }
+    }
 }

@@ -2,29 +2,18 @@ package io.nekohasekai.sagernet.group
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import io.nekohasekai.sagernet.MuxStrategy
-import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
-import io.nekohasekai.sagernet.fmt.http.HttpBean
-import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Json
-import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
+import io.nekohasekai.sagernet.fmt.parseOutbound
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
-import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
-import io.nekohasekai.sagernet.fmt.ssh.SSHBean
-import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
-import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
-import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
-import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
@@ -35,18 +24,18 @@ import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
+import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.JavaUtil.gson
 import org.ini4j.Ini
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.StringReader
 
-@Suppress("EXPERIMENTAL_API_USAGE")
+@Suppress("EXPERIMENTAL_API_USAGE", "UNCHECKED_CAST")
 object RawUpdater : GroupUpdater() {
 
     @SuppressLint("Recycle")
@@ -113,470 +102,7 @@ object RawUpdater : GroupUpdater() {
 
         val proxies = mutableListOf<AbstractBean>()
 
-        if (text.contains("outbounds")) {
-
-            // sing-box
-
-            // Note: use .toString()[.to*()] instead of `as`.
-            // Example: this map will parse server_port as Long.
-
-            try {
-
-                val json = gson.fromJson(text, Map::class.java)
-
-                var proxyList = json["outbounds"] as? List<Map<String, Any>>
-                    ?: error(app.getString(R.string.no_proxies_found_in_file))
-                (json["endpoints"] as? List<Map<String, Any>>)?.let {
-                    proxyList += it
-                }
-                for (proxy in proxyList) when (proxy["type"].toString()) {
-                    "socks" -> proxies.add(SOCKSBean().apply {
-                        applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "username" -> username = opt.value.toString()
-                                "password" -> password = opt.value.toString()
-                                "version" -> protocol = when (opt.value.toString()) {
-                                    "4" -> SOCKSBean.PROTOCOL_SOCKS4
-                                    "4a" -> SOCKSBean.PROTOCOL_SOCKS4A
-                                    else -> SOCKSBean.PROTOCOL_SOCKS5
-                                }
-
-                                "udp_over_tcp" -> udpOverTcp = parseUot(opt.value)
-                            }
-                        }
-                    })
-
-                    "http" -> proxies.add(HttpBean().apply {
-                        applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "username" -> username = opt.value.toString()
-                                "password" -> password = opt.value.toString()
-                                "tls" -> for (tlsOpt in opt.value as Map<String, Any>) {
-                                    when (tlsOpt.key) {
-                                        "enabled" -> setTLS(tlsOpt.value.toString().toBoolean())
-
-                                        "server_name" -> sni = tlsOpt.value.toString()
-                                        "insecure" -> allowInsecure =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "alpn" -> alpn = listable<String>(tlsOpt.value)
-                                            ?.joinToString("\n")
-
-                                        "certificate" -> certificates =
-                                            listable<String>(tlsOpt.value)?.joinToString("\n")
-
-                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (echOpt.key) {
-                                                "enabled" -> ech =
-                                                    echOpt.value.toString().toBoolean()
-
-                                                "config" -> echConfig =
-                                                    listable<String>(echOpt.value)?.joinToString("\n")
-                                            }
-                                        }
-
-                                        "utls" -> for (utlsOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (utlsOpt.key) {
-                                                "fingerprint" -> utlsFingerprint =
-                                                    utlsOpt.value.toString()
-                                            }
-                                        }
-
-                                        "reality" -> for (realityOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (realityOpt.key) {
-                                                "public_key" -> realityPublicKey =
-                                                    realityOpt.value.toString()
-
-                                                "short_id" -> realityShortID =
-                                                    realityOpt.value.toString()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    })
-
-                    "shadowsocks" -> proxies.add(ShadowsocksBean().apply {
-                        var pluginName = ""
-                        var pluginOpt = ""
-                        applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "password" -> password = opt.value.toString()
-                                "method" -> method = opt.value.toString()
-                                "plugin" -> pluginName = opt.value.toString()
-                                "plugin_opts" -> pluginOpt = opt.value.toString()
-                                "udp_over_tcp" -> udpOverTcp = parseUot(opt.value)
-                            }
-                        }
-                        if (pluginName.isNotBlank()) plugin = "$pluginName;$pluginOpt"
-                    })
-
-                    "vmess", "vless", "trojan" -> {
-                        val protocol = when (proxy["type"]?.toString()) {
-                            "vless" -> 0
-                            "vmess" -> 1
-                            "trojan" -> 2
-                            else -> 0
-                        }
-                        val bean = when (protocol) {
-                            0, 1 -> VMessBean().apply {
-                                alterId = when (protocol) {
-                                    0 -> -1
-                                    else -> proxy["alter_id"]?.toString()?.toInt()
-                                }
-                                packetEncoding = when (proxy["packet_encoding"]?.toString()) {
-                                    "packetaddr" -> 1
-                                    "xudp" -> 2
-                                    else -> if (protocol == 1) 2 else 0 // VLESS use XUDP
-                                }
-                            }
-
-                            else -> TrojanBean()
-                        }
-
-                        bean.applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "uuid" -> if (protocol != 2) bean.uuid = opt.value.toString()
-                                "password" -> (bean as? TrojanBean)?.password = opt.value.toString()
-                                "flow" -> if (protocol == 0) bean.encryption = opt.value.toString()
-
-                                "security" -> if (protocol == 1) bean.encryption =
-                                    opt.value.toString()
-
-                                "transport" -> for (transportOpt in (opt.value as Map<String, Any>)) {
-                                    when (transportOpt.key) {
-                                        "type" -> {
-                                            bean.v2rayTransport = transportOpt.value.toString()
-                                        }
-
-                                        "host" -> listable<String>(transportOpt.value)?.firstOrNull()
-                                        "path", "service_name" -> bean.path =
-                                            transportOpt.value.toString()
-
-                                        "max_early_data" -> bean.wsMaxEarlyData =
-                                            transportOpt.value.toString().toInt()
-
-                                        "early_data_header_name" -> bean.earlyDataHeaderName =
-                                            transportOpt.value.toString()
-                                    }
-                                }
-
-                                "tls" -> for (tlsOpt in (opt.value as Map<String, Any>)) {
-                                    when (tlsOpt.key) {
-                                        "enabled" -> bean.setTLS(
-                                            tlsOpt.value.toString().toBoolean()
-                                        )
-
-                                        "server_name" -> bean.sni = tlsOpt.value.toString()
-                                        "insecure" -> bean.allowInsecure =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "alpn" -> bean.alpn =
-                                            listable<String>(tlsOpt.value)?.joinToString("\n")
-
-                                        "certificate" -> bean.certificates =
-                                            listable<String>(tlsOpt.value)?.joinToString("\n")
-
-                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (echOpt.key) {
-                                                "enabled" -> bean.ech =
-                                                    echOpt.value.toString().toBoolean()
-
-                                                "config" -> bean.echConfig =
-                                                    listable<String>(tlsOpt.value)
-                                                        ?.joinToString("\n")
-                                            }
-                                        }
-
-                                        "utls" -> for (utlsOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (utlsOpt.key) {
-                                                "fingerprint" -> bean.utlsFingerprint =
-                                                    utlsOpt.value.toString()
-                                            }
-                                        }
-
-                                        "reality" -> for (realityOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (realityOpt.key) {
-                                                "public_key" -> bean.realityPublicKey =
-                                                    realityOpt.value.toString()
-
-                                                "short_id" -> bean.realityShortID =
-                                                    realityOpt.value.toString()
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-
-                        }
-                        proxies.add(bean)
-                    }
-
-                    "wireguard" -> {
-                        val peer = (proxy["peers"] as? List<Map<String, Any?>>)
-                            ?.firstOrNull() ?: continue
-                        proxies.add(WireGuardBean().apply {
-                            name = proxy["tag"].toString()
-                            mtu = proxy["mtu"]?.toString()?.toIntOrNull()
-                            localAddress =
-                                listable<String>(proxy["address"])?.joinToString("\n")
-                            listenPort = proxy["listen_port"]?.toString()?.toIntOrNull()
-                            privateKey = proxy["private_key"]?.toString()
-
-                            for (opt in peer) {
-                                if (opt.value == null) continue
-                                when (opt.key) {
-                                    "address" -> serverAddress = opt.value.toString()
-                                    "port" -> serverPort = opt.value.toString().toInt()
-                                    "public_key" -> publicKey = opt.value.toString()
-                                    "pre_shared_key" -> preSharedKey = opt.value.toString()
-                                    "reserved" -> reserved = when (val v = opt.value) {
-                                        is String? -> v
-
-                                        is List<*>? -> v?.mapX {
-                                            it.toString()
-                                        }?.joinToString(",")
-
-                                        else -> null
-                                    }
-                                }
-                            }
-                        })
-                    }
-
-                    "hysteria" -> proxies.add(HysteriaBean().apply {
-                        protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
-                        val tmpPorts = mutableListOf<String>()
-                        for (opt in proxy) {
-                            if (opt.value == null) continue
-                            when (opt.key) {
-                                "tag" -> name = opt.value.toString()
-                                "server" -> serverAddress = opt.value.toString()
-                                "server_port" -> tmpPorts.add(opt.value.toString())
-                                "server_ports" -> listable<String>(opt.value)?.let {
-                                    tmpPorts.addAll(it)
-                                }
-
-                                "obfs" -> obfuscation = opt.value.toString()
-
-                                "auth" -> {
-                                    authPayloadType = HysteriaBean.TYPE_BASE64
-                                    authPayload = opt.value.toString()
-                                }
-
-                                "auth_str" -> {
-                                    authPayloadType = HysteriaBean.TYPE_STRING
-                                    authPayload = opt.value.toString()
-                                }
-
-                                "tls" -> for (tlsOpt in (proxy["tls"] as Map<String, Any>)) {
-                                    when (tlsOpt.key) {
-                                        "server_name" -> sni = tlsOpt.value.toString()
-                                        "insecure" -> allowInsecure =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "alpn" -> alpn =
-                                            listable<String>(tlsOpt.value)?.joinToString("\n")
-
-                                        "certificate" -> certificates =
-                                            listable<String>(tlsOpt.value)?.joinToString("\n")
-
-                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (echOpt.key) {
-                                                "enabled" -> ech =
-                                                    echOpt.value.toString().toBoolean()
-
-                                                "config" -> echConfig =
-                                                    listable<String>(echOpt.value)?.joinToString("\n")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        serverPorts = tmpPorts.joinToString(",")
-                    })
-
-                    "hysteria2" -> proxies.add(HysteriaBean().apply {
-                        protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
-                        val tmpPorts = mutableListOf<String>()
-                        for (opt in proxy) {
-                            if (opt.value == null) continue
-                            when (opt.key) {
-                                "tag" -> name = opt.value.toString()
-                                "server" -> serverAddress = opt.value.toString()
-                                "server_port" -> tmpPorts.add(opt.value.toString())
-                                "server_ports" -> listable<String>(opt.value)?.let {
-                                    tmpPorts.addAll(it)
-                                }
-
-                                "hop_interval" -> hopInterval = opt.value.toString()
-                                "obfs" -> for (obfsOpt in (opt.value as Map<String, Any>)) {
-                                    when (obfsOpt.key) {
-                                        "password" -> obfuscation = obfsOpt.value.toString()
-                                    }
-                                }
-
-                                "password" -> authPayload = opt.value.toString()
-
-                                "tls" -> for (tlsOpt in (opt.value as Map<String, Any>)) {
-                                    when (tlsOpt.key) {
-                                        "server_name" -> sni = tlsOpt.value.toString()
-                                        "insecure" -> allowInsecure =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "alpn" -> alpn = listable<String>(tlsOpt.value)
-                                            ?.joinToString("\n")
-
-                                        "certificate" -> {
-                                            certificates =
-                                                listable<String>(tlsOpt.value)?.joinToString("\n")
-                                        }
-
-                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (echOpt.key) {
-                                                "enabled" -> ech =
-                                                    echOpt.value.toString().toBoolean()
-
-                                                "config" -> echConfig =
-                                                    listable<String>(echOpt.value)
-                                                        ?.joinToString("\n")
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-                        serverPorts = tmpPorts.joinToString(",")
-                    })
-
-                    "tuic" -> proxies.add(TuicBean().apply {
-                        applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "uuid" -> uuid = opt.value.toString()
-                                "password" -> token = opt.value.toString()
-                                "zero_rtt_handshake" -> {
-                                    reduceRTT = opt.value.toString().toBoolean()
-                                }
-
-                                "congestion_control" -> {
-                                    congestionController = opt.value.toString()
-                                }
-
-                                "udp_relay_mode" -> udpRelayMode = opt.value.toString()
-                                "udp_over_stream" -> if (opt.value.toString().toBoolean()) {
-                                    udpRelayMode = "UDP over Stream"
-                                }
-
-                                "tls" -> for (tlsOpt in (opt.value as Map<String, Any>)) {
-                                    when (tlsOpt.key) {
-                                        "server_name" -> sni = tlsOpt.value.toString()
-                                        "disable_sni" -> disableSNI =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "insecure" -> allowInsecure =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "alpn" -> alpn = listable<String>(tlsOpt.value)
-                                            ?.joinToString("\n")
-
-                                        "certificate" -> {
-                                            certificates = listable<String>(tlsOpt.value)
-                                                ?.joinToString("\n")
-                                        }
-
-                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (echOpt.key) {
-                                                "enabled" -> ech =
-                                                    echOpt.value.toString().toBoolean()
-
-                                                "config" -> echConfig =
-                                                    listable<String>(echOpt.value)?.joinToString("\n")
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-                    })
-
-                    "ssh" -> proxies.add(SSHBean().apply {
-                        applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "user" -> username = opt.value.toString()
-                                "password" -> password = opt.value.toString()
-                                "private_key" -> privateKey = opt.value.toString()
-                                "private_key_passphrase" -> {
-                                    privateKeyPassphrase = opt.value.toString()
-                                }
-
-                                "host_key" -> listable<String>(opt.value)?.firstOrNull()
-                            }
-                        }
-                    })
-
-                    "anytls" -> proxies.add(AnyTLSBean().apply {
-                        applyFromMap(proxy) { opt ->
-                            when (opt.key) {
-                                "password" -> password = opt.value.toString()
-                                "idle_session_check_interval" -> {
-                                    idleSessionCheckInterval = opt.value.toString()
-                                }
-
-                                "idle_session_timeout" -> {
-                                    idleSessionTimeout = opt.value.toString()
-                                }
-
-                                "min_idle_session" -> {
-                                    minIdleSession = opt.value.toString().toIntOrNull() ?: 0
-                                }
-
-                                "tls" -> for (tlsOpt in opt.value as Map<String, Any?>) {
-                                    when (tlsOpt.key) {
-                                        "server_name" -> serverName = tlsOpt.value.toString()
-                                        "insecure" -> allowInsecure =
-                                            tlsOpt.value.toString().toBoolean()
-
-                                        "alpn" -> alpn = listable<String>(tlsOpt.value)
-                                            ?.joinToString("\n")
-
-                                        "certificate" -> certificates =
-                                            listable<String>(tlsOpt.value)?.joinToString("\n")
-
-                                        "ech" -> for (echOpt in (tlsOpt.value as Map<String, Any>)) {
-                                            when (echOpt.key) {
-                                                "config" -> echConfig =
-                                                    listable<String>(echOpt.value)?.joinToString("\n")
-                                            }
-                                        }
-                                    }
-                                }
-
-                                else -> null
-                            }
-                        }
-                    })
-                }
-
-                // Fix ent
-                proxies.forEach {
-                    it.initializeDefaultValues()
-                    if (it is StandardV2RayBean) {
-                        // 1. SNI
-                        if (it.isTLS() && it.sni.isNullOrBlank() && !it.host.isNullOrBlank() && !it.host.isIpAddress()) {
-                            it.sni = it.host
-                        }
-                    }
-                }
-                return proxies
-            } catch (e: Exception) {
-                Logs.w(e)
-            }
-        } else if (text.contains("[Interface]")) {
+        if (text.contains("[Interface]")) {
             // wireguard
             try {
                 proxies.addAll(parseWireGuard(text).mapX {
@@ -610,59 +136,6 @@ object RawUpdater : GroupUpdater() {
         }
 
         return null
-    }
-
-    fun parseUot(conf: Any?): Boolean {
-        if (conf as? Boolean == true) return true
-        val uotStruct = (conf as? Map<String, Any>) ?: return false
-        return (uotStruct["enabled"] as? Boolean) == true
-    }
-
-    private fun AbstractBean.applyFromMap(
-        opts: Map<String, Any>,
-        block: (Map.Entry<String, Any>) -> Unit,
-    ) {
-        for (opt in opts) {
-            if (opt.value == null) continue // could be null, do not delete it.
-            when (opt.key) {
-                "tag" -> name = opt.value.toString()
-                "server" -> serverAddress = opt.value.toString()
-                "server_port" -> serverPort = opt.value.toString().toInt()
-                "multiplex" -> {
-                    val muxMap = opt.value as? Map<String, Any?> ?: continue
-                    if (muxMap["enabled"] != true) continue
-
-                    serverMux = true
-                    serverMuxPadding = muxMap["padding"] as? Boolean ?: false
-                    muxMap["protocol"]?.let {
-                        serverMuxType = when (it) {
-                            "smux" -> MuxType.SMUX
-                            "yamux" -> MuxType.YAMUX
-                            else -> MuxType.H2MUX
-                        }
-                    }
-
-                    muxMap["max_connections"]?.toString()?.toIntOrNull()?.let {
-                        serverMuxStrategy = MuxStrategy.MAX_CONNECTIONS
-                        serverMuxNumber = it
-                    }
-                    muxMap["min_streams"]?.toString()?.toIntOrNull()?.let {
-                        serverMuxStrategy = MuxStrategy.MIN_STREAMS
-                        serverMuxNumber = it
-                    }
-                    muxMap["max_streams"]?.toString()?.toIntOrNull()?.let {
-                        serverMuxStrategy = MuxStrategy.MAX_STREAMS
-                        serverMuxNumber = it
-                    }
-
-                    if ((muxMap["brutal"] as? Map<String, Any>)?.get("enabled") as? Boolean == true) {
-                        serverBrutal = true
-                    }
-                }
-
-                else -> block(opt)
-            }
-        }
     }
 
     fun parseWireGuard(conf: String): List<WireGuardBean> {
@@ -703,6 +176,43 @@ object RawUpdater : GroupUpdater() {
 
         if (json is JSONObject) {
             when {
+                json.has("outbounds") -> {
+                    // sing-box
+
+                    val outbounds = json.optJSONArray("outbounds")
+                    val endpoints = json.optJSONArray("endpoints")
+                    var length = outbounds?.length() ?: 0
+                    endpoints?.length()?.let { length += it }
+                    if (length == 0) {
+                        error(app.getString(R.string.no_proxies_found))
+                    }
+
+                    fun add(outbound: Any) {
+                        parseJSON(outbound as JSONObject).let {
+                            proxies.addAll(it)
+                        }
+                    }
+                    outbounds?.forEach { _, outbound ->
+                        try {
+                            add(outbound)
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                        }
+                    }
+                    endpoints?.forEach { _, endpoint ->
+                        try {
+                            add(endpoint)
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                        }
+                    }
+                }
+
+                json.has("server") && json.has("server_port") -> {
+                    // Single sing-box outbound
+                    return listOf(parseOutbound(json.map)!!)
+                }
+
                 json.has("server") && (json.has("up") || json.has("up_mbps")) -> {
                     return listOf(json.parseHysteria1Json())
                 }
@@ -713,13 +223,6 @@ object RawUpdater : GroupUpdater() {
 
                 json.has("outbounds") -> {
                     return listOf(ConfigBean().applyDefaultValues().apply {
-                        config = json.toStringPretty()
-                    })
-                }
-
-                json.has("server") && json.has("server_port") -> {
-                    return listOf(ConfigBean().applyDefaultValues().apply {
-                        type = ConfigBean.TYPE_OUTBOUND
                         config = json.toStringPretty()
                     })
                 }
@@ -742,15 +245,15 @@ object RawUpdater : GroupUpdater() {
             }
         }
 
-        proxies.forEach { it.initializeDefaultValues() }
+        proxies.forEach {
+            it.initializeDefaultValues()
+            if (it is StandardV2RayBean) {
+                // 1. Fix SNI for end users.
+                if (it.isTLS() && it.sni.isNullOrBlank() && !it.host.isNullOrBlank() && !it.host.isIpAddress()) {
+                    it.sni = it.host
+                }
+            }
+        }
         return proxies
     }
-
-    private inline fun <reified T : Any> listable(value: Any?): MutableList<T>? = when (value) {
-        null -> null
-        is List<*> -> value.mapNotNull { it as? T }.toMutableList()
-        is T -> mutableListOf(value)
-        else -> (value as? T)?.let { mutableListOf(it) }
-    }
-
 }

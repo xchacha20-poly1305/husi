@@ -1,5 +1,8 @@
 package io.nekohasekai.sagernet.fmt.anytls
 
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
@@ -63,6 +66,32 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
                 ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
                     config = listOf(it)
+                }
+            }
+        }
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
+    parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "password" -> password = value.toString()
+            "idle_session_check_interval" -> idleSessionCheckInterval = value.toString()
+            "idle_session_timeout" -> idleSessionTimeout = value.toString()
+            "min_idle_session" -> minIdleSession = value.toString().toIntOrNull()
+
+            "tls" -> {
+                val tlsField = value as? JSONMap ?: return@parseBoxOutbound
+                val tls = parseBoxTLS(tlsField)
+                serverName = tls.server_name
+                allowInsecure = tls.insecure
+                alpn = tls.alpn?.joinToString(",")
+                certificates = tls.certificate?.joinToString("\n")
+                utlsFingerprint = tls.utls?.fingerprint
+                tls.ech?.let {
+                    // ech = it.enabled
+                    echConfig = it.config.joinToString("\n")
                 }
             }
         }

@@ -1,5 +1,8 @@
 package io.nekohasekai.sagernet.fmt.socks
 
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxUot
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
@@ -53,5 +56,21 @@ fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SOCK
         username = bean.username
         password = bean.password
         version = bean.protocolVersionName()
+    }
+}
+
+fun parseSocksOutbound(json: JSONMap): SOCKSBean = SOCKSBean().apply {
+    parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "username" -> username = value.toString()
+            "password" -> password = value.toString()
+            "version" -> protocol = when (value.toString()) {
+                "4" -> SOCKSBean.PROTOCOL_SOCKS4
+                "4a" -> SOCKSBean.PROTOCOL_SOCKS4A
+                else -> SOCKSBean.PROTOCOL_SOCKS5
+            }
+
+            "udp_over_tcp" -> udpOverTcp = parseBoxUot(value)
+        }
     }
 }
