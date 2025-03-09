@@ -36,7 +36,6 @@ fun parseSOCKS(link: String): SOCKSBean {
 }
 
 fun SOCKSBean.toUri(): String {
-
     val builder = Libcore.newURL("socks${protocolVersion()}").apply {
         host = serverAddress
         ports = serverPort.toString()
@@ -45,7 +44,6 @@ fun SOCKSBean.toUri(): String {
     if (!password.isNullOrBlank()) builder.password = password
     if (!name.isNullOrBlank()) builder.fragment = name
     return builder.string
-
 }
 
 fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SOCKSOptions {
@@ -56,6 +54,9 @@ fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SOCK
         username = bean.username
         password = bean.password
         version = bean.protocolVersionName()
+        if (bean.udpOverTcp) udp_over_tcp = SingBoxOptions.UDPOverTCPOptions().apply {
+            enabled = true
+        }
     }
 }
 

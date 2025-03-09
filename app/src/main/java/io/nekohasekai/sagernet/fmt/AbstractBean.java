@@ -59,10 +59,6 @@ public abstract class AbstractBean extends Serializable {
         return true;
     }
 
-    public boolean canUdpOverTcp() {
-        return false;
-    }
-
     @Override
     public void initializeDefaultValues() {
         if (JavaUtil.isNullOrBlank(serverAddress)) {

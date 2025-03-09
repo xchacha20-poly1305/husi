@@ -3,8 +3,6 @@ package io.nekohasekai.sagernet.fmt
 import android.widget.Toast
 import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.MuxStrategy
-import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
@@ -53,7 +51,6 @@ import libcore.Libcore
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.toJsonMap
 import moe.matsuri.nb4a.SingBoxOptions
-import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.CacheFileOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSFakeIPOptions
 import moe.matsuri.nb4a.SingBoxOptions.DNSOptions
@@ -68,7 +65,6 @@ import moe.matsuri.nb4a.SingBoxOptions.DNSRule_Default
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_HTTPMixedOptions
 import moe.matsuri.nb4a.SingBoxOptions.Inbound_TunOptions
-import moe.matsuri.nb4a.SingBoxOptions.OutboundMultiplexOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_DirectOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_SelectorOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_SOCKSOptions
@@ -342,7 +338,6 @@ fun buildConfig(
             // chainTagOut: v2ray outbound tag for this chain
             var chainTagOut = ""
             val chainTag = "c-$chainId"
-            var muxApplied = false
 
             val defaultServerDomainStrategy = SingBoxOptionsUtil.domainStrategy("server")
 
@@ -442,7 +437,6 @@ fun buildConfig(
                     currentOutbound.apply {
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
-
                         if (!forTest) {
                             if (networkPreferredInterfaces.isNotEmpty()) {
                                 this["network_type"] = networkPreferredInterfaces
@@ -450,47 +444,11 @@ fun buildConfig(
                                     mapNetworkInterfaceStrategy(networkInterfaceStrategy)
                             }
                         }
-
-                        if (!muxApplied && proxyEntity.needCoreMux()) {
-                            muxApplied = true
-                            this["multiplex"] = OutboundMultiplexOptions().apply {
-                                enabled = true
-                                padding = bean.serverMuxPadding
-                                protocol = when (bean.serverMuxType) {
-                                    MuxType.H2MUX -> "h2mux"
-                                    MuxType.SMUX -> "smux"
-                                    MuxType.YAMUX -> "yamux"
-                                    else -> throw IllegalArgumentException()
-                                }
-                                if (bean.serverBrutal) {
-                                    max_connections = 1
-                                    brutal = BrutalOptions().apply {
-                                        enabled = true
-                                        up_mbps = -1 // need kernel module
-                                        down_mbps = DataStore.downloadSpeed
-                                    }
-                                } else when (bean.serverMuxStrategy) {
-                                    MuxStrategy.MAX_CONNECTIONS -> {
-                                        max_connections = bean.serverMuxNumber
-                                    }
-
-                                    MuxStrategy.MIN_STREAMS -> min_streams = bean.serverMuxNumber
-
-                                    MuxStrategy.MAX_STREAMS -> max_streams = bean.serverMuxNumber
-
-                                    else -> throw IllegalStateException()
-                                }
-                            }.asMap()
-                        }
                     }
                 }
 
                 // internal & external
                 currentOutbound.apply {
-                    if (bean.canUdpOverTcp()) {
-                        this["udp_over_tcp"] = true
-                    }
-
                     pastEntity?.requireBean()?.apply {
                         // don't loopback
                         if (defaultServerDomainStrategy != "" && !serverAddress.isIpAddress()) {

@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.anytls.buildSingBoxOutboundAnyTLSBean
 import io.nekohasekai.sagernet.fmt.anytls.parseAnyTLSOutbound
@@ -33,7 +34,9 @@ import io.nekohasekai.sagernet.fmt.v2ray.parseStandardV2RayOutbound
 import io.nekohasekai.sagernet.fmt.wireguard.parseWireGuardEndpoint
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.forEach
+import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundECHOptions
+import moe.matsuri.nb4a.SingBoxOptions.OutboundMultiplexOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundRealityOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundTLSOptions
 import moe.matsuri.nb4a.SingBoxOptions.OutboundUTLSOptions
@@ -70,6 +73,34 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
     map.type = bean.outboundType()
     map.tag = bean.name
     return gson.toJson(map)
+}
+
+fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
+    if (!bean.serverMux || !bean.serverBrutal) return null
+
+    return OutboundMultiplexOptions().apply {
+        padding = bean.serverMuxPadding
+        protocol = when (bean.serverMuxType) {
+            MuxType.H2MUX -> "h2mux"
+            MuxType.SMUX -> "smux"
+            MuxType.YAMUX -> "yamux"
+            else -> throw IllegalArgumentException("unknown mux type: ${bean.serverMuxType}")
+        }
+
+        if (bean.serverBrutal) {
+            max_connections = 1
+            brutal = BrutalOptions().apply {
+                enabled = true
+                up_mbps = -1 // need kernel module
+                down_mbps = DataStore.downloadSpeed
+            }
+        } else when (bean.serverMuxStrategy) {
+            MuxStrategy.MAX_CONNECTIONS -> max_connections = bean.serverMuxNumber
+            MuxStrategy.MIN_STREAMS -> min_streams = bean.serverMuxNumber
+            MuxStrategy.MAX_STREAMS -> max_streams = bean.serverMuxNumber
+            else -> throw IllegalStateException("unknown mux strategy: ${bean.serverMuxStrategy}")
+        }
+    }
 }
 
 fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString()) {

@@ -68,7 +68,6 @@ import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
-import moe.matsuri.nb4a.Protocols
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
@@ -360,21 +359,6 @@ data class ProxyEntity(
             TYPE_NAIVE -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
             TYPE_JUICITY -> true
-            else -> false
-        }
-    }
-
-    fun needCoreMux(): Boolean {
-        return when (type) {
-            // and VLESS
-            TYPE_VMESS -> Protocols.isProfileNeedMux(vmessBean!!) && vmessBean!!.serverMux
-
-            TYPE_TROJAN -> Protocols.isProfileNeedMux(trojanBean!!) && trojanBean!!.serverMux
-
-            TYPE_SS -> ssBean!!.run {
-                !udpOverTcp && serverMux
-            }
-
             else -> false
         }
     }
