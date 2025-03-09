@@ -146,7 +146,7 @@ object RawUpdater : GroupUpdater() {
         bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
         bean.privateKey = iface["PrivateKey"]
         bean.mtu = iface["MTU"]?.toIntOrNull() ?: 1408
-        bean.listenPort = iface["ListenPort"]?.toInt()
+        bean.listenPort = iface["ListenPort"]?.toIntOrNull() ?: 0
         val peers = ini.getAll("Peer")
         if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
         val beans = mutableListOf<WireGuardBean>()
