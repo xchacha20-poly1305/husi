@@ -318,6 +318,7 @@ fun getFirstPort(portStr: String): Int {
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (DataStore.providerHysteria2 != 0) return false // Force plugin
+    // TODO Hy1 hop since box v1.12
     if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
         if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
         if (serverPorts.toIntOrNull() == null) return false // unsupported Hy1 port hopping

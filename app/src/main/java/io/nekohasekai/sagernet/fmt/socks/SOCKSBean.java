@@ -61,11 +61,6 @@ public class SOCKSBean extends AbstractBean {
     }
 
     @Override
-    public boolean canUdpOverTcp() {
-        return udpOverTcp;
-    }
-
-    @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
 

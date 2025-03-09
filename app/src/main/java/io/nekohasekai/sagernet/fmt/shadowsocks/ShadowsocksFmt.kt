@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
+import io.nekohasekai.sagernet.fmt.buildSingBoxMux
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxUot
 import io.nekohasekai.sagernet.ktx.JSONMap
@@ -137,6 +138,13 @@ fun buildSingBoxOutboundShadowsocksBean(bean: ShadowsocksBean): SingBoxOptions.O
         if (bean.plugin.isNotBlank()) {
             plugin = bean.plugin.substringBefore(";")
             plugin_opts = bean.plugin.substringAfter(";")
+        }
+        if (bean.udpOverTcp) {
+            udp_over_tcp = SingBoxOptions.UDPOverTCPOptions().apply {
+                enabled = true
+            }
+        } else {
+            multiplex = buildSingBoxMux(bean)
         }
     }
 }

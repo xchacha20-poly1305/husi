@@ -30,11 +30,6 @@ public class ShadowsocksBean extends AbstractBean {
     public Boolean udpOverTcp;
 
     @Override
-    public boolean canUdpOverTcp() {
-        return udpOverTcp;
-    }
-
-    @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
 

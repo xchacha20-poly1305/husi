@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.fmt.v2ray
 
 import android.text.TextUtils
 import com.google.gson.Gson
+import io.nekohasekai.sagernet.fmt.buildSingBoxMux
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
@@ -39,6 +40,12 @@ fun StandardV2RayBean.isTLS(): Boolean {
 
 fun StandardV2RayBean.setTLS(boolean: Boolean) {
     security = if (boolean) "tls" else ""
+}
+
+fun StandardV2RayBean.shouldMux(): Boolean = serverMux && when (v2rayTransport) {
+    "http" -> isTLS()
+    "quic", "grpc" -> false
+    else -> true
 }
 
 fun parseV2Ray(rawUrl: String): StandardV2RayBean {
@@ -568,6 +575,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         }
         tls = buildSingBoxOutboundTLS(bean)
         transport = buildSingBoxOutboundStreamSettings(bean)
+        if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
     } else Outbound_VMessOptions().apply {
         type = bean.outboundType()
         server = bean.serverAddress
@@ -582,6 +590,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         }
         tls = buildSingBoxOutboundTLS(bean)
         transport = buildSingBoxOutboundStreamSettings(bean)
+        if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
 
         global_padding = true
         authenticated_length = bean.authenticatedLength
@@ -594,6 +603,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         password = bean.password
         tls = buildSingBoxOutboundTLS(bean)
         transport = buildSingBoxOutboundStreamSettings(bean)
+        if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
     }
 
     else -> throw IllegalStateException()
