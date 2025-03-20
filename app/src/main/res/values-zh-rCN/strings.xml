@@ -384,7 +384,7 @@
     <string name="tcp_connections">%d TCP 连接</string>
     <string name="route_need_vpn">路由规则 %s 依赖 VPN 以生效，所以其已被忽略。</string>
     <string name="no_statistics">暂无数据</string>
-    <string name="ssh_private_key_passphrase">私钥密码句</string>
+    <string name="ssh_private_key_passphrase">私钥密码短语</string>
     <string name="ssh_private_key">私钥</string>
     <string name="ssh_public_key">公钥</string>
     <string name="ssh_auth_type_none">无</string>
@@ -590,4 +590,5 @@
     <string name="idle_session_check_interval">空闲会话检查间隔</string>
     <string name="idle_session_timeout">空闲会话超时</string>
     <string name="min_idle_session">最小闲置会话数</string>
+    <string name="persistent_keepalive_interval">持久性保持活动间隔</string>
 </resources>

@@ -661,4 +661,5 @@
     <string name="idle_session_check_interval">IDLE Session Check Interval</string>
     <string name="idle_session_timeout">IDLE Session Timeout</string>
     <string name="min_idle_session">Mininum IDLE Session</string>
+    <string name="persistent_keepalive_interval">Persistent Keepalive Interval</string>
 </resources>

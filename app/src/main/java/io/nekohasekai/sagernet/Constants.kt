@@ -199,6 +199,7 @@ object Key {
     const val PRIVATE_KEY = "privateKey"
     const val PUBLIC_KEY = "publicKey"
     const val PRE_SHARED_KEY = "preSharedKey"
+    const val SERVER_PERSISTENT_KEEPALIVE_INTERVAL = "serverPersistentKeepaliveInterval"
 
     const val ROUTE_NAME = "routeName"
     const val ROUTE_DOMAIN = "routeDomain"

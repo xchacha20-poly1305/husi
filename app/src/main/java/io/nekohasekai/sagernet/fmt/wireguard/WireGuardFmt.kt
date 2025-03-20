@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.fmt.wireguard
 
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import moe.matsuri.nb4a.SingBoxOptions
@@ -38,12 +39,15 @@ fun buildSingBoxEndpointWireGuardBean(bean: WireGuardBean): SingBoxOptions.Endpo
             address = bean.serverAddress
             port = bean.serverPort
             public_key = bean.publicKey
-            pre_shared_key = bean.preSharedKey
+            pre_shared_key = bean.preSharedKey.blankAsNull()
             allowed_ips = listOf(
                 "0.0.0.0/0",
                 "::/0",
             )
-            if (bean.reserved.isNotBlank()) reserved = genReserved(bean.reserved)
+            bean.persistentKeepaliveInterval.takeIf { it > 0 }?.let {
+                persistent_keepalive_interval = it
+            }
+            bean.reserved.blankAsNull()?.let { reserved = genReserved(it) }
         })
         listen_port = bean.listenPort.takeIf { it > 0 }
         address = bean.localAddress.listByLineOrComma()
