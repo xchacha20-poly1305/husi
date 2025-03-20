@@ -54,9 +54,6 @@ fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SOCK
         username = bean.username
         password = bean.password
         version = bean.protocolVersionName()
-        if (bean.udpOverTcp) udp_over_tcp = SingBoxOptions.UDPOverTCPOptions().apply {
-            enabled = true
-        }
     }
 }
 

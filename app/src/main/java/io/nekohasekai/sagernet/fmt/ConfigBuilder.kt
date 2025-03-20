@@ -452,10 +452,16 @@ fun buildConfig(
 
                 // internal & external
                 currentOutbound.apply {
-                    pastEntity?.requireBean()?.apply {
+                    pastEntity?.requireBean()?.let { bean ->
                         // don't loopback
-                        if (defaultServerDomainStrategy != "" && !serverAddress.isIpAddress()) {
-                            domainListDNSDirectForce.add("full:$serverAddress")
+                        if (defaultServerDomainStrategy != "" && !bean.serverAddress.isIpAddress()) {
+                            domainListDNSDirectForce.add("full:${bean.serverAddress}")
+                        }
+
+                        // Set uot here so that naive socks can apply it.
+                        // And it is not necessarily to enable it when enabling multiplex.
+                        if (bean.needUDPOverTCP() && this["multiplex"] == null) {
+                            this["udp_over_tcp"] = true
                         }
                     }
                     this["domain_strategy"] = if (forTest) {
