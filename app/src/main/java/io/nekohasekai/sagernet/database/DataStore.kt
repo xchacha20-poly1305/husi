@@ -241,12 +241,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverRealityShortID by profileCacheStore.string(Key.SERVER_REALITY_SHORT_ID)
     var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
+
     var serverReserved by profileCacheStore.string(Key.SERVER_RESERVED)
     var localAddress by profileCacheStore.string(Key.LOCAL_ADDRESS)
     var listenPort by profileCacheStore.stringToInt(Key.LISTEN_PORT)
     var privateKey by profileCacheStore.string(Key.PRIVATE_KEY)
     var publicKey by profileCacheStore.string(Key.PUBLIC_KEY)
     var preSharedKey by profileCacheStore.string(Key.PRE_SHARED_KEY)
+    var serverPersistentKeepaliveInterval by profileCacheStore.stringToInt(Key.SERVER_PERSISTENT_KEEPALIVE_INTERVAL)
 
     var serverMux by profileCacheStore.boolean(Key.SERVER_MUX) { false }
     var serverBrutal by profileCacheStore.boolean(Key.SERVER_BRUTAL) { false }

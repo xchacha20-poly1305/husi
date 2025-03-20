@@ -25,6 +25,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
         DataStore.preSharedKey = preSharedKey
         DataStore.serverMTU = mtu
         DataStore.serverReserved = reserved
+        DataStore.serverPersistentKeepaliveInterval = persistentKeepaliveInterval
     }
 
     override fun WireGuardBean.serialize() {
@@ -38,6 +39,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
         preSharedKey = DataStore.preSharedKey
         mtu = DataStore.serverMTU
         reserved = DataStore.serverReserved
+        persistentKeepaliveInterval = DataStore.serverPersistentKeepaliveInterval
     }
 
     override fun PreferenceFragmentCompat.createPreferences(
@@ -59,6 +61,9 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
             PasswordSummaryProvider
         )
         findPreference<EditTextPreference>(Key.SERVER_MTU)!!.setOnBindEditTextListener(
+            EditTextPreferenceModifiers.Number
+        )
+        findPreference<EditTextPreference>(Key.SERVER_PERSISTENT_KEEPALIVE_INTERVAL)!!.setOnBindEditTextListener(
             EditTextPreferenceModifiers.Number
         )
     }

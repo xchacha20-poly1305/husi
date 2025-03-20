@@ -35,6 +35,7 @@ public class WireGuardBean extends AbstractBean {
      * Enable listen if it > 0
      */
     public Integer listenPort;
+    public Integer persistentKeepaliveInterval;
 
     @Override
     public void initializeDefaultValues() {
@@ -46,11 +47,12 @@ public class WireGuardBean extends AbstractBean {
         if (mtu == null || mtu < 1000 || mtu > 65535) mtu = 1420;
         if (reserved == null) reserved = "";
         if (listenPort == null) listenPort = 0;
+        if (persistentKeepaliveInterval == null) persistentKeepaliveInterval = 0;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
         super.serialize(output);
         output.writeString(localAddress);
         output.writeString(privateKey);
@@ -59,6 +61,7 @@ public class WireGuardBean extends AbstractBean {
         output.writeInt(mtu);
         output.writeString(reserved);
         output.writeInt(listenPort);
+        output.writeInt(persistentKeepaliveInterval);
     }
 
     @Override
@@ -73,6 +76,9 @@ public class WireGuardBean extends AbstractBean {
         reserved = input.readString();
         if (version >= 1) {
             listenPort = input.readInt();
+        }
+        if (version >= 2) {
+            persistentKeepaliveInterval = input.readInt();
         }
     }
 

@@ -23,11 +23,6 @@
             app:title="@string/wireguard_local_address"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-            app:icon="@drawable/ic_baseline_stream_24"
-            app:key="listenPort"
-            app:title="@string/listen_port"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
             app:icon="@drawable/ic_baseline_vpn_key_24"
             app:key="privateKey"
             app:title="@string/ssh_private_key"
@@ -52,6 +47,16 @@
             app:icon="@drawable/ic_baseline_fingerprint_24"
             app:key="serverReserved"
             app:title="@string/reserved"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_stream_24"
+            app:key="listenPort"
+            app:title="@string/listen_port"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_cached"
+            app:key="serverPersistentKeepaliveInterval"
+            app:title="@string/persistent_keepalive_interval"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
