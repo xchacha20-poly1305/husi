@@ -42,6 +42,9 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
         logLevel.takeIf { it > 0 }?.let {
             put("loggingLevel", logLevelString(it).uppercase())
         }
+        put("advancedSettings", JSONObject().apply {
+            put("noCheckUpdate", true) // v3.13.0
+        })
         put("profiles", JSONArray().apply {
             put(JSONObject().apply {
                 put("profileName", "default")
