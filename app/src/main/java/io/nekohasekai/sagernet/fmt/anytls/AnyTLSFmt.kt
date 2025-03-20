@@ -4,9 +4,11 @@ import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.map
 import libcore.Libcore
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
+import org.json.JSONObject
 
 /** https://github.com/anytls/anytls-go/blob/main/docs/uri_scheme.md */
 fun parseAnyTLS(link: String): AnyTLSBean = AnyTLSBean().apply {
@@ -82,7 +84,7 @@ fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
             "min_idle_session" -> minIdleSession = value.toString().toIntOrNull()
 
             "tls" -> {
-                val tlsField = value as? JSONMap ?: return@parseBoxOutbound
+                val tlsField = (value as? JSONObject)?.map ?: return@parseBoxOutbound
                 val tls = parseBoxTLS(tlsField)
                 serverName = tls.server_name
                 allowInsecure = tls.insecure

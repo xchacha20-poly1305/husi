@@ -535,8 +535,8 @@ fun parseHysteria2Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
 
             "hop_interval" -> hopInterval = value.toString()
             "obfs" -> {
-                val obfsField = value as? Map<*, *> ?: continue
-                obfsField["password"]?.toString()?.let {
+                val obfsField = value as? JSONObject ?: continue
+                obfsField.getStr("password")?.let {
                     obfuscation = it
                 }
             }
