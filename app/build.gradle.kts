@@ -93,7 +93,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.9") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.4.0-android")
+    implementation("com.google.guava:guava:33.4.5-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
