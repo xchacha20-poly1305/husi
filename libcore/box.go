@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"context"
+	"runtime/debug"
 	"time"
 
 	"github.com/sagernet/sing-box"
@@ -160,6 +161,10 @@ func (b *BoxInstance) Start() (err error) {
 		if err != nil {
 			return E.Cause(err, "start anchor service")
 		}
+	}
+
+	if !b.forTest {
+		debug.FreeOSMemory()
 	}
 
 	return nil
