@@ -30,7 +30,7 @@ public class NaiveBean extends AbstractBean {
     public String extraHeaders;
     public String sni;
     public Integer insecureConcurrency;
-    // sing-box socks
+    // sing-box socks + sing-box server
     public Boolean udpOverTcp;
     // https://github.com/klzgrad/naiveproxy/blob/76e7bbed0fdd349fb8a8890cd082e90072dab734/USAGE.txt#L110
     // https://tldr.fail/
@@ -88,5 +88,10 @@ public class NaiveBean extends AbstractBean {
     @Override
     public NaiveBean clone() {
         return KryoConverters.deserialize(new NaiveBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public boolean needUDPOverTCP() {
+        return udpOverTcp;
     }
 }

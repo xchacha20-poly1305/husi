@@ -139,11 +139,7 @@ fun buildSingBoxOutboundShadowsocksBean(bean: ShadowsocksBean): SingBoxOptions.O
             plugin = bean.plugin.substringBefore(";")
             plugin_opts = bean.plugin.substringAfter(";")
         }
-        if (bean.udpOverTcp) {
-            udp_over_tcp = SingBoxOptions.UDPOverTCPOptions().apply {
-                enabled = true
-            }
-        } else {
+        if (!bean.udpOverTcp) {
             multiplex = buildSingBoxMux(bean)
         }
     }

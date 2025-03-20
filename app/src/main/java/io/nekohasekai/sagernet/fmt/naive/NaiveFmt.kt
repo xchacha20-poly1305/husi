@@ -77,8 +77,8 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         }
 
         put("listen", "socks://$LOCALHOST4:$port")
-	// https://github.com/klzgrad/naiveproxy/releases/tag/v130.0.6723.40-2
-	// "The comma is used for delimiting proxies in a proxy chain. It must be percent-encoded in other URL components."
+        // https://github.com/klzgrad/naiveproxy/releases/tag/v130.0.6723.40-2
+        // "The comma is used for delimiting proxies in a proxy chain. It must be percent-encoded in other URL components."
         put("proxy", toUri(true).replace(",", "%2C"))
         if (extraHeaders.isNotBlank()) {
             put("extra-headers", extraHeaders.split("\n").joinToString("\r\n"))

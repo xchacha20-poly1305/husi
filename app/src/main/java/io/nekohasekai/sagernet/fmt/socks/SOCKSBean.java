@@ -100,4 +100,9 @@ public class SOCKSBean extends AbstractBean {
     public @NotNull String outboundType() throws Throwable {
         return SingBoxOptions.TYPE_SOCKS;
     }
+
+    @Override
+    public boolean needUDPOverTCP() {
+        return udpOverTcp;
+    }
 }

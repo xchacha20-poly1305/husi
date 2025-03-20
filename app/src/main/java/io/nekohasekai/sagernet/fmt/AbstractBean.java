@@ -55,6 +55,10 @@ public abstract class AbstractBean extends Serializable {
         return true;
     }
 
+    public boolean needUDPOverTCP() {
+        return false;
+    }
+
     public boolean canMapping() {
         return true;
     }

@@ -81,4 +81,9 @@ public class ShadowsocksBean extends AbstractBean {
     public @NotNull String outboundType() throws Throwable {
         return SingBoxOptions.TYPE_SHADOWSOCKS;
     }
+
+    @Override
+    public boolean needUDPOverTCP() {
+        return udpOverTcp;
+    }
 }
