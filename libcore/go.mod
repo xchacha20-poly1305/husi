@@ -7,8 +7,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/miekg/dns v1.1.63
 	github.com/sagernet/gomobile v0.1.4
-	github.com/sagernet/sing v0.6.2
-	github.com/sagernet/sing-box v1.11.5-0.20250225232535-619fa671d7c5
+	github.com/sagernet/sing v0.6.4-0.20250316022329-ce1b4851a451
+	github.com/sagernet/sing-box v1.11.6-0.20250320124855-ac9af60a9de9
 	github.com/sagernet/sing-dns v0.4.0
 	github.com/sagernet/sing-tun v0.6.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.11.0
