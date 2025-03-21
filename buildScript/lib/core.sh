@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-buildScript/lib/core/init.sh
-buildScript/lib/core/build.sh
+source buildScript/init/env.sh
+
+cd libcore
+./build.sh || exit 1

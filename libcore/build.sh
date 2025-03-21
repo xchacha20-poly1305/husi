@@ -1,11 +1,7 @@
-#!/bin/bash
-
-source ../buildScript/init/env_ndk.sh
+#!/usr/bin/env bash
 
 set -e
 # set -x
-
-box_version=$(go run ./cmd/boxversion/)
 
 TAGS=(
     "with_conntrack"
@@ -18,8 +14,14 @@ TAGS=(
 
 IFS="," BUILD_TAGS="${TAGS[*]}"
 
+CGO_ENABLED=0 go install -v -trimpath -ldflags="-w -s" github.com/sagernet/gomobile/cmd/gobind@v0.1.5
+CGO_ENABLED=0 go install -v -trimpath -ldflags="-w -s" github.com/sagernet/gomobile/cmd/gomobile@v0.1.5
+
+box_version=$(go run ./cmd/boxversion/)
+export CGO_ENABLED=1
+export GO386=softfloat
+
 # -buildvcs require: https://github.com/SagerNet/gomobile/commit/6bc27c2027e816ac1779bf80058b1a7710dad260
-# CGO_FLAGS require Go 1.23: https://go.dev/doc/go1.23#cgo
 # max-page-size: https://developer.android.com/guide/practices/page-sizes
 GOEXPERIMENT="synchashtriemap" gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
     -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid=" \
