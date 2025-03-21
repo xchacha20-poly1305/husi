@@ -78,8 +78,8 @@ github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1 h1:YbmpqPQ
 github.com/sagernet/cloudflare-tls v0.0.0-20231208171750-a4483c1b7cd1/go.mod h1:J2yAxTFPDjrDPhuAi9aWFz2L3ox9it4qAluBBbN0H5k=
 github.com/sagernet/fswatch v0.1.1 h1:YqID+93B7VRfqIH3PArW/XpJv5H4OLEVWDfProGoRQs=
 github.com/sagernet/fswatch v0.1.1/go.mod h1:nz85laH0mkQqJfaOrqPpkwtU1znMFNVTpT/5oRsVz/o=
-github.com/sagernet/gomobile v0.1.4 h1:WzX9ka+iHdupMgy2Vdich+OAt7TM8C2cZbIbzNjBrJY=
-github.com/sagernet/gomobile v0.1.4/go.mod h1:Pqq2+ZVvs10U7xK+UwJgwYWUykewi8H6vlslAO73n9E=
+github.com/sagernet/gomobile v0.1.5 h1:vA5ijehpv+2UdZqXmDMYrVMFY3zzdjwoSrNy8/zOEtc=
+github.com/sagernet/gomobile v0.1.5/go.mod h1:Pqq2+ZVvs10U7xK+UwJgwYWUykewi8H6vlslAO73n9E=
 github.com/sagernet/gvisor v0.0.0-20241123041152-536d05261cff h1:mlohw3360Wg1BNGook/UHnISXhUx4Gd/3tVLs5T0nSs=
 github.com/sagernet/gvisor v0.0.0-20241123041152-536d05261cff/go.mod h1:ehZwnT2UpmOWAHFL48XdBhnd4Qu4hN2O3Ji0us3ZHMw=
 github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a h1:ObwtHN2VpqE0ZNjr6sGeT00J8uU7JF4cNUdb44/Duis=
