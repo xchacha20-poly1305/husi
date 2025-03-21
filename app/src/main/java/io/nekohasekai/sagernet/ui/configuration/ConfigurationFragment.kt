@@ -125,6 +125,12 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipInputStream
 import kotlin.collections.set
 
+/**
+ * @param select marks this fragment starts for configuration selecting
+ * but not display common configurations.
+ *
+ * @param titleRes custom title ID.
+ */
 class ConfigurationFragment @JvmOverloads constructor(
     val select: Boolean = false, val selectedItem: ProxyEntity? = null, val titleRes: Int = 0,
 ) : ToolbarFragment(R.layout.layout_group_list), PopupMenu.OnMenuItemClickListener,
@@ -189,6 +195,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         if (!select) {
             toolbar.inflateMenu(R.menu.add_profile_menu)
             toolbar.setOnMenuItemClickListener(this)
+            toolbar.setTitleTextAppearance(context, R.style.AppNameAppearance)
         } else {
             toolbar.setTitle(titleRes)
             toolbar.setNavigationIcon(R.drawable.ic_navigation_close)
@@ -1707,8 +1714,9 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                                 shareLayout.setOnClickListener {
                                     MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.insecure)
-                                        .setMessage(resources.openRawResource(validateResult.textRes)
-                                            .bufferedReader().use { it.readText() })
+                                        .setMessage(
+                                            resources.openRawResource(validateResult.textRes)
+                                                .bufferedReader().use { it.readText() })
                                         .setPositiveButton(android.R.string.ok) { _, _ ->
                                             showShare(it)
                                         }.show().apply {
@@ -1729,8 +1737,9 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                                 shareLayout.setOnClickListener {
                                     MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.deprecated)
-                                        .setMessage(resources.openRawResource(validateResult.textRes)
-                                            .bufferedReader().use { it.readText() })
+                                        .setMessage(
+                                            resources.openRawResource(validateResult.textRes)
+                                                .bufferedReader().use { it.readText() })
                                         .setPositiveButton(android.R.string.ok) { _, _ ->
                                             showShare(it)
                                         }.show().apply {
