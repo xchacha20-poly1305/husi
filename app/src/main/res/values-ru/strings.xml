@@ -625,4 +625,8 @@
     <string name="idle_session_timeout">Тайм -аут сеанса IDLE</string>
     <string name="min_idle_session">Минимальный сеанс IDLE</string>
     <string name="import_http_url">Импортирт HTTP URL.</string>
+    <string name="persistent_keepalive_interval">Интервал проверки активности</string>
+    <string name="low">Низкий</string>
+    <string name="middle">Средний</string>
+    <string name="high">Высокий</string>
 </resources>
