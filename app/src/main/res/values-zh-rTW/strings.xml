@@ -581,4 +581,15 @@
     <string name="low">低</string>
     <string name="high">高</string>
     <string name="pause">暫停</string>
+    <string name="persistent_keepalive_interval">持續保活間隔</string>
+    <string name="idle_session_check_interval">閒置會話檢查間隔</string>
+    <string name="idle_session_timeout">閒置會話逾時</string>
+    <string name="min_idle_session">最小閒置會話</string>
+    <string name="listen_port">監聽埠</string>
+    <string name="certificate_authority">數位憑證認證機構</string>
+    <string name="system_and_user">系統和使用者</string>
+    <string name="http_proxy_bypass">HTTP 代理繞過列表</string>
+    <string name="v2ray_transport">V2Ray 傳輸</string>
+    <string name="reality_public_key">REALITY 公鑰</string>
+    <string name="import_http_url">您正在匯入一個 HTTP URL。您想要進行什麼操作？</string>
 </resources>
