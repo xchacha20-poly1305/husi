@@ -1,8 +1,10 @@
 package io.nekohasekai.sagernet.ktx
 
 import android.graphics.Rect
+import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ui.MainActivity
 
@@ -12,18 +14,19 @@ class FixedLinearLayoutManager(private val recyclerView: RecyclerView) :
     override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
         try {
             super.onLayoutChildren(recycler, state)
-        } catch (ignored: IndexOutOfBoundsException) {
+        } catch (_: IndexOutOfBoundsException) {
         }
     }
 
     private var listenerDisabled = false
+    val showBottomBar = DataStore.showBottomBar
 
     override fun scrollVerticallyBy(
         dx: Int, recycler: RecyclerView.Recycler,
         state: RecyclerView.State
     ): Int {
         // Matsuri style
-        if (!DataStore.showBottomBar) return super.scrollVerticallyBy(dx, recycler, state)
+        if (!showBottomBar) return super.scrollVerticallyBy(dx, recycler, state)
 
         // SagerNet Style
         val scrollRange = super.scrollVerticallyBy(dx, recycler, state)
@@ -71,4 +74,31 @@ class FixedLinearLayoutManager(private val recyclerView: RecyclerView) :
         return scrollRange
     }
 
+}
+
+fun NestedScrollView.setStatusBar(fab: FloatingActionButton) {
+    setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+        val childView = v.getChildAt(0)
+        if (childView == null) {
+            if (!fab.isShown) fab.show()
+            return@OnScrollChangeListener
+        }
+
+        val childHeight = childView.measuredHeight
+        val viewHeight = v.measuredHeight
+        val isScrollable = childHeight > viewHeight
+
+        if (scrollY > oldScrollY && fab.isShown) {
+            val isAtBottom = scrollY >= (childHeight - viewHeight)
+            if (isAtBottom) {
+                fab.hide()
+            }
+        } else if (scrollY < oldScrollY && !fab.isShown) {
+            fab.show()
+        }
+
+        if ((!isScrollable || scrollY == 0) && !fab.isShown) {
+            fab.show()
+        }
+    })
 }
