@@ -29,13 +29,8 @@ func (m *Manager) Leave(c Tracker) {
 	m.connections.Delete(metadata.ID)
 }
 
-func (m *Manager) Connections() (trackers []Tracker) {
-	// Can't distribute capacity.
-	m.connections.Range(func(_ uuid.UUID, tracker Tracker) bool {
-		trackers = append(trackers, tracker)
-		return true
-	})
-	return
+func (m *Manager) Range(f func(uuid uuid.UUID, tracker Tracker) bool) {
+	m.connections.Range(f)
 }
 
 func (m *Manager) Connection(id uuid.UUID) Tracker {

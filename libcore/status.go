@@ -8,7 +8,6 @@ import (
 
 	"libcore/combinedapi/trafficcontrol"
 
-	"github.com/sagernet/sing/common"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
 	M "github.com/sagernet/sing/common/metadata"
@@ -17,17 +16,18 @@ import (
 )
 
 // GetTrackerInfos returns TrackerInfo list. If not set clash API, it will return error.
-func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator, err error) {
-	connections := b.api.TrafficManager().Connections()
-	trackerInfos := common.Map(connections, func(it trafficcontrol.Tracker) *TrackerInfo {
-		metadata := it.Metadata()
+func (b *BoxInstance) GetTrackerInfos() TrackerInfoIterator {
+	var trackerInfos []*TrackerInfo
+	// Can't pre-distribute capacity
+	b.api.TrafficManager().Range(func(_ uuid.UUID, tracker trafficcontrol.Tracker) bool {
+		metadata := tracker.Metadata()
 		var rule string
 		if metadata.Rule == nil {
 			rule = "final"
 		} else {
 			rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
 		}
-		return &TrackerInfo{
+		trackerInfos = append(trackerInfos, &TrackerInfo{
 			UUID:          metadata.ID,
 			Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
 			IPVersion:     int16(metadata.Metadata.IPVersion),
@@ -42,10 +42,11 @@ func (b *BoxInstance) GetTrackerInfos() (trackerInfoIterator TrackerInfoIterator
 			Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
 			Chain:         strings.Join(metadata.Chain, " => "),
 			Protocol:      metadata.Metadata.Protocol,
-		}
+		})
+		return true
 	})
 
-	return newIterator(trackerInfos), nil
+	return newIterator(trackerInfos)
 }
 
 // CloseConnection closes the connection, whose UUID is `id`.
