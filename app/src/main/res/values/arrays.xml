@@ -549,4 +549,29 @@
         <item>@string/system_and_user</item>
     </string-array>
 
+
+    <string-array name="language_entry">
+        <item>@string/language_system_default</item>
+        <item>@string/language_ar_display_name</item>
+        <item>@string/language_en_display_name</item>
+        <item>@string/language_es_display_name</item>
+        <item>@string/language_fa_display_name</item>
+        <item>@string/language_ru_display_name</item>
+        <item>@string/language_zh_Hans_CN_display_name</item>
+        <item>@string/language_zh_Hant_TW_display_name</item>
+        <item>@string/language_zh_Hant_HK_display_name</item>
+    </string-array>
+
+    <string-array name="language_value">
+        <item />
+        <item>ar</item>
+        <item>en-US</item>
+        <item>es</item>
+        <item>fa</item>
+        <item>ru</item>
+        <item>zh-Hans-CN</item>
+        <item>zh-Hant-TW</item>
+        <item>zh-Hant-HK</item>
+    </string-array>
+
 </resources>

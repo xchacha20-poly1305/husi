@@ -98,4 +98,6 @@
     <string name="sekai">世界</string>
     <string name="app_name">虎兕</string>
     <string name="app_name_long">匪兕匪虎 率彼曠野</string>
+    <string name="language">語言</string>
+    <string name="language_system_default">系統預設</string>
 </resources>

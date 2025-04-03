@@ -629,4 +629,6 @@
     <string name="low">Низкий</string>
     <string name="middle">Средний</string>
     <string name="high">Высокий</string>
+    <string name="language">Язык</string>
+    <string name="language_system_default">Системные настройки по умолчанию</string>
 </resources>

@@ -589,4 +589,6 @@
     <string name="middle">Media</string>
     <string name="high">Alta</string>
     <string name="low">Baja</string>
+    <string name="language">Idioma</string>
+    <string name="language_system_default">Predeterminado del sistema</string>
 </resources>

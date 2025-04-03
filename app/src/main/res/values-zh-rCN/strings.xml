@@ -591,4 +591,6 @@
     <string name="idle_session_timeout">空闲会话超时</string>
     <string name="min_idle_session">最小闲置会话数</string>
     <string name="persistent_keepalive_interval">持久性保持活动间隔</string>
+    <string name="language">语言</string>
+    <string name="language_system_default">系统默认设置</string>
 </resources>
