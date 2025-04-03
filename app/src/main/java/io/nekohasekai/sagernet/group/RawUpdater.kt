@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.group
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
@@ -32,6 +31,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.StringReader
+import androidx.core.net.toUri
 
 @Suppress("EXPERIMENTAL_API_USAGE", "UNCHECKED_CAST")
 object RawUpdater : GroupUpdater() {
@@ -46,7 +46,7 @@ object RawUpdater : GroupUpdater() {
 
         var proxies: List<AbstractBean>
         if (subscription.link.startsWith("content://")) {
-            val contentText = app.contentResolver.openInputStream(Uri.parse(subscription.link))
+            val contentText = app.contentResolver.openInputStream(subscription.link.toUri())
                 ?.bufferedReader()
                 ?.readText()
 
@@ -207,12 +207,18 @@ object RawUpdater : GroupUpdater() {
                     }
                 }
 
-                (json.has("server") && json.has("server_port")) || json.has("peers") -> {
+                // server + server_port or server_ports -> outbound
+                json.has("server") && (json.has("server_port") || json.has("server_ports")) -> {
                     // Single sing-box outbound
                     return parseOutbound(json.map)?.let {
                         listOf(it)
                     } ?: errNotFound()
                 }
+
+                // single endpoint
+                json.has("peers") -> return parseOutbound(json.map)?.let {
+                    listOf(it)
+                } ?: errNotFound()
 
                 json.has("server") && (json.has("up") || json.has("up_mbps")) -> {
                     return listOf(json.parseHysteria1Json())
