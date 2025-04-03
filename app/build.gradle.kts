@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.1.20-1.0.31"
+    id("com.google.devtools.ksp") version "2.1.20-1.0.32"
 }
 
 setupApp()
@@ -75,9 +75,9 @@ dependencies {
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
 
-    implementation("androidx.camera:camera-view:1.4.1")
-    implementation("androidx.camera:camera-lifecycle:1.4.1")
-    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-view:1.4.2")
+    implementation("androidx.camera:camera-lifecycle:1.4.2")
+    implementation("androidx.camera:camera-camera2:1.4.2")
     implementation("com.google.zxing:core:3.5.3")
 
     implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
@@ -93,7 +93,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.9") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.4.5-android")
+    implementation("com.google.guava:guava:33.4.6-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
