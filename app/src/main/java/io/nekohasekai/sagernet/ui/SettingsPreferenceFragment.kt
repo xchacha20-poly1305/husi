@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
+import androidx.core.os.LocaleListCompat
 import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
@@ -34,6 +36,7 @@ import io.nekohasekai.sagernet.widget.updateSummary
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.LongClickListPreference
 import rikka.preference.SimpleMenuPreference
+import java.util.Locale
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
@@ -59,7 +62,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
-
 
         lateinit var ntpEnable: SwitchPreference
         lateinit var ntpAddress: EditTextPreference
@@ -111,6 +113,41 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             Theme.currentNightMode = (newTheme as String).toInt()
                             Theme.applyNightTheme()
                             true
+                        }
+
+                        Key.APP_LANGUAGE -> {
+                            fun getLanguageDisplayName(code: String): String = when (code) {
+                                "" -> getString(R.string.language_system_default)
+                                "ar" -> getString(R.string.language_ar_display_name)
+                                "en-US" -> getString(R.string.language_en_display_name)
+                                "es" -> getString(R.string.language_es_display_name)
+                                "fa" -> getString(R.string.language_fa_display_name)
+                                "ru" -> getString(R.string.language_ru_display_name)
+                                "zh-Hans-CN" -> getString(R.string.language_zh_Hans_CN_display_name)
+                                "zh-Hant-TW" -> getString(R.string.language_zh_Hant_TW_display_name)
+                                "zh-Hant-HK" -> getString(R.string.language_zh_Hant_HK_display_name)
+                                // just a fallback name from Java
+                                else -> Locale.forLanguageTag(code).displayName
+                            }
+
+                            val appLanguage = preference as SimpleMenuPreference
+                            val locale = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+                            appLanguage.summary = getLanguageDisplayName(locale)
+                            appLanguage.value =
+                                if (locale in resources.getStringArray(R.array.language_value)) {
+                                    locale
+                                } else {
+                                    ""
+                                }
+                            appLanguage.setOnPreferenceChangeListener { _, newValue ->
+                                newValue as String
+                                AppCompatDelegate.setApplicationLocales(
+                                    LocaleListCompat.forLanguageTags(newValue)
+                                )
+                                appLanguage.summary = getLanguageDisplayName(newValue)
+                                appLanguage.value = newValue
+                                true
+                            }
                         }
 
                         Key.METERED_NETWORK -> if (Build.VERSION.SDK_INT < 28) {

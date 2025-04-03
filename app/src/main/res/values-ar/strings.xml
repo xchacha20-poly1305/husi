@@ -406,4 +406,6 @@
     <string name="ssh_private_key">مفتاح خاص</string>
     <string name="ssh_public_key">المفتاح العمومي</string>
     <string name="ssh_auth_type_none">لا شيء</string>
+    <string name="language">اللغة</string>
+    <string name="language_system_default">الإعداد التلقائي للنظام</string>
 </resources>

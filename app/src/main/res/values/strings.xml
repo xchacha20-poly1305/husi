@@ -662,4 +662,6 @@
     <string name="idle_session_timeout">IDLE Session Timeout</string>
     <string name="min_idle_session">Mininum IDLE Session</string>
     <string name="persistent_keepalive_interval">Persistent Keepalive Interval</string>
+    <string name="language">Language</string>
+    <string name="language_system_default">System default</string>
 </resources>

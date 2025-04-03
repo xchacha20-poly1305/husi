@@ -573,4 +573,6 @@
     <string name="override_port">بازنویسی پورت</string>
     <string name="descending">نزولی</string>
     <string name="sort">مرتب سازی</string>
+    <string name="language">زبان</string>
+    <string name="language_system_default">پیش‌فرض سیستم</string>
 </resources>

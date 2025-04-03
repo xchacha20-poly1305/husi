@@ -592,4 +592,6 @@
     <string name="v2ray_transport">V2Ray 傳輸</string>
     <string name="reality_public_key">REALITY 公鑰</string>
     <string name="import_http_url">您正在匯入一個 HTTP URL。您想要進行什麼操作？</string>
+    <string name="language">語言</string>
+    <string name="language_system_default">系統預設</string>
 </resources>
