@@ -2,5 +2,6 @@
 <resources>
     <style name="AppNameAppearance" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
         <item name="android:fontFamily">@font/shuowenxiaozhuan_husi</item>
+        <item name="android:textColor">?whiteOrTextPrimary</item>
     </style>
 </resources>
