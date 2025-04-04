@@ -454,7 +454,7 @@
     <string name="ntp_server_address">Адреса сервера NTP</string>
     <string name="ntp_server_port">Порт сервера NTP</string>
     <string name="ntp_sync_interval">Інтервал синхронізації NTP</string>
-    <string name="menu_dashboard">Панель sign-box</string>
+    <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копіювати</string>
     <string name="share_qr_nfc">QR-код</string>
     <string name="add_profile_methods_manual_settings">Ручні налаштування</string>

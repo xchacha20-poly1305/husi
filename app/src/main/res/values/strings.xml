@@ -19,8 +19,8 @@
     <string name="quick_toggle">Toggle</string>
     <string name="tile_title">Switcher</string>
     <string name="menu_traffic">Traffic</string>
-    <string name="menu_dashboard">sing-box Dashboard</string>
-    <!-- externel -->
+    <string name="menu_dashboard">Dashboard</string>
+    <!-- external -->
     <string name="action_copy">Copy</string>
     <string name="action_open">Open</string>
     <!-- group -->
