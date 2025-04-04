@@ -448,7 +448,7 @@
 
         <item name="android:textColorLink">?attr/accentOrTextSecondary</item>
         <item name="fabColorBackground">?colorPrimaryDark</item>
-        <item name="selectedColorPrimary">@color/white</item>
+        <item name="selectedColorPrimary">?attr/primaryOrTextPrimary</item>
         <item name="itemShapeFillColor">#616161</item>
 
         <item name="accentOrTextSecondary">?android:textColorSecondary</item>
