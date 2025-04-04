@@ -7,8 +7,7 @@ import (
 
 	"github.com/sagernet/sing-box/option"
 	F "github.com/sagernet/sing/common/format"
-
-	"libcore/named"
+	"github.com/sagernet/sing/common/x/collections"
 )
 
 // TODO ignore deprecated
@@ -180,52 +179,52 @@ func className(valueType reflect.Type) string {
 
 // Build rule action
 func init() {
-	ruleActions := []named.Named[any]{
+	ruleActions := []collections.MapEntry[string, any]{
 		{
-			Name:    "RouteActionOptions",
-			Content: option.RouteActionOptions{},
+			Key:   "RouteActionOptions",
+			Value: option.RouteActionOptions{},
 		},
 		{
-			Name:    "RouteOptionsActionOptions",
-			Content: option.RouteOptionsActionOptions{},
+			Key:   "RouteOptionsActionOptions",
+			Value: option.RouteOptionsActionOptions{},
 		},
 		{
-			Name:    "DirectActionOptions",
-			Content: option.DirectActionOptions{},
+			Key:   "DirectActionOptions",
+			Value: option.DirectActionOptions{},
 		},
 		{
-			Name:    "RejectActionOptions",
-			Content: option.RejectActionOptions{},
+			Key:   "RejectActionOptions",
+			Value: option.RejectActionOptions{},
 		},
 		{
-			Name:    "RouteActionSniff",
-			Content: option.RouteActionSniff{},
+			Key:   "RouteActionSniff",
+			Value: option.RouteActionSniff{},
 		},
 		{
-			Name:    "RouteActionResolve",
-			Content: option.RouteActionResolve{},
+			Key:   "RouteActionResolve",
+			Value: option.RouteActionResolve{},
 		},
 	}
 	for _, field := range ruleActions {
-		ruleActionFields = append(ruleActionFields, buildContent(reflect.TypeOf(field.Content))...)
+		ruleActionFields = append(ruleActionFields, buildContent(reflect.TypeOf(field.Value))...)
 	}
 
-	dnsRuleActions := []named.Named[any]{
+	dnsRuleActions := []collections.MapEntry[string, any]{
 		{
-			Name:    "RouteOptions",
-			Content: option.DNSRouteActionOptions{},
+			Key:   "RouteOptions",
+			Value: option.DNSRouteActionOptions{},
 		},
 		{
-			Name:    "RouteOptionsOptions",
-			Content: option.DNSRouteOptionsActionOptions{},
+			Key:   "RouteOptionsOptions",
+			Value: option.DNSRouteOptionsActionOptions{},
 		},
 		{
-			Name:    "RejectOptions",
-			Content: option.RejectActionOptions{},
+			Key:   "RejectOptions",
+			Value: option.RejectActionOptions{},
 		},
 	}
 	for _, field := range dnsRuleActions {
-		dnsRuleActionFields = append(dnsRuleActionFields, buildContent(reflect.TypeOf(field.Content))...)
+		dnsRuleActionFields = append(dnsRuleActionFields, buildContent(reflect.TypeOf(field.Value))...)
 	}
 }
 

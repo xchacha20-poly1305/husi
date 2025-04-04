@@ -4,30 +4,18 @@ import (
 	"net"
 	"strings"
 
-	"libcore/named"
-
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"
+	"github.com/sagernet/sing/common/x/linkedhashmap"
 )
 
-func generateGeoip(data []byte) (ips []*named.Named[[]*net.IPNet], err error) {
-	var countryMap map[string][]*net.IPNet
-	countryMap, err = parseGeoip(data)
-	if err != nil {
-		return
-	}
-
-	ips = named.FromMap(countryMap)
-	return
-}
-
-func parseGeoip(binary []byte) (countryMap map[string][]*net.IPNet, err error) {
+func parseGeoip(binary []byte) (countryMap *linkedhashmap.Map[string, []*net.IPNet], err error) {
 	database, err := maxminddb.FromBytes(binary)
 	if err != nil {
 		return
 	}
 	networks := database.Networks(maxminddb.SkipAliasedNetworks)
-	countryMap = make(map[string][]*net.IPNet)
+	countryMap = new(linkedhashmap.Map[string, []*net.IPNet])
 	var country geoip2.Enterprise
 	var ipNet *net.IPNet
 	for networks.Next() {
@@ -36,7 +24,8 @@ func parseGeoip(binary []byte) (countryMap map[string][]*net.IPNet, err error) {
 			return
 		}
 		code := strings.ToLower(country.RegisteredCountry.IsoCode)
-		countryMap[code] = append(countryMap[code], ipNet)
+		old, _ := countryMap.Get(code)
+		countryMap.Put(code, append(old, ipNet))
 	}
 	err = networks.Err()
 	return

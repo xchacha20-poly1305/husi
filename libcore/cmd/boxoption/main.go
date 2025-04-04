@@ -7,8 +7,8 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/memory"
+	"github.com/sagernet/sing/common/x/collections"
 
-	"libcore/named"
 	"libcore/plugin/pluginoption"
 )
 
@@ -33,7 +33,7 @@ func main() {
 		writer = file
 	}
 
-	all := []named.Named[[]any]{
+	all := []collections.MapEntry[string, []any]{
 		{extendsBox, boxList},
 		{"Rule", ruleList},
 		{"DNSRule", dnsRuleList},
@@ -44,8 +44,8 @@ func main() {
 		{"Endpoint", endpointList},
 	}
 	for _, classes := range all {
-		for _, class := range classes.Content {
-			_, _ = writer.Write(buildClass(class, classes.Name))
+		for _, class := range classes.Value {
+			_, _ = writer.Write(buildClass(class, classes.Key))
 			_, _ = writer.WriteString("\n")
 		}
 	}
