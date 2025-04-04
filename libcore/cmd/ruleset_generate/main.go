@@ -62,9 +62,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for _, geositeItem := range geosites {
+		for _, geositeItem := range geosites.Entries() {
 			var headlessRule option.DefaultHeadlessRule
-			defaultRule := geosite.Compile(geositeItem.Content)
+			defaultRule := geosite.Compile(geositeItem.Value)
 			headlessRule.Domain = defaultRule.Domain
 			headlessRule.DomainSuffix = defaultRule.DomainSuffix
 			headlessRule.DomainKeyword = defaultRule.DomainKeyword
@@ -81,7 +81,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			srsName := "geosite-" + geositeItem.Name + ".srs"
+			srsName := "geosite-" + geositeItem.Key + ".srs"
 			// Reproducible builds should not set time.
 			err = tWriter.WriteHeader(&tar.Header{
 				Name: srsName,
@@ -115,14 +115,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		ips, err := generateGeoip(geoipData)
+		ips, err := parseGeoip(geoipData)
 		if err != nil {
 			log.Fatal(err)
 		}
-		for _, ip := range ips {
+		for _, ip := range ips.Entries() {
 			var headlessRule option.DefaultHeadlessRule
-			headlessRule.IPCIDR = make([]string, 0, len(ip.Content))
-			for _, cidr := range ip.Content {
+			headlessRule.IPCIDR = make([]string, 0, len(ip.Value))
+			for _, cidr := range ip.Value {
 				headlessRule.IPCIDR = append(headlessRule.IPCIDR, cidr.String())
 			}
 			var plainRuleSet option.PlainRuleSet
@@ -137,7 +137,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			srsName := "geoip-" + ip.Name + ".srs"
+			srsName := "geoip-" + ip.Key + ".srs"
 			err = tWriter.WriteHeader(&tar.Header{
 				Name: srsName,
 				Size: int64(buf.Len()),
