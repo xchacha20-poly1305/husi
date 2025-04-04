@@ -459,7 +459,7 @@
     <string name="tuic_congestion_controller">Controlador de congestión</string>
     <string name="hop_interval">Intervalo de salto de puerto (segundos)</string>
     <string name="app_name">husi</string>
-    <string name="menu_dashboard">Panel SingBox</string>
+    <string name="menu_dashboard">Panel</string>
     <string name="show_bottom_bar">Mostrar barra inferior como SagerNet</string>
     <string name="custom_outbound_json">JSON saliente personalizado</string>
     <string name="custom_config_json">JSON de config. personalizada</string>

@@ -87,13 +87,13 @@ class StatusFragment : Fragment(R.layout.layout_status) {
             binding.clashModeButtonText.text = item
             if (isSelected) {
                 binding.clashModeButtonText.setTextColor(
-                    binding.root.context.getColorAttr(R.attr.colorMaterial100)
+                    binding.root.context.getColorAttr(com.google.android.material.R.attr.tabSelectedTextColor)
                 )
                 binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle_active)
                 binding.clashModeButton.isClickable = false
             } else {
                 binding.clashModeButtonText.setTextColor(
-                    binding.root.context.getColorAttr(com.google.android.material.R.attr.colorOnSurface)
+                    binding.root.context.getColorAttr(R.attr.primaryOrTextPrimary)
                 )
                 binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle)
                 binding.clashModeButton.setOnClickListener {

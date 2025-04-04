@@ -434,7 +434,7 @@
     <string name="vpn_app_type_other">其他</string>
     <string name="vpn_core_type_unknown">未知</string>
     <string name="enable_brutal">啟用 TCP Brutal 擁塞控制演算法</string>
-    <string name="menu_dashboard">Sing-Box 儀表板</string>
+    <string name="menu_dashboard">儀表板</string>
     <string name="action_copy">複製</string>
     <string name="update_all_subscription">更新全部訂閱</string>
     <string name="route_opt_block_quic">屏蔽 QUIC</string>
