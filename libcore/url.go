@@ -45,6 +45,9 @@ type URL interface {
 	GetFragment() string
 	SetFragment(fragment string)
 
+	SetRawFragment(rawFragment string) error
+	GetRawFragment(rawFragment string) string
+
 	GetString() string
 }
 
@@ -61,6 +64,9 @@ func NewURL(scheme string) URL {
 	u.Values = make(url.Values)
 	return u
 }
+
+//go:linkname setFragment net/url.(*URL).setFragment
+func setFragment(u *url.URL, fragment string) error
 
 //go:linkname setPath net/url.(*URL).setPath
 func setPath(u *url.URL, fragment string) error
@@ -191,7 +197,10 @@ func (u *netURL) SetPath(path string) {
 }
 
 func (u *netURL) GetRawPath() string {
-	return u.RawPath
+	if rawPath := u.RawPath; rawPath != "" {
+		return rawPath
+	}
+	return u.Path
 }
 
 func (u *netURL) SetRawPath(rawPath string) error {
@@ -217,6 +226,17 @@ func (u *netURL) GetFragment() string {
 func (u *netURL) SetFragment(fragment string) {
 	u.Fragment = fragment
 	u.RawFragment = ""
+}
+
+func (u *netURL) SetRawFragment(rawFragment string) error {
+	return setFragment(&u.URL, rawFragment)
+}
+
+func (u *netURL) GetRawFragment(rawFragment string) string {
+	if rawFragment := u.RawFragment; rawFragment != "" {
+		return rawFragment
+	}
+	return u.Fragment
 }
 
 func (u *netURL) GetString() string {
