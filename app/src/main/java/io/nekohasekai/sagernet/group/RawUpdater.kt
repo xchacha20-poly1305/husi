@@ -55,7 +55,9 @@ object RawUpdater : GroupUpdater() {
         } else {
 
             val response = Libcore.newHttpClient().apply {
-                trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+                if (DataStore.serviceState.started) {
+                    useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+                }
                 when (DataStore.appTLSVersion) {
                     "1.3" -> restrictedTLS()
                 }
