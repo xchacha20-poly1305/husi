@@ -65,11 +65,13 @@ class SpeedtestActivity : ThemedActivity() {
         speedtestJob = runOnDefaultDispatcher {
             try {
                 Libcore.newHttpClient().apply {
-                    trySocks5(
-                        DataStore.mixedPort,
-                        DataStore.inboundUsername,
-                        DataStore.inboundPassword,
-                    )
+                    if (DataStore.serviceState.started) {
+                        useSocks5(
+                            DataStore.mixedPort,
+                            DataStore.inboundUsername,
+                            DataStore.inboundPassword
+                        )
+                    }
                 }.newRequest().apply {
                     setURL(binding.speedTestServer.text.toString())
                     setUserAgent(USER_AGENT)

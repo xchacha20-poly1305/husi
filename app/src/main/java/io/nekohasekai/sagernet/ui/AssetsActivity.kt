@@ -362,7 +362,9 @@ class AssetsActivity : ThemedActivity() {
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
-            trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            if (DataStore.serviceState.started) {
+                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            }
         }
 
         val versionFileList: List<File> = listOf(

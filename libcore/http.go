@@ -41,8 +41,8 @@ type HTTPClient interface {
 	// If not, it will reject this handshake.
 	PinnedSHA256(sumHex string)
 
-	// TrySocks5 tries to connect to server by socks5.
-	TrySocks5(port int32, username, password string)
+	// UseSocks5 connects to server by socks5.
+	UseSocks5(port int32, username, password string)
 
 	// KeepAlive force use HTTP/2 and enable keep alive.
 	KeepAlive()
@@ -150,35 +150,32 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 	}
 }
 
-func (c *httpClient) TrySocks5(port int32, username, password string) {
+func (c *httpClient) UseSocks5(port int32, username, password string) {
 	dialer := new(net.Dialer)
 	c.transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		for {
-			if port <= 0 {
-				break
-			}
-			socksConn, err := dialer.DialContext(
-				ctx,
-				N.NetworkTCP,
-				net.JoinHostPort("127.0.0.1", strconv.Itoa(int(port))),
-			)
-			if err != nil {
-				break
-			}
-			_, err = socks.ClientHandshake5(
-				socksConn,
-				socks5.CommandConnect,
-				metadata.ParseSocksaddr(addr),
-				username,
-				password,
-			)
-			if err != nil {
-				break
-			}
-			//nolint:staticcheck
-			return socksConn, err
+		if port <= 0 {
+			return nil, E.New("invalid port")
 		}
-		return dialer.DialContext(ctx, network, addr)
+		socksConn, err := dialer.DialContext(
+			ctx,
+			N.NetworkTCP,
+			net.JoinHostPort("127.0.0.1", strconv.Itoa(int(port))),
+		)
+		if err != nil {
+			return nil, err
+		}
+		_, err = socks.ClientHandshake5(
+			socksConn,
+			socks5.CommandConnect,
+			metadata.ParseSocksaddr(addr),
+			username,
+			password,
+		)
+		if err != nil {
+			socksConn.Close()
+			return nil, err
+		}
+		return socksConn, nil
 	}
 }
 

@@ -96,7 +96,9 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         }
 
         val response = Libcore.newHttpClient().apply {
-            trySocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            if (DataStore.serviceState.started) {
+                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            }
             // Strict !!!
             restrictedTLS()
             if (certSha256 != null) pinnedSHA256(certSha256)
