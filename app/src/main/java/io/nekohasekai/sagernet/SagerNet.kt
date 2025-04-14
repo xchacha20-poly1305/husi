@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import go.Seq
 import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.bg.SubscriptionUpdater
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isExpert
@@ -95,6 +96,12 @@ class SagerNet : Application(),
         }
         Libcore.updateRootCACerts(enableCazilla, certList)
 
+        if (isMainProcess) runOnDefaultDispatcher {
+            runCatching {
+                SubscriptionUpdater.reconfigureUpdater()
+            }
+        }
+
         if (isMainProcess) {
             Theme.apply(this)
             Theme.applyNightTheme()
@@ -122,7 +129,7 @@ class SagerNet : Application(),
     override val workManagerConfiguration: androidx.work.Configuration
         get() {
             return WorkConfiguration.Builder()
-                .setDefaultProcessName("${BuildConfig.APPLICATION_ID}:bg")
+                .setDefaultProcessName(BuildConfig.APPLICATION_ID)
                 .build()
         }
 
