@@ -9,7 +9,6 @@ import android.os.Build
 import io.nekohasekai.sagernet.bg.SubscriptionUpdater
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.app
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 
 class BootReceiver : BroadcastReceiver() {
     companion object {
@@ -23,10 +22,6 @@ class BootReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        runOnDefaultDispatcher {
-            SubscriptionUpdater.reconfigureUpdater()
-        }
-
         if (!DataStore.persistAcrossReboot) {   // sanity check
             enabled = false
             return
