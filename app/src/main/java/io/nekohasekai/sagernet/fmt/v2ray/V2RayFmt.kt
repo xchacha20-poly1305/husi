@@ -59,66 +59,9 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
         }
     }
 
-    // old V2Ray "std" format
-
     val bean = VMessBean().apply { if (rawUrl.startsWith("vless://")) alterId = -1 }
     val url = Libcore.parseURL(rawUrl)
-
-    if (url.password.isNotBlank()) {
-        // https://github.com/v2fly/v2fly-github-io/issues/26 (rarely use)
-        bean.serverAddress = url.host
-        bean.serverPort = url.ports.toIntOrNull()
-        bean.name = url.fragment
-
-        var protocol = url.username
-        bean.v2rayTransport = protocol
-        bean.alterId = url.password.substringAfterLast('-').toInt()
-        bean.uuid = url.password.substringBeforeLast('-')
-
-        if (protocol.endsWith("+tls")) {
-            bean.security = "tls"
-            protocol = protocol.substring(0, protocol.length - 4)
-
-            url.queryParameterNotBlank("tlsServerName").let {
-                if (it.isNotBlank()) {
-                    bean.sni = it
-                }
-            }
-        }
-
-        when (protocol) {
-//            "tcp" -> {
-//                url.queryParameter("type")?.let { type ->
-//                    if (type == "http") {
-//                        bean.headerType = "http"
-//                        url.queryParameter("host")?.let {
-//                            bean.host = it
-//                        }
-//                    }
-//                }
-//            }
-            "http" -> {
-                bean.path = url.queryParameterNotBlank("path")
-                bean.host = url.queryParameterNotBlank("host").split("|").joinToString(",")
-            }
-
-            "ws" -> {
-                bean.path = url.queryParameterNotBlank("path")
-                bean.host = url.queryParameterNotBlank("host")
-            }
-
-            "grpc" -> {
-                bean.path = url.queryParameterNotBlank("serviceName")
-            }
-
-            "httpupgrade" -> {
-                bean.path = url.queryParameterNotBlank("path")
-                bean.host = url.queryParameterNotBlank("host")
-            }
-        }
-    } else {
-        bean.parseDuckSoft(url)
-    }
+    bean.parseDuckSoft(url)
 
     return bean
 }
