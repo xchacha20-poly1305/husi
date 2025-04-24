@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.1.20-1.0.32"
+    id("com.google.devtools.ksp") version "2.1.20-2.0.0"
 }
 
 setupApp()
@@ -23,7 +23,7 @@ android {
                 "x86"
             )
         }
-        ndkVersion = "28.0.13004108"
+        ndkVersion = "28.1.13356709"
     }
     dependenciesInfo {
         includeInApk = false
@@ -53,7 +53,7 @@ dependencies {
 
     implementation(fileTree("libs"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.activity:activity-ktx:1.10.1")
@@ -69,7 +69,7 @@ dependencies {
     implementation("androidx.work:work-multiprocess:2.10.0")
 
     implementation("com.google.android.material:material:1.12.0")
-    implementation("com.google.code.gson:gson:2.12.1")
+    implementation("com.google.code.gson:gson:2.13.1")
 
     implementation("com.blacksquircle.ui:editorkit:2.9.0")
     implementation("com.blacksquircle.ui:language-base:2.9.0")
@@ -93,7 +93,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.9") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.4.6-android")
+    implementation("com.google.guava:guava:33.4.8-android")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
