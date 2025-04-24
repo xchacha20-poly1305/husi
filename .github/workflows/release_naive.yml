@@ -117,4 +117,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.event.inputs.tag }}" --prerelease ./artifacts/
+          gh release create "${{ github.event.inputs.tag }}" --prerelease ./artifacts/*
