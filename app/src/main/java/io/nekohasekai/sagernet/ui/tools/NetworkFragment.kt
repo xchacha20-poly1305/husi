@@ -35,6 +35,10 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             startActivity(Intent(requireContext(), SpeedtestActivity::class.java))
         }
 
+        binding.ruleSetMatch.setOnClickListener {
+            startActivity(Intent(requireContext(), RuleSetMatchActivity::class.java))
+        }
+
         if (DataStore.showBottomBar) (requireActivity() as? MainActivity)?.let {
             binding.root.setStatusBar(it.binding.fab)
         }

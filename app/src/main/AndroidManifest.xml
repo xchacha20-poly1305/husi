@@ -274,6 +274,11 @@
             android:configChanges="uiMode"
             android:launchMode="singleTask"
             android:parentActivityName=".ui.MainActivity" />
+        <activity
+            android:name=".ui.tools.RuleSetMatchActivity"
+            android:configChanges="uiMode"
+            android:launchMode="singleTask"
+            android:parentActivityName=".ui.MainActivity" />
 
         <activity
             android:name=".ui.SwitchActivity"
