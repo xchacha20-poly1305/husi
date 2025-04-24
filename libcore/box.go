@@ -55,7 +55,6 @@ type BoxInstance struct {
 	anchor            *anchorservice.Anchor
 
 	pauseManager pause.Manager
-	servicePauseFields
 }
 
 // NewBoxInstance creates a new BoxInstance.
