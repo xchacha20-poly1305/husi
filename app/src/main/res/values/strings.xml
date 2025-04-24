@@ -664,4 +664,5 @@
     <string name="persistent_keepalive_interval">Persistent Keepalive Interval</string>
     <string name="language">Language</string>
     <string name="language_system_default">System default</string>
+    <string name="rule_set_match">Rule Set Match</string>
 </resources>

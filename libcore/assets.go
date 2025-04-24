@@ -21,6 +21,8 @@ const (
 	geositeVersion = geositeDat + versionSuffix
 
 	apkAssetPrefixSingBox = "sing-box/"
+
+	ruleSetPrefix = "geo"
 )
 
 const (
@@ -40,7 +42,7 @@ func extractAssets(useOfficialAssets bool) {
 
 	if useOfficialAssets {
 		// Prepare directory
-		targetDir := filepath.Join(externalAssetsPath, "geo")
+		targetDir := filepath.Join(externalAssetsPath, ruleSetPrefix)
 		_ = os.MkdirAll(targetDir, os.ModePerm)
 
 		for _, name := range []string{geoipDat, geositeDat} {
