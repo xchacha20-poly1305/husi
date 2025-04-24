@@ -106,10 +106,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          wget -O ghr.tar.gz https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
-          tar -xvf ghr.tar.gz
-          mv ghr*linux_amd64/ghr .
-          mkdir apks
-          find artifacts -name "*.apk" -exec cp {} apks \;
-          find artifacts -name "*.sha256sum.txt" -exec cp {} apks \;
-          gh release create --prerelease "${{ github.event.inputs.tag }}" apks
+          gh release create "${{ github.event.inputs.tag }}" --prerelease ./artifact/*
