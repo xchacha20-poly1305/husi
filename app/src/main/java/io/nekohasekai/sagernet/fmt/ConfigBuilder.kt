@@ -48,7 +48,6 @@ import io.nekohasekai.sagernet.ktx.mergeJson
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.BrutalOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.CacheFileOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ExperimentalOptions
@@ -64,7 +63,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_HTTPMixedOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_TunOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundMultiplexOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
@@ -334,7 +332,7 @@ fun buildConfig(
             var chainTagOut = ""
             val chainTag = "c-$chainId"
 
-            val defaultServerDomainStrategy = SingBoxOptionsUtil.domainStrategy("server")
+            val defaultServerDomainStrategy = domainStrategy("server")
 
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
@@ -742,32 +740,30 @@ fun buildConfig(
 
         // remote dns obj
         remoteDns.firstOrNull()?.let {
-            dns.servers.add(toDNSServer(
+            dns.servers.add(buildDNSServer(
                 it,
                 TAG_PROXY,
+                TAG_DNS_REMOTE,
                 DomainResolveOptions().apply {
                     server = TAG_DNS_DIRECT
-                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(server))
+                    strategy = autoDnsDomainStrategy(domainStrategy(server))
                     client_subnet = DataStore.ednsClientSubnet.blankAsNull()
                 },
-            ).apply {
-                tag = TAG_DNS_REMOTE
-            })
+            ))
         } ?: error("missing remote DNS")
 
         // add directDNS objects here
         directDNS.firstOrNull()?.let {
-            dns.servers.add(toDNSServer(
+            dns.servers.add(buildDNSServer(
                 it,
-                TAG_DIRECT,
+                null,
+                TAG_DNS_DIRECT,
                 DomainResolveOptions().apply {
                     server = TAG_DNS_LOCAL
-                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(server))
+                    strategy = autoDnsDomainStrategy(domainStrategy(server))
                     client_subnet = DataStore.ednsClientSubnet.blankAsNull()
                 }
-            ).apply {
-                tag = TAG_DNS_DIRECT
-            })
+            ))
         } ?: error("missing direct DNS")
 
         // underlyingDns

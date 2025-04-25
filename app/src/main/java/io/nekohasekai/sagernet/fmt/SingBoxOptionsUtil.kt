@@ -19,29 +19,26 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
 import libcore.Libcore
 
-object SingBoxOptionsUtil {
-
-    fun domainStrategy(tag: String): String {
-        fun auto2AsIs(key: String): String {
-            return (DataStore.configurationStore.getString(key) ?: "").replace("auto", "")
+fun domainStrategy(tag: String): String {
+    fun auto2AsIs(key: String): String {
+        return (DataStore.configurationStore.getString(key) ?: "").replace("auto", "")
+    }
+    return when (tag) {
+        "dns-remote" -> {
+            auto2AsIs("domain_strategy_for_remote")
         }
-        return when (tag) {
-            "dns-remote" -> {
-                auto2AsIs("domain_strategy_for_remote")
-            }
 
-            "dns-direct" -> {
-                auto2AsIs("domain_strategy_for_direct")
-            }
+        "dns-direct" -> {
+            auto2AsIs("domain_strategy_for_direct")
+        }
 
-            // "server"
-            else -> {
-                auto2AsIs("domain_strategy_for_server")
-            }
+        // "server"
+        else -> {
+            auto2AsIs("domain_strategy_for_server")
         }
     }
-
 }
+
 
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     domain = mutableListOf()
@@ -236,16 +233,18 @@ fun isEndpoint(type: String): Boolean = when (type) {
 }
 
 /**
- * Turn link to new DNS options without tag.
+ * Turn link to new DNS options.
  */
-fun toDNSServer(
+fun buildDNSServer(
     link: String,
     out: String?,
-    domainResolver: DomainResolveOptions?,
+    tag: String,
+    domainResolver: DomainResolveOptions,
 ): NewDNSServerOptions {
-    if (link == "local") return NewDNSServerOptions_LocalDNSServerOptions().apply {
-        type = SingBoxOptions.DNS_TYPE_LOCAL
-        domain_resolver = domainResolver
+    if (link == "local") return NewDNSServerOptions_LocalDNSServerOptions().also {
+        it.type = SingBoxOptions.DNS_TYPE_LOCAL
+        it.tag = tag
+        it.domain_resolver = domainResolver
     }
 
     val url = try {
@@ -267,9 +266,9 @@ fun toDNSServer(
             detour = out
         }
 
-        "h3", SingBoxOptions.DNS_TYPE_HTTPS, SingBoxOptions.DNS_TYPE_HTTP3 -> NewDNSServerOptions_RemoteHTTPSDNSServerOptions().apply {
-            type = if (scheme == "h3") {
-                SingBoxOptions.DNS_TYPE_HTTP3
+        "http3", SingBoxOptions.DNS_TYPE_HTTPS, SingBoxOptions.DNS_TYPE_H3 -> NewDNSServerOptions_RemoteHTTPSDNSServerOptions().apply {
+            type = if (scheme == "http3") {
+                SingBoxOptions.DNS_TYPE_H3
             } else {
                 scheme
             }
@@ -294,5 +293,7 @@ fun toDNSServer(
             detour = out
         }
 
+    }.also {
+        it.tag = tag
     }
 }
