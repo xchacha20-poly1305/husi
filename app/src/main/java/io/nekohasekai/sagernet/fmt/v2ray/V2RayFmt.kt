@@ -80,7 +80,9 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
 
     v2rayTransport = url.queryParameterNotBlank("type")
     if (v2rayTransport.isNullOrBlank()) v2rayTransport = "tcp"
-    if (v2rayTransport == "h2") v2rayTransport = "http"
+    if (v2rayTransport == "h2" || url.queryParameterNotBlank("headerType") == "http") {
+        v2rayTransport = "http"
+    }
 
     security = url.queryParameterNotBlank("security")
     if (security.isNullOrBlank()) {
@@ -101,15 +103,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     }
 
     when (v2rayTransport) {
-        "tcp" -> {
-            // v2rayNG
-            if (url.queryParameterNotBlank("headerType") == "http") {
-                url.queryParameterNotBlank("host").let {
-                    v2rayTransport = "http"
-                    host = it
-                }
-            }
-        }
+        "tcp" -> {}
 
         "http" -> {
             host = url.queryParameterNotBlank("host")
