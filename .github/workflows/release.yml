@@ -136,5 +136,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" --prerelease ./artifacts/* \
+          mkdir apks
+          find artifacts -name "*.apk" -exec cp {} apks \;
+          gh release create "${{ github.ref_name }}" --prerelease ./apks/* \
           --notes "# :memo: Release Notes\n\n* Fixes and improvements."
