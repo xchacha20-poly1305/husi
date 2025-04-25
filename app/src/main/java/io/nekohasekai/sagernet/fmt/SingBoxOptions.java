@@ -332,6 +332,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -843,6 +845,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public List<String> fallback_network_type;
@@ -923,6 +927,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1193,6 +1199,8 @@ public class SingBoxOptions {
 
         public Long udp_timeout;
 
+        public String netns;
+
         public Boolean proxy_protocol;
 
         public Boolean proxy_protocol_accept_no_header;
@@ -1211,6 +1219,8 @@ public class SingBoxOptions {
         public String detour;
 
         public List<User> users;
+
+        public DomainResolveOptions domain_resolver;
 
         public Boolean set_system_proxy;
 
@@ -1344,6 +1354,8 @@ public class SingBoxOptions {
 
         public Long udp_timeout;
 
+        public String netns;
+
         public Boolean proxy_protocol;
 
         public Boolean proxy_protocol_accept_no_header;
@@ -1394,6 +1406,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -1438,6 +1452,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1496,6 +1512,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1559,6 +1577,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -1612,6 +1632,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1667,6 +1689,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1728,6 +1752,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -1782,6 +1808,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1856,6 +1884,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -1918,6 +1948,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1982,6 +2014,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -2040,6 +2074,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2105,6 +2141,8 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
+
+        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2179,6 +2217,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -2226,6 +2266,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -2266,6 +2308,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -2278,7 +2322,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        // Generate note: nested type ServerOptions
+        // Generate note: nested type DNSServerAddressOptions
         public String server;
 
         public Integer server_port;
@@ -2312,6 +2356,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -2324,7 +2370,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        // Generate note: nested type ServerOptions
+        // Generate note: nested type DNSServerAddressOptions
         public String server;
 
         public Integer server_port;
@@ -2362,6 +2408,8 @@ public class SingBoxOptions {
 
         public Boolean udp_fragment;
 
+        public String netns;
+
         public DomainResolveOptions domain_resolver;
 
         public String network_strategy;
@@ -2374,7 +2422,7 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
-        // Generate note: nested type ServerOptions
+        // Generate note: nested type DNSServerAddressOptions
         public String server;
 
         public Integer server_port;
