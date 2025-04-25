@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.fmt.hysteria
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.ktx.JSONMap
@@ -12,15 +13,12 @@ import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.linkBoolean
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.toJSONMap
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
-import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
-import kotlin.collections.iterator
 
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
 fun parseHysteria1(link: String): HysteriaBean {
@@ -316,10 +314,8 @@ fun getFirstPort(portStr: String): Int {
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (DataStore.providerHysteria2 != 0) return false // Force plugin
-    // TODO Hy1 hop since box v1.12
     if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
         if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
-        if (serverPorts.toIntOrNull() == null) return false // unsupported Hy1 port hopping
     }
     return true // Box implemented pure Hy1 or hopable Hy2
 }
@@ -328,9 +324,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
     return when (bean.protocolVersion) {
         HysteriaBean.PROTOCOL_VERSION_1 -> SingBoxOptions.Outbound_HysteriaOptions().apply {
             server = bean.serverAddress
-            server_port = when (val hopPort = HopPort.from(bean.serverPorts)) {
-                is HopPort.Single -> hopPort.port
-                is HopPort.Ports -> hopPort.raw.first().toInt()
+            when (val hopPort = HopPort.from(bean.serverPorts)) {
+                is HopPort.Single -> server_port = hopPort.port
+                is HopPort.Ports -> server_ports = hopPort.singStyle()
             }
             up_mbps = bean.generateUploadSpeed()
             down_mbps = bean.generateDownloadSpeed()
