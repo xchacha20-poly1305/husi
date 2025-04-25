@@ -26,6 +26,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         certificates = DataStore.serverCertificates
         utlsFingerprint = DataStore.serverUtlsFingerPrint
         allowInsecure = DataStore.serverAllowInsecure
+        ech = DataStore.serverECH
         echConfig = DataStore.serverECHConfig
     }
 
@@ -42,6 +43,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         DataStore.serverCertificates = certificates
         DataStore.serverUtlsFingerPrint = utlsFingerprint
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.serverECH = ech
         DataStore.serverECHConfig = echConfig
     }
 

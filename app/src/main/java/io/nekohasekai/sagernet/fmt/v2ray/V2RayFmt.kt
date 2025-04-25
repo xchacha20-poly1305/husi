@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -476,28 +477,26 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
         if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
-        var fp = bean.utlsFingerprint
+        var fingerprint = bean.utlsFingerprint
         if (bean.realityPublicKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
                 enabled = true
                 public_key = bean.realityPublicKey
                 short_id = bean.realityShortID
             }
-            if (fp.isNullOrBlank()) fp = "chrome"
+            if (fingerprint.isNullOrBlank()) fingerprint = "chrome"
         }
-        if (fp.isNotBlank()) {
+        if (fingerprint.isNotBlank()) {
             utls = OutboundUTLSOptions().apply {
                 enabled = true
-                fingerprint = fp
+                this.fingerprint = fingerprint
             }
         }
         if (bean.ech) {
-            val echList = bean.echConfig.split("\n")
+            val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
             ech = OutboundECHOptions().apply {
                 enabled = true
-                pq_signature_schemes_enabled = echList.size > 5
-                dynamic_record_sizing_disabled = true
-                config = echList
+                config = echConfig
             }
         }
     }
