@@ -37,6 +37,8 @@ public class AnyTLSBean extends AbstractBean {
     // In sing-box, this seemed can be used with REALITY.
     // But even mihomo appended many options, it still not provide REALITY.
     // https://github.com/anytls/anytls-go/blob/4636d90462fa21a510420512d7706a9acf69c7b9/docs/faq.md?plain=1#L25-L37
+
+    public Boolean ech;
     public String echConfig;
 
     @Override
@@ -51,12 +53,13 @@ public class AnyTLSBean extends AbstractBean {
         if (certificates == null) certificates = "";
         if (utlsFingerprint == null) utlsFingerprint = "";
         if (allowInsecure == null) allowInsecure = false;
+        if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
         super.serialize(output);
         output.writeString(password);
         output.writeString(serverName);
@@ -70,6 +73,9 @@ public class AnyTLSBean extends AbstractBean {
         output.writeString(idleSessionCheckInterval);
         output.writeString(idleSessionTimeout);
         output.writeInt(minIdleSession);
+
+        // version 2
+        output.writeBoolean(ech);
     }
 
     @Override
@@ -88,6 +94,10 @@ public class AnyTLSBean extends AbstractBean {
             idleSessionCheckInterval = input.readString();
             idleSessionTimeout = input.readString();
             minIdleSession = input.readInt();
+        }
+
+        if (version >= 2) {
+            ech = input.readBoolean();
         }
     }
 

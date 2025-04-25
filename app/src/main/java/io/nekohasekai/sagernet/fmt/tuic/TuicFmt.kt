@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.ktx.JSONMap
 import libcore.Libcore
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
 // https://github.com/daeuniverse/dae/discussions/182
@@ -90,12 +91,10 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 certificate = listOf(bean.certificates)
             }
             if (bean.ech) {
-                val echList = bean.echConfig.split("\n")
+                val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                 ech = OutboundECHOptions().apply {
                     enabled = true
-                    pq_signature_schemes_enabled = echList.size > 5
-                    dynamic_record_sizing_disabled = true
-                    config = echList
+                    config = echConfig
                 }
             }
             disable_sni = bean.disableSNI

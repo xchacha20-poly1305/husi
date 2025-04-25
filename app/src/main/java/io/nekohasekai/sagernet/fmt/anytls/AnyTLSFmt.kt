@@ -63,11 +63,11 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
                     fingerprint = it
                 }
             }
-            bean.echConfig.blankAsNull()?.let {
-                // In new version, some complex options will be deprecated, so we just do this.
+            if (bean.ech) {
+                val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                 ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
-                    config = listOf(it)
+                    config = echConfig
                 }
             }
         }

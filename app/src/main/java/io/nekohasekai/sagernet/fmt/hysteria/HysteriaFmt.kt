@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.getBool
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
@@ -353,12 +354,10 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     certificate = listOf(bean.certificates)
                 }
                 if (bean.ech) {
-                    val echList = bean.echConfig.split("\n")
+                    val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                     ech = SingBoxOptions.OutboundECHOptions().apply {
                         enabled = true
-                        pq_signature_schemes_enabled = echList.size > 5
-                        dynamic_record_sizing_disabled = true
-                        config = echList
+                        config = echConfig
                     }
                 }
                 insecure = bean.allowInsecure
@@ -400,12 +399,11 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     certificate = listOf(bean.certificates)
                 }
                 if (bean.ech) {
-                    val echList = bean.echConfig.split("\n")
+                    val echConfig =
+                        bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                     ech = SingBoxOptions.OutboundECHOptions().apply {
                         enabled = true
-                        pq_signature_schemes_enabled = echList.size > 5
-                        dynamic_record_sizing_disabled = true
-                        config = echList
+                        config = echConfig
                     }
                 }
                 insecure = bean.allowInsecure
