@@ -183,6 +183,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.onPreferenceChangeListener = reloadListener
                         }
 
+                        Key.MTU -> {
+                            preference as EditTextPreference
+                            preference.onPreferenceChangeListener = reloadListener
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+                        }
+
                         Key.PERSIST_ACROSS_REBOOT, Key.SECURITY_ADVISORY -> {}
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }

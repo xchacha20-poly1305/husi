@@ -505,7 +505,6 @@
     <string name="nat_stun_server_hint">STUN сервер</string>
     <string name="vpn_core_type_unknown">Неизвестный</string>
     <string name="inbound_username">Имя пользователя SOCKS5</string>
-    <string name="mtu_help">Удерживайте для настройки своего MTU.</string>
     <string name="route_opt_block_quic">Блокировать QUIC</string>
     <string name="get_cert">Получение сертификатов</string>
     <string name="dns_mode">Режим DNS</string>
