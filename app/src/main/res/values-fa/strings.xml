@@ -457,7 +457,6 @@
     <string name="reset_connections">بازنشانی اتصال‌ها</string>
     <string name="use_selector">استفاده از انتخابگر</string>
     <string name="share_subscription">هم‌رسانی اشتراک</string>
-    <string name="mtu_help">برای تنظیم MTU سفارشی، ترجیح را طولانی فشار دهید.</string>
     <string name="remove_duplicate">حذف سرورهای تکراری</string>
     <string name="sniff_routing">نتیجه Sniff برای مسیریابی</string>
     <string name="resolve_server">یافتن آدرس سرور مطابق خط مشی IPv6</string>

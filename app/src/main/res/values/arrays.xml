@@ -420,11 +420,6 @@
         <item>xudp</item>
     </string-array>
 
-    <string-array name="mtu_select">
-        <item>1500</item>
-        <item>9000</item>
-    </string-array>
-
     <string-array name="mux_types">
         <item>h2mux</item>
         <item>smux</item>

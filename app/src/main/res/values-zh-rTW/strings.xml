@@ -461,7 +461,6 @@
     <string name="share_subscription">分享訂閱</string>
     <string name="reset_connections">重置連接</string>
     <string name="remove_duplicate">刪除重複的伺服器</string>
-    <string name="mtu_help">長按首選項可設定自訂 MTU。</string>
     <string name="get_cert_summary">取得目標伺服器的TLS憑證。支援https和QUIC。</string>
     <string name="get_cert_success">獲取成功！證書已複製到剪貼簿。</string>
     <string name="get_cert_server_hint">目標伺服器</string>
