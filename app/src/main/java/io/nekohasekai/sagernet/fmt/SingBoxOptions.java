@@ -64,7 +64,7 @@ public class SingBoxOptions {
     public static final String DNS_TYPE_TLS = "tls";
     public static final String DNS_TYPE_HTTPS = "https";
     public static final String DNS_TYPE_QUIC = "quic";
-    public static final String DNS_TYPE_HTTP3 = "http3";
+    public static final String DNS_TYPE_H3 = "h3";
     public static final String DNS_TYPE_PREDEFINED = "predefined";
     public static final String DNS_TYPE_RCODE = "rcode";
     public static final String DNS_TYPE_FAKEIP = "fakeip";
