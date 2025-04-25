@@ -2,8 +2,8 @@ package io.nekohasekai.sagernet.ui.configuration
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.text.SpannableStringBuilder
@@ -25,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.size
@@ -111,6 +112,8 @@ import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
+import io.nekohasekai.sagernet.ktx.blockOrientation
+import io.nekohasekai.sagernet.ktx.unlockOrientation
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
@@ -358,7 +361,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         snackbar(getString(R.string.no_proxies_found_in_file)).show()
                     } else import(proxies)
                 } catch (e: SubscriptionFoundException) {
-                    (requireActivity() as MainActivity).importSubscription(Uri.parse(e.link))
+                    (requireActivity() as MainActivity).importSubscription(e.link.toUri())
                 } catch (e: Exception) {
                     Logs.w(e)
                     onMainDispatcher {
@@ -402,7 +405,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 snackbar(getString(R.string.no_proxies_found_in_clipboard)).show()
                             } else import(proxies)
                         } catch (e: SubscriptionFoundException) {
-                            (requireActivity() as MainActivity).importSubscription(Uri.parse(e.link))
+                            (requireActivity() as MainActivity).importSubscription(e.link.toUri())
                         } catch (e: Exception) {
                             Logs.w(e)
 
@@ -413,7 +416,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
 
                     val singleURI = try {
-                        Uri.parse(text)
+                        text.toUri()
                     } catch (_: Exception) {
                         null
                     }
@@ -738,12 +741,15 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     }
 
+    private var cancelTest: (() -> Unit)? = null
+
     @OptIn(DelicateCoroutinesApi::class)
     @Suppress("EXPERIMENTAL_API_USAGE")
     fun pingTest(icmpPing: Boolean) {
         val test = TestDialog()
         val testJobs = mutableListOf<Job>()
         val dialog = test.builder.show()
+        activity?.blockOrientation()
         val mainJob = runOnDefaultDispatcher {
             val group = DataStore.currentGroup()
             val profilesUnfiltered = SagerDatabase.proxyDao.getByGroup(group.id)
@@ -865,9 +871,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             onMainDispatcher {
                 dialog.dismiss()
             }
+            cancelTest = null
+            activity?.unlockOrientation()
         }
         test.cancel = {
             runOnDefaultDispatcher {
+                cancelTest = null
+                activity?.unlockOrientation()
                 test.results.filterNotNull().forEach {
                     try {
                         ProfileManager.updateProfile(it)
@@ -880,12 +890,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                 testJobs.forEach { it.cancel() }
             }
         }
+        cancelTest = test.cancel
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun urlTests() {
         val test = TestDialog()
         val dialog = test.builder.show()
+        activity?.blockOrientation()
         val testJobs = mutableListOf<Job>()
 
         val mainJob = runOnDefaultDispatcher {
@@ -919,9 +931,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             onMainDispatcher {
                 dialog.dismiss()
             }
+            cancelTest = null
+            activity?.unlockOrientation()
         }
         test.cancel = {
             runOnDefaultDispatcher {
+                activity?.unlockOrientation()
+                cancelTest = null
                 test.results.filterNotNull().forEach {
                     try {
                         ProfileManager.updateProfile(it)
@@ -934,6 +950,16 @@ class ConfigurationFragment @JvmOverloads constructor(
                 testJobs.forEach { it.cancel() }
             }
         }
+        cancelTest = test.cancel
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        // If config changed, the TestDialog will lose it's window manager.
+        // Cancel test here does not break the behavior, because it crashes before.
+        // Furthermore, we disallow orientation change in the dialog,
+        // ensuring test not be interrupted when user enabled "Automatic orientation".
+        cancelTest?.invoke()
+        super.onConfigurationChanged(newConfig)
     }
 
     inner class GroupPagerAdapter : FragmentStateAdapter(this), ProfileManager.Listener,
