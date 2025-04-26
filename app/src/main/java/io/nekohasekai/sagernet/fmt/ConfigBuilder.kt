@@ -633,7 +633,7 @@ fun buildConfig(
 
                 when (val ruleAction = rule.action) {
                     "", SingBoxOptions.ACTION_ROUTE -> {
-                        action = ruleAction
+                        action = SingBoxOptions.ACTION_ROUTE
 
                         when (val outID = rule.outbound) {
                             RuleEntity.OUTBOUND_DIRECT -> {
