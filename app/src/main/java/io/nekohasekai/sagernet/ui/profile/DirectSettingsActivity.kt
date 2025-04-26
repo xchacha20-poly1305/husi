@@ -18,20 +18,13 @@ class DirectSettingsActivity : ProfileSettingsActivity<DirectBean>() {
         rootKey: String?
     ) {
         addPreferencesFromResource(R.xml.direct_preferences)
-        findPreference<EditTextPreference>(Key.OVERRIDE_PORT)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-        }
     }
 
     override fun DirectBean.serialize() {
         name = DataStore.profileName
-        serverAddress = DataStore.overrideAddress
-        serverPort = DataStore.overridePort
     }
 
     override fun DirectBean.init() {
         DataStore.profileName = name
-        DataStore.overrideAddress = serverAddress
-        DataStore.overridePort = serverPort
     }
 }

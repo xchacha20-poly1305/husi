@@ -49,7 +49,6 @@
     <string name="service_mode">حالت سرویس</string>
     <string name="service_mode_proxy">فقط پروکسی</string>
     <string name="port_proxy">پورت پروکسی</string>
-    <string name="cag_route">تنظیمات مسیر</string>
     <string name="allow_access">مجاز کردن اتصالات از LAN</string>
     <string name="allow_access_sum">سرورهای ورودی را به 0.0.0.0 متصل کنید</string>
     <string name="inbound_settings">تنظیمات ورودی</string>

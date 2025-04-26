@@ -140,6 +140,7 @@ class SagerNet : Application(),
     @SuppressLint("InlinedApi")
     companion object {
 
+        // Use ktx.app instead of this
         lateinit var application: SagerNet
 
         val isTv by lazy {

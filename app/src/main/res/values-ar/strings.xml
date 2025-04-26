@@ -118,7 +118,6 @@
     <string name="general_settings">إعدادات التطبيقات</string>
     <string name="inbound_settings">إعدادات الواردة</string>
     <string name="allow_access">السماح بالاتصالات من الشبكة المحلية</string>
-    <string name="cag_route">إعدادات الطريق</string>
     <string name="route_asset_updated">محدث</string>
     <string name="route_asset_no_update">لا تحديث</string>
     <string name="route_asset_status">الإصدار المحلي: %s</string>
