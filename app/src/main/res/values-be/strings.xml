@@ -74,7 +74,6 @@
     <string name="general_settings">Налады прыкладання</string>
     <string name="allow_access_sum">Прывязаць уваходныя серверы да 0.0.0.0</string>
     <string name="allow_access">Дазволіць злучэнне з лакальнай сеткі</string>
-    <string name="cag_route">Налады маршруту</string>
     <string name="port_proxy">Порт проксі -сервера SOCKS5</string>
     <string name="service_mode_proxy">Толькі проксі</string>
     <string name="service_mode">Рэжым абслугоўвання</string>

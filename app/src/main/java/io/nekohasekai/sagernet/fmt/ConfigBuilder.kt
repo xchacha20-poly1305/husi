@@ -14,9 +14,27 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
-import io.nekohasekai.sagernet.fmt.shadowtls.buildSingBoxOutboundShadowTLSBean
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.CacheFileOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ExperimentalOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_DirectOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_HTTPMixedOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_TunOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.LogOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NTPOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.User
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.anytls.buildSingBoxOutboundAnyTLSBean
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
@@ -28,6 +46,8 @@ import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
+import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.fmt.shadowtls.buildSingBoxOutboundShadowTLSBean
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.socks.buildSingBoxOutboundSocksBean
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
@@ -38,38 +58,18 @@ import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.ktx.mergeJson
+import io.nekohasekai.sagernet.ktx.mkPort
+import io.nekohasekai.sagernet.ktx.toJsonMap
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.CacheFileOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.ExperimentalOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.LogOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.NTPOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.User
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_DirectOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_HTTPMixedOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_TunOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
-import io.nekohasekai.sagernet.ktx.JSONMap
-import io.nekohasekai.sagernet.ktx.toJsonMap
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.listByLineOrComma
 
@@ -631,39 +631,60 @@ fun buildConfig(
                     }
                 }
 
-                when (val outID = rule.outbound) {
-                    RuleEntity.OUTBOUND_DIRECT -> {
-                        userDNSRuleList.add(makeDnsRuleObj().apply {
-                            server = TAG_DNS_DIRECT
-                        })
-                        outbound = TAG_DIRECT
+                when (val ruleAction = rule.action) {
+                    "", SingBoxOptions.ACTION_ROUTE -> {
+                        action = ruleAction
+
+                        when (val outID = rule.outbound) {
+                            RuleEntity.OUTBOUND_DIRECT -> {
+                                userDNSRuleList.add(makeDnsRuleObj().apply {
+                                    server = TAG_DNS_DIRECT
+                                })
+                                outbound = TAG_DIRECT
+                            }
+
+                            RuleEntity.OUTBOUND_PROXY -> {
+                                if (useFakeDns) userDNSRuleList.add(makeDnsRuleObj().apply {
+                                    server = TAG_DNS_FAKE
+                                    inbound = listOf(TAG_TUN)
+                                    query_type = FAKE_DNS_QUERY_TYPE
+                                })
+                                userDNSRuleList.add(makeDnsRuleObj().apply {
+                                    server = TAG_DNS_REMOTE
+                                })
+                                outbound = TAG_PROXY
+                            }
+
+                            RuleEntity.OUTBOUND_BLOCK -> {
+                                userDNSRuleList.add(makeDnsRuleObj().apply {
+                                    action = SingBoxOptions.ACTION_REJECT
+                                })
+                                action = SingBoxOptions.ACTION_REJECT
+                            }
+
+                            else -> outbound = if (outID == proxy.id) {
+                                TAG_PROXY
+                            } else {
+                                tagMap[outID] ?: ""
+                            }
+                        }
                     }
 
-                    RuleEntity.OUTBOUND_PROXY -> {
-                        if (useFakeDns) userDNSRuleList.add(makeDnsRuleObj().apply {
-                            server = TAG_DNS_FAKE
-                            inbound = listOf(TAG_TUN)
-                            query_type = FAKE_DNS_QUERY_TYPE
-                        })
-                        userDNSRuleList.add(makeDnsRuleObj().apply {
-                            server = TAG_DNS_REMOTE
-                        })
-                        outbound = TAG_PROXY
+                    SingBoxOptions.ACTION_ROUTE_OPTIONS -> {
+                        action = ruleAction
+
+                        override_address = rule.overrideAddress.blankAsNull()
+                        override_port = rule.overridePort.takeIf { it > 0 }
+                        if (rule.tlsFragment) {
+                            tls_fragment = true
+                            tls_fragment_fallback_delay =
+                                rule.tlsFragmentFallbackDelay.blankAsNull()
+                        }
                     }
 
-                    RuleEntity.OUTBOUND_BLOCK -> {
-                        userDNSRuleList.add(makeDnsRuleObj().apply {
-                            action = SingBoxOptions.ACTION_REJECT
-                        })
-                        action = SingBoxOptions.ACTION_REJECT
-                    }
-
-                    else -> outbound = if (outID == proxy.id) {
-                        TAG_PROXY
-                    } else {
-                        tagMap[outID] ?: ""
-                    }
+                    else -> error("unsupported action: $ruleAction")
                 }
+
             }
 
             if (!ruleObj.checkEmpty()) {
@@ -740,21 +761,24 @@ fun buildConfig(
 
         // remote dns obj
         remoteDns.firstOrNull()?.let {
-            dns.servers.add(buildDNSServer(
-                it,
-                TAG_PROXY,
-                TAG_DNS_REMOTE,
-                DomainResolveOptions().apply {
-                    server = TAG_DNS_DIRECT
-                    strategy = autoDnsDomainStrategy(domainStrategy(server))
-                    client_subnet = DataStore.ednsClientSubnet.blankAsNull()
-                },
-            ))
+            dns.servers.add(
+                buildDNSServer(
+                    it,
+                    TAG_PROXY,
+                    TAG_DNS_REMOTE,
+                    DomainResolveOptions().apply {
+                        server = TAG_DNS_DIRECT
+                        strategy = autoDnsDomainStrategy(domainStrategy(server))
+                        client_subnet = DataStore.ednsClientSubnet.blankAsNull()
+                    },
+                )
+            )
         } ?: error("missing remote DNS")
 
         // add directDNS objects here
         directDNS.firstOrNull()?.let {
-            dns.servers.add(buildDNSServer(
+            dns.servers.add(
+                buildDNSServer(
                 it,
                 null,
                 TAG_DNS_DIRECT,

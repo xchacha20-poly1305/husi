@@ -4,12 +4,13 @@ import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import java.io.IOException
 import java.sql.SQLException
-import java.util.*
+import java.util.Locale
 
 
 object ProfileManager {
@@ -191,6 +192,7 @@ object ProfileManager {
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_quic),
+                    action = ACTION_ROUTE,
                     protocol = "quic",
                     network = "udp",
                     outbound = RuleEntity.OUTBOUND_BLOCK,
@@ -199,6 +201,7 @@ object ProfileManager {
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_ads),
+                    action = ACTION_ROUTE,
                     domains = "set:geosite-category-ads-all",
                     outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
@@ -206,6 +209,7 @@ object ProfileManager {
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_analysis),
+                    action = ACTION_ROUTE,
                     domains = app.assets.open("analysis.txt").use { stream ->
                         stream.bufferedReader()
                             .readLines()
@@ -223,16 +227,17 @@ object ProfileManager {
             for (c in walledCountry) {
                 val country = c.substringBefore(":")
                 val displayCountry = c.substringAfter(":")
-                //
                 if (country == "cn") createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_play_store, displayCountry),
+                        action = ACTION_ROUTE,
                         domains = "domain:googleapis.cn",
                     ), false
                 )
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_domain, displayCountry),
+                        action = ACTION_ROUTE,
                         domains = "set:geosite-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
@@ -240,6 +245,7 @@ object ProfileManager {
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_ip, displayCountry),
+                        action = ACTION_ROUTE,
                         ip = "set:geoip-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false

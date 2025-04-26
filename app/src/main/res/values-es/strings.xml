@@ -49,7 +49,6 @@
     <string name="service_mode_proxy">Solo proxy</string>
     <string name="service_mode_vpn" translatable="false">VPN</string>
     <string name="port_proxy">Puerto proxy</string>
-    <string name="cag_route">Ajustes de ruta</string>
     <string name="allow_access">Permitir conexiones desde la LAN</string>
     <string name="allow_access_sum">Vincula los servidores de entrada a 0.0.0.0</string>
     <string name="inbound_settings">Ajustes de entrada</string>

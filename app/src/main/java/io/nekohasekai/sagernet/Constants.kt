@@ -112,9 +112,6 @@ object Key {
     const val PROFILE_GROUP = "profileGroup"
     const val PROFILE_CURRENT = "profileCurrent"
 
-    const val OVERRIDE_ADDRESS = "overrideAddress"
-    const val OVERRIDE_PORT = "overridePort"
-
     const val SERVER_ADDRESS = "serverAddress"
     const val SERVER_PORT = "serverPort"
     const val SERVER_PORTS = "serverPorts"
@@ -203,6 +200,9 @@ object Key {
     const val SERVER_PERSISTENT_KEEPALIVE_INTERVAL = "serverPersistentKeepaliveInterval"
 
     const val ROUTE_NAME = "routeName"
+    const val ROUTE_ACTION = "routeAction"
+
+    // common rules
     const val ROUTE_DOMAIN = "routeDomain"
     const val ROUTE_IP = "routeIP"
     const val ROUTE_PORT = "routePort"
@@ -210,7 +210,6 @@ object Key {
     const val ROUTE_NETWORK = "routeNetwork"
     const val ROUTE_SOURCE = "routeSource"
     const val ROUTE_PROTOCOL = "routeProtocol"
-    const val ROUTE_OUTBOUND = "routeOutbound"
     const val ROUTE_PACKAGES = "routePackages"
     const val ROUTE_SSID = "routeSSID"
     const val ROUTE_BSSID = "routeBSSID"
@@ -218,6 +217,17 @@ object Key {
     const val ROUTE_CLASH_MODE = "routeClashMode"
     const val ROUTE_NETWORK_TYPE = "routeNetworkType"
     const val ROUTE_NETWORK_IS_EXPENSIVE = "routeNetworkIsExpensive"
+
+    // Action.route
+    const val ROUTE_ACTION_ROUTE = "routeActionRoute"
+    const val ROUTE_OUTBOUND = "routeOutbound"
+
+    // Action.route-options
+    const val ROUTE_ACTION_ROUTE_OPTIONS = "routeActionRouteOptions"
+    const val ROUTE_OVERRIDE_ADDRESS = "routeOverrideAddress"
+    const val ROUTE_OVERRIDE_PORT = "routeOverridePort"
+    const val ROUTE_TLS_FRAGMENT = "routeTlsFragment"
+    const val ROUTE_TLS_FRAGMENT_FALLBACK_DELAY = "routeTlsFragmentFallbackDelay"
 
     const val RULES_FIRST_CREATE = "rulesFirstCreate"
 

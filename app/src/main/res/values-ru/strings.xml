@@ -56,7 +56,6 @@
     <string name="inbound_settings">Входящие настройки</string>
     <string name="allow_access_sum">Сервер будет слушать на адресе 0.0.0.0</string>
     <string name="allow_access">Разрешить подключения из локальной сети</string>
-    <string name="cag_route">Настройки маршрута</string>
     <string name="service_mode_proxy">Только прокси</string>
     <string name="service_mode">Сервисный режим</string>
     <string name="group_duplicate">Дубликат:

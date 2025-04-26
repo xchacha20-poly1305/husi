@@ -569,4 +569,9 @@
         <item>zh-Hant-HK</item>
     </string-array>
 
+    <string-array name="route_action_value">
+        <item>route</item>
+        <item>route-options</item>
+    </string-array>
+
 </resources>

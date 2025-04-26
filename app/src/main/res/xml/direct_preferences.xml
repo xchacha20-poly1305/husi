@@ -6,18 +6,6 @@
         app:title="@string/profile_name"
         app:useSimpleSummaryProvider="true" />
 
-    <EditTextPreference
-        app:icon="@drawable/ic_hardware_router"
-        app:key="overrideAddress"
-        app:title="@string/override_address"
-        app:useSimpleSummaryProvider="true" />
-
-    <EditTextPreference
-        app:icon="@drawable/ic_maps_directions_boat"
-        app:key="overridePort"
-        app:title="@string/override_port"
-        app:useSimpleSummaryProvider="true" />
-
     <SwitchPreference
         app:icon="@drawable/ic_baseline_import_contacts_24"
         app:key="isOutboundOnly"
