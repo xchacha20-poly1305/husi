@@ -7,16 +7,16 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import dev.matrix.roomigrant.GenerateRoomMigrations
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.gson.GsonConverters
+import io.nekohasekai.sagernet.ktx.app
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class],
-    version = 9,
+    version = 10,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3, spec = SagerDatabase_Migration_2_3::class),
@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
         AutoMigration(from = 5, to = 6, spec = SagerDatabase_Migration_5_6::class),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
+        AutoMigration(from = 9, to = 10),
     ],
 )
 @TypeConverters(value = [KryoConverters::class, GsonConverters::class])
@@ -36,8 +37,8 @@ abstract class SagerDatabase : RoomDatabase() {
         @OptIn(DelicateCoroutinesApi::class)
         @Suppress("EXPERIMENTAL_API_USAGE")
         val instance by lazy {
-            SagerNet.application.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
-            Room.databaseBuilder(SagerNet.application, SagerDatabase::class.java, Key.DB_PROFILE)
+            app.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
+            Room.databaseBuilder(app, SagerDatabase::class.java, Key.DB_PROFILE)
                 .addMigrations(
                     SagerDatabase_Migration_3_4,
                     SagerDatabase_Migration_4_5,
@@ -45,7 +46,8 @@ abstract class SagerDatabase : RoomDatabase() {
                 )
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(true)
+                .fallbackToDestructiveMigrationOnDowngrade(true)
                 .setQueryExecutor { GlobalScope.launch { it.run() } }
                 .build()
         }

@@ -17,7 +17,14 @@
         app:icon="@drawable/baseline_public_24"
         app:key="routeNetworkType"
         app:title="@string/network_type" />
-    <PreferenceCategory app:title="@string/cag_route">
+    <rikka.preference.SimpleMenuPreference
+        app:entries="@array/route_action_value"
+        app:entryValues="@array/route_action_value"
+        app:icon="@drawable/ic_baseline_shuffle_24"
+        app:key="routeAction"
+        app:title="@string/route_action"
+        app:useSimpleSummaryProvider="true" />
+    <PreferenceCategory app:title="@string/backup_rules">
         <EditTextPreference
             app:icon="@drawable/ic_baseline_domain_24"
             app:key="routeDomain"
@@ -82,6 +89,11 @@
             app:key="routeNetworkIsExpensive"
             app:title="@string/network_expensive"
             app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="routeActionRoute"
+        app:title="@string/menu_route">
         <rikka.preference.SimpleMenuPreference
             app:entries="@array/outbound_entry"
             app:entryValues="@array/int_array_4"
@@ -89,4 +101,30 @@
             app:key="routeOutbound"
             app:title="outbound" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="routeActionRouteOptions"
+        app:title="@string/route_options">
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_location_on_24"
+            app:key="routeOverrideAddress"
+            app:title="@string/override_address"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_push_pin_24"
+            app:key="routeOverridePort"
+            app:title="@string/override_port"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="routeTlsFragment"
+            app:title="@string/tls_fragment"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_timelapse_24"
+            app:key="routeTlsFragmentFallbackDelay"
+            app:title="@string/tls_fragment_fallback_delay"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

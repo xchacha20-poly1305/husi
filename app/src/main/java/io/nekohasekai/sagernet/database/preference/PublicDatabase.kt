@@ -17,7 +17,8 @@ abstract class PublicDatabase : RoomDatabase() {
             Room.databaseBuilder(SagerNet.application, PublicDatabase::class.java, Key.DB_PUBLIC)
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(true)
+                .fallbackToDestructiveMigrationOnDowngrade(true)
                 .setQueryExecutor { runOnDefaultDispatcher { it.run() } }
                 .build()
         }

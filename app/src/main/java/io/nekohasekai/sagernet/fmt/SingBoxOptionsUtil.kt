@@ -158,6 +158,11 @@ fun Rule_Default.checkEmpty(): Boolean {
     if (clash_mode?.isNotEmpty() == true) return false
     if (network_type?.isNotEmpty() == true) return false
     if (network_is_expensive == true) return false
+
+    if (override_address?.isNotEmpty() == true) return false
+    if (override_port != null && override_port > 0) return false
+    if (tls_fragment == true) return false
+
     return true
 }
 

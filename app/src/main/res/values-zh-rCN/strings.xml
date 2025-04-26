@@ -48,7 +48,6 @@
     <string name="allow_access">允许来自局域网的连接</string>
     <string name="allow_access_sum">将入站绑定至 0.0.0.0</string>
     <string name="cag_dns">DNS 设置</string>
-    <string name="cag_route">路由设置</string>
     <string name="inbound_settings">入站设置</string>
     <string name="general_settings">软件设置</string>
     <string name="cag_ws">WebSocket 设置</string>
@@ -593,4 +592,8 @@
     <string name="language">语言</string>
     <string name="language_system_default">系统默认设置</string>
     <string name="rule_set_match">Rule Set 匹配</string>
+    <string name="route_action">路由动作</string>
+    <string name="route_options">路由选项</string>
+    <string name="tls_fragment">TLS 分片</string>
+    <string name="tls_fragment_fallback_delay">TLS 分片回退延迟</string>
 </resources>

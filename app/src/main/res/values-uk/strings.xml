@@ -35,7 +35,6 @@
     <string name="inbound_settings">Вхідні налаштування</string>
     <string name="allow_access_sum">Прив\'язати вхідні сервери до 0.0.0.0</string>
     <string name="allow_access">Дозволити підключення з локальної мережі</string>
-    <string name="cag_route">Налаштування маршруту</string>
     <string name="port_proxy">Порт проксі SOCKS5</string>
     <string name="service_mode_proxy">Тільки проксі</string>
     <string name="service_mode">Режим обслуговування</string>

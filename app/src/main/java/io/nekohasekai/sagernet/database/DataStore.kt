@@ -215,8 +215,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverPassword by profileCacheStore.string(Key.SERVER_PASSWORD)
     var serverPassword1 by profileCacheStore.string(Key.SERVER_PASSWORD1)
     var serverMethod by profileCacheStore.string(Key.SERVER_METHOD)
-    var overrideAddress by profileCacheStore.string(Key.OVERRIDE_ADDRESS)
-    var overridePort by profileCacheStore.stringToInt(Key.OVERRIDE_PORT)
     var pluginName by profileCacheStore.string(Key.PLUGIN_NAME)
     var pluginConfig by profileCacheStore.string(Key.PLUGIN_CONFIG)
     var udpOverTcp by profileCacheStore.boolean(Key.UDP_OVER_TCP)
@@ -290,6 +288,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverMinIdleSession by profileCacheStore.stringToInt(Key.SERVER_MIN_IDLE_SESSION) { 0 }
 
     var routeName by profileCacheStore.string(Key.ROUTE_NAME)
+    var routeAction by profileCacheStore.string(Key.ROUTE_ACTION)
+
     var routeDomain by profileCacheStore.string(Key.ROUTE_DOMAIN)
     var routeIP by profileCacheStore.string(Key.ROUTE_IP)
     var routePort by profileCacheStore.string(Key.ROUTE_PORT)
@@ -297,8 +297,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeNetwork by profileCacheStore.string(Key.ROUTE_NETWORK)
     var routeSource by profileCacheStore.string(Key.ROUTE_SOURCE)
     var routeProtocol by profileCacheStore.string(Key.ROUTE_PROTOCOL)
-    var routeOutbound by profileCacheStore.stringToInt(Key.ROUTE_OUTBOUND)
-    var routeOutboundRule by profileCacheStore.long(Key.ROUTE_OUTBOUND + "Long")
     var routePackages by profileCacheStore.stringSet(Key.ROUTE_PACKAGES)
     var routeSSID by profileCacheStore.string(Key.ROUTE_SSID)
     var routeBSSID by profileCacheStore.string(Key.ROUTE_BSSID)
@@ -306,6 +304,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeClashMode by profileCacheStore.string(Key.ROUTE_CLASH_MODE)
     var routeNetworkType by profileCacheStore.stringSet(Key.ROUTE_NETWORK_TYPE)
     var routeNetworkIsExpensive by profileCacheStore.boolean(Key.ROUTE_NETWORK_IS_EXPENSIVE)
+
+    var routeOutbound by profileCacheStore.stringToInt(Key.ROUTE_OUTBOUND)
+    var routeOutboundRule by profileCacheStore.long(Key.ROUTE_OUTBOUND + "Long")
+
+    var routeOverrideAddress by profileCacheStore.string(Key.ROUTE_OVERRIDE_ADDRESS)
+    var routeOverridePort by profileCacheStore.stringToInt(Key.ROUTE_OVERRIDE_PORT)
+    var routeTlsFragment by profileCacheStore.boolean(Key.ROUTE_TLS_FRAGMENT)
+    var routeTlsFragmentFallbackDelay by profileCacheStore.string(Key.ROUTE_TLS_FRAGMENT_FALLBACK_DELAY)
 
     var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")
     var landingProxy by profileCacheStore.long(Key.GROUP_LANDING_PROXY + "Long")

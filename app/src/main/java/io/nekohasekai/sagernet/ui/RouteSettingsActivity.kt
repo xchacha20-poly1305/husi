@@ -18,6 +18,7 @@ import androidx.core.view.ViewCompat
 import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
 import com.github.shadowsocks.plugin.Empty
@@ -29,7 +30,10 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE_OPTIONS
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -68,6 +72,8 @@ class RouteSettingsActivity(
 
     fun RuleEntity.init() {
         DataStore.routeName = name
+        DataStore.routeAction = action
+
         DataStore.routeDomain = domains
         DataStore.routeIP = ip
         DataStore.routePort = port
@@ -82,6 +88,12 @@ class RouteSettingsActivity(
         DataStore.routeClashMode = clashMode
         DataStore.routeNetworkType = networkType
         DataStore.routeNetworkIsExpensive = networkIsExpensive
+
+        DataStore.routeOverrideAddress = overrideAddress
+        DataStore.routeOverridePort = overridePort
+        DataStore.routeTlsFragment = tlsFragment
+        DataStore.routeTlsFragmentFallbackDelay = tlsFragmentFallbackDelay
+
         DataStore.routeOutbound = when (outbound) {
             RuleEntity.OUTBOUND_PROXY -> 0
             RuleEntity.OUTBOUND_DIRECT -> 1
@@ -93,6 +105,8 @@ class RouteSettingsActivity(
 
     fun RuleEntity.serialize() {
         name = DataStore.routeName
+        action = DataStore.routeAction
+
         domains = DataStore.routeDomain
         ip = DataStore.routeIP
         port = DataStore.routePort
@@ -106,6 +120,12 @@ class RouteSettingsActivity(
         clashMode = DataStore.routeClashMode
         networkType = DataStore.routeNetworkType
         networkIsExpensive = DataStore.routeNetworkIsExpensive
+
+        overrideAddress = DataStore.routeOverrideAddress
+        overridePort = DataStore.routeOverridePort
+        tlsFragment = DataStore.routeTlsFragment
+        tlsFragmentFallbackDelay = DataStore.routeTlsFragmentFallbackDelay
+
         outbound = when (DataStore.routeOutbound) {
             0 -> RuleEntity.OUTBOUND_PROXY
             1 -> RuleEntity.OUTBOUND_DIRECT
@@ -137,7 +157,11 @@ class RouteSettingsActivity(
             DataStore.routeClashMode.isBlank() &&
             DataStore.routeNetworkType.isEmpty() &&
             DataStore.routeNetworkIsExpensive &&
-            DataStore.routeOutbound == 0
+            DataStore.routeOutbound == 0 &&
+            DataStore.routeOverrideAddress.isBlank() &&
+            DataStore.routeOverridePort == 0 &&
+            !DataStore.routeTlsFragment &&
+            DataStore.routeTlsFragmentFallbackDelay.isBlank()
         ) {
             return false
         }
@@ -179,6 +203,11 @@ class RouteSettingsActivity(
     lateinit var networkType: MultiSelectListPreference
     lateinit var ssid: EditTextPreference
     lateinit var bssid: EditTextPreference
+    lateinit var action: SimpleMenuPreference
+    lateinit var overridePort: EditTextPreference
+
+    lateinit var actionRoute: PreferenceCategory
+    lateinit var actionRouteOptions: PreferenceCategory
 
     fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
         outbound = findPreference(Key.ROUTE_OUTBOUND)!!
@@ -186,6 +215,13 @@ class RouteSettingsActivity(
         networkType = findPreference(Key.ROUTE_NETWORK_TYPE)!!
         ssid = findPreference(Key.ROUTE_SSID)!!
         bssid = findPreference(Key.ROUTE_BSSID)!!
+        action = findPreference(Key.ROUTE_ACTION)!!
+        overridePort = findPreference<EditTextPreference>(Key.ROUTE_OVERRIDE_PORT)!!.apply {
+            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
+
+        actionRoute = findPreference(Key.ROUTE_ACTION_ROUTE)!!
+        actionRouteOptions = findPreference(Key.ROUTE_ACTION_ROUTE_OPTIONS)!!
 
         outbound.updateOutboundSummary()
         outbound.setOutbound(OUTBOUND_POSITION) {
@@ -211,6 +247,24 @@ class RouteSettingsActivity(
         networkType.setOnPreferenceChangeListener { _, newValue ->
             @Suppress("UNCHECKED_CAST")
             updateNetwork(newValue as Set<String>)
+            true
+        }
+
+        fun updateAction(newValue: String = action.value) {
+            when (newValue) {
+                "", ACTION_ROUTE -> {
+                    actionRoute.isVisible = true
+                    actionRouteOptions.isVisible = false
+                }
+                ACTION_ROUTE_OPTIONS -> {
+                    actionRoute.isVisible = false
+                    actionRouteOptions.isVisible = true
+                }
+            }
+        }
+        updateAction()
+        action.setOnPreferenceChangeListener { _, newValue ->
+            updateAction(newValue.toString())
             true
         }
     }
@@ -262,7 +316,7 @@ class RouteSettingsActivity(
         super.onCreate(savedInstanceState)
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
-            setTitle(R.string.cag_route)
+            setTitle(R.string.menu_route)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }

@@ -51,7 +51,6 @@
     <string name="service_mode_proxy">Proxy only</string>
     <string name="service_mode_vpn" translatable="false">VPN</string>
     <string name="port_proxy">Proxy Port</string>
-    <string name="cag_route">Route Settings</string>
     <string name="allow_access">Allow Connections from the LAN</string>
     <string name="allow_access_sum">Bind inbound servers to 0.0.0.0</string>
     <string name="inbound_settings">Inbound Settings</string>
@@ -664,4 +663,8 @@
     <string name="language">Language</string>
     <string name="language_system_default">System default</string>
     <string name="rule_set_match">Rule Set Match</string>
+    <string name="route_action">Route Action</string>
+    <string name="route_options">Route Options</string>
+    <string name="tls_fragment">TLS Fragment</string>
+    <string name="tls_fragment_fallback_delay">TLS Fragment Fallback Delay</string>
 </resources>

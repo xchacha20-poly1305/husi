@@ -121,7 +121,7 @@
     <PreferenceCategory
         app:initialExpandedChildrenCount="0"
         app:key="routeSettings"
-        app:title="@string/cag_route">
+        app:title="@string/route_options">
         <SwitchPreference
             app:icon="@drawable/ic_navigation_apps"
             app:key="proxyApps"

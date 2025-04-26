@@ -45,7 +45,6 @@
     <string name="allow_access">允許來自區域網路的連線</string>
     <string name="allow_access_sum">繫結傳入伺服器至 0.0.0.0</string>
     <string name="cag_dns">DNS 設定</string>
-    <string name="cag_route">路由設定</string>
     <string name="inbound_settings">傳入設定</string>
     <string name="general_settings">應用程式設定</string>
     <string name="cag_ws">WebSocket 設定</string>
