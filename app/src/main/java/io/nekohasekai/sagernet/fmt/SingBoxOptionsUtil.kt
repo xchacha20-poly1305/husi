@@ -252,13 +252,14 @@ fun buildDNSServer(
         it.domain_resolver = domainResolver
     }
 
-    val url = try {
-        Libcore.parseURL(link)
-    } catch (_: Exception) {
+    val url = if (!link.contains("://")) {
         Libcore.newURL(SingBoxOptions.DNS_TYPE_UDP).apply {
             fullHost = link
         }
+    } else {
+        Libcore.parseURL(link)
     }
+
     return when (val scheme = url.scheme) {
         SingBoxOptions.DNS_TYPE_TLS, SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
             type = scheme
