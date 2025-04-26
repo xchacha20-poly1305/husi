@@ -416,10 +416,7 @@ fun buildConfig(
 
                         is ShadowsocksBean -> buildSingBoxOutboundShadowsocksBean(bean).asMap()
 
-                        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asMap().also {
-                            // #264
-                            it["detour"] = TAG_DIRECT
-                        }
+                        is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean).asMap()
 
                         is SSHBean -> buildSingBoxOutboundSSHBean(bean).asMap()
 
