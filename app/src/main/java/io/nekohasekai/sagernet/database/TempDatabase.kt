@@ -14,7 +14,8 @@ abstract class TempDatabase : RoomDatabase() {
         private val instance by lazy {
             Room.inMemoryDatabaseBuilder(app, TempDatabase::class.java)
                 .allowMainThreadQueries()
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(true)
+                .fallbackToDestructiveMigrationOnDowngrade(true)
                 .setQueryExecutor { runOnDefaultDispatcher { it.run() } }
                 .build()
         }
