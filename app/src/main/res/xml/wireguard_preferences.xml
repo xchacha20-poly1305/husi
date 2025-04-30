@@ -23,6 +23,7 @@
             app:title="@string/wireguard_local_address"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
             app:icon="@drawable/ic_baseline_vpn_key_24"
             app:key="privateKey"
             app:title="@string/ssh_private_key"
