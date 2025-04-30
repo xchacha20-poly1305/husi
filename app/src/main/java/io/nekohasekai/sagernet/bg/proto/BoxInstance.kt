@@ -92,7 +92,7 @@ abstract class BoxInstance(
 
                     is JuicityBean -> {
                         initPlugin("juicity-plugin")
-                        pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port)
+                        pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port, isVPN)
                     }
                 }
             }
@@ -126,7 +126,7 @@ abstract class BoxInstance(
 
                         val envMap = mutableMapOf(
                             "MIERU_CONFIG_JSON_FILE" to configFile.absolutePath,
-                            "MIERU_PROTECT_PATH" to "protect_path",
+                            "MIERU_PROTECT_PATH" to Libcore.ProtectPath,
                         )
 
                         val commands = mutableListOf(
