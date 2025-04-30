@@ -26,7 +26,6 @@ TAGS=(
     "with_quic"
     "with_wireguard"
     "with_utls"
-    "with_ech"
 )
 
 IFS="," BUILD_TAGS="${TAGS[*]}"
