@@ -39,7 +39,7 @@ fun JuicityBean.toUri(): String {
     }.string
 }
 
-fun JuicityBean.buildJuicityConfig(port: Int): String {
+fun JuicityBean.buildJuicityConfig(port: Int, shouldProtect: Boolean): String {
     return JSONObject().apply {
         put("listen", "$LOCALHOST4:$port")
         put("server", displayAddress())
@@ -49,8 +49,7 @@ fun JuicityBean.buildJuicityConfig(port: Int): String {
         if (allowInsecure) put("allow_insecure", allowInsecure)
         put("congestion_control", "bbr")
         if (pinSHA256.isNotBlank()) put("pinned_certchain_sha256", pinSHA256)
-        // TODO remove protect_path when VPN service not start but testing. Also for Hysteria
-        put("protect_path", Libcore.ProtectPath)
+        if (shouldProtect) put("protect_path", Libcore.ProtectPath)
         put(
             "log_level",
             if (DataStore.logLevel > 0) "debug" else "error",
