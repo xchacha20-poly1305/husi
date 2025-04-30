@@ -318,7 +318,7 @@ fun HysteriaBean.canUseSingBox(): Boolean {
     if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
         if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
     }
-    return true // Box implemented pure Hy1 or hopable Hy2
+    return true
 }
 
 fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outbound {

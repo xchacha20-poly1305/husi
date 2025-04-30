@@ -342,7 +342,7 @@ data class ProxyEntity(
 
                             is JuicityBean -> {
                                 append("\n\n")
-                                append(bean.buildJuicityConfig(port))
+                                append(bean.buildJuicityConfig(port, false))
                             }
                         }
                     }
