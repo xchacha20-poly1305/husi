@@ -5,12 +5,12 @@ go 1.24
 require (
 	github.com/anytls/sing-anytls v0.0.8
 	github.com/gofrs/uuid/v5 v5.3.2
-	github.com/miekg/dns v1.1.64
+	github.com/miekg/dns v1.1.65
 	github.com/sagernet/gomobile v0.1.6
-	github.com/sagernet/sing v0.6.6
-	github.com/sagernet/sing-box v1.11.9-0.20250422150206-c80d62968c9a
+	github.com/sagernet/sing v0.6.8-0.20250429070844-b63643251ed5
+	github.com/sagernet/sing-box v1.11.10-0.20250430113915-d574e9eb5291
 	github.com/sagernet/sing-dns v0.4.2
-	github.com/sagernet/sing-tun v0.6.4
+	github.com/sagernet/sing-tun v0.6.5
 	github.com/xchacha20-poly1305/TLS-scribe v0.11.0
 	github.com/xchacha20-poly1305/anchor v0.6.1
 	github.com/xchacha20-poly1305/cazilla v1.0.0
@@ -24,8 +24,8 @@ require (
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.30.0
-	google.golang.org/protobuf v1.36.5
+	github.com/v2fly/v2ray-core/v5 v5.31.0
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -63,31 +63,31 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.49.0-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
-	github.com/sagernet/sing-mux v0.3.1 // indirect
+	github.com/sagernet/sing-mux v0.3.2 // indirect
 	github.com/sagernet/sing-quic v0.4.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.0 // indirect
-	github.com/sagernet/sing-vmess v0.2.0 // indirect
-	github.com/sagernet/smux v0.0.0-20231208180855-7041f6ea79e7 // indirect
+	github.com/sagernet/sing-vmess v0.2.1 // indirect
+	github.com/sagernet/smux v1.5.34-mod.1 // indirect
 	github.com/sagernet/utls v1.6.7 // indirect
-	github.com/sagernet/wireguard-go v0.0.1-beta.5 // indirect
+	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
-	golang.org/x/time v0.8.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
-	google.golang.org/grpc v1.71.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
+	google.golang.org/grpc v1.72.0 // indirect
 	lukechampine.com/blake3 v1.4.0 // indirect
 )

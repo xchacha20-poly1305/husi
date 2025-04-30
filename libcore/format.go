@@ -6,9 +6,10 @@ import (
 	"time"
 	_ "unsafe"
 
-	box "github.com/sagernet/sing-box"
-	"github.com/sagernet/sing-box/common/humanize"
+	"github.com/sagernet/sing-box"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/byteformats"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
@@ -18,12 +19,12 @@ import (
 
 // FormatBytes formats the bytes length to humanize.
 func FormatBytes(length int64) string {
-	return humanize.Bytes(uint64(length))
+	return byteformats.FormatBytes(uint64(length))
 }
 
 // FormatMemoryBytes formats the bytes length in memory format.
 func FormatMemoryBytes(length int64) string {
-	return humanize.MemoryBytes(uint64(length))
+	return byteformats.FormatMemoryBytes(uint64(length))
 }
 
 // parseConfig parses configContent to option.Options.
