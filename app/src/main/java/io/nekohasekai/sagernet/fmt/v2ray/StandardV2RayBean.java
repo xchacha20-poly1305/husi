@@ -64,7 +64,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
 
-        if (JavaUtil.isNullOrBlank(uuid)) uuid = "";
+        if (uuid == null) uuid = "";
 
         if (JavaUtil.isNullOrBlank(v2rayTransport)) v2rayTransport = "tcp";
         else if ("h2".equals(v2rayTransport)) v2rayTransport = "http";
