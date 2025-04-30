@@ -4,9 +4,9 @@ go 1.24
 
 require (
 	github.com/gofrs/uuid/v5 v5.3.2
-	github.com/miekg/dns v1.1.64
+	github.com/miekg/dns v1.1.65
 	github.com/sagernet/gomobile v0.1.6
-	github.com/sagernet/sing v0.6.8-0.20250425035333-84184da91a3a
+	github.com/sagernet/sing v0.6.8-0.20250429124449-59dfe1dbfdbf
 	github.com/sagernet/sing-box v1.12.0-beta.6
 	github.com/sagernet/sing-tun v0.6.5-0.20250412112220-15069fc1c20a
 	github.com/xchacha20-poly1305/TLS-scribe v0.11.0
@@ -21,8 +21,8 @@ require (
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.30.0
-	google.golang.org/protobuf v1.36.5
+	github.com/v2fly/v2ray-core/v5 v5.31.0
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -76,16 +76,16 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
-	google.golang.org/grpc v1.71.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
+	google.golang.org/grpc v1.72.0 // indirect
 	lukechampine.com/blake3 v1.4.0 // indirect
 )
