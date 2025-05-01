@@ -46,7 +46,7 @@ type URL interface {
 	SetFragment(fragment string)
 
 	SetRawFragment(rawFragment string) error
-	GetRawFragment(rawFragment string) string
+	GetRawFragment() string
 
 	GetString() string
 }
@@ -232,7 +232,7 @@ func (u *netURL) SetRawFragment(rawFragment string) error {
 	return setFragment(&u.URL, rawFragment)
 }
 
-func (u *netURL) GetRawFragment(rawFragment string) string {
+func (u *netURL) GetRawFragment() string {
 	if rawFragment := u.RawFragment; rawFragment != "" {
 		return rawFragment
 	}
