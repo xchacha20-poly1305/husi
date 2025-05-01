@@ -90,6 +90,9 @@ type HTTPResponse interface {
 	// WriteTo writes content to the file of `path`.
 	// callback could be nil
 	WriteTo(path string, callback CopyCallback) error
+
+	// Close force to close response even the current action not finished.
+	Close() error
 }
 
 var (
@@ -312,4 +315,8 @@ func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
 		writer = &callbackWriter{writer, callback.Update}
 	}
 	return common.Error(io.Copy(writer, h.Response.Body))
+}
+
+func (h *httpResponse) Close() error {
+	return h.Response.Body.Close()
 }
