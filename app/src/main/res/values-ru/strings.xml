@@ -630,6 +630,6 @@
     <string name="language">Язык</string>
     <string name="language_system_default">Системные настройки по умолчанию</string>
     <string name="pause">Пауза</string>
-    <string name="fallback">Резервный</string>
-    <string name="hybrid">Гибрид</string>
+    <string name="fallback">Резервная</string>
+    <string name="hybrid">Гибридная</string>
 </resources>
