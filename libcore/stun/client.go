@@ -55,24 +55,28 @@ func NewClientWithConnection(conn net.PacketConn) *Client {
 	return c
 }
 
-func (c *Client) SetLogLevel(level log.Level) {
+func (c *Client) SetLogLevel(level log.Level) *Client {
 	c.logCtx = log.ContextWithOverrideLevel(context.Background(), level)
+	return c
 }
 
 // SetServerHost allows user to set the STUN hostname and port.
-func (c *Client) SetServerHost(host string, port int) {
+func (c *Client) SetServerHost(host string, port int) *Client {
 	c.serverAddr = net.JoinHostPort(host, strconv.Itoa(port))
+	return c
 }
 
 // SetServerAddr allows user to set the transport layer STUN server address.
-func (c *Client) SetServerAddr(address string) {
+func (c *Client) SetServerAddr(address string) *Client {
 	c.serverAddr = address
+	return c
 }
 
 // SetSoftwareName allows user to set the name of the software, which is used
 // for logging purpose (NOT used in the current implementation).
-func (c *Client) SetSoftwareName(name string) {
+func (c *Client) SetSoftwareName(name string) *Client {
 	c.softwareName = name
+	return c
 }
 
 // Discover contacts the STUN server and gets the response of NAT type, host

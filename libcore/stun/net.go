@@ -17,7 +17,6 @@ package stun
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
 	"net"
 	"time"
 )
@@ -62,13 +61,15 @@ func (c *Client) send(pkt *packet, conn net.PacketConn, addr net.Addr) (*respons
 	packetBytes := make([]byte, maxPacketSize)
 	for i := 0; i < numRetransmit; i++ {
 		// Send packet to the server.
-		length, err := conn.WriteTo(pkt.bytes(), addr)
+		_, err := conn.WriteTo(pkt.bytes(), addr)
 		if err != nil {
 			return nil, err
 		}
-		if length != len(pkt.bytes()) {
-			return nil, errors.New("error in sending data")
-		}
+		// TODO remove this comment when this issue get answer.
+		// https://github.com/SagerNet/sing/issues/83
+		/*if length != len(pkt.bytes()) {
+			return nil, E.New("should write ", len(pkt.bytes()), " but in fact: ", length)
+		}*/
 		err = conn.SetReadDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
 		if err != nil {
 			return nil, err

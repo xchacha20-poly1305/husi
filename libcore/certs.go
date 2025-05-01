@@ -12,9 +12,10 @@ import (
 	_ "github.com/sagernet/sing-box/common/certificate"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
+	"github.com/sagernet/sing/protocol/socks"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 )
@@ -92,18 +93,33 @@ const (
 	ScribeQUIC
 )
 
-func GetCert(address, serverName string, mode int32) (cert string, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), C.ProtocolTimeouts[C.ProtocolQUIC])
-	defer cancel()
-
+// GetCert try to get cert from create a connection to address with serverName as SNI.
+// mode can choose to use TLS or QUIC.
+// proxy is a socks5 URL for dialer.
+func GetCert(address, serverName string, mode int32, proxy string) (cert string, err error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443
 	}
+	if !target.IsValid() {
+		return "", E.New("invalid server address: ", address)
+	}
+	var dialer N.Dialer = new(N.DefaultDialer)
+	if proxy != "" {
+		dialer, err = socks.NewClientFromURL(dialer, proxy)
+		if err != nil {
+			return "", E.Cause(err, "create proxy dialer")
+		}
+	}
 	options := scribe.Option{
 		Target: target,
 		SNI:    serverName,
+		Dialer: dialer,
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), C.ProtocolTimeouts[C.ProtocolQUIC])
+	defer cancel()
+
 	var certs []*x509.Certificate
 	switch mode {
 	case ScribeTLS:
@@ -119,10 +135,10 @@ func GetCert(address, serverName string, mode int32) (cert string, err error) {
 
 	var builder strings.Builder
 	for _, cert := range certs {
-		common.Must(pem.Encode(&builder, &pem.Block{
+		_ = pem.Encode(&builder, &pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: cert.Raw,
-		}))
+		})
 	}
 
 	return builder.String(), nil

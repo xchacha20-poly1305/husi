@@ -1,7 +1,9 @@
 package io.nekohasekai.sagernet.ktx
 
 import io.nekohasekai.sagernet.BuildConfig
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import libcore.Libcore
 import libcore.URL
 import moe.matsuri.nb4a.utils.NGUtil
@@ -26,6 +28,22 @@ fun URL.addPathSegments(vararg segments: String) {
 fun URL.parseBoolean(key: String): Boolean = when (queryParameterNotBlank(key)) {
     "1", "true" -> true
     else -> false
+}
+
+fun currentSocks5(): URL? = if (!DataStore.serviceState.started) {
+    null
+} else {
+    Libcore.newURL("socks5").apply {
+        host = LOCALHOST4
+        ports = DataStore.mixedPort.toString()
+
+        // Avoid creating User field if not have.
+        val username = DataStore.inboundUsername
+        if (username.isNotEmpty()) {
+            this.username = username
+            password = DataStore.inboundPassword
+        }
+    }
 }
 
 fun String.isIpAddress(): Boolean {
@@ -70,7 +88,7 @@ fun mkPort(): Int {
 val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
 
 /**
- Replace all version-about escapes in userAent
+Replace all version-about escapes in userAent
  */
 fun generateUserAgent(userAgent: String): String {
     if (userAgent.isBlank()) return USER_AGENT
@@ -84,7 +102,7 @@ val systemCertificates by lazy {
     val certificates = mutableListOf<String>()
     val keyStore = KeyStore.getInstance("AndroidCAStore")
     if (keyStore != null) {
-        keyStore.load(null, null);
+        keyStore.load(null, null)
         val aliases = keyStore.aliases()
         while (aliases.hasMoreElements()) {
             val cert = keyStore.getCertificate(aliases.nextElement())

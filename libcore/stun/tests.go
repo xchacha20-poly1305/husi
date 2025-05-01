@@ -15,8 +15,9 @@
 package stun
 
 import (
-	"errors"
 	"net"
+
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
 func (c *Client) sendWithLog(conn net.PacketConn, addr *net.UDPAddr, changeIP bool, changePort bool) (*response, error) {
@@ -27,10 +28,10 @@ func (c *Client) sendWithLog(conn net.PacketConn, addr *net.UDPAddr, changeIP bo
 	}
 	c.logger.DebugContext(c.logCtx, "Received:", resp)
 	if resp == nil && !changeIP && !changePort {
-		return nil, errors.New("NAT blocked")
+		return nil, E.New("NAT blocked")
 	}
 	if resp != nil && !addrCompare(resp.serverAddr, addr, changeIP, changePort) {
-		return nil, errors.New("server error: response IP/port")
+		return nil, E.New("server error: response IP/port")
 	}
 	return resp, err
 }

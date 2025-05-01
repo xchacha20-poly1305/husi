@@ -1,20 +1,46 @@
 package libcore
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	"libcore/stun"
+
+	"github.com/sagernet/sing-box/log"
+	E "github.com/sagernet/sing/common/exceptions"
+	M "github.com/sagernet/sing/common/metadata"
+	N "github.com/sagernet/sing/common/network"
+	"github.com/sagernet/sing/protocol/socks"
 )
 
-func StunTest(server string) string {
+func StunTest(server, proxy, softwareName string) string {
 	// note: this library doesn't support stun1.l.google.com:19302
+
+	var packetConn net.PacketConn
+	if proxy == "" {
+		var err error
+		packetConn, err = net.ListenUDP(N.NetworkUDP, nil)
+		if err != nil {
+			return E.Cause(err, "failed to create packet conn").Error()
+		}
+	} else {
+		dialer, err := socks.NewClientFromURL(new(N.DefaultDialer), proxy)
+		if err != nil {
+			return E.Cause(err, "failed to create proxy dialer").Error()
+		}
+		packetConn, err = dialer.ListenPacket(context.Background(), M.ParseSocksaddr(server))
+		if err != nil {
+			return E.Cause(err, "create packet conn via proxy").Error()
+		}
+	}
 
 	var resultBuilder strings.Builder
 
 	// Old NAT Type Test
-	client := stun.NewClient()
-	client.SetServerAddr(server)
+	client := stun.NewClientWithConnection(packetConn).SetServerAddr(server).SetSoftwareName(softwareName)
+	client.SetLogLevel(log.LevelTrace)
 	nat, host, err, fakeFullCone := client.Discover()
 	if err != nil {
 		_, _ = fmt.Fprintf(&resultBuilder, "Discover Error: %v\n", err)
