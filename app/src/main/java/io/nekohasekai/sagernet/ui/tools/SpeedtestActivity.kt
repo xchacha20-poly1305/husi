@@ -10,12 +10,14 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import libcore.CopyCallback
+import libcore.HTTPResponse
 import libcore.Libcore
 
 class SpeedtestActivity : ThemedActivity() {
@@ -46,11 +48,16 @@ class SpeedtestActivity : ThemedActivity() {
     }
 
     // Make sure just one job.
-    // FIXME real interrupt
     private var speedtestJob: Job? = null
+    private var currentResponse: HTTPResponse? = null
 
     override fun onDestroy() {
         speedtestJob?.cancel()
+        runCatching {
+            currentResponse?.close()
+        }.onFailure { e ->
+            Logs.w(e)
+        }
         DataStore.speedTestUrl = binding.speedTestServer.text.toString()
         DataStore.speedTestTimeout = binding.speedTestTimeout.text.toString().toInt()
         super.onDestroy()
@@ -61,28 +68,39 @@ class SpeedtestActivity : ThemedActivity() {
     }
 
     private fun doTest() {
+        binding.speedTest.isEnabled = false
         speedtestJob?.cancel()
+        runCatching {
+            currentResponse?.close()
+        }
         speedtestJob = runOnDefaultDispatcher {
             try {
-                Libcore.newHttpClient().apply {
-                    if (DataStore.serviceState.started) {
-                        useSocks5(
-                            DataStore.mixedPort,
-                            DataStore.inboundUsername,
-                            DataStore.inboundPassword
-                        )
+                Libcore.newHttpClient()
+                    .apply {
+                        if (DataStore.serviceState.started) {
+                            useSocks5(
+                                DataStore.mixedPort,
+                                DataStore.inboundUsername,
+                                DataStore.inboundPassword,
+                            )
+                        }
                     }
-                }.newRequest().apply {
-                    setURL(binding.speedTestServer.text.toString())
-                    setUserAgent(USER_AGENT)
-                    setTimeout(binding.speedTestTimeout.text.toString().toInt())
-                }.execute()
+                    .newRequest()
+                    .apply {
+                        setURL(binding.speedTestServer.text.toString())
+                        setUserAgent(USER_AGENT)
+                        setTimeout(binding.speedTestTimeout.text.toString().toInt())
+                    }
+                    .execute()
+                    .also {
+                        currentResponse = it
+                    }
                     .writeTo(Libcore.DevNull, CopyCallBack(binding.speedTestResult))
             } catch (_: CancellationException) {
                 return@runOnDefaultDispatcher
             } catch (e: Exception) {
                 Logs.w(e)
-                runOnMainDispatcher {
+                onMainDispatcher {
                     AlertDialog.Builder(binding.root.context)
                         .setTitle(R.string.error_title)
                         .setMessage(e.toString())
@@ -90,6 +108,10 @@ class SpeedtestActivity : ThemedActivity() {
                         .runCatching { show() }
                 }
                 return@runOnDefaultDispatcher
+            } finally {
+                onMainDispatcher {
+                    binding.speedTest.isEnabled = true
+                }
             }
             snackbar(R.string.done).show()
         }
