@@ -3,21 +3,7 @@ package libcore
 import (
 	"testing"
 	"time"
-
-	"github.com/sagernet/sing-box/common/humanize"
 )
-
-func Test_FormatBytes(t *testing.T) {
-	tt := []int64{
-		humanize.IByte, humanize.KByte, humanize.MByte, humanize.GByte,
-		humanize.TByte, humanize.TByte, humanize.EByte,
-	}
-
-	for _, test := range tt {
-		bytesFormat := FormatBytes(test)
-		t.Logf("%d -> %s", test, bytesFormat)
-	}
-}
 
 func Test_FormatConfig(t *testing.T) {
 	tt := []struct {

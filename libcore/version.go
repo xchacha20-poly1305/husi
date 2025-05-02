@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/sagernet/sing-box/common/badversion"
 	C "github.com/sagernet/sing-box/constant"
 )
 
@@ -47,4 +48,8 @@ func loadDetailVersion() string {
 	}
 
 	return strings.Join(builder, "\n")
+}
+
+func IsPreRelease(versionName string) bool {
+	return badversion.Parse(versionName).PreReleaseIdentifier != ""
 }
