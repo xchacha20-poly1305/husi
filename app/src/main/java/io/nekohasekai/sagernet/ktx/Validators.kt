@@ -22,6 +22,7 @@ package io.nekohasekai.sagernet.ktx
 import androidx.annotation.RawRes
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
@@ -78,7 +79,6 @@ fun AbstractBean.isInsecure(): ValidateResult {
             if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ResultDeprecated(R.raw.hysteria_legacy)
         }
 
-        // Should we said that TUIC died?
         is TuicBean -> {
             if (allowInsecure) return ResultInsecure(R.raw.insecure)
             if (reduceRTT) return ResultInsecure(R.raw.quic_0_rtt)
@@ -90,6 +90,10 @@ fun AbstractBean.isInsecure(): ValidateResult {
         }
 
         is JuicityBean -> {
+            if (allowInsecure) return ResultInsecure(R.raw.insecure)
+        }
+
+        is AnyTLSBean -> {
             if (allowInsecure) return ResultInsecure(R.raw.insecure)
         }
     }
