@@ -59,11 +59,20 @@
             app:key="routeSource"
             app:title="source"
             app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
+        <MultiSelectListPreference
+            app:defaultValue="@array/empty"
+            app:entries="@array/sniff_protocol"
+            app:entryValues="@array/sniff_protocol"
             app:icon="@drawable/ic_baseline_layers_24"
             app:key="routeProtocol"
-            app:title="protocol"
-            app:useSimpleSummaryProvider="true" />
+            app:title="protocol" />
+        <MultiSelectListPreference
+            app:defaultValue="@array/empty"
+            app:entries="@array/sniff_client"
+            app:entryValues="@array/sniff_client"
+            app:icon="@drawable/ic_baseline_fingerprint_24"
+            app:key="routeClient"
+            app:title="@string/client_type" />
         <EditTextPreference
             app:icon="@drawable/ic_baseline_wifi"
             app:key="routeSSID"
@@ -73,11 +82,6 @@
             app:icon="@drawable/ic_baseline_wifi_not_connected"
             app:key="routeBSSID"
             app:title="WIFI BSSID"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            app:icon="@drawable/ic_baseline_fingerprint_24"
-            app:key="routeClient"
-            app:title="@string/client_type"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:icon="@drawable/baseline_public_24"

@@ -30,11 +30,11 @@ data class RuleEntity(
     var sourcePort: String = "",
     var network: String = "",
     var source: String = "",
-    var protocol: String = "",
+    var protocol: Set<String> = emptySet(),
+    @ColumnInfo(defaultValue = "") var clientType: Set<String> = emptySet(),
     var packages: Set<String> = emptySet(),
     var ssid: String = "",
     var bssid: String = "",
-    @ColumnInfo(defaultValue = "") var clientType: String = "",
     @ColumnInfo(defaultValue = "") var clashMode: String = "",
     @ColumnInfo(defaultValue = "") var networkType: Set<String> = emptySet(),
     @ColumnInfo(defaultValue = "0") var networkIsExpensive: Boolean = false,
@@ -79,13 +79,13 @@ data class RuleEntity(
         if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort\n"
         if (port.isNotBlank()) summary += "port: $port\n"
         if (network.isNotBlank()) summary += "network: $network\n"
-        if (protocol.isNotBlank()) summary += "protocol: $protocol\n"
+        if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
+        if (clientType.isNotEmpty()) summary += "client: $clientType\n"
         if (packages.isNotEmpty()) summary += app.getString(
             R.string.apps_message, packages.size
         ) + "\n"
         if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
         if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
-        if (clientType.isNotBlank()) summary += "client: $clientType\n"
         if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
         if (networkType.isNotEmpty()) summary += "networkType: $networkType\n"
         if (networkIsExpensive) summary += "networkIsExpensive\n"
@@ -100,8 +100,8 @@ data class RuleEntity(
         }
 
         val lines = summary.trim().split("\n")
-        return if (lines.size > 3) {
-            lines.subList(0, 3).joinToString("\n", postfix = "\n...")
+        return if (lines.size > 5) {
+            lines.subList(0, 5).joinToString("\n", postfix = "\n...")
         } else {
             summary.trim()
         }

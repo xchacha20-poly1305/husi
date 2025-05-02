@@ -596,17 +596,17 @@ fun buildConfig(
                     }
                     if (sourceIPs.isNotEmpty()) source_ip_cidr = sourceIPs
                 }
-                if (rule.protocol.isNotBlank()) {
-                    protocol = rule.protocol.listByLineOrComma()
+                if (rule.protocol.isNotEmpty()) {
+                    protocol = rule.protocol.toList()
+                }
+                if (rule.clientType.isNotEmpty()) {
+                    client = rule.clientType.toList()
                 }
                 if (rule.ssid.isNotBlank()) {
                     wifi_ssid = rule.ssid.listByLineOrComma()
                 }
                 if (rule.bssid.isNotBlank()) {
                     wifi_bssid = rule.bssid.listByLineOrComma()
-                }
-                if (rule.clientType.isNotBlank()) {
-                    client = rule.clientType.listByLineOrComma()
                 }
                 if (rule.clashMode.isNotBlank()) {
                     clash_mode = rule.clashMode

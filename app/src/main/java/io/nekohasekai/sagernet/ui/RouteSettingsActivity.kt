@@ -114,9 +114,9 @@ class RouteSettingsActivity(
         network = DataStore.routeNetwork
         source = DataStore.routeSource
         protocol = DataStore.routeProtocol
+        clientType = DataStore.routeClient
         ssid = DataStore.routeSSID
         bssid = DataStore.routeBSSID
-        clientType = DataStore.routeClient
         clashMode = DataStore.routeClashMode
         networkType = DataStore.routeNetworkType
         networkIsExpensive = DataStore.routeNetworkIsExpensive
@@ -150,10 +150,10 @@ class RouteSettingsActivity(
             DataStore.routeSourcePort.isBlank() &&
             DataStore.routeNetwork.isBlank() &&
             DataStore.routeSource.isBlank() &&
-            DataStore.routeProtocol.isBlank() &&
+            DataStore.routeProtocol.isEmpty() &&
+            DataStore.routeClient.isEmpty() &&
             DataStore.routeSSID.isBlank() &&
             DataStore.routeBSSID.isBlank() &&
-            DataStore.routeClient.isBlank() &&
             DataStore.routeClashMode.isBlank() &&
             DataStore.routeNetworkType.isEmpty() &&
             DataStore.routeNetworkIsExpensive &&
@@ -203,18 +203,23 @@ class RouteSettingsActivity(
     lateinit var networkType: MultiSelectListPreference
     lateinit var ssid: EditTextPreference
     lateinit var bssid: EditTextPreference
+    lateinit var protocol: MultiSelectListPreference
+    lateinit var clientType: MultiSelectListPreference
     lateinit var action: SimpleMenuPreference
     lateinit var overridePort: EditTextPreference
 
     lateinit var actionRoute: PreferenceCategory
     lateinit var actionRouteOptions: PreferenceCategory
 
+    @Suppress("UNCHECKED_CAST")
     fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
         outbound = findPreference(Key.ROUTE_OUTBOUND)!!
         apps = findPreference(Key.ROUTE_PACKAGES)!!
         networkType = findPreference(Key.ROUTE_NETWORK_TYPE)!!
         ssid = findPreference(Key.ROUTE_SSID)!!
         bssid = findPreference(Key.ROUTE_BSSID)!!
+        protocol = findPreference(Key.ROUTE_PROTOCOL)!!
+        clientType = findPreference(Key.ROUTE_CLIENT)!!
         action = findPreference(Key.ROUTE_ACTION)!!
         overridePort = findPreference<EditTextPreference>(Key.ROUTE_OVERRIDE_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
@@ -245,8 +250,18 @@ class RouteSettingsActivity(
         }
         updateNetwork()
         networkType.setOnPreferenceChangeListener { _, newValue ->
-            @Suppress("UNCHECKED_CAST")
             updateNetwork(newValue as Set<String>)
+            true
+        }
+
+        protocol.updateSummary()
+        protocol.setOnPreferenceChangeListener { _, newValue ->
+            protocol.updateSummary(newValue as Set<String>)
+            true
+        }
+        clientType.updateSummary()
+        clientType.setOnPreferenceChangeListener { _, newValue ->
+            clientType.updateSummary(newValue as Set<String>)
             true
         }
 
