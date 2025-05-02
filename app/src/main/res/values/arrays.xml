@@ -574,4 +574,24 @@
         <item>route-options</item>
     </string-array>
 
+    <string-array name="sniff_protocol">
+        <item>http</item>
+        <item>tls</item>
+        <item>quic</item>
+        <item>stun</item>
+        <item>dns</item>
+        <item>bittorrent</item>
+        <item>dtls</item>
+        <item>ssh</item>
+        <item>rdp</item>
+        <item>ntp</item>
+    </string-array>
+    
+    <string-array name="sniff_client">
+        <item>chromium</item>
+        <item>safari</item>
+        <item>firefox</item>
+        <item>quic-go</item>
+    </string-array>
+
 </resources>

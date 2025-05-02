@@ -193,7 +193,7 @@ object ProfileManager {
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_quic),
                     action = ACTION_ROUTE,
-                    protocol = "quic",
+                    protocol = setOf("quic"),
                     network = "udp",
                     outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
