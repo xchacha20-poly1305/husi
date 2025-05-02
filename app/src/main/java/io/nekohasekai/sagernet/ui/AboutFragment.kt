@@ -13,6 +13,7 @@ import android.view.View
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.danielstone.materialaboutlibrary.MaterialAboutFragment
@@ -76,107 +77,125 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             }
 
             return MaterialAboutList.Builder()
-                .addCard(MaterialAboutCard.Builder()
-                    .outline(false)
-                    .addItem(MaterialAboutActionItem.Builder()
-                        .icon(R.drawable.ic_baseline_update_24)
-                        .text(R.string.app_version)
-                        .subText(versionName)
-                        .setOnClickAction {
-                            requireContext().launchCustomTab(
-                                "https://github.com/xchacha20-poly1305/husi/releases"
-                            )
-                        }
-                        .build())
-                    .addItem(MaterialAboutActionItem.Builder()
-                        .icon(R.drawable.ic_baseline_layers_24)
-                        .text(getString(R.string.version_x, "sing-box"))
-                        .subText(Libcore.version())
-                        .setOnClickAction { }
-                        .build())
-                    .apply {
-                        PackageCache.awaitLoadSync()
-                        for ((_, pkg) in PackageCache.installedPluginPackages) {
-                            try {
-                                val pluginId = pkg.providers!![0].loadString(Plugins.METADATA_KEY_ID)
-                                if (pluginId.isNullOrBlank()) continue
-                                addItem(MaterialAboutActionItem.Builder()
-                                    .icon(R.drawable.ic_baseline_nfc_24)
-                                    .text(
-                                        getString(
-                                            R.string.version_x,
-                                            pluginId
-                                        ) + " (${Plugins.displayExeProvider(pkg.packageName)})"
+                .addCard(
+                    MaterialAboutCard.Builder()
+                        .outline(false)
+                        .addItem(
+                            MaterialAboutActionItem.Builder()
+                                .icon(R.drawable.ic_baseline_update_24)
+                                .text(R.string.app_version)
+                                .subText(versionName)
+                                .setOnClickAction {
+                                    requireContext().launchCustomTab(
+                                        if (Libcore.isPreRelease(BuildConfig.VERSION_NAME)) {
+                                            "https://github.com/xchacha20-poly1305/husi/releases"
+                                        } else {
+                                            "https://github.com/xchacha20-poly1305/husi/releases/latest"
+                                        }
                                     )
-                                    .subText("v" + pkg.versionName)
-                                    .setOnClickAction {
-                                        startActivity(Intent().apply {
-                                            action =
-                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                            data = Uri.fromParts(
-                                                "package", pkg.packageName, null
+                                }
+                                .build())
+                        .addItem(
+                            MaterialAboutActionItem.Builder()
+                                .icon(R.drawable.ic_baseline_layers_24)
+                                .text(getString(R.string.version_x, "sing-box"))
+                                .subText(Libcore.version())
+                                .setOnClickAction {
+                                    requireContext().launchCustomTab(
+                                        "https://github.com/SagerNet/sing-box"
+                                    )
+                                }
+                                .build())
+                        .apply {
+                            PackageCache.awaitLoadSync()
+                            for ((_, pkg) in PackageCache.installedPluginPackages) {
+                                try {
+                                    val pluginId =
+                                        pkg.providers!![0].loadString(Plugins.METADATA_KEY_ID)
+                                    if (pluginId.isNullOrBlank()) continue
+                                    addItem(
+                                        MaterialAboutActionItem.Builder()
+                                            .icon(R.drawable.ic_baseline_nfc_24)
+                                            .text(
+                                                getString(
+                                                    R.string.version_x,
+                                                    pluginId
+                                                ) + " (${Plugins.displayExeProvider(pkg.packageName)})"
                                             )
-                                        })
-                                    }
-                                    .build())
-                            } catch (e: Exception) {
-                                Logs.w(e)
+                                            .subText("v" + pkg.versionName)
+                                            .setOnClickAction {
+                                                startActivity(Intent().apply {
+                                                    action =
+                                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                                                    data = Uri.fromParts(
+                                                        "package", pkg.packageName, null
+                                                    )
+                                                })
+                                            }
+                                            .build())
+                                } catch (e: Exception) {
+                                    Logs.w(e)
+                                }
                             }
                         }
-                    }
-                    .apply {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            val pm = app.getSystemService(Context.POWER_SERVICE) as PowerManager
-                            if (!pm.isIgnoringBatteryOptimizations(app.packageName)) {
-                                addItem(MaterialAboutActionItem.Builder()
-                                    .icon(R.drawable.ic_baseline_running_with_errors_24)
-                                    .text(R.string.ignore_battery_optimizations)
-                                    .subText(R.string.ignore_battery_optimizations_sum)
+                        .apply {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                val pm = app.getSystemService(Context.POWER_SERVICE) as PowerManager
+                                if (!pm.isIgnoringBatteryOptimizations(app.packageName)) {
+                                    addItem(
+                                        MaterialAboutActionItem.Builder()
+                                            .icon(R.drawable.ic_baseline_running_with_errors_24)
+                                            .text(R.string.ignore_battery_optimizations)
+                                            .subText(R.string.ignore_battery_optimizations_sum)
+                                            .setOnClickAction {
+                                                requestIgnoreBatteryOptimizations.launch(
+                                                    Intent(
+                                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                                        "package:${app.packageName}".toUri()
+                                                    )
+                                                )
+                                            }
+                                            .build())
+                                }
+                            }
+                            addItem(
+                                MaterialAboutActionItem.Builder()
+                                    .icon(R.drawable.ic_baseline_card_giftcard_24)
+                                    .text(R.string.sekai)
                                     .setOnClickAction {
-                                        requestIgnoreBatteryOptimizations.launch(
-                                            Intent(
-                                                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                                Uri.parse("package:${app.packageName}")
-                                            )
-                                        )
+                                        requireContext().launchCustomTab("https://sekai.icu/sponsors/")
                                     }
-                                    .build())
-                            }
-                        }
-                        addItem(MaterialAboutActionItem.Builder()
-                            .icon(R.drawable.ic_baseline_card_giftcard_24)
-                            .text(R.string.sekai)
-                            .setOnClickAction {
-                                requireContext().launchCustomTab("https://sekai.icu/sponsors/")
-                            }
-                            .build()
-                        )
-                    }
-                    .build())
-                .addCard(MaterialAboutCard.Builder()
-                    .outline(false)
-                    .title(R.string.project)
-                    .addItem(MaterialAboutActionItem.Builder()
-                        .icon(R.drawable.ic_baseline_sanitizer_24)
-                        .text(R.string.github)
-                        .setOnClickAction {
-                            requireContext().launchCustomTab(
-                                "https://github.com/xchacha20-poly1305/husi"
-
+                                    .build()
                             )
                         }
                         .build())
-                    .addItem(MaterialAboutActionItem.Builder()
-                        .icon(R.drawable.baseline_translate_24)
-                        .text(R.string.translate_platform)
-                        .setOnClickAction {
-                            requireContext().launchCustomTab(
-                                "https://hosted.weblate.org/projects/husi/husi/"
+                .addCard(
+                    MaterialAboutCard.Builder()
+                        .outline(false)
+                        .title(R.string.project)
+                        .addItem(
+                            MaterialAboutActionItem.Builder()
+                                .icon(R.drawable.ic_baseline_sanitizer_24)
+                                .text(R.string.github)
+                                .setOnClickAction {
+                                    requireContext().launchCustomTab(
+                                        "https://github.com/xchacha20-poly1305/husi"
 
-                            )
-                        }
+                                    )
+                                }
+                                .build())
+                        .addItem(
+                            MaterialAboutActionItem.Builder()
+                                .icon(R.drawable.baseline_translate_24)
+                                .text(R.string.translate_platform)
+                                .setOnClickAction {
+                                    requireContext().launchCustomTab(
+                                        "https://hosted.weblate.org/projects/husi/husi/"
+
+                                    )
+                                }
+                                .build())
                         .build())
-                    .build())
                 .build()
 
         }
@@ -184,9 +203,10 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
 
-            view.findViewById<RecyclerView>(com.danielstone.materialaboutlibrary.R.id.mal_recyclerview).apply {
-                overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-            }
+            view.findViewById<RecyclerView>(com.danielstone.materialaboutlibrary.R.id.mal_recyclerview)
+                .apply {
+                    overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+                }
         }
 
     }
