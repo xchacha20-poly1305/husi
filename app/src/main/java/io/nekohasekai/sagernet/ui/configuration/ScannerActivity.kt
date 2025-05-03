@@ -79,15 +79,11 @@ class ScannerActivity : ThemedActivity() {
     private lateinit var analysisExecutor: ExecutorService
     private lateinit var binding: LayoutScannerBinding
 
-    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTitle(R.string.add_profile_methods_scan_qr_code)
 
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
         if (Build.VERSION.SDK_INT >= 25) getSystemService<ShortcutManager>()!!.reportShortcutUsed("scan")
 
         binding = LayoutScannerBinding.inflate(layoutInflater)
