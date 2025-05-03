@@ -3,7 +3,10 @@ package io.nekohasekai.sagernet.ui.traffic
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +17,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutConnectionListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
@@ -26,6 +30,17 @@ class ConnectionListFragment : Fragment(R.layout.layout_connection_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.connections)) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                left = bars.left + dp2px(8),
+                right = bars.right + dp2px(8),
+                bottom = bars.bottom + dp2px(8),
+            )
+            WindowInsetsCompat.CONSUMED
+        }
         binding = LayoutConnectionListBinding.bind(view)
         binding.connections.layoutManager = FixedLinearLayoutManager(binding.connections)
         binding.connections.adapter = ConnectionAdapter().also {

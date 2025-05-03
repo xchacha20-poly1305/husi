@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -56,8 +57,9 @@ class AssetsActivity : ThemedActivity() {
         updating = findViewById(R.id.action_updating)
         updating.visibility = View.GONE
 
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setDecorFitsSystemWindowsForParticularAPIs()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -68,7 +70,7 @@ class AssetsActivity : ThemedActivity() {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.recycler_view)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.recyclerView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -79,7 +81,7 @@ class AssetsActivity : ThemedActivity() {
             )
             WindowInsetsCompat.CONSUMED
         }
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setTitle(R.string.route_assets)
             setDisplayHomeAsUpEnabled(true)

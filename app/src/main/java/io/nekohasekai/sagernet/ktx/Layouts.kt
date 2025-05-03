@@ -76,6 +76,7 @@ class FixedLinearLayoutManager(private val recyclerView: RecyclerView) :
 
 }
 
+// usually call if DataStore.showBottomBar
 fun NestedScrollView.setStatusBar(fab: FloatingActionButton) {
     setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
         val childView = v.getChildAt(0)

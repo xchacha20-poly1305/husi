@@ -13,6 +13,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -230,8 +231,9 @@ class GroupSettingsActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setDecorFitsSystemWindowsForParticularAPIs()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -243,7 +245,7 @@ class GroupSettingsActivity(
             WindowInsetsCompat.CONSUMED
         }
 
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setTitle(R.string.group_settings)
             setDisplayHomeAsUpEnabled(true)
@@ -379,8 +381,7 @@ class GroupSettingsActivity(
 
             ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
                 val bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-                            or WindowInsetsCompat.Type.displayCutout()
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
                 )
                 v.updatePadding(
                     left = bars.left,

@@ -204,7 +204,7 @@ class AppManagerActivity : ThemedActivity() {
         binding = LayoutAppsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.collapsing_toolbar)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.collapsingToolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -215,7 +215,7 @@ class AppManagerActivity : ThemedActivity() {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.list)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.list) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
