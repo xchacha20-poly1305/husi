@@ -220,16 +220,6 @@ class ConfigurationFragment @JvmOverloads constructor(
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.group_tab)) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-            )
-            WindowInsetsCompat.CONSUMED
-        }
 
         val activity = activity
         val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
@@ -242,7 +232,19 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
 
         groupPager = view.findViewById(R.id.group_pager)
+
         tabLayout = view.findViewById(R.id.group_tab)
+        ViewCompat.setOnApplyWindowInsetsListener(tabLayout) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                left = bars.left,
+                right = bars.right,
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+
         adapter = GroupPagerAdapter()
         ProfileManager.addListener(adapter)
         GroupManager.addListener(adapter)

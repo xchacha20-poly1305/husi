@@ -54,7 +54,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.layout_about)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.layoutAbout) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )

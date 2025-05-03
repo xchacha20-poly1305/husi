@@ -4,10 +4,16 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutConnectionBinding
+import io.nekohasekai.sagernet.ktx.dp2px
+import io.nekohasekai.sagernet.ktx.setStatusBar
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import libcore.Libcore
@@ -33,8 +39,37 @@ class ConnectionFragment(private val conn: Connection) :
                 (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
             }
         }
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                top = bars.top,
+                left = bars.left,
+                right = bars.right,
+                bottom = bars.bottom,
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            // FIXME Bangs too large
+            v.updatePadding(
+//                left = bars.left,
+//                right = bars.right,
+                bottom = bars.bottom,
+            )
+            insets
+        }
 
-        (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = false
+        (requireActivity() as MainActivity).let {
+            if (DataStore.showBottomBar) {
+                binding.root.setStatusBar(it.binding.fab)
+            }
+            it.onBackPressedCallback.isEnabled = false
+        }
 
         bind()
     }

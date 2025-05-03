@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
@@ -11,6 +14,7 @@ import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
@@ -24,6 +28,17 @@ class StatusFragment : Fragment(R.layout.layout_status) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = LayoutStatusBinding.bind(view)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.clashModeList) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                left = bars.left + dp2px(4),
+                right = bars.right + dp2px(4),
+                bottom = bars.bottom + dp2px(4),
+            )
+            WindowInsetsCompat.CONSUMED
+        }
         binding.clashModeList.layoutManager = FixedLinearLayoutManager(binding.clashModeList)
 
         val service = (requireActivity() as MainActivity).connection.service
