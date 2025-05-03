@@ -9,6 +9,9 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.os.LocaleListCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
@@ -46,6 +49,17 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         super.onViewCreated(view, savedInstanceState)
 
         listView.layoutManager = FixedLinearLayoutManager(listView)
+        ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                left = bars.left,
+                right = bars.right,
+                bottom = bars.bottom,
+            )
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private val reloadListener = Preference.OnPreferenceChangeListener { _, _ ->
@@ -100,10 +114,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                                 }
                                 val theme = Theme.getTheme(newTheme as Int)
                                 app.setTheme(theme)
-                                requireActivity().apply {
-                                    setTheme(theme)
-                                    ActivityCompat.recreate(this)
-                                }
+                                ActivityCompat.recreate(requireActivity())
                                 true
                             }
                         }
@@ -112,6 +123,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         Key.NIGHT_THEME -> preference.setOnPreferenceChangeListener { _, newTheme ->
                             Theme.currentNightMode = (newTheme as String).toInt()
                             Theme.applyNightTheme()
+                            ActivityCompat.recreate(requireActivity())
                             true
                         }
 

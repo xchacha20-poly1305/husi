@@ -5,7 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              tools:context=".ui.ToolsFragment">
+              tools:context=".ui.tools.ToolsFragment">
 
     <include
             layout="@layout/layout_appbar"

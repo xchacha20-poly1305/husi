@@ -27,7 +27,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ShortcutManager
 import android.graphics.ImageDecoder
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -36,11 +35,19 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.*
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.core.TorchState
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.NotFoundException
@@ -52,10 +59,17 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.group.RawUpdater
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
+import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ktx.forEachTry
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import io.nekohasekai.sagernet.widget.ListHolderListener
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -69,7 +83,6 @@ class ScannerActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setTitle(R.string.add_profile_methods_scan_qr_code)
 
         if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
@@ -79,7 +92,19 @@ class ScannerActivity : ThemedActivity() {
 
         binding = LayoutScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ListHolderListener.setup(this)
+
+        setDecorFitsSystemWindowsForParticularAPIs()
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar)) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                top = bars.top,
+                left = bars.left,
+                right = bars.right,
+            )
+            WindowInsetsCompat.CONSUMED
+        }
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
@@ -184,7 +209,7 @@ class ScannerActivity : ThemedActivity() {
             } catch (e: SubscriptionFoundException) {
                 startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
                     action = Intent.ACTION_VIEW
-                    data = Uri.parse(e.link)
+                    data = e.link.toUri()
                 })
             } catch (e: Exception) {
                 fatalError(e)
@@ -231,7 +256,7 @@ class ScannerActivity : ThemedActivity() {
                                     BinaryBitmap(GlobalHistogramBinarizer(source)),
                                     mapOf(DecodeHintType.TRY_HARDER to true)
                                 )
-                            } catch (e: NotFoundException) {
+                            } catch (_: NotFoundException) {
                                 qrReader.decode(
                                     BinaryBitmap(GlobalHistogramBinarizer(source.invert())),
                                     mapOf(DecodeHintType.TRY_HARDER to true)
@@ -265,7 +290,7 @@ class ScannerActivity : ThemedActivity() {
                                     MainActivity::class.java
                                 ).apply {
                                     action = Intent.ACTION_VIEW
-                                    data = Uri.parse(e.link)
+                                    data = e.link.toUri()
                                 })
                             finish()
                         } catch (e: Throwable) {
