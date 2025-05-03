@@ -43,7 +43,7 @@ class StunActivity : ThemedActivity() {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.nat_result)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout)) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars()
                         or WindowInsetsCompat.Type.displayCutout()
