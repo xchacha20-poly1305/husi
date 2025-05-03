@@ -45,7 +45,7 @@ class RuleSetMatchActivity : ThemedActivity() {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById<Toolbar>(R.id.main_layout)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
