@@ -1,0 +1,79 @@
+name: Test Gradle
+
+on:
+  push:
+    branches:
+      - dev*
+    paths:
+      - "app/**"
+      - ".github/workflows/test_gradle.yml"
+  pull_request:
+    branches:
+      - dev*
+    paths:
+      - "app/**"
+      - ".github/workflows/test_gradle.yml"
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      # Set up libcore
+      - name: Golang Status
+        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
+      - name: Libcore Status
+        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+      - name: LibCore Cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/libs/libcore.aar
+          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+      - name: Golang Version
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: version
+        run: |
+          source buildScript/init/version.sh
+          echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
+      - name: Install Golang
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.version.outputs.go_version }}
+          cache-dependency-path: libcore/go.sum
+      - name: Setup Android NDK
+        if: steps.cache.outputs.cache-hit != 'true'
+        # Pin NDK version for `gomobile`.
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          add-to-path: true
+          ndk-version: r28
+          local-cache: false
+      - name: Build Libcore
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          ./run lib core
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        env:
+          BUILD_PLUGIN: none
+        with:
+          path: ~/.gradle
+          key: gradle-foss-${{ hashFiles('**/*.gradle.kts') }}
+      - name: Run Test
+        run: |
+          make test_gradle

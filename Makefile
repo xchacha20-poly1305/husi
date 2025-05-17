@@ -36,6 +36,11 @@ fmt_go_install:
 	go install -v mvdan.cc/gofumpt@latest
 	go install -v github.com/daixiang0/gci@latest
 
+test: test_gradle test_go
+
+test_gradle:
+	./gradlew testFossDebugUnitTest
+
 test_go:
 	cd libcore/ && go test -v -count=1 ./...
 
@@ -46,7 +51,7 @@ generate_option:
 	cd ./libcore/cmd/boxoption && go run . | xclip -selection clipboard
 
 patch_go1230:
-	curl $(GO_PATCH_1230)| sudo patch --verbose -p 1 -d $(GOROOT)
+	curl $(GO_PATCH_1230) | sudo patch --verbose -p 1 -d $(GOROOT)
 
 patch_go1234:
 	curl $(GO_PATCH_1234) | sudo patch --verbose -p 1 -d $(GOROOT)

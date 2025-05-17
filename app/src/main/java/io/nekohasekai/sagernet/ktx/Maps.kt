@@ -95,7 +95,7 @@ private fun mappedValue(value: Any?): Any? = when (value) {
 
 fun mergeJson(from: JSONMap, to: JSONMap, listAppend: Boolean = false) {
     for (fromField in from) {
-        val key = fromField.key // always use in from and to
+        val key = fromField.key
 
         when (val fromValue = fromField.value) {
             null -> {}
@@ -105,7 +105,13 @@ fun mergeJson(from: JSONMap, to: JSONMap, listAppend: Boolean = false) {
                 val jsonValue = toJSONMap(fromValue)
                 when (toValue) {
                     null -> to[key] = jsonValue
-                    is Map<*, *> -> mergeJson(jsonValue, toJSONMap(toValue))
+                    is Map<*, *> -> {
+                        val toMap = toJSONMap(toValue)
+                        mergeJson(jsonValue, toMap, listAppend)
+                        to[key] = toMap
+                    }
+
+                    else -> to[key] = jsonValue
                 }
             }
 
@@ -116,18 +122,30 @@ fun mergeJson(from: JSONMap, to: JSONMap, listAppend: Boolean = false) {
                 } else {
                     if (toValue is List<*>) {
                         toValue + fromValue
-                    } else {
+                    } else if (toValue != null) {
                         listOf(toValue) + fromValue
+                    } else {
+                        fromValue
                     }
                 }
             }
 
-            else -> to[key] = if (shouldAsMap(fromValue)) {
-                val mergedMap = (to[key] as? Map<*, *>)?.let { toJSONMap(it) } ?: mutableMapOf()
-                mergeJson(fromValue.asMap(), mergedMap)
-                to[key] = mergedMap
-            } else {
-                fromValue
+            else -> {
+                if (shouldAsMap(fromValue)) {
+                    val fromMap = fromValue.asMap()
+                    val toValue = to[key]
+                    if (toValue is Map<*, *>) {
+                        val toMap = toJSONMap(toValue)
+                        mergeJson(fromMap, toMap, listAppend)
+                        to[key] = toMap
+                    } else {
+                        val newMap = mutableMapOf<String, Any?>()
+                        mergeJson(fromMap, newMap, listAppend)
+                        to[key] = newMap
+                    }
+                } else {
+                    to[key] = fromValue
+                }
             }
         }
     }
