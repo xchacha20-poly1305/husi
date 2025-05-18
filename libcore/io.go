@@ -112,14 +112,14 @@ func copyToFile(root *os.Root, name string, reader io.Reader) error {
 
 // removeIfHasPrefix removes all files which starts with prefix in dir. But it will ignore any error.
 func removeIfHasPrefix(dir, prefix string) error {
-	return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return nil
+	return filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) (_ error) {
+		if err != nil || entry.IsDir() {
+			return
 		}
-		if strings.HasPrefix(info.Name(), prefix) {
+		if strings.HasPrefix(entry.Name(), prefix) {
 			_ = os.Remove(path)
 		}
-		return nil
+		return
 	})
 }
 
