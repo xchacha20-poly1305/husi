@@ -200,13 +200,6 @@ object ProfileManager {
             )
             createRule(
                 RuleEntity(
-                    enabled = true,
-                    name = "hijack-dns",
-                    action = ACTION_HIJACK_DNS,
-                )
-            )
-            createRule(
-                RuleEntity(
                     name = app.getString(R.string.route_opt_block_quic),
                     action = ACTION_ROUTE,
                     protocol = setOf("quic"),

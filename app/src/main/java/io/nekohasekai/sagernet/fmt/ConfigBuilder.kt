@@ -663,10 +663,6 @@ fun buildConfig(
                         }
                     }
 
-                    SingBoxOptions.ACTION_HIJACK_DNS -> {
-                        action = ruleAction
-                    }
-
                     SingBoxOptions.ACTION_RESOLVE -> {
                         action = ruleAction
 

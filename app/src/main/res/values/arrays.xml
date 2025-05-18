@@ -575,7 +575,6 @@
         <item>route</item>
         <item>route-options</item>
         <item>sniff</item>
-        <item>hijack-dns</item>
         <item>resolve</item>
     </string-array>
 
