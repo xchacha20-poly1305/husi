@@ -568,4 +568,7 @@
     <string name="sort">مرتب سازی</string>
     <string name="language">زبان</string>
     <string name="language_system_default">پیش‌فرض سیستم</string>
+    <string name="network_interface_strategy">استراتژی رابط شبکه</string>
+    <string name="pause">مکث کنید</string>
+    <string name="network_interface_preference">استراتژی رابط شبکه</string>
 </resources>
