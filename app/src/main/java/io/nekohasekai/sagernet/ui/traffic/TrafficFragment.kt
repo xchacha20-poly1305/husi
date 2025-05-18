@@ -12,6 +12,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
@@ -32,6 +33,11 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
     private lateinit var binding: LayoutTrafficBinding
     private lateinit var adapter: TrafficAdapter
+
+    private val menuSearch by lazy { toolbar.menu.findItem(R.id.action_traffic_search) }
+    private val menuPause by lazy { toolbar.menu.findItem(R.id.action_traffic_pause) }
+    private val actionSort by lazy { toolbar.menu.findItem(R.id.action_sort) }
+    private val actionSortMethod by lazy { toolbar.menu.findItem(R.id.action_sort_method) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -63,8 +69,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         }
         ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.traffic_pager)) { v, insets ->
             val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-                        or WindowInsetsCompat.Type.displayCutout()
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             v.updatePadding(
                 left = bars.left,
@@ -123,6 +128,26 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             setOnFocusCancel()
             isVisible = true
         }
+
+        fun updateMenu(isConnectionUI: Boolean) {
+            menuSearch.isVisible = isConnectionUI
+            menuPause.isVisible = isConnectionUI
+            actionSort.isVisible = isConnectionUI
+            actionSortMethod.isVisible = isConnectionUI
+        }
+        binding.trafficTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                val isConnectionUI = tab.position == POSITION_CONNECTIONS
+                updateMenu(isConnectionUI)
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+
+        })
+        updateMenu(false)
+
         (requireActivity() as MainActivity).connection.service?.enableDashboardStatus(true)
     }
 
@@ -131,97 +156,99 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
         super.onDestroyView()
     }
 
-    override fun onMenuItemClick(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_reset_network -> {
-            val mainActivity = (requireActivity() as? MainActivity) ?: return true
-            val size =
-                (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
-                    ?.adapter?.data?.size ?: 0
-            MaterialAlertDialogBuilder(mainActivity)
-                .setTitle(R.string.reset_connections)
-                .setMessage(
-                    getString(
-                        R.string.ensure_close_all,
-                        size.toString(),
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_reset_network -> {
+                val mainActivity = (requireActivity() as? MainActivity) ?: return true
+                val size =
+                    (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
+                        ?.adapter?.data?.size ?: 0
+                MaterialAlertDialogBuilder(mainActivity)
+                    .setTitle(R.string.reset_connections)
+                    .setMessage(
+                        getString(
+                            R.string.ensure_close_all,
+                            size.toString(),
+                        )
                     )
-                )
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    mainActivity.connection.service?.resetNetwork()
-                    snackbar(R.string.have_reset_network).show()
-                }
-                .setNegativeButton(R.string.no_thanks) { _, _ -> }
-                .show()
-            true
-        }
-
-        R.id.action_traffic_pause -> {
-            if (isPausing) {
-                isPausing = false
-                item.setIcon(android.R.drawable.ic_media_pause)
-            } else {
-                isPausing = true
-                item.setIcon(android.R.drawable.ic_media_play)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        mainActivity.connection.service?.resetNetwork()
+                        snackbar(R.string.have_reset_network).show()
+                    }
+                    .setNegativeButton(R.string.no_thanks) { _, _ -> }
+                    .show()
+                true
             }
-            true
+
+            R.id.action_traffic_pause -> {
+                if (isPausing) {
+                    isPausing = false
+                    item.setIcon(android.R.drawable.ic_media_pause)
+                } else {
+                    isPausing = true
+                    item.setIcon(android.R.drawable.ic_media_play)
+                }
+                true
+            }
+
+            // Sort
+
+            R.id.action_sort_ascending -> {
+                DataStore.trafficDescending = false
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_descending -> {
+                DataStore.trafficDescending = true
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_time -> {
+                DataStore.trafficSortMode = TrafficSortMode.START
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_inbound -> {
+                DataStore.trafficSortMode = TrafficSortMode.INBOUND
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_source -> {
+                DataStore.trafficSortMode = TrafficSortMode.SRC
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_destination -> {
+                DataStore.trafficSortMode = TrafficSortMode.DST
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_upload -> {
+                DataStore.trafficSortMode = TrafficSortMode.UPLOAD
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_download -> {
+                DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
+                item.isChecked = true
+                true
+            }
+
+            R.id.action_sort_rule -> {
+                DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
+                item.isChecked = true
+                true
+            }
+
+            else -> false
         }
-
-        // Sort
-
-        R.id.action_sort_ascending -> {
-            DataStore.trafficDescending = false
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_descending -> {
-            DataStore.trafficDescending = true
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_time -> {
-            DataStore.trafficSortMode = TrafficSortMode.START
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_inbound -> {
-            DataStore.trafficSortMode = TrafficSortMode.INBOUND
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_source -> {
-            DataStore.trafficSortMode = TrafficSortMode.SRC
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_destination -> {
-            DataStore.trafficSortMode = TrafficSortMode.DST
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_upload -> {
-            DataStore.trafficSortMode = TrafficSortMode.UPLOAD
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_download -> {
-            DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
-            item.isChecked = true
-            true
-        }
-
-        R.id.action_sort_rule -> {
-            DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
-            item.isChecked = true
-            true
-        }
-
-        else -> false
     }
 
     private var isPausing = false
@@ -262,13 +289,9 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
-                POSITION_STATUS -> StatusFragment().also {
-                    searchView.isVisible = false
-                }
+                POSITION_STATUS -> StatusFragment()
 
-                POSITION_CONNECTIONS -> ConnectionListFragment().also {
-                    searchView.isVisible = true
-                }
+                POSITION_CONNECTIONS -> ConnectionListFragment()
 
                 else -> throw IllegalArgumentException()
             }
