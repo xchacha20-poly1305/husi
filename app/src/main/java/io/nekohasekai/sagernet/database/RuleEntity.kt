@@ -56,7 +56,7 @@ data class RuleEntity(
     // action: resolve
     @ColumnInfo(defaultValue = "") var resolveStrategy: String = "",
     @ColumnInfo(defaultValue = "0") var resolveDisableCache: Boolean = false,
-    @ColumnInfo(defaultValue = "") var resolveRewriteTTL: String = "",
+    @ColumnInfo(defaultValue = "-1") var resolveRewriteTTL: Int = -1,
     @ColumnInfo(defaultValue = "") var resolveClientSubnet: String = "",
 
     // action: sniff
@@ -115,10 +115,11 @@ data class RuleEntity(
 
         if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy\n"
         if (resolveDisableCache) summary += "resolveDisableCache\n"
-        if (resolveRewriteTTL.isNotBlank()) summary += "resolveRewriteTTL: $resolveRewriteTTL\n"
+        if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL\n"
         if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet\n"
 
         if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
+        if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
 
         val lines = summary.trim().split("\n")
         return if (lines.size > 5) {

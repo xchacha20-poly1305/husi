@@ -162,6 +162,15 @@ fun Rule_Default.checkEmpty(): Boolean {
     if (override_address?.isNotEmpty() == true) return false
     if (override_port != null && override_port > 0) return false
     if (tls_fragment == true) return false
+    if (tls_record_fragment == true) return false
+
+    if (strategy != null) return false
+    if (disable_cache == true) return false
+    if (rewrite_ttl != null) return false
+    if (client_subnet?.isNotEmpty() == true) return false
+
+    if (timeout?.isNotEmpty() == true) return false
+    if (sniffer?.isNotEmpty() == true) return false
 
     return true
 }

@@ -27,6 +27,7 @@ object Key {
     const val MODE_PROXY = "proxy"
     const val MEMORY_LIMIT = "memoryLimit"
     const val DEBUG_LISTEN = "debugListen"
+    const val NETWORK_STRATEGY = "networkStrategy"
 
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"

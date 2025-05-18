@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.group
 
-import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionType
@@ -12,6 +11,7 @@ import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
@@ -59,7 +59,7 @@ abstract class GroupUpdater {
     protected suspend fun forceResolve(
         profiles: List<AbstractBean>, groupId: Long?,
     ) {
-        val ipv6Mode = DataStore.ipv6Mode
+        val networkStrategy = DataStore.networkStrategy
         val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
         val lookupJobs = mutableListOf<Job>()
         val progress = Progress(profiles.size)
@@ -67,7 +67,10 @@ abstract class GroupUpdater {
             GroupUpdater.progress[groupId] = progress
             GroupManager.postReload(groupId)
         }
-        val ipv6First = ipv6Mode >= IPv6Mode.PREFER
+        val ipv6First = when(networkStrategy) {
+            SingBoxOptions.STRATEGY_IPV6_ONLY, SingBoxOptions.STRATEGY_PREFER_IPV6 -> true
+            else -> false
+        }
 
         for (profile in profiles) {
             when (profile) {

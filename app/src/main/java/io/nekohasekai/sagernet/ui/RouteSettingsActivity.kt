@@ -23,6 +23,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -45,6 +46,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.AppListPreference
+import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import io.nekohasekai.sagernet.widget.updateSummary
@@ -186,7 +188,7 @@ class RouteSettingsActivity(
             DataStore.routeTlsFragmentFallbackDelay.isBlank() &&
             DataStore.routeResolveStrategy.isBlank() &&
             !DataStore.routeResolveDisableCache &&
-            DataStore.routeResolveRewriteTTL.isBlank() &&
+            DataStore.routeResolveRewriteTTL >= 0 &&
             DataStore.routeResolveClientSubnet.isBlank() &&
             DataStore.routeSniffTimeout.isBlank() &&
             DataStore.routeSniffers.isEmpty()
@@ -237,6 +239,9 @@ class RouteSettingsActivity(
     private lateinit var clientType: MultiSelectListPreference
     private lateinit var overridePort: EditTextPreference
     private lateinit var sniffers: MultiSelectListPreference
+    private lateinit var tlsFragment: SwitchPreference
+    private lateinit var tlsFragmentFallbackDelay: DurationPreference
+    private lateinit var tlsRecordFragment: SwitchPreference
 
     private lateinit var actionRoute: PreferenceCategory
     private lateinit var actionRouteOptions: PreferenceCategory
@@ -257,6 +262,29 @@ class RouteSettingsActivity(
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
         sniffers = findPreference(Key.ROUTE_SNIFFERS)!!
+
+        // TLS fragment + fallback delay is conflict with TLS record fragment
+        tlsFragment = findPreference(Key.ROUTE_TLS_FRAGMENT)!!
+        tlsFragmentFallbackDelay = findPreference(Key.ROUTE_TLS_FRAGMENT_FALLBACK_DELAY)!!
+        tlsRecordFragment = findPreference(Key.ROUTE_TLS_RECORD_FRAGMENT)!!
+        fun updateTlsFragment(enableTlsFragment: Boolean = tlsFragment.isChecked) {
+            tlsFragmentFallbackDelay.isEnabled = enableTlsFragment
+            tlsRecordFragment.isEnabled = !enableTlsFragment
+        }
+        fun updateTlsRecordFragment(enableTlsRecordFragment: Boolean = tlsRecordFragment.isChecked) {
+            tlsFragmentFallbackDelay.isEnabled = !enableTlsRecordFragment
+            tlsFragment.isEnabled = !enableTlsRecordFragment
+        }
+        updateTlsFragment()
+        updateTlsRecordFragment()
+        tlsFragment.setOnPreferenceChangeListener  { _, newValue ->
+            updateTlsFragment(newValue as Boolean)
+            true
+        }
+        tlsRecordFragment.setOnPreferenceChangeListener { _, newValue ->
+            updateTlsRecordFragment(newValue as Boolean)
+            true
+        }
 
         actionRoute = findPreference(Key.ROUTE_ACTION_ROUTE)!!
         actionRouteOptions = findPreference(Key.ROUTE_ACTION_ROUTE_OPTIONS)!!

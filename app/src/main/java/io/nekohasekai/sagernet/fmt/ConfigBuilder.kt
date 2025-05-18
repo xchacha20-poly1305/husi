@@ -91,7 +91,7 @@ const val TAG_DNS_FAKE = "dns-fake"
 
 const val LOCALHOST4 = "127.0.0.1"
 
-val FAKE_DNS_QUERY_TYPE: List<String> = listOf("A", "AAAA")
+val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
 
 class ConfigBuildResult(
     var config: String,
@@ -188,6 +188,7 @@ fun buildConfig(
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
     val externalIndexMap = ArrayList<IndexEntity>()
+    val networkStrategy = DataStore.networkStrategy
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
@@ -229,6 +230,13 @@ fun buildConfig(
             independent_cache = true
         }
 
+        fun autoDnsDomainStrategy(s: String): String? {
+            if (s.isNotBlank()) {
+                return s
+            }
+            return networkStrategy.blankAsNull()
+        }
+
         inbounds = mutableListOf()
 
         if (!forTest) {
@@ -241,12 +249,12 @@ fun buildConfig(
                     else -> "mixed"
                 }
                 mtu = DataStore.mtu
-                when (ipv6Mode) {
-                    IPv6Mode.DISABLE -> {
+                when (networkStrategy) {
+                    SingBoxOptions.STRATEGY_IPV4_ONLY -> {
                         address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
-                    IPv6Mode.ONLY -> {
+                    SingBoxOptions.STRATEGY_IPV6_ONLY -> {
                         address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
@@ -650,6 +658,31 @@ fun buildConfig(
                             tls_fragment_fallback_delay =
                                 rule.tlsFragmentFallbackDelay.blankAsNull()
                         }
+                        if (rule.tlsRecordFragment) {
+                            tls_record_fragment = true
+                        }
+                    }
+
+                    SingBoxOptions.ACTION_HIJACK_DNS -> {
+                        action = ruleAction
+                    }
+
+                    SingBoxOptions.ACTION_RESOLVE -> {
+                        action = ruleAction
+
+                        strategy = rule.resolveStrategy
+                        if (rule.resolveDisableCache) {
+                            disable_cache = true
+                        }
+                        rewrite_ttl = rule.resolveRewriteTTL.takeIf { it >= 0 }
+                        client_subnet = rule.resolveClientSubnet.blankAsNull()
+                    }
+
+                    SingBoxOptions.ACTION_SNIFF -> {
+                        action = ruleAction
+
+                        timeout = rule.sniffTimeout.blankAsNull()
+                        sniffer = rule.sniffers.takeIf { it.isNotEmpty() }?.toList()
                     }
 
                     else -> error("unsupported action: $ruleAction")

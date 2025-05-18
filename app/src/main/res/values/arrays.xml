@@ -427,7 +427,7 @@
     </string-array>
 
     <string-array name="network_strategies">
-        <item></item>
+        <item>@string/auto</item>
         <item>@string/prefer_ipv6</item>
         <item>@string/prefer_ipv4</item>
         <item>@string/ipv4_only</item>

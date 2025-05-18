@@ -668,4 +668,5 @@
     <string name="ipv4_only">IPv4 Only</string>
     <string name="ipv6_only">IPv6 Only</string>
     <string name="sniff">Sniff</string>
+    <string name="network_strategy">Network Strategy</string>
 </resources>

@@ -19,6 +19,7 @@ import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.LayoutEmptyRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteItemBinding
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
@@ -316,7 +317,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             lateinit var rule: RuleEntity
             val profileName = binding.profileName
             val profileType = binding.profileType
-            val routeOutbound = binding.routeOutbound
+            val routeAction = binding.routeAction
             val editButton = binding.edit
             val shareLayout = binding.share
             val enableSwitch = binding.enable
@@ -325,7 +326,10 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 rule = ruleEntity
                 profileName.text = rule.displayName()
                 profileType.text = rule.mkSummary()
-                routeOutbound.text = rule.displayOutbound()
+                routeAction.text = when (rule.action) {
+                    "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
+                    else -> rule.action
+                }
                 itemView.setOnClickListener {
                     enableSwitch.performClick()
                 }

@@ -96,6 +96,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
     var memoryLimit by configurationStore.boolean(Key.MEMORY_LIMIT) { false }
     var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
+    var networkStrategy by configurationStore.string(Key.NETWORK_STRATEGY)
     var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)
 
     var networkInterfaceType by configurationStore.stringToInt(Key.NETWORK_INTERFACE_STRATEGY) {
@@ -311,7 +312,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var routeResolveStrategy by profileCacheStore.string(Key.ROUTE_RESOLVE_STRATEGY)
     var routeResolveDisableCache by profileCacheStore.boolean(Key.ROUTE_RESOLVE_DISABLE_CACHE)
-    var routeResolveRewriteTTL by profileCacheStore.string(Key.ROUTE_RESOLVE_REWRITE_TTL)
+    var routeResolveRewriteTTL by profileCacheStore.int(Key.ROUTE_RESOLVE_REWRITE_TTL)
     var routeResolveClientSubnet by profileCacheStore.string(Key.ROUTE_RESOLVE_CLIENT_SUBNET)
 
     var routeSniffTimeout by profileCacheStore.string(Key.ROUTE_SNIFF_TIMEOUT)
