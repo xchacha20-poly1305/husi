@@ -183,6 +183,7 @@ fun MyOptions.buildRuleSets(
     if (names.isEmpty()) return
 
     if (route == null) route = RouteOptions()
+    if (route.rule_set == null) route.rule_set = emptyList()
     for (set in route.rule_set) names.add(set.tag)
     val list = ArrayList<RuleSet>(names.size)
 
@@ -191,7 +192,6 @@ fun MyOptions.buildRuleSets(
         if (isRemote) list.add(RuleSet_Remote().apply {
             tag = name
             type = SingBoxOptions.RULE_SET_TYPE_REMOTE
-            format = SingBoxOptions.RULE_SET_FORMAT_BINARY
             val isIP = name.startsWith("geoip-")
             url = if (isIP) {
                 "${ipURL}/${name}.srs"
@@ -201,7 +201,6 @@ fun MyOptions.buildRuleSets(
         }) else list.add(RuleSet_Local().apply {
             tag = name
             type = SingBoxOptions.RULE_SET_TYPE_LOCAL
-            format = SingBoxOptions.RULE_SET_FORMAT_BINARY
             path = "$localPath/$name.srs"
         })
     }
