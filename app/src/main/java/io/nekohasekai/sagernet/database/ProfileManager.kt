@@ -5,13 +5,14 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import java.io.IOException
 import java.sql.SQLException
 import java.util.Locale
-
 
 object ProfileManager {
 
@@ -189,6 +190,14 @@ object ProfileManager {
         var rules = SagerDatabase.rulesDao.allRules()
         if (rules.isEmpty() && !DataStore.rulesFirstCreate) {
             DataStore.rulesFirstCreate = true
+            createRule(
+                RuleEntity(
+                    enabled = true,
+                    name = app.getString(R.string.sniff),
+                    action = ACTION_SNIFF,
+                    sniffers = app.resources.getStringArray(R.array.sniff_protocol).toSet(),
+                )
+            )
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_quic),

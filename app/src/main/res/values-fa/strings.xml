@@ -118,9 +118,6 @@
     <string name="config_type">نوع پیکربندی</string>
     <string name="edit_config">ویرایش پیکربندی</string>
     <!-- feature category -->
-    <string name="ipv6">مسیر IPv6</string>
-    <string name="prefer">ترجیح دادن</string>
-    <string name="only">فقط</string>
     <string name="metered">اشاره گر اندازه گیری شده</string>
     <string name="metered_summary">سیستم راهنمایی برای برخورد با VPN به عنوان اندازه‌گیری شده
     </string>
@@ -150,7 +147,6 @@
     <string name="route_opt_block_analysis">بلاک کردن انالیز ها</string>
     <string name="route_opt_block_quic">QUIC را مسدود کنید</string>
     <string name="domain_strategy">استراتژی حل و فصل دامنه</string>
-    <string name="traffic_sniffing">فعال کردن بو کشیدن ترافیک</string>
     <string name="enable_mux">فعال کردن مولتی پلکسر</string>
     <string name="tcp_keep_alive_interval">TCP بازه تحویل بسته را فعال نگه می دارد</string>
     <string name="proxied_apps">حالت VPN برنامه‌ها</string>
@@ -457,7 +453,6 @@
     <string name="use_selector">استفاده از انتخابگر</string>
     <string name="share_subscription">هم‌رسانی اشتراک</string>
     <string name="remove_duplicate">حذف سرورهای تکراری</string>
-    <string name="sniff_routing">نتیجه Sniff برای مسیریابی</string>
     <string name="resolve_server">یافتن آدرس سرور مطابق خط مشی IPv6</string>
     <string name="get_cert_server_hint">سرور هدف</string>
     <string name="get_cert">دریافت گواهی ها</string>

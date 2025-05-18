@@ -50,7 +50,18 @@ data class RuleEntity(
     @ColumnInfo(defaultValue = "") var overrideAddress: String = "",
     @ColumnInfo(defaultValue = "0") var overridePort: Int = 0,
     @ColumnInfo(defaultValue = "0") var tlsFragment: Boolean = false,
+    @ColumnInfo(defaultValue = "0") var tlsRecordFragment: Boolean = false,
     @ColumnInfo(defaultValue = "") var tlsFragmentFallbackDelay: String = "",
+
+    // action: resolve
+    @ColumnInfo(defaultValue = "") var resolveStrategy: String = "",
+    @ColumnInfo(defaultValue = "0") var resolveDisableCache: Boolean = false,
+    @ColumnInfo(defaultValue = "-1") var resolveRewriteTTL: Int = -1,
+    @ColumnInfo(defaultValue = "") var resolveClientSubnet: String = "",
+
+    // action: sniff
+    @ColumnInfo(defaultValue = "") var sniffTimeout: String = "",
+    @ColumnInfo(defaultValue = "") var sniffers: Set<String> = emptySet(),
 ) : Parcelable {
 
     companion object {
@@ -93,11 +104,22 @@ data class RuleEntity(
         if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress\n"
         if (overridePort > 0) summary += "overridePort: $overridePort\n"
         if (tlsFragment) {
-            summary += "tlsFragment: $tlsFragment\n"
+            summary += "TLS fragment\n"
             if (tlsFragmentFallbackDelay.isNotBlank()) {
                 summary += "tlsFragmentFallbackDelay: $tlsFragmentFallbackDelay\n"
             }
         }
+        if (tlsRecordFragment) {
+            summary += "TLS record fragment\n"
+        }
+
+        if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy\n"
+        if (resolveDisableCache) summary += "resolveDisableCache\n"
+        if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL\n"
+        if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet\n"
+
+        if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
+        if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
 
         val lines = summary.trim().split("\n")
         return if (lines.size > 5) {

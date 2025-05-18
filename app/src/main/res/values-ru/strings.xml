@@ -320,7 +320,6 @@
     <string name="proxied_apps">Режим VPN для приложений</string>
     <string name="tcp_keep_alive_interval">Интервал доставки пакетов TCP keep-alive</string>
     <string name="enable_mux">Включить мультиплексор</string>
-    <string name="traffic_sniffing">Включить анализ трафика</string>
     <string name="domain_strategy">Стратегия разрешения доменов</string>
     <string name="route_opt_block_ads">Блокировать рекламу</string>
     <string name="route_opt_bypass_lan">Обход LAN</string>
@@ -348,9 +347,6 @@
         лимитным тарифным планом
     </string>
     <string name="metered">Подсказка о соединении с лимитным тарифным планом</string>
-    <string name="only">Исключительно</string>
-    <string name="prefer">Предпочитать</string>
-    <string name="ipv6">Маршрут IPv6</string>
     <string name="edit_config">Изменить конфигурацию</string>
     <string name="config_type">Тип конфигурации</string>
     <string name="extra_headers">Дополнительные заголовки</string>
@@ -494,7 +490,6 @@
     <string name="front_proxy">Прямой прокси</string>
     <string name="reset_connections">Сбросить соединения</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
-    <string name="sniff_routing">Перехватывать результат для Маршрутизации</string>
     <string name="inbound_password">Пароль пользователя SOCKS5</string>
     <string name="vpn_app_type">Тип приложения</string>
     <string name="vpn_core_type">Тип ядра</string>

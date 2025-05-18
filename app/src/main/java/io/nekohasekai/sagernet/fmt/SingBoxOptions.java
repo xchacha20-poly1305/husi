@@ -54,6 +54,11 @@ public class SingBoxOptions {
 
     public static final String SNIFF_DNS = "dns";
 
+    public static final String STRATEGY_PREFER_IPV6 = "prefer_ipv6";
+    public static final String STRATEGY_PREFER_IPV4 = "prefer_ipv4";
+    public static final String STRATEGY_IPV4_ONLY = "ipv4_only";
+    public static final String STRATEGY_IPV6_ONLY = "ipv6_only";
+
     public static final String STRATEGY_DEFAULT = "default";
     public static final String STRATEGY_HYBRID = "hybrid";
     public static final String STRATEGY_FALLBACK = "fallback";
