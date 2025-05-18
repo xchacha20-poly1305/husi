@@ -8,12 +8,12 @@ import android.net.ProxyInfo
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.PowerManager
-import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.mapX
@@ -99,11 +99,11 @@ class VpnService : BaseVpnService(),
         val builder = Builder().setConfigureIntent(SagerNet.configureIntent(this))
             .setSession(getString(R.string.app_name))
             .setMtu(DataStore.mtu)
-        val ipv6Mode = DataStore.ipv6Mode
+        val networkStrategy = DataStore.networkStrategy
 
         // address
         builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
-        if (ipv6Mode != IPv6Mode.DISABLE) {
+        if (networkStrategy != SingBoxOptions.STRATEGY_IPV4_ONLY) {
             builder.addAddress(PRIVATE_VLAN6_CLIENT, 126)
         }
         builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
@@ -117,13 +117,13 @@ class VpnService : BaseVpnService(),
             builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
             builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
             // https://issuetracker.google.com/issues/149636790
-            if (ipv6Mode != IPv6Mode.DISABLE) {
+            if (networkStrategy != SingBoxOptions.STRATEGY_IPV4_ONLY) {
                 builder.addRoute("2000::", 3)
                 builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
             }
         } else {
             builder.addRoute("0.0.0.0", 0)
-            if (ipv6Mode != IPv6Mode.DISABLE) {
+            if (networkStrategy != SingBoxOptions.STRATEGY_IPV4_ONLY) {
                 builder.addRoute("::", 0)
             }
         }

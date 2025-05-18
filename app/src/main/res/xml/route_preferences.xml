@@ -122,13 +122,60 @@
         <SwitchPreference
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="routeTlsFragment"
-            app:title="@string/tls_fragment"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
+            app:title="@string/tls_fragment" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_wb_sunny_24"
+            app:key="routeTlsRecordFragment"
+            app:title="@string/tls_record_fragment" />
+        <io.nekohasekai.sagernet.widget.DurationPreference
             app:icon="@drawable/ic_baseline_timelapse_24"
             app:key="routeTlsFragmentFallbackDelay"
             app:title="@string/tls_fragment_fallback_delay"
             app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="routeActionResolveOptions"
+        app:title="Resolve">
+        <rikka.preference.SimpleMenuPreference
+            app:entries="@array/network_strategies"
+            app:entryValues="@array/network_strategies_values"
+            app:icon="@drawable/ic_baseline_domain_24"
+            app:key="routeResolveStrategy"
+            app:title="Resolve Strategy"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_cached"
+            app:key="routeResolveDisableCache"
+            app:title="Disable Cache"
+            app:useSimpleSummaryProvider="true" />
+        <io.nekohasekai.sagernet.widget.DurationPreference
+            app:icon="@drawable/ic_baseline_timelapse_24"
+            app:key="routeResolveRewriteTTL"
+            app:title="Rewrite TTL"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_push_pin_24"
+            app:key="routeResolveClientSubnet"
+            app:title="Client Subnet"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="routeActionSniffOptions"
+        app:title="@string/sniff">
+        <io.nekohasekai.sagernet.widget.DurationPreference
+            app:icon="@drawable/ic_baseline_timelapse_24"
+            app:key="routeSniffTimeout"
+            app:title="@string/sniff_timeout"
+            app:useSimpleSummaryProvider="true" />
+        <MultiSelectListPreference
+            app:defaultValue="@array/empty"
+            app:entries="@array/sniff_protocol"
+            app:entryValues="@array/sniff_protocol"
+            app:icon="@drawable/ic_baseline_layers_24"
+            app:key="routeSniffers"
+            app:title="Sniffers" />
     </PreferenceCategory>
 
 </PreferenceScreen>

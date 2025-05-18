@@ -84,8 +84,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         lateinit var bypassLan: SwitchPreference
         lateinit var bypassLanInCore: SwitchPreference
-        lateinit var enableSniff: SwitchPreference
-        lateinit var sniffTimeout: DurationPreference
 
         lateinit var logLevel: LongClickListPreference
         lateinit var alwaysShowAddress: SwitchPreference
@@ -237,9 +235,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             }
                         }
 
-                        Key.ENABLE_SNIFF -> enableSniff = preference as SwitchPreference
-                        Key.SNIFF_TIMEOUT -> sniffTimeout = preference as DurationPreference
-
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
@@ -362,14 +357,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        sniffTimeout.isEnabled = enableSniff.isChecked
-        sniffTimeout.onPreferenceChangeListener = reloadListener
-        enableSniff.setOnPreferenceChangeListener { _, newValue ->
-            sniffTimeout.isEnabled = newValue as Boolean
-            needReload()
-            true
-        }
-
         blurredAddress.isEnabled = alwaysShowAddress.isChecked
         alwaysShowAddress.setOnPreferenceChangeListener { _, newValue ->
             blurredAddress.isEnabled = newValue as Boolean
@@ -412,7 +399,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     }
 
     private fun EditTextPreference.setPortEdit() {
-        @Suppress("UsePropertyAccessSyntax") // Android studio bug
         setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         onPreferenceChangeListener = reloadListener
     }

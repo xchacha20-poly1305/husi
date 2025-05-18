@@ -27,14 +27,12 @@ object Key {
     const val MODE_PROXY = "proxy"
     const val MEMORY_LIMIT = "memoryLimit"
     const val DEBUG_LISTEN = "debugListen"
+    const val NETWORK_STRATEGY = "networkStrategy"
 
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"
-    const val EDNS_CLIENT_SUBNET = "ednsClientSubnet"
     const val ENABLE_DNS_ROUTING = "enableDnsRouting"
     const val ENABLE_FAKE_DNS = "enableFakeDns"
-
-    const val IPV6_MODE = "ipv6Mode"
 
     const val PROXY_APPS = "proxyApps"
     const val BYPASS_MODE = "bypassMode"
@@ -45,9 +43,6 @@ object Key {
     const val NETWORK_PREFERRED_INTERFACES = "networkPreferredInterfaces"
     const val RULES_PROVIDER = "rulesProvider"
     const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
-    const val ENABLE_SNIFF = "enableSniff"
-    const val SNIFF_TIMEOUT = "sniffTimeout"
-    const val RESOLVE_DESTINATION = "resolveDestination"
 
     const val BYPASS_LAN = "bypassLan"
     const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
@@ -199,6 +194,8 @@ object Key {
     const val PRE_SHARED_KEY = "preSharedKey"
     const val SERVER_PERSISTENT_KEEPALIVE_INTERVAL = "serverPersistentKeepaliveInterval"
 
+
+    // Route
     const val ROUTE_NAME = "routeName"
     const val ROUTE_ACTION = "routeAction"
 
@@ -227,7 +224,20 @@ object Key {
     const val ROUTE_OVERRIDE_ADDRESS = "routeOverrideAddress"
     const val ROUTE_OVERRIDE_PORT = "routeOverridePort"
     const val ROUTE_TLS_FRAGMENT = "routeTlsFragment"
+    const val ROUTE_TLS_RECORD_FRAGMENT = "routeTlsRecordFragment"
     const val ROUTE_TLS_FRAGMENT_FALLBACK_DELAY = "routeTlsFragmentFallbackDelay"
+
+    // Action.resolve
+    const val ROUTE_ACTION_RESOLVE_OPTIONS = "routeActionResolveOptions"
+    const val ROUTE_RESOLVE_STRATEGY = "routeResolveStrategy"
+    const val ROUTE_RESOLVE_DISABLE_CACHE = "routeResolveDisableCache"
+    const val ROUTE_RESOLVE_REWRITE_TTL = "routeResolveRewriteTTL"
+    const val ROUTE_RESOLVE_CLIENT_SUBNET = "routeResolveClientSubnet"
+
+    // Action.sniff
+    const val ROUTE_ACTION_SNIFF_OPTIONS = "routeActionSniffOptions"
+    const val ROUTE_SNIFF_TIMEOUT = "routeSniffTimeout"
+    const val ROUTE_SNIFFERS = "routeSniffers"
 
     const val RULES_FIRST_CREATE = "rulesFirstCreate"
 
@@ -267,13 +277,6 @@ object TunImplementation {
     const val GVISOR = 0
     const val SYSTEM = 1
     const val MIXED = 2
-}
-
-object IPv6Mode {
-    const val DISABLE = 0
-    const val ENABLE = 1
-    const val PREFER = 2
-    const val ONLY = 3
 }
 
 object GroupType {

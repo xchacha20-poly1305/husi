@@ -140,9 +140,6 @@
     <string name="menu_route">طريق</string>
     <string name="metered_summary">نظام تلميح لمعاملة VPN على أنها محسوبة</string>
     <string name="metered">تلميح مقنن</string>
-    <string name="only">فقط</string>
-    <string name="prefer">يفضل</string>
-    <string name="ipv6">مسار IPv6</string>
     <string name="edit_config">تحرير التكوين</string>
     <string name="config_type">نوع التكوين</string>
     <string name="extra_headers">رؤوس إضافية</string>
@@ -220,7 +217,6 @@
     <string name="tcp_keep_alive_interval">يحتفظ TCP بالفاصل الزمني النشط لتسليم الحزم</string>
     <string name="mux_sum">تم تصميم Mux لتقليل زمن انتقال مصافحة TCP، وليس لزيادة إنتاجية الاتصال. عادةً ما يؤدي استخدام Mux لمشاهدة مقاطع الفيديو أو التنزيل أو اختبار السرعة إلى نتائج عكسية</string>
     <string name="enable_mux">تمكين المضاعف</string>
-    <string name="traffic_sniffing">تمكين استنشاق حركة المرور</string>
     <string name="domain_strategy">استراتيجية حل المجال</string>
     <string name="route_opt_block_ads">إعلانات كتلة</string>
     <string name="route_opt_bypass_lan">جانبا LAN</string>

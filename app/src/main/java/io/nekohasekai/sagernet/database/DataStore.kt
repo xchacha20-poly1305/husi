@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.CertProvider
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.GroupType
-import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
@@ -97,15 +96,13 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
     var memoryLimit by configurationStore.boolean(Key.MEMORY_LIMIT) { false }
     var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
+    var networkStrategy by configurationStore.string(Key.NETWORK_STRATEGY)
     var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)
 
     var networkInterfaceType by configurationStore.stringToInt(Key.NETWORK_INTERFACE_STRATEGY) {
         NetworkInterfaceStrategy.DEFAULT
     }
     var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
-    var enableSniff by configurationStore.boolean(Key.ENABLE_SNIFF) { true }
-    var sniffTimeout by configurationStore.string(Key.SNIFF_TIMEOUT)
-    var resolveDestination by configurationStore.boolean(Key.RESOLVE_DESTINATION)
 
     //    var tcpKeepAliveInterval by configurationStore.stringToInt(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
     var mtu by configurationStore.stringToInt(Key.MTU) { 9000 }
@@ -122,7 +119,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
-    var ednsClientSubnet by configurationStore.string(Key.EDNS_CLIENT_SUBNET) { "" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
 
@@ -161,8 +157,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     private fun saveLocalPort(key: String, value: Int) {
         configurationStore.putString(key, "$value")
     }
-
-    var ipv6Mode by configurationStore.stringToInt(Key.IPV6_MODE) { IPv6Mode.DISABLE }
 
     var meteredNetwork by configurationStore.boolean(Key.METERED_NETWORK)
     var proxyApps by configurationStore.boolean(Key.PROXY_APPS)
@@ -287,6 +281,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverIdleSessionTimeout by profileCacheStore.string(Key.SERVER_IDLE_SESSION_TIMEOUT) { "30s" }
     var serverMinIdleSession by profileCacheStore.stringToInt(Key.SERVER_MIN_IDLE_SESSION) { 0 }
 
+
+    // Route
     var routeName by profileCacheStore.string(Key.ROUTE_NAME)
     var routeAction by profileCacheStore.string(Key.ROUTE_ACTION)
 
@@ -311,7 +307,16 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeOverrideAddress by profileCacheStore.string(Key.ROUTE_OVERRIDE_ADDRESS)
     var routeOverridePort by profileCacheStore.stringToInt(Key.ROUTE_OVERRIDE_PORT)
     var routeTlsFragment by profileCacheStore.boolean(Key.ROUTE_TLS_FRAGMENT)
+    var routeTlsRecordFragment by profileCacheStore.boolean(Key.ROUTE_TLS_RECORD_FRAGMENT)
     var routeTlsFragmentFallbackDelay by profileCacheStore.string(Key.ROUTE_TLS_FRAGMENT_FALLBACK_DELAY)
+
+    var routeResolveStrategy by profileCacheStore.string(Key.ROUTE_RESOLVE_STRATEGY)
+    var routeResolveDisableCache by profileCacheStore.boolean(Key.ROUTE_RESOLVE_DISABLE_CACHE)
+    var routeResolveRewriteTTL by profileCacheStore.int(Key.ROUTE_RESOLVE_REWRITE_TTL)
+    var routeResolveClientSubnet by profileCacheStore.string(Key.ROUTE_RESOLVE_CLIENT_SUBNET)
+
+    var routeSniffTimeout by profileCacheStore.string(Key.ROUTE_SNIFF_TIMEOUT)
+    var routeSniffers by profileCacheStore.stringSet(Key.ROUTE_SNIFFERS)
 
     var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")
     var landingProxy by profileCacheStore.long(Key.GROUP_LANDING_PROXY + "Long")

@@ -334,12 +334,6 @@
         <item>@string/disable</item>
         <item>@string/auto</item>
     </string-array>
-    <string-array name="ipv6_mode">
-        <item>@string/disable</item>
-        <item>@string/enable</item>
-        <item>@string/prefer</item>
-        <item>@string/only</item>
-    </string-array>
 
     <string-array name="rules_dat_provider">
         <item>@string/route_rules_official</item>
@@ -432,8 +426,16 @@
         <item>@string/mux_max_streams</item>
     </string-array>
 
-    <string-array name="dns_network_select">
-        <item>auto</item>
+    <string-array name="network_strategies">
+        <item>@string/auto</item>
+        <item>@string/prefer_ipv6</item>
+        <item>@string/prefer_ipv4</item>
+        <item>@string/ipv4_only</item>
+        <item>@string/ipv6_only</item>
+    </string-array>
+
+    <string-array name="network_strategies_values">
+        <item></item>
         <item>prefer_ipv6</item>
         <item>prefer_ipv4</item>
         <item>ipv4_only</item>
@@ -572,6 +574,8 @@
     <string-array name="route_action_value">
         <item>route</item>
         <item>route-options</item>
+        <item>sniff</item>
+        <item>resolve</item>
     </string-array>
 
     <string-array name="sniff_protocol">
@@ -586,7 +590,7 @@
         <item>rdp</item>
         <item>ntp</item>
     </string-array>
-    
+
     <string-array name="sniff_client">
         <item>chromium</item>
         <item>safari</item>
