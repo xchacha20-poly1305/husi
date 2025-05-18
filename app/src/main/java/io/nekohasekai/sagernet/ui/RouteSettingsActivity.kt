@@ -268,16 +268,22 @@ class RouteSettingsActivity(
         tlsFragmentFallbackDelay = findPreference(Key.ROUTE_TLS_FRAGMENT_FALLBACK_DELAY)!!
         tlsRecordFragment = findPreference(Key.ROUTE_TLS_RECORD_FRAGMENT)!!
         fun updateTlsFragment(enableTlsFragment: Boolean = tlsFragment.isChecked) {
-            tlsFragmentFallbackDelay.isEnabled = enableTlsFragment
-            tlsRecordFragment.isEnabled = !enableTlsFragment
+            tlsRecordFragment.apply {
+                isEnabled = !enableTlsFragment
+                if (enableTlsFragment) isChecked = false
+            }
         }
+
         fun updateTlsRecordFragment(enableTlsRecordFragment: Boolean = tlsRecordFragment.isChecked) {
             tlsFragmentFallbackDelay.isEnabled = !enableTlsRecordFragment
-            tlsFragment.isEnabled = !enableTlsRecordFragment
+            tlsFragment.apply {
+                isEnabled = !enableTlsRecordFragment
+                if (enableTlsRecordFragment) isChecked = false
+            }
         }
         updateTlsFragment()
         updateTlsRecordFragment()
-        tlsFragment.setOnPreferenceChangeListener  { _, newValue ->
+        tlsFragment.setOnPreferenceChangeListener { _, newValue ->
             updateTlsFragment(newValue as Boolean)
             true
         }
