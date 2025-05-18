@@ -161,8 +161,10 @@ func className(valueType reflect.Type) string {
 		valueName := valueType.Name()
 		switch valueName {
 		case "Addr", "Prefix", "Prefixable",
-			"Regexp", "DNSRecordOptions":
+			"Regexp", "DNSRecordOptions", "NetworkBytesCompat":
 			return javaString
+		case "MemoryBytes":
+			return javaInteger
 		case "NetworkList":
 			return javaList + javaString + ">"
 		case "SurgeURLRewriteLine", "SurgeHeaderRewriteLine",

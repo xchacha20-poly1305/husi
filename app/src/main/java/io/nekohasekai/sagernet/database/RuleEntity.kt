@@ -56,7 +56,7 @@ data class RuleEntity(
     companion object {
         const val OUTBOUND_PROXY = 0L
         const val OUTBOUND_DIRECT = -1L
-        const val OUTBOUND_BLOCK = -2L // => Action.reject
+        const val OUTBOUND_BLOCK = -2L
 
         // Clash Modes
         // Use lower case to adapt with clash dashboard

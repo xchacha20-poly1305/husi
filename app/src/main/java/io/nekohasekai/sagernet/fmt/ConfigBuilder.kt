@@ -28,6 +28,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NTPOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
@@ -81,6 +82,7 @@ const val TAG_DNS_IN = "dns-in"
 // Outbound
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
+const val TAG_BLOCK = "block" // Build block outbound for custom json
 
 // DNS
 const val TAG_DNS_REMOTE = "dns-remote"
@@ -711,6 +713,10 @@ fun buildConfig(
                     network_strategy = mapNetworkInterfaceStrategy(networkInterfaceStrategy)
                 }
             }
+        }.asMap())
+        outbounds.add(Outbound().apply {
+            tag = TAG_BLOCK
+            type = SingBoxOptions.TYPE_BLOCK
         }.asMap())
 
         if (!forTest) {

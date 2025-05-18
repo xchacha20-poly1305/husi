@@ -19,6 +19,7 @@ public class SingBoxOptions {
     public static final String TYPE_SELECTOR = "selector";
     public static final String TYPE_MIXED = "mixed";
     public static final String TYPE_DIRECT = "direct";
+    public static final String TYPE_BLOCK = "block";
     public static final String TYPE_HTTP = "http";
     public static final String TYPE_HYSTERIA = "hysteria";
     public static final String TYPE_HYSTERIA2 = "hysteria2";
@@ -324,6 +325,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -331,8 +334,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -495,7 +496,7 @@ public class SingBoxOptions {
 
         public String trace_back;
 
-        public Long memory_limit;
+        public String memory_limit;
 
         public Boolean oom_killer;
 
@@ -823,6 +824,8 @@ public class SingBoxOptions {
 
         public String tls_fragment_fallback_delay;
 
+        public Boolean tls_record_fragment;
+
         public String detour;
 
         public String bind_interface;
@@ -837,6 +840,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -844,8 +849,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -906,6 +909,8 @@ public class SingBoxOptions {
 
         public String tls_fragment_fallback_delay;
 
+        public Boolean tls_record_fragment;
+
         public String detour;
 
         public String bind_interface;
@@ -920,6 +925,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -927,8 +934,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1187,6 +1192,14 @@ public class SingBoxOptions {
 
         public Integer listen_port;
 
+        public String bind_interface;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String netns;
+
         public String tcp_keep_alive;
 
         public String tcp_keep_alive_interval;
@@ -1198,8 +1211,6 @@ public class SingBoxOptions {
         public Boolean udp_fragment;
 
         public Long udp_timeout;
-
-        public String netns;
 
         public Boolean proxy_protocol;
 
@@ -1342,6 +1353,14 @@ public class SingBoxOptions {
 
         public Integer listen_port;
 
+        public String bind_interface;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String netns;
+
         public String tcp_keep_alive;
 
         public String tcp_keep_alive_interval;
@@ -1353,8 +1372,6 @@ public class SingBoxOptions {
         public Boolean udp_fragment;
 
         public Long udp_timeout;
-
-        public String netns;
 
         public Boolean proxy_protocol;
 
@@ -1398,6 +1415,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1405,8 +1424,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1445,6 +1462,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1452,8 +1471,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1505,6 +1522,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1512,8 +1531,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1569,6 +1586,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1576,8 +1595,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1625,6 +1642,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1632,8 +1651,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1682,6 +1699,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1689,8 +1708,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1744,6 +1761,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1751,8 +1770,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1801,6 +1818,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1808,8 +1827,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1876,6 +1893,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1883,8 +1902,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -1941,6 +1958,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -1948,8 +1967,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2006,6 +2023,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2013,8 +2032,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2067,6 +2084,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2074,8 +2093,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2134,6 +2151,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2141,8 +2160,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2209,6 +2226,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2216,8 +2235,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2258,6 +2275,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2265,8 +2284,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2300,6 +2317,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2307,8 +2326,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2348,6 +2365,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2355,8 +2374,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
@@ -2400,6 +2417,8 @@ public class SingBoxOptions {
 
         public Boolean reuse_addr;
 
+        public String netns;
+
         public String connect_timeout;
 
         public Boolean tcp_fast_open;
@@ -2407,8 +2426,6 @@ public class SingBoxOptions {
         public Boolean tcp_multi_path;
 
         public Boolean udp_fragment;
-
-        public String netns;
 
         public DomainResolveOptions domain_resolver;
 
