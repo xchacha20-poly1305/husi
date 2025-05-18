@@ -204,9 +204,6 @@
     <string name="config_type">配置類型</string>
     <string name="theme">主題</string>
     <string name="edit_config">編輯配置</string>
-    <string name="ipv6">IPv6 路由</string>
-    <string name="prefer">優先</string>
-    <string name="only">僅</string>
     <string name="route_add">建立路由規則</string>
     <string name="delete_route_prompt">您真的希望移除此路由規則嗎？</string>
     <string name="route_name">路由名稱</string>
@@ -229,7 +226,6 @@
     <string name="route_opt_bypass_lan">略過區域網路位址</string>
     <string name="route_opt_block_ads">封鎖廣告</string>
     <string name="domain_strategy">網域解析策略</string>
-    <string name="traffic_sniffing">啟用流量嗅探</string>
     <string name="enable_mux">啟用多工器</string>
     <string name="tcp_keep_alive_interval">TCP 保持連線傳送間隔</string>
     <string name="service_failed">失敗：</string>
@@ -428,7 +424,6 @@
     <string name="tls_camouflage_settings">TLS 偽裝設定</string>
     <string name="test_concurrency">測試並發</string>
     <string name="mux_type">Mux 協議</string>
-    <string name="sniff_routing">探測結果用於路由判斷</string>
     <string name="vpn_golang_version">Go 版本</string>
     <string name="vpn_app_type_other">其他</string>
     <string name="vpn_core_type_unknown">未知</string>

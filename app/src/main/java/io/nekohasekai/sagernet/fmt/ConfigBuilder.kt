@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.fmt
 
 import android.widget.Toast
-import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.R
@@ -188,22 +187,10 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
-    val enableSniff = DataStore.enableSniff
     val externalIndexMap = ArrayList<IndexEntity>()
-    val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
-
-    fun genDomainStrategy(noAsIs: Boolean): String {
-        return when {
-            !noAsIs -> ""
-            ipv6Mode == IPv6Mode.DISABLE -> "ipv4_only"
-            ipv6Mode == IPv6Mode.PREFER -> "prefer_ipv6"
-            ipv6Mode == IPv6Mode.ONLY -> "ipv6_only"
-            else -> "prefer_ipv4"
-        }
-    }
 
     return MyOptions().apply {
         if (!forTest) experimental = ExperimentalOptions().apply {
@@ -242,19 +229,6 @@ fun buildConfig(
             independent_cache = true
         }
 
-        fun autoDnsDomainStrategy(s: String): String? {
-            if (s.isNotEmpty()) {
-                return s
-            }
-            return when (ipv6Mode) {
-                IPv6Mode.DISABLE -> "ipv4_only"
-                IPv6Mode.ENABLE -> "prefer_ipv4"
-                IPv6Mode.PREFER -> "prefer_ipv6"
-                IPv6Mode.ONLY -> "ipv6_only"
-                else -> null
-            }
-        }
-
         inbounds = mutableListOf()
 
         if (!forTest) {
@@ -267,7 +241,6 @@ fun buildConfig(
                     else -> "mixed"
                 }
                 mtu = DataStore.mtu
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
                         address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
@@ -290,7 +263,6 @@ fun buildConfig(
                 tag = TAG_MIXED
                 listen = bind
                 listen_port = DataStore.mixedPort
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 if (DataStore.inboundUsername.isNotBlank() || DataStore.inboundPassword.isNotBlank()) {
                     users = listOf(
                         User().apply {
@@ -771,7 +743,6 @@ fun buildConfig(
                     DomainResolveOptions().apply {
                         server = TAG_DNS_DIRECT
                         strategy = autoDnsDomainStrategy(domainStrategy(server))
-                        client_subnet = DataStore.ednsClientSubnet.blankAsNull()
                     },
                 )
             )
@@ -787,7 +758,6 @@ fun buildConfig(
                 DomainResolveOptions().apply {
                     server = TAG_DNS_LOCAL
                     strategy = autoDnsDomainStrategy(domainStrategy(server))
-                    client_subnet = DataStore.ednsClientSubnet.blankAsNull()
                 }
             ))
         } ?: error("missing direct DNS")
@@ -905,10 +875,6 @@ fun buildConfig(
             if (hasJuicity && useFakeDns) route.rules.add(0, Rule_Default().apply {
                 action = SingBoxOptions.ACTION_RESOLVE
                 network = listOf(SingBoxOptions.NetworkUDP)
-            })
-            if (enableSniff) route.rules.add(0, Rule_Default().apply {
-                action = SingBoxOptions.ACTION_SNIFF
-                timeout = DataStore.sniffTimeout.blankAsNull()
             })
 
             route.final_ = TAG_PROXY

@@ -131,9 +131,6 @@
     <string name="config_type">Config Type</string>
     <string name="edit_config">Edit Config</string>
     <!-- feature category -->
-    <string name="ipv6">IPv6 Route</string>
-    <string name="prefer">Prefer</string>
-    <string name="only">Only</string>
     <string name="metered">Metered Hint</string>
     <string name="metered_summary">Hint system to treat VPN as metered</string>
     <string name="menu_route">Route</string>
@@ -162,7 +159,6 @@
     <string name="route_opt_block_analysis">Block analysis</string>
     <string name="route_opt_block_quic">Block QUIC</string>
     <string name="domain_strategy">Domain Resolution Strategy</string>
-    <string name="traffic_sniffing">Enable Traffic Sniffing</string>
     <string name="enable_mux">Enable Multiplexer</string>
     <string name="mux_sum">Mux is designed to reduce connecting handshake latency, not to increase connection throughput. Using Mux to watch videos, download or speed test is usually counter productive. If the server does not support it, you will not be able to access the Internet.</string>
     <string name="tcp_keep_alive_interval">TCP keep active packet delivery interval</string>
@@ -527,7 +523,6 @@
     <string name="tls_camouflage_settings">TLS Camouflage Settings</string>
     <string name="test_concurrency">Test concurrency</string>
     <string name="mux_type">Mux protocol</string>
-    <string name="sniff_routing">Sniff result for routing</string>
     <string name="resolve_server">Resolve the server address according to the IPv6 policy</string>
     <string name="get_cert_server_hint">Target server</string>
     <string name="get_cert">Get certificates</string>
@@ -667,4 +662,10 @@
     <string name="route_options">Route Options</string>
     <string name="tls_fragment">TLS Fragment</string>
     <string name="tls_fragment_fallback_delay">TLS Fragment Fallback Delay</string>
+    <string name="tls_record_fragment">TLS Record Fragment</string>
+    <string name="prefer_ipv4">Prefer IPv4</string>
+    <string name="prefer_ipv6">Prefer IPv6</string>
+    <string name="ipv4_only">IPv4 Only</string>
+    <string name="ipv6_only">IPv6 Only</string>
+    <string name="sniff">Sniff</string>
 </resources>

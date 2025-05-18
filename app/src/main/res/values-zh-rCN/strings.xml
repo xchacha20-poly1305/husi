@@ -86,7 +86,6 @@
     <string name="sni">服务器名称指示</string>
     <string name="encryption">加密</string>
     <!-- feature category -->
-    <string name="ipv6">IPv6 路由</string>
     <string name="metered">按流量计费</string>
     <string name="metered_summary">让系统认为此 VPN 按流量计费</string>
     <string name="menu_route">路由</string>
@@ -179,7 +178,6 @@
     <string name="route_opt_block_ads">屏蔽广告</string>
     <string name="route_opt_block_quic">屏蔽 QUIC</string>
     <string name="domain_strategy">域名解析策略</string>
-    <string name="traffic_sniffing">启用流量探测</string>
     <string name="disable">禁用</string>
     <string name="cag_misc">杂项</string>
     <string name="enable_mux">启用多路复用</string>
@@ -255,8 +253,6 @@
     <string name="config_type">配置类型</string>
     <string name="edit_config">编辑配置</string>
     <string name="lines">%d 行</string>
-    <string name="only">仅</string>
-    <string name="prefer">优先</string>
     <string name="route_asset_no_update">已为最新</string>
     <string name="route_asset_updated">已更新</string>
     <string name="route_asset_status">本地版本: %s</string>
@@ -470,7 +466,6 @@
     <string name="log_level_help">长按设置项以设置缓冲区大小。</string>
     <string name="test_concurrency">测试并发</string>
     <string name="mux_type">Mux 协议</string>
-    <string name="sniff_routing">探测结果用于路由判断</string>
     <string name="resolve_server">根据 IPv6 策略解析服务器地址</string>
     <string name="get_cert_server_hint">目标服务器</string>
     <string name="get_cert">获取证书</string>
@@ -596,4 +591,10 @@
     <string name="route_options">路由选项</string>
     <string name="tls_fragment">TLS 分片</string>
     <string name="tls_fragment_fallback_delay">TLS 分片回退延迟</string>
+    <string name="tls_record_fragment">TLS 记录分片</string>
+    <string name="prefer_ipv4">IPv4 优先</string>
+    <string name="prefer_ipv6">IPv6 优先</string>
+    <string name="ipv4_only">仅 IPv4</string>
+    <string name="ipv6_only">仅 IPv6</string>
+    <string name="sniff">嗅探</string>
 </resources>

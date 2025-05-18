@@ -135,30 +135,6 @@
         <SwitchPreference
             app:key="bypassLanInCore"
             app:title="@string/bypass_lan_in_core" />
-        <SwitchPreference
-            app:defaultValue="true"
-            app:icon="@drawable/ic_baseline_manage_search_24"
-            app:key="enableSniff"
-            app:title="@string/traffic_sniffing" />
-        <io.nekohasekai.sagernet.widget.DurationPreference
-            app:defaultValue="300ms"
-            app:icon="@drawable/ic_baseline_bolt"
-            app:key="sniffTimeout"
-            app:title="@string/sniff_timeout"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
-            app:icon="@drawable/baseline_wrap_text_24"
-            app:key="resolveDestination"
-            app:summary="@string/resolve_destination_summary"
-            app:title="@string/resolve_destination" />
-        <rikka.preference.SimpleMenuPreference
-            app:defaultValue="1"
-            app:entries="@array/ipv6_mode"
-            app:entryValues="@array/int_array_4"
-            app:icon="@drawable/ic_image_looks_6"
-            app:key="ipv6Mode"
-            app:title="@string/ipv6"
-            app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="0"
             app:entries="@array/network_interface_strategies"
@@ -232,15 +208,10 @@
             app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="auto"
-            app:entries="@array/dns_network_select"
-            app:entryValues="@array/dns_network_select"
+            app:entries="@array/network_strategies_values"
+            app:entryValues="@array/network_strategies_values"
             app:key="domain_strategy_for_remote"
             app:title="@string/domain_strategy_for_remote"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            app:icon="@drawable/ic_baseline_push_pin_24"
-            app:key="ednsClientSubnet"
-            app:title="@string/edns_client_subnet"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:defaultValue="local"
@@ -250,15 +221,15 @@
             app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="auto"
-            app:entries="@array/dns_network_select"
-            app:entryValues="@array/dns_network_select"
+            app:entries="@array/network_strategies_values"
+            app:entryValues="@array/network_strategies_values"
             app:key="domain_strategy_for_direct"
             app:title="@string/domain_strategy_for_direct"
             app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="auto"
-            app:entries="@array/dns_network_select"
-            app:entryValues="@array/dns_network_select"
+            app:entries="@array/network_strategies_values"
+            app:entryValues="@array/network_strategies_values"
             app:key="domain_strategy_for_server"
             app:title="@string/domain_strategy_for_server"
             app:useSimpleSummaryProvider="true" />

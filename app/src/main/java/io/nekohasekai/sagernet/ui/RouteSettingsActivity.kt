@@ -36,6 +36,8 @@ import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE_OPTIONS
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_RESOLVE
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -93,7 +95,16 @@ class RouteSettingsActivity(
         DataStore.routeOverrideAddress = overrideAddress
         DataStore.routeOverridePort = overridePort
         DataStore.routeTlsFragment = tlsFragment
+        DataStore.routeTlsRecordFragment = tlsRecordFragment
         DataStore.routeTlsFragmentFallbackDelay = tlsFragmentFallbackDelay
+
+        DataStore.routeResolveStrategy = resolveStrategy
+        DataStore.routeResolveDisableCache = resolveDisableCache
+        DataStore.routeResolveRewriteTTL = resolveRewriteTTL
+        DataStore.routeResolveClientSubnet = resolveClientSubnet
+
+        DataStore.routeSniffTimeout = sniffTimeout
+        DataStore.routeSniffers = sniffers
 
         DataStore.routeOutbound = when (outbound) {
             RuleEntity.OUTBOUND_PROXY -> 0
@@ -125,7 +136,16 @@ class RouteSettingsActivity(
         overrideAddress = DataStore.routeOverrideAddress
         overridePort = DataStore.routeOverridePort
         tlsFragment = DataStore.routeTlsFragment
+        tlsRecordFragment = DataStore.routeTlsRecordFragment
         tlsFragmentFallbackDelay = DataStore.routeTlsFragmentFallbackDelay
+
+        resolveStrategy = DataStore.routeResolveStrategy
+        resolveDisableCache = DataStore.routeResolveDisableCache
+        resolveRewriteTTL = DataStore.routeResolveRewriteTTL
+        resolveClientSubnet = DataStore.routeResolveClientSubnet
+
+        sniffTimeout = DataStore.routeSniffTimeout
+        sniffers = DataStore.routeSniffers
 
         outbound = when (DataStore.routeOutbound) {
             0 -> RuleEntity.OUTBOUND_PROXY
@@ -162,7 +182,14 @@ class RouteSettingsActivity(
             DataStore.routeOverrideAddress.isBlank() &&
             DataStore.routeOverridePort == 0 &&
             !DataStore.routeTlsFragment &&
-            DataStore.routeTlsFragmentFallbackDelay.isBlank()
+            !DataStore.routeTlsRecordFragment &&
+            DataStore.routeTlsFragmentFallbackDelay.isBlank() &&
+            DataStore.routeResolveStrategy.isBlank() &&
+            !DataStore.routeResolveDisableCache &&
+            DataStore.routeResolveRewriteTTL.isBlank() &&
+            DataStore.routeResolveClientSubnet.isBlank() &&
+            DataStore.routeSniffTimeout.isBlank() &&
+            DataStore.routeSniffers.isEmpty()
         ) {
             return false
         }
@@ -199,21 +226,26 @@ class RouteSettingsActivity(
         apps.postUpdate()
     }
 
-    lateinit var outbound: SimpleMenuPreference
-    lateinit var apps: AppListPreference
-    lateinit var networkType: MultiSelectListPreference
-    lateinit var ssid: EditTextPreference
-    lateinit var bssid: EditTextPreference
-    lateinit var protocol: MultiSelectListPreference
-    lateinit var clientType: MultiSelectListPreference
-    lateinit var action: SimpleMenuPreference
-    lateinit var overridePort: EditTextPreference
+    private lateinit var action: SimpleMenuPreference
 
-    lateinit var actionRoute: PreferenceCategory
-    lateinit var actionRouteOptions: PreferenceCategory
+    private lateinit var apps: AppListPreference
+    private lateinit var outbound: SimpleMenuPreference
+    private lateinit var networkType: MultiSelectListPreference
+    private lateinit var ssid: EditTextPreference
+    private lateinit var bssid: EditTextPreference
+    private lateinit var protocol: MultiSelectListPreference
+    private lateinit var clientType: MultiSelectListPreference
+    private lateinit var overridePort: EditTextPreference
+    private lateinit var sniffers: MultiSelectListPreference
+
+    private lateinit var actionRoute: PreferenceCategory
+    private lateinit var actionRouteOptions: PreferenceCategory
+    private lateinit var actionResolve: PreferenceCategory
+    private lateinit var actionSniff: PreferenceCategory
 
     @Suppress("UNCHECKED_CAST")
     fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
+        action = findPreference(Key.ROUTE_ACTION)!!
         outbound = findPreference(Key.ROUTE_OUTBOUND)!!
         apps = findPreference(Key.ROUTE_PACKAGES)!!
         networkType = findPreference(Key.ROUTE_NETWORK_TYPE)!!
@@ -221,13 +253,15 @@ class RouteSettingsActivity(
         bssid = findPreference(Key.ROUTE_BSSID)!!
         protocol = findPreference(Key.ROUTE_PROTOCOL)!!
         clientType = findPreference(Key.ROUTE_CLIENT)!!
-        action = findPreference(Key.ROUTE_ACTION)!!
         overridePort = findPreference<EditTextPreference>(Key.ROUTE_OVERRIDE_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
+        sniffers = findPreference(Key.ROUTE_SNIFFERS)!!
 
         actionRoute = findPreference(Key.ROUTE_ACTION_ROUTE)!!
         actionRouteOptions = findPreference(Key.ROUTE_ACTION_ROUTE_OPTIONS)!!
+        actionResolve = findPreference(Key.ROUTE_ACTION_RESOLVE_OPTIONS)!!
+        actionSniff = findPreference(Key.ROUTE_ACTION_SNIFF_OPTIONS)!!
 
         outbound.updateOutboundSummary()
         outbound.setOutbound(OUTBOUND_POSITION) {
@@ -265,16 +299,47 @@ class RouteSettingsActivity(
             clientType.updateSummary(newValue as Set<String>)
             true
         }
+        sniffers.updateSummary()
+        sniffers.setOnPreferenceChangeListener { _, newValue ->
+            sniffers.updateSummary(newValue as Set<String>)
+            true
+        }
 
         fun updateAction(newValue: String = action.value) {
             when (newValue) {
                 "", ACTION_ROUTE -> {
                     actionRoute.isVisible = true
                     actionRouteOptions.isVisible = false
+                    actionResolve.isVisible = false
+                    actionSniff.isVisible = false
                 }
+
                 ACTION_ROUTE_OPTIONS -> {
                     actionRoute.isVisible = false
                     actionRouteOptions.isVisible = true
+                    actionResolve.isVisible = false
+                    actionSniff.isVisible = false
+                }
+
+                ACTION_RESOLVE -> {
+                    actionRoute.isVisible = false
+                    actionRouteOptions.isVisible = false
+                    actionResolve.isVisible = true
+                    actionSniff.isVisible = false
+                }
+
+                ACTION_SNIFF -> {
+                    actionRoute.isVisible = false
+                    actionRouteOptions.isVisible = false
+                    actionResolve.isVisible = false
+                    actionSniff.isVisible = true
+                }
+
+                else -> {
+                    actionRoute.isVisible = false
+                    actionRouteOptions.isVisible = false
+                    actionResolve.isVisible = false
+                    actionSniff.isVisible = false
                 }
             }
         }

@@ -91,9 +91,6 @@
     <string name="menu_route">Маршрути</string>
     <string name="metered_summary">Підказувати системі, що VPN повинен розглядатися як мережа з лімітним тарифним планом</string>
     <string name="metered">Підказка про з\'єднання з лімітованим тарифним планом</string>
-    <string name="only">Виключно</string>
-    <string name="prefer">Віддавати перевагу</string>
-    <string name="ipv6">Маршрут IPv6</string>
     <string name="edit_config">Редагувати конфігурацію</string>
     <string name="config_type">Тип конфігурації</string>
     <string name="extra_headers">Додаткові заголовки</string>
@@ -239,7 +236,6 @@
     <string name="protocol_version">Версія протоколу</string>
     <string name="test_concurrency">Число паралельних підключень</string>
     <string name="mux_type">Протокол мультиплексування</string>
-    <string name="sniff_routing">Перехоплювати результат для Маршрутизації</string>
     <string name="assets_update">Оновити геодані</string>
     <string name="sekai">nekohasekai</string>
     <plurals name="removed">
@@ -274,7 +270,6 @@
     <string name="route_asset_status">Локальна версія: %s</string>
     <string name="route_opt_block_analysis">Блокувати аналітику</string>
     <string name="domain_strategy">Стратегія вирішення доменів</string>
-    <string name="traffic_sniffing">Увімкнути аналіз трафіка</string>
     <string name="enable_mux">Увімкнути мультиплексор</string>
     <string name="mux_sum">Протокол MUX призначений для зменьшення затримки з\'єднання TCP, а не для збільшення пропускної здатності. Використання MUX для перегляду відео, завантаження файлів або перевірки швидкості зазвичай контрпродуктивно. Якщо сервер не підтримує MUX, ви не зможете отримати доступ до Інтернету.</string>
     <string name="tcp_keep_alive_interval">Інтервал доставки пакетів TCP keep-alive</string>
