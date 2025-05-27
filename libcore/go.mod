@@ -6,8 +6,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.66
 	github.com/sagernet/gomobile v0.1.6
-	github.com/sagernet/sing v0.6.10-0.20250505040842-ba62fee9470f
-	github.com/sagernet/sing-box v1.12.0-beta.14
+	github.com/sagernet/sing v0.6.11-0.20250521033217-30d675ea099b
+	github.com/sagernet/sing-box v1.12.0-beta.19
 	github.com/sagernet/sing-tun v0.6.6-0.20250428031943-0686f8c4f210
 	github.com/xchacha20-poly1305/TLS-scribe v0.11.2
 	github.com/xchacha20-poly1305/anchor v0.6.1
@@ -58,11 +58,11 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/quic-go v0.51.0-beta.5 // indirect
+	github.com/sagernet/quic-go v0.52.0-beta.1 // indirect
 	github.com/sagernet/sing-mux v0.3.2 // indirect
-	github.com/sagernet/sing-quic v0.4.1-0.20250511050139-d459f561c9c3 // indirect
+	github.com/sagernet/sing-quic v0.5.0-beta.1 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
-	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
+	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
 	github.com/sagernet/sing-vmess v0.2.2-0.20250503051933-9b4cf17393f8 // indirect
 	github.com/sagernet/smux v1.5.34-mod.2 // indirect
