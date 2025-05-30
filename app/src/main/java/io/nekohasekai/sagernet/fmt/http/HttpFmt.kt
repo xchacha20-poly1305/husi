@@ -2,11 +2,12 @@ package io.nekohasekai.sagernet.fmt.http
 
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
-import io.nekohasekai.sagernet.fmt.v2ray.headerToString
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
+import io.nekohasekai.sagernet.fmt.v2ray.parseHeader
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.toJSONMap
 import libcore.Libcore
 
@@ -52,7 +53,9 @@ fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
             "password" -> password = value.toString()
             "path" -> path = value.toString()
             "headers" -> (value as? Map<*, *>)?.let {
-                headers = headerToString(it)
+                headers = parseHeader(it).mapX { entry ->
+                    entry.key + ":" + entry.value.joinToString(",")
+                }.joinToString("\n")
             }
 
             "tls" -> {
