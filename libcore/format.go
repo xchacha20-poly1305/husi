@@ -39,7 +39,14 @@ func baseContext(platformInterface PlatformInterface) context.Context {
 			})
 		}
 	}
-	return box.Context(context.Background(), distro.InboundRegistry(), distro.OutboundRegistry(), distro.EndpointRegistry(), dnsRegistry)
+	return box.Context(
+		context.Background(),
+		distro.InboundRegistry(),
+		distro.OutboundRegistry(),
+		distro.EndpointRegistry(),
+		dnsRegistry,
+		distro.ServiceRegistry(),
+	)
 }
 
 // parseConfig parses configContent to option.Options.

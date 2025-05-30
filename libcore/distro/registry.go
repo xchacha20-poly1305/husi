@@ -4,6 +4,7 @@ import (
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
 	"github.com/sagernet/sing-box/adapter/outbound"
+	"github.com/sagernet/sing-box/adapter/service"
 	"github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/dns/transport"
 	"github.com/sagernet/sing-box/dns/transport/fakeip"
@@ -127,4 +128,12 @@ func DNSTransportRegistry() *dns.TransportRegistry {
 func registerQUICTransports(registry *dns.TransportRegistry) {
 	quic.RegisterTransport(registry)
 	quic.RegisterHTTP3Transport(registry)
+}
+
+func ServiceRegistry() *service.Registry {
+	registry := service.NewRegistry()
+
+	// TODO migrate combinedapi to here?
+
+	return registry
 }

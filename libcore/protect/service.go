@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 
-	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
@@ -20,8 +19,6 @@ const (
 	ProtectFailed byte = iota
 	ProtectSuccess
 )
-
-var _ adapter.Service = (*Service)(nil)
 
 // Service is a service that accept unix connection
 // and invoke do with the received fd, which should be protected.
