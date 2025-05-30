@@ -36,6 +36,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.map
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 import libcore.URL
@@ -572,7 +573,6 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
     else -> throw IllegalStateException()
 }
 
-@Suppress("UNCHECKED_CAST")
 fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
     var v2ray: VMessBean? = null
     var vmess: VMessBean? = null
@@ -617,7 +617,12 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.v2rayTransport = transport.type
                 when (transport) {
                     is V2RayTransportOptions_V2RayWebsocketOptions -> {
-                        bean.host = transport.headers["Host"]?.joinToString("\n") ?: ""
+                        bean.host = transport.headers["host"]?.joinToString("\n")?.also {
+                            transport.headers.remove("host")
+                        } ?: ""
+                        bean.headers = transport.headers.mapX { entry ->
+                            entry.key + ":" + entry.value.joinToString(",")
+                        }.joinToString("\n")
                         bean.path = transport.path
                         bean.wsMaxEarlyData = transport.max_early_data
                         bean.earlyDataHeaderName = transport.early_data_header_name
@@ -627,7 +632,9 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                         bean.host = transport.host?.joinToString("\n")
                         bean.path = transport.path
                         bean.headers = transport.headers?.let {
-                            headerToString(it)
+                            parseHeader(it).mapX { entry ->
+                                entry.key + ":" + entry.value.joinToString(",")
+                            }.joinToString("\n")
                         }
                     }
 
@@ -641,7 +648,9 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                         bean.host = transport.host
                         bean.path = transport.path
                         bean.headers = transport.headers?.let {
-                            headerToString(it)
+                            parseHeader(it).mapX { entry ->
+                                entry.key + ":" + entry.value.joinToString(",")
+                            }.joinToString("\n")
                         }
                     }
                 }
@@ -671,11 +680,12 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
     return bean
 }
 
-@Suppress("UNCHECKED_CAST")
 fun parseTransport(json: JSONMap): V2RayTransportOptions? = when (json["type"]?.toString()) {
     TRANSPORT_WS -> V2RayTransportOptions_V2RayWebsocketOptions().apply {
         type = TRANSPORT_WS
-        headers = json["headers"] as? Map<String, List<String>> ?: emptyMap()
+        headers = (json["headers"] as? JSONObject)?.map?.let {
+            parseHeader(it)
+        } ?: emptyMap()
         path = json["path"]?.toString()
         max_early_data = json["max_early_data"]?.toString()?.toIntOrNull()
         early_data_header_name = json["early_data_header_name"]?.toString()
@@ -685,7 +695,9 @@ fun parseTransport(json: JSONMap): V2RayTransportOptions? = when (json["type"]?.
         type = TRANSPORT_HTTP
         host = listable<String>(json["host"])
         path = json["path"]?.toString()
-        headers = json["headers"] as? Map<String, List<String>> ?: emptyMap()
+        headers = (json["headers"] as? JSONObject)?.map?.let {
+            parseHeader(it)
+        } ?: emptyMap()
     }
 
     TRANSPORT_QUIC -> V2RayTransportOptions_V2RayQUICOptions().apply {
@@ -701,16 +713,27 @@ fun parseTransport(json: JSONMap): V2RayTransportOptions? = when (json["type"]?.
         type = TRANSPORT_HTTPUPGRADE
         host = json["host"]?.toString()
         path = json["path"]?.toString()
-        headers = json["headers"] as? Map<String, List<String>> ?: emptyMap()
+        headers = (json["headers"] as? JSONObject)?.map?.let {
+            parseHeader(it)
+        } ?: emptyMap()
     }
 
     else -> null
 }
 
-fun headerToString(header: Map<*, *>): String {
-    val builder = ArrayList<String>(header.size)
+/** Aimed at parsing listable option. */
+fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
+    val builder = LinkedHashMap<String, List<String>>(header.size)
     for (entry in header) {
-        builder.add(entry.key.toString() + ":" + entry.value.toString())
+        // http headers are case-insensitive, so we lowercase the key.
+        val key = entry.key.toString().lowercase()
+        val entryValue = entry.value
+        val value = if (entryValue is List<*>) {
+            entryValue.mapX { it.toString() }
+        } else {
+            listOf(entryValue.toString())
+        }
+        builder[key] = value
     }
-    return builder.joinToString("\n")
+    return builder
 }

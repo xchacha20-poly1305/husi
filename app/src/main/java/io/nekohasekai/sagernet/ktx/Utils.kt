@@ -307,6 +307,14 @@ fun <T, R> Collection<T>.mapX(transform: (T) -> R): List<R> {
     return list
 }
 
+fun <K, V, T> Map<K, V>.mapX(transform: (Map.Entry<K, V>) -> T): List<T> {
+    val list = ArrayList<T>(size)
+    for (item in this) {
+        list.add(transform(item))
+    }
+    return list
+}
+
 /**
  * Returns the first non-default value from the provided getters.
  *
