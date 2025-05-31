@@ -84,11 +84,6 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle
-          key: gradle-foss-${{ hashFiles('**/*.gradle.kts') }}
       - name: Golang Version
         if: steps.cache.outputs.cache-hit != 'true'
         id: version
@@ -101,6 +96,7 @@ jobs:
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
+      - uses: gradle/actions/setup-gradle@v4
       - name: Gradle Build
         env:
           BUILD_PLUGIN: none

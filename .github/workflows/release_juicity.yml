@@ -26,11 +26,6 @@ jobs:
           path: |
             plugin/juicity/src/main/jniLibs
           key: ${{ hashFiles('.github/workflows/*', 'bin/lib/juicity/*', 'juicity_status') }}
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle
-          key: gradle-${{ hashFiles('**/*.gradle.kts') }}
       - name: Golang Version
         if: steps.cache.outputs.cache-hit != 'true'
         id: version
@@ -42,6 +37,14 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           go-version: ${{ steps.version.outputs.go_version }}
+      - name: Setup Android NDK
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          add-to-path: true
+          ndk-version: r28b
+          local-cache: false
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run plugin juicity
@@ -63,15 +66,11 @@ jobs:
           path: |
             plugin/juicity/src/main/jniLibs
           key: ${{ hashFiles('.github/workflows/*', 'bin/lib/juicity/*', 'juicity_status') }}
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle
-          key: gradle-${{ hashFiles('**/*.gradle.kts') }}
       - uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
+      - uses: gradle/actions/setup-gradle@v4
       - name: Release Build
         env:
           SKIP_BUILD: on

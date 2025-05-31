@@ -28,12 +28,6 @@ jobs:
           path: |
             plugin/naive/src/main/jniLibs/${{ matrix.arch }}
           key: naive-${{ matrix.arch }}-${{ hashFiles('bin/plugin/naive/*', 'naive_status') }}
-      - name: Gradle cache
-        uses: actions/cache@v4
-        if: steps.cache.outputs.cache-hit != 'true'
-        with:
-          path: ~/.gradle
-          key: native-${{ hashFiles('**/*.gradle.kts') }}
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -80,11 +74,7 @@ jobs:
           path: |
             plugin/naive/src/main/jniLibs/x86_64
           key: naive-x86_64-${{ hashFiles('bin/plugin/naive/*', 'naive_status') }}
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle
-          key: native-${{ hashFiles('**/*.gradle.kts') }}
+      - uses: gradle/actions/setup-gradle@v4
       - name: Release Build
         env:
           SKIP_BUILD: on
