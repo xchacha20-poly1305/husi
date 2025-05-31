@@ -115,7 +115,7 @@ Plugin name list:
 
 * `hysteria2`
 * `juicity`
-* `naive`
+* `naive` ( Deprecated. Build official repository directly, please. )
 * `mieru`
 
 ## ☠️ End users
@@ -141,3 +141,5 @@ Android GUI:
 - [SagerNet/sing-box-for-android](https://github.com/SagerNet/sing-box-for-android)
 - [AntiNeko/CatBoxForAndroid](https://github.com/AntiNeko/CatBoxForAndroid)
 - [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
+- [dyhkwong/Exclave](https://github.com/dyhkwong/Exclave)
+- [chen08209/FlClash](https://github.com/chen08209/FlClash)
