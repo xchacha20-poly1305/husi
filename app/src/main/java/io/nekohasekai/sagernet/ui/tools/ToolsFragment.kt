@@ -20,6 +20,16 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
         super.onViewCreated(view, savedInstanceState)
 
         toolbar.setTitle(R.string.menu_tools)
+
+        val tools = mutableListOf<NamedFragment>()
+        tools.add(NetworkFragment())
+        tools.add(BackupFragment())
+
+        if (isExpert) tools.add(DebugFragment())
+
+        val binding = LayoutToolsBinding.bind(view)
+        binding.toolsPager.adapter = ToolsAdapter(tools)
+
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -49,19 +59,9 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = bars.bottom,
             )
             WindowInsetsCompat.CONSUMED
         }
-
-        val tools = mutableListOf<NamedFragment>()
-        tools.add(NetworkFragment())
-        tools.add(BackupFragment())
-
-        if (isExpert) tools.add(DebugFragment())
-
-        val binding = LayoutToolsBinding.bind(view)
-        binding.toolsPager.adapter = ToolsAdapter(tools)
 
         TabLayoutMediator(binding.toolsTab, binding.toolsPager) { tab, position ->
             tab.text = tools[position].name()
