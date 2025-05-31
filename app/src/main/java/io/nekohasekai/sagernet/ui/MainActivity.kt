@@ -61,6 +61,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
 import io.nekohasekai.sagernet.ui.traffic.TrafficFragment
+import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
@@ -100,11 +101,6 @@ class MainActivity : ThemedActivity(),
         }
         navigation.setNavigationItemSelectedListener(this)
         setDecorFitsSystemWindowsForParticularAPIs()
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
-            // Baklava should have fixed this
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-        }
         if (resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
             ViewCompat.setOnApplyWindowInsetsListener(navigation) { v, insets ->
                 val bars = insets.getInsets(

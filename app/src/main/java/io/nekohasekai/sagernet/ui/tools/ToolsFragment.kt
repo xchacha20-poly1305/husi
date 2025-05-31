@@ -24,7 +24,6 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
         val tools = mutableListOf<NamedFragment>()
         tools.add(NetworkFragment())
         tools.add(BackupFragment())
-
         if (isExpert) tools.add(DebugFragment())
 
         val binding = LayoutToolsBinding.bind(view)
@@ -41,10 +40,9 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.tools_tab)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolsTab) { v, insets ->
             val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-                        or WindowInsetsCompat.Type.displayCutout()
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             v.updatePadding(
                 left = bars.left,
@@ -52,7 +50,7 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.tools_pager)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolsPager) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
