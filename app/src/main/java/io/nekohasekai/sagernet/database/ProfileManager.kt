@@ -7,6 +7,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkUDP
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
@@ -202,6 +203,7 @@ object ProfileManager {
                 RuleEntity(
                     enabled = true,
                     name = app.getString(R.string.hijack_dns),
+                    protocol = setOf("dns"),
                     action = ACTION_HIJACK_DNS,
                 )
             )
@@ -210,7 +212,7 @@ object ProfileManager {
                     name = app.getString(R.string.route_opt_block_quic),
                     action = ACTION_ROUTE,
                     protocol = setOf("quic"),
-                    network = "udp",
+                    network = NetworkUDP,
                     outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
