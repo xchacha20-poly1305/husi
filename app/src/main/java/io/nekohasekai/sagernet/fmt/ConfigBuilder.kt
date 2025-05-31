@@ -714,6 +714,10 @@ fun buildConfig(
                 } else {
                     route.rules.add(ruleObj)
                 }
+            } else if (ruleObj.action != SingBoxOptions.ACTION_ROUTE) {
+                route.rules.add(ruleObj)
+            } else if (rule.domains.isBlank() && rule.ip.isBlank()) {
+                route.rules.add(ruleObj)
             }
         }
 
