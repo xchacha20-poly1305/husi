@@ -86,10 +86,6 @@
     <string name="cag_dns">DNS Settings</string>
     <string name="remote_dns">Remote DNS</string>
     <string name="direct_dns">Direct DNS</string>
-    <string name="enable_dns_routing">Enable DNS Routing</string>
-    <string name="dns_routing_message">Resolve domains in bypass routes with Direct DNS. Be aware of
-        potential DNS leaks
-    </string>
     <string name="enable_fakedns">Enable FakeDNS</string>
     <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
         the network after proxy stopped
@@ -669,4 +665,5 @@
     <string name="ipv6_only">IPv6 Only</string>
     <string name="sniff">Sniff</string>
     <string name="network_strategy">Network Strategy</string>
+    <string name="hijack_dns">Hijack DNS</string>
 </resources>

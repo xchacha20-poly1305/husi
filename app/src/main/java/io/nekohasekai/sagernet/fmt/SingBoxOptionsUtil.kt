@@ -48,9 +48,16 @@ fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     rule_set = mutableListOf()
 
     for (rule in list) {
-        if (rule.content == RuleItem.CONTENT_PRIVATE) {
-            ip_is_private = true
-            continue
+        when (rule.content) {
+            RuleItem.CONTENT_ANY -> {
+                ip_accept_any = true
+                continue
+            }
+
+            RuleItem.CONTENT_PRIVATE -> {
+                ip_is_private = true
+                continue
+            }
         }
 
         when (rule.type) {
@@ -69,6 +76,7 @@ fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     domain_keyword?.removeIf { it.isNullOrBlank() }
 
     if (ip_is_private == false) ip_is_private = null
+    if (ip_accept_any == false) ip_accept_any = null
     if (rule_set?.isEmpty() == true) rule_set = null
     if (domain?.isEmpty() == true) domain = null
     if (domain_suffix?.isEmpty() == true) domain_suffix = null
@@ -78,6 +86,7 @@ fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
 
 fun DNSRule_Default.checkEmpty(): Boolean {
     if (ip_is_private == true) return false
+    if (ip_accept_any == true) return false
     if (rule_set?.isNotEmpty() == true) return false
     if (domain?.isNotEmpty() == true) return false
     if (domain_suffix?.isNotEmpty() == true) return false
@@ -104,9 +113,12 @@ fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
         if (rule.dns) continue
 
         if (isIP) {
-            if (rule.content == RuleItem.CONTENT_PRIVATE) {
-                ip_is_private = true
-                continue
+            when (rule.content) {
+                RuleItem.CONTENT_ANY -> continue // just for DNS
+                RuleItem.CONTENT_PRIVATE -> {
+                    source_ip_is_private = true
+                    continue
+                }
             }
             when (rule.type) {
                 RuleItem.TYPE_FLAG_RULE_SET -> rule_set.add(rule.content)

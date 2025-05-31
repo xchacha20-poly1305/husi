@@ -83,7 +83,6 @@ data class RuleEntity(
 
     fun mkSummary(): String {
         var summary = ""
-        if (action.isNotBlank()) summary += "action: $action\n"
         if (domains.isNotBlank()) summary += "$domains\n"
         if (ip.isNotBlank()) summary += "$ip\n"
         if (source.isNotBlank()) summary += "source: $source\n"

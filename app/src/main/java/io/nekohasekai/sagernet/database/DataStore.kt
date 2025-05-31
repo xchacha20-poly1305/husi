@@ -119,7 +119,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
-    var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
@@ -135,7 +134,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
     var localDNSPort: Int
-        get() = getLocalPort(Key.LOCAL_DNS_PORT, 6450)
+        get() = getLocalPort(Key.LOCAL_DNS_PORT, 0)
         set(value) {
             saveLocalPort(Key.LOCAL_DNS_PORT, value)
         }

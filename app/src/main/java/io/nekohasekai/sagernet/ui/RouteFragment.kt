@@ -328,7 +328,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 profileType.text = rule.mkSummary()
                 routeAction.text = when (rule.action) {
                     "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
-                    else -> rule.action
+                    else -> "action: ${rule.action}"
                 }
                 itemView.setOnClickListener {
                     enableSwitch.performClick()

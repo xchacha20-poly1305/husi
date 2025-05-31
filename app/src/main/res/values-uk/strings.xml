@@ -4,8 +4,6 @@
     <string name="dns_hosts">Переписування домену</string>
     <string name="fakedns_message">Може призвести до перезапуску інших застосунків для повторного підключення до мережі після зупинки проксі</string>
     <string name="enable_fakedns">Увімкнути FakeDNS</string>
-    <string name="dns_routing_message">Вирішення доменів в обхідних маршрутах за допомогою Direct DNS. Пам\'ятайте про потенційний витік DNS</string>
-    <string name="enable_dns_routing">Увімкнути маршрутизацію DNS</string>
     <string name="direct_dns">Прямий DNS</string>
     <string name="remote_dns">Віддалений DNS</string>
     <string name="cag_dns">Налаштування DNS</string>

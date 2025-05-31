@@ -79,10 +79,6 @@
         الاتصال بالشبكة بعد توقف البروکسی
     </string>
     <string name="enable_fakedns">تفعيل DNS وهمي</string>
-    <string name="dns_routing_message">حل المجالات في مسارات الالتفاف باستخدام Direct DNS. كن على
-        علم بتسريبات DNS المحتملة
-    </string>
-    <string name="enable_dns_routing">تمكين توجيه DNS</string>
     <string name="direct_dns">DNS المباشر</string>
     <string name="remote_dns">DNS البعيد</string>
     <string name="cag_dns">إعدادات DNS</string>
