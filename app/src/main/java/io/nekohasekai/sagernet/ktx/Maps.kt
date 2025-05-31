@@ -93,61 +93,80 @@ private fun mappedValue(value: Any?): Any? = when (value) {
     else -> value.asMap()
 }
 
-fun mergeJson(from: JSONMap, to: JSONMap, listAppend: Boolean = false) {
-    for (fromField in from) {
-        val key = fromField.key
+fun mergeJson(from: JSONMap, to: JSONMap) {
+    for ((key, fromValue) in from) {
+        val prepend = key.startsWith('+')
+        val append = key.endsWith('+')
+        val realKey = if (append) {
+            key.substring(0, key.length - 1)
+        } else if (prepend) {
+            key.substring(1)
+        } else {
+            key
+        }
 
-        when (val fromValue = fromField.value) {
+        when (fromValue) {
             null -> {}
 
             is Map<*, *> -> {
-                val toValue = to[key]
+                // 递归处理嵌套对象
                 val jsonValue = toJSONMap(fromValue)
-                when (toValue) {
-                    null -> to[key] = jsonValue
+                when (val toValue = to[realKey]) {
+                    null -> to[realKey] = jsonValue
                     is Map<*, *> -> {
                         val toMap = toJSONMap(toValue)
-                        mergeJson(jsonValue, toMap, listAppend)
-                        to[key] = toMap
+                        mergeJson(jsonValue, toMap)
+                        to[realKey] = toMap
                     }
-
-                    else -> to[key] = jsonValue
+                    else -> to[realKey] = jsonValue
                 }
             }
 
             is List<*> -> {
-                val toValue = to[key]
-                to[key] = if (!listAppend) {
-                    fromValue
-                } else {
-                    if (toValue is List<*>) {
-                        toValue + fromValue
-                    } else if (toValue != null) {
-                        listOf(toValue) + fromValue
-                    } else {
-                        fromValue
-                    }
+                val toValue = to[realKey]
+                to[realKey] = when {
+                    prepend -> prependList(toValue, fromValue)
+                    append -> appendList(toValue, fromValue)
+                    else -> fromValue
                 }
             }
 
             else -> {
                 if (shouldAsMap(fromValue)) {
-                    val fromMap = fromValue.asMap()
-                    val toValue = to[key]
+                    val fromMap = fromValue!!.asMap()
+                    val toValue = to[realKey]
                     if (toValue is Map<*, *>) {
                         val toMap = toJSONMap(toValue)
-                        mergeJson(fromMap, toMap, listAppend)
-                        to[key] = toMap
+                        mergeJson(fromMap, toMap)
+                        to[realKey] = toMap
                     } else {
-                        val newMap = mutableMapOf<String, Any?>()
-                        mergeJson(fromMap, newMap, listAppend)
-                        to[key] = newMap
+                        to[realKey] = fromMap
                     }
                 } else {
-                    to[key] = fromValue
+                    when {
+                        prepend -> to[realKey] = prependList(to[realKey], listOf(fromValue))
+                        append -> to[realKey] = appendList(to[realKey], listOf(fromValue))
+                        else -> to[realKey] = fromValue
+                    }
                 }
             }
         }
+    }
+}
+
+private fun prependList(toValue: Any?, fromList: List<*>): List<*> {
+    return when (toValue) {
+        null -> fromList
+        is List<*> -> fromList + toValue
+        else -> fromList + listOf(toValue)
+    }
+}
+
+private fun appendList(toValue: Any?, fromList: List<*>): List<*> {
+    return when (toValue) {
+        null -> fromList
+        is List<*> -> toValue + fromList
+        else -> listOf(toValue) + fromList
     }
 }
 
