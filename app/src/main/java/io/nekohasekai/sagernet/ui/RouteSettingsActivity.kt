@@ -369,6 +369,7 @@ class RouteSettingsActivity(
                     actionSniff.isVisible = true
                 }
 
+                // ACTION_HIJACK_DNS ->
                 else -> {
                     actionRoute.isVisible = false
                     actionRouteOptions.isVisible = false
