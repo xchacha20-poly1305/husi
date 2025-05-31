@@ -33,7 +33,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.User
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.anytls.buildSingBoxOutboundAnyTLSBean
@@ -76,7 +75,7 @@ import moe.matsuri.nb4a.utils.listByLineOrComma
 // Inbound
 const val TAG_MIXED = "mixed-in"
 const val TAG_TUN = "tun-in"
-const val TAG_DNS_IN = "dns-in"
+const val TAG_DNS_IN = "dns-in" // strategic
 
 // Outbound
 const val TAG_PROXY = "proxy"
@@ -185,7 +184,6 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
-    val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
     val externalIndexMap = ArrayList<IndexEntity>()
     val networkStrategy = DataStore.networkStrategy
@@ -681,6 +679,10 @@ fun buildConfig(
                         sniffer = rule.sniffers.takeIf { it.isNotEmpty() }?.toList()
                     }
 
+                    SingBoxOptions.ACTION_HIJACK_DNS -> {
+                        action = ruleAction
+                    }
+
                     else -> error("unsupported action: $ruleAction")
                 }
 
@@ -720,12 +722,12 @@ fun buildConfig(
             type = SingBoxOptions.TYPE_BLOCK
         }.asMap())
 
-        if (!forTest) {
+        if (!forTest) DataStore.localDNSPort.takeIf { it > 0 }?.let {
             inbounds.add(0, Inbound_DirectOptions().apply {
                 type = SingBoxOptions.TYPE_DIRECT
                 tag = TAG_DNS_IN
                 listen = bind
-                listen_port = DataStore.localDNSPort
+                listen_port = it
                 override_address = "8.8.8.8"
                 override_port = 53
             })
@@ -781,14 +783,14 @@ fun buildConfig(
         directDNS.firstOrNull()?.let {
             dns.servers.add(
                 buildDNSServer(
-                it,
-                null,
-                TAG_DNS_DIRECT,
-                DomainResolveOptions().apply {
-                    server = TAG_DNS_LOCAL
-                    strategy = autoDnsDomainStrategy(domainStrategy(server))
-                }
-            ))
+                    it,
+                    null,
+                    TAG_DNS_DIRECT,
+                    DomainResolveOptions().apply {
+                        server = TAG_DNS_LOCAL
+                        strategy = autoDnsDomainStrategy(domainStrategy(server))
+                    }
+                ))
         } ?: error("missing direct DNS")
 
         // underlyingDns
@@ -798,10 +800,8 @@ fun buildConfig(
         })
 
         // dns object user rules
-        if (enableDnsRouting) {
-            userDNSRuleList.forEach {
-                if (!it.checkEmpty()) dns.rules.add(it)
-            }
+        userDNSRuleList.forEach {
+            if (!it.checkEmpty()) dns.rules.add(it)
         }
 
         if (forTest) {
@@ -824,24 +824,6 @@ fun buildConfig(
             route.rules.add(0, Rule_Default().apply {
                 clash_mode = RuleEntity.MODE_BLOCK
                 action = SingBoxOptions.ACTION_REJECT
-            })
-
-            // built-in DNS rules
-            route.rules.add(0, Rule_Logical().also {
-                it.type = SingBoxOptions.TYPE_LOGICAL
-                it.mode = SingBoxOptions.LOGICAL_OR
-                it.rules = listOf(
-                    Rule_Default().apply {
-                        inbound = listOf(TAG_DNS_IN)
-                    },
-                    Rule_Default().apply {
-                        port = listOf(53)
-                    },
-                    Rule_Default().apply {
-                        protocol = listOf(SingBoxOptions.SNIFF_DNS)
-                    },
-                )
-                it.action = SingBoxOptions.ACTION_HIJACK_DNS
             })
 
             if (DataStore.bypassLanInCore) {

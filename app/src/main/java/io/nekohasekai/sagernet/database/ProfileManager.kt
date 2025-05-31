@@ -200,6 +200,13 @@ object ProfileManager {
             )
             createRule(
                 RuleEntity(
+                    enabled = true,
+                    name = app.getString(R.string.hijack_dns),
+                    action = ACTION_HIJACK_DNS,
+                )
+            )
+            createRule(
+                RuleEntity(
                     name = app.getString(R.string.route_opt_block_quic),
                     action = ACTION_ROUTE,
                     protocol = setOf("quic"),
@@ -211,20 +218,7 @@ object ProfileManager {
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_ads),
                     action = ACTION_ROUTE,
-                    domains = "set:geosite-category-ads-all",
-                    outbound = RuleEntity.OUTBOUND_BLOCK,
-                )
-            )
-            createRule(
-                RuleEntity(
-                    name = app.getString(R.string.route_opt_block_analysis),
-                    action = ACTION_ROUTE,
-                    domains = app.assets.open("analysis.txt").use { stream ->
-                        stream.bufferedReader()
-                            .readLines()
-                            .filter { it.isNotBlank() }
-                            .joinToString("\n")
-                    },
+                    domains = "set+dns:geosite-category-ads-all",
                     outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
@@ -240,14 +234,14 @@ object ProfileManager {
                     RuleEntity(
                         name = app.getString(R.string.route_play_store, displayCountry),
                         action = ACTION_ROUTE,
-                        domains = "domain:googleapis.cn",
+                        domains = "domain+dns:googleapis.cn",
                     ), false
                 )
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_domain, displayCountry),
                         action = ACTION_ROUTE,
-                        domains = "set:geosite-$country",
+                        domains = "set+dns:geosite-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
                 )
@@ -255,7 +249,7 @@ object ProfileManager {
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_ip, displayCountry),
                         action = ACTION_ROUTE,
-                        ip = "set:geoip-$country",
+                        ip = "set-dns:geoip-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
                 )

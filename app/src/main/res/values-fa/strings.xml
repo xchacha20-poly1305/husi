@@ -77,8 +77,6 @@
     <string name="cag_dns">تنظیمات DNS</string>
     <string name="remote_dns">DNS از راه دور</string>
     <string name="direct_dns">DNS مستقیم</string>
-    <string name="enable_dns_routing">فعال کردن مسیریابی DNS</string>
-    <string name="dns_routing_message">حل دامنه‌ها در مسیرهای بای‌پس با DNS مستقیم. از نشت های احتمالی DNS آگاه باشید</string>
     <string name="enable_fakedns">فعال کردن FakeDNS</string>
     <string name="fakedns_message">ممکن است باعث شود پس از توقف پروکسی، برنامه‌های دیگر برای اتصال مجدد به شبکه مجدداً راه‌اندازی شوند</string>
     <string name="dns_hosts">بازنویسی دامنه</string>

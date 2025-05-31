@@ -37,10 +37,6 @@
         падлучэння да сеткі пасля спынення проксі
     </string>
     <string name="enable_fakedns">Уключыць FakeDNS</string>
-    <string name="dns_routing_message">Выкарыстоўвайце прамы DNS для маршрутаў па -за проксі. У
-        гэтым выпадку верагодна ўцечка DNS
-    </string>
-    <string name="enable_dns_routing">Уключыць маршрутызацыю DNS</string>
     <string name="direct_dns">Прамы DNS</string>
     <string name="remote_dns">Аддалены DNS</string>
     <string name="cag_dns">Налады DNS</string>
