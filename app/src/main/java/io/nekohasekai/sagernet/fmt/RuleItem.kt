@@ -19,6 +19,8 @@ class RuleItem(val type: String = "", val content: String) {
 
         // Set this value is same as enable `ip_is_private`.
         const val CONTENT_PRIVATE = "private"
+        // Set this value is same as enable `ip_accept_any`.
+        const val CONTENT_ANY = "any"
 
         fun parseRule(raw: String): RuleItem {
             val parts = raw.split(":", limit = 2)
