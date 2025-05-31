@@ -415,7 +415,9 @@ class MainActivity : ThemedActivity(),
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
         return Snackbar.make(binding.coordinator, text, Snackbar.LENGTH_LONG).apply {
-            anchorView = binding.fab
+            if (binding.fab.isShown) {
+                anchorView = binding.fab
+            }
         }
     }
 
