@@ -64,6 +64,10 @@ If gomobile is not in the GOPATH, it will be automatically downloaded and compil
 
 If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
+#### 🎀 Rename package name (optional)
+
+If you don't want to use the same package name, you can run `./run rename target_name`.
+
 #### 🎁 APK
 
 Environment:
