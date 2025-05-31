@@ -97,6 +97,8 @@ jobs:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
       - name: Gradle Build
         env:
           BUILD_PLUGIN: none
