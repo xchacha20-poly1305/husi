@@ -35,6 +35,14 @@ abstract class ThemedActivity : AppCompatActivity {
         onBackPressedCallback?.let {
             onBackPressedDispatcher.addCallback(this, it)
         }
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
+            // Baklava should have fixed this
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = !Theme.usingNightMode()
+        }
     }
 
     override fun setTheme(resId: Int) {
