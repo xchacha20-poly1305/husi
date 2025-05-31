@@ -576,6 +576,7 @@
         <item>route-options</item>
         <item>sniff</item>
         <item>resolve</item>
+        <item>hijack-dns</item>
     </string-array>
 
     <string-array name="sniff_protocol">

@@ -16,10 +16,6 @@
         повторного подключения к сети после остановки прокси
     </string>
     <string name="enable_fakedns">Включить FakeDNS</string>
-    <string name="dns_routing_message">Разрешение доменов в обходных маршрутах с помощью Direct DNS.
-        Помните о потенциальных утечках DNS
-    </string>
-    <string name="enable_dns_routing">Включить маршрутизацию DNS</string>
     <string name="direct_dns">Прямой DNS</string>
     <string name="remote_dns">Удаленный DNS</string>
     <string name="cag_dns">Настройки DNS</string>
