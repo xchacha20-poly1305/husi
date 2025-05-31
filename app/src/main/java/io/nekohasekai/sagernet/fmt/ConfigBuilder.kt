@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
+import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN4_ROUTER
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
@@ -33,6 +34,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SelectorOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.User
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.anytls.buildSingBoxOutboundAnyTLSBean
@@ -184,6 +186,7 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
+    val localDNSPort = DataStore.localDNSPort.takeIf { it > 0 }
     val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
     val externalIndexMap = ArrayList<IndexEntity>()
     val networkStrategy = DataStore.networkStrategy
@@ -720,7 +723,7 @@ fun buildConfig(
             type = SingBoxOptions.TYPE_BLOCK
         }.asMap())
 
-        if (!forTest) DataStore.localDNSPort.takeIf { it > 0 }?.let {
+        if (!forTest) localDNSPort?.let {
             inbounds.add(0, Inbound_DirectOptions().apply {
                 type = SingBoxOptions.TYPE_DIRECT
                 tag = TAG_DNS_IN
@@ -823,6 +826,27 @@ fun buildConfig(
                 clash_mode = RuleEntity.MODE_BLOCK
                 action = SingBoxOptions.ACTION_REJECT
             })
+
+            // built-in DNS rules
+            val builtInDNSRule = localDNSPort?.let {
+                Rule_Logical().also {
+                    it.type = SingBoxOptions.TYPE_LOGICAL
+                    it.mode = SingBoxOptions.LOGICAL_OR
+                    it.rules = listOf(
+                        Rule_Default().apply {
+                            inbound = listOf(TAG_DNS_IN)
+                        },
+                        Rule_Default().apply {
+                            ip_cidr = listOf(PRIVATE_VLAN4_ROUTER)
+                        },
+                    )
+                    it.action = SingBoxOptions.ACTION_HIJACK_DNS
+                }
+            } ?: Rule_Default().apply {
+                ip_cidr = listOf(PRIVATE_VLAN4_ROUTER)
+                action = SingBoxOptions.ACTION_HIJACK_DNS
+            }
+            route.rules.add(0, builtInDNSRule)
 
             if (DataStore.bypassLanInCore) {
                 route.rules.add(Rule_Default().apply {
