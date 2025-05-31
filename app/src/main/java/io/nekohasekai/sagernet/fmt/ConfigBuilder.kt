@@ -533,11 +533,11 @@ fun buildConfig(
                 }
                 var domainList: List<RuleItem> = listOf()
                 if (rule.domains.isNotBlank()) {
-                    domainList = RuleItem.parseRules(rule.domains.listByLineOrComma())
+                    domainList = RuleItem.parseRules(rule.domains.listByLineOrComma(), true)
                     makeCommonRule(domainList, false)
                 }
                 if (rule.ip.isNotBlank()) {
-                    makeCommonRule(RuleItem.parseRules(rule.ip.listByLineOrComma()), true)
+                    makeCommonRule(RuleItem.parseRules(rule.ip.listByLineOrComma(), false), true)
                 }
                 if (rule.port.isNotBlank()) {
                     port = mutableListOf()
@@ -600,10 +600,8 @@ fun buildConfig(
                 fun makeDnsRuleObj(): DNSRule_Default {
                     return DNSRule_Default().apply {
                         if (uidList.isNotEmpty()) user_id = uidList
-                        val ips = RuleItem.parseRules(rule.ip.listByLineOrComma()).filter {
-                            it.dns
-                        }
-                        makeCommonRule(domainList + ips)
+                        val ips = RuleItem.parseRules(rule.ip.listByLineOrComma(), false)
+                        makeCommonRule((domainList + ips).filter { it.dns })
                     }
                 }
 
@@ -871,7 +869,7 @@ fun buildConfig(
 
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
-                    makeCommonRule(RuleItem.parseRules(domainListDNSDirectForce.distinct()))
+                    makeCommonRule(RuleItem.parseRules(domainListDNSDirectForce.distinct(), true))
                     server = TAG_DNS_DIRECT
                 })
             }

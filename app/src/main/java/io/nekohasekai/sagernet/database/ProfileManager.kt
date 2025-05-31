@@ -218,7 +218,7 @@ object ProfileManager {
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_ads),
                     action = ACTION_ROUTE,
-                    domains = "set:geosite-category-ads-all",
+                    domains = "set+dns:geosite-category-ads-all",
                     outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
@@ -234,14 +234,15 @@ object ProfileManager {
                     RuleEntity(
                         name = app.getString(R.string.route_play_store, displayCountry),
                         action = ACTION_ROUTE,
-                        domains = "domain:googleapis.cn",
+                        domains = "domain+dns:googleapis.cn",
+                        outbound = RuleEntity.OUTBOUND_PROXY
                     ), false
                 )
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_domain, displayCountry),
                         action = ACTION_ROUTE,
-                        domains = "set:geosite-$country",
+                        domains = "set+dns:geosite-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
                 )
@@ -249,7 +250,7 @@ object ProfileManager {
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_ip, displayCountry),
                         action = ACTION_ROUTE,
-                        ip = "set:geoip-$country",
+                        ip = "set-dns:geoip-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ), false
                 )
