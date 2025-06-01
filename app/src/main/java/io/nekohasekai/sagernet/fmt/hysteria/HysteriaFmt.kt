@@ -229,7 +229,9 @@ fun HysteriaBean.buildHysteriaConfig(
             if (disableMtuDiscovery) put("disable_mtu_discovery", true)
 
             // hy 1.2.0
-            put("resolver", "udp://127.0.0.1:" + DataStore.localDNSPort)
+            DataStore.localDNSPort.takeIf { it > 0 }?.let {
+                put("resolver", "udp://127.0.0.1:$it")
+            }
 
             val hopSeconds = try {
                 // parseDuration returns a nanoseconds of time.Duration.
@@ -354,7 +356,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     certificate = listOf(bean.certificates)
                 }
                 if (bean.ech) {
-                    val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
+                    val echConfig =
+                        bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                     ech = SingBoxOptions.OutboundECHOptions().apply {
                         enabled = true
                         config = echConfig
