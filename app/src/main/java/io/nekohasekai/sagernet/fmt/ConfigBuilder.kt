@@ -248,13 +248,6 @@ fun buildConfig(
             independent_cache = true
         }
 
-        fun autoDnsDomainStrategy(s: String): String? {
-            if (s.isNotBlank()) {
-                return s
-            }
-            return networkStrategy.blankAsNull()
-        }
-
         inbounds = mutableListOf()
 
         if (!forTest) {
@@ -727,6 +720,7 @@ fun buildConfig(
         outbounds.add(Outbound_DirectOptions().apply {
             tag = TAG_DIRECT
             type = SingBoxOptions.TYPE_DIRECT
+            domain_strategy = domainStrategy(tag).blankAsNull()
 
             if (!forTest) {
                 if (networkPreferredInterfaces.isNotEmpty()) {
@@ -791,7 +785,7 @@ fun buildConfig(
                     TAG_DNS_REMOTE,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_DIRECT
-                        strategy = autoDnsDomainStrategy(domainStrategy(server))
+                        strategy = domainStrategy(TAG_DNS_REMOTE).blankAsNull()
                     },
                 )
             )
@@ -806,7 +800,7 @@ fun buildConfig(
                     TAG_DNS_DIRECT,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_LOCAL
-                        strategy = autoDnsDomainStrategy(domainStrategy(server))
+                        strategy = domainStrategy(TAG_DNS_DIRECT).blankAsNull()
                     }
                 ))
         } ?: error("missing direct DNS")

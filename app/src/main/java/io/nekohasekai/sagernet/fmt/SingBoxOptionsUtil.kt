@@ -24,11 +24,11 @@ fun domainStrategy(tag: String): String {
         return (DataStore.configurationStore.getString(key) ?: "").replace("auto", "")
     }
     return when (tag) {
-        "dns-remote" -> {
+        TAG_DNS_REMOTE -> {
             auto2AsIs("domain_strategy_for_remote")
         }
 
-        "dns-direct" -> {
+        TAG_DNS_DIRECT -> {
             auto2AsIs("domain_strategy_for_direct")
         }
 
