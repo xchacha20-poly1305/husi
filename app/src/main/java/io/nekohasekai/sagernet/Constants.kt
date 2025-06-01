@@ -32,6 +32,7 @@ object Key {
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"
     const val ENABLE_FAKE_DNS = "enableFakeDns"
+    const val DNS_HOSTS = "dnsHosts"
 
     const val PROXY_APPS = "proxyApps"
     const val BYPASS_MODE = "bypassMode"

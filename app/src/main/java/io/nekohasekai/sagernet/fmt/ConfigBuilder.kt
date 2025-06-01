@@ -27,6 +27,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.LogOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NTPOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_HostsDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
@@ -89,6 +90,7 @@ const val TAG_DNS_REMOTE = "dns-remote"
 const val TAG_DNS_DIRECT = "dns-direct"
 const val TAG_DNS_LOCAL = "dns-local"
 const val TAG_DNS_FAKE = "dns-fake"
+const val TAG_DNS_HOSTS = "dns-hosts"
 
 const val LOCALHOST4 = "127.0.0.1"
 
@@ -188,6 +190,21 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val localDNSPort = DataStore.localDNSPort.takeIf { it > 0 }
     val useFakeDns by lazy { DataStore.enableFakeDns && !forTest }
+    val dnsHosts by lazy {
+        DataStore.dnsHosts.blankAsNull()?.lineSequence()
+            ?.mapNotNull { line ->
+                val trimmed = line.trim()
+                // Promote the compatibility.
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) return@mapNotNull null
+                val tokens = trimmed.split("\\s+".toRegex()) // Handle direct copy from host file.
+                if (tokens.size < 2) return@mapNotNull null
+                val host = tokens[0]
+                val ips = tokens.drop(1)
+                host to ips
+            }
+            ?.toMap()
+            ?.takeIf { it.isNotEmpty() }
+    }
     val externalIndexMap = ArrayList<IndexEntity>()
     val networkStrategy = DataStore.networkStrategy
     val networkInterfaceStrategy = DataStore.networkInterfaceType
@@ -874,6 +891,18 @@ fun buildConfig(
                     server = TAG_DNS_FAKE
                     disable_cache = true
                     query_type = FAKE_DNS_QUERY_TYPE
+                })
+            }
+
+            dnsHosts?.let {
+                dns.servers.add(NewDNSServerOptions_HostsDNSServerOptions().apply {
+                    type = SingBoxOptions.DNS_TYPE_HOSTS
+                    tag = TAG_DNS_HOSTS
+                    predefined = it
+                })
+                dns.rules.add(0, DNSRule_Default().apply {
+                    server = TAG_DNS_HOSTS
+                    ip_accept_any = true
                 })
             }
 

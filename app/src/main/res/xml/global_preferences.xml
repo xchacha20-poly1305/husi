@@ -137,9 +137,9 @@
             app:title="@string/bypass_lan_in_core" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue=""
-            app:icon="@drawable/ic_hardware_router"
             app:entries="@array/network_strategies"
             app:entryValues="@array/network_strategies_values"
+            app:icon="@drawable/ic_hardware_router"
             app:key="networkStrategy"
             app:title="@string/network_strategy"
             app:useSimpleSummaryProvider="true" />
@@ -247,6 +247,12 @@
             app:key="enableFakeDns"
             app:summary="@string/fakedns_message"
             app:title="@string/fake_dns" />
+        <EditTextPreference
+            app:defaultValue=""
+            app:dialogMessage="localhost 127.0.0.1 ::1\nlocal 127.0.0.1"
+            app:icon="@drawable/ic_baseline_transform_24"
+            app:key="dnsHosts"
+            app:title="@string/dns_hosts" />
     </PreferenceCategory>
 
     <PreferenceCategory

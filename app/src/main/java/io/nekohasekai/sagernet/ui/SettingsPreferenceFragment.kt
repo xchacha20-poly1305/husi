@@ -264,6 +264,18 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                     }
                 }
 
+                Key.DNS_SETTINGS -> preferenceCategory.forEach { preference ->
+                    when (preference.key) {
+                        Key.DNS_HOSTS -> {
+                            preference as EditTextPreference
+                            preference.onPreferenceChangeListener = reloadListener
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
+                        }
+
+                        else -> preference.onPreferenceChangeListener = reloadListener
+                    }
+                }
+
                 Key.MISC_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
                         Key.TCP_KEEP_ALIVE_INTERVAL -> {
@@ -371,6 +383,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         httpProxyBypass.apply {
             isEnabled = appendHttpProxy.isChecked
             onPreferenceChangeListener = reloadListener
+            setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
 
             // I Don't want to set a long default value in xml,
             // but set default value here can't show default value in editor.

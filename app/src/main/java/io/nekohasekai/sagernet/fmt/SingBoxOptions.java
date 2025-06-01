@@ -74,6 +74,7 @@ public class SingBoxOptions {
     public static final String DNS_TYPE_PREDEFINED = "predefined";
     public static final String DNS_TYPE_RCODE = "rcode";
     public static final String DNS_TYPE_FAKEIP = "fakeip";
+    public static final String DNS_TYPE_HOSTS = "hosts";
 
     // base
 
