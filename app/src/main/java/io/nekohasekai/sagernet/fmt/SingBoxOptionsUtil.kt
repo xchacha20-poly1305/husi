@@ -110,8 +110,6 @@ fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
     if (rule_set == null) rule_set = mutableListOf()
 
     for (rule in list) {
-        if (rule.dns) continue
-
         if (isIP) {
             when (rule.content) {
                 RuleItem.CONTENT_ANY -> continue // just for DNS
