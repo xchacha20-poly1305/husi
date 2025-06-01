@@ -116,7 +116,7 @@ fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
             when (rule.content) {
                 RuleItem.CONTENT_ANY -> continue // just for DNS
                 RuleItem.CONTENT_PRIVATE -> {
-                    source_ip_is_private = true
+                    ip_is_private = true
                     continue
                 }
             }
