@@ -120,6 +120,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "local" }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
+    var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
