@@ -240,7 +240,9 @@ abstract class BoxInstance(
                 box.close()
             } catch (e: Exception) {
                 Logs.w(e)
-                Libcore.kill()
+                // Kill the process if it is not closed properly to clean exist inbound listeners.
+                // Do not kill in main process, whose test not starts any listener.
+                if (!app.isMainProcess) Libcore.kill()
             }
         }
     }

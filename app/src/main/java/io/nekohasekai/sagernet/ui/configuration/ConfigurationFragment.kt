@@ -954,11 +954,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                     // Store here to avoid reading datastore frequently
                     val testURL = DataStore.connectionTestURL
                     val testTimeout = DataStore.connectionTestTimeout
+                    val underVPN =
+                        DataStore.serviceMode == Key.MODE_VPN && DataStore.serviceState.started
                     while (isActive) {
                         val profile = profiles.poll() ?: break
                         profile.status = ProxyEntity.STATUS_INITIAL
                         test.insert(profile)
-                        profile.doUrlTest(testURL, testTimeout)
+                        profile.doUrlTest(testURL, testTimeout, underVPN)
                         test.update(profile)
                     }
                 })
@@ -1918,9 +1920,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 private suspend fun ProxyEntity.doUrlTest(
     link: String = DataStore.connectionTestURL,
     timeout: Int = DataStore.connectionTestTimeout,
+    underVPN: Boolean = DataStore.serviceMode == Key.MODE_VPN && DataStore.serviceState.started,
 ) {
     try {
-        val result = TestInstance(this, link, timeout).doTest()
+        val result = TestInstance(this, link, timeout).doTest(underVPN)
         status = ProxyEntity.STATUS_AVAILABLE
         ping = result
     } catch (e: PluginManager.PluginNotFoundException) {

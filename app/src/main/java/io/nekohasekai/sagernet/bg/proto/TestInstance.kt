@@ -21,7 +21,7 @@ import kotlin.coroutines.suspendCoroutine
 class TestInstance(profile: ProxyEntity, val link: String, private val timeout: Int) :
     BoxInstance(profile) {
 
-    suspend fun doTest(): Int {
+    suspend fun doTest(underVPN: Boolean): Int {
         return suspendCoroutine { c ->
             processes = GuardedProcessPool {
                 Logs.w(it)
@@ -30,7 +30,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
             runOnDefaultDispatcher {
                 use {
                     try {
-                        init(false)
+                        init(underVPN)
                         launch()
                         if (processes.processCount > 0) {
                             // wait for plugin start
