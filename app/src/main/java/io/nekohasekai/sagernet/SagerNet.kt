@@ -54,7 +54,7 @@ class SagerNet : Application(),
 
     val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
     val process: String = JavaUtil.getProcessName()
-    private val isMainProcess = process == BuildConfig.APPLICATION_ID
+    val isMainProcess = process == BuildConfig.APPLICATION_ID
     private val isBgProcess = process.endsWith(":bg")
 
     override fun onCreate() {
