@@ -14,7 +14,6 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/atomic"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/service"
@@ -31,21 +30,11 @@ func ResetAllConnections() {
 	log.Debug("Reset system connections done.")
 }
 
-// boxState is sing-box state
-type boxState = uint8
-
-const (
-	boxStateNeverStarted boxState = iota
-	boxStateRunning
-	boxStateClosed
-)
-
 type BoxInstance struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	*box.Box
 	forTest bool
-	state   atomic.TypedValue[boxState]
 
 	platformInterface PlatformInterface
 	selector          *group.Selector
@@ -141,10 +130,6 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 func (b *BoxInstance) Start() (err error) {
 	defer catchPanic("box.Start", func(panicErr error) { err = panicErr })
 
-	if b.state.Load() != boxStateNeverStarted {
-		return E.New("box already started")
-	}
-	b.state.Store(boxStateRunning)
 	err = b.Box.Start()
 	if err != nil {
 		return err
@@ -174,11 +159,6 @@ func (b *BoxInstance) Close() (err error) {
 
 func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
-
-	// no double close
-	if b.state.Swap(boxStateClosed) == boxStateClosed {
-		return nil
-	}
 
 	_ = common.Close(
 		common.PtrOrNil(b.protect),
