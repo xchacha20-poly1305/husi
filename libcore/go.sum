@@ -138,8 +138,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.11.0 h1:BVQ+rcSHmr7yNGNwUVrwj90MtDw2
 github.com/xchacha20-poly1305/TLS-scribe v0.11.0/go.mod h1:XBN19mzhi37LEseifEW+4rYYJn8KcFJOcxMfaGQex9g=
 github.com/xchacha20-poly1305/anchor v0.6.1 h1:9OT+wt0Yg+3G8WpifABTU23AIq8UsuKSumn/hT9MV7c=
 github.com/xchacha20-poly1305/anchor v0.6.1/go.mod h1:RK9BA6G8DtOQlz0ppLPAeJ8WaKnxxJTIjOsJMC1GYaE=
-github.com/xchacha20-poly1305/cazilla v1.0.0 h1:C3sA58dD68RPNTQ4wsFQh2PyIty7u2yC9VJ+5iXVwSk=
-github.com/xchacha20-poly1305/cazilla v1.0.0/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
+github.com/xchacha20-poly1305/cazilla v1.0.2 h1:IFant4Apw7saEwwLMr6UDlRiJ/F+x30k6BEm0rvCUBo=
+github.com/xchacha20-poly1305/cazilla v1.0.2/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.9.0 h1:aW0g2wYUiwxknTVFoMHPcHmHmGNemKk8bEbkecn1hW8=
 github.com/xchacha20-poly1305/libping v0.9.0/go.mod h1:75QIPvL7hX+Ec5Ku0SDdNJrni2JjYY7dzD3K8e1i4Ig=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
