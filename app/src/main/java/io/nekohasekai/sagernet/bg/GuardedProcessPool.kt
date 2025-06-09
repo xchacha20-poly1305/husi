@@ -6,7 +6,7 @@ import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
 import androidx.annotation.MainThread
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.utils.Commandline
 import kotlinx.coroutines.*
@@ -36,7 +36,7 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
         }    // ignore
 
         fun start() {
-            process = ProcessBuilder(cmd).directory(SagerNet.application.noBackupFilesDir).apply {
+            process = ProcessBuilder(cmd).directory(app.noBackupFilesDir).apply {
                 environment().putAll(env)
             }.start()
         }

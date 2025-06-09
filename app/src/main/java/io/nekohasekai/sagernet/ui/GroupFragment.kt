@@ -32,7 +32,6 @@ import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.mapX
@@ -483,21 +482,22 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             val subscription = proxyGroup.subscription
+            val context = requireContext()
             if (subscription != null &&
                 (subscription.bytesUsed > 0L || subscription.bytesRemaining > 0)
             ) {
                 val builder = StringBuilder().apply {
                     append(
                         if (subscription.bytesRemaining > 0L) {
-                            app.getString(
+                            context.getString(
                                 R.string.subscription_traffic,
-                                Formatter.formatFileSize(app, subscription.bytesUsed),
-                                Formatter.formatFileSize(app, subscription.bytesRemaining),
+                                Formatter.formatFileSize(context, subscription.bytesUsed),
+                                Formatter.formatFileSize(context, subscription.bytesRemaining),
                             )
                         } else {
-                            app.getString(
+                            context.getString(
                                 R.string.subscription_used, Formatter.formatFileSize(
-                                    app, subscription.bytesUsed
+                                    context, subscription.bytesUsed
                                 )
                             )
                         }

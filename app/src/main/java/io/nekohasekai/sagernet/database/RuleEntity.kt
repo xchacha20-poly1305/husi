@@ -10,8 +10,8 @@ import androidx.room.Query
 import androidx.room.TypeConverters
 import androidx.room.Update
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
-import io.nekohasekai.sagernet.ktx.app
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")

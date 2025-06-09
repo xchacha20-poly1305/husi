@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN4_ROUTER
@@ -530,9 +531,9 @@ fun buildConfig(
             val uidList = rule.packages.mapX {
                 if (!isVPN) {
                     Toast.makeText(
-                        SagerNet.application,
-                        SagerNet.application.getString(R.string.route_need_vpn, rule.displayName()),
-                        Toast.LENGTH_SHORT
+                        app,
+                        app.getString(R.string.route_need_vpn, rule.displayName()),
+                        Toast.LENGTH_SHORT,
                     ).show()
                 }
                 PackageCache[it]?.takeIf { uid -> uid >= 1000 }
@@ -707,7 +708,7 @@ fun buildConfig(
                 }
                 if (needOutbound && ruleObj.outbound.isNullOrBlank()) {
                     Toast.makeText(
-                        SagerNet.application,
+                        app,
                         "Warning: " + rule.displayName() + ": A non-existent outbound was specified.",
                         Toast.LENGTH_LONG,
                     ).show()
@@ -977,7 +978,7 @@ fun buildConfig(
             }
         }
         if (geositeLink == null) {
-            ruleSetResource = SagerNet.application.externalAssets.absolutePath + "/geo"
+            ruleSetResource = app.externalAssets.absolutePath + "/geo"
         }
         buildRuleSets(geoipLink, geositeLink, ruleSetResource)
         partitionEndpoints()

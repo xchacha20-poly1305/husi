@@ -51,6 +51,7 @@ import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 import com.google.gson.annotations.SerializedName
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import kotlinx.coroutines.delay
 
 
@@ -170,8 +171,6 @@ fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
         }
     }, 300L)
 }
-
-val app get() = SagerNet.application
 
 val shortAnimTime by lazy {
     app.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()

@@ -6,9 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import io.nekohasekai.sagernet.bg.SubscriptionUpdater
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.app
 
 class BootReceiver : BroadcastReceiver() {
     companion object {

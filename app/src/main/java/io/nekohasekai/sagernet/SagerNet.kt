@@ -50,7 +50,7 @@ class SagerNet : Application(),
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
-        application = this
+        app = this
     }
 
     val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
@@ -140,8 +140,7 @@ class SagerNet : Application(),
     @SuppressLint("InlinedApi")
     companion object {
 
-        // Use ktx.app instead of this
-        lateinit var application: SagerNet
+        lateinit var app: SagerNet
 
         val isTv by lazy {
             uiMode.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
@@ -153,21 +152,21 @@ class SagerNet : Application(),
                     it,
                     0,
                     Intent(
-                        application, MainActivity::class.java
+                        app, MainActivity::class.java
                     ).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
                 )
             }
         }
-        val activity by lazy { application.getSystemService<ActivityManager>()!! }
-        val clipboard by lazy { application.getSystemService<ClipboardManager>()!! }
-        val connectivity by lazy { application.getSystemService<ConnectivityManager>()!! }
-        val notification by lazy { application.getSystemService<NotificationManager>()!! }
-        val user by lazy { application.getSystemService<UserManager>()!! }
-        val uiMode by lazy { application.getSystemService<UiModeManager>()!! }
-        val power by lazy { application.getSystemService<PowerManager>()!! }
-        val wifi by lazy { application.getSystemService<WifiManager>()!! }
-        val inputMethod by lazy { application.getSystemService<InputMethodManager>()!! }
+        val activity by lazy { app.getSystemService<ActivityManager>()!! }
+        val clipboard by lazy { app.getSystemService<ClipboardManager>()!! }
+        val connectivity by lazy { app.getSystemService<ConnectivityManager>()!! }
+        val notification by lazy { app.getSystemService<NotificationManager>()!! }
+        val user by lazy { app.getSystemService<UserManager>()!! }
+        val uiMode by lazy { app.getSystemService<UiModeManager>()!! }
+        val power by lazy { app.getSystemService<PowerManager>()!! }
+        val wifi by lazy { app.getSystemService<WifiManager>()!! }
+        val inputMethod by lazy { app.getSystemService<InputMethodManager>()!! }
 
         fun getClipboardText(): String {
             return clipboard.primaryClip?.takeIf { it.itemCount > 0 }
@@ -188,17 +187,17 @@ class SagerNet : Application(),
                     listOf(
                         NotificationChannel(
                             "service-vpn",
-                            application.getText(R.string.service_vpn),
+                            app.getText(R.string.service_vpn),
                             if (Build.VERSION.SDK_INT >= 28) NotificationManager.IMPORTANCE_MIN
                             else NotificationManager.IMPORTANCE_LOW
                         ),   // #1355
                         NotificationChannel(
                             "service-proxy",
-                            application.getText(R.string.service_proxy),
+                            app.getText(R.string.service_proxy),
                             NotificationManager.IMPORTANCE_LOW
                         ), NotificationChannel(
                             "service-subscription",
-                            application.getText(R.string.service_subscription),
+                            app.getText(R.string.service_subscription),
                             NotificationManager.IMPORTANCE_DEFAULT
                         )
                     )
@@ -207,14 +206,14 @@ class SagerNet : Application(),
         }
 
         fun startService() = ContextCompat.startForegroundService(
-            application, Intent(application, SagerConnection.serviceClass)
+            app, Intent(app, SagerConnection.serviceClass)
         )
 
         fun reloadService() =
-            application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName))
+            app.sendBroadcast(Intent(Action.RELOAD).setPackage(app.packageName))
 
         fun stopService() =
-            application.sendBroadcast(Intent(Action.CLOSE).setPackage(application.packageName))
+            app.sendBroadcast(Intent(Action.CLOSE).setPackage(app.packageName))
 
     }
 

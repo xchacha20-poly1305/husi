@@ -5,7 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import dev.matrix.roomigrant.GenerateRoomMigrations
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 
 @Database(entities = [KeyValuePair::class], version = 1)
@@ -13,8 +13,8 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 abstract class PublicDatabase : RoomDatabase() {
     companion object {
         val instance by lazy {
-            SagerNet.application.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
-            Room.databaseBuilder(SagerNet.application, PublicDatabase::class.java, Key.DB_PUBLIC)
+            app.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
+            Room.databaseBuilder(app, PublicDatabase::class.java, Key.DB_PUBLIC)
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
                 .fallbackToDestructiveMigration(true)

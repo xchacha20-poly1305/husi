@@ -21,9 +21,7 @@
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ShortcutManager
 import android.graphics.ImageDecoder
@@ -61,7 +59,6 @@ import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.forEachTry
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -181,7 +178,8 @@ class ScannerActivity : ThemedActivity() {
     private val fatalError: (Exception?) -> Unit = {
         if (it != null) Logs.w(it)
         runOnMainDispatcher {
-            Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@ScannerActivity, R.string.action_import_err, Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -276,8 +274,11 @@ class ScannerActivity : ThemedActivity() {
                                     }
                                 }
                             } else {
-                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(
+                                    this@ScannerActivity,
+                                    R.string.action_import_err,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
                             }
                         } catch (e: SubscriptionFoundException) {
                             startActivity(
@@ -292,7 +293,11 @@ class ScannerActivity : ThemedActivity() {
                         } catch (e: Throwable) {
                             Logs.w(e)
                             onMainDispatcher {
-                                Toast.makeText(app, R.string.action_import_err, Toast.LENGTH_SHORT)
+                                Toast.makeText(
+                                    this@ScannerActivity,
+                                    R.string.action_import_err,
+                                    Toast.LENGTH_SHORT
+                                )
                                     .show()
                             }
                         }
@@ -301,7 +306,8 @@ class ScannerActivity : ThemedActivity() {
                     Logs.w(e)
 
                     onMainDispatcher {
-                        Toast.makeText(app, e.readableMessage, Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@ScannerActivity, e.readableMessage, Toast.LENGTH_LONG)
+                            .show()
                     }
                 }
             }

@@ -1,8 +1,8 @@
 package moe.matsuri.nb4a
 
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.ktx.app
 
 // Settings for all protocols, built-in or plugin
 object Protocols {
