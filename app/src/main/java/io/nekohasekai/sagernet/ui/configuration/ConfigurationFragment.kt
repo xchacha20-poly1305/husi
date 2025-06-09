@@ -70,7 +70,6 @@ import io.nekohasekai.sagernet.ktx.ResultInsecure
 import io.nekohasekai.sagernet.ktx.ResultLocal
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.blockOrientation
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
@@ -797,6 +796,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 DataStore.connectionTestConcurrent,
                 "pingTest",
             )
+            val context = requireContext()
             repeat(DataStore.connectionTestConcurrent) {
                 testJobs.add(launch(testPool) {
                     while (isActive) {
@@ -806,7 +806,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             if (!profile.requireBean().canICMPing()) {
                                 profile.status = ProxyEntity.STATUS_INVALID
                                 profile.error =
-                                    app.getString(R.string.connection_test_icmp_ping_unavailable)
+                                    context.getString(R.string.connection_test_icmp_ping_unavailable)
                                 test.insert(profile)
                                 continue
                             }
@@ -814,7 +814,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             if (!profile.requireBean().canTCPing()) {
                                 profile.status = ProxyEntity.STATUS_INVALID
                                 profile.error =
-                                    app.getString(R.string.connection_test_tcp_ping_unavailable)
+                                    context.getString(R.string.connection_test_tcp_ping_unavailable)
                                 test.insert(profile)
                                 continue
                             }
@@ -837,7 +837,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         if (!isActive) break
                         if (!address.isIpAddress()) {
                             profile.status = ProxyEntity.STATUS_UNREACHABLE
-                            profile.error = app.getString(R.string.connection_test_domain_not_found)
+                            profile.error = context.getString(R.string.connection_test_domain_not_found)
                             test.update(profile)
                             continue
                         }

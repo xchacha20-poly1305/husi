@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 
 enum class PluginEntry(
     val pluginId: String,
@@ -11,7 +11,7 @@ enum class PluginEntry(
 ) {
     MieruProxy(
         "mieru-plugin",
-        SagerNet.application.getString(R.string.action_mieru),
+        app.getString(R.string.action_mieru),
         "fr.husi.plugin.mieru",
         DownloadSource(
             fdroid = false,
@@ -20,7 +20,7 @@ enum class PluginEntry(
     ),
     NaiveProxy(
         "naive-plugin",
-        SagerNet.application.getString(R.string.action_naive),
+        app.getString(R.string.action_naive),
         "fr.husi.plugin.naive",
         DownloadSource(
             fdroid = false,
@@ -29,7 +29,7 @@ enum class PluginEntry(
     ),
     Hysteria(
         "hysteria-plugin",
-        SagerNet.application.getString(R.string.action_hysteria),
+        app.getString(R.string.action_hysteria),
         "moe.matsuri.exe.hysteria",
         DownloadSource(
             fdroid = false,
@@ -38,7 +38,7 @@ enum class PluginEntry(
     ),
     Hysteria2(
         "hysteria2-plugin",
-        SagerNet.application.getString(R.string.action_hysteria)+"2",
+        app.getString(R.string.action_hysteria)+"2",
         "fr.husi.plugin.hysteria2",
         DownloadSource(
             fdroid = false,
@@ -47,7 +47,7 @@ enum class PluginEntry(
     ),
     Juicity(
         "juicity-plugin",
-        SagerNet.application.getString(R.string.action_juicity),
+        app.getString(R.string.action_juicity),
         "fr.husi.plugin.juicity",
         DownloadSource(
             fdroid = false,

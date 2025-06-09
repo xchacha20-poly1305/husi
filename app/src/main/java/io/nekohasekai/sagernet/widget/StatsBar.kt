@@ -91,7 +91,7 @@ class StatsBar @JvmOverloads constructor(
         if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
             postWhenStarted {
                 if (allowShow) performShow()
-                setStatus(app.getText(R.string.vpn_connected))
+                setStatus(activity.getText(R.string.vpn_connected))
             }
         } else {
             postWhenStarted {
@@ -127,14 +127,14 @@ class StatsBar @JvmOverloads constructor(
     fun testConnection() {
         val activity = context as MainActivity
         isEnabled = false
-        setStatus(app.getText(R.string.connection_test_testing))
+        setStatus(activity.getText(R.string.connection_test_testing))
         runOnDefaultDispatcher {
             try {
                 val elapsed = activity.urlTest()
                 onMainDispatcher {
                     isEnabled = true
                     setStatus(
-                        app.getString(
+                        activity.getString(
                             if (DataStore.connectionTestURL.startsWith("https://")) {
                                 R.string.connection_test_available
                             } else {
@@ -148,10 +148,10 @@ class StatsBar @JvmOverloads constructor(
                 Logs.w(e.toString())
                 onMainDispatcher {
                     isEnabled = true
-                    setStatus(app.getText(R.string.connection_test_testing))
+                    setStatus(activity.getText(R.string.connection_test_testing))
 
                     activity.snackbar(
-                        app.getString(
+                        activity.getString(
                             R.string.connection_test_error, e.readableMessage
                         )
                     ).show()

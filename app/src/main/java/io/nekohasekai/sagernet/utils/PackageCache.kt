@@ -5,7 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.listenForPackageChanges
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex

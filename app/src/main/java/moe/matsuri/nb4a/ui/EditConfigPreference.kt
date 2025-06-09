@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import androidx.preference.Preference
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ui.profile.ConfigEditActivity
 
 class EditConfigPreference : Preference {
@@ -29,9 +28,9 @@ class EditConfigPreference : Preference {
     override fun getSummary(): CharSequence {
         val config = DataStore.serverConfig
         return if (DataStore.serverConfig.isBlank()) {
-            return app.resources.getString(androidx.preference.R.string.not_set)
+            return context.getString(androidx.preference.R.string.not_set)
         } else {
-            app.resources.getString(R.string.lines, config.split('\n').size)
+            context.getString(R.string.lines, config.split('\n').size)
         }
     }
 

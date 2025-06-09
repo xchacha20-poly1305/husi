@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.database
 
 import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
@@ -9,7 +10,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkUDP
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import java.io.IOException
 import java.sql.SQLException

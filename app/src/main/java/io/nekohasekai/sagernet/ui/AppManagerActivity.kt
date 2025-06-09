@@ -38,6 +38,7 @@ import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAppsBinding
 import io.nekohasekai.sagernet.databinding.LayoutAppsItemBinding
@@ -498,12 +499,12 @@ class AppManagerActivity : ThemedActivity() {
         }
         try {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                SagerNet.application.packageManager.getPackageInfo(
+                app.packageManager.getPackageInfo(
                     packageName,
                     PackageManager.PackageInfoFlags.of(packageManagerFlags.toLong())
                 )
             } else {
-                SagerNet.application.packageManager.getPackageInfo(packageName, packageManagerFlags)
+                app.packageManager.getPackageInfo(packageName, packageManagerFlags)
             }
             packageInfo.services?.forEach {
                 if (it.name.matches(chinaAppRegex)) {

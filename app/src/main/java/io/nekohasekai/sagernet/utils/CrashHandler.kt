@@ -6,9 +6,9 @@ import android.os.Build
 import android.util.Log
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ui.BlankActivity
 import java.io.BufferedReader
 import java.io.IOException

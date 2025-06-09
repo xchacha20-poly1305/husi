@@ -29,6 +29,7 @@ import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -40,7 +41,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE_OPTIONS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_RESOLVE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity

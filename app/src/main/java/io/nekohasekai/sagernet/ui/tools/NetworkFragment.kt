@@ -4,9 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutNetworkBinding
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.setStatusBar
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.NamedFragment

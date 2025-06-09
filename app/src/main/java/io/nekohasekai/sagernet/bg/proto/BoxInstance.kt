@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.bg.proto
 
 import android.os.SystemClock
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.bg.AbstractInstance
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
 import io.nekohasekai.sagernet.bg.NativeInterface
@@ -18,7 +19,6 @@ import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -102,7 +102,7 @@ abstract class BoxInstance(
 
     override fun launch() {
         // TODO move, this is not box
-        val cacheDir = File(SagerNet.application.cacheDir, "tmpcfg")
+        val cacheDir = File(app.cacheDir, "tmpcfg")
         cacheDir.mkdirs()
 
         for ((chain) in config.externalIndex) {

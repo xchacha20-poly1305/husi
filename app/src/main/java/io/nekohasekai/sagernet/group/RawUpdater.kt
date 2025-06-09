@@ -15,7 +15,6 @@ import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
@@ -32,6 +31,7 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.StringReader
 import androidx.core.net.toUri
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 
 @Suppress("EXPERIMENTAL_API_USAGE", "UNCHECKED_CAST")
 object RawUpdater : GroupUpdater() {

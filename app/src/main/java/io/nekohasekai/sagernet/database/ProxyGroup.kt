@@ -6,8 +6,8 @@ import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.fmt.Serializable
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 @Entity(tableName = "proxy_groups")

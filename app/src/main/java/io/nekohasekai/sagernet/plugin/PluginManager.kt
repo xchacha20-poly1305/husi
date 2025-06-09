@@ -3,7 +3,7 @@ package io.nekohasekai.sagernet.plugin
 import android.content.pm.ComponentInfo
 import android.content.pm.ProviderInfo
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.ktx.Logs
 import java.io.File
@@ -14,7 +14,7 @@ object PluginManager {
     class PluginNotFoundException(val plugin: String) : FileNotFoundException(plugin),
         BaseService.ExpectedException {
         override fun getLocalizedMessage() =
-            SagerNet.application.getString(R.string.plugin_unknown, plugin)
+            app.getString(R.string.plugin_unknown, plugin)
     }
 
     data class InitResult(
@@ -63,7 +63,7 @@ object PluginManager {
 
     private fun initNativeInternal(pluginId: String): String? {
         fun soIfExist(soName: String): String? {
-            val f = File(SagerNet.application.applicationInfo.nativeLibraryDir, soName)
+            val f = File(app.applicationInfo.nativeLibraryDir, soName)
             if (f.canExecute()) {
                 return f.absolutePath
             }
@@ -91,7 +91,8 @@ object PluginManager {
     fun ComponentInfo.loadString(key: String) =
         when (@Suppress("DEPRECATION") val value = metaData.get(key)) {
             is String -> value
-            is Int -> SagerNet.application.packageManager.getResourcesForApplication(applicationInfo)
+            is Int -> app.packageManager
+                .getResourcesForApplication(applicationInfo)
                 .getString(value)
 
             null -> null

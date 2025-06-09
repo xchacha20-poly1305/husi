@@ -37,6 +37,7 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -354,7 +355,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 }
             } catch (e: Exception) {
                 Toast.makeText(
-                    SagerNet.application,
+                    app,
                     "Error on createPreferences, please try again.",
                     Toast.LENGTH_SHORT,
                 ).show()

@@ -2,8 +2,8 @@ package io.nekohasekai.sagernet.database
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.preference.KeyValuePair
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 
 @androidx.room.Database(entities = [KeyValuePair::class], version = 1)

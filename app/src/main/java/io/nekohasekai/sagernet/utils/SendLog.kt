@@ -4,9 +4,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.use
 import java.io.File
 import java.io.FileInputStream
@@ -56,7 +55,7 @@ object SendLog {
         )
     }
 
-    val logFile get() = File(SagerNet.application.externalAssets, "stderr.log")
+    val logFile get() = File(app.externalAssets, "stderr.log")
 
     // Get log bytes from stderr.log
     fun getCoreLog(max: Long): ByteArray {
