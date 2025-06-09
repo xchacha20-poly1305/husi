@@ -133,7 +133,5 @@ func registerQUICTransports(registry *dns.TransportRegistry) {
 func ServiceRegistry() *service.Registry {
 	registry := service.NewRegistry()
 
-	// TODO migrate combinedapi to here?
-
 	return registry
 }
