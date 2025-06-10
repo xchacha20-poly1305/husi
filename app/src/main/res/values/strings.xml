@@ -213,6 +213,8 @@
     <string name="action_juicity" translatable="false">Juicity</string>
     <string name="action_direct" translatable="false">Direct</string>
     <string name="action_anytls" translatable="false">AnyTLS</string>
+    <string name="action_shadowtls" translatable="false">ShadowTLS</string>
+    <string name="action_shadowquic" translatable="false">Shadow QUIC</string>
     <string name="proxy_chain">Proxy Chain</string>
     <string name="custom_config">Custom Config</string>
     <string name="balancer">Balancer</string>
@@ -509,7 +511,6 @@
     <string name="use_selector">Use selector</string>
     <string name="front_proxy">Front proxy</string>
     <string name="landing_proxy">Landing Proxy</string>
-    <string name="action_shadowtls" translatable="false">ShadowTLS</string>
     <string name="protocol_version">Protocol Version</string>
     <string name="share_subscription">Share Subscription</string>
     <string name="show_group_in_notification">Show group name in notification</string>

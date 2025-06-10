@@ -38,7 +38,7 @@ enum class PluginEntry(
     ),
     Hysteria2(
         "hysteria2-plugin",
-        app.getString(R.string.action_hysteria)+"2",
+        app.getString(R.string.action_hysteria) + "2",
         "fr.husi.plugin.hysteria2",
         DownloadSource(
             fdroid = false,
@@ -52,6 +52,15 @@ enum class PluginEntry(
         DownloadSource(
             fdroid = false,
             downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-juicity",
+        ),
+    ),
+    ShadowQuic(
+        "shadowquic-plugin",
+        app.getString(R.string.action_shadowquic),
+        "fr.husi.plugin.shadowquic",
+        DownloadSource(
+            fdroid = false,
+            downloadLink = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-shadowquic",
         ),
     )
     ;
