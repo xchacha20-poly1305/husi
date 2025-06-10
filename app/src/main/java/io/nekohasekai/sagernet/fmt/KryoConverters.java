@@ -13,6 +13,7 @@ import io.nekohasekai.sagernet.fmt.internal.ChainBean;
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean;
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean;
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean;
+import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean;
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean;
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean;
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean;
@@ -151,6 +152,12 @@ public class KryoConverters {
     public static ShadowTLSBean shadowTLSDeserialize(byte[] bytes) {
         if (JavaUtil.isEmpty(bytes)) return null;
         return deserialize(new ShadowTLSBean(), bytes);
+    }
+
+    @TypeConverter
+    public static ShadowQUICBean shadowQUICDeserialize(byte[] bytes) {
+        if (JavaUtil.isEmpty(bytes)) return null;
+        return deserialize(new ShadowQUICBean(), bytes);
     }
 
     @TypeConverter

@@ -100,6 +100,7 @@ import io.nekohasekai.sagernet.ui.profile.JuicitySettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SSHSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SocksSettingsActivity
@@ -555,6 +556,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_anytls -> {
                 startActivity(Intent(requireActivity(), AnyTLSSettingsActivity::class.java))
+            }
+
+            R.id.action_new_shadowquic -> {
+                startActivity(Intent(requireActivity(), ShadowQUICSettingsActivity::class.java))
             }
 
             R.id.action_new_config -> {

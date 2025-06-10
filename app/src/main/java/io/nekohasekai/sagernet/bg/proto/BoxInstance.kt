@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.bg.proto
 
 import android.os.SystemClock
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.bg.AbstractInstance
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
@@ -18,6 +17,8 @@ import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
+import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
+import io.nekohasekai.sagernet.fmt.shadowquic.buildShadowQUICConfig
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -58,6 +59,7 @@ abstract class BoxInstance(
 
     open suspend fun init(isVPN: Boolean) {
         buildConfig()
+        val logLevel = DataStore.logLevel
         for ((chain) in config.externalIndex) {
             chain.entries.forEach { (port, profile) ->
                 when (val bean = profile.requireBean()) {
@@ -65,7 +67,7 @@ abstract class BoxInstance(
                     is MieruBean -> {
                         initPlugin("mieru-plugin")
                         pluginConfigs[port] =
-                            profile.type to bean.buildMieruConfig(port, DataStore.logLevel)
+                            profile.type to bean.buildMieruConfig(port, logLevel)
                     }
 
                     is NaiveBean -> {
@@ -93,6 +95,12 @@ abstract class BoxInstance(
                     is JuicityBean -> {
                         initPlugin("juicity-plugin")
                         pluginConfigs[port] = profile.type to bean.buildJuicityConfig(port, isVPN)
+                    }
+
+                    is ShadowQUICBean -> {
+                        initPlugin("shadowquic-plugin")
+                        pluginConfigs[port] =
+                            profile.type to bean.buildShadowQUICConfig(port, isVPN, logLevel)
                     }
                 }
             }
@@ -170,10 +178,8 @@ abstract class BoxInstance(
                                 mutableListOf(
                                     initPlugin("hysteria-plugin").path,
                                     "--no-check",
-                                    "--config",
-                                    configFile.absolutePath,
-                                    "--log-level",
-                                    if (DataStore.logLevel > 0) "trace" else "warn",
+                                    "--config", configFile.absolutePath,
+                                    "--log-level", if (DataStore.logLevel > 0) "trace" else "warn",
                                     "client",
                                 )
                             } else {
@@ -207,12 +213,28 @@ abstract class BoxInstance(
                         )
 
                         val commands = mutableListOf(
-                            initPlugin("juicity-plugin").path,
-                            "run",
+                            initPlugin("juicity-plugin").path, "run",
                             "-c", configFile.absolutePath,
                         )
 
                         processes.start(commands, envMap)
+                    }
+
+                    bean is ShadowQUICBean -> {
+                        val configFile = File(
+                            cacheDir, "shadowquic_" + SystemClock.elapsedRealtime() + ".yaml"
+                        )
+
+                        configFile.parentFile?.mkdirs()
+                        configFile.writeText(config)
+                        cacheFiles.add(configFile)
+
+                        val commands = mutableListOf(
+                            initPlugin("shadowquic-plugin").path,
+                            "-c", configFile.absolutePath,
+                        )
+
+                        processes.start(commands)
                     }
 
                 }

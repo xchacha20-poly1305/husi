@@ -79,7 +79,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             udp_relay_mode = bean.udpRelayMode
             udp_over_stream = false
         }
-        zero_rtt_handshake = bean.reduceRTT
+        zero_rtt_handshake = bean.zeroRTT
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             if (bean.sni.isNotBlank()) {
                 server_name = bean.sni
@@ -112,7 +112,7 @@ fun parseTuicOutbound(json: JSONMap): TuicBean = TuicBean().apply {
             "password" -> token = value.toString()
             "congestion_control" -> congestionController = value.toString()
             "udp_relay_mode" -> udpRelayMode = value.toString()
-            "zero_rtt_handshake" -> reduceRTT = value.toString().toBoolean()
+            "zero_rtt_handshake" -> zeroRTT = value.toString().toBoolean()
 
             "udp_over_stream" -> if (value.toString().toBoolean()) {
                 udpRelayMode = "UDP over Stream"

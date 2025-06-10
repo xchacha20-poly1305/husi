@@ -153,6 +153,11 @@ object Key {
     const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
     const val SERVER_AUTHENTICATED_LENGTH = "serverAuthenticatedLength"
 
+    const val SERVER_JLS_PASSWORD = "serverJLSPassword"
+    const val SERVER_JLS_IV = "serverJLSIV"
+    const val SERVER_INITIAL_MTU = "serverInitialMTU"
+    const val SERVER_MINIMUM_MTU = "serverMinimumMTU"
+
     const val SERVER_CONFIG = "serverConfig"
     const val SERVER_CUSTOM = "serverCustom"
     const val SERVER_CUSTOM_OUTBOUND = "serverCustomOutbound"
@@ -180,7 +185,7 @@ object Key {
     const val SERVER_UDP_RELAY_MODE = "serverUDPRelayMode"
     const val SERVER_CONGESTION_CONTROLLER = "serverCongestionController"
     const val SERVER_DISABLE_SNI = "serverDisableSNI"
-    const val SERVER_REDUCE_RTT = "serverReduceRTT"
+    const val SERVER_ZERO_RTT = "serverZeroRTT"
 
     const val SERVER_IDLE_SESSION_CHECK_INTERVAL = "serverIdleSessionCheckInterval"
     const val SERVER_IDLE_SESSION_TIMEOUT = "serverIdleSessionTimeout"

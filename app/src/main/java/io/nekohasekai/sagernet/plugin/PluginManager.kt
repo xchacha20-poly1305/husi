@@ -75,6 +75,7 @@ object PluginManager {
             "juicity-plugin" -> soIfExist("libjuicity.so")
             "naive-plugin" -> soIfExist("libnaive.so")
             "mieru-plugin" -> soIfExist("libmieru.so")
+            "shadowquic-plugin" -> soIfExist("libshadowquic.so")
             else -> null
         }
     }
