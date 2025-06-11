@@ -117,6 +117,7 @@ Plugin name list:
 * `juicity`
 * `naive` ( Deprecated. Build official repository directly, please. )
 * `mieru`
+* `shadowquic`
 
 ## ☠️ End users
 

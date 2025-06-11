@@ -62,6 +62,9 @@ data class RuleEntity(
     // action: sniff
     @ColumnInfo(defaultValue = "") var sniffTimeout: String = "",
     @ColumnInfo(defaultValue = "") var sniffers: Set<String> = emptySet(),
+
+    // TODO add this
+    @ColumnInfo(defaultValue = "") var customConfig: String = "",
 ) : Parcelable {
 
     companion object {

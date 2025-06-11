@@ -11,6 +11,8 @@ fi
 
 DEPS=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
 
+export ANDROID_AR=$DEPS/llvm-ar
+
 export ANDROID_ARM_STRIP=$DEPS/arm-linux-androideabi-strip
 export ANDROID_ARM64_STRIP=$DEPS/aarch64-linux-android-strip
 export ANDROID_X86_STRIP=$DEPS/i686-linux-android-strip

@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
+import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -81,7 +82,7 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is TuicBean -> {
             if (allowInsecure) return ResultInsecure(R.raw.insecure)
-            if (reduceRTT) return ResultInsecure(R.raw.quic_0_rtt)
+            if (zeroRTT) return ResultInsecure(R.raw.quic_0_rtt)
         }
 
         is ShadowTLSBean -> {
@@ -95,6 +96,10 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is AnyTLSBean -> {
             if (allowInsecure) return ResultInsecure(R.raw.insecure)
+        }
+
+        is ShadowQUICBean -> {
+            if (zeroRTT) return ResultInsecure(R.raw.quic_0_rtt)
         }
     }
 

@@ -47,7 +47,7 @@
             app:title="@string/tuic_udp_relay_mode"
             app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
-            app:defaultValue="https"
+            app:defaultValue="bbr"
             app:entries="@array/tuic_congestion_controller_value"
             app:entryValues="@array/tuic_congestion_controller_value"
             app:icon="@drawable/ic_baseline_compare_arrows_24"
@@ -65,7 +65,7 @@
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
             app:icon="@drawable/baseline_flight_takeoff_24"
-            app:key="serverReduceRTT"
+            app:key="serverZeroRTT"
             app:title="@string/tuic_reduce_rtt" />
         <SwitchPreference
             app:icon="@drawable/ic_notification_enhanced_encryption"

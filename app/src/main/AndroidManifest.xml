@@ -171,6 +171,7 @@
         <activity android:name="io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity" />
+        <activity android:name="io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity" />
         <activity android:name=".ui.GroupSettingsActivity" />
         <activity android:name=".ui.RouteSettingsActivity" />

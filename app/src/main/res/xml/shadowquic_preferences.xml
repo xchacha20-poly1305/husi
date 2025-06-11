@@ -1,0 +1,81 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="profileName"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
+
+    <PreferenceCategory app:title="@string/proxy_cat">
+
+        <EditTextPreference
+            app:icon="@drawable/ic_hardware_router"
+            app:key="serverAddress"
+            app:title="@string/server_address"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_maps_directions_boat"
+            app:key="serverPort"
+            app:title="@string/server_port"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
+            app:icon="@drawable/ic_settings_password"
+            app:key="serverJLSPassword"
+            app:title="@string/jls_password"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="serverJLSIV"
+            app:title="@string/jls_iv" />
+        <EditTextPreference
+            app:defaultValue="h3"
+            app:icon="@drawable/ic_baseline_legend_toggle_24"
+            app:key="serverALPN"
+            app:title="@string/alpn"
+            app:useSimpleSummaryProvider="true" />
+        <!--        <EditTextPreference-->
+        <!--            app:icon="@drawable/ic_baseline_vpn_key_24"-->
+        <!--            app:key="serverCertificates"-->
+        <!--            app:title="@string/certificates"-->
+        <!--            app:useSimpleSummaryProvider="true" />-->
+        <rikka.preference.SimpleMenuPreference
+            app:defaultValue="bbr"
+            app:entries="@array/tuic_congestion_controller_value"
+            app:entryValues="@array/tuic_congestion_controller_value"
+            app:icon="@drawable/ic_baseline_compare_arrows_24"
+            app:key="serverCongestionController"
+            app:title="@string/tuic_congestion_controller"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_action_copyright"
+            app:key="serverSNI"
+            app:title="@string/sni"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/baseline_flight_takeoff_24"
+            app:key="serverZeroRTT"
+            app:title="@string/tuic_reduce_rtt" />
+        <!--        <SwitchPreference-->
+        <!--            app:icon="@drawable/ic_notification_enhanced_encryption"-->
+        <!--            app:key="serverAllowInsecure"-->
+        <!--            app:title="@string/allow_insecure" />-->
+        <EditTextPreference
+            app:defaultValue="1300"
+            app:icon="@drawable/baseline_public_24"
+            app:key="serverInitialMTU"
+            app:title="@string/initial_mtu"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="1290"
+            app:icon="@drawable/baseline_developer_board_24"
+            app:key="serverMinimumMTU"
+            app:title="@string/minimum_mtu"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_nat_24"
+            app:key="udpOverTcp"
+            app:title="@string/udp_over_stream" />
+    </PreferenceCategory>
+</PreferenceScreen>

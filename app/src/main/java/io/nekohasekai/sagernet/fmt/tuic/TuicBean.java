@@ -29,7 +29,7 @@ public class TuicBean extends AbstractBean {
     public String congestionController;
     public String alpn;
     public Boolean disableSNI;
-    public Boolean reduceRTT;
+    public Boolean zeroRTT;
     public Integer mtu;
 
     // TUIC zep
@@ -52,7 +52,7 @@ public class TuicBean extends AbstractBean {
         if (congestionController == null) congestionController = "cubic";
         if (alpn == null) alpn = "";
         if (disableSNI == null) disableSNI = false;
-        if (reduceRTT == null) reduceRTT = false;
+        if (zeroRTT == null) zeroRTT = false;
         if (mtu == null) mtu = 1400;
         if (sni == null) sni = "";
         if (allowInsecure == null) allowInsecure = false;
@@ -72,7 +72,7 @@ public class TuicBean extends AbstractBean {
         output.writeString(congestionController);
         output.writeString(alpn);
         output.writeBoolean(disableSNI);
-        output.writeBoolean(reduceRTT);
+        output.writeBoolean(zeroRTT);
         output.writeInt(mtu);
         output.writeString(sni);
         output.writeBoolean(allowInsecure);
@@ -92,7 +92,7 @@ public class TuicBean extends AbstractBean {
         congestionController = input.readString();
         alpn = input.readString();
         disableSNI = input.readBoolean();
-        reduceRTT = input.readBoolean();
+        zeroRTT = input.readBoolean();
         mtu = input.readInt();
         sni = input.readString();
         allowInsecure = input.readBoolean();

@@ -1,0 +1,105 @@
+name: Shadow QUIC Plugin Release Build
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release Tag'
+        required: true
+      release:
+        description: "Input 'y' to ignore."
+        required: false
+jobs:
+  native:
+    name: Native Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Fetch Status
+        run: git submodule status 'plugin/shadowquic/*' > shadowquic_status
+      - name: Shadowquic Cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            plugin/shadowquic/src/main/jniLibs
+          key: ${{ hashFiles('.github/workflows/*', 'bin/lib/shadowquic/*', 'shadowquic_status') }}
+      - name: Setup Rust
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          rustup toolchain install stable
+          rustup override set stable
+          rustup target add armv7-linux-androideabi aarch64-linux-android i686-linux-android x86_64-linux-android
+      - name: Setup Android NDK
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          add-to-path: true
+          ndk-version: r28b
+          local-cache: false
+      - name: Native Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run plugin shadowquic
+  build:
+    name: Gradle Build
+    runs-on: ubuntu-latest
+    needs:
+      - native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Fetch Status
+        run: git submodule status 'plugin/shadowquic/*' > shadowquic_status
+      - name: Shadowquic Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            plugin/shadowquic/src/main/jniLibs
+          key: ${{ hashFiles('.github/workflows/*', 'bin/lib/shadowquic/*', 'shadowquic_status') }}
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Release Build
+        env:
+          SKIP_BUILD: on
+          BUILD_PLUGIN: shadowquic
+        run: |
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "${{ secrets.LOCAL_PROPERTIES }}" >> local.properties
+          ./gradlew :plugin:shadowquic:assembleFossRelease
+          APK=$(find plugin/shadowquic/build/outputs/apk -name '*arm64-v8a*.apk')
+          APK=$(dirname "$APK")
+          echo "APK=$APK" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        with:
+          name: APKs
+          path: ${{ env.APK }}
+  release:
+    name: Release
+    if: github.event.inputs.release != 'y'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: APKs
+          path: artifacts/
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir apks
+          find artifacts -name "*.apk" -exec cp {} apks \;
+          gh release create "${{ github.event.inputs.tag }}" --prerelease ./apks/*

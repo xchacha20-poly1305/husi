@@ -273,7 +273,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverUDPRelayMode by profileCacheStore.string(Key.SERVER_UDP_RELAY_MODE)
     var serverCongestionController by profileCacheStore.string(Key.SERVER_CONGESTION_CONTROLLER)
     var serverDisableSNI by profileCacheStore.boolean(Key.SERVER_DISABLE_SNI)
-    var serverReduceRTT by profileCacheStore.boolean(Key.SERVER_REDUCE_RTT)
+    var serverZeroRTT by profileCacheStore.boolean(Key.SERVER_ZERO_RTT)
+
+    var serverJLSPassword by profileCacheStore.string(Key.SERVER_JLS_PASSWORD)
+    var serverJLSIV by profileCacheStore.string(Key.SERVER_JLS_IV)
+    var serverInitialMTU by profileCacheStore.stringToInt(Key.SERVER_INITIAL_MTU) { 1300 }
+    var serverMinimumMTU by profileCacheStore.stringToInt(Key.SERVER_MINIMUM_MTU) { 1290 }
 
     var serverIdleSessionCheckInterval by profileCacheStore.string(Key.SERVER_IDLE_SESSION_CHECK_INTERVAL) {
         "30s"

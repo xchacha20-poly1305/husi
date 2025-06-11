@@ -5,7 +5,6 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
