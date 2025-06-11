@@ -17,6 +17,8 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_empty),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setDecorFitsSystemWindowsForParticularAPIs()
+
         @Suppress("DEPRECATION") val selected = intent.getParcelableExtra<ProxyEntity>(EXTRA_SELECTED)
 
         supportFragmentManager.beginTransaction()
