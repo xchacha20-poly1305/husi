@@ -19,7 +19,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.preference.PreferenceDataStore
@@ -61,10 +60,10 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
 import io.nekohasekai.sagernet.ui.traffic.TrafficFragment
-import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
+import androidx.core.net.toUri
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
@@ -216,7 +215,7 @@ class MainActivity : ThemedActivity(),
                 }
             }
         )
-        if (!url.isNullOrBlank()) {
+        if (url.isNotBlank()) {
             group = ProxyGroup(type = GroupType.SUBSCRIPTION)
             val subscription = SubscriptionBean()
             group.subscription = subscription
@@ -605,7 +604,7 @@ class MainActivity : ThemedActivity(),
 
         try {
             val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = Uri.parse("package:$packageName")
+            intent.data = "package:$packageName".toUri()
             startActivity(intent)
         } catch (e: Exception) {
             Logs.e(e.readableMessage)
