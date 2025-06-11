@@ -5,9 +5,9 @@ import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 
 /** https://github.com/anytls/anytls-go/blob/main/docs/uri_scheme.md */

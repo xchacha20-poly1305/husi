@@ -4,7 +4,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.ktx.JSONMap
-import moe.matsuri.nb4a.utils.listByLineOrComma
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 
 fun buildSingBoxOutboundSSHBean(bean: SSHBean): SingBoxOptions.Outbound_SSHOptions {
     return SingBoxOptions.Outbound_SSHOptions().apply {

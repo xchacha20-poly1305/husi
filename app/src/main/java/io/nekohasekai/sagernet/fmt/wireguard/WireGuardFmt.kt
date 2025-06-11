@@ -3,11 +3,11 @@ package io.nekohasekai.sagernet.fmt.wireguard
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import moe.matsuri.nb4a.utils.Util
-import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONArray
 
 fun genReserved(anyStr: String): String {
