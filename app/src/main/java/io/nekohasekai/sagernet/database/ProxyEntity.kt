@@ -39,6 +39,8 @@ import io.nekohasekai.sagernet.fmt.mieru.toUri
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.naive.toUri
+import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
+import io.nekohasekai.sagernet.fmt.shadowquic.buildShadowQUICConfig
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.toUri
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
@@ -71,6 +73,7 @@ import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 
 @Entity(
@@ -102,6 +105,7 @@ data class ProxyEntity(
     var shadowTLSBean: ShadowTLSBean? = null,
     var directBean: DirectBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
+    var shadowQUICBean: ShadowQUICBean? = null,
     var chainBean: ChainBean? = null,
     var configBean: ConfigBean? = null,
 ) : Serializable() {
@@ -124,6 +128,7 @@ data class ProxyEntity(
         const val TYPE_JUICITY = 22
         const val TYPE_DIRECT = 23
         const val TYPE_ANYTLS = 24
+        const val TYPE_SHADOWQUIC = 25
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -219,6 +224,7 @@ data class ProxyEntity(
             TYPE_DIRECT -> directBean = KryoConverters.directDeserialize(byteArray)
             TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
+            TYPE_SHADOWQUIC -> shadowQUICBean = KryoConverters.shadowQUICDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
         }
@@ -240,6 +246,7 @@ data class ProxyEntity(
         TYPE_SHADOWTLS -> "ShadowTLS"
         TYPE_DIRECT -> "Direct"
         TYPE_ANYTLS -> "AnyTLS"
+        TYPE_SHADOWQUIC -> "Shadow QUIC"
         TYPE_CHAIN -> chainName
         TYPE_CONFIG -> configBean!!.displayType()
         else -> "Undefined type $type"
@@ -264,6 +271,7 @@ data class ProxyEntity(
             TYPE_JUICITY -> juicityBean
             TYPE_DIRECT -> directBean
             TYPE_ANYTLS -> anyTLSBean
+            TYPE_SHADOWQUIC -> shadowQUICBean
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_CHAIN -> chainBean
             TYPE_CONFIG -> configBean
@@ -282,6 +290,7 @@ data class ProxyEntity(
     fun haveStandardLink(): Boolean = when (type) {
         TYPE_SSH -> false
         TYPE_WG -> false
+        TYPE_SHADOWQUIC -> false
         TYPE_SHADOWTLS -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
@@ -306,7 +315,10 @@ data class ProxyEntity(
     }
 
     fun mustUsePlugin(): Boolean = when (type) {
-        TYPE_MIERU, TYPE_NAIVE, TYPE_JUICITY -> true
+        TYPE_MIERU -> true
+        TYPE_NAIVE -> true
+        TYPE_JUICITY -> true
+        TYPE_SHADOWQUIC -> true
         else -> false
     }
 
@@ -322,12 +334,13 @@ data class ProxyEntity(
                     name = "profiles.txt"
                 }
 
+                val logLevel = DataStore.logLevel
                 for ((chain) in config.externalIndex) {
                     chain.entries.forEach { (port, profile) ->
                         when (val bean = profile.requireBean()) {
                             is MieruBean -> {
                                 append("\n\n")
-                                append(bean.buildMieruConfig(port, DataStore.logLevel))
+                                append(bean.buildMieruConfig(port, logLevel))
                             }
 
                             is NaiveBean -> {
@@ -344,6 +357,11 @@ data class ProxyEntity(
                                 append("\n\n")
                                 append(bean.buildJuicityConfig(port, false))
                             }
+
+                            is ShadowQUICBean -> {
+                                append("\n\n")
+                                append(bean.buildShadowQUICConfig(port, false, logLevel))
+                            }
                         }
                     }
                 }
@@ -359,6 +377,7 @@ data class ProxyEntity(
             TYPE_NAIVE -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
             TYPE_JUICITY -> true
+            TYPE_SHADOWQUIC -> true
             else -> false
         }
     }
@@ -379,6 +398,7 @@ data class ProxyEntity(
         directBean = null
         shadowTLSBean = null
         anyTLSBean = null
+        shadowQUICBean = null
         chainBean = null
         configBean = null
 
@@ -458,6 +478,11 @@ data class ProxyEntity(
                 anyTLSBean = bean
             }
 
+            is ShadowQUICBean -> {
+                type = TYPE_SHADOWQUIC
+                shadowQUICBean = bean
+            }
+
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
@@ -491,6 +516,7 @@ data class ProxyEntity(
                 TYPE_DIRECT -> DirectSettingsActivity::class.java
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
+                TYPE_SHADOWQUIC -> ShadowQUICSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 else -> throw IllegalArgumentException()

@@ -26,7 +26,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         DataStore.serverCongestionController = congestionController
         DataStore.serverDisableSNI = disableSNI
         DataStore.serverSNI = sni
-        DataStore.serverReduceRTT = reduceRTT
+        DataStore.serverZeroRTT = zeroRTT
         DataStore.serverAllowInsecure = allowInsecure
         DataStore.serverECH = ech
         DataStore.serverECHConfig = echConfig
@@ -44,7 +44,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         congestionController = DataStore.serverCongestionController
         disableSNI = DataStore.serverDisableSNI
         sni = DataStore.serverSNI
-        reduceRTT = DataStore.serverReduceRTT
+        zeroRTT = DataStore.serverZeroRTT
         allowInsecure = DataStore.serverAllowInsecure
         ech = DataStore.serverECH
         echConfig = DataStore.serverECHConfig

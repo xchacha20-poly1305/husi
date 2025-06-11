@@ -16,6 +16,7 @@ object Executable {
         "libhysteria.so",
         "libhysteria2.so",
         "libjuicity.so",
+        "libshadowquic.so",
     )
 
     fun killAll(alsoKillBg: Boolean = false) {
