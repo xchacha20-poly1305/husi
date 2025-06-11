@@ -75,31 +75,3 @@ class FixedLinearLayoutManager(private val recyclerView: RecyclerView) :
     }
 
 }
-
-// usually call if DataStore.showBottomBar
-fun NestedScrollView.setStatusBar(fab: FloatingActionButton) {
-    setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
-        val childView = v.getChildAt(0)
-        if (childView == null) {
-            if (!fab.isShown) fab.show()
-            return@OnScrollChangeListener
-        }
-
-        val childHeight = childView.measuredHeight
-        val viewHeight = v.measuredHeight
-        val isScrollable = childHeight > viewHeight
-
-        if (scrollY > oldScrollY && fab.isShown) {
-            val isAtBottom = scrollY >= (childHeight - viewHeight)
-            if (isAtBottom) {
-                fab.hide()
-            }
-        } else if (scrollY < oldScrollY && !fab.isShown) {
-            fab.show()
-        }
-
-        if ((!isScrollable || scrollY == 0) && !fab.isShown) {
-            fab.show()
-        }
-    })
-}

@@ -5,10 +5,7 @@ import android.os.Bundle
 import android.view.View
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutNetworkBinding
-import io.nekohasekai.sagernet.ktx.setStatusBar
-import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.NamedFragment
 
 class NetworkFragment : NamedFragment(R.layout.layout_network) {
@@ -37,10 +34,6 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
 
         binding.ruleSetMatch.setOnClickListener {
             startActivity(Intent(requireContext(), RuleSetMatchActivity::class.java))
-        }
-
-        if (DataStore.showBottomBar) (requireActivity() as? MainActivity)?.let {
-            binding.root.setStatusBar(it.binding.fab)
         }
     }
 
