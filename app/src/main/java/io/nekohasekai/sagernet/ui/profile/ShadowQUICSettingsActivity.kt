@@ -22,6 +22,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
         DataStore.serverInitialMTU = initialMTU
+        DataStore.serverMinimumMTU = minimumMTU
         DataStore.serverCongestionController = congestionControl
         DataStore.serverZeroRTT = zeroRTT
         DataStore.udpOverTcp = udpOverStream
@@ -36,6 +37,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
         initialMTU = DataStore.serverInitialMTU
+        minimumMTU = DataStore.serverMinimumMTU
         congestionControl = DataStore.serverCongestionController
         zeroRTT = DataStore.serverZeroRTT
         udpOverStream = DataStore.udpOverTcp

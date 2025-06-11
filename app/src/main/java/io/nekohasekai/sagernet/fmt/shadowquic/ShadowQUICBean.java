@@ -42,7 +42,7 @@ public class ShadowQUICBean extends AbstractBean {
         if (JavaUtil.isNullOrBlank(jlsIv)) jlsIv = "";
         if (JavaUtil.isNullOrBlank(sni)) sni = "";
         if (JavaUtil.isNullOrBlank(alpn)) alpn = "h3";
-        if (initialMTU == null) initialMTU = 1200;
+        if (initialMTU == null) initialMTU = 1300;
         if (minimumMTU == null) minimumMTU = 1290;
         if (JavaUtil.isNullOrBlank(congestionControl)) congestionControl = "bbr";
         if (zeroRTT == null) zeroRTT = false;
