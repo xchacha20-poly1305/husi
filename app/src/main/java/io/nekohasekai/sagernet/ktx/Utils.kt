@@ -2,42 +2,12 @@
 
 package io.nekohasekai.sagernet.ktx
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.res.Resources
 import android.os.Build
 import android.system.Os
 import android.system.OsConstants
-import android.util.TypedValue
-import android.view.View
-import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.AttrRes
-import androidx.annotation.ColorRes
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.preference.Preference
-import androidx.recyclerview.widget.LinearSmoothScroller
-import androidx.recyclerview.widget.RecyclerView
-import com.jakewharton.processphoenix.ProcessPhoenix
-import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.bg.Executable
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.preference.PublicDatabase
-import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ThemedActivity
 import moe.matsuri.nb4a.utils.NGUtil
-import moe.matsuri.nb4a.utils.findGroup
+import java.io.Closeable
 import java.io.FileDescriptor
 import java.net.InetAddress
 import java.net.Socket
@@ -50,10 +20,6 @@ import kotlin.coroutines.Continuation
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
-import com.google.gson.annotations.SerializedName
-import io.nekohasekai.sagernet.SagerNet.Companion.app
-import kotlinx.coroutines.delay
-
 
 inline fun <T> Iterable<T>.forEachTry(action: (T) -> Unit) {
     var result: Exception? = null
@@ -85,36 +51,6 @@ fun parsePort(str: String?, default: Int, min: Int = 1025): Int {
     return if (value < min || value > 65535) default else value
 }
 
-fun broadcastReceiver(callback: (Context, Intent) -> Unit): BroadcastReceiver =
-    object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) = callback(context, intent)
-    }
-
-fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Unit) =
-    object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            callback()
-            if (onetime) context.unregisterReceiver(this)
-        }
-    }.apply {
-        registerReceiver(this, IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_ADDED)
-            addAction(Intent.ACTION_PACKAGE_REMOVED)
-            addDataScheme("package")
-        })
-    }
-
-/**
- * Based on: https://stackoverflow.com/a/26348729/2245107
- */
-fun Resources.Theme.resolveResourceId(@AttrRes resId: Int): Int {
-    val typedValue = TypedValue()
-    if (!resolveAttribute(resId, typedValue, true)) throw Resources.NotFoundException()
-    return typedValue.resourceId
-}
-
-fun Preference.remove() = parent!!.removePreference(this)
-
 /**
  * A slightly more performant variant of parseNumericAddress.
  *
@@ -134,11 +70,6 @@ fun String?.parseNumericAddress(): InetAddress? =
         ) as InetAddress
     }
 
-@JvmOverloads
-fun DialogFragment.showAllowingStateLoss(fragmentManager: FragmentManager, tag: String? = null) {
-    if (!fragmentManager.isStateSaved) show(fragmentManager, tag)
-}
-
 fun String.pathSafe(): String {
     // " " encoded as +
     return URLEncoder.encode(this, "UTF-8")
@@ -151,113 +82,6 @@ fun String.urlSafe(): String {
 fun String.unUrlSafe(): String {
     return NGUtil.urlDecode(this)
 }
-
-fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
-    if (force) post {
-        scrollToPosition(index)
-    }
-    postDelayed({
-        try {
-            layoutManager?.startSmoothScroll(object : LinearSmoothScroller(context) {
-                init {
-                    targetPosition = index
-                }
-
-                override fun getVerticalSnapPreference(): Int {
-                    return SNAP_TO_START
-                }
-            })
-        } catch (_: IllegalArgumentException) {
-        }
-    }, 300L)
-}
-
-val shortAnimTime by lazy {
-    app.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-}
-
-fun View.crossFadeFrom(other: View) {
-    clearAnimation()
-    other.clearAnimation()
-    if (visibility == View.VISIBLE && other.visibility == View.GONE) return
-    alpha = 0F
-    visibility = View.VISIBLE
-    animate().alpha(1F).duration = shortAnimTime
-    other.animate().alpha(0F).setListener(object : AnimatorListenerAdapter() {
-        override fun onAnimationEnd(animation: Animator) {
-            other.visibility = View.GONE
-        }
-    }).duration = shortAnimTime
-}
-
-
-fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackbar(textId)
-fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)
-
-fun ThemedActivity.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
-) {
-    try {
-        return launcher.launch(input)
-    } catch (_: ActivityNotFoundException) {
-    } catch (_: SecurityException) {
-    }
-    snackbar(getString(R.string.file_manager_missing)).show()
-}
-
-fun Fragment.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
-) {
-    try {
-        return launcher.launch(input)
-    } catch (_: ActivityNotFoundException) {
-    } catch (_: SecurityException) {
-    }
-    (requireActivity() as ThemedActivity).snackbar(getString(R.string.file_manager_missing)).show()
-}
-
-fun Fragment.needReload() {
-    if (DataStore.serviceState.started) {
-        snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-            // When enabled selector, reload will not restart core.
-            if (SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                    ?.findGroup()?.isSelector == true
-            ) {
-                SagerNet.stopService()
-                SagerNet.startService()
-                return@setAction
-            }
-            SagerNet.reloadService()
-        }.show()
-    }
-}
-
-fun Fragment.needRestart() {
-    snackbar(R.string.need_restart).setAction(R.string.apply) {
-        SagerNet.stopService()
-        val ctx = requireContext()
-        runOnDefaultDispatcher {
-            delay(500)
-            SagerDatabase.instance.close()
-            PublicDatabase.instance.close()
-            Executable.killAll(true)
-            ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
-        }
-    }.show()
-}
-
-fun Context.getColour(@ColorRes colorRes: Int): Int {
-    return ContextCompat.getColor(this, colorRes)
-}
-
-fun Context.getColorAttr(@AttrRes resId: Int): Int {
-    return ContextCompat.getColor(this, TypedValue().also {
-        theme.resolveAttribute(resId, it, true)
-    }.resourceId)
-}
-
-val isExpert: Boolean
-    get() = BuildConfig.DEBUG || DataStore.isExpert
 
 fun <T> Continuation<T>.tryResume(value: T) {
     try {
@@ -335,4 +159,28 @@ fun <T> defaultOr(default: T, vararg getters: () -> T?): T {
         }
     }
     return default
+}
+
+fun String.listByLineOrComma(): List<String> {
+    return this.split(",", "\n").mapX { it.trim() }.filter { it.isNotEmpty() }
+}
+
+/* Make server address blurred. */
+fun String.blur(): String {
+    return if (length < 20) {
+        val halfLength = length / 2
+        this.substring(0, halfLength) + "*".repeat(length - halfLength)
+    } else {
+        this.substring(0, 15) + "*".repeat(length - 15)
+    }
+}
+
+
+fun Closeable.closeQuietly() {
+    try {
+        close()
+    } catch (rethrown: RuntimeException) {
+        throw rethrown
+    } catch (_: Exception) {
+    }
 }

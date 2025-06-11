@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -28,7 +29,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.closeQuietly
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.IOException

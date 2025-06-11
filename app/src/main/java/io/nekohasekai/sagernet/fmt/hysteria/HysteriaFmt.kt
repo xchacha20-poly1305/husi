@@ -12,12 +12,12 @@ import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.linkBoolean
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
 

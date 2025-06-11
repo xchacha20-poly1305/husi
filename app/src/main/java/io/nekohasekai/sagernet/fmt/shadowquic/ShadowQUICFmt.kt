@@ -2,11 +2,11 @@ package io.nekohasekai.sagernet.fmt.shadowquic
 
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import io.nekohasekai.sagernet.logLevelString
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.listByLineOrComma
 
 fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logLevel: Int): String =
     buildString {

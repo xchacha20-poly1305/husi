@@ -71,6 +71,8 @@ import io.nekohasekai.sagernet.ktx.ResultLocal
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.blockOrientation
+import io.nekohasekai.sagernet.ktx.blur
+import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.getColour
@@ -120,9 +122,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
-import moe.matsuri.nb4a.utils.blur
-import moe.matsuri.nb4a.utils.closeQuietly
-import moe.matsuri.nb4a.utils.setOnFocusCancel
+import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.Collections
@@ -1673,7 +1673,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val tmpAddress by lazy { proxyEntity.displayAddress() }
                 val address = when {
                     pf.blurredAddress -> {
-                        // In most of times, it's length should not bigger than 20.
                         val blurredAddress = tmpAddress.blur()
                         if (profileName.text == tmpAddress) profileName.text = blurredAddress
                         blurredAddress

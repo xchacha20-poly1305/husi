@@ -7,7 +7,7 @@ import libcore.Libcore
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import moe.matsuri.nb4a.utils.listByLineOrComma
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 
 // https://github.com/daeuniverse/dae/discussions/182
 fun parseTuic(link: String): TuicBean {

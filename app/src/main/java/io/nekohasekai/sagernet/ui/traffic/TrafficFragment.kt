@@ -22,7 +22,7 @@ import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
-import moe.matsuri.nb4a.utils.setOnFocusCancel
+import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 
 const val POSITION_STATUS = 0
 const val POSITION_CONNECTIONS = 1

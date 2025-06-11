@@ -25,6 +25,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -34,7 +35,6 @@ import io.nekohasekai.sagernet.ktx.use
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import libcore.HTTPClient
 import libcore.Libcore
-import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter

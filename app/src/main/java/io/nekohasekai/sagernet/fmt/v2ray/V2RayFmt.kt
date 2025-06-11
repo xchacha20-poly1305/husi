@@ -35,12 +35,12 @@ import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 import libcore.URL
-import moe.matsuri.nb4a.utils.listByLineOrComma
 import org.json.JSONObject
 
 data class VmessQRCode(

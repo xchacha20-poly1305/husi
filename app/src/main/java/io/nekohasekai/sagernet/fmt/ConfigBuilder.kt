@@ -65,6 +65,7 @@ import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.mergeJson
 import io.nekohasekai.sagernet.ktx.mkPort
@@ -73,7 +74,6 @@ import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.JavaUtil.gson
-import moe.matsuri.nb4a.utils.listByLineOrComma
 
 // Inbound
 const val TAG_MIXED = "mixed-in"
