@@ -241,7 +241,6 @@ class RouteSettingsActivity(
     private lateinit var sniffers: MultiSelectListPreference
     private lateinit var tlsFragment: SwitchPreference
     private lateinit var tlsFragmentFallbackDelay: DurationPreference
-    private lateinit var tlsRecordFragment: SwitchPreference
 
     private lateinit var actionRoute: PreferenceCategory
     private lateinit var actionRouteOptions: PreferenceCategory
@@ -263,32 +262,14 @@ class RouteSettingsActivity(
         }
         sniffers = findPreference(Key.ROUTE_SNIFFERS)!!
 
-        // TLS fragment + fallback delay is conflict with TLS record fragment
         tlsFragment = findPreference(Key.ROUTE_TLS_FRAGMENT)!!
         tlsFragmentFallbackDelay = findPreference(Key.ROUTE_TLS_FRAGMENT_FALLBACK_DELAY)!!
-        tlsRecordFragment = findPreference(Key.ROUTE_TLS_RECORD_FRAGMENT)!!
         fun updateTlsFragment(enableTlsFragment: Boolean = tlsFragment.isChecked) {
-            tlsRecordFragment.apply {
-                isEnabled = !enableTlsFragment
-                if (enableTlsFragment) isChecked = false
-            }
-        }
-
-        fun updateTlsRecordFragment(enableTlsRecordFragment: Boolean = tlsRecordFragment.isChecked) {
-            tlsFragmentFallbackDelay.isEnabled = !enableTlsRecordFragment
-            tlsFragment.apply {
-                isEnabled = !enableTlsRecordFragment
-                if (enableTlsRecordFragment) isChecked = false
-            }
+            tlsFragmentFallbackDelay.isEnabled = enableTlsFragment
         }
         updateTlsFragment()
-        updateTlsRecordFragment()
         tlsFragment.setOnPreferenceChangeListener { _, newValue ->
             updateTlsFragment(newValue as Boolean)
-            true
-        }
-        tlsRecordFragment.setOnPreferenceChangeListener { _, newValue ->
-            updateTlsRecordFragment(newValue as Boolean)
             true
         }
 

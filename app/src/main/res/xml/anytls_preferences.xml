@@ -72,6 +72,19 @@
             app:title="@string/utls_fingerprint"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="serverFragment"
+            app:title="@string/tls_fragment" />
+        <io.nekohasekai.sagernet.widget.DurationPreference
+            app:icon="@drawable/ic_baseline_timelapse_24"
+            app:key="serverFragmentFallbackDelay"
+            app:title="@string/tls_fragment_fallback_delay"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_wb_sunny_24"
+            app:key="serverRecordFragment"
+            app:title="@string/tls_record_fragment" />
+        <SwitchPreference
             app:icon="@drawable/ic_baseline_security_24"
             app:key="serverECH"
             app:title="@string/ech" />

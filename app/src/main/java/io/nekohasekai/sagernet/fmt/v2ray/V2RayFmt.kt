@@ -478,6 +478,11 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
         if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
+        if (bean.fragment) {
+            fragment = true
+            fragment_fallback_delay = bean.fragmentFallbackDelay.blankAsNull()
+        }
+        if (bean.recordFragment) record_fragment = true
         var fingerprint = bean.utlsFingerprint
         if (bean.realityPublicKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
@@ -665,6 +670,9 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.alpn = tls.alpn?.joinToString(",")
                 bean.certificates = tls.certificate?.joinToString("\n")
                 bean.utlsFingerprint = tls.utls?.fingerprint
+                bean.fragment = tls.fragment
+                bean.fragmentFallbackDelay = tls.fragment_fallback_delay
+                bean.recordFragment = tls.record_fragment
                 tls.ech?.let {
                     bean.ech = it.enabled
                     bean.echConfig = it.config?.joinToString("\n")

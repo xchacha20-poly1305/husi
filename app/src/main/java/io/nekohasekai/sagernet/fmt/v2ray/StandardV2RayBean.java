@@ -35,6 +35,12 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public Boolean allowInsecure;
 
+    public Boolean fragment;
+
+    public String fragmentFallbackDelay;
+
+    public Boolean recordFragment;
+
     // --------------------------------------- reality
 
 
@@ -89,6 +95,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (JavaUtil.isNullOrBlank(earlyDataHeaderName)) earlyDataHeaderName = "";
         if (JavaUtil.isNullOrBlank(utlsFingerprint)) utlsFingerprint = "";
 
+        if (fragment == null) fragment = false;
+        if (fragmentFallbackDelay == null) fragmentFallbackDelay = "500ms";
+        if (recordFragment == null) recordFragment = false;
+
         if (wsMaxEarlyData == null) wsMaxEarlyData = 0;
         if (allowInsecure == null) allowInsecure = false;
         if (packetEncoding == null) packetEncoding = 0;
@@ -102,7 +112,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(5);
+        output.writeInt(6);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -152,6 +162,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
             output.writeString(realityShortID);
             output.writeBoolean(ech);
             output.writeString(echConfig);
+            output.writeBoolean(fragment);
+            output.writeString(fragmentFallbackDelay);
+            output.writeBoolean(recordFragment);
         }
 
         output.writeInt(packetEncoding);
@@ -216,6 +229,12 @@ public abstract class StandardV2RayBean extends AbstractBean {
             realityShortID = input.readString();
             ech = input.readBoolean();
             echConfig = input.readString();
+
+            if (version >= 6) {
+                fragment = input.readBoolean();
+                fragmentFallbackDelay = input.readString();
+                recordFragment = input.readBoolean();
+            }
         }
 
         packetEncoding = input.readInt();
@@ -239,6 +258,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
         bean.packetEncoding = packetEncoding;
         bean.ech = ech;
         bean.echConfig = echConfig;
+        bean.fragment = fragment;
+        bean.fragmentFallbackDelay = fragmentFallbackDelay;
+        bean.recordFragment = recordFragment;
     }
 
     public boolean isVLESS() {

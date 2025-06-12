@@ -233,6 +233,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverRealityShortID by profileCacheStore.string(Key.SERVER_REALITY_SHORT_ID)
     var serverMTU by profileCacheStore.stringToInt(Key.SERVER_MTU)
     var serverAllowInsecure by profileCacheStore.boolean(Key.SERVER_ALLOW_INSECURE)
+    var serverFragment by profileCacheStore.boolean(Key.SERVER_FRAGMENT)
+    var serverFragmentFallbackDelay by profileCacheStore.string(Key.SERVER_FRAGMENT_FALLBACK_DELAY) { "500ms" }
+    var serverRecordFragment by profileCacheStore.boolean(Key.SERVER_RECORD_FRAGMENT)
 
     var serverReserved by profileCacheStore.string(Key.SERVER_RESERVED)
     var localAddress by profileCacheStore.string(Key.LOCAL_ADDRESS)

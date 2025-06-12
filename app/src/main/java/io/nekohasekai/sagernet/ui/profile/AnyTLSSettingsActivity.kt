@@ -3,12 +3,14 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
+import io.nekohasekai.sagernet.widget.DurationPreference
 
 class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
     override fun createEntity() = AnyTLSBean().applyDefaultValues()
@@ -26,6 +28,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         certificates = DataStore.serverCertificates
         utlsFingerprint = DataStore.serverUtlsFingerPrint
         allowInsecure = DataStore.serverAllowInsecure
+        fragment = DataStore.serverFragment
+        fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
+        recordFragment = DataStore.serverRecordFragment
         ech = DataStore.serverECH
         echConfig = DataStore.serverECHConfig
     }
@@ -43,6 +48,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         DataStore.serverCertificates = certificates
         DataStore.serverUtlsFingerPrint = utlsFingerprint
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.serverFragment = fragment
+        DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
+        DataStore.serverRecordFragment = recordFragment
         DataStore.serverECH = ech
         DataStore.serverECHConfig = echConfig
     }
@@ -58,6 +66,19 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
             summaryProvider = PasswordSummaryProvider
+        }
+
+        val fragment = findPreference<SwitchPreference>(Key.SERVER_FRAGMENT)!!
+        val fragmentFallbackDelay =
+            findPreference<DurationPreference>(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
+
+        fun updateFragmentFallbackDelay(enabled: Boolean = fragment.isChecked) {
+            fragmentFallbackDelay.isEnabled = enabled
+        }
+        updateFragmentFallbackDelay()
+        fragment.setOnPreferenceChangeListener { _, newValue ->
+            updateFragmentFallbackDelay(newValue as Boolean)
+            true
         }
     }
 }

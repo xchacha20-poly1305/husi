@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
+import io.nekohasekai.sagernet.widget.DurationPreference
 import rikka.preference.SimpleMenuPreference
 
 abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV2RayBean>() {
@@ -39,6 +40,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.serverFragment = fragment
+        DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
+        DataStore.serverRecordFragment = recordFragment
         DataStore.serverUtlsFingerPrint = utlsFingerprint
         DataStore.serverRealityPublicKey = realityPublicKey
         DataStore.serverRealityShortID = realityShortID
@@ -89,6 +93,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
         allowInsecure = DataStore.serverAllowInsecure
+        fragment = DataStore.serverFragment
+        fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
+        recordFragment = DataStore.serverRecordFragment
         utlsFingerprint = DataStore.serverUtlsFingerPrint
         realityPublicKey = DataStore.serverRealityPublicKey
         realityShortID = DataStore.serverRealityShortID
@@ -140,6 +147,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var serverMuxNumber: EditTextPreference
     private lateinit var serverMuxStrategy: SimpleMenuPreference
     private lateinit var serverMuxPadding: SwitchPreference
+
+    private lateinit var fragment: SwitchPreference
+    private lateinit var fragmentFallbackDelay: DurationPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -265,6 +275,17 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 updateView(isHttp, serverV2rayTransport.value, isTls)
                 true
             }
+        }
+
+        fragment = findPreference(Key.SERVER_FRAGMENT)!!
+        fragmentFallbackDelay = findPreference(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
+        fun updateFragment(enabled: Boolean = fragment.isChecked) {
+            fragmentFallbackDelay.isEnabled = enabled
+        }
+        updateFragment()
+        fragment.setOnPreferenceChangeListener { _, newValue ->
+            updateFragment(newValue as Boolean)
+            true
         }
     }
 
