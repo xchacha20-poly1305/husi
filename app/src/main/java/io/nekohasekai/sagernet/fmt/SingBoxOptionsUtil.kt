@@ -17,6 +17,8 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
+import io.nekohasekai.sagernet.ktx.parseBoolean
+import io.nekohasekai.sagernet.ktx.queryParameter
 import libcore.Libcore
 
 fun domainStrategy(tag: String): String {
@@ -278,14 +280,18 @@ fun buildDNSServer(
         Libcore.parseURL(link)
     }
 
+    // URL grammar based on: https://wiki.metacubex.one/en/config/dns/#additional-parameters
     return when (val scheme = url.scheme) {
         SingBoxOptions.DNS_TYPE_TLS, SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
             type = scheme
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = domainResolver.also {
+                it.client_subnet = url.queryParameter("ecs")
+            }
             tls = OutboundTLSOptions().apply {
                 enabled = true
+                insecure = url.parseBoolean("skip-cert-verify")
             }
             detour = out
         }
@@ -298,9 +304,12 @@ fun buildDNSServer(
             }
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = domainResolver.also {
+                it.client_subnet = url.queryParameter("ecs")
+            }
             tls = OutboundTLSOptions().apply {
                 enabled = true
+                insecure = url.parseBoolean("skip-cert-verify")
             }
             path = url.path
             detour = out
@@ -313,7 +322,9 @@ fun buildDNSServer(
             }
             server = url.host
             server_port = url.ports.toIntOrNull()
-            domain_resolver = domainResolver
+            domain_resolver = domainResolver.also {
+                it.client_subnet = url.queryParameter("ecs")
+            }
             detour = out
         }
 
