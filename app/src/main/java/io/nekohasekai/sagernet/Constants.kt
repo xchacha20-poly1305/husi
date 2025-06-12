@@ -139,6 +139,9 @@ object Key {
     const val SERVER_REALITY_PUBLIC_KEY = "serverRealityPublicKey"
     const val SERVER_REALITY_SHORT_ID = "serverRealityShortID"
     const val SERVER_MTU = "serverMTU"
+    const val SERVER_FRAGMENT = "serverFragment"
+    const val SERVER_FRAGMENT_FALLBACK_DELAY = "serverFragmentFallbackDelay"
+    const val SERVER_RECORD_FRAGMENT = "serverRecordFragment"
 
     const val SERVER_MUX = "serverMux"
     const val SERVER_BRUTAL = "serverBrutal"

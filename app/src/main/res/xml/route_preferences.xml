@@ -123,15 +123,15 @@
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="routeTlsFragment"
             app:title="@string/tls_fragment" />
-        <SwitchPreference
-            app:icon="@drawable/ic_baseline_wb_sunny_24"
-            app:key="routeTlsRecordFragment"
-            app:title="@string/tls_record_fragment" />
         <io.nekohasekai.sagernet.widget.DurationPreference
             app:icon="@drawable/ic_baseline_timelapse_24"
             app:key="routeTlsFragmentFallbackDelay"
             app:title="@string/tls_fragment_fallback_delay"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_wb_sunny_24"
+            app:key="routeTlsRecordFragment"
+            app:title="@string/tls_record_fragment" />
     </PreferenceCategory>
 
     <PreferenceCategory
