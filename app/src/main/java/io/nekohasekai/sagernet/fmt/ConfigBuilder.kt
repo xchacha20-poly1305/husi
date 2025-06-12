@@ -211,6 +211,11 @@ fun buildConfig(
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
 
+    // server+port:tags
+    // This structure may reduce rules when multiple rules share the same server+port.
+    val mappingOverride: LinkedHashMap<Pair<String, Int>, MutableList<String>> =
+        LinkedHashMap()
+
     return MyOptions().apply {
         if (!forTest) experimental = ExperimentalOptions().apply {
             if (!forExport) {
@@ -476,8 +481,8 @@ fun buildConfig(
                         listen_port = mappingPort
                         tag = "$chainTag-mapping-${proxyEntity.id}"
 
-                        override_address = bean.serverAddress
-                        override_port = bean.serverPort
+                        val pair = Pair(bean.serverAddress,bean.serverPort)
+                        mappingOverride.getOrPut(pair) { mutableListOf() }.add(tag)
 
                         pastInboundTag = tag
 
@@ -940,6 +945,16 @@ fun buildConfig(
             route.final_ = TAG_PROXY
         }
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
+
+        // mapping for plugin
+        for ((serverInfo, inboundTags) in mappingOverride) {
+            route.rules.add(0, Rule_Default().apply {
+                action = SingBoxOptions.ACTION_ROUTE_OPTIONS
+                inbound = inboundTags
+                override_address = serverInfo.first
+                override_port = serverInfo.second
+            })
+        }
 
         var ruleSetResource: String? = null
         var geositeLink: String? = null
