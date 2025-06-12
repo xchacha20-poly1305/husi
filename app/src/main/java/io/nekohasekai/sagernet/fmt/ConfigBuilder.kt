@@ -238,7 +238,7 @@ fun buildConfig(
             interval = DataStore.ntpInterval
 
             if (!server.isIpAddress()) {
-                domainListDNSDirectForce.add("full:$server")
+                domainListDNSDirectForce.add(server)
             }
         }
 
@@ -437,7 +437,7 @@ fun buildConfig(
                     pastEntity?.requireBean()?.let { pastBean ->
                         // don't loopback
                         if (defaultServerDomainStrategy != "" && !pastBean.serverAddress.isIpAddress()) {
-                            domainListDNSDirectForce.add("full:${pastBean.serverAddress}")
+                            domainListDNSDirectForce.add(pastBean.serverAddress)
                         }
                     }
 
@@ -761,7 +761,7 @@ fun buildConfig(
             }
 
             if (!serverAddr.isIpAddress()) {
-                domainListDNSDirectForce.add("full:${serverAddr}")
+                domainListDNSDirectForce.add(serverAddr)
             }
         }
 
@@ -773,7 +773,7 @@ fun buildConfig(
             try {
                 Libcore.parseURL("https://$address").apply {
                     if (!host.isIpAddress()) {
-                        domainListDNSDirectForce.add("full:$host")
+                        domainListDNSDirectForce.add(host)
                     }
                 }
             } catch (_: Exception) {
@@ -920,7 +920,7 @@ fun buildConfig(
 
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
-                    makeCommonRule(RuleItem.parseRules(domainListDNSDirectForce.distinct(), true))
+                    domain = domainListDNSDirectForce.distinct()
                     server = TAG_DNS_DIRECT
                 })
             }
