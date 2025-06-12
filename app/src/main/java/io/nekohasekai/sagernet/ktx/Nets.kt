@@ -25,6 +25,10 @@ fun URL.addPathSegments(vararg segments: String) {
     }
 }
 
+fun URL.queryParameter(key: String): String? {
+    return queryParameterNotBlank(key).takeIf { it.isNotEmpty() }
+}
+
 fun URL.parseBoolean(key: String): Boolean = when (queryParameterNotBlank(key)) {
     "1", "true" -> true
     else -> false
