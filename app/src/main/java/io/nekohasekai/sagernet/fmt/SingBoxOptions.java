@@ -111,7 +111,7 @@ public class SingBoxOptions {
     }
 
     // Classes have optional field
-    // Generated in line + 155
+    // Generated in line + 163
 
     public static class Inbound extends SingBoxOption {
 
@@ -264,6 +264,14 @@ public class SingBoxOptions {
 //
 //    }
 
+    public static class Service extends SingBoxOption {
+
+        public String type;
+
+        public String tag;
+
+    }
+
     // Paste generate output here.
     // Use libcore/cmd/boxoption to generate
 
@@ -286,6 +294,8 @@ public class SingBoxOptions {
         public List<Outbound> outbounds;
 
         public RouteOptions route;
+
+        public List<Service> services;
 
         public ExperimentalOptions experimental;
 
@@ -502,7 +512,7 @@ public class SingBoxOptions {
 
         public String trace_back;
 
-        public String memory_limit;
+        public Integer memory_limit;
 
         public Boolean oom_killer;
 
@@ -616,6 +626,12 @@ public class SingBoxOptions {
         public List<String> certificate;
 
         public String certificate_path;
+
+        public Boolean fragment;
+
+        public String fragment_fallback_delay;
+
+        public Boolean record_fragment;
 
         public OutboundECHOptions ech;
 
@@ -1265,6 +1281,8 @@ public class SingBoxOptions {
         public Integer auto_redirect_input_mark;
 
         public Integer auto_redirect_output_mark;
+
+        public List<String> loopback_address;
 
         public Boolean strict_route;
 
