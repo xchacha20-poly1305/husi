@@ -4,7 +4,6 @@ import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import io.nekohasekai.sagernet.logLevelString
 import libcore.Libcore
 
@@ -18,9 +17,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
 
         append("outbound:\n")
         append("    type: shadowquic\n")
-        val address = finalAddress.wrapIPV6Host() + ":" + finalPort
-        append("    addr: \"$address\"\n")
-        // append("    addr: \"${displayAddress()}\"\n")
+        append("    addr: \"${displayAddress()}\"\n")
         append("    jls-pwd: \"$jlsPassword\"\n")
         append("    jls-iv: \"$jlsIv\"\n")
         sni.blankAsNull()?.let {
@@ -44,9 +41,9 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
         if (udpOverStream) {
             append("    over-stream: true\n")
         }
-//        if (shouldProtect) {
-//            append("    protect-path: \"${Libcore.ProtectPath}\"\n")
-//        }
+        if (shouldProtect) {
+            append("    protect-path: \"${Libcore.ProtectPath}\"\n")
+        }
 
         when (logLevel) {
             0, 1 -> "error"
