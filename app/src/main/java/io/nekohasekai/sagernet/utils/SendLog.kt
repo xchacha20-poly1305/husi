@@ -19,7 +19,8 @@ object SendLog {
         val logFile = File.createTempFile(
             "$title ",
             ".log",
-            File(app.cacheDir, "log").also { it.mkdirs() })
+            File(app.cacheDir, "log").also { it.mkdirs() },
+        )
 
         var report = CrashHandler.buildReportHeader()
 
@@ -29,9 +30,7 @@ object SendLog {
 
         try {
             Runtime.getRuntime().exec(arrayOf("logcat", "-d")).inputStream.use(
-                FileOutputStream(
-                    logFile, true
-                )
+                FileOutputStream(logFile, true)
             )
             logFile.appendText("\n")
         } catch (e: IOException) {
@@ -52,7 +51,7 @@ object SendLog {
                         )
                     ),
                 context.getString(androidx.appcompat.R.string.abc_shareactionprovider_share_with),
-            )
+            ).setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         )
     }
 
