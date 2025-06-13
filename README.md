@@ -126,7 +126,7 @@ Plugin name list:
 
 [GPL-3.0](./LICENSE)
 
-## 🛡️ Credits
+## 🤝 Acknowledgements
 
 Core:
 
@@ -143,3 +143,8 @@ Android GUI:
 - [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
 - [dyhkwong/Exclave](https://github.com/dyhkwong/Exclave)
 - [chen08209/FlClash](https://github.com/chen08209/FlClash)
+
+Developing
+
+- [![](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://www.jetbrains.com)
+    JetBrains' powerful IDE.
