@@ -228,7 +228,6 @@
     <string name="domain_strategy_for_direct">Стратегія домену для Прямого</string>
     <string name="domain_strategy_for_server">Стратегія домену для Адреси сервера</string>
     <string name="need_restart">Перезавантажте застосунок для застосування змін</string>
-    <string name="use_selector">Використовувати селектор</string>
     <string name="front_proxy">Зовнішній проксі</string>
     <string name="landing_proxy">Кінцевий проксі</string>
     <string name="protocol_version">Версія протоколу</string>
@@ -513,7 +512,6 @@
     <string name="chain">Ланцюг</string>
     <string name="close">Закрити</string>
     <string name="pin_log">Закріпити лог</string>
-    <string name="interrupt_selector">(Selector) Перервати всі з\'єднання під час зміни конфігурації</string>
     <string name="client_type">Тип клієнта</string>
     <string name="custom_rule_provider">Користувацький постачальник ресурсів правил</string>
     <string name="padding">Відступ</string>

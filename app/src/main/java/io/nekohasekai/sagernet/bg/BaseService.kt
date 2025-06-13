@@ -17,9 +17,10 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
+import io.nekohasekai.sagernet.aidl.ProxySet
+import io.nekohasekai.sagernet.aidl.toList
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.broadcastReceiver
@@ -198,6 +199,14 @@ class BaseService {
             data?.proxy?.box?.clashMode = mode
         }
 
+        override fun queryProxySet(): List<ProxySet> {
+            return data?.proxy?.box?.queryProxySets()?.toList() ?: emptyList()
+        }
+
+        override fun groupSelect(group: String, proxy: String): Boolean {
+            return data?.proxy?.box?.selectOutbound(group, proxy) == true
+        }
+
         fun stateChanged(s: State, msg: String?) = launch {
             val profileName = profileName
             broadcast { it.stateChanged(s.ordinal, profileName, msg) }
@@ -230,24 +239,6 @@ class BaseService {
                 stopRunner(false, (this as Context).getString(R.string.profile_empty))
             }
 
-            // If in a selector group, call selector instead of reloading it.
-            SagerDatabase.proxyDao.getById(DataStore.selectedProxy)?.let {
-                val currentGroupID = data.proxy?.config?.selectorGroupId ?: return@let
-                if (currentGroupID < 0) return@let // Not selector
-                if (it.groupId != currentGroupID) return@let // Not in the same group
-                if (SagerDatabase.groupDao.getById(it.groupId)?.isSelector != true) {
-                    // Not selector
-                    return@let
-                }
-
-                val tag = data.proxy!!.config.profileTagMap[it.id] ?: return@let
-                if (tag.isNotBlank()) {
-                    // Call selector directly, needn't reload.
-                    data.proxy!!.box.selectOutbound(tag)
-                    return
-                }
-            }
-
             val s = data.state
             when {
                 s == State.Stopped -> startRunner()
@@ -267,15 +258,6 @@ class BaseService {
                 if (!(this as Context).hasPermission(wifiPermission)) {
                     data.proxy!!.close()
                     throw LocationException("not have location permission")
-                }
-            }
-
-            // Selector: override selected cache.
-            // https://github.com/SagerNet/sing-box/blob/43f96c427946a9406ad5f739bd33a7a5faa10cad/protocol/group/selector.go#L81-L93
-            SagerDatabase.proxyDao.getById(DataStore.selectedProxy)?.let {
-                val tag = data.proxy!!.config.profileTagMap[it.id] ?: return@let
-                if (tag.isNotBlank()) {
-                    data.proxy!!.box.selectOutbound(tag)
                 }
             }
         }

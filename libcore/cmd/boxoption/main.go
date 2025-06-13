@@ -140,6 +140,7 @@ var outboundList = []any{
 	option.ShadowsocksOutboundOptions{},
 	option.ShadowTLSOutboundOptions{},
 	option.SelectorOutboundOptions{},
+	option.URLTestOutboundOptions{},
 	option.SOCKSOutboundOptions{},
 	option.HTTPOutboundOptions{},
 	option.SSHOutboundOptions{},

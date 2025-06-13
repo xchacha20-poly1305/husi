@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.aidl;
 
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback;
+import io.nekohasekai.sagernet.aidl.ProxySet;
 
 interface ISagerNetService {
   int getState();
@@ -17,4 +18,7 @@ interface ISagerNetService {
   List<String> getClashModes();
   String getClashMode();
   oneway void setClashMode(String mode);
+
+  List<ProxySet> queryProxySet();
+  boolean groupSelect(String group, String proxy);
 }

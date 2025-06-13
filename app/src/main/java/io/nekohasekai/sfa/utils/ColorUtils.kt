@@ -3,13 +3,16 @@ package io.nekohasekai.sfa.utils
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.os.Build
 import android.text.ParcelableSpan
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
+import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
+import com.google.android.material.color.MaterialColors
 import io.nekohasekai.sagernet.R
 import java.util.Stack
 
@@ -117,5 +120,35 @@ object ColorUtils {
                 null
             }
         }
+    }
+
+
+    @ColorInt
+    fun colorForURLTestDelay(context: Context, urlTestDelay: Short): Int {
+        if (urlTestDelay <= 0) {
+            return Color.GRAY
+        }
+        val colorRes =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && context.resources.configuration.isNightModeActive) {
+                if (urlTestDelay <= 800) {
+                    android.R.color.holo_green_dark
+                } else if (urlTestDelay <= 1500) {
+                    android.R.color.holo_orange_dark
+                } else {
+                    android.R.color.holo_red_dark
+                }
+            } else {
+                if (urlTestDelay <= 800) {
+                    android.R.color.holo_green_light
+                } else if (urlTestDelay <= 1500) {
+                    android.R.color.holo_orange_light
+                } else {
+                    android.R.color.holo_red_light
+                }
+            }
+        return MaterialColors.harmonizeWithPrimary(
+            context,
+            ContextCompat.getColor(context, colorRes),
+        )
     }
 }

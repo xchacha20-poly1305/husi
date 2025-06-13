@@ -448,7 +448,6 @@
     <string name="protocol_version">نسخه پروتکل</string>
     <string name="show_group_in_notification">نمایش اسم گروه در اعلان</string>
     <string name="reset_connections">بازنشانی اتصال‌ها</string>
-    <string name="use_selector">استفاده از انتخابگر</string>
     <string name="share_subscription">هم‌رسانی اشتراک</string>
     <string name="remove_duplicate">حذف سرورهای تکراری</string>
     <string name="resolve_server">یافتن آدرس سرور مطابق خط مشی IPv6</string>
@@ -546,7 +545,6 @@
     <string name="outbound">خروجی</string>
     <string name="chain">زنجیره</string>
     <string name="close">بستن</string>
-    <string name="interrupt_selector">(انتخاب گر) قطع تمام اتصالات هنگام تغییر پیکربندی سوئیچ</string>
     <string name="have_reset_network">تمام شبکه‌ها بازنشانی شده‌اند</string>
     <string name="pin_log">پین کردن لاگ</string>
     <string name="client_type">نوع کاربر</string>

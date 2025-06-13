@@ -12,7 +12,6 @@ import moe.matsuri.nb4a.utils.JavaUtil
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
     BoxInstance(profile) {
 
-    var lastSelectorGroupId = -1L
     var displayProfileName = ServiceNotification.genTitle(profile)
 
     var trafficLooper: TrafficLooper? = null
@@ -20,7 +19,6 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
 
     override fun buildConfig() {
         super.buildConfig()
-        lastSelectorGroupId = super.config.selectorGroupId
         Logs.d(config.config)
         if (BuildConfig.DEBUG) Logs.d(JavaUtil.gson.toJson(config.trafficMap))
     }

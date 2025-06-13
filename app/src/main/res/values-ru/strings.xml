@@ -482,7 +482,6 @@
     <string name="need_restart">Перезапустите приложение для принятия изменений</string>
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>
-    <string name="use_selector">Использовать селектор</string>
     <string name="front_proxy">Прямой прокси</string>
     <string name="reset_connections">Сбросить соединения</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
@@ -579,7 +578,6 @@
     <string name="client_type">Тип клиента</string>
     <string name="custom_rule_provider">Пользовательский поставщик ресурсов правил</string>
     <string name="pin_log">Закрепить журнал</string>
-    <string name="interrupt_selector">(Selector) Прервать все соединения при смене конфигурации</string>
     <string name="padding">Отступ</string>
     <string name="done">Готово</string>
     <string name="custom_plugin_prefix">Пользовательский префикс плагина</string>

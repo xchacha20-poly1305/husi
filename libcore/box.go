@@ -12,7 +12,6 @@ import (
 	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
@@ -37,7 +36,6 @@ type BoxInstance struct {
 	forTest bool
 
 	platformInterface PlatformInterface
-	selector          *group.Selector
 	protect           *protect.Service
 	api               *combinedapi.CombinedAPI
 	anchor            *anchorservice.Anchor
@@ -95,13 +93,6 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	}
 
 	if !forTest {
-		// selector
-		if proxy, haveProxyOutbound := b.Box.Outbound().Outbound("proxy"); haveProxyOutbound {
-			if selector, isSelector := proxy.(*group.Selector); isSelector {
-				b.selector = selector
-			}
-		}
-
 		// Protect
 		b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
 			_ = platformInterface.AutoDetectInterfaceControl(int32(fd))
@@ -189,11 +180,4 @@ func (b *BoxInstance) NeedWIFIState() bool {
 
 func (b *BoxInstance) QueryStats(tag string, isUpload bool) int64 {
 	return b.api.QueryStats(tag, isUpload)
-}
-
-func (b *BoxInstance) SelectOutbound(tag string) (ok bool) {
-	if b.selector != nil {
-		return b.selector.SelectOutbound(tag)
-	}
-	return false
 }

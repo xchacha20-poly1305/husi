@@ -475,7 +475,6 @@
     <string name="create_shortcut">建立快捷方式</string>
     <string name="bypass_lan_in_core">在核心中繞過 LAN</string>
     <string name="need_restart">重新啟動應用程式以應用更改</string>
-    <string name="use_selector">啟用 selector （免重載切換節點）</string>
     <string name="front_proxy">前端代理</string>
     <string name="landing_proxy">登陸代理</string>
     <string name="resolve_server">根據IPv6策略解析伺服器位址</string>
@@ -536,7 +535,6 @@
     <string name="close">關閉</string>
     <string name="custom_rule_provider">自定義規則提供者</string>
     <string name="pin_log">固定日誌</string>
-    <string name="interrupt_selector">(Selector) 切換配置時中斷所有連接</string>
     <string name="speed_test">測速</string>
     <string name="client_type">客戶端型別</string>
     <string name="traffic_status">狀態</string>

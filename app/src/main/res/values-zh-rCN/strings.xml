@@ -451,7 +451,6 @@
     <string name="xtls_flow">Flow（VLESS 子协议）</string>
     <string name="log_level">日志级别</string>
     <string name="need_restart">重新启动应用程序以应用更改</string>
-    <string name="use_selector">启用 selector （免重载切换节点）</string>
     <string name="front_proxy">前置代理</string>
     <string name="landing_proxy">落地代理</string>
     <string name="protocol_version">协议版本</string>
@@ -537,7 +536,6 @@
     <string name="padding">填充</string>
     <string name="custom_rule_provider">自定义规则提供者</string>
     <string name="pin_log">固定日志</string>
-    <string name="interrupt_selector">(Selector) 在切换配置时打断所有连接</string>
     <string name="client_type">客户端类型</string>
     <string name="done">已完成</string>
     <string name="custom_plugin_prefix">自定义插件前缀</string>
@@ -600,4 +598,12 @@
     <string name="jls_iv">JLS 初始化向量</string>
     <string name="initial_mtu">初始 MTU</string>
     <string name="minimum_mtu">最小 MTU</string>
+    <string name="management">管理</string>
+    <string name="proxy_set">代理集</string>
+    <string name="interrupt_exist_connections">在切换时打断现有连接</string>
+    <string name="urltest_interval">URLTest 时间间隔</string>
+    <string name="idle_timeout">空闲超时</string>
+    <string name="urltest_tolerance">容差</string>
+    <string name="expand">展开</string>
+    <string name="selected">已选择</string>
 </resources>

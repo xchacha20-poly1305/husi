@@ -45,3 +45,11 @@ object SagerDatabase_Migration_6_7 : Migration(6, 7) {
         db.execSQL("DELETE FROM proxy_entities WHERE type = " + ProxyEntity.TYPE_NEKO.toString())
     }
 }
+
+@DeleteColumn.Entries(
+    DeleteColumn(
+        tableName = "proxy_groups",
+        columnName = "isSelector",
+    ),
+)
+class SagerDatabase_Migration_12_13 : AutoMigrationSpec

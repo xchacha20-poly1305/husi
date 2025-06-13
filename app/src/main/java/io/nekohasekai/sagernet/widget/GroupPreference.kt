@@ -1,31 +1,29 @@
 package io.nekohasekai.sagernet.widget
 
-import android.content.Context
-import android.util.AttributeSet
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.mapX
 import rikka.preference.SimpleMenuPreference
 
-class GroupPreference
-@JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyle: Int = androidx.preference.R.attr.dropdownPreferenceStyle,
-) : SimpleMenuPreference(context, attrs, defStyle, 0) {
+fun SimpleMenuPreference.setGroupBean() {
+    val groups = SagerDatabase.groupDao.allGroups()
 
-    init {
-        val groups = SagerDatabase.groupDao.allGroups()
+    entries = groups.mapX { it.displayName() }.toTypedArray()
+    entryValues = groups.mapX { "${it.id}" }.toTypedArray()
 
-        entries = groups.mapX { it.displayName() }.toTypedArray()
-        entryValues = groups.mapX { "${it.id}" }.toTypedArray()
-    }
+    // Instead of useSimpleSummaryProvider, this can show unset group name.
 
-    override fun getSummary(): CharSequence? {
-        if (!value.isNullOrBlank() && value != "0") {
-            return SagerDatabase.groupDao.getById(value.toLong())?.displayName()
-                ?: super.getSummary()
+    fun getSummary(value: String): CharSequence {
+        if (value.isNotBlank() && value != "0") {
+            SagerDatabase.groupDao.getById(value.toLong())?.displayName()?.let {
+                return it
+            }
         }
-        return super.getSummary()
+        return entries[value.toInt()] // usually the first entry: ungrouped
     }
+    summary = getSummary(value ?: "")
 
+    setOnPreferenceChangeListener { _, newValue ->
+        summary = getSummary(newValue as String)
+        true
+    }
 }
