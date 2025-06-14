@@ -38,7 +38,7 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.toolsTab) { v, insets ->
             val bars = insets.getInsets(
@@ -48,7 +48,7 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.toolsPager) { v, insets ->
             val bars = insets.getInsets(
@@ -58,7 +58,7 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         TabLayoutMediator(binding.toolsTab, binding.toolsPager) { tab, position ->
