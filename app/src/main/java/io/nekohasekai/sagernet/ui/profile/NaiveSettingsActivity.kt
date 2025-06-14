@@ -11,7 +11,7 @@ import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 
 class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
 
-    override fun createEntity() = NaiveBean()
+    override fun createBean() = NaiveBean()
 
     override fun NaiveBean.init() {
         DataStore.profileName = name

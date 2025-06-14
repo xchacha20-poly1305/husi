@@ -13,7 +13,7 @@ import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.widget.DurationPreference
 
 class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
-    override fun createEntity() = AnyTLSBean().applyDefaultValues()
+    override fun createBean() = AnyTLSBean().applyDefaultValues()
 
     override fun AnyTLSBean.serialize() {
         name = DataStore.profileName

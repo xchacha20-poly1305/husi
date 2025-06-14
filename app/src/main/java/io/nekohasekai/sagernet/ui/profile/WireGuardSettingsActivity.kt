@@ -12,7 +12,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
 
-    override fun createEntity() = WireGuardBean().applyDefaultValues()
+    override fun createBean() = WireGuardBean().applyDefaultValues()
 
     override fun WireGuardBean.init() {
         DataStore.profileName = name

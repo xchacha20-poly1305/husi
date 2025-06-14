@@ -16,7 +16,7 @@ class ConfigSettingActivity :
 
     private val isOutboundOnlyKey = "isOutboundOnly"
 
-    override fun createEntity() = ConfigBean()
+    override fun createBean() = ConfigBean()
 
     override fun ConfigBean.init() {
         // CustomBean to input

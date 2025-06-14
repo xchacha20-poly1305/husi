@@ -13,7 +13,7 @@ import rikka.preference.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
-    override fun createEntity() = ShadowsocksBean()
+    override fun createBean() = ShadowsocksBean()
 
     override fun ShadowsocksBean.init() {
         DataStore.profileName = name

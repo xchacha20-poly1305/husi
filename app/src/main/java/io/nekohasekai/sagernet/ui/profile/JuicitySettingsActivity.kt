@@ -11,7 +11,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
 
-    override fun createEntity() = JuicityBean().applyDefaultValues()
+    override fun createBean() = JuicityBean().applyDefaultValues()
 
     override fun JuicityBean.init() {
         DataStore.profileName = name

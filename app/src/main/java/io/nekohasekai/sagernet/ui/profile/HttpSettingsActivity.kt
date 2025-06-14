@@ -5,6 +5,6 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class HttpSettingsActivity : StandardV2RaySettingsActivity() {
 
-    override fun createEntity() = HttpBean().applyDefaultValues()
+    override fun createBean() = HttpBean().applyDefaultValues()
 
 }
