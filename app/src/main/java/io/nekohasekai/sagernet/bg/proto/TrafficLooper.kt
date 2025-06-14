@@ -32,9 +32,7 @@ class TrafficLooper(
         data.proxy?.config?.trafficMap?.forEach { (_, ents) ->
             for (ent in ents) {
                 val item = idMap[ent.id] ?: return@forEach
-                ent.rx = item.rx
-                ent.tx = item.tx
-                ProfileManager.updateProfile(ent) // update DB
+                ProfileManager.updateTraffic(ent, item.rx, item.tx) // update DB
                 traffic[ent.id] = TrafficData(
                     id = ent.id,
                     rx = ent.rx,
