@@ -29,7 +29,7 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import libcore.Libcore
-import io.nekohasekai.sagernet.widget.ExtendedKeyboard
+import kotlin.math.max
 
 class ConfigEditActivity : ThemedActivity() {
 
@@ -81,7 +81,7 @@ class ConfigEditActivity : ThemedActivity() {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.editor) { v, insets ->
             val bars = insets.getInsets(
@@ -95,12 +95,13 @@ class ConfigEditActivity : ThemedActivity() {
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.keyboardContainer) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = bars.bottom
+                bottom = max(bars.bottom, ime.bottom),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         setSupportActionBar(toolbar)
@@ -166,11 +167,12 @@ class ConfigEditActivity : ThemedActivity() {
             snackbar(android.R.string.ok).show()
         }
 
-        val extendedKeyboard = findViewById<ExtendedKeyboard>(R.id.extended_keyboard)
-        extendedKeyboard.setKeyListener { char -> binding.editor.insert(char) }
-        extendedKeyboard.setHasFixedSize(true)
-        extendedKeyboard.submitList("{},:_\"".map { it.toString() })
-        extendedKeyboard.setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
+        binding.extendedKeyboard.apply {
+            setKeyListener { char -> binding.editor.insert(char) }
+            setHasFixedSize(true)
+            submitList(listOf("{", "}", ",", ":", "_", "\""))
+            setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
+        }
     }
 
     private fun formatText(): String? {
