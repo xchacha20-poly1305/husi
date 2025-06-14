@@ -59,6 +59,7 @@ public class ShadowsocksBean extends AbstractBean {
         plugin = input.readString();
         udpOverTcp = input.readBoolean();
         if (version < 2) {
+            // old mux
             int ignored = input.readInt();
             return;
         }

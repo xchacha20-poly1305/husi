@@ -68,9 +68,9 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
     ) {
         addPreferencesFromResource(R.xml.shadowsocks_preferences)
 
-        serverMuxType = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_TYPE)!!
-        serverMuxStrategy = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_STRATEGY)!!
-        serverMuxPadding = findPreference<SwitchPreference>(Key.SERVER_MUX_PADDING)!!
+        serverMuxType = findPreference(Key.SERVER_MUX_TYPE)!!
+        serverMuxStrategy = findPreference(Key.SERVER_MUX_STRATEGY)!!
+        serverMuxPadding = findPreference(Key.SERVER_MUX_PADDING)!!
         serverMuxNumber = findPreference<EditTextPreference>(Key.SERVER_MUX_NUMBER)!!.also {
             it.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
@@ -80,7 +80,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 true
             }
         }
-        udpOverTcp = findPreference<SwitchPreference>(Key.UDP_OVER_TCP)!!
+        udpOverTcp = findPreference(Key.UDP_OVER_TCP)!!
         updateMuxState(DataStore.serverMux)
 
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
