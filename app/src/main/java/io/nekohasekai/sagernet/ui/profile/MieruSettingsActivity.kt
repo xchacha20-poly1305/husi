@@ -32,7 +32,7 @@ import rikka.preference.SimpleMenuPreference
 
 class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
 
-    override fun createEntity() = MieruBean().applyDefaultValues()
+    override fun createBean() = MieruBean().applyDefaultValues()
 
     override fun MieruBean.init() {
         DataStore.profileName = name

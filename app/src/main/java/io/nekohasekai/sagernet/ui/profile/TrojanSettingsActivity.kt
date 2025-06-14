@@ -5,6 +5,6 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class TrojanSettingsActivity : StandardV2RaySettingsActivity() {
 
-    override fun createEntity() = TrojanBean().applyDefaultValues()
+    override fun createBean() = TrojanBean().applyDefaultValues()
 
 }

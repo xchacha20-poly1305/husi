@@ -37,7 +37,7 @@ import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 
 class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout_chain_settings) {
 
-    override fun createEntity() = ChainBean()
+    override fun createBean() = ChainBean()
 
     val proxyList = ArrayList<ProxyEntity>()
 

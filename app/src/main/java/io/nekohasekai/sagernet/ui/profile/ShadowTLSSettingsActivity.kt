@@ -11,7 +11,7 @@ import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 
 class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
 
-    override fun createEntity() = ShadowTLSBean()
+    override fun createBean() = ShadowTLSBean()
 
     override fun ShadowTLSBean.init() {
         DataStore.profileName = name

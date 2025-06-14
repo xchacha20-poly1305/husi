@@ -12,7 +12,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import rikka.preference.SimpleMenuPreference
 
 class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
-    override fun createEntity() = SOCKSBean().applyDefaultValues()
+    override fun createBean() = SOCKSBean().applyDefaultValues()
 
     override fun SOCKSBean.init() {
         DataStore.profileName = name

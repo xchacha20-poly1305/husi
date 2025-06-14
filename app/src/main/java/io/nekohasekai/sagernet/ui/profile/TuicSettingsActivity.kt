@@ -12,7 +12,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
 
-    override fun createEntity() = TuicBean().applyDefaultValues()
+    override fun createBean() = TuicBean().applyDefaultValues()
 
     override fun TuicBean.init() {
         DataStore.profileName = name

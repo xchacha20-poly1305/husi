@@ -14,7 +14,7 @@ import rikka.preference.SimpleMenuPreference
 
 class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
 
-    override fun createEntity() = HysteriaBean().applyDefaultValues()
+    override fun createBean() = HysteriaBean().applyDefaultValues()
 
     override fun HysteriaBean.init() {
         DataStore.profileName = name

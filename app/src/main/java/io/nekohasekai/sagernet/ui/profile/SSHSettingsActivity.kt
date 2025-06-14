@@ -12,7 +12,7 @@ import rikka.preference.SimpleMenuPreference
 
 class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
 
-    override fun createEntity() = SSHBean()
+    override fun createBean() = SSHBean()
 
     override fun SSHBean.init() {
         DataStore.profileName = name

@@ -11,7 +11,7 @@ import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
-    override fun createEntity() = ShadowQUICBean().applyDefaultValues()
+    override fun createBean() = ShadowQUICBean().applyDefaultValues()
 
     override fun ShadowQUICBean.init() {
         DataStore.profileName = name

@@ -41,6 +41,7 @@ import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
@@ -51,6 +52,7 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
 import kotlin.properties.Delegates
 
@@ -102,11 +104,15 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         const val EXTRA_IS_SUBSCRIPTION = "sub"
     }
 
-    abstract fun createEntity(): T
+    abstract fun createBean(): T
     abstract fun T.init()
     abstract fun T.serialize()
 
-    val proxyEntity by lazy { SagerDatabase.proxyDao.getById(DataStore.editingId) }
+    val proxyEntity by lazy {
+        SagerDatabase.proxyDao.getById(DataStore.editingId) ?: runBlocking {
+            createEntity()
+        }
+    }
     protected var isSubscription by Delegates.notNull<Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -139,16 +145,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             runOnDefaultDispatcher {
                 if (editingId == 0L) {
                     DataStore.editingGroup = DataStore.selectedGroupForImport()
-                    createEntity().applyDefaultValues().init()
+                    createBean().applyDefaultValues().init()
                 } else {
-                    if (proxyEntity == null) {
-                        onMainDispatcher {
-                            finish()
-                        }
-                        return@runOnDefaultDispatcher
-                    }
-                    DataStore.editingGroup = proxyEntity!!.groupId
-                    (proxyEntity!!.requireBean() as T).init()
+                    DataStore.editingGroup = proxyEntity.groupId
+                    (proxyEntity.requireBean() as T).init()
                 }
 
                 onMainDispatcher {
@@ -162,23 +162,18 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     }
 
     open suspend fun saveAndExit() {
-
-        val editingId = DataStore.editingId
-        if (editingId == 0L) {
-            val editingGroup = DataStore.editingGroup
-            ProfileManager.createProfile(editingGroup, createEntity().apply { serialize() })
-        } else {
-            if (proxyEntity == null) {
-                finish()
-                return
-            }
-            if (proxyEntity!!.id == DataStore.selectedProxy) {
+        if (DataStore.editingId != 0L) {
+            if (proxyEntity.id == DataStore.selectedProxy) {
                 SagerNet.stopService()
             }
-            ProfileManager.updateProfile(proxyEntity!!.apply { (requireBean() as T).serialize() })
         }
+        ProfileManager.updateProfile(proxyEntity.apply { (requireBean() as T).serialize() })
         finish()
+    }
 
+    open suspend fun createEntity(): ProxyEntity {
+        val editingGroup = DataStore.editingGroup
+        return ProfileManager.createProfile(editingGroup, createBean().apply { serialize() })
     }
 
     val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
@@ -224,42 +219,37 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         }
 
         R.id.action_custom_outbound_json -> {
-            proxyEntity?.apply {
-                val bean = requireBean()
-                DataStore.serverCustomOutbound = bean.customOutboundJson
-                child.callbackCustomOutbound = { bean.customOutboundJson = it }
-                child.resultCallbackCustomOutbound.launch(
-                    Intent(
-                        baseContext,
-                        ConfigEditActivity::class.java,
-                    ).apply {
-                        putExtra("key", Key.SERVER_CUSTOM_OUTBOUND)
-                    })
-            }
+            val bean = proxyEntity.requireBean()
+            DataStore.serverCustomOutbound = bean.customOutboundJson
+            child.callbackCustomOutbound = { bean.customOutboundJson = it }
+            child.resultCallbackCustomOutbound.launch(
+                Intent(
+                    baseContext,
+                    ConfigEditActivity::class.java,
+                ).apply {
+                    putExtra("key", Key.SERVER_CUSTOM_OUTBOUND)
+                })
             true
         }
 
         R.id.action_custom_config_json -> {
-            proxyEntity?.apply {
-                val bean = requireBean()
-                DataStore.serverCustom = bean.customConfigJson
-                child.callbackCustom = { bean.customConfigJson = it }
-                child.resultCallbackCustom.launch(
-                    Intent(
-                        baseContext,
-                        ConfigEditActivity::class.java
-                    ).apply {
-                        putExtra("key", Key.SERVER_CUSTOM)
-                    })
-            }
+            val bean = proxyEntity.requireBean()
+            DataStore.serverCustom = bean.customConfigJson
+            child.callbackCustom = { bean.customConfigJson = it }
+            child.resultCallbackCustom.launch(
+                Intent(
+                    baseContext,
+                    ConfigEditActivity::class.java,
+                ).apply {
+                    putExtra("key", Key.SERVER_CUSTOM)
+                })
             true
         }
 
         R.id.action_create_shortcut -> {
-            val ent = proxyEntity!!
-            val shortcut = ShortcutInfoCompat.Builder(this, "shortcut-profile-${ent.id}")
-                .setShortLabel(ent.displayName())
-                .setLongLabel(ent.displayName())
+            val shortcut = ShortcutInfoCompat.Builder(this, "shortcut-profile-${proxyEntity.id}")
+                .setShortLabel(proxyEntity.displayName())
+                .setLongLabel(proxyEntity.displayName())
                 .setIcon(
                     IconCompat.createWithResource(
                         this, R.drawable.ic_qu_shadowsocks_launcher
@@ -269,18 +259,17 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                         baseContext, QuickToggleShortcut::class.java
                     ).apply {
                         action = Intent.ACTION_MAIN
-                        putExtra("profile", ent.id)
+                        putExtra("profile", proxyEntity.id)
                     }).build()
             ShortcutManagerCompat.requestPinShortcut(this, shortcut, null)
         }
 
         R.id.action_move -> {
             val view = LinearLayout(baseContext).apply {
-                val ent = proxyEntity!!
                 orientation = LinearLayout.VERTICAL
 
                 SagerDatabase.groupDao.allGroups()
-                    .filter { it.type == GroupType.BASIC && it.id != ent.groupId }
+                    .filter { it.type == GroupType.BASIC && it.id != proxyEntity.groupId }
                     .forEach { group ->
                         LayoutGroupItemBinding.inflate(layoutInflater, this, true).apply {
                             edit.isVisible = false
@@ -289,10 +278,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                             groupUpdate.text = getString(R.string.move)
                             groupUpdate.setOnClickListener {
                                 runOnDefaultDispatcher {
-                                    val oldGroupId = ent.groupId
+                                    val oldGroupId = proxyEntity.groupId
                                     val newGroupId = group.id
-                                    ent.groupId = newGroupId
-                                    ProfileManager.updateProfile(ent)
+                                    proxyEntity.groupId = newGroupId
+                                    ProfileManager.updateProfile(proxyEntity)
                                     GroupManager.postUpdate(oldGroupId) // reload
                                     GroupManager.postUpdate(newGroupId)
                                     DataStore.editingGroup = newGroupId // post switch animation
