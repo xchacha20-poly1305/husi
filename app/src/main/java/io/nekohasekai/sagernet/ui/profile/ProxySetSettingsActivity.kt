@@ -65,7 +65,7 @@ class ProxySetSettingsActivity :
 
     override fun createBean() = ProxySetBean().applyDefaultValues()
 
-    val proxyList = mutableListOf<ProxyEntity>()
+    private val proxyList = mutableListOf<ProxyEntity>()
 
     override fun ProxySetBean.init() {
         DataStore.profileName = name
@@ -93,12 +93,13 @@ class ProxySetSettingsActivity :
         proxies = proxyList.mapX { it.id }
     }
 
-    lateinit var groupType: SimpleMenuPreference
-    lateinit var groupPreference: SimpleMenuPreference
-    lateinit var testURL: EditTextPreference
-    lateinit var testInterval: DurationPreference
-    lateinit var idleTimeout: DurationPreference
-    lateinit var tolerance: EditTextPreference
+    private lateinit var groupType: SimpleMenuPreference
+    private lateinit var groupPreference: SimpleMenuPreference
+    private lateinit var serverManagement: SimpleMenuPreference
+    private lateinit var testURL: EditTextPreference
+    private lateinit var testInterval: DurationPreference
+    private lateinit var idleTimeout: DurationPreference
+    private lateinit var tolerance: EditTextPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -110,6 +111,7 @@ class ProxySetSettingsActivity :
         groupPreference = findPreference<SimpleMenuPreference>(Key.SERVER_GROUP)!!.apply {
             setGroupBean()
         }
+        serverManagement = findPreference(Key.SERVER_MANAGEMENT)!!
         testURL = findPreference(Key.SERVER_TEST_URL)!!
         testInterval = findPreference(Key.SERVER_TEST_INTERVAL)!!
         idleTimeout = findPreference(Key.SERVER_IDLE_TIMEOUT)!!
@@ -119,49 +121,49 @@ class ProxySetSettingsActivity :
 
         itemView = findViewById(R.id.list_cell)
 
+        fun updateType(type: Int = groupType.value.toInt()) {
+            when (type) {
+                ProxySetBean.TYPE_LIST -> {
+                    groupPreference.isVisible = false
+                    configurationList.isVisible = true
+                    itemView.isVisible = true
+                }
+
+                ProxySetBean.TYPE_GROUP -> {
+                    groupPreference.isVisible = true
+                    configurationList.isVisible = false
+                    itemView.isVisible = false
+                }
+            }
+        }
+        updateType()
         groupType.setOnPreferenceChangeListener { _, newValue ->
             updateType(newValue.toString().toInt())
             true
         }
 
+        fun updateManagement(management: Int = serverManagement.value.toInt()) {
+            when (management) {
+                ProxySetBean.MANAGEMENT_SELECTOR -> {
+                    testURL.isVisible = false
+                    testInterval.isVisible = false
+                    idleTimeout.isVisible = false
+                    tolerance.isVisible = false
+                }
+
+                ProxySetBean.MANAGEMENT_URLTEST -> {
+                    testURL.isVisible = true
+                    testInterval.isVisible = true
+                    idleTimeout.isVisible = true
+                    tolerance.isVisible = true
+                }
+            }
+        }
+        updateManagement()
         findPreference<SimpleMenuPreference>(Key.SERVER_MANAGEMENT)!!.apply {
             setOnPreferenceChangeListener { _, newValue ->
                 updateManagement(newValue.toString().toInt())
                 true
-            }
-        }
-    }
-
-    fun updateType(type: Int = DataStore.serverType) {
-        when (type) {
-            ProxySetBean.TYPE_LIST -> {
-                groupPreference.isVisible = false
-                configurationList.isVisible = true
-                itemView.isVisible = true
-            }
-
-            ProxySetBean.TYPE_GROUP -> {
-                groupPreference.isVisible = true
-                configurationList.isVisible = false
-                itemView.isVisible = false
-            }
-        }
-    }
-
-    fun updateManagement(management: Int = DataStore.serverManagement) {
-        when (management) {
-            ProxySetBean.MANAGEMENT_SELECTOR -> {
-                testURL.isVisible = false
-                testInterval.isVisible = false
-                idleTimeout.isVisible = false
-                tolerance.isVisible = false
-            }
-
-            ProxySetBean.MANAGEMENT_URLTEST -> {
-                testURL.isVisible = true
-                testInterval.isVisible = true
-                idleTimeout.isVisible = true
-                tolerance.isVisible = true
             }
         }
     }
@@ -259,9 +261,6 @@ class ProxySetSettingsActivity :
         runOnDefaultDispatcher {
             configurationAdapter.reload()
         }
-
-        updateType()
-        updateManagement()
     }
 
     inner class ProxiesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {

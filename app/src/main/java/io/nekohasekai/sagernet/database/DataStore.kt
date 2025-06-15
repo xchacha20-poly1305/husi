@@ -289,7 +289,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverIdleSessionTimeout by profileCacheStore.string(Key.SERVER_IDLE_SESSION_TIMEOUT) { "30s" }
     var serverMinIdleSession by profileCacheStore.stringToInt(Key.SERVER_MIN_IDLE_SESSION) { 0 }
 
-    var serverManagement by configurationStore.int(Key.SERVER_MANAGEMENT)
+    var serverManagement by profileCacheStore.stringToInt(Key.SERVER_MANAGEMENT)
     var serverInterruptExistConnections by profileCacheStore.boolean(Key.SERVER_INTERRUPT_EXIST_CONNECTIONS) { true }
     var serverTestURL by profileCacheStore.string(Key.SERVER_TEST_URL) { CONNECTION_TEST_URL }
     var serverTestInterval by profileCacheStore.string(Key.SERVER_TEST_INTERVAL) { "3m" }

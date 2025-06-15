@@ -252,7 +252,7 @@ data class ProxyEntity(
         TYPE_DIRECT -> "Direct"
         TYPE_ANYTLS -> "AnyTLS"
         TYPE_SHADOWQUIC -> "Shadow QUIC"
-        TYPE_PROXY_SET -> proxySetBean!!.displayName()
+        TYPE_PROXY_SET -> proxySetBean!!.displayType()
         TYPE_CHAIN -> chainName
         TYPE_CONFIG -> configBean!!.displayType()
         else -> "Undefined type $type"

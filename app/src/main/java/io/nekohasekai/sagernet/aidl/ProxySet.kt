@@ -10,7 +10,9 @@ data class ProxySet(
     val type: String = "",
     val selectable: Boolean = false,
     var selected: String = "",
-    val items: List<ProxySetItem> = emptyList(),
+    var items: List<ProxySetItem> = emptyList(),
+    var isExpanded: Boolean = false,
+    val delays: MutableMap<String, Short> = mutableMapOf()
 ) : Parcelable {
     constructor(set: libcore.ProxySet) : this(
         tag = set.tag,
@@ -19,6 +21,32 @@ data class ProxySet(
         selected = set.selected,
         items = set.items.toList(),
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ProxySet
+
+        if (selectable != other.selectable) return false
+        if (isExpanded != other.isExpanded) return false
+        if (tag != other.tag) return false
+        if (type != other.type) return false
+        if (selected != other.selected) return false
+        if (items != other.items) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = selectable.hashCode()
+        result = 31 * result + isExpanded.hashCode()
+        result = 31 * result + tag.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + selected.hashCode()
+        result = 31 * result + items.hashCode()
+        return result
+    }
 }
 
 fun libcore.ProxySetIterator.toList(): List<ProxySet> {
@@ -39,6 +67,24 @@ data class ProxySetItem(
         tag = item.tag,
         type = item.type,
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ProxySetItem
+
+        if (tag != other.tag) return false
+        if (type != other.type) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = tag.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
 }
 
 fun GroupItemIterator.toList(): List<ProxySetItem> {

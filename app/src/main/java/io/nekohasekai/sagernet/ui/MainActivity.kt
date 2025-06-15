@@ -59,7 +59,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
-import io.nekohasekai.sagernet.ui.dashboard.TrafficFragment
+import io.nekohasekai.sagernet.ui.dashboard.DashboardFragment
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
@@ -199,7 +199,7 @@ class MainActivity : ThemedActivity(),
         if (!DataStore.serviceState.connected || connection.service == null) {
             error("not started")
         }
-        return connection.service!!.urlTest()
+        return connection.service!!.urlTest(null)
     }
 
     suspend fun importSubscription(uri: Uri) {
@@ -399,7 +399,7 @@ class MainActivity : ThemedActivity(),
             R.id.nav_group -> displayFragment(GroupFragment())
             R.id.nav_route -> displayFragment(RouteFragment())
             R.id.nav_settings -> displayFragment(SettingsFragment())
-            R.id.nav_traffic -> displayFragment(TrafficFragment())
+            R.id.nav_traffic -> displayFragment(DashboardFragment())
             R.id.nav_tools -> displayFragment(ToolsFragment())
             R.id.nav_logcat -> displayFragment(LogcatFragment())
             R.id.nav_faq -> {
@@ -428,11 +428,11 @@ class MainActivity : ThemedActivity(),
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
 
         // If is in dashboard, enable dashboard status loop.
-        val trafficFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment
-        if (trafficFragment != null && state == BaseService.State.Connected) {
+        val dashboardFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? DashboardFragment
+        if (dashboardFragment != null && state == BaseService.State.Connected) {
             connection.service?.enableDashboardStatus(true)
-            trafficFragment.refreshClashMode()
+            dashboardFragment.refreshClashMode()
         }
     }
 
@@ -480,7 +480,7 @@ class MainActivity : ThemedActivity(),
     }
 
     override fun statusUpdate(dashboardStatus: DashboardStatus) {
-        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TrafficFragment)
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? DashboardFragment)
             ?.emitStats(dashboardStatus)
     }
 

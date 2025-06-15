@@ -24,7 +24,7 @@ import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 
-class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
+class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
     Toolbar.OnMenuItemClickListener,
     SearchView.OnQueryTextListener {
 
@@ -127,7 +127,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             }
         }
         searchView = toolbar.findViewById<SearchView?>(R.id.action_traffic_search).apply {
-            setOnQueryTextListener(this@TrafficFragment)
+            setOnQueryTextListener(this@DashboardFragment)
             maxWidth = Int.MAX_VALUE
             setOnFocusCancel()
             isVisible = true

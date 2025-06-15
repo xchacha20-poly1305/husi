@@ -48,7 +48,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
                         }
                         Libcore.updateRootCACerts(enableCazilla, certList)
 
-                        c.tryResume(box.urlTest(link, timeout))
+                        c.tryResume(box.urlTest(null, link, timeout))
                     } catch (e: Exception) {
                         c.tryResumeWithException(e)
                         Logs.e(e)
