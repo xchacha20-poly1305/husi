@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui.traffic
+package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
 import android.view.MenuItem
@@ -24,12 +24,15 @@ import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 
-const val POSITION_STATUS = 0
-const val POSITION_CONNECTIONS = 1
-
 class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
     Toolbar.OnMenuItemClickListener,
     SearchView.OnQueryTextListener {
+
+    companion object {
+        const val POSITION_STATUS = 0
+        const val POSITION_CONNECTIONS = 1
+        const val POSITION_PROXY_SET = 2
+    }
 
     private lateinit var binding: LayoutTrafficBinding
     private lateinit var adapter: TrafficAdapter
@@ -86,6 +89,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
             tab.text = when (position) {
                 POSITION_STATUS -> getString(R.string.traffic_status)
                 POSITION_CONNECTIONS -> getString(R.string.traffic_connections)
+                POSITION_PROXY_SET -> getString(R.string.proxy_set)
                 else -> throw IllegalArgumentException()
             }
             tab.view.setOnLongClickListener {
@@ -270,6 +274,8 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                     getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment ?: return
                 connectionFragment.emitStats(dashboardStatus.connections)
             }
+
+            POSITION_PROXY_SET -> {}
         }
     }
 
@@ -284,15 +290,14 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
 
     inner class TrafficAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
         override fun getItemCount(): Int {
-            return 2
+            return 3
         }
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
                 POSITION_STATUS -> StatusFragment()
-
                 POSITION_CONNECTIONS -> ConnectionListFragment()
-
+                POSITION_PROXY_SET -> ProxySetFragment()
                 else -> throw IllegalArgumentException()
             }
         }

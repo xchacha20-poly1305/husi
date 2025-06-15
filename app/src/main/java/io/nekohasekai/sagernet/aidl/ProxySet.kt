@@ -33,7 +33,7 @@ fun libcore.ProxySetIterator.toList(): List<ProxySet> {
 data class ProxySetItem(
     val tag: String = "",
     val type: String = "",
-    var urlTestDelay: Int = 0,
+    var urlTestDelay: Short = -1,
 ) : Parcelable {
     constructor(item: libcore.GroupItem) : this(
         tag = item.tag,

@@ -59,7 +59,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
-import io.nekohasekai.sagernet.ui.traffic.TrafficFragment
+import io.nekohasekai.sagernet.ui.dashboard.TrafficFragment
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
