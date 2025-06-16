@@ -21,32 +21,6 @@ data class ProxySet(
         selected = set.selected,
         items = set.items.toList(),
     )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ProxySet
-
-        if (selectable != other.selectable) return false
-        if (isExpanded != other.isExpanded) return false
-        if (tag != other.tag) return false
-        if (type != other.type) return false
-        if (selected != other.selected) return false
-        if (items != other.items) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = selectable.hashCode()
-        result = 31 * result + isExpanded.hashCode()
-        result = 31 * result + tag.hashCode()
-        result = 31 * result + type.hashCode()
-        result = 31 * result + selected.hashCode()
-        result = 31 * result + items.hashCode()
-        return result
-    }
 }
 
 fun libcore.ProxySetIterator.toList(): List<ProxySet> {

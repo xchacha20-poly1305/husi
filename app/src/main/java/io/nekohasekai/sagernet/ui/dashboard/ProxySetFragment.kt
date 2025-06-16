@@ -60,7 +60,9 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
         }
 
         binding.recycleView.layoutManager = FixedLinearLayoutManager(binding.recycleView)
-        binding.recycleView.adapter = Adapter().also { adapter = it }
+        binding.recycleView.adapter = Adapter().also {
+            adapter = it
+        }
 
         job = runOnDefaultDispatcher {
             while (isActive) {
@@ -86,7 +88,6 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             val old = proxySets.toList()
             newSets.forEach { newSet ->
                 old.find { it.tag == newSet.tag }?.let { existing ->
-                    newSet.delays.clear()
                     newSet.delays.putAll(existing.delays)
                     newSet.isExpanded = existing.isExpanded
                 }
@@ -100,10 +101,7 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                 override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {
                     val o = old[oldPos]
                     val n = newSets[newPos]
-                    return o.selected == n.selected &&
-                            o.isExpanded == n.isExpanded &&
-                            o.items == n.items &&
-                            o.delays == n.delays
+                    return o.items == n.items && o.delays == n.delays
                 }
             })
 
@@ -171,7 +169,11 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             }
 
             binding.expandButton.setImageResource(
-                if (set.isExpanded) R.drawable.ic_expand_less_24 else R.drawable.ic_expand_more_24
+                if (set.isExpanded) {
+                    R.drawable.ic_expand_less_24
+                } else {
+                    R.drawable.ic_expand_more_24
+                }
             )
             binding.expandButton.setOnClickListener {
                 set.isExpanded = !set.isExpanded
