@@ -62,7 +62,7 @@ class TrafficLooper(
     fun selectMain(id: Long) {
         val newData = idMap[id] ?: return
         val oldID = currentID.exchange(id)
-                Logs.d("select traffic count $TAG_PROXY to $id, old id is $oldID")
+        Logs.d("select traffic count $TAG_PROXY to $id, old id is $oldID")
         val oldData = idMap[oldID]
         oldData?.apply {
             tag = currentFakeTag.exchange(newData.tag)

@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,15 +33,14 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sfa.utils.ColorUtils.colorForURLTestDelay
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class ProxySetFragment : Fragment(R.layout.layout_status_list) {
 
     private lateinit var binding: LayoutStatusListBinding
     private lateinit var adapter: Adapter
-    private var job: Job? = null
 
     private val context get() = requireContext() as MainActivity
 
@@ -65,7 +65,7 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             adapter = it
         }
 
-        job = runOnDefaultDispatcher {
+        lifecycleScope.launch {
             while (isActive) {
                 val sets = context.connection.service?.queryProxySet() ?: continue
                 onMainDispatcher {
@@ -74,11 +74,6 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                 delay(2000)
             }
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        job?.cancel()
     }
 
     inner class Adapter : RecyclerView.Adapter<ProxySetView>() {
@@ -126,10 +121,10 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
         }
     }
 
-    inner class ProxySetView(private val binding: LayoutProxySetBinding) :
+    inner class ProxySetView(val binding: LayoutProxySetBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        private lateinit var proxySet: ProxySet
+        lateinit var proxySet: ProxySet
         private lateinit var itemAdapter: ItemAdapter
         private var textWatcher: TextWatcher? = null
 
@@ -155,16 +150,18 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                 runOnDefaultDispatcher {
                     val result = context.connection.service
                         ?.groupURLTest(set.tag, DataStore.connectionTestTimeout)
-                        ?: return@runOnDefaultDispatcher
-                    onMainDispatcher {
-                        result.data.forEach { (tag, delay) ->
-                            set.delays[tag] = delay
-                        }
-                        itemAdapter.notifyDataSetChanged()
 
+                    onMainDispatcher {
                         binding.urlTestButton.let {
                             it.clearAnimation()
                             it.isEnabled = true
+                        }
+
+                        if (result != null) {
+                            result.data.forEach { (tag, delay) ->
+                                set.delays[tag] = delay
+                            }
+                            itemAdapter.notifyDataSetChanged()
                         }
                     }
                 }
@@ -190,12 +187,12 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                     removeTextChangedListener(textWatcher)
                 }
             }
+            textView.setText(set.selected, false)
             if (!set.isExpanded) {
                 binding.proxySetSelected.hint = set.selected
                 binding.proxySetSelected.isEnabled = set.selectable
                 if (set.selectable) {
                     textView.setSimpleItems(set.items.map { it.tag }.toTypedArray())
-                    textView.setText(set.selected, false)
                     textWatcher = textView.addTextChangedListener {
                         val selectedTag = it.toString()
                         if (selectedTag != set.selected) {
@@ -211,7 +208,7 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             }
 
             if (!::itemAdapter.isInitialized) {
-                itemAdapter = ItemAdapter(set)
+                itemAdapter = ItemAdapter(this)
                 binding.itemList.apply {
                     adapter = itemAdapter
                     layoutManager = GridLayoutManager(context, 2)
@@ -223,10 +220,10 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
         }
     }
 
-    inner class ItemAdapter(private val proxySet: ProxySet) :
+    inner class ItemAdapter(private val setView: ProxySetView) :
         RecyclerView.Adapter<ItemProxySetView>() {
 
-        private var items = proxySet.items.toMutableList()
+        private var items = setView.proxySet.items.toMutableList()
 
         fun updateItems(set: ProxySet) {
             items = set.items.toMutableList()
@@ -250,7 +247,7 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
         override fun getItemCount() = items.size
 
         override fun onBindViewHolder(holder: ItemProxySetView, position: Int) {
-            holder.bind(proxySet, items[position], this)
+            holder.bind(setView, items[position], this)
         }
     }
 
@@ -258,10 +255,10 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
         private val binding: ViewProxySetItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(set: ProxySet, item: ProxySetItem, adapter: ItemAdapter) {
+        fun bind(view: ProxySetView, item: ProxySetItem, adapter: ItemAdapter) {
             binding.itemName.text = item.tag
             binding.itemType.text = item.type
-            val delay = set.delays[item.tag] ?: -1
+            val delay = view.proxySet.delays[item.tag] ?: -1
             binding.itemStatus.isVisible = delay >= 0
             if (delay >= 0) {
                 binding.itemStatus.text = "${delay}ms"
@@ -270,14 +267,16 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                 )
             }
 
-            binding.selectedView.isInvisible = set.selected != item.tag
-            if (set.selectable) {
+            binding.selectedView.isInvisible = view.proxySet.selected != item.tag
+            if (view.proxySet.selectable) {
                 binding.itemCard.setOnClickListener {
-                    val old = set.selected
-                    set.selected = item.tag
+                    val old = view.proxySet.selected
+                    view.proxySet.selected = item.tag
+                    (view.binding.proxySetSelected.editText as? MaterialAutoCompleteTextView)
+                        ?.setText(item.tag, false) // make sure not filter
                     adapter.notifySelectionChanged(old, item.tag)
                     runOnDefaultDispatcher {
-                        context.connection.service?.groupSelect(set.tag, item.tag)
+                        context.connection.service?.groupSelect(view.proxySet.tag, item.tag)
                     }
                 }
             }

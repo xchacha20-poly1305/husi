@@ -21,6 +21,6 @@ interface ISagerNetService {
   oneway void setClashMode(String mode);
 
   List<ProxySet> queryProxySet();
-  boolean groupSelect(String group, String proxy);
+  boolean groupSelect(in String group, String proxy);
   URLTestResult groupURLTest(String tag, int timeout);
 }
