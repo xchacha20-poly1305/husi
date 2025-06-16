@@ -14,13 +14,13 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/batch"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
 	"github.com/xchacha20-poly1305/libping"
+	"golang.org/x/sync/errgroup"
 )
 
 func ignoreProtectError() control.Func {
@@ -146,7 +146,8 @@ func (b *BoxInstance) GroupTest(tag, link string, timeout int32) (ResultPairIter
 			itOutbound, _ := outboundManager.Outbound(it)
 			return itOutbound
 		}))
-		b, _ := batch.New(ctx, batch.WithConcurrencyNum[any](10))
+		errGroup, _ := errgroup.WithContext(ctx)
+		errGroup.SetLimit(10)
 		checked := make(map[string]bool)
 		result = make([]*ResultPair, 0, len(outbounds))
 		var resultAccess sync.Mutex
@@ -161,7 +162,7 @@ func (b *BoxInstance) GroupTest(tag, link string, timeout int32) (ResultPairIter
 			if !loaded {
 				continue
 			}
-			b.Go(realTag, func() (any, error) {
+			errGroup.Go(func() error {
 				t, err := urltest.URLTest(ctx, link, p)
 				if err != nil {
 					log.DebugContext(ctx, "outbound ", tag, " unavailable: ", err)
@@ -174,10 +175,10 @@ func (b *BoxInstance) GroupTest(tag, link string, timeout int32) (ResultPairIter
 					})
 					resultAccess.Unlock()
 				}
-				return nil, nil
+				return nil
 			})
 		}
-		b.Wait()
+		_ = errGroup.Wait()
 	}
 
 	return newIterator(result), nil
