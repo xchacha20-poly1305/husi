@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
+import android.text.TextWatcher
 import android.view.View
 import androidx.core.view.ViewCompat
 import android.view.LayoutInflater
@@ -130,12 +131,13 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
 
         private lateinit var proxySet: ProxySet
         private lateinit var itemAdapter: ItemAdapter
+        private var textWatcher: TextWatcher? = null
 
         fun bind(set: ProxySet) {
             proxySet = set
-            binding.groupName.text = set.tag
-            binding.groupType.text = set.type
-            binding.groupSelected.isVisible = !set.isExpanded
+            binding.proxySetName.text = set.tag
+            binding.proxySetType.text = set.type
+            binding.proxySetSelected.isVisible = !set.isExpanded
             binding.itemList.isVisible = set.isExpanded
 
             binding.urlTestButton.setOnClickListener {
@@ -178,16 +180,23 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             binding.expandButton.setOnClickListener {
                 set.isExpanded = !set.isExpanded
                 binding.itemList.isVisible = set.isExpanded
-                binding.groupSelected.isVisible = !set.isExpanded
+                binding.proxySetSelected.isVisible = !set.isExpanded
             }
 
-            val textView = binding.groupSelected.editText as MaterialAutoCompleteTextView
+            val textView = binding.proxySetSelected.editText as MaterialAutoCompleteTextView
+            textView.apply {
+                threshold = 0
+                if (textWatcher != null) {
+                    removeTextChangedListener(textWatcher)
+                }
+            }
             if (!set.isExpanded) {
-                binding.groupSelected.hint = set.selected
-                binding.groupSelected.isEnabled = set.selectable
+                binding.proxySetSelected.hint = set.selected
+                binding.proxySetSelected.isEnabled = set.selectable
                 if (set.selectable) {
                     textView.setSimpleItems(set.items.map { it.tag }.toTypedArray())
-                    textView.addTextChangedListener {
+                    textView.setText(set.selected, false)
+                    textWatcher = textView.addTextChangedListener {
                         val selectedTag = it.toString()
                         if (selectedTag != set.selected) {
                             val old = set.selected

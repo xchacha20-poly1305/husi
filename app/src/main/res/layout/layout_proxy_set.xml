@@ -30,23 +30,23 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/groupName"
+                        android:id="@+id/proxySetName"
                         style="?attr/textAppearanceHeadline6"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="Group Name" />
+                        tools:text="Proxy Set Name" />
 
                     <TextView
-                        android:id="@+id/groupType"
+                        android:id="@+id/proxySetType"
                         style="?attr/textAppearanceLabelLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        tools:text="Group Name" />
+                        tools:text="Proxy Set Name" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -78,14 +78,17 @@
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/group_selected"
+                android:id="@+id/proxy_set_selected"
+                style="@style/Widget.App.ExposedDropdownTextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:hint="@string/selected">
+                android:hint="@string/selected"
+                app:hintEnabled="false">
 
-                <AutoCompleteTextView
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    style="@style/Widget.App.ExposedDropdownAutoCompleteTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none" />
