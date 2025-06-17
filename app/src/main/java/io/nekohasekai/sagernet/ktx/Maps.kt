@@ -118,6 +118,7 @@ fun mergeJson(from: JSONMap, to: JSONMap) {
                         mergeJson(jsonValue, toMap)
                         to[realKey] = toMap
                     }
+
                     else -> to[realKey] = jsonValue
                 }
             }
@@ -175,3 +176,11 @@ val JSONObject.map: LinkedHashMap<String, Any?>
         it.isAccessible = true
         it.get(this)
     } as LinkedHashMap<String, Any?>
+
+fun <K, V> Map<K, V>.reverse(): Map<V, K> {
+    val map = mutableMapOf<V, K>()
+    for ((key, value) in this) {
+        map[value] = key
+    }
+    return map
+}

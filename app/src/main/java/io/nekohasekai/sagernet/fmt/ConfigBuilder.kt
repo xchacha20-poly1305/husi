@@ -70,6 +70,7 @@ import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.mergeJson
 import io.nekohasekai.sagernet.ktx.mkPort
+import io.nekohasekai.sagernet.ktx.reverse
 import io.nekohasekai.sagernet.ktx.toJsonMap
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -100,9 +101,9 @@ val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
 class ConfigBuildResult(
     var config: String,
     var externalIndex: List<IndexEntity>,
-    var mainEntId: Long,
     var trafficMap: Map<String, List<ProxyEntity>>,
-    var hasGroupBean: Boolean,
+    val main: Long,
+    val tagToID: Map<String, Long>,
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
 }
@@ -117,9 +118,9 @@ fun buildConfig(
             return ConfigBuildResult(
                 bean.config,
                 listOf(),
-                proxy.id,
                 mapOf(TAG_PROXY to listOf(proxy)),
-                false,
+                proxy.id,
+                mapOf(TAG_PROXY to proxy.id),
             )
         }
     }
@@ -146,7 +147,7 @@ fun buildConfig(
                 val beans = when (bean.type) {
                     ProxySetBean.TYPE_LIST -> SagerDatabase.proxyDao.getEntities(bean.proxies)
                     ProxySetBean.TYPE_GROUP -> SagerDatabase.proxyDao.getByGroup(bean.groupId)
-                    else -> throw IllegalStateException("invalid proxt set type ${bean.type}")
+                    else -> throw IllegalStateException("invalid proxy set type ${bean.type}")
                 }
 
                 val beansMap = beans.associateBy { it.id }
@@ -324,11 +325,9 @@ fun buildConfig(
 
         // returns outbound tag
         // chainId == 0L => main proxy
-        fun buildChain(
-            chainId: Long, entity: ProxyEntity,
-        ): String {
+        fun buildChain(chainId: Long, entity: ProxyEntity): String {
             val profileList = entity.resolveChain()
-            val chainTrafficSet = HashSet<ProxyEntity>().apply {
+            val chainTrafficSet = LinkedHashSet<ProxyEntity>().apply {
                 addAll(profileList)
                 add(entity)
             }
@@ -507,6 +506,7 @@ fun buildConfig(
                 }
 
                 currentOutbound["tag"] = tagOut
+                tagMap[proxyEntity.id] = tagOut
 
                 // External proxy need a direct inbound to forward the traffic
                 // For external proxy software, their traffic must goes to sing-box to use protected fd.
@@ -546,7 +546,7 @@ fun buildConfig(
 
             // If this is proxy set, migrate it to the new list's top.
             // Then the structure is clear and make sure TAG_PROXY is the first.
-            if (entity.type == ProxyEntity.TYPE_PROXY_SET) {
+            if (isProxySet) {
                 outbounds.add(
                     outbounds.size - profileList.size,
                     outbounds.removeAt(outbounds.lastIndex),
@@ -558,7 +558,7 @@ fun buildConfig(
         }
 
         // build outbounds
-        buildChain(0, proxy)
+        tagMap[proxy.id] = buildChain(0, proxy)
         // build outbounds from route item
         extraProxies.forEach { (key, p) ->
             tagMap[key] = buildChain(key, p)
@@ -1041,9 +1041,9 @@ fun buildConfig(
                 }
             }),
             externalIndexMap,
-            proxy.id,
             trafficMap,
-            proxy.type == ProxyEntity.TYPE_PROXY_SET,
+            proxy.id,
+            tagMap.reverse(),
         )
     }
 

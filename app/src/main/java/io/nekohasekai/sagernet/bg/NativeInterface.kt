@@ -159,6 +159,10 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
     override fun localDNSTransport(): LocalDNSTransport = LocalResolver
 
+    override fun onGroupSelectedChange(group: String, old: String, now: String) {
+        DataStore.baseService?.data?.proxy?.trafficLooper?.updateSelectedTag(group, old, now)
+    }
+
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,
         private val size: Int,

@@ -1,6 +1,8 @@
 package libcore
 
 import (
+	"time"
+
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/protocol/group"
@@ -80,5 +82,44 @@ func buildGroupItem(outbound adapter.Outbound) *GroupItem {
 	return &GroupItem{
 		Tag:  outbound.Tag(),
 		Type: C.ProxyDisplayName(outbound.Type()),
+	}
+}
+
+// watchGroupChange watches the group's changes.
+//
+// block
+func (b *BoxInstance) watchGroupChange() {
+	allOutbounds := b.Outbound().Outbounds()
+	var groups []adapter.OutboundGroup
+	for _, outbound := range allOutbounds {
+		if group, isGroup := outbound.(adapter.OutboundGroup); isGroup {
+			groups = append(groups, group)
+		}
+	}
+	if len(groups) == 0 {
+		return
+	}
+
+	tagCache := make(map[string]string, len(groups)) // group:tag
+	const interval = 500 * time.Millisecond
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-b.ctx.Done():
+			return
+		case <-ticker.C:
+
+		}
+
+		for _, group := range groups {
+			groupName := group.Tag()
+			old := tagCache[groupName]
+			now := group.Now()
+			if old != now {
+				tagCache[groupName] = now
+				b.platformInterface.OnGroupSelectedChange(groupName, old, now)
+			}
+		}
 	}
 }

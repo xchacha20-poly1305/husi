@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.ktx.reverse
 
 object TypeMap : HashMap<String, Int>() {
     init {
@@ -22,12 +23,6 @@ object TypeMap : HashMap<String, Int>() {
         this["config"] = ProxyEntity.TYPE_CONFIG
     }
 
-    val reversed = HashMap<Int, String>()
-
-    init {
-        TypeMap.forEach { (key, type) ->
-            reversed[type] = key
-        }
-    }
+    val reversed = reverse()
 
 }

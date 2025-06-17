@@ -14,6 +14,7 @@ type PlatformInterface interface {
 	GetInterfaces() (NetworkInterfaceIterator, error)
 	DeviceName() string
 	AnchorSSID() string
+	OnGroupSelectedChange(group, old, now string)
 
 	IsForTest() bool
 }
