@@ -7,11 +7,12 @@ require (
 	github.com/miekg/dns v1.1.66
 	github.com/sagernet/gomobile v0.1.6
 	github.com/sagernet/sing v0.6.11-0.20250521033217-30d675ea099b
-	github.com/sagernet/sing-box v1.12.0-beta.24
-	github.com/sagernet/sing-tun v0.6.6-0.20250610083027-da0a50057fb5
+	github.com/sagernet/sing-box v1.12.0-beta.26
+	github.com/sagernet/sing-tun v0.6.9-0.20250617062442-df4458520f26
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.6.1
 	github.com/xchacha20-poly1305/libping v0.9.0
+	golang.org/x/sync v0.15.0
 	golang.org/x/sys v0.33.0
 )
 
@@ -78,7 +79,6 @@ require (
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
