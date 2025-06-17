@@ -20,7 +20,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun buildConfig() {
         super.buildConfig()
         Logs.d(config.config)
-        if (BuildConfig.DEBUG) Logs.d(JavaUtil.gson.toJson(config.trafficMap))
+        if (BuildConfig.DEBUG) Logs.d("trafficMap: " + JavaUtil.gson.toJson(config.trafficMap))
     }
 
     override suspend fun init(isVPN: Boolean) {

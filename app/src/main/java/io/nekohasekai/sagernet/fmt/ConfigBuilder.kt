@@ -102,7 +102,6 @@ class ConfigBuildResult(
     var externalIndex: List<IndexEntity>,
     var mainEntId: Long,
     var trafficMap: Map<String, List<ProxyEntity>>,
-    var profileTagMap: Map<Long, String>,
     var hasGroupBean: Boolean,
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
@@ -120,7 +119,6 @@ fun buildConfig(
                 listOf(),
                 proxy.id,
                 mapOf(TAG_PROXY to listOf(proxy)),
-                mapOf(proxy.id to TAG_PROXY),
                 false,
             )
         }
@@ -405,6 +403,10 @@ fun buildConfig(
                         }
                     } else {
                         // index == 0 means last profile in chain / not chain
+                        chainTagOut = tagOut
+                    }
+                } else {
+                    if (index == profileList.lastIndex) {
                         chainTagOut = tagOut
                     }
                 }
@@ -1038,7 +1040,6 @@ fun buildConfig(
             externalIndexMap,
             proxy.id,
             trafficMap,
-            tagMap,
             proxy.type == ProxyEntity.TYPE_PROXY_SET,
         )
     }
