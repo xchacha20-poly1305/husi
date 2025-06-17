@@ -112,7 +112,7 @@ fun buildConfig(
 ): ConfigBuildResult {
 
     if (proxy.type == TYPE_CONFIG) {
-        val bean = proxy.requireBean() as ConfigBean
+        val bean = proxy.configBean!!
         if (bean.type == ConfigBean.TYPE_CONFIG) {
             return ConfigBuildResult(
                 bean.config,
@@ -455,10 +455,13 @@ fun buildConfig(
 
                         is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean).asMap()
 
-                        is ProxySetBean -> buildSingBoxOutboundProxySetBean(
-                            bean,
-                            readableNames!!.toList(),
-                        ).asMap()
+                        is ProxySetBean -> {
+                            val tags = readableNames!!.toList().filterNot { it == tagOut }
+                            buildSingBoxOutboundProxySetBean(
+                                bean,
+                                tags,
+                            ).asMap()
+                        }
 
                         else -> throw IllegalStateException("can't reach")
                     }
