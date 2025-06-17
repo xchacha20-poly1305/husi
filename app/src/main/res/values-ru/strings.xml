@@ -621,4 +621,5 @@
     <string name="pause">Пауза</string>
     <string name="fallback">Резервная</string>
     <string name="hybrid">Гибридная</string>
+    <string name="selected">Выбрано</string>
 </resources>
