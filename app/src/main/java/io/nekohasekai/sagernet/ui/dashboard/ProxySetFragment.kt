@@ -9,6 +9,7 @@ import android.view.animation.AlphaAnimation
 import androidx.core.view.isInvisible
 import android.view.ViewGroup
 import android.view.animation.Animation
+import androidx.annotation.DrawableRes
 import androidx.core.widget.addTextChangedListener
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -168,15 +169,16 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                 }
             }
 
-            binding.expandButton.setImageResource(
-                if (set.isExpanded) {
-                    R.drawable.ic_expand_less_24
-                } else {
-                    R.drawable.ic_expand_more_24
-                }
-            )
+            @DrawableRes
+            fun expandButton(isExpanded: Boolean): Int = if (isExpanded) {
+                R.drawable.ic_expand_less_24
+            } else {
+                R.drawable.ic_expand_more_24
+            }
+            binding.expandButton.setImageResource(expandButton(set.isExpanded))
             binding.expandButton.setOnClickListener {
                 set.isExpanded = !set.isExpanded
+                binding.expandButton.setImageResource(expandButton(set.isExpanded))
                 binding.itemList.isVisible = set.isExpanded
                 binding.proxySetSelected.isVisible = !set.isExpanded
             }
@@ -273,8 +275,7 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
                 binding.itemCard.setOnClickListener {
                     val old = view.proxySet.selected
                     view.proxySet.selected = item.tag
-                    (view.binding.proxySetSelected.editText as? MaterialAutoCompleteTextView)
-                        ?.setText(item.tag, false) // make sure not filter
+                    view.binding.proxySetSelected.editText?.hint = item.tag
                     adapter.notifySelectionChanged(old, item.tag)
                     runOnDefaultDispatcher {
                         context.connection.service?.groupSelect(view.proxySet.tag, item.tag)
