@@ -67,9 +67,10 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
 
         lifecycleScope.launch {
             while (isActive) {
-                val sets = context.connection.service?.queryProxySet() ?: continue
-                onMainDispatcher {
-                    adapter.refreshProxySets(sets)
+                context.connection.service?.queryProxySet()?.let {
+                    onMainDispatcher {
+                        adapter.refreshProxySets(it)
+                    }
                 }
                 delay(2000)
             }
