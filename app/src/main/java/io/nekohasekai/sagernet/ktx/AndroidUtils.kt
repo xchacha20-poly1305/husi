@@ -117,21 +117,9 @@ fun Fragment.startFilesForResult(
     (requireActivity() as ThemedActivity).snackbar(getString(R.string.file_manager_missing)).show()
 }
 
-fun ProxyEntity.findGroup(): ProxyGroup? {
-    return SagerDatabase.groupDao.getById(groupId)
-}
-
 fun Fragment.needReload() {
     if (DataStore.serviceState.started) {
         snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-            // When enabled selector, reload will not restart core.
-            if (SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                    ?.findGroup()?.isSelector == true
-            ) {
-                SagerNet.stopService()
-                SagerNet.startService()
-                return@setAction
-            }
             SagerNet.reloadService()
         }.show()
     }

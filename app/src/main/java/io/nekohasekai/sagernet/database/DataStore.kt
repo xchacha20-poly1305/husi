@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.ktx.string
 import io.nekohasekai.sagernet.ktx.stringSet
 import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
+import io.nekohasekai.sagernet.ktx.stringToLong
 
 object DataStore : OnPreferenceDataStoreChangeListener {
 
@@ -88,7 +89,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
-    var interruptSelector by configurationStore.boolean(Key.INTERRUPT_SELECTOR)
 
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)
@@ -289,6 +289,15 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverIdleSessionTimeout by profileCacheStore.string(Key.SERVER_IDLE_SESSION_TIMEOUT) { "30s" }
     var serverMinIdleSession by profileCacheStore.stringToInt(Key.SERVER_MIN_IDLE_SESSION) { 0 }
 
+    var serverManagement by profileCacheStore.stringToInt(Key.SERVER_MANAGEMENT)
+    var serverInterruptExistConnections by profileCacheStore.boolean(Key.SERVER_INTERRUPT_EXIST_CONNECTIONS) { true }
+    var serverTestURL by profileCacheStore.string(Key.SERVER_TEST_URL) { CONNECTION_TEST_URL }
+    var serverTestInterval by profileCacheStore.string(Key.SERVER_TEST_INTERVAL) { "3m" }
+    var serverIdleTimeout by profileCacheStore.string(Key.SERVER_IDLE_TIMEOUT) { "30m" }
+    var serverTolerance by profileCacheStore.stringToInt(Key.SERVER_TOLERANCE) { 50 }
+    var serverType by profileCacheStore.stringToInt(Key.SERVER_TYPE)
+    var serverGroup by profileCacheStore.stringToLong(Key.SERVER_GROUP)
+    var serverProxies by profileCacheStore.string(Key.SERVER_PROXIES)
 
     // Route
     var routeName by profileCacheStore.string(Key.ROUTE_NAME)
@@ -338,7 +347,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var groupName by profileCacheStore.string(Key.GROUP_NAME)
     var groupType by profileCacheStore.stringToInt(Key.GROUP_TYPE)
     var groupOrder by profileCacheStore.stringToInt(Key.GROUP_ORDER)
-    var groupIsSelector by profileCacheStore.boolean(Key.GROUP_IS_SELECTOR)
 
     var subscriptionType by profileCacheStore.stringToInt(Key.SUBSCRIPTION_TYPE)
     var subscriptionToken by profileCacheStore.string(Key.SUBSCRIPTION_TOKEN)

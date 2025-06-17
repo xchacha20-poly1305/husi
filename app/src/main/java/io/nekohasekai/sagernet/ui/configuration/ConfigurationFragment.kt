@@ -123,6 +123,7 @@ import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import io.nekohasekai.sagernet.ktx.setOnFocusCancel
+import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.Collections
@@ -560,6 +561,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_shadowquic -> {
                 startActivity(Intent(requireActivity(), ShadowQUICSettingsActivity::class.java))
+            }
+
+            R.id.action_new_proxy_set -> {
+                startActivity(Intent(requireActivity(), ProxySetSettingsActivity::class.java))
             }
 
             R.id.action_new_config -> {

@@ -17,6 +17,7 @@ public class SingBoxOptions {
 
     public static final String TYPE_TUN = "tun";
     public static final String TYPE_SELECTOR = "selector";
+    public static final String TYPE_URLTEST = "urltest";
     public static final String TYPE_MIXED = "mixed";
     public static final String TYPE_DIRECT = "direct";
     public static final String TYPE_BLOCK = "block";
@@ -1588,6 +1589,22 @@ public class SingBoxOptions {
 
         @SerializedName("default")
         public String default_;
+
+        public Boolean interrupt_exist_connections;
+
+    }
+
+    public static class Outbound_URLTestOptions extends Outbound {
+
+        public List<String> outbounds;
+
+        public String url;
+
+        public String interval;
+
+        public Integer tolerance;
+
+        public String idle_timeout;
 
         public Boolean interrupt_exist_connections;
 

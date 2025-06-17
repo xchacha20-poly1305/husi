@@ -215,6 +215,8 @@
     <string name="action_anytls" translatable="false">AnyTLS</string>
     <string name="action_shadowtls" translatable="false">ShadowTLS</string>
     <string name="action_shadowquic" translatable="false">Shadow QUIC</string>
+    <string name="action_urltest" translatable="false">URLTest</string>
+    <string name="action_selector" translatable="false">Selector</string>
     <string name="proxy_chain">Proxy Chain</string>
     <string name="custom_config">Custom Config</string>
     <string name="balancer">Balancer</string>
@@ -508,7 +510,6 @@
     <string name="xtls_flow">Flow (VLESS Sub-protocol)</string>
     <string name="bypass_lan_in_core">Bypass LAN in Core</string>
     <string name="need_restart">Restart APP to apply changes</string>
-    <string name="use_selector">Use selector</string>
     <string name="front_proxy">Front proxy</string>
     <string name="landing_proxy">Landing Proxy</string>
     <string name="protocol_version">Protocol Version</string>
@@ -600,7 +601,6 @@
     <string name="padding">Padding</string>
     <string name="custom_rule_provider">Custom Rule Provider</string>
     <string name="pin_log">Pin Log</string>
-    <string name="interrupt_selector">(Selector) Interrupt all connections when switch configuration</string>
     <string name="client_type">Client Type</string>
     <string name="done">Done</string>
     <string name="custom_plugin_prefix">Custom plugin prefix</string>
@@ -672,4 +672,12 @@
     <string name="initial_mtu">Initial MTU</string>
     <string name="udp_over_stream" translatable="false">UDP Over Stream</string>
     <string name="minimum_mtu">Minimum MTU</string>
+    <string name="management">Management</string>
+    <string name="proxy_set">Proxy Set</string>
+    <string name="interrupt_exist_connections">Interrupt Exist Connections</string>
+    <string name="urltest_interval">URLTest Interval</string>
+    <string name="idle_timeout">IDLE Timeout</string>
+    <string name="urltest_tolerance">Tolerance</string>
+    <string name="expand">Expand</string>
+    <string name="selected">Selected</string>
 </resources>

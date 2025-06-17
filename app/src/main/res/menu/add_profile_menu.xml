@@ -79,6 +79,9 @@
                         android:title="@string/action_shadowquic" />
 
                     <item
+                        android:id="@+id/action_new_proxy_set"
+                        android:title="@string/proxy_set" />
+                    <item
                         android:id="@+id/action_new_config"
                         android:title="@string/custom_config" />
                     <item

@@ -15,7 +15,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 class TrafficLooper(
     val data: BaseService.Data, private val sc: CoroutineScope,
 ) {
@@ -52,15 +56,16 @@ class TrafficLooper(
         job = sc.launch { loop() }
     }
 
-    var selectorNowId = -114514L
-    var selectorNowFakeTag = ""
+    val currentID = AtomicLong(-1L)
+    val currentFakeTag = AtomicReference("")
 
     fun selectMain(id: Long) {
-        Logs.d("select traffic count $TAG_PROXY to $id, old id is $selectorNowId")
-        val oldData = idMap[selectorNowId]
         val newData = idMap[id] ?: return
+        val oldID = currentID.exchange(id)
+        Logs.d("select traffic count $TAG_PROXY to $id, old id is $oldID")
+        val oldData = idMap[oldID]
         oldData?.apply {
-            tag = selectorNowFakeTag
+            tag = currentFakeTag.exchange(newData.tag)
             ignore = true
             // post traffic when switch
             if (DataStore.profileTrafficStatistics) {
@@ -72,9 +77,7 @@ class TrafficLooper(
                     }
                 }
             }
-        }
-        selectorNowFakeTag = newData.tag
-        selectorNowId = id
+        } ?: currentFakeTag.store(newData.tag)
         newData.apply {
             tag = TAG_PROXY
             ignore = false
@@ -115,14 +118,14 @@ class TrafficLooper(
                             tx = ent.tx,
                             rxBase = ent.rx,
                             txBase = ent.tx,
-                            ignore = proxy.config.selectorGroupId >= 0L,
+                            ignore = proxy.config.hasGroupBean,
                         )
                         idMap[ent.id] = item
                         tagMap[tag] = item
                         Logs.d("traffic count $tag to ${ent.id}")
                     }
                 }
-                if (proxy.config.selectorGroupId >= 0L) {
+                if (proxy.config.hasGroupBean) {
                     selectMain(proxy.config.mainEntId)
                 }
                 //
