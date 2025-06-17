@@ -1,0 +1,64 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <EditTextPreference
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="profileName"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
+
+    <rikka.preference.SimpleMenuPreference
+        app:defaultValue="0"
+        app:entries="@array/proxy_set_management"
+        app:entryValues="@array/int_array_2"
+        app:icon="@drawable/baseline_widgets_24"
+        app:key="serverManagement"
+        app:title="@string/management"
+        app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreference
+        app:defaultValue="true"
+        app:icon="@drawable/ic_baseline_fiber_manual_record_24"
+        app:key="serverInterruptExistConnections"
+        app:title="@string/interrupt_exist_connections" />
+
+    <EditTextPreference
+        app:defaultValue="http://cp.cloudflare.com"
+        app:icon="@drawable/ic_baseline_cast_connected_24"
+        app:key="serverTestURL"
+        app:title="@string/connection_test_url"
+        app:useSimpleSummaryProvider="true" />
+
+    <io.nekohasekai.sagernet.widget.DurationPreference
+        app:defaultValue="3m"
+        app:icon="@drawable/ic_baseline_flip_camera_android_24"
+        app:key="serverTestInterval"
+        app:title="@string/urltest_interval"
+        app:useSimpleSummaryProvider="true" />
+
+    <io.nekohasekai.sagernet.widget.DurationPreference
+        app:defaultValue="30m"
+        app:icon="@drawable/ic_baseline_camera_24"
+        app:key="serverIdleTimeout"
+        app:title="@string/idle_timeout"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        app:defaultValue="50"
+        app:icon="@drawable/ic_baseline_emoji_emotions_24"
+        app:key="serverTolerance"
+        app:title="@string/urltest_tolerance"
+        app:useSimpleSummaryProvider="true" />
+
+    <rikka.preference.SimpleMenuPreference
+        app:defaultValue="0"
+        app:entries="@array/proxy_set_type"
+        app:entryValues="@array/int_array_2"
+        app:icon="@drawable/ic_baseline_nfc_24"
+        app:key="serverType"
+        app:title="@string/group_type"
+        app:useSimpleSummaryProvider="true" />
+
+    <rikka.preference.SimpleMenuPreference
+        app:icon="@drawable/ic_baseline_view_list_24"
+        app:key="serverGroup"
+        app:title="@string/menu_group" />
+</PreferenceScreen>

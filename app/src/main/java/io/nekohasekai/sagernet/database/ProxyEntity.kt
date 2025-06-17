@@ -30,6 +30,7 @@ import io.nekohasekai.sagernet.fmt.hysteria.buildHysteriaConfig
 import io.nekohasekai.sagernet.fmt.hysteria.canUseSingBox
 import io.nekohasekai.sagernet.fmt.hysteria.toUri
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
+import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.juicity.buildJuicityConfig
 import io.nekohasekai.sagernet.fmt.juicity.toUri
@@ -73,6 +74,7 @@ import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 
@@ -106,6 +108,7 @@ data class ProxyEntity(
     var directBean: DirectBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
     var shadowQUICBean: ShadowQUICBean? = null,
+    var proxySetBean: ProxySetBean? = null,
     var chainBean: ChainBean? = null,
     var configBean: ConfigBean? = null,
 ) : Serializable() {
@@ -129,6 +132,7 @@ data class ProxyEntity(
         const val TYPE_DIRECT = 23
         const val TYPE_ANYTLS = 24
         const val TYPE_SHADOWQUIC = 25
+        const val TYPE_PROXY_SET = 26
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -225,6 +229,7 @@ data class ProxyEntity(
             TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
             TYPE_SHADOWQUIC -> shadowQUICBean = KryoConverters.shadowQUICDeserialize(byteArray)
+            TYPE_PROXY_SET -> proxySetBean = KryoConverters.proxySetDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
         }
@@ -247,6 +252,7 @@ data class ProxyEntity(
         TYPE_DIRECT -> "Direct"
         TYPE_ANYTLS -> "AnyTLS"
         TYPE_SHADOWQUIC -> "Shadow QUIC"
+        TYPE_PROXY_SET -> proxySetBean!!.displayType()
         TYPE_CHAIN -> chainName
         TYPE_CONFIG -> configBean!!.displayType()
         else -> "Undefined type $type"
@@ -273,6 +279,7 @@ data class ProxyEntity(
             TYPE_ANYTLS -> anyTLSBean
             TYPE_SHADOWQUIC -> shadowQUICBean
             TYPE_SHADOWTLS -> shadowTLSBean
+            TYPE_PROXY_SET -> proxySetBean
             TYPE_CHAIN -> chainBean
             TYPE_CONFIG -> configBean
             else -> error("Undefined type $type")
@@ -281,6 +288,7 @@ data class ProxyEntity(
 
     /** Determines if has internal link. */
     fun haveLink(): Boolean = when (type) {
+        TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_DIRECT -> false
         else -> true
@@ -292,6 +300,7 @@ data class ProxyEntity(
         TYPE_WG -> false
         TYPE_SHADOWQUIC -> false
         TYPE_SHADOWTLS -> false
+        TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
         else -> true
@@ -399,6 +408,7 @@ data class ProxyEntity(
         shadowTLSBean = null
         anyTLSBean = null
         shadowQUICBean = null
+        proxySetBean = null
         chainBean = null
         configBean = null
 
@@ -483,6 +493,11 @@ data class ProxyEntity(
                 shadowQUICBean = bean
             }
 
+            is ProxySetBean -> {
+                type = TYPE_PROXY_SET
+                proxySetBean = bean
+            }
+
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
@@ -517,6 +532,7 @@ data class ProxyEntity(
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
                 TYPE_SHADOWQUIC -> ShadowQUICSettingsActivity::class.java
+                TYPE_PROXY_SET -> ProxySetSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 else -> throw IllegalArgumentException()

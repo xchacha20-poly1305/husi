@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.aidl;
 
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback;
+import io.nekohasekai.sagernet.aidl.ProxySet;
+import io.nekohasekai.sagernet.aidl.URLTestResult;
 
 interface ISagerNetService {
   int getState();
@@ -9,7 +11,7 @@ interface ISagerNetService {
   void registerCallback(in ISagerNetServiceCallback cb, int id);
   oneway void unregisterCallback(in ISagerNetServiceCallback cb);
 
-  int urlTest();
+  int urlTest(String tag);
 
   oneway void enableDashboardStatus(boolean enable);
   oneway void closeConnection(String id);
@@ -17,4 +19,8 @@ interface ISagerNetService {
   List<String> getClashModes();
   String getClashMode();
   oneway void setClashMode(String mode);
+
+  List<ProxySet> queryProxySet();
+  boolean groupSelect(in String group, String proxy);
+  URLTestResult groupURLTest(String tag, int timeout);
 }

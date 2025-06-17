@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui.traffic
+package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
 import android.view.View
@@ -14,7 +14,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.databinding.LayoutConnectionListBinding
+import io.nekohasekai.sagernet.databinding.LayoutStatusListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -22,15 +22,15 @@ import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
 
-class ConnectionListFragment : Fragment(R.layout.layout_connection_list) {
+class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
 
-    lateinit var binding: LayoutConnectionListBinding
+    lateinit var binding: LayoutStatusListBinding
     lateinit var adapter: ConnectionAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.connections)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.recycle_view)) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -41,12 +41,12 @@ class ConnectionListFragment : Fragment(R.layout.layout_connection_list) {
             )
             WindowInsetsCompat.CONSUMED
         }
-        binding = LayoutConnectionListBinding.bind(view)
-        binding.connections.layoutManager = FixedLinearLayoutManager(binding.connections)
-        binding.connections.adapter = ConnectionAdapter().also {
+        binding = LayoutStatusListBinding.bind(view)
+        binding.recycleView.layoutManager = FixedLinearLayoutManager(binding.recycleView)
+        binding.recycleView.adapter = ConnectionAdapter().also {
             adapter = it
         }
-        ItemTouchHelper(SwipeToDeleteCallback(adapter)).attachToRecyclerView(binding.connections)
+        ItemTouchHelper(SwipeToDeleteCallback(adapter)).attachToRecyclerView(binding.recycleView)
     }
 
     inner class ConnectionAdapter : RecyclerView.Adapter<Holder>() {
@@ -168,7 +168,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_connection_list) {
         if (list.isEmpty()) {
             runOnMainDispatcher {
                 binding.connectionNotFound.isVisible = true
-                binding.connections.isVisible = false
+                binding.recycleView.isVisible = false
             }
             return
         }
@@ -189,10 +189,10 @@ class ConnectionListFragment : Fragment(R.layout.layout_connection_list) {
 
         runOnMainDispatcher {
             binding.connectionNotFound.isVisible = false
-            binding.connections.isVisible = true
+            binding.recycleView.isVisible = true
         }
 
-        binding.connections.post {
+        binding.recycleView.post {
             adapter.data = newList
             adapter.notifyDataSetChanged()
         }

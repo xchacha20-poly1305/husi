@@ -1,4 +1,4 @@
-package io.nekohasekai.sagernet.ui.traffic
+package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
 import android.view.LayoutInflater

@@ -4,4 +4,27 @@
         <item name="android:fontFamily">@font/shuowenxiaozhuan_husi</item>
         <item name="android:textColor">?whiteOrTextPrimary</item>
     </style>
+
+    <style name="Widget.App.ExposedDropdownTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundMode">outline</item>
+        <item name="endIconMode">dropdown_menu</item>
+        <item name="boxStrokeColor">?attr/colorPrimary</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Corner4dp</item>
+        <item name="boxBackgroundColor">?attr/colorBackgroundFloating</item>
+    </style>
+
+    <style name="Widget.App.ExposedDropdownAutoCompleteTextView" parent="Widget.MaterialComponents.AutoCompleteTextView.OutlinedBox">
+        <item name="shapeAppearance">@style/ShapeAppearance.App.Corner4dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+
+    <style name="ShapeAppearance.App.Corner4dp" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
 </resources>

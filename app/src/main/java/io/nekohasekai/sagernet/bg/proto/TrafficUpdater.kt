@@ -2,7 +2,7 @@ package io.nekohasekai.sagernet.bg.proto
 
 class TrafficUpdater(
     private val box: libcore.BoxInstance,
-    val items: List<TrafficLooperData>, // contain "bypass"
+    val items: List<TrafficLooperData>, // contain "direct"
 ) {
 
     class TrafficLooperData(
@@ -64,7 +64,5 @@ class TrafficUpdater(
                 item.txRate = diff.txRate
             }
         }
-//        Logs.d(JavaUtil.gson.toJson(items))
-//        Logs.d(JavaUtil.gson.toJson(updated))
     }
 }

@@ -303,20 +303,15 @@
         <item>@string/custom_rule_provider</item>
     </string-array>
 
-    <string-array name="balancer_type">
+    <string-array name="proxy_set_management">
+        <item>@string/action_selector</item>
+        <item>@string/action_urltest</item>
+    </string-array>
+
+    <string-array name="proxy_set_type">
         <item>@string/list</item>
         <item>@string/menu_group</item>
     </string-array>
-
-    <string-array name="balancer_strategy_entry">
-        <item>@string/random</item>
-        <item>@string/leastPing</item>
-    </string-array>
-    <string-array name="balancer_strategy_value">
-        <item />
-        <item>leastPing</item>
-    </string-array>
-
 
     <string-array name="group_types">
         <item>@string/group_basic</item>
