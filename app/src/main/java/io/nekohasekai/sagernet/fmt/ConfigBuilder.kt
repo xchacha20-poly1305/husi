@@ -146,7 +146,7 @@ fun buildConfig(
                 val beans = when (bean.type) {
                     ProxySetBean.TYPE_LIST -> SagerDatabase.proxyDao.getEntities(bean.proxies)
                     ProxySetBean.TYPE_GROUP -> SagerDatabase.proxyDao.getByGroup(bean.groupId)
-                    else -> throw IllegalStateException("invalid proxt set type ${bean.type}")
+                    else -> throw IllegalStateException("invalid proxy set type ${bean.type}")
                 }
 
                 val beansMap = beans.associateBy { it.id }
@@ -328,7 +328,7 @@ fun buildConfig(
             chainId: Long, entity: ProxyEntity,
         ): String {
             val profileList = entity.resolveChain()
-            val chainTrafficSet = HashSet<ProxyEntity>().apply {
+            val chainTrafficSet = LinkedHashSet<ProxyEntity>().apply {
                 addAll(profileList)
                 add(entity)
             }
@@ -546,7 +546,7 @@ fun buildConfig(
 
             // If this is proxy set, migrate it to the new list's top.
             // Then the structure is clear and make sure TAG_PROXY is the first.
-            if (entity.type == ProxyEntity.TYPE_PROXY_SET) {
+            if (isProxySet) {
                 outbounds.add(
                     outbounds.size - profileList.size,
                     outbounds.removeAt(outbounds.lastIndex),
