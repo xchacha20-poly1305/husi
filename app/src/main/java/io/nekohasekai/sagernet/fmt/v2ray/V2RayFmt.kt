@@ -684,7 +684,7 @@ fun parseTransport(json: JSONMap): V2RayTransportOptions? = when (json["type"]?.
 fun headerToString(header: Map<*, *>): String {
     val builder = ArrayList<String>(header.size)
     for (entry in header) {
-        builder.add(entry.key.toString() + ":" + entry.value.toString())
+        builder.add(entry.key.toString().lowercase() + ":" + entry.value.toString())
     }
     return builder.joinToString("\n")
 }
