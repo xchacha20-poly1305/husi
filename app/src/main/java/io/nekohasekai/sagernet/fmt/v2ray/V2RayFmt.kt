@@ -35,12 +35,14 @@ import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
+import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 import libcore.URL
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class VmessQRCode(
@@ -735,11 +737,22 @@ fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
     for (entry in header) {
         // http headers are case-insensitive, so we lowercase the key.
         val key = entry.key.toString().lowercase()
-        val entryValue = entry.value
-        val value = if (entryValue is List<*>) {
-            entryValue.mapX { it.toString() }
-        } else {
-            listOf(entryValue.toString())
+        val value = when (val entryValue = entry.value) {
+            is List<*> -> {
+                entryValue.mapX { it.toString() }
+            }
+
+            is JSONArray -> {
+                val list = ArrayList<String>(entryValue.length())
+                entryValue.forEach { _, item ->
+                    list.add(item.toString())
+                }
+                list
+            }
+
+            else -> {
+                listOf(entryValue.toString())
+            }
         }
         builder[key] = value
     }

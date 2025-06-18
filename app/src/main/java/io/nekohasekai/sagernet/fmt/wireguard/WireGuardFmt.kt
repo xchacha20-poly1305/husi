@@ -56,7 +56,6 @@ fun buildSingBoxEndpointWireGuardBean(bean: WireGuardBean): SingBoxOptions.Endpo
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 fun parseWireGuardEndpoint(json: JSONMap): WireGuardBean? {
     val peer = (json["peers"] as? JSONArray)?.optJSONObject(0) ?: return null
 
@@ -74,11 +73,14 @@ fun parseWireGuardEndpoint(json: JSONMap): WireGuardBean? {
             "port" -> bean.serverPort = value.toString().toInt()
             "public_key" -> bean.publicKey = value.toString()
             "pre_shared_key" -> bean.preSharedKey = value.toString()
+            "persistent_keepalive_interval" -> {
+                bean.persistentKeepaliveInterval = value.toString().toIntOrNull()
+            }
             "reserved" -> bean.reserved = when (value) {
                 is String -> value
 
                 is List<*> -> value.mapX {
-                    it.toString()
+                    it.toString().trim()
                 }.joinToString(",")
 
                 else -> null

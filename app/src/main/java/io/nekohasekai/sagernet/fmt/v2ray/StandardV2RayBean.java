@@ -12,7 +12,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
     public String uuid;
     public String encryption; // or VLESS flow
 
-    //////// End of VMess & VLESS ////////
+    /// ///// End of VMess & VLESS ////////
 
     // "V2Ray Transport" tcp/http/ws/quic/grpc/httpupgrade
     public String v2rayTransport;
@@ -81,13 +81,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (JavaUtil.isNullOrBlank(path)) path = "";
         if (JavaUtil.isNullOrBlank(headers)) headers = "";
 
-        if (JavaUtil.isNullOrBlank(security)) {
-            if (this instanceof TrojanBean || isVLESS()) {
-                security = "tls";
-            } else {
-                security = "none";
-            }
-        }
+        if (JavaUtil.isNullOrBlank(security)) security = "";
         if (JavaUtil.isNullOrBlank(sni)) sni = "";
         if (JavaUtil.isNullOrBlank(alpn)) alpn = "";
 
