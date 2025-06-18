@@ -469,7 +469,7 @@ fun buildConfig(
                     currentOutbound.apply {
 //                        val keepAliveInterval = DataStore.tcpKeepAliveInterval
 //                        val needKeepAliveInterval = keepAliveInterval !in intArrayOf(0, 15)
-                        if (!forTest) {
+                        if (!forTest && bean !is ProxySetBean) {
                             if (networkPreferredInterfaces.isNotEmpty()) {
                                 this["network_type"] = networkPreferredInterfaces
                                 this["network_strategy"] =
@@ -494,7 +494,7 @@ fun buildConfig(
                         this["udp_over_tcp"] = true
                     }
 
-                    this["domain_strategy"] = if (forTest) {
+                    this["domain_strategy"] = if (forTest || bean is ProxySetBean) {
                         null
                     } else {
                         defaultServerDomainStrategy
