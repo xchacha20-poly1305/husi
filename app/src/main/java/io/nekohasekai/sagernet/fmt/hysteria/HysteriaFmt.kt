@@ -48,6 +48,9 @@ fun parseHysteria1(link: String): HysteriaBean {
 
             else -> HysteriaBean.PROTOCOL_UDP
         }
+        url.queryParameterNotBlank("mport").takeIf { it.isNotBlank() }?.let {
+            serverPorts = it
+        }
     }
 }
 
@@ -78,6 +81,9 @@ fun parseHysteria2(link: String): HysteriaBean {
         /*url.queryParameterNotBlank("pinSHA256").also {
             // TODO your box do not support it
         }*/
+        url.queryParameterNotBlank("mport").takeIf { it.isNotBlank() }?.let {
+            serverPorts = it
+        }
     }
 }
 
