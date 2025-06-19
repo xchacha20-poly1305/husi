@@ -3,13 +3,7 @@ package io.nekohasekai.sagernet.aidl
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
-/**
- * @param isStop marks traffic loop stop.
- */
 @Parcelize
-class DashboardStatus(
+class Connections(
     val connections: List<Connection>,
-    val memory: Long,
-    val goroutines: Int,
-    val isStop: Boolean,
 ) : Parcelable

@@ -10,19 +10,22 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
-import io.nekohasekai.sagernet.aidl.DashboardStatus
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ktx.setOnFocusCancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
     Toolbar.OnMenuItemClickListener,
@@ -152,12 +155,13 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
         })
         updateMenu(false)
 
-        (requireActivity() as MainActivity).connection.service?.enableDashboardStatus(true)
-    }
-
-    override fun onDestroyView() {
-        (requireActivity() as MainActivity).connection.service?.enableDashboardStatus(false)
-        super.onDestroyView()
+        lifecycleScope.launch {
+            val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
+            while (isActive) {
+                emitStats()
+                delay(interval)
+            }
+        }
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -257,24 +261,23 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
 
     private var isPausing = false
 
-    fun emitStats(dashboardStatus: DashboardStatus) {
+    private suspend fun emitStats() {
         when (binding.trafficPager.currentItem) {
             POSITION_STATUS -> {
                 val dashboard = getFragment(POSITION_STATUS) as? StatusFragment ?: return
-                if (dashboardStatus.isStop) {
-                    dashboard.clearStats()
-                } else {
-                    dashboard.emitStats(dashboardStatus.memory, dashboardStatus.goroutines)
-                }
+                val service = (requireActivity() as? MainActivity)?.connection?.service ?: return
+                dashboard.emitStats(service.queryMemory(), service.queryGoroutines())
             }
 
             POSITION_CONNECTIONS -> {
                 if (isPausing) return
                 val connectionFragment =
                     getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment ?: return
-                connectionFragment.emitStats(dashboardStatus.connections)
+                val service = (requireActivity() as? MainActivity)?.connection?.service ?: return
+                connectionFragment.emitStats(service.queryConnections().connections)
             }
 
+            // TODO proxy set use emitStats, too.
             POSITION_PROXY_SET -> {}
         }
     }

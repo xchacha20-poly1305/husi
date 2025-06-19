@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.aidl.Connections
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.aidl.ProxySet
@@ -29,6 +30,7 @@ import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.toConnectionList
 import io.nekohasekai.sagernet.ktx.toList
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.CancellationException
@@ -173,12 +175,18 @@ class BaseService {
             }
         }
 
-        override fun enableDashboardStatus(enable: Boolean) {
-            val proxy = data?.proxy ?: return
-            proxy.dashboardStatusLooper?.stop()
-            if (enable) {
-                proxy.dashboardStatusLooper?.start()
-            }
+        override fun queryConnections(): Connections {
+            return Connections(
+                connections = data?.proxy?.box?.trackerInfos?.toConnectionList() ?: emptyList(),
+            )
+        }
+
+        override fun queryMemory(): Long {
+            return Libcore.getMemory()
+        }
+
+        override fun queryGoroutines(): Int {
+            return Libcore.getGoroutines()
         }
 
         override fun closeConnection(id: String) {

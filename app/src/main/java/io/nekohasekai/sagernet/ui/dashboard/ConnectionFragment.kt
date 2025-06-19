@@ -8,14 +8,20 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutConnectionBinding
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import libcore.Libcore
 
-class ConnectionFragment(private val conn: Connection) :
+class ConnectionFragment(val conn: Connection) :
     ToolbarFragment(R.layout.layout_connection),
     Toolbar.OnMenuItemClickListener {
 
@@ -53,18 +59,27 @@ class ConnectionFragment(private val conn: Connection) :
             insets
         }
 
-        (requireActivity() as MainActivity).let {
-            it.onBackPressedCallback.isEnabled = false
-        }
+        val activity = (requireActivity() as MainActivity)
+        activity.onBackPressedCallback.isEnabled = false
 
         bind()
+
+        lifecycleScope.launch {
+            val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
+            while(isActive) {
+                activity.connection.service?.queryConnections()?.let {
+                    emitStats(it.connections)
+                }
+                delay(interval)
+            }
+        }
     }
 
     private fun bind() {
         binding.connNetwork.text = conn.network.uppercase()
         if (conn.protocol != null) {
             binding.connProtocol.isVisible = true
-            binding.connProtocol.text = conn.protocol!!.uppercase()
+            binding.connProtocol.text = conn.protocol.uppercase()
         } else {
             binding.connProtocol.isVisible = false
         }
@@ -75,8 +90,7 @@ class ConnectionFragment(private val conn: Connection) :
         } else {
             binding.connIPVersionLayout.isVisible = false
         }
-        binding.connUpload.text = Libcore.formatBytes(conn.uploadTotal)
-        binding.connDownload.text = Libcore.formatBytes(conn.downloadTotal)
+        bindTraffic()
         binding.connInbound.text = conn.inbound
         binding.connSource.text = conn.src
         binding.connDestination.text = conn.dst
@@ -89,6 +103,22 @@ class ConnectionFragment(private val conn: Connection) :
         binding.connRule.text = conn.matchedRule
         binding.connOutbound.text = conn.outbound
         binding.connChain.text = conn.chain
+    }
+
+    private fun bindTraffic() {
+        binding.connUpload.text = Libcore.formatBytes(conn.uploadTotal)
+        binding.connDownload.text = Libcore.formatBytes(conn.downloadTotal)
+    }
+
+    private suspend fun emitStats(connections: List<Connection>) {
+        val new = connections.find { it.uuid == conn.uuid } ?: return
+        onMainDispatcher {
+            conn.apply {
+                uploadTotal = new.uploadTotal
+                downloadTotal = new.downloadTotal
+            }
+            bindTraffic()
+        }
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {

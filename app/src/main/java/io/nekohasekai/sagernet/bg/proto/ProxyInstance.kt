@@ -15,7 +15,6 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     var displayProfileName = ServiceNotification.genTitle(profile)
 
     var trafficLooper: TrafficLooper? = null
-    var dashboardStatusLooper: DashboardStatusLooper? = null
 
     override fun buildConfig() {
         super.buildConfig()
@@ -36,7 +35,6 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         runOnDefaultDispatcher {
             service?.let {
                 trafficLooper = TrafficLooper(it.data, this)
-                dashboardStatusLooper = DashboardStatusLooper(it.data, this)
             }
             trafficLooper?.start()
         }
@@ -47,9 +45,6 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         runBlocking {
             trafficLooper?.stop()
             trafficLooper = null
-
-            dashboardStatusLooper?.stop()
-            dashboardStatusLooper = null
         }
     }
 }
