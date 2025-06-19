@@ -16,6 +16,8 @@ import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
 
@@ -49,21 +51,20 @@ class StatusFragment : Fragment(R.layout.layout_status) {
         }
     }
 
-    fun emitStats(memory: Long, goroutines: Int) {
-        binding.memoryText.text = Libcore.formatMemoryBytes(memory)
-        binding.goroutinesText.text = goroutines.toString()
-    }
-
-    fun clearStats() {
-        binding.memoryText.text = getString(R.string.no_statistics)
-        binding.goroutinesText.text = getString(R.string.no_statistics)
+    suspend fun emitStats(memory: Long, goroutines: Int) {
+        onMainDispatcher {
+            binding.memoryText.text = Libcore.formatMemoryBytes(memory)
+            binding.goroutinesText.text = goroutines.toString()
+        }
     }
 
     fun refreshClashMode() {
         val service = (requireActivity() as MainActivity).connection.service
         adapter.items = service?.clashModes ?: emptyList()
         adapter.selected = service?.clashMode ?: RuleEntity.MODE_RULE
-        adapter.notifyDataSetChanged()
+        runOnMainDispatcher {
+            adapter.notifyDataSetChanged()
+        }
     }
 
     private inner class ClashModeAdapter(

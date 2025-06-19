@@ -18,7 +18,7 @@ import io.nekohasekai.sagernet.databinding.LayoutStatusListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
 
@@ -164,9 +164,9 @@ class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
 
     var searchString: String? = null
 
-    fun emitStats(list: List<Connection>) {
+    suspend fun emitStats(list: List<Connection>) {
         if (list.isEmpty()) {
-            runOnMainDispatcher {
+            onMainDispatcher {
                 binding.connectionNotFound.isVisible = true
                 binding.recycleView.isVisible = false
             }
@@ -187,14 +187,14 @@ class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
             } ?: true
         }.sortedWith(connectionComparator).toMutableList()
 
-        runOnMainDispatcher {
+        onMainDispatcher {
+            binding.recycleView.post {
+                adapter.data = newList
+                adapter.notifyDataSetChanged()
+            }
+
             binding.connectionNotFound.isVisible = false
             binding.recycleView.isVisible = true
-        }
-
-        binding.recycleView.post {
-            adapter.data = newList
-            adapter.notifyDataSetChanged()
         }
     }
 }

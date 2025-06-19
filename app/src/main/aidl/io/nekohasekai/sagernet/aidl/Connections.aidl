@@ -1,3 +1,3 @@
 package io.nekohasekai.sagernet.aidl;
 
-parcelable DashboardStatus;
+parcelable Connections;

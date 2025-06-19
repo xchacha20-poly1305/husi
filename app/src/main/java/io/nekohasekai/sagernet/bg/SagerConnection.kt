@@ -11,7 +11,6 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.DashboardStatus
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
@@ -53,8 +52,6 @@ class SagerConnection(
          */
         fun onServiceDisconnected() {}
         fun onBinderDied() {}
-        fun statusUpdate(dashboardStatus: DashboardStatus) {}
-        fun clashModeUpdate(mode: String) {}
     }
 
     private var connectionActive = false
@@ -83,13 +80,6 @@ class SagerConnection(
             val callback = callback ?: return
             runOnMainDispatcher {
                 callback.cbTrafficUpdate(stats)
-            }
-        }
-
-        override fun dashboardStatusUpdate(dashboardStatus: DashboardStatus) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.statusUpdate(dashboardStatus)
             }
         }
 

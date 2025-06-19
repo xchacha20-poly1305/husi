@@ -32,7 +32,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.DashboardStatus
+import io.nekohasekai.sagernet.aidl.Connections
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -64,6 +64,7 @@ import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
 import androidx.core.net.toUri
+import io.nekohasekai.sagernet.ui.dashboard.ConnectionFragment
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
@@ -431,7 +432,6 @@ class MainActivity : ThemedActivity(),
         val dashboardFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? DashboardFragment
         if (dashboardFragment != null && state == BaseService.State.Connected) {
-            connection.service?.enableDashboardStatus(true)
             dashboardFragment.refreshClashMode()
         }
     }
@@ -477,11 +477,6 @@ class MainActivity : ThemedActivity(),
         runOnDefaultDispatcher {
             ProfileManager.postUpdate(data)
         }
-    }
-
-    override fun statusUpdate(dashboardStatus: DashboardStatus) {
-        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? DashboardFragment)
-            ?.emitStats(dashboardStatus)
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
