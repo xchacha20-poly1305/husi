@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.ktx.linkBoolean
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.queryParameter
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
@@ -30,20 +31,23 @@ fun parseHysteria1(link: String): HysteriaBean {
         serverPorts = url.ports
         name = url.fragment
 
-        sni = url.queryParameterNotBlank("peer")
-        url.queryParameterNotBlank("auth").takeIf { it.isNotBlank() }.also {
+        sni = url.queryParameter("peer")
+        url.queryParameter("auth")?.let {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
         }
         allowInsecure = url.queryParameterNotBlank("insecure").linkBoolean()
-        alpn = url.queryParameterNotBlank("alpn")
-        obfuscation = url.queryParameterNotBlank("obfsParam")
-        protocol = when (url.queryParameterNotBlank("protocol")) {
+        alpn = url.queryParameter("alpn")
+        obfuscation = url.queryParameter("obfsParam")
+        protocol = when (url.queryParameter("protocol")) {
             "faketcp" -> HysteriaBean.PROTOCOL_FAKETCP
 
             "wechat-video" -> HysteriaBean.PROTOCOL_WECHAT_VIDEO
 
             else -> HysteriaBean.PROTOCOL_UDP
+        }
+        url.queryParameter("mport")?.let {
+            serverPorts = it
         }
     }
 }
@@ -69,12 +73,16 @@ fun parseHysteria2(link: String): HysteriaBean {
 
         name = url.fragment
 
-        sni = url.queryParameterNotBlank("sni")
+        sni = url.queryParameter("sni")
         allowInsecure = url.queryParameterNotBlank("insecure").linkBoolean()
-        obfuscation = url.queryParameterNotBlank("obfs-password")
+        obfuscation = url.queryParameter("obfs-password")
         /*url.queryParameterNotBlank("pinSHA256").also {
-            // TODO your box do not support it
+            // TODO sing-box do not support it
         }*/
+        // May invented by shadowrocket
+        url.queryParameter("mport")?.let {
+            serverPorts = it
+        }
     }
 }
 
