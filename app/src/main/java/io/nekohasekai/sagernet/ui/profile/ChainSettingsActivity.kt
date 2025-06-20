@@ -91,6 +91,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             )
             WindowInsetsCompat.CONSUMED
         }
+        layoutManager = LinearLayoutManager(configurationList.context, RecyclerView.VERTICAL, false)
         configurationList.layoutManager = layoutManager
         configurationAdapter = ProxiesAdapter()
         configurationList.adapter = configurationAdapter
