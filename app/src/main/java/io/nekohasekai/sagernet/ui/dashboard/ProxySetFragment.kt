@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -28,7 +29,6 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutProxySetBinding
 import io.nekohasekai.sagernet.databinding.LayoutStatusListBinding
 import io.nekohasekai.sagernet.databinding.ViewProxySetItemBinding
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -61,7 +61,11 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             WindowInsetsCompat.CONSUMED
         }
 
-        binding.recycleView.layoutManager = FixedLinearLayoutManager(binding.recycleView)
+        binding.recycleView.layoutManager = LinearLayoutManager(
+            binding.recycleView.context,
+            RecyclerView.VERTICAL,
+            false,
+        )
         binding.recycleView.adapter = Adapter().also {
             adapter = it
         }

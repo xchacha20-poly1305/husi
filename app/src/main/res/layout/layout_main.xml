@@ -51,13 +51,16 @@
             android:nextFocusUp="@+id/fab"
             app:backgroundTint="?colorPrimary"
             app:contentInsetStart="0dp"
+            app:fabAlignmentMode="center"
+            app:fabCradleMargin="5dp"
+            app:fabCradleRoundedCornerRadius="6dp"
+            app:fabCradleVerticalOffset="8dp"
             app:hideOnScroll="true"
             app:layout_scrollFlags="enterAlways|scroll">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 

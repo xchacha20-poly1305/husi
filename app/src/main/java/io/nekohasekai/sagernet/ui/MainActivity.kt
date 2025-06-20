@@ -16,6 +16,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -32,7 +33,6 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.Connections
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -64,7 +64,7 @@ import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
 import androidx.core.net.toUri
-import io.nekohasekai.sagernet.ui.dashboard.ConnectionFragment
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
@@ -374,18 +374,10 @@ class MainActivity : ThemedActivity(),
         return true
     }
 
-
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
-        if (fragment is ConfigurationFragment) {
-            binding.stats.allowShow = true
-            binding.fab.show()
-        } else if (!DataStore.showBottomBar) {
-            binding.stats.allowShow = false
-            binding.stats.performHide()
-            binding.fab.hide()
-        }
-        supportFragmentManager.beginTransaction()
+        supportFragmentManager
+            .beginTransaction()
             .replace(R.id.fragment_holder, fragment)
             .commitAllowingStateLoss()
         binding.drawerLayout.closeDrawers()

@@ -49,7 +49,6 @@ import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.mapX
@@ -190,7 +189,6 @@ class ProxySetSettingsActivity :
             )
             insets
         }
-        layoutManager = FixedLinearLayoutManager(configurationList)
         configurationList.layoutManager = layoutManager
         configurationAdapter = ProxiesAdapter()
         configurationList.adapter = configurationAdapter

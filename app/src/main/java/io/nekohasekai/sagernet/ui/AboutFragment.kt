@@ -27,6 +27,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -61,7 +62,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = bars.bottom,
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }

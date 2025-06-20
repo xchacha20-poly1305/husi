@@ -63,7 +63,6 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.RawUpdater
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.ResultDeprecated
 import io.nekohasekai.sagernet.ktx.ResultInsecure
@@ -282,7 +281,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val selectedProfileIndex =
                     fragment.adapter!!.configurationIdList.indexOf(selectedProxy)
                 if (selectedProfileIndex != -1) {
-                    val layoutManager = fragment.layoutManager
+                    val layoutManager =
+                        fragment.configurationListView.layoutManager as LinearLayoutManager
                     val first = layoutManager.findFirstVisibleItemPosition()
                     val last = layoutManager.findLastVisibleItemPosition()
 
@@ -847,7 +847,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                         if (!isActive) break
                         if (!address.isIpAddress()) {
                             profile.status = ProxyEntity.STATUS_UNREACHABLE
-                            profile.error = context.getString(R.string.connection_test_domain_not_found)
+                            profile.error =
+                                context.getString(R.string.connection_test_domain_not_found)
                             test.update(profile)
                             continue
                         }
@@ -1282,7 +1283,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 )
                 WindowInsetsCompat.CONSUMED
             }
-            layoutManager = FixedLinearLayoutManager(configurationListView)
+            layoutManager = LinearLayoutManager(
+                configurationListView.context,
+                RecyclerView.VERTICAL,
+                false,
+            )
             configurationListView.layoutManager = layoutManager
             adapter = ConfigurationAdapter()
             ProfileManager.addListener(adapter!!)

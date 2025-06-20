@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
@@ -20,7 +21,6 @@ import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAssetItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -88,7 +88,11 @@ class AssetsActivity : ThemedActivity() {
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
-        binding.recyclerView.layoutManager = FixedLinearLayoutManager(binding.recyclerView)
+        binding.recyclerView.layoutManager = LinearLayoutManager(
+            binding.recyclerView.context,
+            RecyclerView.VERTICAL,
+            false,
+        )
         adapter = AssetAdapter()
         binding.recyclerView.adapter = adapter
 
