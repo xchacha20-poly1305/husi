@@ -18,7 +18,7 @@ fun SimpleMenuPreference.setGroupBean() {
                 return it
             }
         }
-        return entries[value.toInt()] // usually the first entry: ungrouped
+        return entries[value.toIntOrNull() ?: 0] ?: entries[0]
     }
     summary = getSummary(value ?: "")
 
