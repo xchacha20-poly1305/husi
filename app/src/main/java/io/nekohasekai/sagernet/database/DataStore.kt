@@ -88,7 +88,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     }
 
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
-    var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
 
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)

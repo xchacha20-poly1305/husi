@@ -8,12 +8,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -41,7 +41,11 @@ class StatusFragment : Fragment(R.layout.layout_status) {
             )
             WindowInsetsCompat.CONSUMED
         }
-        binding.clashModeList.layoutManager = FixedLinearLayoutManager(binding.clashModeList)
+        binding.clashModeList.layoutManager = LinearLayoutManager(
+            binding.clashModeList.context,
+            RecyclerView.VERTICAL,
+            false,
+        )
 
         val service = (requireActivity() as MainActivity).connection.service
         val clashModes = service?.clashModes ?: emptyList()

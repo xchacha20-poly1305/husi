@@ -474,7 +474,6 @@
     <string name="tuic_udp_relay_mode">Режим ретрансляції UDP</string>
     <string name="tuic_congestion_controller">Контролер перезавантажень</string>
     <string name="tuic_reduce_rtt">Увімкнути рукостискання 0-RTT QUIC</string>
-    <string name="show_bottom_bar">Показати нижню панель, як в SagerNet</string>
     <string name="is_outbound_only">Зробити JSON вихідним</string>
     <string name="show_group_in_notification">Показувати назву групи у сповіщенні</string>
     <string name="log_level_help">Утримуйте для нашалтування розміру буфера.</string>

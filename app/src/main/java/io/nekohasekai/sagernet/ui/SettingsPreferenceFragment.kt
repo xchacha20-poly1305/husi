@@ -19,6 +19,8 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
@@ -28,7 +30,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
@@ -48,7 +50,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        listView.layoutManager = FixedLinearLayoutManager(listView)
+        listView.layoutManager = LinearLayoutManager(listView.context, RecyclerView.VERTICAL, false)
+        listView.setPadding(0, 0, 0, dp2px(64))
         ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -56,7 +59,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = bars.bottom,
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }
@@ -283,10 +286,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.isVisible = false
                         }
 
-                        Key.CONNECTION_TEST_URL, Key.APP_TLS_VERSION,
-                        Key.SHOW_BOTTOM_BAR -> Unit
-
                         Key.CERT_PROVIDER -> preference.onPreferenceChangeListener = restartListener
+
+                        Key.CONNECTION_TEST_URL, Key.APP_TLS_VERSION -> Unit
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }

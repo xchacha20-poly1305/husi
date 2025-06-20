@@ -30,7 +30,6 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -83,11 +82,11 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             v.updatePadding(
                 left = bars.left + dp2px(4),
                 right = bars.right + dp2px(4),
-                bottom = bars.bottom + dp2px(4),
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }
-        layoutManager = FixedLinearLayoutManager(groupListView)
+        layoutManager = LinearLayoutManager(groupListView.context, RecyclerView.VERTICAL, false)
         groupListView.layoutManager = layoutManager
         groupAdapter = GroupAdapter()
         GroupManager.addListener(groupAdapter)

@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
@@ -20,7 +21,6 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.LayoutEmptyRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteItemBinding
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.mapX
@@ -57,7 +57,8 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         }
 
         ruleListView = view.findViewById(R.id.route_list)
-        ruleListView.layoutManager = FixedLinearLayoutManager(ruleListView)
+        ruleListView.layoutManager =
+            LinearLayoutManager(ruleListView.context, RecyclerView.VERTICAL, false)
         ViewCompat.setOnApplyWindowInsetsListener(ruleListView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -65,7 +66,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             v.updatePadding(
                 left = bars.left + dp2px(4),
                 right = bars.right + dp2px(4),
-                bottom = bars.bottom + dp2px(4),
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }

@@ -9,6 +9,7 @@ import android.view.View
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.databinding.LayoutNetworkBinding
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ui.NamedFragment
 
 class NetworkFragment : NamedFragment(R.layout.layout_network) {
@@ -26,7 +27,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = bars.bottom
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }

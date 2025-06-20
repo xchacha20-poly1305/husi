@@ -462,7 +462,6 @@
     <string name="app_name_long">husi для Андроид</string>
     <string name="app_tls_version">Минимальная версия TLS протокола</string>
     <string name="assets_update">Обновить геоданные</string>
-    <string name="show_bottom_bar">Показать нижнюю панель, как в SagerNet</string>
     <string name="log_level">Тип журнала</string>
     <string name="bypass_lan_in_core">Обход LAN в ядре</string>
     <string name="landing_proxy">Обратный прокси</string>

@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
@@ -16,7 +17,6 @@ import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutStatusListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
@@ -30,7 +30,8 @@ class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.recycle_view)) { v, insets ->
+        binding = LayoutStatusListBinding.bind(view)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.recycleView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -41,8 +42,11 @@ class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
             )
             WindowInsetsCompat.CONSUMED
         }
-        binding = LayoutStatusListBinding.bind(view)
-        binding.recycleView.layoutManager = FixedLinearLayoutManager(binding.recycleView)
+        binding.recycleView.layoutManager = LinearLayoutManager(
+            binding.recycleView.context,
+            RecyclerView.VERTICAL,
+            false,
+        )
         binding.recycleView.adapter = ConnectionAdapter().also {
             adapter = it
         }

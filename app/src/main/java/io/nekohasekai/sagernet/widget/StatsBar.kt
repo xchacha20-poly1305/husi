@@ -8,17 +8,16 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.withStarted
+import androidx.core.view.doOnPreDraw
 import com.google.android.material.bottomappbar.BottomAppBar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ui.MainActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class StatsBar @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
@@ -29,14 +28,12 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var rxText: TextView
     private lateinit var behavior: YourBehavior
 
-    var allowShow = true
-
     override fun getBehavior(): YourBehavior {
-        if (!this::behavior.isInitialized) behavior = YourBehavior { allowShow }
+        if (!this::behavior.isInitialized) behavior = YourBehavior()
         return behavior
     }
 
-    class YourBehavior(val getAllowShow: () -> Boolean) : Behavior() {
+    class YourBehavior : Behavior() {
 
         override fun onNestedScroll(
             coordinatorLayout: CoordinatorLayout, child: BottomAppBar, target: View,
@@ -52,18 +49,8 @@ class StatsBar @JvmOverloads constructor(
                 dxUnconsumed,
                 0,
                 type,
-                consumed
+                consumed,
             )
-        }
-
-        override fun slideUp(child: BottomAppBar) {
-            if (!getAllowShow()) return
-            super.slideUp(child)
-        }
-
-        override fun slideDown(child: BottomAppBar) {
-            if (!getAllowShow()) return
-            super.slideDown(child)
         }
     }
 
@@ -81,20 +68,13 @@ class StatsBar @JvmOverloads constructor(
     }
 
     fun changeState(state: BaseService.State) {
-        val activity = context as MainActivity
-        fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
-            delay(100L)
-            activity.withStarted {
-                what()
-            }
-        }
         if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
-            postWhenStarted {
-                if (allowShow) performShow()
-                setStatus(activity.getText(R.string.vpn_connected))
+            doOnPreDraw {
+                performShow()
+                setStatus(context.getText(R.string.vpn_connected))
             }
         } else {
-            postWhenStarted {
+            doOnPreDraw {
                 performHide()
             }
             updateSpeed(0, 0)

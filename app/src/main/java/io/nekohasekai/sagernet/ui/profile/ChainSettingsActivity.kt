@@ -27,7 +27,6 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.mapX
@@ -92,7 +91,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             )
             WindowInsetsCompat.CONSUMED
         }
-        layoutManager = FixedLinearLayoutManager(configurationList)
         configurationList.layoutManager = layoutManager
         configurationAdapter = ProxiesAdapter()
         configurationList.adapter = configurationAdapter

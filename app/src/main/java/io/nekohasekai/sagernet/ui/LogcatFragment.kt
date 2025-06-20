@@ -10,11 +10,11 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
-import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -86,7 +86,8 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             WindowInsetsCompat.CONSUMED
         }
         binding = LayoutLogcatBinding.bind(view)
-        binding.logView.layoutManager = FixedLinearLayoutManager(binding.logView)
+        binding.logView.layoutManager =
+            LinearLayoutManager(binding.logView.context, RecyclerView.VERTICAL, false)
 
         logAdapter = LogAdapter(
             SendLog.logFile
