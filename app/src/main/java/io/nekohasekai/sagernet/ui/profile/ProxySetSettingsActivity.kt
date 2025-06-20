@@ -189,6 +189,7 @@ class ProxySetSettingsActivity :
             )
             insets
         }
+        layoutManager = LinearLayoutManager(configurationList.context, RecyclerView.VERTICAL, false)
         configurationList.layoutManager = layoutManager
         configurationAdapter = ProxiesAdapter()
         configurationList.adapter = configurationAdapter
