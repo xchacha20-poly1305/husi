@@ -604,4 +604,5 @@
     <string name="urltest_tolerance">容差</string>
     <string name="expand">展开</string>
     <string name="selected">已选择</string>
+    <string name="update_proxy_apps_when_install">在安装应用时更新代理应用列表</string>
 </resources>

@@ -678,4 +678,5 @@
     <string name="urltest_tolerance">Tolerance</string>
     <string name="expand">Expand</string>
     <string name="selected">Selected</string>
+    <string name="update_proxy_apps_when_install">Update Proxy Apps when Install</string>
 </resources>
