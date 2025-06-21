@@ -471,7 +471,6 @@
     <string name="action_camera_switch">عوض کردن دوربین</string>
     <string name="location_permission_title">اجازه دادن موقعیت مکانی</string>
     <string name="location_permission_description">قوانین route شما شامل قوانین مسیریابی Wi-Fi SSID و Wi-Fi BSSID می باشد. برای اینکه کار کنند، husi مجوز موقعیت یابی را در پس زمینه میخواهد تا اطلاعاتی درباره شبکه ی وای فای بدست آورد. این اطلاعات فقط برای اهداف مسیریابی استفاده خواهد شد.</string>
-    <string name="domain_strategy_for_remote">استراتژی دامنه برای اتصال از راه دور</string>
     <string name="domain_strategy_for_direct">استراتژی دامنه برای اتصال مستقیم</string>
     <string name="domain_strategy_for_server">استراتژی دامنه برای آدرس سرور</string>
     <string name="is_outbound_only">مجموعه JSON خروجی است</string>

@@ -435,7 +435,6 @@
     <string name="create_shortcut">创建快捷方式</string>
     <string name="app_tls_version">订阅最低 TLS 版本</string>
     <string name="hop_interval">端口跳跃间隔（秒）</string>
-    <string name="domain_strategy_for_remote">域名策略（远程）</string>
     <string name="domain_strategy_for_direct">域名策略（直连）</string>
     <string name="domain_strategy_for_server">域名策略（服务器地址）</string>
     <string name="tuic_disable_sni">禁用 SNI</string>
@@ -447,7 +446,7 @@
     <string name="custom_config_json">自定义配置 JSON</string>
     <string name="is_outbound_only">设置的 JSON 是出站</string>
     <string name="save">保存</string>
-    <string name="xtls_flow">Flow（VLESS 子协议）</string>
+    <string name="xtls_flow">流控</string>
     <string name="log_level">日志级别</string>
     <string name="need_restart">重新启动应用程序以应用更改</string>
     <string name="front_proxy">前置代理</string>

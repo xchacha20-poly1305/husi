@@ -497,7 +497,6 @@
     <string name="create_shortcut">Create Shortcut</string>
     <string name="app_tls_version">Subscription Min TLS Version</string>
     <string name="hop_interval">Port Hopping Interval(second)</string>
-    <string name="domain_strategy_for_remote">Domain strategy for Remote</string>
     <string name="domain_strategy_for_direct">Domain strategy for Direct</string>
     <string name="domain_strategy_for_server">Domain strategy for Server address</string>
     <string name="utls_fingerprint">uTLS fingerprint</string>
@@ -506,7 +505,7 @@
     <string name="is_outbound_only">The JSON set is outbound</string>
     <string name="save">Save</string>
     <string name="log_level">Log Level</string>
-    <string name="xtls_flow">Flow (VLESS Sub-protocol)</string>
+    <string name="xtls_flow">Flow</string>
     <string name="bypass_lan_in_core">Bypass LAN in Core</string>
     <string name="need_restart">Restart APP to apply changes</string>
     <string name="front_proxy">Front proxy</string>

@@ -64,6 +64,7 @@ import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.asMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
@@ -226,6 +227,7 @@ fun buildConfig(
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
+    val defaultStrategy = DataStore.networkStrategy.blankAsNull()
 
     // server+port:tags
     // This structure may reduce rules when multiple rules share the same server+port.
@@ -365,8 +367,6 @@ fun buildConfig(
                 return newName
             }
 
-            val defaultServerDomainStrategy = domainStrategy("server").blankAsNull()
-
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
 
@@ -482,7 +482,7 @@ fun buildConfig(
                 currentOutbound.apply {
                     pastEntity?.requireBean()?.let { pastBean ->
                         // don't loopback
-                        if (defaultServerDomainStrategy != "" && !pastBean.serverAddress.isIpAddress()) {
+                        if (!pastBean.serverAddress.isIpAddress()) {
                             domainListDNSDirectForce.add(pastBean.serverAddress)
                         }
                     }
@@ -493,10 +493,16 @@ fun buildConfig(
                         this["udp_over_tcp"] = true
                     }
 
-                    this["domain_strategy"] = if (forTest || bean is ProxySetBean) {
+                    this["domain_resolver"] = if (forTest || bean is ProxySetBean) {
                         null
                     } else {
-                        defaultServerDomainStrategy
+                        DomainResolveOptions().apply {
+                            server = TAG_DNS_DIRECT
+                            strategy = defaultOr(
+                                DataStore.domainStrategyForServer.replace("auto", "").blankAsNull(),
+                                { defaultStrategy },
+                            )
+                        }.asMap()
                     }
 
                     // custom JSON merge
@@ -766,7 +772,17 @@ fun buildConfig(
         outbounds.add(Outbound_DirectOptions().apply {
             tag = TAG_DIRECT
             type = SingBoxOptions.TYPE_DIRECT
-            domain_strategy = domainStrategy(tag).blankAsNull()
+            domain_resolver = DomainResolveOptions().apply {
+                server = if (forTest) {
+                    TAG_DNS_LOCAL
+                } else {
+                    TAG_DNS_DIRECT
+                }
+                strategy = defaultOr(
+                    DataStore.domainStrategyForDirect.replace("auto", "").blankAsNull(),
+                    { defaultStrategy },
+                )
+            }
 
             if (!forTest) {
                 if (networkPreferredInterfaces.isNotEmpty()) {
@@ -831,7 +847,6 @@ fun buildConfig(
                     TAG_DNS_REMOTE,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_DIRECT
-                        strategy = domainStrategy(TAG_DNS_REMOTE).blankAsNull()
                     },
                 )
             )
@@ -846,7 +861,6 @@ fun buildConfig(
                     TAG_DNS_DIRECT,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_LOCAL
-                        strategy = domainStrategy(TAG_DNS_DIRECT).blankAsNull()
                     }
                 ))
         } ?: error("missing direct DNS")
@@ -965,11 +979,6 @@ fun buildConfig(
                     domain = domainListDNSDirectForce.distinct()
                     server = TAG_DNS_DIRECT
                 })
-            }
-
-            // force bypass (always top DNS rule)
-            route.default_domain_resolver = DomainResolveOptions().apply {
-                server = TAG_DNS_DIRECT
             }
 
             // https://github.com/juicity/juicity/issues/140

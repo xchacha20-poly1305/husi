@@ -214,13 +214,6 @@
             app:key="remoteDns"
             app:title="@string/remote_dns"
             app:useSimpleSummaryProvider="true" />
-        <rikka.preference.SimpleMenuPreference
-            app:defaultValue="auto"
-            app:entries="@array/network_strategies_values"
-            app:entryValues="@array/network_strategies_values"
-            app:key="domain_strategy_for_remote"
-            app:title="@string/domain_strategy_for_remote"
-            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:defaultValue="local"
             app:icon="@drawable/ic_action_dns"

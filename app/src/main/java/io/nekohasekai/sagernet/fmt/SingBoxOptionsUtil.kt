@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.fmt
 
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
@@ -18,27 +17,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
 import libcore.Libcore
-
-fun domainStrategy(tag: String): String {
-    fun auto2AsIs(key: String): String {
-        return (DataStore.configurationStore.getString(key) ?: "").replace("auto", "")
-    }
-    return when (tag) {
-        TAG_DNS_REMOTE -> {
-            auto2AsIs("domain_strategy_for_remote")
-        }
-
-        TAG_DNS_DIRECT -> {
-            auto2AsIs("domain_strategy_for_direct")
-        }
-
-        // "server"
-        else -> {
-            auto2AsIs("domain_strategy_for_server")
-        }
-    }
-}
-
 
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     domain = mutableListOf()
@@ -267,7 +245,6 @@ fun buildDNSServer(
     if (link == "local") return NewDNSServerOptions_LocalDNSServerOptions().also {
         it.type = SingBoxOptions.DNS_TYPE_LOCAL
         it.tag = tag
-        it.domain_resolver = domainResolver
     }
 
     val url = if (!link.contains("://")) {
