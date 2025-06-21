@@ -1,14 +1,13 @@
 package libcore
 
 import (
-	"time"
-
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 )
 
+// SelectOutbound attempts to select a specific outbound tag within a given group.
 func (b *BoxInstance) SelectOutbound(groupName, tag string) (ok bool) {
 	outbound, loaded := b.Outbound().Outbound(groupName)
 	if !loaded {
@@ -18,7 +17,69 @@ func (b *BoxInstance) SelectOutbound(groupName, tag string) (ok bool) {
 	if !isSelector {
 		return false
 	}
-	return selector.SelectOutbound(tag)
+	old := selector.Now()
+	ok = selector.SelectOutbound(tag)
+	if !ok {
+		return false
+	}
+	b.platformInterface.OnGroupSelectedChange(groupName, old, tag)
+	return true
+}
+
+// watchGroupChange monitors changes in group selections, particularly for URLTest and Selector
+// outbound types, and notifies the platform interface about these changes.
+func (b *BoxInstance) watchGroupChange() {
+	var urlTests []*group.URLTest
+	for _, outbound := range b.Outbound().Outbounds() {
+		switch outbound.(type) {
+		case *group.Selector:
+			selector := outbound.(*group.Selector)
+			// Initialize
+			b.platformInterface.OnGroupSelectedChange(selector.Tag(), "", selector.Now())
+		case *group.URLTest:
+			urlTest := outbound.(*group.URLTest)
+			urlTests = append(urlTests, urlTest)
+		}
+	}
+	if len(urlTests) == 0 {
+		return
+	}
+
+	tagCache := make(map[string]string, len(urlTests)) // group:current_tag
+	check := func() {
+		for _, urlTest := range urlTests {
+			groupName := urlTest.Tag()
+			old := tagCache[groupName]
+			now := urlTest.Now()
+			tagCache[groupName] = now
+			if old != now {
+				b.platformInterface.OnGroupSelectedChange(groupName, old, now)
+			}
+		}
+	}
+	check()
+
+	hook := make(chan struct{}, 1) // Prevent not receive notify when checking
+	b.api.HistoryStorage().SetHook(hook)
+	go func() {
+		for {
+			select {
+			case <-b.ctx.Done():
+				return
+			case <-hook:
+			drainLoop:
+				for {
+					select {
+					case <-hook:
+					default:
+						break drainLoop
+					}
+				}
+			}
+
+			check()
+		}
+	}()
 }
 
 // ProxySet is group for sing-box.
@@ -82,44 +143,5 @@ func buildGroupItem(outbound adapter.Outbound) *GroupItem {
 	return &GroupItem{
 		Tag:  outbound.Tag(),
 		Type: C.ProxyDisplayName(outbound.Type()),
-	}
-}
-
-// watchGroupChange watches the group's changes.
-//
-// block
-func (b *BoxInstance) watchGroupChange() {
-	allOutbounds := b.Outbound().Outbounds()
-	var groups []adapter.OutboundGroup
-	for _, outbound := range allOutbounds {
-		if group, isGroup := outbound.(adapter.OutboundGroup); isGroup {
-			groups = append(groups, group)
-		}
-	}
-	if len(groups) == 0 {
-		return
-	}
-
-	tagCache := make(map[string]string, len(groups)) // group:tag
-	const interval = 500 * time.Millisecond
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-b.ctx.Done():
-			return
-		case <-ticker.C:
-
-		}
-
-		for _, group := range groups {
-			groupName := group.Tag()
-			old := tagCache[groupName]
-			now := group.Now()
-			if old != now {
-				tagCache[groupName] = now
-				b.platformInterface.OnGroupSelectedChange(groupName, old, now)
-			}
-		}
 	}
 }

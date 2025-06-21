@@ -135,8 +135,8 @@ class ProxySetFragment : Fragment(R.layout.layout_dashboard_list) {
             binding.proxySetSelected.isVisible = !set.isExpanded
             binding.itemList.isVisible = set.isExpanded
 
-            binding.urlTestButton.setOnClickListener {
-                binding.urlTestButton.let {
+            binding.urlTestButton.setOnClickListener { view ->
+               view.let {
                     it.isEnabled = false
 
                     val blinkAnimation = AlphaAnimation(1.0f, 0.3f).apply {
@@ -152,7 +152,7 @@ class ProxySetFragment : Fragment(R.layout.layout_dashboard_list) {
                         ?.groupURLTest(set.tag, DataStore.connectionTestTimeout)
 
                     onMainDispatcher {
-                        binding.urlTestButton.let {
+                        view.let {
                             it.clearAnimation()
                             it.isEnabled = true
                         }
