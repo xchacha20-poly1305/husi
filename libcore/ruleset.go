@@ -8,7 +8,7 @@ import (
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/srs"
-	"github.com/sagernet/sing-box/route/rule"
+	R "github.com/sagernet/sing-box/route/rule"
 	M "github.com/sagernet/sing/common/metadata"
 )
 
@@ -46,7 +46,7 @@ func ScanRuleSet(keyword string, callback ScanRuleSetCallback) error {
 		}
 		for _, ruleOptions := range plainRuleSet.Rules {
 			var currentRule adapter.HeadlessRule
-			currentRule, err = rule.NewHeadlessRule(context.Background(), ruleOptions)
+			currentRule, err = R.NewHeadlessRule(context.Background(), ruleOptions)
 			if err != nil {
 				continue
 			}
