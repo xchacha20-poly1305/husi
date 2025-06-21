@@ -37,7 +37,6 @@ import androidx.core.view.updatePadding
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
@@ -170,7 +169,6 @@ class ProxySetSettingsActivity :
     lateinit var itemView: LinearLayout
     lateinit var configurationList: RecyclerView
     lateinit var configurationAdapter: ProxiesAdapter
-    lateinit var layoutManager: LinearLayoutManager
 
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -189,8 +187,6 @@ class ProxySetSettingsActivity :
             )
             insets
         }
-        layoutManager = LinearLayoutManager(configurationList.context, RecyclerView.VERTICAL, false)
-        configurationList.layoutManager = layoutManager
         configurationAdapter = ProxiesAdapter()
         configurationList.adapter = configurationAdapter
 

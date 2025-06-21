@@ -65,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
                 tools:itemCount="6"
                 tools:listitem="@layout/item_keyboard_key" />
 

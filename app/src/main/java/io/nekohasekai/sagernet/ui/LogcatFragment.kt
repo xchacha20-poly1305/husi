@@ -10,7 +10,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
@@ -63,6 +62,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         toolbar.inflateMenu(R.menu.logcat_menu)
         toolbar.setOnMenuItemClickListener(this)
+        binding = LayoutLogcatBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -74,20 +74,17 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.log_view)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.logView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             v.updatePadding(
                 left = bars.left + dp2px(8),
                 right = bars.right + dp2px(8),
-                bottom = bars.bottom + dp2px(8),
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }
-        binding = LayoutLogcatBinding.bind(view)
-        binding.logView.layoutManager =
-            LinearLayoutManager(binding.logView.context, RecyclerView.VERTICAL, false)
 
         logAdapter = LogAdapter(
             SendLog.logFile

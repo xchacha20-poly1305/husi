@@ -13,7 +13,7 @@
             android:layout_height="wrap_content" />
 
     <com.google.android.material.tabs.TabLayout
-            android:id="@+id/traffic_tab"
+            android:id="@+id/dashboard_tab"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?colorPrimary"
@@ -28,7 +28,7 @@
             app:tabUnboundedRipple="false" />
 
     <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/traffic_pager"
+            android:id="@+id/dashboard_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

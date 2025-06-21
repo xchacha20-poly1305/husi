@@ -9,28 +9,27 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.databinding.LayoutStatusListBinding
+import io.nekohasekai.sagernet.databinding.LayoutDashboardListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
 
-class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
+class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
-    lateinit var binding: LayoutStatusListBinding
+    lateinit var binding: LayoutDashboardListBinding
     lateinit var adapter: ConnectionAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutStatusListBinding.bind(view)
+        binding = LayoutDashboardListBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(binding.recycleView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -38,15 +37,10 @@ class ConnectionListFragment : Fragment(R.layout.layout_status_list) {
             v.updatePadding(
                 left = bars.left + dp2px(8),
                 right = bars.right + dp2px(8),
-                bottom = bars.bottom + dp2px(8),
+                bottom = bars.bottom + dp2px(64),
             )
             WindowInsetsCompat.CONSUMED
         }
-        binding.recycleView.layoutManager = LinearLayoutManager(
-            binding.recycleView.context,
-            RecyclerView.VERTICAL,
-            false,
-        )
         binding.recycleView.adapter = ConnectionAdapter().also {
             adapter = it
         }

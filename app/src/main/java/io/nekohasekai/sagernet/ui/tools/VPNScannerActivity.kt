@@ -13,7 +13,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.R
@@ -75,7 +74,6 @@ class VPNScannerActivity : ThemedActivity() {
         binding.scanVPNResult.adapter = Adapter().also {
             adapter = it
         }
-        binding.scanVPNResult.layoutManager = LinearLayoutManager(this)
         lifecycleScope.launch(Dispatchers.IO) {
             scanVPN()
         }

@@ -18,7 +18,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.databinding.LayoutTrafficBinding
+import io.nekohasekai.sagernet.databinding.LayoutDashboardBinding
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
@@ -27,7 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
+class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
     Toolbar.OnMenuItemClickListener,
     SearchView.OnQueryTextListener {
 
@@ -37,7 +37,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
         const val POSITION_PROXY_SET = 2
     }
 
-    private lateinit var binding: LayoutTrafficBinding
+    private lateinit var binding: LayoutDashboardBinding
     private lateinit var adapter: TrafficAdapter
 
     private val menuSearch by lazy { toolbar.menu.findItem(R.id.action_traffic_search) }
@@ -48,7 +48,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutTrafficBinding.bind(view)
+        binding = LayoutDashboardBinding.bind(view)
         toolbar.setTitle(R.string.menu_dashboard)
         toolbar.inflateMenu(R.menu.traffic_menu)
         toolbar.setOnMenuItemClickListener(this)
@@ -63,7 +63,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.traffic_tab)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.dashboardTab) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -73,7 +73,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
             )
             WindowInsetsCompat.CONSUMED
         }
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.traffic_pager)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.dashboardPager) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -85,10 +85,10 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
             WindowInsetsCompat.CONSUMED
         }
 
-        binding.trafficPager.adapter = TrafficAdapter(this).also {
+        binding.dashboardPager.adapter = TrafficAdapter(this).also {
             adapter = it
         }
-        TabLayoutMediator(binding.trafficTab, binding.trafficPager) { tab, position ->
+        TabLayoutMediator(binding.dashboardTab, binding.dashboardPager) { tab, position ->
             tab.text = when (position) {
                 POSITION_STATUS -> getString(R.string.traffic_status)
                 POSITION_CONNECTIONS -> getString(R.string.traffic_connections)
@@ -142,7 +142,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
             actionSort.isVisible = isConnectionUI
             actionSortMethod.isVisible = isConnectionUI
         }
-        binding.trafficTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        binding.dashboardTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 val isConnectionUI = tab.position == POSITION_CONNECTIONS
                 updateMenu(isConnectionUI)
@@ -262,7 +262,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
     private var isPausing = false
 
     private suspend fun emitStats() {
-        when (binding.trafficPager.currentItem) {
+        when (binding.dashboardPager.currentItem) {
             POSITION_STATUS -> {
                 val dashboard = getFragment(POSITION_STATUS) as? StatusFragment ?: return
                 val service = (requireActivity() as? MainActivity)?.connection?.service ?: return
@@ -283,7 +283,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_traffic),
     }
 
     fun refreshClashMode() {
-        if (binding.trafficPager.currentItem != POSITION_STATUS) return
+        if (binding.dashboardPager.currentItem != POSITION_STATUS) return
         (getFragment(POSITION_STATUS) as? StatusFragment)?.refreshClashMode()
     }
 

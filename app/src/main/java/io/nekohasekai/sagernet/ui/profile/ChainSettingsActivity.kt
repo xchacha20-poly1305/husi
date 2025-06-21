@@ -17,7 +17,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
@@ -60,7 +59,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
     lateinit var configurationList: RecyclerView
     lateinit var configurationAdapter: ProxiesAdapter
-    lateinit var layoutManager: LinearLayoutManager
 
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,8 +89,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             )
             WindowInsetsCompat.CONSUMED
         }
-        layoutManager = LinearLayoutManager(configurationList.context, RecyclerView.VERTICAL, false)
-        configurationList.layoutManager = layoutManager
         configurationAdapter = ProxiesAdapter()
         configurationList.adapter = configurationAdapter
 

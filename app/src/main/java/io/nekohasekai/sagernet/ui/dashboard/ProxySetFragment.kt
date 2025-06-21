@@ -18,7 +18,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -26,8 +25,8 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.ProxySet
 import io.nekohasekai.sagernet.aidl.ProxySetItem
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.databinding.LayoutDashboardListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProxySetBinding
-import io.nekohasekai.sagernet.databinding.LayoutStatusListBinding
 import io.nekohasekai.sagernet.databinding.ViewProxySetItemBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -38,9 +37,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class ProxySetFragment : Fragment(R.layout.layout_status_list) {
+class ProxySetFragment : Fragment(R.layout.layout_dashboard_list) {
 
-    private lateinit var binding: LayoutStatusListBinding
+    private lateinit var binding: LayoutDashboardListBinding
     private lateinit var adapter: Adapter
 
     private val context get() = requireContext() as MainActivity
@@ -48,7 +47,7 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutStatusListBinding.bind(view)
+        binding = LayoutDashboardListBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(binding.recycleView) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -56,16 +55,11 @@ class ProxySetFragment : Fragment(R.layout.layout_status_list) {
             v.updatePadding(
                 left = bars.left + dp2px(8),
                 right = bars.right + dp2px(8),
-                bottom = bars.bottom + dp2px(8)
+                bottom = bars.bottom + dp2px(64)
             )
             WindowInsetsCompat.CONSUMED
         }
 
-        binding.recycleView.layoutManager = LinearLayoutManager(
-            binding.recycleView.context,
-            RecyclerView.VERTICAL,
-            false,
-        )
         binding.recycleView.adapter = Adapter().also {
             adapter = it
         }
