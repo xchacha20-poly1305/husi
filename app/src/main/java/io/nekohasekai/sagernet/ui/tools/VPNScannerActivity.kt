@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +17,7 @@ import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -225,7 +225,7 @@ class VPNScannerActivity : ThemedActivity() {
                 val dexFile = try {
                     DexBackedDexFile.fromInputStream(null, input)
                 } catch (e: Exception) {
-                    Log.e("VPNScanActivity", "Failed to read dex file", e)
+                    Logs.e("Read dex file", e)
                     continue
                 }
                 for (clazz in dexFile.classes) {
