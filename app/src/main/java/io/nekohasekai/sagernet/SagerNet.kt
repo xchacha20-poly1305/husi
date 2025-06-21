@@ -11,6 +11,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
@@ -23,6 +24,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import go.Seq
+import io.nekohasekai.sagernet.bg.AppChangeReceiver
+import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.bg.SubscriptionUpdater
 import io.nekohasekai.sagernet.database.DataStore
@@ -100,6 +103,10 @@ class SagerNet : Application(),
             runCatching {
                 SubscriptionUpdater.reconfigureUpdater()
             }
+            registerReceiver(AppChangeReceiver(), IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                addDataScheme("package")
+            })
         }
 
         if (isMainProcess) {

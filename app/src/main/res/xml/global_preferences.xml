@@ -128,6 +128,10 @@
             app:summary="@string/proxied_apps_summary"
             app:title="@string/proxied_apps" />
         <SwitchPreference
+            app:icon="@drawable/baseline_keyboard_tab_24"
+            app:key="updateProxyAppsWhenInstall"
+            app:title="@string/update_proxy_apps_when_install" />
+        <SwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/ic_baseline_legend_toggle_24"
             app:key="bypassLan"

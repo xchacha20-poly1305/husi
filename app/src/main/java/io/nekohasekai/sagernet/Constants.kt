@@ -37,6 +37,7 @@ object Key {
     const val IPV6_MODE = "ipv6Mode"
 
     const val PROXY_APPS = "proxyApps"
+    const val UPDATE_PROXY_APPS_WHEN_INSTALL = "updateProxyAppsWhenInstall"
     const val BYPASS_MODE = "bypassMode"
     const val INDIVIDUAL = "individual"
     const val METERED_NETWORK = "meteredNetwork"

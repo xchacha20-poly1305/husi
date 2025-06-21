@@ -593,4 +593,5 @@
     <string name="language">语言</string>
     <string name="language_system_default">系统默认设置</string>
     <string name="rule_set_match">Rule Set 匹配</string>
+    <string name="update_proxy_apps_when_install">在安装应用时更新代理应用列表</string>
 </resources>

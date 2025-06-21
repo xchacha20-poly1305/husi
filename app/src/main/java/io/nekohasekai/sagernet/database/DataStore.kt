@@ -166,6 +166,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var meteredNetwork by configurationStore.boolean(Key.METERED_NETWORK)
     var proxyApps by configurationStore.boolean(Key.PROXY_APPS)
+    var updateProxyAppsWhenInstall by configurationStore.boolean(Key.UPDATE_PROXY_APPS_WHEN_INSTALL)
     var bypassMode by configurationStore.boolean(Key.BYPASS_MODE) { true } // VPN bypass mode
     var individual by configurationStore.string(Key.INDIVIDUAL)
     var showDirectSpeed by configurationStore.boolean(Key.SHOW_DIRECT_SPEED) { true }
