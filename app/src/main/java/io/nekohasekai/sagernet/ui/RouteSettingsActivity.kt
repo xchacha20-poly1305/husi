@@ -112,9 +112,7 @@ class RouteSettingsActivity(
             2 -> RuleEntity.OUTBOUND_BLOCK
             else -> DataStore.routeOutboundRule
         }
-        if (DataStore.routePackages.isNotEmpty()) {
-            packages = DataStore.routePackages.filterTo(hashSetOf()) { it.isNotBlank() }
-        }
+        packages = DataStore.routePackages.filterTo(hashSetOf()) { it.isNotBlank() }
 
         if (DataStore.editingId == 0L) {
             enabled = true

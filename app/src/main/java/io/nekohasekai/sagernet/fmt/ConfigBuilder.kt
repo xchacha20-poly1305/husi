@@ -545,7 +545,7 @@ fun buildConfig(
             if (rule.packages.isNotEmpty()) {
                 PackageCache.awaitLoadSync()
             }
-            val uidList = rule.packages.mapX {
+            val uidList = rule.packages.mapNotNullTo(LinkedHashSet()) {
                 if (!isVPN) {
                     Toast.makeText(
                         SagerNet.application,
@@ -554,7 +554,7 @@ fun buildConfig(
                     ).show()
                 }
                 PackageCache[it]?.takeIf { uid -> uid >= 1000 }
-            }.toHashSet().filterNotNull()
+            }.toList()
 
             val ruleObj = Rule_Default().apply {
                 action = SingBoxOptions.ACTION_ROUTE
