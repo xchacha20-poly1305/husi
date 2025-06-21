@@ -1,10 +1,13 @@
 package io.nekohasekai.sagernet.ui.tools
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
@@ -18,11 +21,11 @@ import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import libcore.Libcore
 import java.io.File
 import java.util.zip.ZipFile
@@ -146,6 +149,18 @@ class VPNScannerActivity : ThemedActivity() {
             } else {
                 binding.goVersionLayout.isVisible = false
             }
+
+            binding.root.setOnClickListener { view ->
+                view.context.startActivity(
+                    Intent()
+                        .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        .setData(
+                            Uri.fromParts(
+                                "package", element.packageInfo.packageName, null
+                            )
+                        )
+                )
+            }
         }
     }
 
@@ -162,7 +177,6 @@ class VPNScannerActivity : ThemedActivity() {
         val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(flag.toLong()))
         } else {
-            @Suppress("DEPRECATION")
             packageManager.getInstalledPackages(flag)
         }
         val vpnAppList =
@@ -175,7 +189,7 @@ class VPNScannerActivity : ThemedActivity() {
             val appType = runCatching { getVPNAppType(packageInfo) }.getOrNull()
             val coreType = runCatching { getVPNCoreType(packageInfo) }.getOrNull()
             appInfoList.add(AppInfo(packageInfo, VPNType(appType, coreType)))
-            withContext(Dispatchers.Main) {
+            onMainDispatcher {
                 adapter.notifyItemInserted(index)
                 binding.scanVPNResult.scrollToPosition(index)
                 binding.scanVPNProgress.setProgressCompat(
@@ -185,7 +199,7 @@ class VPNScannerActivity : ThemedActivity() {
             }
             System.gc()
         }
-        withContext(Dispatchers.Main) {
+        onMainDispatcher {
             binding.scanVPNProgress.isVisible = false
         }
     }
@@ -205,23 +219,24 @@ class VPNScannerActivity : ThemedActivity() {
         )
 
         private val sfaClasses = listOf(
-            "io.nekohasekai.sfa"
+            "io.nekohasekai.sfa",
         )
 
-        private val legacySagerNetClasses = listOf(
+        private val sagerNetClasses = listOf(
             "io.nekohasekai.sagernet",
-            ".fmt.ConfigBuilder"
+            ".fmt.ConfigBuilder",
         )
 
         private val shadowsocksAndroidClasses = listOf(
             "com.github.shadowsocks",
             ".bg.VpnService",
-            "GuardedProcessPool"
+            "GuardedProcessPool",
         )
     }
 
     private fun getVPNAppType(packageInfo: PackageInfo): String? {
         ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use { packageFile ->
+            var type: String? = null
             for (packageEntry in packageFile.entries()) {
                 if (!(packageEntry.name.startsWith("classes") && packageEntry.name.endsWith(
                         ".dex"
@@ -258,19 +273,21 @@ class VPNScannerActivity : ThemedActivity() {
                             return "sing-box"
                         }
                     }
-                    for (legacySagerNetClass in legacySagerNetClasses) {
-                        if (clazzName.contains(legacySagerNetClass)) {
-                            return "LegacySagerNet"
+                    for (sagerNetClass in sagerNetClasses) {
+                        if (clazzName.contains(sagerNetClass)) {
+                            return "SagerNet"
                         }
                     }
                     for (shadowsocksAndroidClass in shadowsocksAndroidClasses) {
                         if (clazzName.contains(shadowsocksAndroidClass)) {
-                            return "shadowsocks-android"
+                            // May be SagerNet, too.
+                            type = "shadowsocks-android"
+                            continue
                         }
                     }
                 }
             }
-            return null
+            return type
         }
     }
 
