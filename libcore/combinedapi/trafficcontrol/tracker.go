@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/atomic"
 	"github.com/sagernet/sing/common/bufio"
 	N "github.com/sagernet/sing/common/network"
@@ -122,7 +121,7 @@ func NewTCPTracker(conn net.Conn, manager *Manager, metadata adapter.InboundCont
 			CreatedAt:    time.Now(),
 			Upload:       upload,
 			Download:     download,
-			Chain:        common.Reverse(chain),
+			Chain:        chain,
 			Rule:         matchRule,
 			Outbound:     outbound,
 			OutboundType: outboundType,
@@ -211,7 +210,7 @@ func NewUDPTracker(conn N.PacketConn, manager *Manager, metadata adapter.Inbound
 			CreatedAt:    time.Now(),
 			Upload:       upload,
 			Download:     download,
-			Chain:        common.Reverse(chain),
+			Chain:        chain,
 			Rule:         matchRule,
 			Outbound:     outbound,
 			OutboundType: outboundType,
