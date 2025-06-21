@@ -26,7 +26,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
@@ -230,7 +229,6 @@ class AppListActivity : ThemedActivity() {
         }
 
         initProxiedUids()
-        binding.list.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.list.itemAnimator = DefaultItemAnimator()
         binding.list.adapter = appsAdapter
 

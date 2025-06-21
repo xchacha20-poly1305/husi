@@ -20,6 +20,8 @@
         android:clipToPadding="false"
         android:padding="16dp"
         android:paddingTop="8dp"
+        android:paddingBottom="64dp"
+        app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

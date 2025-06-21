@@ -29,7 +29,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -252,7 +251,6 @@ class AppManagerActivity : ThemedActivity() {
         }
 
         initProxiedUids()
-        binding.list.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.list.itemAnimator = DefaultItemAnimator()
         binding.list.adapter = appsAdapter
 

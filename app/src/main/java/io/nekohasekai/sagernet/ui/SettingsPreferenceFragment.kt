@@ -19,7 +19,6 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
@@ -36,6 +35,7 @@ import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.DurationPreference
+import io.nekohasekai.sagernet.widget.FixedLinearLayout
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import io.nekohasekai.sagernet.widget.updateSummary
 import moe.matsuri.nb4a.ui.ColorPickerPreference
@@ -50,7 +50,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        listView.layoutManager = LinearLayoutManager(listView.context, RecyclerView.VERTICAL, false)
+        listView.layoutManager = FixedLinearLayout(listView.context, RecyclerView.VERTICAL, false)
         listView.setPadding(0, 0, 0, dp2px(64))
         ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
             val bars = insets.getInsets(

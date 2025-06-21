@@ -7,7 +7,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
@@ -73,11 +72,6 @@ class RuleSetMatchActivity : ThemedActivity() {
                 start(text.toString())
             }
         }
-        binding.ruleSetMatchView.layoutManager = LinearLayoutManager(
-            binding.ruleSetMatchView.context,
-            RecyclerView.VERTICAL,
-            false,
-        )
         binding.ruleSetMatchView.adapter = Adapter(mutableListOf()).also {
             adapter = it
         }

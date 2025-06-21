@@ -113,6 +113,7 @@
         app:fastScrollPopupTextColor="?colorPrimary"
         app:fastScrollThumbColor="?colorPrimary"
         app:fastScrollThumbInactiveColor="?colorPrimary"
+        app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/layout_apps_item" />
 

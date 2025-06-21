@@ -18,7 +18,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.setPadding
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
@@ -51,7 +50,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
     lateinit var activity: MainActivity
     lateinit var groupListView: RecyclerView
-    lateinit var layoutManager: LinearLayoutManager
     lateinit var groupAdapter: GroupAdapter
     lateinit var undoManager: UndoSnackbarManager<ProxyGroup>
 
@@ -86,8 +84,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             )
             WindowInsetsCompat.CONSUMED
         }
-        layoutManager = LinearLayoutManager(groupListView.context, RecyclerView.VERTICAL, false)
-        groupListView.layoutManager = layoutManager
         groupAdapter = GroupAdapter()
         GroupManager.addListener(groupAdapter)
         groupListView.adapter = groupAdapter

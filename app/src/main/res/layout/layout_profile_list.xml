@@ -15,4 +15,5 @@
     app:fastScrollAutoHide="true"
     app:fastScrollThumbColor="?colorPrimary"
     app:fastScrollThumbInactiveColor="?colorPrimary"
+    app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
     tools:listitem="@layout/layout_profile" />

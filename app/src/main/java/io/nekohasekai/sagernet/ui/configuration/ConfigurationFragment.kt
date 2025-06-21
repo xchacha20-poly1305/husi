@@ -1185,7 +1185,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 return DataStore.serviceState.let { it.canStop || it == BaseService.State.Stopped }
             }
 
-        lateinit var layoutManager: LinearLayoutManager
         lateinit var configurationListView: RecyclerView
 
         val select by lazy {
@@ -1283,12 +1282,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 )
                 WindowInsetsCompat.CONSUMED
             }
-            layoutManager = LinearLayoutManager(
-                configurationListView.context,
-                RecyclerView.VERTICAL,
-                false,
-            )
-            configurationListView.layoutManager = layoutManager
             adapter = ConfigurationAdapter()
             ProfileManager.addListener(adapter!!)
             GroupManager.addListener(adapter!!)
@@ -1510,7 +1503,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 try {
                     val index = configurationIdList.indexOf(data.id)
                     if (index != -1) {
-                        val holder = layoutManager.findViewByPosition(index)
+                        val holder = (configurationListView.layoutManager as LinearLayoutManager)
+                            .findViewByPosition(index)
                             ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
                         if (holder != null) {
                             onMainDispatcher {
