@@ -439,7 +439,6 @@
     <string name="tuic_disable_sni">禁用 SNI</string>
     <string name="connection_test_delete_unavailable">清理不可用配置</string>
     <string name="hop_interval">連接埠跳頻間隔（秒）</string>
-    <string name="domain_strategy_for_remote">域名策略（遠端）</string>
     <string name="domain_strategy_for_direct">域名策略（直連）</string>
     <string name="domain_strategy_for_server">網域名稱策略（伺服器位址）</string>
     <string name="custom_outbound_json">自訂出站 JSON</string>

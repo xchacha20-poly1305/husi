@@ -224,7 +224,6 @@
     <string name="create_shortcut">Створити ярлик</string>
     <string name="hop_interval">Інтервал переключення портів(другий)</string>
     <string name="app_tls_version">Мінімальна версія TLS протоколу</string>
-    <string name="domain_strategy_for_remote">Стратегія домену для Віддаленого</string>
     <string name="domain_strategy_for_direct">Стратегія домену для Прямого</string>
     <string name="domain_strategy_for_server">Стратегія домену для Адреси сервера</string>
     <string name="need_restart">Перезавантажте застосунок для застосування змін</string>
