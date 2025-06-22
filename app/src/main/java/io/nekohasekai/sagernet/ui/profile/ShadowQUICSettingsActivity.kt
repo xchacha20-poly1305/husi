@@ -58,6 +58,12 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         findPreference<EditTextPreference>(Key.SERVER_JLS_IV)!!.apply {
             summaryProvider = PasswordSummaryProvider
         }
+        findPreference<EditTextPreference>(Key.SERVER_INITIAL_MTU)!!.apply {
+            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
+        findPreference<EditTextPreference>(Key.SERVER_MINIMUM_MTU)!!.apply {
+            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
     }
 
 }

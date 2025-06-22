@@ -67,6 +67,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
             summaryProvider = PasswordSummaryProvider
         }
+        findPreference<EditTextPreference>(Key.SERVER_MIN_IDLE_SESSION)!!.apply {
+            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
 
         val fragment = findPreference<SwitchPreference>(Key.SERVER_FRAGMENT)!!
         val fragmentFallbackDelay =
