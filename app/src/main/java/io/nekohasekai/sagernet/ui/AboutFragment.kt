@@ -71,9 +71,9 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
         override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {
 
-            var versionName = BuildConfig.VERSION_NAME
+            var displayVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             if (BuildConfig.DEBUG) {
-                versionName += " DEBUG"
+                displayVersion += " DEBUG"
             }
 
             return MaterialAboutList.Builder()
@@ -84,7 +84,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                             MaterialAboutActionItem.Builder()
                                 .icon(R.drawable.ic_baseline_update_24)
                                 .text(R.string.app_version)
-                                .subText(versionName)
+                                .subText(displayVersion)
                                 .setOnClickAction {
                                     requireContext().launchCustomTab(
                                         if (Libcore.isPreRelease(BuildConfig.VERSION_NAME)) {
