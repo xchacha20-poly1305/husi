@@ -238,6 +238,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.onPreferenceChangeListener = restartListener
                         }
 
+                        Key.UPLOAD_SPEED, Key.DOWNLOAD_SPEED -> {
+                            preference as EditTextPreference
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+                            preference.onPreferenceChangeListener = reloadListener
+                        }
+
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
