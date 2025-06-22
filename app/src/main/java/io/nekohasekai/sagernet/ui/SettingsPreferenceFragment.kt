@@ -238,6 +238,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             }
                         }
 
+                        Key.UPDATE_PROXY_APPS_WHEN_INSTALL -> {}
+
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
                 }
@@ -246,6 +248,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                     when (preference.key) {
                         Key.CUSTOM_PLUGIN_PREFIX -> {
                             preference.onPreferenceChangeListener = restartListener
+                        }
+
+                        Key.UPLOAD_SPEED, Key.DOWNLOAD_SPEED -> {
+                            preference as EditTextPreference
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+                            preference.onPreferenceChangeListener = reloadListener
                         }
 
                         else -> preference.onPreferenceChangeListener = reloadListener

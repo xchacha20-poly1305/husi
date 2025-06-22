@@ -79,9 +79,9 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         val protocol = findPreference<SimpleMenuPreference>(Key.SERVER_PROTOCOL)!!
         val alpn = findPreference<EditTextPreference>(Key.SERVER_ALPN)!!
 
-        serverStreamReceiveWindow = findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!
-        serverConnectionReceiveWindow = findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!
-        serverDisableMTUDiscovery = findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!
+        serverStreamReceiveWindow = findPreference(Key.SERVER_STREAM_RECEIVE_WINDOW)!!
+        serverConnectionReceiveWindow = findPreference(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!
+        serverDisableMTUDiscovery = findPreference(Key.SERVER_DISABLE_MTU_DISCOVERY)!!
         fun updateVersion(v: Int) {
             if (v == 2) {
                 authPayload.isVisible = true
