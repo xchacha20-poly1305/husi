@@ -68,15 +68,16 @@ class AppManagerActivity : ThemedActivity() {
             }
 
         private val skipPrefixList by lazy {
-                listOf(
-                    "com.google",
-                    "com.android.chrome",
-                    "com.android.vending",
-                    "com.microsoft",
-                    "com.apple",
-                    "com.zhiliaoapp.musically", // Banned by China
-                )
-            }
+            listOf(
+                "com.google",
+                "com.android.chrome",
+                "com.android.vending",
+                "com.microsoft",
+                "com.apple",
+                "com.zhiliaoapp.musically", // Banned by China
+                "com.android.providers.downloads", // Download manager, which may has Chinese SDK.
+            )
+        }
 
         private val chinaAppPrefixList by lazy {
             listOf(
