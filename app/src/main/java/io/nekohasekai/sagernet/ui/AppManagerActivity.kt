@@ -529,6 +529,12 @@ class AppManagerActivity : ThemedActivity() {
                     } else {
                         proxiedUids.delete(app.applicationInfo!!.uid)
                     }
+                } else {
+                    if (!bypass) {
+                        proxiedUids[app.applicationInfo!!.uid] = true
+                    } else {
+                        proxiedUids.delete(app.applicationInfo!!.uid)
+                    }
                 }
 
             }
