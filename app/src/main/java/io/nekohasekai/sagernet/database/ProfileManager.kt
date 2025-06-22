@@ -201,7 +201,6 @@ object ProfileManager {
                     enabled = true,
                     name = app.getString(R.string.sniff),
                     action = ACTION_SNIFF,
-                    sniffers = app.resources.getStringArray(R.array.sniff_protocol).toSet(),
                 )
             )
             createRule(
