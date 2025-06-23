@@ -26,38 +26,29 @@ func (b *BoxInstance) SelectOutbound(groupName, tag string) (ok bool) {
 	return true
 }
 
-// watchGroupChange monitors changes in group selections, particularly for URLTest and Selector
-// outbound types, and notifies the platform interface about these changes.
-func (b *BoxInstance) watchGroupChange() {
+// InitializeProxySet initializes the proxy set by iterating through all outbounds
+// and identifying outbound groups.
+func (b *BoxInstance) InitializeProxySet() {
 	var urlTests []*group.URLTest
 	for _, outbound := range b.Outbound().Outbounds() {
-		switch outbound.(type) {
-		case *group.Selector:
-			selector := outbound.(*group.Selector)
-			// Initialize
-			b.platformInterface.OnGroupSelectedChange(selector.Tag(), "", selector.Now())
-		case *group.URLTest:
-			urlTest := outbound.(*group.URLTest)
-			urlTests = append(urlTests, urlTest)
-		}
-	}
-	if len(urlTests) == 0 {
-		return
-	}
-
-	tagCache := make(map[string]string, len(urlTests)) // group:current_tag
-	check := func() {
-		for _, urlTest := range urlTests {
-			groupName := urlTest.Tag()
-			old := tagCache[groupName]
-			now := urlTest.Now()
-			tagCache[groupName] = now
-			if old != now {
-				b.platformInterface.OnGroupSelectedChange(groupName, old, now)
+		if outboundGroup, isGroup := outbound.(adapter.OutboundGroup); isGroup {
+			b.platformInterface.OnGroupSelectedChange(outboundGroup.Tag(), "", outboundGroup.Now())
+			if urlTest, isURLTest := outboundGroup.(*group.URLTest); isURLTest {
+				urlTests = append(urlTests, urlTest)
 			}
 		}
 	}
-	check()
+	if len(urlTests) > 0 {
+		b.watchGroupChange(urlTests)
+	}
+}
+
+// watchGroupChange monitors changes in the selected outbound for URLTest groups.
+func (b *BoxInstance) watchGroupChange(urlTests []*group.URLTest) {
+	tagCache := make(map[string]string, len(urlTests)) // group:current_tag
+	for _, urlTest := range urlTests {
+		tagCache[urlTest.Tag()] = urlTest.Now()
+	}
 
 	hook := make(chan struct{}, 1) // Prevent not receive notify when checking
 	b.api.HistoryStorage().SetHook(hook)
@@ -68,6 +59,7 @@ func (b *BoxInstance) watchGroupChange() {
 				return
 			case <-hook:
 			drainLoop:
+				// clean up hook channel
 				for {
 					select {
 					case <-hook:
@@ -77,7 +69,15 @@ func (b *BoxInstance) watchGroupChange() {
 				}
 			}
 
-			check()
+			for _, urlTest := range urlTests {
+				groupName := urlTest.Tag()
+				old := tagCache[groupName]
+				now := urlTest.Now()
+				tagCache[groupName] = now
+				if old != now {
+					b.platformInterface.OnGroupSelectedChange(groupName, old, now)
+				}
+			}
 		}
 	}()
 }

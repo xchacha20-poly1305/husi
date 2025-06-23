@@ -107,6 +107,7 @@ class TrafficLooper(
                 trafficUpdater = TrafficUpdater(
                     box = proxy.box, items = idMap.values.toList()
                 )
+                proxy.box.initializeProxySet()
             }
 
             trafficUpdater.updateAll()
