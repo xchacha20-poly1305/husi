@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
+import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
@@ -154,6 +155,17 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                                         "package", pkg.packageName, null
                                                     )
                                                 })
+                                            }
+                                            .apply {
+                                                val id =
+                                                    pkg.providers!![0].loadString(Plugins.METADATA_KEY_ID)
+                                                PluginEntry.find(id)?.let { entry ->
+                                                    setOnLongClickAction {
+                                                        requireContext().launchCustomTab(
+                                                            entry.downloadSource.downloadLink
+                                                        )
+                                                    }
+                                                }
                                             }
                                             .build())
                                 } catch (e: Exception) {
