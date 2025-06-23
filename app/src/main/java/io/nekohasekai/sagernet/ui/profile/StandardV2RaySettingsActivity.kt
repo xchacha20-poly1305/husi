@@ -220,11 +220,15 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverMuxNumber = findPreference<EditTextPreference>(Key.SERVER_MUX_NUMBER)!!.also {
             it.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
-        serverBrutal = findPreference<SwitchPreference>(Key.SERVER_BRUTAL)!!.also {
-            it.setOnPreferenceChangeListener { _, newValue ->
-                serverMuxNumber.isEnabled = !(newValue as Boolean)
-                true
-            }
+        fun onBrutalChange(brutal: Boolean) {
+            serverMuxStrategy.isEnabled = !brutal
+            serverMuxNumber.isEnabled = !brutal
+        }
+        serverBrutal = findPreference(Key.SERVER_BRUTAL)!!
+        onBrutalChange(serverBrutal.isChecked)
+        serverBrutal.setOnPreferenceChangeListener { _, newValue ->
+            onBrutalChange(newValue as Boolean)
+            true
         }
         muxCategory.isVisible = if (isHttp) {
             false
