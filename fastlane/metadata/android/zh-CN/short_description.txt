@@ -1,1 +1,1 @@
-Husi is a proxy configurations manager.
+虎兕 是一个非专业和娱乐性的代理工具集。
