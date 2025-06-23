@@ -63,7 +63,8 @@ enum class PluginEntry(
 
     companion object {
 
-        fun find(name: String): PluginEntry? {
+        fun find(name: String?): PluginEntry? {
+            if (name.isNullOrBlank()) return null
             for (pluginEntry in enumValues<PluginEntry>()) {
                 if (name == pluginEntry.pluginId) {
                     return pluginEntry
