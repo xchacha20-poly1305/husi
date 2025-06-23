@@ -517,7 +517,7 @@
     <string name="blurred_address">Сделать адрес сервера размытым</string>
     <string name="connection_test_mux">Сервер не поддерживает этот протокол мультиплексирования</string>
     <string name="create_shortcut">Создать ярлык</string>
-    <string name="xtls_flow">Flow (подпротокол VLESS)</string>
+    <string name="xtls_flow">Flow</string>
     <string name="tls_camouflage_settings">Настройки камуфляжа TLS</string>
     <string name="test_concurrency">Число параллельных подключений</string>
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
@@ -620,4 +620,19 @@
     <string name="fallback">Резервная</string>
     <string name="hybrid">Гибридная</string>
     <string name="selected">Выбрано</string>
+    <string name="management">Управление</string>
+    <string name="proxy_set">Набор прокси</string>
+    <string name="interrupt_exist_connections">Прерывание существующих соединений</string>
+    <string name="urltest_interval">Интервал URL-теста</string>
+    <string name="idle_timeout">Тайм-аут IDLE</string>
+    <string name="urltest_tolerance">Доступность</string>
+    <string name="route_action">Настройки маршрута</string>
+    <string name="prefer_ipv4">Предпочитать IPv4</string>
+    <string name="network_strategy">Сетевая стратегия</string>
+    <string name="hijack_dns">Перехват DNS</string>
+    <string name="route_options">Варианты маршрута</string>
+    <string name="rule_set_match">Соответствие набору правил</string>
+    <string name="prefer_ipv6">Предпочитать IPv6</string>
+    <string name="ipv4_only">Только IPv4</string>
+    <string name="ipv6_only">Только IPv6</string>
 </resources>
