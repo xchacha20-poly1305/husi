@@ -6,7 +6,7 @@
     android:clipToPadding="false"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:paddingBottom="16dp">
+    android:paddingBottom="64dp">
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -13,6 +13,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutConnectionBinding
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
@@ -54,7 +55,7 @@ class ConnectionFragment(val conn: Connection) :
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = bars.bottom,
+                bottom = bars.bottom + dp2px(64),
             )
             insets
         }
