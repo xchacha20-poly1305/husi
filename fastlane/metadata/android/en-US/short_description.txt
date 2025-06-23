@@ -1,1 +1,1 @@
-Husi is a proxy configurations manager.
+Husi is a non-professional and recreational proxy tool integration.
