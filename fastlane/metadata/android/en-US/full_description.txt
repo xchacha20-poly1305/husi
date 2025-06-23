@@ -1,1 +1,1 @@
-Husi is a proxy configurations manager for Android. It uses dun, which based on sing-box, support many features for proxy.
+Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.

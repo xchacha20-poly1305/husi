@@ -4,6 +4,10 @@
     height="80">
 </a>
 
+# Husi (虎兕)
+
+Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.
+
 ## 🛠️ Contribution
 
 ## 🧭 Guide
