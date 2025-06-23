@@ -85,10 +85,6 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     }
 
     security = url.queryParameterNotBlank("security")
-    if (security.isNullOrBlank()) {
-        security = if (this is TrojanBean) "tls" else "none"
-    }
-
     when (security) {
         "tls", "reality" -> {
             security = "tls"
