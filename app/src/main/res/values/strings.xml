@@ -679,4 +679,5 @@
     <string name="expand">Expand</string>
     <string name="selected">Selected</string>
     <string name="update_proxy_apps_when_install">Update Proxy Apps when Install</string>
+    <string name="filter_regex">Filter (Regex)</string>
 </resources>

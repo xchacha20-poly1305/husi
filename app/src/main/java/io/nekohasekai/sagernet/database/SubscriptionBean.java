@@ -26,6 +26,7 @@ public class SubscriptionBean extends Serializable {
     public String token;
     public Boolean forceResolve;
     public Boolean deduplication;
+    public String filterNotRegex;
     public Boolean updateWhenConnectedOnly;
     public String customUserAgent;
     public Boolean autoUpdate;
@@ -45,7 +46,7 @@ public class SubscriptionBean extends Serializable {
 
     @Override
     public void serializeToBuffer(ByteBufferOutput output) {
-        output.writeInt(3);
+        output.writeInt(4);
 
         output.writeInt(type);
 
@@ -62,6 +63,7 @@ public class SubscriptionBean extends Serializable {
         output.writeLong(bytesUsed);
         output.writeLong(bytesRemaining);
         output.writeString(token);
+        output.writeString(filterNotRegex);
     }
 
     public void serializeForShare(ByteBufferOutput output) {
@@ -92,13 +94,19 @@ public class SubscriptionBean extends Serializable {
         autoUpdateDelay = input.readInt();
         lastUpdated = input.readInt();
 
-        if (version < 2) return;
-        expiryDate = input.readLong();
-        bytesUsed = input.readLong();
-        bytesRemaining = input.readLong();
+        if (version >= 2) {
+            expiryDate = input.readLong();
+            bytesUsed = input.readLong();
+            bytesRemaining = input.readLong();
+        }
 
-        if (version < 3) return;
-        token = input.readString();
+        if (version >= 3) {
+            token = input.readString();
+        }
+
+        if (version >= 4) {
+            filterNotRegex = input.readString();
+        }
     }
 
     public void deserializeFromShare(ByteBufferInput input) {
@@ -121,6 +129,7 @@ public class SubscriptionBean extends Serializable {
         if (link == null) link = "";
         if (token == null) token = "";
         if (forceResolve == null) forceResolve = false;
+        if (filterNotRegex == null) filterNotRegex = "";
         if (deduplication == null) deduplication = false;
         if (updateWhenConnectedOnly == null) updateWhenConnectedOnly = false;
         if (customUserAgent == null) customUserAgent = "";
