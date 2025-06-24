@@ -299,6 +299,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverTolerance by profileCacheStore.stringToInt(Key.SERVER_TOLERANCE) { 50 }
     var serverType by profileCacheStore.stringToInt(Key.SERVER_TYPE)
     var serverGroup by profileCacheStore.stringToLong(Key.SERVER_GROUP)
+    var serverFilterNotRegex by profileCacheStore.string(Key.SERVER_FILTER_NOT_REGEX)
     var serverProxies by profileCacheStore.string(Key.SERVER_PROXIES)
 
     // Route

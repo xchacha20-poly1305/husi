@@ -153,9 +153,11 @@ fun buildConfig(
 
                 val beansMap = beans.associateBy { it.id }
                 val beanList = mutableListOf<ProxyEntity>()
+                val regex = bean.groupFilterNotRegex.blankAsNull()?.toRegex()
                 for (proxyId in beansMap.keys) {
                     val item = beansMap[proxyId] ?: continue
                     if (item.id == id) continue
+                    if (regex?.containsMatchIn(item.displayName()) == false) continue
                     when (item.type) {
                         ProxyEntity.TYPE_PROXY_SET -> error("Nested proxy set are not supported")
                         ProxyEntity.TYPE_CHAIN -> error("Chain is incompatible with group bean")

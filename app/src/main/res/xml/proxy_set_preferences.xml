@@ -61,4 +61,10 @@
         app:icon="@drawable/ic_baseline_view_list_24"
         app:key="serverGroup"
         app:title="@string/menu_group" />
+
+    <EditTextPreference
+        app:icon="@drawable/baseline_delete_sweep_24"
+        app:key="serverFilterNotRegex"
+        app:title="@string/filter_regex"
+        app:useSimpleSummaryProvider="true" />
 </PreferenceScreen>

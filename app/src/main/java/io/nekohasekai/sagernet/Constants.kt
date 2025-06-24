@@ -211,6 +211,7 @@ object Key {
     const val SERVER_TOLERANCE = "serverTolerance"
     const val SERVER_TYPE = "serverType"
     const val SERVER_GROUP = "serverGroup"
+    const val SERVER_FILTER_NOT_REGEX = "serverFilterNotRegex"
     const val SERVER_PROXIES = "serverProxies"
 
     // Route
