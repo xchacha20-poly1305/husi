@@ -70,8 +70,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.9.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.1")
-    implementation("androidx.work:work-multiprocess:2.10.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.2")
+    implementation("androidx.work:work-multiprocess:2.10.2")
 
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.code.gson:gson:2.13.1")
@@ -100,10 +100,10 @@ dependencies {
     }
     implementation("com.google.guava:guava:33.4.8-android")
 
-    implementation("androidx.room:room-runtime:2.7.1")
+    implementation("androidx.room:room-runtime:2.7.2")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
-    ksp("androidx.room:room-compiler:2.7.1")
-    implementation("androidx.room:room-ktx:2.7.1")
+    ksp("androidx.room:room-compiler:2.7.2")
+    implementation("androidx.room:room-ktx:2.7.2")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
 
