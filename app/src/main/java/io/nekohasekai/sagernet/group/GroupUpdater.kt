@@ -145,7 +145,12 @@ abstract class GroupUpdater {
         userInterface: GroupManager.Interface?,
         byUser: Boolean,
     ) {
-        var newProxies = proxies
+        var newProxies = if (subscription.filterNotRegex.isNotBlank()) {
+            val regex = subscription.filterNotRegex.toRegex()
+            proxies.filterNot { regex.containsMatchIn(it.name) }
+        } else {
+            proxies
+        }
 
         val proxiesMap = LinkedHashMap<String, AbstractBean>()
         for (proxy in newProxies) {

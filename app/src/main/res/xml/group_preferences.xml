@@ -75,6 +75,12 @@
             app:summary="@string/deduplication_sum"
             app:title="@string/deduplication" />
 
+        <EditTextPreference
+            app:icon="@drawable/baseline_delete_sweep_24"
+            app:key="subscriptionFilterRegex"
+            app:title="@string/filter_regex"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
