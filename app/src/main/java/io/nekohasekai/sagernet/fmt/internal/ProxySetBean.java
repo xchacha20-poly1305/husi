@@ -42,6 +42,7 @@ public class ProxySetBean extends InternalBean {
 
     public List<Long> proxies;
     public Long groupId;
+    public String groupFilterNotRegex;
 
     // Selector + URLTest
     public Boolean interruptExistConnections;
@@ -60,6 +61,7 @@ public class ProxySetBean extends InternalBean {
         if (type == null) type = TYPE_LIST;
         if (proxies == null) proxies = new ArrayList<>();
         if (groupId == null) groupId = 0L;
+        if (groupFilterNotRegex == null) groupFilterNotRegex = "";
         if (interruptExistConnections == null) interruptExistConnections = false;
         if (testURL == null) testURL = ConstantsKt.CONNECTION_TEST_URL;
         if (testInterval == null) testInterval = "3m";
@@ -83,7 +85,7 @@ public class ProxySetBean extends InternalBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         output.writeInt(management);
         output.writeBoolean(interruptExistConnections);
         output.writeString(testURL);
@@ -103,6 +105,7 @@ public class ProxySetBean extends InternalBean {
             }
             case TYPE_GROUP: {
                 output.writeLong(groupId);
+                output.writeString(groupFilterNotRegex);
                 break;
             }
         }
@@ -130,6 +133,9 @@ public class ProxySetBean extends InternalBean {
             }
             case TYPE_GROUP: {
                 groupId = input.readLong();
+                if (version >= 1) {
+                    groupFilterNotRegex = input.readString();
+                }
                 break;
             }
         }

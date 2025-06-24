@@ -75,6 +75,7 @@ class ProxySetSettingsActivity :
         DataStore.serverTolerance = testTolerance
         DataStore.serverType = type
         DataStore.serverGroup = groupId
+        DataStore.serverFilterNotRegex = groupFilterNotRegex
         DataStore.serverProxies = proxies.joinToString(",")
     }
 
@@ -88,11 +89,13 @@ class ProxySetSettingsActivity :
         testTolerance = DataStore.serverTolerance
         type = DataStore.serverType
         groupId = DataStore.serverGroup
+        groupFilterNotRegex = DataStore.serverFilterNotRegex
         proxies = proxyList.mapX { it.id }
     }
 
     private lateinit var groupType: SimpleMenuPreference
     private lateinit var groupPreference: SimpleMenuPreference
+    private lateinit var groupFilterNotPreference: EditTextPreference
     private lateinit var serverManagement: SimpleMenuPreference
     private lateinit var testURL: EditTextPreference
     private lateinit var testInterval: DurationPreference
@@ -109,6 +112,7 @@ class ProxySetSettingsActivity :
         groupPreference = findPreference<SimpleMenuPreference>(Key.SERVER_GROUP)!!.apply {
             setGroupBean()
         }
+        groupFilterNotPreference = findPreference(Key.SERVER_FILTER_NOT_REGEX)!!
         serverManagement = findPreference(Key.SERVER_MANAGEMENT)!!
         testURL = findPreference(Key.SERVER_TEST_URL)!!
         testInterval = findPreference(Key.SERVER_TEST_INTERVAL)!!
@@ -123,12 +127,14 @@ class ProxySetSettingsActivity :
             when (type) {
                 ProxySetBean.TYPE_LIST -> {
                     groupPreference.isVisible = false
+                    groupFilterNotPreference.isVisible = false
                     configurationList.isVisible = true
                     itemView.isVisible = true
                 }
 
                 ProxySetBean.TYPE_GROUP -> {
                     groupPreference.isVisible = true
+                    groupFilterNotPreference.isVisible = true
                     configurationList.isVisible = false
                     itemView.isVisible = false
                 }
