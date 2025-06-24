@@ -5,12 +5,15 @@ import android.content.Context
 import android.content.Intent
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ui.AppManagerActivity
 
 class AppChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Logs.d("onReceive: ${intent.action}")
-        checkUpdate(intent)
+        runOnIoDispatcher {
+            checkUpdate(intent)
+        }
     }
 
     private fun checkUpdate(intent: Intent) {
