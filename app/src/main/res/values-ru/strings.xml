@@ -625,7 +625,7 @@
     <string name="interrupt_exist_connections">Прерывание существующих соединений</string>
     <string name="urltest_interval">Интервал URL-теста</string>
     <string name="idle_timeout">Тайм-аут IDLE</string>
-    <string name="urltest_tolerance">Доступность</string>
+    <string name="urltest_tolerance">Допуск проверки</string>
     <string name="route_action">Настройки маршрута</string>
     <string name="prefer_ipv4">Предпочитать IPv4</string>
     <string name="network_strategy">Сетевая стратегия</string>
@@ -635,4 +635,5 @@
     <string name="prefer_ipv6">Предпочитать IPv6</string>
     <string name="ipv4_only">Только IPv4</string>
     <string name="ipv6_only">Только IPv6</string>
+    <string name="filter_regex">Фильтр (Regex)</string>
 </resources>
