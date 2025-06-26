@@ -36,7 +36,6 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
@@ -162,12 +161,8 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     }
 
     open suspend fun saveAndExit() {
-        if (DataStore.editingId != 0L) {
-            if (proxyEntity.id == DataStore.selectedProxy) {
-                SagerNet.stopService()
-            }
-        }
         ProfileManager.updateProfile(proxyEntity.apply { (requireBean() as T).serialize() })
+        setResult(RESULT_OK)
         finish()
     }
 

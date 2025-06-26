@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
@@ -78,6 +79,7 @@ import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.isInsecure
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -1732,9 +1734,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
 
                 editButton.setOnClickListener {
-                    it.context.startActivity(
+                    editProfileLauncher.launch(
                         proxyEntity.settingIntent(
-                            it.context, proxyGroup.type == GroupType.SUBSCRIPTION
+                            it.context,
+                            proxyGroup.type == GroupType.SUBSCRIPTION,
                         )
                     )
                 }
@@ -1756,7 +1759,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     val started =
                         selected && DataStore.serviceState.started && DataStore.currentProfile == proxyEntity.id
                     onMainDispatcher {
-                        editButton.isEnabled = !started
                         removeButton.isEnabled = !started
                         selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
                     }
@@ -1898,6 +1900,15 @@ class ConfigurationFragment @JvmOverloads constructor(
                 return true
             }
         }
+
+        private val editProfileLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    if (DataStore.currentProfile == DataStore.editingId) {
+                        needReload()
+                    }
+                }
+            }
 
     }
 
