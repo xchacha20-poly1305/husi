@@ -680,4 +680,10 @@
     <string name="selected">Selected</string>
     <string name="update_proxy_apps_when_install">Update Proxy Apps when Install</string>
     <string name="filter_regex">Filter (Regex)</string>
+    <string name="tasker_settings">Tasker Settings</string>
+    <string name="tasker_action">Tasker Action</string>
+    <string name="tasker_action_start_service">Start service</string>
+    <string name="tasker_action_stop_service">Stop service</string>
+    <string name="tasker_start_current_profile">Current profile</string>
+    <string name="tasker_blurb_start_profile">Start profile %s</string>
 </resources>

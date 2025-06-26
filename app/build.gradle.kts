@@ -89,6 +89,7 @@ dependencies {
     implementation("com.jakewharton:process-phoenix:3.0.0")
     implementation("com.esotericsoftware:kryo:5.6.2")
     implementation("org.ini4j:ini4j:0.5.4")
+    implementation("com.twofortyfouram:android-plugin-api-for-locale:1.0.4")
 
     implementation("com.simplecityapps:recyclerview-fastscroll:2.0.1") {
         exclude(group = "androidx.recyclerview")

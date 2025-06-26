@@ -606,4 +606,10 @@
     <string name="selected">已选择</string>
     <string name="update_proxy_apps_when_install">在安装应用时更新代理应用列表</string>
     <string name="filter_regex">过滤（正则表达式）</string>
+    <string name="tasker_settings">Tasker 设置</string>
+    <string name="tasker_action">Tasker 动作</string>
+    <string name="tasker_action_start_service">启动服务</string>
+    <string name="tasker_action_stop_service">停止服务</string>
+    <string name="tasker_start_current_profile">当前配置</string>
+    <string name="tasker_blurb_start_profile">启动配置 %s</string>
 </resources>
