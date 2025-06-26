@@ -404,7 +404,7 @@ class RouteSettingsActivity(
 
         const val NETWORK_TYPE_WIFI = "wifi"
 
-        const val OUTBOUND_POSITION = "3"
+        private const val OUTBOUND_POSITION = "3"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -46,7 +46,6 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
-import io.nekohasekai.sagernet.ui.RouteSettingsActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.setOutbound
@@ -57,7 +56,7 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
     OnPreferenceDataStoreChangeListener {
 
     companion object {
-        const val OUTBOUND_POSITION = "1"
+        private const val OUTBOUND_POSITION = "1"
     }
 
     override val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
@@ -164,9 +163,9 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
                     ProfileSelectActivity.EXTRA_PROFILE_ID, 0
                 )
             ) ?: return@runOnDefaultDispatcher
-            DataStore.routeOutboundRule = entity.id
+            DataStore.taskerProfileId = entity.id
             onMainDispatcher {
-                profile.value = RouteSettingsActivity.Companion.OUTBOUND_POSITION
+                profile.value = OUTBOUND_POSITION
                 profile.updateOutboundSummary()
             }
         }

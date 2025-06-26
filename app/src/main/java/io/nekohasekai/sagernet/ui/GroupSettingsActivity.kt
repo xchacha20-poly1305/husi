@@ -224,7 +224,7 @@ class GroupSettingsActivity(
     companion object {
         const val EXTRA_GROUP_ID = "id"
 
-        const val OUTBOUND_POSITION = 1
+        private const val OUTBOUND_POSITION = 1
     }
 
     @SuppressLint("CommitTransaction")
