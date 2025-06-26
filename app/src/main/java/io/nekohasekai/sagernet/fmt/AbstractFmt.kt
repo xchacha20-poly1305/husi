@@ -76,7 +76,7 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
 }
 
 fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
-    if (!bean.serverMux || !bean.serverBrutal) return null
+    if (!bean.serverMux) return null
 
     return OutboundMultiplexOptions().apply {
         padding = bean.serverMuxPadding
