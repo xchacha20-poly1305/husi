@@ -411,6 +411,16 @@ class MainActivity : ThemedActivity(),
             connection.service?.enableDashboardStatus(true)
             trafficFragment.refreshClashMode()
         }
+
+        when (state) {
+            BaseService.State.Connected, BaseService.State.Stopped -> {
+                runOnDefaultDispatcher {
+                    // refresh view
+                    ProfileManager.postUpdate(DataStore.currentProfile)
+                }
+            }
+            else -> {}
+        }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
