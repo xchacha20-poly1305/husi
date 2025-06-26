@@ -362,6 +362,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var subscriptionAutoUpdate by profileCacheStore.boolean(Key.SUBSCRIPTION_AUTO_UPDATE)
     var subscriptionAutoUpdateDelay by profileCacheStore.stringToInt(Key.SUBSCRIPTION_AUTO_UPDATE_DELAY) { 360 }
 
+    var taskerAction by profileCacheStore.stringToInt(Key.TASKER_ACTION)
+    var taskerProfile by profileCacheStore.stringToInt(Key.TASKER_PROFILE)
+    var taskerProfileId by profileCacheStore.long(Key.TASKER_PROFILE_ID) { -1L }
+
     var rulesFirstCreate by profileCacheStore.boolean(Key.RULES_FIRST_CREATE)
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {

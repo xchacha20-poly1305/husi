@@ -322,6 +322,25 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name="io.nekohasekai.sagernet.tasker.TaskerReceiver"
+            android:directBootAware="true"
+            android:exported="true"
+            android:process=":bg"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="io.nekohasekai.sagernet.tasker.TaskerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name="androidx.room.MultiInstanceInvalidationService"
             android:process=":bg" />

@@ -279,6 +279,9 @@ object Key {
     const val SUBSCRIPTION_AUTO_UPDATE = "subscriptionAutoUpdate"
     const val SUBSCRIPTION_AUTO_UPDATE_DELAY = "subscriptionAutoUpdateDelay"
 
+    const val TASKER_ACTION = "taskerAction"
+    const val TASKER_PROFILE = "taskerProfile"
+    const val TASKER_PROFILE_ID = "taskerProfileId"
 }
 
 fun logLevelString(level: Int): String = when (level) {
