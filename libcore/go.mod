@@ -7,12 +7,12 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.66
 	github.com/sagernet/gomobile v0.1.6
-	github.com/sagernet/sing v0.6.10
-	github.com/sagernet/sing-box v1.11.15-0.20250621045726-cba0e46aba12
+	github.com/sagernet/sing v0.6.11
+	github.com/sagernet/sing-box v1.11.15-0.20250625052000-2cf989d3064d
 	github.com/sagernet/sing-dns v0.4.5
 	github.com/sagernet/sing-tun v0.6.9
 	github.com/xchacha20-poly1305/TLS-scribe v0.11.0
-	github.com/xchacha20-poly1305/anchor v0.6.1
+	github.com/xchacha20-poly1305/anchor v0.7.0
 	github.com/xchacha20-poly1305/cazilla v1.0.2
 	github.com/xchacha20-poly1305/libping v0.9.0
 	golang.org/x/sys v0.33.0
