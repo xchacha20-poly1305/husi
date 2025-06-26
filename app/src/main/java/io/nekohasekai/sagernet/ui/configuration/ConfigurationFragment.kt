@@ -1776,7 +1776,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                         }
 
                         val bean = proxyEntity.requireBean()
-                        if (proxyEntity.type == ProxyEntity.TYPE_CHAIN || proxyEntity.mustUsePlugin() || (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG) {
+                        if (proxyEntity.type == ProxyEntity.TYPE_CHAIN ||
+                            proxyEntity.type == ProxyEntity.TYPE_PROXY_SET ||
+                            proxyEntity.mustUsePlugin() ||
+                            (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
+                        ) {
                             popup.menu.removeItem(R.id.action_group_outbound)
                         }
 
