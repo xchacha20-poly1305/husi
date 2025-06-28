@@ -13,13 +13,12 @@ import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
-import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.widget.DurationPreference
 import rikka.preference.SimpleMenuPreference
 
 abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV2RayBean>() {
 
-    lateinit var bean: StandardV2RayBean
+    private lateinit var bean: StandardV2RayBean
 
     override fun StandardV2RayBean.init() {
         bean = this
@@ -28,6 +27,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverAddress = serverAddress
         DataStore.serverPort = serverPort
 
+        // V2Ray Transport
         DataStore.serverNetwork = v2rayTransport
         DataStore.serverHost = host
         DataStore.serverPath = path
@@ -35,6 +35,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverWsMaxEarlyData = wsMaxEarlyData
         DataStore.serverWsEarlyDataHeaderName = earlyDataHeaderName
 
+        // Security
         DataStore.serverSecurity = security
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
@@ -49,6 +50,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverECH = ech
         DataStore.serverECHConfig = echConfig
 
+        // Mux
         DataStore.serverMux = serverMux
         DataStore.serverBrutal = serverBrutal
         DataStore.serverMuxType = serverMuxType
@@ -56,6 +58,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverMuxNumber = serverMuxNumber
         DataStore.serverMuxPadding = serverMuxPadding
 
+        // Protocol Specific
         when (this) {
             is HttpBean -> {
                 DataStore.serverUsername = username
@@ -77,10 +80,12 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     }
 
     override fun StandardV2RayBean.serialize() {
+        // Basic
         name = DataStore.profileName
         serverAddress = DataStore.serverAddress
         serverPort = DataStore.serverPort
 
+        // V2Ray Transport
         v2rayTransport = DataStore.serverNetwork
         host = DataStore.serverHost
         path = DataStore.serverPath
@@ -88,6 +93,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         wsMaxEarlyData = DataStore.serverWsMaxEarlyData
         earlyDataHeaderName = DataStore.serverWsEarlyDataHeaderName
 
+        // Security
         security = DataStore.serverSecurity
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
@@ -102,6 +108,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         ech = DataStore.serverECH
         echConfig = DataStore.serverECHConfig
 
+        // Mux
         serverMux = DataStore.serverMux
         serverBrutal = DataStore.serverBrutal
         serverMuxType = DataStore.serverMuxType
@@ -109,6 +116,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverMuxNumber = DataStore.serverMuxNumber
         serverMuxPadding = DataStore.serverMuxPadding
 
+        // Protocol Specific
         when (this) {
             is HttpBean -> {
                 username = DataStore.serverUsername
@@ -142,6 +150,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var serverHeaders: EditTextPreference
     private lateinit var serverSecurity: SimpleMenuPreference
 
+    private lateinit var serverMux: SwitchPreference
     private lateinit var serverBrutal: SwitchPreference
     private lateinit var serverMuxType: SimpleMenuPreference
     private lateinit var serverMuxNumber: EditTextPreference
@@ -157,6 +166,13 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     ) {
         addPreferencesFromResource(R.xml.standard_v2ray_preferences)
 
+        bindPreferences()
+        setupInitialState()
+        setupListeners()
+    }
+
+    /** Binds all preference views from the XML to their corresponding variables. */
+    private fun PreferenceFragmentCompat.bindPreferences() {
         securityCategory = findPreference(Key.SERVER_SECURITY_CATEGORY)!!
         tlsCamouflageCategory = findPreference(Key.SERVER_TLS_CAMOUFLAGE_CATEGORY)!!
         echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
@@ -167,42 +183,53 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverHost = findPreference(Key.SERVER_HOST)!!
         serverPath = findPreference(Key.SERVER_PATH)!!
         serverHeaders = findPreference(Key.SERVER_HEADERS)!!
+        serverSecurity = findPreference(Key.SERVER_SECURITY)!!
+        serverV2rayTransport = findPreference(Key.SERVER_V2RAY_TRANSPORT)!!
 
-        // vmess/vless/http/trojan
+        serverMux = findPreference(Key.SERVER_MUX)!!
+        serverBrutal = findPreference(Key.SERVER_BRUTAL)!!
+        serverMuxType = findPreference(Key.SERVER_MUX_TYPE)!!
+        serverMuxStrategy = findPreference(Key.SERVER_MUX_STRATEGY)!!
+        serverMuxPadding = findPreference(Key.SERVER_MUX_PADDING)!!
+        serverMuxNumber = findPreference(Key.SERVER_MUX_NUMBER)!!
+
+        fragment = findPreference(Key.SERVER_FRAGMENT)!!
+        fragmentFallbackDelay = findPreference(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
+    }
+
+    /** Sets up the initial state of preferences based on the profile bean. */
+    private fun PreferenceFragmentCompat.setupInitialState() {
         val isHttp = bean is HttpBean
-        val isVmess = bean is VMessBean && bean.isVLESS == false
-        val isVless = bean.isVLESS == true
+        val isVmess = bean is VMessBean && !bean.isVLESS
+        val isVless = bean.isVLESS
         val isTrojan = bean is TrojanBean
 
-        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-        }
-
+        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.setOnBindEditTextListener(
+            EditTextPreferenceModifiers.Port
+        )
         findPreference<EditTextPreference>(Key.SERVER_ALTER_ID)!!.apply {
             isVisible = isVmess
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         }
-
-        findPreference<EditTextPreference>(Key.SERVER_USER_ID)!!.apply {
-            summaryProvider = PasswordSummaryProvider
-        }
-
-        findPreference<SimpleMenuPreference>(Key.SERVER_V2RAY_TRANSPORT)!!.apply {
-            isVisible = !isHttp
-        }
         findPreference<EditTextPreference>(Key.SERVER_USER_ID)!!.apply {
             isVisible = isVmess || isVless
             summaryProvider = PasswordSummaryProvider
         }
-        findPreference<SimpleMenuPreference>(Key.SERVER_PACKET_ENCODING)!!.apply {
-            isVisible = isVmess || isVless
-        }
+        findPreference<SimpleMenuPreference>(Key.SERVER_PACKET_ENCODING)!!
+            .isVisible = isVmess || isVless
         findPreference<SimpleMenuPreference>(Key.SERVER_ENCRYPTION)!!.apply {
             isVisible = isVmess || isVless
+            if (isVless) {
+                title = getString(R.string.xtls_flow)
+                setIcon(R.drawable.ic_baseline_stream_24)
+                setEntries(R.array.xtls_flow_value)
+                setEntryValues(R.array.xtls_flow_value)
+            } else {
+                setEntries(R.array.vmess_encryption_value)
+                setEntryValues(R.array.vmess_encryption_value)
+            }
         }
-        findPreference<EditTextPreference>(Key.SERVER_USERNAME)!!.apply {
-            isVisible = isHttp
-        }
+        findPreference<EditTextPreference>(Key.SERVER_USERNAME)!!.isVisible = isHttp
         findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
             isVisible = isHttp || isTrojan
             summaryProvider = PasswordSummaryProvider
@@ -213,166 +240,118 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             }
         }
         experimentsCategory.isVisible = isVmess
+        serverV2rayTransport.isVisible = !isHttp
+        serverMuxNumber.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
 
-        serverMuxType = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_TYPE)!!
-        serverMuxStrategy = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_STRATEGY)!!
-        serverMuxPadding = findPreference<SwitchPreference>(Key.SERVER_MUX_PADDING)!!
-        serverMuxNumber = findPreference<EditTextPreference>(Key.SERVER_MUX_NUMBER)!!.also {
-            it.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
-        }
-        fun onBrutalChange(brutal: Boolean) {
-            serverMuxStrategy.isEnabled = !brutal
-            serverMuxNumber.isEnabled = !brutal
-        }
-        serverBrutal = findPreference(Key.SERVER_BRUTAL)!!
-        onBrutalChange(serverBrutal.isChecked)
-        serverBrutal.setOnPreferenceChangeListener { _, newValue ->
-            onBrutalChange(newValue as Boolean)
+        updateUiState(serverV2rayTransport.value, serverSecurity.value)
+    }
+
+    /** Sets up listeners for preferences that change the UI dynamically. */
+    private fun setupListeners() {
+        serverV2rayTransport.setOnPreferenceChangeListener { _, newValue ->
+            updateUiState(newValue as String, serverSecurity.value)
             true
         }
-        muxCategory.isVisible = if (isHttp) {
-            false
-        } else when (bean.v2rayTransport) {
-            "quic", "grpc" -> false
-            "h2" -> !bean.isTLS()
-            else -> true
-        }
-        updateMuxState(bean.serverMux)
-        findPreference<SwitchPreference>(Key.SERVER_MUX)!!.apply {
-            setOnPreferenceChangeListener { _, newValue ->
-                updateMuxState(newValue as Boolean)
-                true
-            }
+
+        serverSecurity.setOnPreferenceChangeListener { _, newValue ->
+            updateUiState(serverV2rayTransport.value, newValue as String)
+            true
         }
 
-        findPreference<SimpleMenuPreference>(Key.SERVER_ENCRYPTION)!!.apply {
-            if (isVless) {
-                title = resources.getString(R.string.xtls_flow)
-                setIcon(R.drawable.ic_baseline_stream_24)
-                setEntries(R.array.xtls_flow_value)
-                setEntryValues(R.array.xtls_flow_value)
-            } else {
-                setEntries(R.array.vmess_encryption_value)
-                setEntryValues(R.array.vmess_encryption_value)
-            }
+        serverMux.setOnPreferenceChangeListener { _, newValue ->
+            updateMuxControlsVisibility(newValue as Boolean)
+            true
         }
 
-        // menu with listener
-
-        serverSecurity = findPreference(Key.SERVER_SECURITY)!!
-        serverV2rayTransport = findPreference<SimpleMenuPreference>(Key.SERVER_V2RAY_TRANSPORT)!!
-        serverV2rayTransport.apply {
-            val isTls = isTLS(serverSecurity.value)
-            updateView(isHttp, serverV2rayTransport.value, isTls)
-            setOnPreferenceChangeListener { _, newValue ->
-                updateView(isHttp, newValue as String, isTls)
-                true
-            }
+        serverBrutal.setOnPreferenceChangeListener { _, newValue ->
+            updateBrutalState(newValue as Boolean)
+            true
         }
 
-        serverSecurity.apply {
-            updateTls(isTLS(serverSecurity.value))
-            setOnPreferenceChangeListener { _, newValue ->
-                newValue as String
-                val isTls = isTLS(newValue)
-                updateTls(isTls)
-                updateView(isHttp, serverV2rayTransport.value, isTls)
-                true
-            }
-        }
-
-        fragment = findPreference(Key.SERVER_FRAGMENT)!!
-        fragmentFallbackDelay = findPreference(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
-        fun updateFragment(enabled: Boolean = fragment.isChecked) {
-            fragmentFallbackDelay.isEnabled = enabled
-        }
-        updateFragment()
         fragment.setOnPreferenceChangeListener { _, newValue ->
-            updateFragment(newValue as Boolean)
+            fragmentFallbackDelay.isEnabled = newValue as Boolean
             true
         }
     }
 
-    private fun updateView(isHttp: Boolean, network: String, isTLS: Boolean) {
+    /**
+     * The single source of truth for updating the UI based on transport and security settings.
+     * Call this whenever a setting that affects layout visibility changes.
+     */
+    private fun updateUiState(network: String, security: String) {
+        val isTls = isTLS(security)
+        val isHttp = bean is HttpBean
+
+        updateTlsCategoriesVisibility(isTls)
+
+        updateTransportViews(network, isHttp)
+
+        muxCategory.isVisible = shouldShowMuxCategory(network, isTls, isHttp)
+        updateMuxControlsVisibility(serverMux.isChecked)
+        updateBrutalState(serverBrutal.isChecked)
+        fragmentFallbackDelay.isEnabled = fragment.isChecked
+    }
+
+    private fun updateTransportViews(network: String, isHttp: Boolean) {
+        serverHost.isVisible = false
+        serverPath.isVisible = false
+        serverHeaders.isVisible = false
+        wsCategory.isVisible = false
+
         if (isHttp) {
+            serverHost.isVisible = true
+            serverPath.isVisible = true
+            serverHeaders.isVisible = true
             serverHost.setTitle(R.string.http_host)
             serverPath.setTitle(R.string.http_path)
+            return
         }
 
-        serverHost.isVisible = isHttp
-        serverPath.isVisible = isHttp
-        serverHeaders.isVisible = isHttp
-        wsCategory.isVisible = false
-        muxCategory.isVisible = !isHttp
-
         when (network) {
-            "tcp" -> {
+            "", "tcp" -> {}
+
+            "http" -> {
+                // V2Ray's tcp + http or so-called "http" (h2)
+                serverHost.isVisible = true
+                serverPath.isVisible = true
+                serverHeaders.isVisible = true
                 serverHost.setTitle(R.string.http_host)
                 serverPath.setTitle(R.string.http_path)
             }
 
-            "http" -> {
-                serverHost.apply {
-                    setTitle(R.string.http_host)
-                    isVisible = true
-                }
-                serverPath.apply {
-                    setTitle(R.string.http_path)
-                    isVisible = true
-                }
-                serverHeaders.apply {
-                    isVisible = true
-                }
-
-                // http + TLS = h2
-                if (isTLS) muxCategory.isVisible = false
-            }
-
             "ws" -> {
-                serverHost.apply {
-                    setTitle(R.string.ws_host)
-                    isVisible = true
-                }
-                serverPath.apply {
-                    setTitle(R.string.ws_path)
-                    isVisible = true
-                }
-                serverHeaders.apply {
-                    isVisible = true
-                }
+                serverHost.isVisible = true
+                serverPath.isVisible = true
+                serverHeaders.isVisible = true
                 wsCategory.isVisible = true
+                serverHost.setTitle(R.string.ws_host)
+                serverPath.setTitle(R.string.ws_path)
             }
 
             "grpc" -> {
-                serverPath.apply {
-                    setTitle(R.string.grpc_service_name)
-                    isVisible = true
-                }
-
-                muxCategory.isVisible = false
-            }
-
-            "quic" -> {
-                muxCategory.isVisible = false
+                serverPath.isVisible = true
+                serverPath.setTitle(R.string.grpc_service_name)
             }
 
             "httpupgrade" -> {
-                serverHost.apply {
-                    setTitle(R.string.http_upgrade_host)
-                    isVisible = true
-                }
-                serverPath.apply {
-                    setTitle(R.string.http_upgrade_path)
-                    isVisible = true
-                }
-                serverHeaders.apply {
-                    isVisible = true
-                }
+                serverHost.isVisible = true
+                serverPath.isVisible = true
+                serverHeaders.isVisible = true
+                serverHost.setTitle(R.string.http_upgrade_host)
+                serverPath.setTitle(R.string.http_upgrade_path)
             }
+
+            "quic" -> {}
         }
     }
 
-    private fun updateMuxState(enabled: Boolean) {
+    private fun updateTlsCategoriesVisibility(isTls: Boolean) {
+        securityCategory.isVisible = isTls
+        tlsCamouflageCategory.isVisible = isTls
+        echCategory.isVisible = isTls
+    }
+
+    private fun updateMuxControlsVisibility(enabled: Boolean) {
         serverBrutal.isVisible = enabled
         serverMuxType.isVisible = enabled
         serverMuxStrategy.isVisible = enabled
@@ -380,12 +359,19 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverMuxPadding.isVisible = enabled
     }
 
-    private fun updateTls(isTLS: Boolean) {
-        securityCategory.isVisible = isTLS
-        tlsCamouflageCategory.isVisible = isTLS
-        echCategory.isVisible = isTLS
+    private fun updateBrutalState(isBrutalEnabled: Boolean) {
+        serverMuxStrategy.isEnabled = !isBrutalEnabled
+        serverMuxNumber.isEnabled = !isBrutalEnabled
+    }
+
+    private fun shouldShowMuxCategory(network: String, isTls: Boolean, isHttp: Boolean): Boolean {
+        if (isHttp) return false
+        return when (network) {
+            "quic", "grpc" -> false
+            "http" -> !isTls // h2 when TLS is enabled
+            else -> true // tcp, ws, httpupgrade
+        }
     }
 
     private fun isTLS(security: String): Boolean = security == "tls"
-
 }
