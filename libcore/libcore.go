@@ -44,6 +44,7 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 			defer catchPanic("extractAssets", func(panicErr error) { log.Error(panicErr) })
 
 			extractAssets(useOfficialAssets)
+			cleanLogCache(cachePath)
 		}()
 	}
 }
