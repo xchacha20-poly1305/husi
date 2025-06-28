@@ -3,7 +3,9 @@ package libcore
 import (
 	"context"
 	"io"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/sagernet/sing-box/log"
@@ -93,6 +95,35 @@ func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bo
 	log.SetStdLogger(logFactory.Logger())
 
 	return
+}
+
+// cleanLogCache removes old log files from the specified cache directory.
+// Before creating this function, the generated log will not be cleaned until user clean it by themselves.
+func cleanLogCache(cacheDir string) {
+	logDir := filepath.Join(cacheDir, "log")
+	now := time.Now()
+	err := filepath.WalkDir(logDir, func(path string, entry fs.DirEntry, err error) (_ error) {
+		if err != nil {
+			return
+		}
+		if entry.IsDir() {
+			return
+		}
+		info, err := entry.Info()
+		if err != nil {
+			log.Warn("cleaning log cache for ", path, ": ", err)
+			return
+		}
+		modificationTime := info.ModTime()
+		const cleanTime = 3 * 24 * time.Hour // 3 days
+		if modificationTime.IsZero() || now.Sub(modificationTime) >= cleanTime {
+			_ = os.Remove(path)
+		}
+		return
+	})
+	if err != nil {
+		log.Warn("walk log cache: ", err)
+	}
 }
 
 var _ log.PlatformWriter = (*logWriter)(nil)
