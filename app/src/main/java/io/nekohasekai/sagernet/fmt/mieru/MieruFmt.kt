@@ -18,6 +18,7 @@
 
 package io.nekohasekai.sagernet.fmt.mieru
 
+import io.nekohasekai.sagernet.ktx.queryParameter
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.logLevelString
 import libcore.Libcore
@@ -56,9 +57,11 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
                 })
                 put("servers", serverInfo)
                 put("mtu", mtu)
-                if (serverMuxNumber > 0) put("multiplexing", JSONObject().apply {
-                    put("level", serverMuxNumber)
-                })
+                mieruMuxToString(serverMuxNumber)?.let { levelString ->
+                    put("multiplexing", JSONObject().apply {
+                        put("level", levelString)
+                    })
+                }
             })
         })
     }.toStringPretty()
@@ -74,9 +77,8 @@ fun parseMieru(link: String): MieruBean = MieruBean().apply {
 
     name = url.queryParameterNotBlank("profile")
     mtu = url.queryParameterNotBlank("mtu").toIntOrNull()
-    serverMuxNumber = url.queryParameterNotBlank("multiplexing").toIntOrNull()?.takeIf {
-        // Avoid invalid value
-        it in 0..3
+    serverMuxNumber = url.queryParameter("multiplexing")?.let {
+        parseMieruMux(it)
     }
 }
 
@@ -93,6 +95,22 @@ fun MieruBean.toUri(): String = Libcore.newURL("mierus").apply {
         addQueryParameter("mtu", it.toString())
     }
     serverMuxNumber.takeIf { it > 0 }?.let {
-        addQueryParameter("multiplexing", it.toString())
+        addQueryParameter("multiplexing", mieruMuxToString(it))
     }
 }.string
+
+private fun parseMieruMux(link: String): Int? = when (link) {
+    "MULTIPLEXING_OFF" -> 0
+    "MULTIPLEXING_LOW" -> 1
+    "MULTIPLEXING_MEDIUM" -> 2
+    "MULTIPLEXING_HIGH" -> 3
+    else -> null
+}
+
+private fun mieruMuxToString(level: Int): String? = when (level) {
+    // 0 -> "MULTIPLEXING_OFF"
+    1 -> "MULTIPLEXING_LOW"
+    2 -> "MULTIPLEXING_MEDIUM"
+    3 -> "MULTIPLEXING_HIGH"
+    else -> null
+}
