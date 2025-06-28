@@ -530,18 +530,15 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         server = bean.serverAddress
         server_port = bean.serverPort
         uuid = bean.uuid
-        if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
-            flow = bean.encryption
-        }
+        flow = bean.encryption.replace("auto", "").blankAsNull()
         packet_encoding = when (bean.packetEncoding) {
-
             1 -> "packetaddr"
             2 -> "xudp"
             else -> null
         }
         tls = buildSingBoxOutboundTLS(bean)
         transport = buildSingBoxOutboundStreamSettings(bean)
-        if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
+        if (flow == null && bean.shouldMux()) multiplex = buildSingBoxMux(bean)
     } else Outbound_VMessOptions().apply {
         type = bean.outboundType()
         server = bean.serverAddress
@@ -550,7 +547,6 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         alter_id = bean.alterId
         security = bean.encryption.takeIf { it.isNotBlank() } ?: "auto"
         packet_encoding = when (bean.packetEncoding) {
-
             1 -> "packetaddr"
             2 -> "xudp"
             else -> null

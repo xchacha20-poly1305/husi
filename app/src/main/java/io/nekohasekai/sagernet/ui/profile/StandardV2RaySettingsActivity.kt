@@ -149,6 +149,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var serverPath: EditTextPreference
     private lateinit var serverHeaders: EditTextPreference
     private lateinit var serverSecurity: SimpleMenuPreference
+    private lateinit var serverEncryption: SimpleMenuPreference // VLESS: flow
 
     private lateinit var serverMux: SwitchPreference
     private lateinit var serverBrutal: SwitchPreference
@@ -185,6 +186,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverHeaders = findPreference(Key.SERVER_HEADERS)!!
         serverSecurity = findPreference(Key.SERVER_SECURITY)!!
         serverV2rayTransport = findPreference(Key.SERVER_V2RAY_TRANSPORT)!!
+        serverEncryption = findPreference(Key.SERVER_ENCRYPTION)!!
 
         serverMux = findPreference(Key.SERVER_MUX)!!
         serverBrutal = findPreference(Key.SERVER_BRUTAL)!!
@@ -224,6 +226,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 setIcon(R.drawable.ic_baseline_stream_24)
                 setEntries(R.array.xtls_flow_value)
                 setEntryValues(R.array.xtls_flow_value)
+
+                setOnPreferenceChangeListener { _, newValue ->
+                    muxCategory.isVisible = newValue.toString().isBlank()
+                    true
+                }
             } else {
                 setEntries(R.array.vmess_encryption_value)
                 setEntryValues(R.array.vmess_encryption_value)
@@ -243,18 +250,18 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverV2rayTransport.isVisible = !isHttp
         serverMuxNumber.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
 
-        updateUiState(serverV2rayTransport.value, serverSecurity.value)
+        updateUiState(serverV2rayTransport.value, serverSecurity.value, getFlow())
     }
 
     /** Sets up listeners for preferences that change the UI dynamically. */
     private fun setupListeners() {
         serverV2rayTransport.setOnPreferenceChangeListener { _, newValue ->
-            updateUiState(newValue as String, serverSecurity.value)
+            updateUiState(newValue as String, serverSecurity.value, getFlow())
             true
         }
 
         serverSecurity.setOnPreferenceChangeListener { _, newValue ->
-            updateUiState(serverV2rayTransport.value, newValue as String)
+            updateUiState(serverV2rayTransport.value, newValue as String, getFlow())
             true
         }
 
@@ -278,7 +285,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
      * The single source of truth for updating the UI based on transport and security settings.
      * Call this whenever a setting that affects layout visibility changes.
      */
-    private fun updateUiState(network: String, security: String) {
+    private fun updateUiState(network: String, security: String, flow: String?) {
         val isTls = isTLS(security)
         val isHttp = bean is HttpBean
 
@@ -286,7 +293,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
         updateTransportViews(network, isHttp)
 
-        muxCategory.isVisible = shouldShowMuxCategory(network, isTls, isHttp)
+        muxCategory.isVisible = shouldShowMuxCategory(network, isTls, isHttp, flow)
         updateMuxControlsVisibility(serverMux.isChecked)
         updateBrutalState(serverBrutal.isChecked)
         fragmentFallbackDelay.isEnabled = fragment.isChecked
@@ -364,7 +371,13 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverMuxNumber.isEnabled = !isBrutalEnabled
     }
 
-    private fun shouldShowMuxCategory(network: String, isTls: Boolean, isHttp: Boolean): Boolean {
+    private fun shouldShowMuxCategory(
+        network: String,
+        isTls: Boolean,
+        isHttp: Boolean,
+        flow: String?,
+    ): Boolean {
+        if (flow?.isNotBlank() == true) return false
         if (isHttp) return false
         return when (network) {
             "quic", "grpc" -> false
@@ -374,4 +387,10 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     }
 
     private fun isTLS(security: String): Boolean = security == "tls"
+
+    private fun getFlow(): String? = if (bean.isVLESS) {
+        serverEncryption.value
+    } else {
+        null
+    }
 }
