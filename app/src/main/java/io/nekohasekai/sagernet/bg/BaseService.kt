@@ -79,7 +79,7 @@ class BaseService {
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (SagerNet.power.isDeviceIdleMode) {
-                        proxy?.box?.pause()
+                        if (!DataStore.ignoreDeviceIdle) proxy?.box?.pause()
                     } else {
                         proxy?.box?.wake()
                     }
