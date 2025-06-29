@@ -95,6 +95,7 @@ object Key {
 
     const val APP_TLS_VERSION = "appTLSVersion"
     const val CERT_PROVIDER = "certProvider"
+    const val IGNORE_DEVICE_IDLE = "ignoreDeviceIdle"
 
     const val TRAFFIC_DESCENDING = "trafficDescending"
     const val TRAFFIC_SORT_MODE = "trafficSortMode"

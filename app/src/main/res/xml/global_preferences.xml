@@ -336,6 +336,11 @@
             app:key="appTLSVersion"
             app:title="@string/app_tls_version"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_communication_phonelink_ring"
+            app:key="ignoreDeviceIdle"
+            app:title="@string/ignore_device_idle" />
     </PreferenceCategory>
 
     <PreferenceCategory
