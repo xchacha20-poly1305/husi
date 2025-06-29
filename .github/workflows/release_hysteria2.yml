@@ -107,4 +107,4 @@ jobs:
         run: | 
           mkdir apks
           find artifacts -name "*.apk" -exec cp {} apks \;
-          gh release create "${{ github.event.inputs.tag }}" --prerelease ./apks/*
+          gh release create "${{ github.event.inputs.tag }}" --title "${{ github.event.inputs.tag }}" --prerelease ./apks/*
