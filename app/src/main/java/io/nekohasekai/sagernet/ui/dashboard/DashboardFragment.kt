@@ -129,7 +129,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 toolbar.menu.findItem(R.id.action_sort_rule)!!.isChecked = true
             }
         }
-        searchView = toolbar.findViewById<SearchView?>(R.id.action_traffic_search).apply {
+        searchView = toolbar.findViewById<SearchView>(R.id.action_traffic_search).apply {
             setOnQueryTextListener(this@DashboardFragment)
             maxWidth = Int.MAX_VALUE
             setOnFocusCancel()
