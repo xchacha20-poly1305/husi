@@ -56,6 +56,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             is HttpBean -> {
                 DataStore.serverUsername = username
                 DataStore.serverPassword = password
+                DataStore.udpOverTcp = udpOverTcp
             }
 
             is TrojanBean -> {
@@ -106,6 +107,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             is HttpBean -> {
                 username = DataStore.serverUsername
                 password = DataStore.serverPassword
+                udpOverTcp = DataStore.udpOverTcp
             }
 
             is TrojanBean -> {
@@ -128,6 +130,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var wsCategory: PreferenceCategory
     private lateinit var muxCategory: PreferenceCategory
     private lateinit var experimentsCategory: PreferenceCategory
+    private lateinit var authenticatedLength: SwitchPreference
+    private lateinit var udpOverTcp: SwitchPreference
 
     private lateinit var serverV2rayTransport: SimpleMenuPreference
     private lateinit var serverHost: EditTextPreference
@@ -153,6 +157,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
         muxCategory = findPreference(Key.SERVER_MUX_CATEGORY)!!
         experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
+        authenticatedLength = findPreference(Key.SERVER_AUTHENTICATED_LENGTH)!!
+        udpOverTcp = findPreference(Key.UDP_OVER_TCP)!!
 
         serverHost = findPreference(Key.SERVER_HOST)!!
         serverPath = findPreference(Key.SERVER_PATH)!!
@@ -160,8 +166,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
         // vmess/vless/http/trojan
         val isHttp = bean is HttpBean
-        val isVmess = bean is VMessBean && bean.isVLESS == false
-        val isVless = bean.isVLESS == true
+        val isVmess = bean is VMessBean && !bean.isVLESS
+        val isVless = bean.isVLESS
         val isTrojan = bean is TrojanBean
 
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
@@ -202,7 +208,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 setTitle(R.string.password)
             }
         }
-        experimentsCategory.isVisible = isVmess
+        experimentsCategory.isVisible = isVmess || isHttp
+        authenticatedLength.isVisible = isVmess
+        udpOverTcp.isVisible = isHttp
 
         serverMuxType = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_TYPE)!!
         serverMuxStrategy = findPreference<SimpleMenuPreference>(Key.SERVER_MUX_STRATEGY)!!
