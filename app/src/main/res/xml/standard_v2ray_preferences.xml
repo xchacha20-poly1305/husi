@@ -221,5 +221,8 @@
             app:key="serverAuthenticatedLength"
             app:summary="@string/experimental_authenticated_length"
             app:title="@string/authenticated_length" />
+        <SwitchPreference
+            app:key="udpOverTcp"
+            app:title="@string/udp_over_tcp" />
     </PreferenceCategory>
 </PreferenceScreen>

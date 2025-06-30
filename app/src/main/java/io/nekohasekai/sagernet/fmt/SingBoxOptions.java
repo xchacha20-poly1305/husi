@@ -1668,6 +1668,7 @@ public class SingBoxOptions {
 
     public static class Outbound_HTTPOptions extends Outbound {
 
+        // Generate note: nested type HTTPOutboundOptions
         // Generate note: nested type DialerOptions
         public String detour;
 
@@ -1720,6 +1721,8 @@ public class SingBoxOptions {
         public String path;
 
         public Map<String, List<String>> headers;
+
+        public UDPOverTCPOptions udp_over_tcp;
 
     }
 

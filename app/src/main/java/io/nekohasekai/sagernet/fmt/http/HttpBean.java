@@ -25,23 +25,32 @@ public class HttpBean extends StandardV2RayBean {
     };
     public String username;
     public String password;
+    public Boolean udpOverTcp;
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
         if (username == null) username = "";
         if (password == null) password = "";
+        if (udpOverTcp == null) udpOverTcp = false;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
+
+        // version 0
         super.serialize(output);
         output.writeString(username);
         output.writeString(password);
+
+        // version 1
         output.writeString(host);
         output.writeString(path);
         output.writeString(headers);
+
+        // version 2
+        output.writeBoolean(udpOverTcp);
     }
 
     @Override
@@ -55,6 +64,9 @@ public class HttpBean extends StandardV2RayBean {
             path = input.readString();
             headers = input.readString();
         }
+        if (version >= 2) {
+            udpOverTcp = input.readBoolean();
+        }
     }
 
     @NotNull
@@ -66,5 +78,10 @@ public class HttpBean extends StandardV2RayBean {
     @Override
     public @NotNull String outboundType() {
         return SingBoxOptions.TYPE_HTTP;
+    }
+
+    @Override
+    public boolean needUDPOverTCP() {
+        return udpOverTcp;
     }
 }
