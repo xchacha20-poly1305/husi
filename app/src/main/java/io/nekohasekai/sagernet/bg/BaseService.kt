@@ -24,6 +24,7 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.broadcastReceiver
 import io.nekohasekai.sagernet.ktx.hasPermission
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
@@ -39,6 +40,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.utils.Util
@@ -82,10 +84,13 @@ class BaseService {
                 }
 
                 Action.RESET_UPSTREAM_CONNECTIONS -> runOnDefaultDispatcher {
-                    resetNetwork()
-                    runOnMainDispatcher {
-                        Util.collapseStatusBar(ctx)
-                        Toast.makeText(ctx, R.string.have_reset_network, Toast.LENGTH_SHORT).show()
+                    withTimeoutOrNull(1000L) {
+                        resetNetwork()
+                        onMainDispatcher {
+                            Util.collapseStatusBar(ctx)
+                            Toast.makeText(ctx, R.string.have_reset_network, Toast.LENGTH_SHORT)
+                                .show()
+                        }
                     }
                 }
 
