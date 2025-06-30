@@ -63,6 +63,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             is HttpBean -> {
                 DataStore.serverUsername = username
                 DataStore.serverPassword = password
+                DataStore.udpOverTcp = udpOverTcp
             }
 
             is TrojanBean -> {
@@ -121,6 +122,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             is HttpBean -> {
                 username = DataStore.serverUsername
                 password = DataStore.serverPassword
+                udpOverTcp = DataStore.udpOverTcp
             }
 
             is TrojanBean -> {
@@ -142,7 +144,6 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var echCategory: PreferenceCategory
     private lateinit var wsCategory: PreferenceCategory
     private lateinit var muxCategory: PreferenceCategory
-    private lateinit var experimentsCategory: PreferenceCategory
 
     private lateinit var serverV2rayTransport: SimpleMenuPreference
     private lateinit var serverHost: EditTextPreference
@@ -160,6 +161,10 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
     private lateinit var fragment: SwitchPreference
     private lateinit var fragmentFallbackDelay: DurationPreference
+
+    private lateinit var experimentsCategory: PreferenceCategory
+    private lateinit var authenticatedLength: SwitchPreference
+    private lateinit var udpOverTcp: SwitchPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -179,7 +184,6 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
         wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
         muxCategory = findPreference(Key.SERVER_MUX_CATEGORY)!!
-        experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
 
         serverHost = findPreference(Key.SERVER_HOST)!!
         serverPath = findPreference(Key.SERVER_PATH)!!
@@ -197,6 +201,10 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
         fragment = findPreference(Key.SERVER_FRAGMENT)!!
         fragmentFallbackDelay = findPreference(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
+
+        experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
+        authenticatedLength = findPreference(Key.SERVER_AUTHENTICATED_LENGTH)!!
+        udpOverTcp = findPreference(Key.UDP_OVER_TCP)!!
     }
 
     /** Sets up the initial state of preferences based on the profile bean. */
@@ -246,7 +254,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
                 setTitle(R.string.password)
             }
         }
-        experimentsCategory.isVisible = isVmess
+        experimentsCategory.isVisible = isVmess || isHttp
+        authenticatedLength.isVisible = isVmess
+        udpOverTcp.isVisible = isHttp
         serverV2rayTransport.isVisible = !isHttp
         serverMuxNumber.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
 
