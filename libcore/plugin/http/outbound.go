@@ -64,3 +64,11 @@ func (o *Outbound) ListenPacket(ctx context.Context, destination M.Socksaddr) (n
 	}
 	return nil, os.ErrInvalid
 }
+
+func (o *Outbound) Network() []string {
+	networks := []string{N.NetworkTCP}
+	if o.uotClient != nil {
+		networks = append(networks, N.NetworkUDP)
+	}
+	return networks
+}
