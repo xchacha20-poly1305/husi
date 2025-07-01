@@ -10,4 +10,4 @@ import (
 func registerPluginsOutbound(registry *outbound.Registry) {
 	anytls.RegisterOutbound(registry)
 	http.RegisterOutbound(registry)
-)
+}
