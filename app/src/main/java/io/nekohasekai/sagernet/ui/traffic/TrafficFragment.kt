@@ -81,7 +81,7 @@ class TrafficFragment : ToolbarFragment(R.layout.layout_traffic),
                 toolbar.menu.findItem(R.id.action_sort_rule)!!.isChecked = true
             }
         }
-        searchView = toolbar.findViewById<SearchView?>(R.id.action_traffic_search).apply {
+        searchView = toolbar.findViewById<SearchView>(R.id.action_traffic_search).apply {
             setOnQueryTextListener(this@TrafficFragment)
             maxWidth = Int.MAX_VALUE
             setOnFocusCancel()
