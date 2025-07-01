@@ -23,6 +23,10 @@ fun URL.addPathSegments(vararg segments: String) {
     }
 }
 
+fun URL.queryParameter(key: String): String? {
+    return queryParameterNotBlank(key).takeIf { it.isNotEmpty() }
+}
+
 fun String.isIpAddress(): Boolean {
     return NGUtil.isIpv4Address(this) || NGUtil.isIpv6Address(this)
 }
