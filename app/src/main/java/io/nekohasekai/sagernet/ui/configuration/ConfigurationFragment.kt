@@ -1667,7 +1667,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileStatus.setOnLongClickListener {
                     runOnDefaultDispatcher {
                         proxyEntity.doUrlTest()
-                        ProfileManager.updateProfile(proxyEntity)
+                        onMainDispatcher {
+                            ProfileManager.updateProfile(proxyEntity)
+                        }
                     }
                     true
                 }
