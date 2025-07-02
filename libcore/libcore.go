@@ -11,10 +11,6 @@ import (
 
 const ProtectPath = "protect_path"
 
-func Kill() {
-	os.Exit(0)
-}
-
 func InitCore(process, cachePath, internalAssets, externalAssets string,
 	maxLogSizeKb int32, logLevel int32,
 	useOfficialAssets bool,

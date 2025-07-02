@@ -28,6 +28,7 @@ import kotlinx.coroutines.plus
 import libcore.BoxInstance
 import libcore.Libcore
 import java.io.File
+import kotlin.system.exitProcess
 
 abstract class BoxInstance(
     val profile: ProxyEntity,
@@ -264,7 +265,7 @@ abstract class BoxInstance(
                 Logs.w(e)
                 // Kill the process if it is not closed properly to clean exist inbound listeners.
                 // Do not kill in main process, whose test not starts any listener.
-                if (!app.isMainProcess) Libcore.kill()
+                if (!app.isMainProcess) exitProcess(0)
             }
         }
     }
