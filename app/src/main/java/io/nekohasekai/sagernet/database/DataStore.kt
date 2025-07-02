@@ -125,7 +125,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
     var customRuleProvider by configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
     var logLevel by configurationStore.stringToInt(Key.LOG_LEVEL)
-    var logBufSize by configurationStore.int(Key.LOG_BUF_SIZE) { 0 }
+    var logMaxSize by configurationStore.stringToInt(Key.LOG_MAX_SIZE) { 50 }
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat

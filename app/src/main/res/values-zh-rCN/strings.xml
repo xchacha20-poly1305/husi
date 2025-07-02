@@ -612,4 +612,5 @@
     <string name="tasker_start_current_profile">当前配置</string>
     <string name="tasker_blurb_start_profile">启动配置 %s</string>
     <string name="ignore_device_idle">忽略设备休眠</string>
+    <string name="max_log_size">最大日志大小 (kb)</string>
 </resources>

@@ -108,13 +108,19 @@
             app:key="meteredNetwork"
             app:summary="@string/metered_summary"
             app:title="@string/metered" />
-        <moe.matsuri.nb4a.ui.LongClickListPreference
+        <rikka.preference.SimpleMenuPreference
             app:defaultValue="2"
             app:entries="@array/log_level"
             app:entryValues="@array/int_array_7"
             app:icon="@drawable/ic_baseline_bug_report_24"
             app:key="logLevel"
             app:title="@string/log_level"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="50"
+            app:icon="@drawable/ic_action_description"
+            app:key="logMaxSize"
+            app:title="@string/max_log_size"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
