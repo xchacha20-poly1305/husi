@@ -460,7 +460,6 @@
     <string name="custom_outbound_json">Пользовательский исходящий JSON</string>
     <string name="move">Переместить</string>
     <string name="app_name_long">husi для Андроид</string>
-    <string name="app_tls_version">Минимальная версия TLS протокола</string>
     <string name="assets_update">Обновить геоданные</string>
     <string name="log_level">Тип журнала</string>
     <string name="bypass_lan_in_core">Обход LAN в ядре</string>

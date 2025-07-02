@@ -34,9 +34,6 @@ type HTTPClient interface {
 	// ModernTLS allows use common TLS with TLS 1.2.
 	ModernTLS()
 
-	// PinnedTLS12 forces to use TLS 1.2.
-	PinnedTLS12()
-
 	// PinnedSHA256 verifies server TLS certificate's sha256 whether same as sumHex.
 	// If not, it will reject this handshake.
 	PinnedSHA256(sumHex string)
@@ -126,16 +123,6 @@ func (c *httpClient) RestrictedTLS() {
 	c.tls.MinVersion = tls.VersionTLS13
 	c.tls.CipherSuites = common.Map(common.Filter(tls.CipherSuites(), func(it *tls.CipherSuite) bool {
 		return common.Contains(it.SupportedVersions, uint16(tls.VersionTLS13))
-	}), func(it *tls.CipherSuite) uint16 {
-		return it.ID
-	})
-}
-
-func (c *httpClient) PinnedTLS12() {
-	c.tls.MinVersion = tls.VersionTLS12
-	c.tls.MaxVersion = tls.VersionTLS12
-	c.tls.CipherSuites = common.Map(common.Filter(tls.CipherSuites(), func(it *tls.CipherSuite) bool {
-		return common.Contains(it.SupportedVersions, uint16(tls.VersionTLS12))
 	}), func(it *tls.CipherSuite) uint16 {
 		return it.ID
 	})

@@ -93,7 +93,6 @@ object Key {
     const val TUN_IMPLEMENTATION = "tunImplementation"
     const val PROFILE_TRAFFIC_STATISTICS = "profileTrafficStatistics"
 
-    const val APP_TLS_VERSION = "appTLSVersion"
     const val CERT_PROVIDER = "certProvider"
     const val IGNORE_DEVICE_IDLE = "ignoreDeviceIdle"
 

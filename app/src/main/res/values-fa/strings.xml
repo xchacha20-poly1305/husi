@@ -431,7 +431,6 @@
     <string name="neko_plugin_internal_error">%s خطای داخلی</string>
     <string name="move">انتقال</string>
     <string name="create_shortcut">ایجاد میانبر</string>
-    <string name="app_tls_version">حداقل نسخه TLS اشتراک</string>
     <string name="hop_interval">فاصله پرش پورت(ثانیه)</string>
     <string name="utls_fingerprint">اثر انگشت uTLS</string>
     <string name="app_name">husi</string>

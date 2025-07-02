@@ -444,7 +444,6 @@
     <string name="tuic_reduce_rtt">Activar protocolo de enlace QUIC 0-RTT</string>
     <string name="move">Mover</string>
     <string name="create_shortcut">Crear acceso directo</string>
-    <string name="app_tls_version">Versión mínima de TLS de suscripción</string>
     <string name="mux_sum">Mux está diseñado para reducir la latencia del protocolo de enlace TCP, no para aumentar el rendimiento de la conexión. Usar Mux para ver vídeos, descargar o hacer pruebas de velocidad suele ser contraproducente. Si el servidor no lo soporta, no podrás acceder a Internet.</string>
     <string name="tuic_udp_relay_mode">Modo de retransmisión UDP</string>
     <string name="tuic_congestion_controller">Controlador de congestión</string>

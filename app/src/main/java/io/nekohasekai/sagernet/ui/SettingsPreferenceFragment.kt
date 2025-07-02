@@ -296,7 +296,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                         Key.CERT_PROVIDER -> preference.onPreferenceChangeListener = restartListener
 
-                        Key.CONNECTION_TEST_URL, Key.APP_TLS_VERSION, Key.IGNORE_DEVICE_IDLE -> Unit
+                        Key.CONNECTION_TEST_URL, Key.IGNORE_DEVICE_IDLE -> Unit
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }

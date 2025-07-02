@@ -58,9 +58,6 @@ object RawUpdater : GroupUpdater() {
                 if (DataStore.serviceState.started) {
                     useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
                 }
-                when (DataStore.appTLSVersion) {
-                    "1.3" -> restrictedTLS()
-                }
             }.newRequest().apply {
                 setURL(subscription.link)
                 setUserAgent(generateUserAgent(subscription.customUserAgent))
