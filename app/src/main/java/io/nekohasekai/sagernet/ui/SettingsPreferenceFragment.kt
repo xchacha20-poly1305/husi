@@ -4,8 +4,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.os.LocaleListCompat
@@ -20,7 +18,6 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -39,7 +36,6 @@ import io.nekohasekai.sagernet.widget.FixedLinearLayout
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import io.nekohasekai.sagernet.widget.updateSummary
 import moe.matsuri.nb4a.ui.ColorPickerPreference
-import moe.matsuri.nb4a.ui.LongClickListPreference
 import rikka.preference.SimpleMenuPreference
 import java.util.Locale
 
@@ -88,7 +84,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var bypassLan: SwitchPreference
         lateinit var bypassLanInCore: SwitchPreference
 
-        lateinit var logLevel: LongClickListPreference
         lateinit var alwaysShowAddress: SwitchPreference
         lateinit var blurredAddress: SwitchPreference
 
@@ -174,9 +169,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             true
                         }
 
-                        Key.MEMORY_LIMIT -> preference.onPreferenceChangeListener = restartListener
+                        Key.MEMORY_LIMIT, Key.LOG_LEVEL -> {
+                            preference.onPreferenceChangeListener = restartListener
+                        }
 
-                        Key.LOG_LEVEL -> logLevel = preference as LongClickListPreference
+                        Key.LOG_MAX_SIZE -> {
+                            preference as EditTextPreference
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+                        }
 
                         Key.ALWAYS_SHOW_ADDRESS -> {
                             alwaysShowAddress = preference as SwitchPreference
@@ -333,30 +333,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             ntpAddress.isEnabled = newValue
             ntpPort.isEnabled = newValue
             ntpInterval.isEnabled = newValue
-            true
-        }
-
-        logLevel.dialogLayoutResource = R.layout.layout_loglevel_help
-        logLevel.onPreferenceChangeListener = restartListener
-        logLevel.setOnLongClickListener {
-            if (context == null) return@setOnLongClickListener true
-
-            val view = EditText(context).apply {
-                inputType = EditorInfo.TYPE_CLASS_NUMBER
-                var size = DataStore.logBufSize
-                if (size == 0) size = 50
-                setText(size.toString())
-            }
-
-            MaterialAlertDialogBuilder(requireContext()).setTitle("Log buffer size (kb)")
-                .setView(view)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    DataStore.logBufSize = view.text.toString().toInt()
-                    if (DataStore.logBufSize <= 0) DataStore.logBufSize = 50
-                    needRestart()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
             true
         }
 
