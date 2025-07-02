@@ -433,7 +433,6 @@
     <string name="subscription_expire">过期: %s</string>
     <string name="update_all_subscription">更新所有订阅</string>
     <string name="create_shortcut">创建快捷方式</string>
-    <string name="app_tls_version">订阅最低 TLS 版本</string>
     <string name="hop_interval">端口跳跃间隔（秒）</string>
     <string name="domain_strategy_for_direct">域名策略（直连）</string>
     <string name="domain_strategy_for_server">域名策略（服务器地址）</string>

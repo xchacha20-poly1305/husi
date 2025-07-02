@@ -469,7 +469,6 @@
     <string name="tuic_reduce_rtt">啟用 0-RTT QUIC 握手</string>
     <string name="neko_plugin_internal_error">%s 內部錯誤</string>
     <string name="move">移動</string>
-    <string name="app_tls_version">訂閱最低 TLS 版本</string>
     <string name="create_shortcut">建立快捷方式</string>
     <string name="bypass_lan_in_core">在核心中繞過 LAN</string>
     <string name="need_restart">重新啟動應用程式以應用更改</string>
