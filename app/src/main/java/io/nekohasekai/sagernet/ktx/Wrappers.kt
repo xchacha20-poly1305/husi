@@ -52,7 +52,8 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
                     matchedRule = trackerInfo.matchedRule,
                     outbound = trackerInfo.outbound,
                     chain = trackerInfo.chain,
-                    protocol = trackerInfo.protocol.let { if (it.isBlank()) null else it },
+                    protocol = trackerInfo.protocol.blankAsNull(),
+                    process = trackerInfo.process.blankAsNull(),
                 )
             )
         }

@@ -8,6 +8,7 @@ import (
 
 	"libcore/combinedapi/trafficcontrol"
 
+	"github.com/sagernet/sing-box/common/process"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
 	M "github.com/sagernet/sing/common/metadata"
@@ -28,20 +29,21 @@ func (b *BoxInstance) GetTrackerInfos() TrackerInfoIterator {
 			rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
 		}
 		trackerInfos = append(trackerInfos, &TrackerInfo{
-			UUID:          metadata.ID,
+			uuid:          metadata.ID,
 			Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
 			IPVersion:     int16(metadata.Metadata.IPVersion),
 			Network:       metadata.Metadata.Network,
-			Src:           metadata.Metadata.Source,
-			Dst:           metadata.Metadata.Destination,
+			src:           metadata.Metadata.Source,
+			dst:           metadata.Metadata.Destination,
 			Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
 			MatchedRule:   rule,
 			UploadTotal:   metadata.Upload.Load(),
 			DownloadTotal: metadata.Download.Load(),
-			Start:         metadata.CreatedAt,
+			start:         metadata.CreatedAt,
 			Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
 			Chain:         strings.Join(metadata.Chain, " => "),
 			Protocol:      metadata.Metadata.Protocol,
+			Process:       processToString(metadata.Metadata.ProcessInfo),
 		})
 		return true
 	})
@@ -68,38 +70,39 @@ type TrackerInfoIterator interface {
 
 // TrackerInfo recodes a connection's information.
 type TrackerInfo struct {
-	UUID          uuid.UUID
+	uuid          uuid.UUID
 	Inbound       string
 	IPVersion     int16
 	Network       string
-	Src, Dst      M.Socksaddr
+	src, dst      M.Socksaddr
 	Host          string
 	MatchedRule   string
 	UploadTotal   int64
 	DownloadTotal int64
-	Start         time.Time
+	start         time.Time
 	Outbound      string
 	Chain         string
 	Protocol      string
+	Process       string
 }
 
 func (t *TrackerInfo) GetSrc() string {
-	return t.Src.String()
+	return t.src.String()
 }
 
 func (t *TrackerInfo) GetDst() string {
-	if !t.Dst.IsValid() {
+	if !t.dst.IsValid() {
 		return ""
 	}
-	return t.Dst.String()
+	return t.dst.String()
 }
 
 func (t *TrackerInfo) GetUUID() string {
-	return t.UUID.String()
+	return t.uuid.String()
 }
 
 func (t *TrackerInfo) GetStart() string {
-	return t.Start.Format(time.DateTime)
+	return t.start.Format(time.DateTime)
 }
 
 // generateBound formats inbound/outbound's name.
@@ -108,6 +111,13 @@ func generateBound(bound, boundType string) string {
 		return boundType
 	}
 	return bound + "/" + boundType
+}
+
+func processToString(info *process.Info) string {
+	if info == nil {
+		return ""
+	}
+	return F.ToString("[", info.UserId, "] ", info.PackageName)
 }
 
 // GetMemory returns memory status.
