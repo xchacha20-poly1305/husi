@@ -67,7 +67,7 @@ class ConnectionFragment(val conn: Connection) :
 
         lifecycleScope.launch {
             val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
-            while(isActive) {
+            while (isActive) {
                 activity.connection.service?.queryConnections()?.let {
                     emitStats(it.connections)
                 }
@@ -79,31 +79,37 @@ class ConnectionFragment(val conn: Connection) :
     private fun bind() {
         binding.connNetwork.text = conn.network.uppercase()
         if (conn.protocol != null) {
-            binding.connProtocol.isVisible = true
+            binding.connProtocolCard.isVisible = true
             binding.connProtocol.text = conn.protocol.uppercase()
         } else {
-            binding.connProtocol.isVisible = false
+            binding.connProtocolCard.isVisible = false
         }
         binding.connTime.text = conn.start
         if (conn.ipVersion != null) {
-            binding.connIPVersionLayout.isVisible = true
+            binding.connIPVersionCard.isVisible = true
             binding.connIPVersion.text = conn.ipVersion.toString()
         } else {
-            binding.connIPVersionLayout.isVisible = false
+            binding.connIPVersionCard.isVisible = false
         }
         bindTraffic()
         binding.connInbound.text = conn.inbound
         binding.connSource.text = conn.src
         binding.connDestination.text = conn.dst
         if (conn.host.isNotBlank()) {
-            binding.connHostLayout.isVisible = true
+            binding.connHostCard.isVisible = true
             binding.connHost.text = conn.host
         } else {
-            binding.connHostLayout.isVisible = false
+            binding.connHostCard.isVisible = false
         }
         binding.connRule.text = conn.matchedRule
         binding.connOutbound.text = conn.outbound
         binding.connChain.text = conn.chain
+        conn.process?.let {
+            binding.connProcessCard.isVisible = true
+            binding.connProcess.text = it
+        } ?: run {
+            binding.connProcessCard.isVisible = false
+        }
     }
 
     private fun bindTraffic() {

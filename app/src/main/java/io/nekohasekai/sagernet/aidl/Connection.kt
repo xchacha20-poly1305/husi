@@ -19,4 +19,5 @@ data class Connection(
     val outbound: String = "",
     val chain: String = "",
     val protocol: String? = null,
+    val process: String? = null,
 ) : Parcelable

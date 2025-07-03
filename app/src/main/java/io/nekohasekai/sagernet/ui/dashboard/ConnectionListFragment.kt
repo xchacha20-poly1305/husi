@@ -181,7 +181,9 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                         it.host.contains(str) ||
                         it.matchedRule.contains(str) ||
                         it.outbound.contains(str) ||
-                        it.chain.contains(str)
+                        it.chain.contains(str) ||
+                        it.protocol?.contains(str) == true ||
+                        it.process?.contains(str) == true
             } ?: true
         }.sortedWith(connectionComparator).toMutableList()
 
