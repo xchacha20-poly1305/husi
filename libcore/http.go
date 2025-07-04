@@ -279,10 +279,6 @@ func (h *httpResponse) GetContentString() (*StringWrapper, error) {
 	return wrapString(string(h.content)), nil
 }
 
-func (h *httpResponse) GetError() error {
-	return h.contentError
-}
-
 func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
 	defer h.Response.Body.Close()
 	var writer io.Writer
