@@ -146,7 +146,16 @@
                 <data android:scheme="tuic" />
                 <data android:scheme="juicity" />
                 <data android:scheme="mieru" />
+                <data android:scheme="anytls" />
 
+            </intent-filter>
+
+            <intent-filter android:label="@string/app_name">
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/uri-list" />
             </intent-filter>
 
             <meta-data

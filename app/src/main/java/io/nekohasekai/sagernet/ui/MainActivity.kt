@@ -16,9 +16,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -48,7 +48,9 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
+import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.hasPermission
@@ -58,13 +60,11 @@ import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
-import io.nekohasekai.sagernet.ui.tools.ToolsFragment
 import io.nekohasekai.sagernet.ui.dashboard.DashboardFragment
+import io.nekohasekai.sagernet.ui.tools.ToolsFragment
 import io.nekohasekai.sfa.utils.MIUIUtils
 import moe.matsuri.nb4a.utils.Util
 import java.io.File
-import androidx.core.net.toUri
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
@@ -144,12 +144,17 @@ class MainActivity : ThemedActivity(),
         DataStore.configurationStore.registerChangeListener(this)
         GroupManager.userInterface = GroupInterfaceAdapter(this)
 
-        if (intent?.action == Intent.ACTION_VIEW) {
-            onNewIntent(intent)
+        when (intent.action) {
+            Intent.ACTION_VIEW -> onNewIntent(intent)
+            Intent.ACTION_PROCESS_TEXT -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // 23
+                parseProxy(intent.getStringExtra(Intent.EXTRA_PROCESS_TEXT) ?: "")
+            }
+
+            else -> {}
         }
 
         // sdk 33 notification
-        if (Build.VERSION.SDK_INT >= 33) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val checkPermission =
                 ContextCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
@@ -434,6 +439,7 @@ class MainActivity : ThemedActivity(),
                     ProfileManager.postUpdate(DataStore.currentProfile)
                 }
             }
+
             else -> {}
         }
     }
@@ -609,4 +615,72 @@ class MainActivity : ThemedActivity(),
         }
     }
 
+    fun parseProxy(text: String) {
+        if (text.isBlank()) {
+            snackbar(getString(R.string.clipboard_empty)).show()
+        } else runOnDefaultDispatcher {
+            suspend fun parseSubscription() {
+                try {
+                    val proxies = RawUpdater.parseRaw(text)
+                    if (proxies.isNullOrEmpty()) onMainDispatcher {
+                        snackbar(getString(R.string.no_proxies_found_in_clipboard)).show()
+                    } else {
+                        importProfile(proxies)
+                    }
+                } catch (e: SubscriptionFoundException) {
+                    importSubscription(e.link.toUri())
+                } catch (e: Exception) {
+                    Logs.w(e)
+
+                    onMainDispatcher {
+                        snackbar(e.readableMessage).show()
+                    }
+                }
+            }
+
+            val singleURI = try {
+                text.toUri()
+            } catch (_: Exception) {
+                null
+            }
+            if (singleURI != null) {
+                // Import as proxy or subscription
+                when (singleURI.scheme) {
+                    "http", "https" -> onMainDispatcher {
+                        MaterialAlertDialogBuilder(this@MainActivity)
+                            .setTitle(R.string.subscription_import)
+                            .setMessage(R.string.import_http_url)
+                            .setPositiveButton(R.string.subscription_import) { _, _ ->
+                                runOnDefaultDispatcher {
+                                    importSubscription(singleURI)
+                                }
+                            }
+                            .setNegativeButton(R.string.profile_import) { _, _ ->
+                                runOnDefaultDispatcher {
+                                    parseSubscription()
+                                }
+                            }
+                            .show()
+                    }
+
+                    else -> parseSubscription()
+                }
+            } else {
+                parseSubscription()
+            }
+        }
+    }
+
+    suspend fun importProfile(proxies: List<AbstractBean>) {
+        val targetId = DataStore.selectedGroupForImport()
+        for (proxy in proxies) {
+            ProfileManager.createProfile(targetId, proxy)
+        }
+        DataStore.editingGroup = targetId
+        onMainDispatcher {
+            snackbar(
+                resources.getQuantityString(R.plurals.added, proxies.size, proxies.size)
+            ).show()
+        }
+    }
 }

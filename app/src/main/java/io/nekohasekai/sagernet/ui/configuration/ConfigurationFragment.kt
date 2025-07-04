@@ -85,6 +85,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.scrollTo
+import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
@@ -102,6 +103,7 @@ import io.nekohasekai.sagernet.ui.profile.HysteriaSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.JuicitySettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SSHSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
@@ -123,8 +125,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
-import io.nekohasekai.sagernet.ktx.setOnFocusCancel
-import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.Collections
@@ -400,7 +400,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                     if (proxies.isEmpty()) onMainDispatcher {
                         snackbar(getString(R.string.no_proxies_found_in_file)).show()
-                    } else import(proxies)
+                    } else {
+                        (requireActivity() as MainActivity).importProfile(proxies)
+                    }
                 } catch (e: SubscriptionFoundException) {
                     (requireActivity() as MainActivity).importSubscription(e.link.toUri())
                 } catch (e: Exception) {
@@ -412,22 +414,6 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-    suspend fun import(proxies: List<AbstractBean>) {
-        val targetId = DataStore.selectedGroupForImport()
-        for (proxy in proxies) {
-            ProfileManager.createProfile(targetId, proxy)
-        }
-        onMainDispatcher {
-            DataStore.editingGroup = targetId
-            snackbar(
-                requireContext().resources.getQuantityString(
-                    R.plurals.added, proxies.size, proxies.size
-                )
-            ).show()
-        }
-
-    }
-
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_scan_qr_code -> {
@@ -435,60 +421,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             R.id.action_import_clipboard -> {
-                val text = SagerNet.getClipboardText()
-                if (text.isBlank()) {
-                    snackbar(getString(R.string.clipboard_empty)).show()
-                } else runOnDefaultDispatcher {
-                    suspend fun parseSubscription() {
-                        try {
-                            val proxies = RawUpdater.parseRaw(text)
-                            if (proxies.isNullOrEmpty()) onMainDispatcher {
-                                snackbar(getString(R.string.no_proxies_found_in_clipboard)).show()
-                            } else import(proxies)
-                        } catch (e: SubscriptionFoundException) {
-                            (requireActivity() as MainActivity).importSubscription(e.link.toUri())
-                        } catch (e: Exception) {
-                            Logs.w(e)
-
-                            onMainDispatcher {
-                                snackbar(e.readableMessage).show()
-                            }
-                        }
-                    }
-
-                    val singleURI = try {
-                        text.toUri()
-                    } catch (_: Exception) {
-                        null
-                    }
-                    if (singleURI != null) {
-                        // Import as proxy or subscription
-                        when (singleURI.scheme) {
-                            "http", "https" -> onMainDispatcher {
-                                MaterialAlertDialogBuilder(requireContext())
-                                    .setTitle(R.string.subscription_import)
-                                    .setMessage(R.string.import_http_url)
-                                    .setPositiveButton(R.string.subscription_import) { _, _ ->
-                                        runOnDefaultDispatcher {
-                                            (requireActivity() as MainActivity).importSubscription(
-                                                singleURI
-                                            )
-                                        }
-                                    }
-                                    .setNegativeButton(R.string.profile_import) { _, _ ->
-                                        runOnDefaultDispatcher {
-                                            parseSubscription()
-                                        }
-                                    }
-                                    .show()
-                            }
-
-                            else -> parseSubscription()
-                        }
-                    } else {
-                        parseSubscription()
-                    }
-                }
+                (requireActivity() as MainActivity).parseProxy(SagerNet.getClipboardText())
             }
 
             R.id.action_import_file -> {
