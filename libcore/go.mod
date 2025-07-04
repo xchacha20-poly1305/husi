@@ -5,10 +5,10 @@ go 1.24
 require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.66
-	github.com/sagernet/gomobile v0.1.6
-	github.com/sagernet/sing v0.6.11-0.20250521033217-30d675ea099b
-	github.com/sagernet/sing-box v1.12.0-beta.29
-	github.com/sagernet/sing-tun v0.6.10-0.20250620051458-5e343c4b66b2
+	github.com/sagernet/gomobile v0.1.7
+	github.com/sagernet/sing v0.6.12-0.20250703120903-7081a0c40539
+	github.com/sagernet/sing-box v1.12.0-beta.31
+	github.com/sagernet/sing-tun v0.6.10-0.20250703121732-a0881ada3251
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.6.1
 	github.com/xchacha20-poly1305/libping v0.9.0
@@ -22,7 +22,7 @@ require (
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.34.0
+	github.com/v2fly/v2ray-core/v5 v5.36.0
 	google.golang.org/protobuf v1.36.6
 )
 
