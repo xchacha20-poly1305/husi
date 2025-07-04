@@ -181,7 +181,7 @@ class ConfigEditActivity : ThemedActivity() {
             if (txt.isBlank()) {
                 return ""
             }
-            return Libcore.formatConfig(txt).value
+            return Libcore.formatConfig(txt)
         } catch (e: Exception) {
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.error_title)

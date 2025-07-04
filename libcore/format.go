@@ -59,11 +59,11 @@ func parseConfig(ctx context.Context, configContent string) (option.Options, err
 }
 
 // FormatConfig formats json.
-func FormatConfig(configContent string) (*StringWrapper, error) {
+func FormatConfig(configContent string) (string, error) {
 	ctx := baseContext(nil)
 	configMap, err := json.UnmarshalExtendedContext[map[string]any](ctx, []byte(configContent))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	var buffer bytes.Buffer
@@ -71,10 +71,10 @@ func FormatConfig(configContent string) (*StringWrapper, error) {
 	encoder.SetIndent("", "  ")
 	err = encoder.Encode(configMap)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return wrapString(buffer.String()), nil
+	return buffer.String(), nil
 }
 
 // CheckConfig checks whether configContent can run as sing-box configuration.

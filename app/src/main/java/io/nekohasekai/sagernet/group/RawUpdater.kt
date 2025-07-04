@@ -62,7 +62,7 @@ object RawUpdater : GroupUpdater() {
                 setURL(subscription.link)
                 setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
-            proxies = parseRaw(response.contentString.value) ?: errNotFound()
+            proxies = parseRaw(response.contentString) ?: errNotFound()
 
             // https://github.com/crossutility/Quantumult/blob/master/extra-subscription-feature.md
             // Subscription-Userinfo: upload=2375927198; download=12983696043; total=1099511627776; expire=1862111613
