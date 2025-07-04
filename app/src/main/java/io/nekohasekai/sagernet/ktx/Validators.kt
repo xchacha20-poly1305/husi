@@ -38,8 +38,8 @@ import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 interface ValidateResult
 object ResultSecure : ValidateResult
 object ResultLocal : ValidateResult
-class ResultDeprecated(@RawRes val textRes: Int) : ValidateResult
-class ResultInsecure(@RawRes val textRes: Int) : ValidateResult
+class ResultDeprecated(@param:RawRes val textRes: Int) : ValidateResult
+class ResultInsecure(@param:RawRes val textRes: Int) : ValidateResult
 
 val ssSecureList = "(gcm|poly1305)".toRegex()
 
