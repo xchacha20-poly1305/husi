@@ -8,16 +8,14 @@ import (
 
 type Manager struct {
 	connections      compatible.Map[uuid.UUID, Tracker]
-	outboundCounters map[string]*outboundCounter
+	outboundCounters compatible.Map[string, *outboundCounter] // use sync.Map to avoid rare race.
 	// closedConnectionsAccess sync.Mutex
 	// closedConnections       list.List[TrackerMetadata]
 	// process     *process.Process
 }
 
 func NewManager() *Manager {
-	return &Manager{
-		outboundCounters: make(map[string]*outboundCounter),
-	}
+	return &Manager{}
 }
 
 func (m *Manager) Join(c Tracker) {
@@ -42,17 +40,16 @@ func (m *Manager) Connection(id uuid.UUID) Tracker {
 }
 
 func (m *Manager) loadOrCreateTraffic(tag string) *outboundCounter {
-	if traffic, loaded := m.outboundCounters[tag]; loaded {
+	if traffic, loaded := m.outboundCounters.Load(tag); loaded {
 		return traffic
 	}
 	counter := newOutboundCounter(tag)
-	m.outboundCounters[tag] = counter
+	m.outboundCounters.Store(tag, counter)
 	return counter
-	// We not add code about sync now, which may be added when we get race panic.
 }
 
 func (m *Manager) QueryStats(name string, isUpload bool) int64 {
-	counter, loaded := m.outboundCounters[name]
+	counter, loaded := m.outboundCounters.Load(name)
 	if !loaded {
 		// Not has any connections, so not found counter.
 		return 0
