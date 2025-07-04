@@ -906,7 +906,18 @@ class ConfigurationFragment @JvmOverloads constructor(
                         val profile = profiles.poll() ?: break
                         profile.status = ProxyEntity.STATUS_INITIAL
                         test.insert(profile)
-                        profile.doUrlTest(testURL, testTimeout, underVPN)
+                        try {
+                            val result = TestInstance(profile, testURL, testTimeout)
+                                .doTest(underVPN)
+                            profile.status = ProxyEntity.STATUS_AVAILABLE
+                            profile.ping = result
+                        } catch (e: PluginManager.PluginNotFoundException) {
+                            profile.status = ProxyEntity.STATUS_INVALID
+                            profile.error = e.readableMessage
+                        } catch (e: Exception) {
+                            profile.status = ProxyEntity.STATUS_UNAVAILABLE
+                            profile.error = e.readableMessage
+                        }
                         test.update(profile)
                     }
                 })
@@ -1648,15 +1659,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                profileStatus.setOnLongClickListener {
-                    runOnDefaultDispatcher {
-                        proxyEntity.doUrlTest()
-                        onMainDispatcher {
-                            ProfileManager.updateProfile(proxyEntity)
-                        }
-                    }
-                    true
-                }
                 if (proxyEntity.status == ProxyEntity.STATUS_UNAVAILABLE) {
                     val err = proxyEntity.error ?: "<?>"
                     val msg = Protocols.genFriendlyMsg(err)
@@ -1870,25 +1872,4 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-}
-
-/**
- * Try test & set status.
- */
-private suspend fun ProxyEntity.doUrlTest(
-    link: String = DataStore.connectionTestURL,
-    timeout: Int = DataStore.connectionTestTimeout,
-    underVPN: Boolean = DataStore.serviceMode == Key.MODE_VPN && DataStore.serviceState.started,
-) {
-    try {
-        val result = TestInstance(this, link, timeout).doTest(underVPN)
-        status = ProxyEntity.STATUS_AVAILABLE
-        ping = result
-    } catch (e: PluginManager.PluginNotFoundException) {
-        status = ProxyEntity.STATUS_INVALID
-        error = e.readableMessage
-    } catch (e: Exception) {
-        status = ProxyEntity.STATUS_UNAVAILABLE
-        error = e.readableMessage
-    }
 }
