@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
+import io.nekohasekai.sagernet.ktx.parseBoolean
 import libcore.Libcore
 
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
@@ -283,7 +284,17 @@ fun buildDNSServer(
             detour = out
         }
 
-        // "", SingBoxOptions.DNS_TYPE_UDP, SingBoxOptions.DNS_TYPE_TCP ->
+        SingBoxOptions.DNS_TYPE_TCP -> SingBoxOptions.NewDNSServerOptions_RemoteTCPDNSServerOptions()
+            .apply {
+                type = SingBoxOptions.DNS_TYPE_TCP
+                server = url.host
+                server_port = url.ports.toIntOrNull()
+                domain_resolver = domainResolver
+                detour = out
+                if (url.parseBoolean("reuse")) reuse = true
+            }
+
+        // "", SingBoxOptions.DNS_TYPE_UDP ->
         else -> NewDNSServerOptions_RemoteDNSServerOptions().apply {
             type = scheme.ifBlank {
                 SingBoxOptions.DNS_TYPE_UDP

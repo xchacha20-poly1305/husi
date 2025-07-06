@@ -2390,6 +2390,56 @@ public class SingBoxOptions {
 
     }
 
+    public static class NewDNSServerOptions_RemoteTCPDNSServerOptions extends NewDNSServerOptions {
+
+        // Generate note: nested type RemoteDNSServerOptions
+        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String netns;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type DNSServerAddressOptions
+        public String server;
+
+        public Integer server_port;
+
+        public Boolean reuse;
+
+    }
+
     public static class NewDNSServerOptions_RemoteTLSDNSServerOptions extends NewDNSServerOptions {
 
         // Generate note: nested type RemoteDNSServerOptions
