@@ -588,6 +588,12 @@ fun buildConfig(
                 PackageCache[it]?.takeIf { uid -> uid >= 1000 }
             }.toList()
 
+            if (rule.packages.isNotEmpty() && uidList.isEmpty()) {
+                // all packages in the rule are not installed
+                // the rule would be never hit, skipping
+                continue;
+            }
+
             val ruleObj = Rule_Default().apply {
                 action = SingBoxOptions.ACTION_ROUTE
                 if (uidList.isNotEmpty()) {
