@@ -591,7 +591,7 @@ fun buildConfig(
             if (rule.packages.isNotEmpty() && uidList.isEmpty()) {
                 // all packages in the rule are not installed
                 // the rule would be never hit, skipping
-                continue;
+                continue
             }
 
             val ruleObj = Rule_Default().apply {
