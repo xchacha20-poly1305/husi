@@ -54,7 +54,6 @@ class VpnService : BaseVpnService(),
             .apply { acquire() }
     }
 
-    @Suppress("EXPERIMENTAL_API_USAGE")
     override fun killProcesses() {
         conn?.close()
         conn = null
@@ -91,22 +90,31 @@ class VpnService : BaseVpnService(),
     }
 
     fun startVpn(): Int {
-//        Logs.d(tunOptionsJson)
-//        Logs.d(tunPlatformOptionsJson)
-//        val tunOptions = JSONObject(tunOptionsJson)
-
         // address & route & MTU ...... use GUI config
         val builder = Builder().setConfigureIntent(SagerNet.configureIntent(this))
             .setSession(getString(R.string.app_name))
             .setMtu(DataStore.mtu)
         val networkStrategy = DataStore.networkStrategy
 
-        // address
-        builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
-        if (networkStrategy != SingBoxOptions.STRATEGY_IPV4_ONLY) {
-            builder.addAddress(PRIVATE_VLAN6_CLIENT, 126)
+        when (networkStrategy) {
+            SingBoxOptions.STRATEGY_IPV4_ONLY -> {
+                builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
+                builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
+            }
+
+            SingBoxOptions.STRATEGY_IPV6_ONLY -> {
+                builder.addAddress(PRIVATE_VLAN6_CLIENT, 126)
+                builder.addDnsServer(PRIVATE_VLAN6_ROUTER)
+            }
+
+            else -> {
+                builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
+                builder.addAddress(PRIVATE_VLAN6_CLIENT, 126)
+
+                builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
+                builder.addDnsServer(PRIVATE_VLAN6_ROUTER)
+            }
         }
-        builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
 
         // route
         if (DataStore.bypassLan && !DataStore.bypassLanInCore) {
@@ -114,17 +122,39 @@ class VpnService : BaseVpnService(),
                 val subnet = Subnet.fromString(it)!!
                 builder.addRoute(subnet.address.hostAddress!!, subnet.prefixSize)
             }
-            builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
-            builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
             // https://issuetracker.google.com/issues/149636790
-            if (networkStrategy != SingBoxOptions.STRATEGY_IPV4_ONLY) {
-                builder.addRoute("2000::", 3)
-                builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
+            when (networkStrategy) {
+                SingBoxOptions.STRATEGY_IPV4_ONLY -> {
+                    builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
+                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
+                }
+
+                SingBoxOptions.STRATEGY_IPV6_ONLY -> {
+                    builder.addRoute(PRIVATE_VLAN6_ROUTER, 128)
+                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
+                }
+
+                else -> {
+                    builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
+                    builder.addRoute(PRIVATE_VLAN6_ROUTER, 128)
+                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
+                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
+                }
             }
         } else {
-            builder.addRoute("0.0.0.0", 0)
-            if (networkStrategy != SingBoxOptions.STRATEGY_IPV4_ONLY) {
-                builder.addRoute("::", 0)
+            when (networkStrategy) {
+                SingBoxOptions.STRATEGY_IPV4_ONLY -> {
+                    builder.addRoute("0.0.0.0", 0)
+                }
+
+                SingBoxOptions.STRATEGY_IPV6_ONLY -> {
+                    builder.addRoute("::", 0)
+                }
+
+                else -> {
+                    builder.addRoute("0.0.0.0", 0)
+                    builder.addRoute("::", 0)
+                }
             }
         }
 
