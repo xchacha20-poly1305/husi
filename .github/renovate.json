@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":dependencyDashboard"
+  ],
+  "semanticCommits": true,
+  "semanticCommitType": "chore",
+  "git-submodules": {
+    "enabled": false
+  },
+  "gradle": {
+    "fileMatch": ["(^|/)build\.gradle\.kts$", "(^|/)settings\.gradle\.kts$"]
+  },
+  "gomod": {
+    "fileMatch": ["libcore/go\.mod$"]
+  },
+  "github-actions": {
+    "fileMatch": ["\.github/workflows/.*\.yml$"]
+  }
+}
