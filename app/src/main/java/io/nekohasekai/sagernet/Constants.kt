@@ -39,7 +39,8 @@ object Key {
     const val PROXY_APPS = "proxyApps"
     const val UPDATE_PROXY_APPS_WHEN_INSTALL = "updateProxyAppsWhenInstall"
     const val BYPASS_MODE = "bypassMode"
-    const val INDIVIDUAL = "individual"
+    // const val INDIVIDUAL = "individual"
+    const val PACKAGES = "packages"
     const val METERED_NETWORK = "meteredNetwork"
 
     const val NETWORK_INTERFACE_STRATEGY = "networkInterfaceStrategy"
