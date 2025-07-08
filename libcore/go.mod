@@ -6,12 +6,12 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.66
 	github.com/sagernet/gomobile v0.1.7
-	github.com/sagernet/sing v0.6.12-0.20250703120903-7081a0c40539
-	github.com/sagernet/sing-box v1.12.0-beta.31
+	github.com/sagernet/sing v0.6.12-0.20250704043954-da981379f151
+	github.com/sagernet/sing-box v1.12.0-beta.33
 	github.com/sagernet/sing-tun v0.6.10-0.20250703121732-a0881ada3251
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.6.1
-	github.com/xchacha20-poly1305/libping v0.9.0
+	github.com/xchacha20-poly1305/libping v0.9.1
 	golang.org/x/sync v0.15.0
 	golang.org/x/sys v0.33.0
 )
@@ -22,7 +22,7 @@ require (
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.36.0
+	github.com/v2fly/v2ray-core/v5 v5.37.0
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -61,7 +61,7 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.52.0-beta.1 // indirect
 	github.com/sagernet/sing-mux v0.3.2 // indirect
-	github.com/sagernet/sing-quic v0.5.0-beta.2 // indirect
+	github.com/sagernet/sing-quic v0.5.0-beta.3 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
