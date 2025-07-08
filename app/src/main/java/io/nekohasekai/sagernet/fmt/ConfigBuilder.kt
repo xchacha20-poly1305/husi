@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN4_ROUTER
+import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN6_ROUTER
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
@@ -916,13 +917,13 @@ fun buildConfig(
                             inbound = listOf(TAG_DNS_IN)
                         },
                         Rule_Default().apply {
-                            ip_cidr = listOf(PRIVATE_VLAN4_ROUTER)
+                            ip_cidr = listOf(PRIVATE_VLAN4_ROUTER, PRIVATE_VLAN6_ROUTER)
                         },
                     )
                     it.action = SingBoxOptions.ACTION_HIJACK_DNS
                 }
             } ?: Rule_Default().apply {
-                ip_cidr = listOf(PRIVATE_VLAN4_ROUTER)
+                ip_cidr = listOf(PRIVATE_VLAN4_ROUTER, PRIVATE_VLAN6_ROUTER)
                 action = SingBoxOptions.ACTION_HIJACK_DNS
             }
             route.rules.add(0, builtInDNSRule)

@@ -122,7 +122,6 @@ class VpnService : BaseVpnService(),
                 val subnet = Subnet.fromString(it)!!
                 builder.addRoute(subnet.address.hostAddress!!, subnet.prefixSize)
             }
-            // https://issuetracker.google.com/issues/149636790
             when (networkStrategy) {
                 SingBoxOptions.STRATEGY_IPV4_ONLY -> {
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
@@ -130,14 +129,15 @@ class VpnService : BaseVpnService(),
                 }
 
                 SingBoxOptions.STRATEGY_IPV6_ONLY -> {
-                    builder.addRoute(PRIVATE_VLAN6_ROUTER, 128)
+                    // https://issuetracker.google.com/issues/149636790
+                    builder.addRoute("2000::", 3)
                     builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
                 }
 
                 else -> {
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
-                    builder.addRoute(PRIVATE_VLAN6_ROUTER, 128)
                     builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
+                    builder.addRoute("2000::", 3)
                     builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
                 }
             }
