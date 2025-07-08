@@ -132,6 +132,8 @@ github.com/xchacha20-poly1305/anchor v0.6.1 h1:9OT+wt0Yg+3G8WpifABTU23AIq8UsuKSu
 github.com/xchacha20-poly1305/anchor v0.6.1/go.mod h1:RK9BA6G8DtOQlz0ppLPAeJ8WaKnxxJTIjOsJMC1GYaE=
 github.com/xchacha20-poly1305/libping v0.9.0 h1:aW0g2wYUiwxknTVFoMHPcHmHmGNemKk8bEbkecn1hW8=
 github.com/xchacha20-poly1305/libping v0.9.0/go.mod h1:75QIPvL7hX+Ec5Ku0SDdNJrni2JjYY7dzD3K8e1i4Ig=
+github.com/xchacha20-poly1305/libping v0.9.1 h1:tKQdM6hg8yNekpgvSeyu+qsRQLOp7ctMu0siqswbWnE=
+github.com/xchacha20-poly1305/libping v0.9.1/go.mod h1:2jTtabr3FbIWfIolum/U8zmE77vvmb3qMwDCJTcV3/8=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
 github.com/zeebo/assert v1.1.0/go.mod h1:Pq9JiuJQpG8JLJdtkwrJESF0Foym2/D9XMU5ciN/wJ0=
 github.com/zeebo/blake3 v0.2.4 h1:KYQPkhpRtcqh0ssGYcKLG1JYvddkEA8QwCM/yBqhaZI=
