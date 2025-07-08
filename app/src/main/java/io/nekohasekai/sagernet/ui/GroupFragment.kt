@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
@@ -42,7 +43,7 @@ import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.delay
-import moe.matsuri.nb4a.utils.Util
+import java.text.SimpleDateFormat
 import java.util.Date
 
 class GroupFragment : ToolbarFragment(R.layout.layout_group),
@@ -500,7 +501,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     if (subscription.expiryDate > 0) append(
                         "\n" + getString(
                             R.string.subscription_expire,
-                            Util.timeStamp2Text(subscription.expiryDate * 1000),
+                            @SuppressLint("SimpleDateFormat") // TODO: time zone
+                            SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date(subscription.expiryDate * 1000L)),
                         )
                     )
                 }

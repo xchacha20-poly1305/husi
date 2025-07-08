@@ -1,17 +1,17 @@
 package io.nekohasekai.sagernet.fmt.shadowsocks
 
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.buildSingBoxMux
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxUot
 import io.nekohasekai.sagernet.ktx.JSONMap
-import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
+import io.nekohasekai.sagernet.ktx.b64DecodeToString
+import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.unUrlSafe
 import libcore.Libcore
 import libcore.URL
-import io.nekohasekai.sagernet.fmt.SingBoxOptions
-import moe.matsuri.nb4a.utils.Util
 import org.json.JSONObject
 
 const val SIMPLE_OBFS = "simple-obfs"
@@ -35,7 +35,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
         var url = Libcore.parseURL(rawUrl)
 
         if (url.username.isBlank()) { // fix justmysocks' shit link
-            url = Libcore.parseURL(rawUrl.substringBefore("#").decodeBase64UrlSafe())
+            url = Libcore.parseURL(rawUrl.substringBefore("#").b64DecodeToString())
             url.fragment = rawUrl.substringAfter("#")
         }
 
@@ -59,7 +59,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
 
         // base64 user info
         return ShadowsocksBean().apply {
-            url.username.decodeBase64UrlSafe().let {
+            url.username.b64DecodeToString().let {
                 method = it.substringBefore(":")
                 password = it.substringAfter(":")
             }
@@ -159,7 +159,7 @@ fun URL.encodeShadowsocksUserInfo(pass: String, method: String) {
     }
 
     // use base64 to stay compatible
-    username = Util.b64EncodeUrlSafe("${method}:${pass}")
+    username = "${method}:${pass}".b64EncodeUrlSafe()
 }
 
 fun parseShadowsocksOutbound(json: JSONMap): ShadowsocksBean = ShadowsocksBean().apply {

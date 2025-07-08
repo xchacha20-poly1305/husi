@@ -1,12 +1,13 @@
 package io.nekohasekai.sagernet.fmt;
 
+import static io.nekohasekai.sagernet.ktx.MapsKt.getGson;
+
 import androidx.annotation.NonNull;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 
 import io.nekohasekai.sagernet.ktx.NetsKt;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +33,7 @@ public abstract class AbstractBean extends Serializable {
     private transient boolean serializeWithoutName;
 
     public String displayName() {
-        if (JavaUtil.isNotBlank(name)) {
+        if (name != null && !name.isEmpty()) {
             return name;
         } else {
             return displayAddress();
@@ -65,7 +66,7 @@ public abstract class AbstractBean extends Serializable {
 
     @Override
     public void initializeDefaultValues() {
-        if (JavaUtil.isNullOrBlank(serverAddress)) {
+        if (serverAddress == null || serverAddress.isEmpty()) {
             serverAddress = "127.0.0.1";
         } else if (serverAddress.startsWith("[") && serverAddress.endsWith("]")) {
             serverAddress = NetsKt.unwrapIPV6Host(serverAddress);
@@ -169,7 +170,7 @@ public abstract class AbstractBean extends Serializable {
     @NotNull
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " " + JavaUtil.gson.toJson(this);
+        return getClass().getSimpleName() + " " + getGson().toJson(this);
     }
 
     public void applyFeatureSettings(AbstractBean other) {

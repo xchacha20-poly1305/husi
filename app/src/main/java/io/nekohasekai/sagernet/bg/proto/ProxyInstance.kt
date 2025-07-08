@@ -5,9 +5,9 @@ import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.gson
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.runBlocking
-import moe.matsuri.nb4a.utils.JavaUtil
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
     BoxInstance(profile) {
@@ -19,7 +19,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun buildConfig() {
         super.buildConfig()
         Logs.d(config.config)
-        if (BuildConfig.DEBUG) Logs.d("trafficMap: " + JavaUtil.gson.toJson(config.trafficMap))
+        if (BuildConfig.DEBUG) Logs.d("trafficMap: " + gson.toJson(config.trafficMap))
     }
 
     override suspend fun init(isVPN: Boolean) {

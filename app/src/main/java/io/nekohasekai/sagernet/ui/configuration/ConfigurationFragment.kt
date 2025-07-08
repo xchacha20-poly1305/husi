@@ -63,6 +63,7 @@ import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
+import io.nekohasekai.sagernet.group.GroupUpdater.Companion.Deduplication
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.ResultDeprecated
@@ -90,6 +91,7 @@ import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.unlockOrientation
+import io.nekohasekai.sagernet.ktx.urlTestMessage
 import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -124,7 +126,6 @@ import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
-import moe.matsuri.nb4a.Protocols
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.Collections
@@ -585,9 +586,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             R.id.action_remove_duplicate -> runOnDefaultDispatcher {
                 val profiles = SagerDatabase.proxyDao.getByGroup(DataStore.currentGroupId())
                 val toClear = mutableListOf<ProxyEntity>()
-                val uniqueProxies = LinkedHashSet<Protocols.Deduplication>()
+                val uniqueProxies = LinkedHashSet<Deduplication>()
                 for (pf in profiles) {
-                    val proxy = Protocols.Deduplication(pf.requireBean(), pf.displayType())
+                    val proxy = Deduplication(pf.requireBean(), pf.displayType())
                     if (!uniqueProxies.add(proxy)) {
                         toClear += pf
                     }
@@ -693,7 +694,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                     ProxyEntity.STATUS_UNAVAILABLE -> {
                         val err = profile.error ?: ""
-                        val msg = Protocols.genFriendlyMsg(err)
+                        val msg = urlTestMessage(context, err)
                         profileStatusText = if (msg != err) msg else getString(R.string.unavailable)
                         profileStatusColor = context.getColour(R.color.material_red_500)
                     }
@@ -1661,7 +1662,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 if (proxyEntity.status == ProxyEntity.STATUS_UNAVAILABLE) {
                     val err = proxyEntity.error ?: "<?>"
-                    val msg = Protocols.genFriendlyMsg(err)
+                    val msg = urlTestMessage(view.context, err)
                     profileStatus.text = if (msg != err) msg else getString(R.string.unavailable)
                     profileStatus.setOnClickListener {
                         alert(err).show()

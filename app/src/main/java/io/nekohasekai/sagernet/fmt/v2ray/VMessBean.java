@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.SingBoxOptions;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +30,7 @@ public class VMessBean extends StandardV2RayBean {
         super.initializeDefaultValues();
 
         alterId = alterId != null ? alterId : 0;
-        if (!JavaUtil.isNotBlank(encryption)) {
+        if (encryption == null) {
             encryption = isVLESS() ? "" : "auto";
         }
         if (authenticatedLength == null) authenticatedLength = false;

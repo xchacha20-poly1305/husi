@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 public class ShadowQUICBean extends AbstractBean {
     public static final Creator<ShadowQUICBean> CREATOR = new CREATOR<ShadowQUICBean>() {
@@ -38,13 +37,13 @@ public class ShadowQUICBean extends AbstractBean {
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
-        if (JavaUtil.isNullOrBlank(jlsPassword)) jlsPassword = "";
-        if (JavaUtil.isNullOrBlank(jlsIv)) jlsIv = "";
-        if (JavaUtil.isNullOrBlank(sni)) sni = "";
-        if (JavaUtil.isNullOrBlank(alpn)) alpn = "h3";
+        if (jlsPassword == null) jlsPassword = "";
+        if (jlsIv == null) jlsIv = "";
+        if (sni == null) sni = "";
+        if (alpn == null) alpn = "h3";
         if (initialMTU == null) initialMTU = 1300;
         if (minimumMTU == null) minimumMTU = 1290;
-        if (JavaUtil.isNullOrBlank(congestionControl)) congestionControl = "bbr";
+        if (congestionControl == null) congestionControl = "bbr";
         if (zeroRTT == null) zeroRTT = false;
         if (udpOverStream == null) udpOverStream = false;
     }

@@ -8,7 +8,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
-import moe.matsuri.nb4a.ui.EditConfigPreference
+import io.nekohasekai.sagernet.widget.EditConfigPreference
 
 class ConfigSettingActivity :
     ProfileSettingsActivity<ConfigBean>(),

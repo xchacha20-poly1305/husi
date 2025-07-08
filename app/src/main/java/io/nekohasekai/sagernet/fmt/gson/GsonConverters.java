@@ -1,13 +1,15 @@
 package io.nekohasekai.sagernet.fmt.gson;
 
+import static io.nekohasekai.sagernet.ktx.MapsKt.getGson;
+
 import androidx.room.TypeConverter;
-import kotlin.collections.CollectionsKt;
-import kotlin.collections.SetsKt;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import kotlin.collections.CollectionsKt;
+import kotlin.collections.SetsKt;
 
 public class GsonConverters {
 
@@ -16,19 +18,19 @@ public class GsonConverters {
         if (value instanceof Collection) {
             if (((Collection<?>) value).isEmpty()) return "";
         }
-        return JavaUtil.gson.toJson(value);
+        return getGson().toJson(value);
     }
 
     @TypeConverter
     public static List toList(String value) {
-        if (JavaUtil.isNullOrBlank(value)) return CollectionsKt.listOf();
-        return JavaUtil.gson.fromJson(value, List.class);
+        if (value == null || value.isBlank()) return CollectionsKt.listOf();
+        return getGson().fromJson(value, List.class);
     }
 
     @TypeConverter
     public static Set toSet(String value) {
-        if (JavaUtil.isNullOrBlank(value)) return SetsKt.setOf();
-        return JavaUtil.gson.fromJson(value, Set.class);
+        if (value == null || value.isBlank()) return SetsKt.setOf();
+        return getGson().fromJson(value, Set.class);
     }
 
 }

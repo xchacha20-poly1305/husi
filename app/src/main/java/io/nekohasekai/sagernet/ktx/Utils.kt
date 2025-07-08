@@ -6,11 +6,11 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.system.Os
 import android.system.OsConstants
-import moe.matsuri.nb4a.utils.NGUtil
 import java.io.Closeable
 import java.io.FileDescriptor
 import java.net.InetAddress
 import java.net.Socket
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -80,7 +80,11 @@ fun String.urlSafe(): String {
 }
 
 fun String.unUrlSafe(): String {
-    return NGUtil.urlDecode(this)
+    return try {
+        URLDecoder.decode(this, "UTF-8")
+    } catch (_: Exception) {
+        this
+    }
 }
 
 fun <T> Continuation<T>.tryResume(value: T) {

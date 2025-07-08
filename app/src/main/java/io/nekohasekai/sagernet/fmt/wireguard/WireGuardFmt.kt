@@ -7,13 +7,13 @@ import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
-import moe.matsuri.nb4a.utils.Util
+import io.nekohasekai.sagernet.ktx.b64EncodeOneLine
 import org.json.JSONArray
 
 fun genReserved(anyStr: String): String {
     try {
         val list = anyStr.listByLineOrComma()
-        val ba = ByteArray(3)
+        val bytes = ByteArray(3)
         if (list.size == 3) {
             list.forEachIndexed { index, s ->
                 val i = s
@@ -21,9 +21,9 @@ fun genReserved(anyStr: String): String {
                     .replace("]", "")
                     .replace(" ", "")
                     .toIntOrNull() ?: return anyStr
-                ba[index] = i.toByte()
+                bytes[index] = i.toByte()
             }
-            return Util.b64EncodeOneLine(ba)
+            return bytes.b64EncodeOneLine()
         } else {
             return anyStr
         }

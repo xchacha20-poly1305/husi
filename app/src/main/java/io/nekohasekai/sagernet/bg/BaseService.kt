@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.toConnectionList
 import io.nekohasekai.sagernet.ktx.toList
+import io.nekohasekai.sagernet.ktx.urlTestMessage
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -46,8 +47,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import libcore.Libcore
-import moe.matsuri.nb4a.Protocols
-import moe.matsuri.nb4a.utils.Util
 import java.net.UnknownHostException
 
 class BaseService {
@@ -70,7 +69,7 @@ class BaseService {
 
     interface ExpectedException
 
-    class Data internal constructor(private val service: Interface) {
+    class Data internal constructor(val service: Interface) {
         var state = State.Stopped
         var proxy: ProxyInstance? = null
         var notification: ServiceNotification? = null
@@ -91,7 +90,7 @@ class BaseService {
                     withTimeoutOrNull(1000L) {
                         resetNetwork()
                         onMainDispatcher {
-                            Util.collapseStatusBar(ctx)
+                            collapseStatusBar(ctx)
                             Toast.makeText(ctx, R.string.have_reset_network, Toast.LENGTH_SHORT)
                                 .show()
                         }
@@ -101,6 +100,17 @@ class BaseService {
                 else -> service.stopRunner()
             }
         }
+
+        @SuppressLint("WrongConstant")
+        private fun collapseStatusBar(context: Context) {
+            try {
+                val statusBarManager = context.getSystemService("statusbar")
+                val collapse = statusBarManager.javaClass.getMethod("collapsePanels")
+                collapse.invoke(statusBarManager)
+            } catch (_: Exception) {
+            }
+        }
+
         var closeReceiverRegistered = false
 
         val binder = Binder(this)
@@ -168,15 +178,15 @@ class BaseService {
             if (data?.proxy?.box == null) {
                 error("core not started")
             }
-            try {
-                return data!!.proxy!!.box.urlTest(
+            return try {
+                data!!.proxy!!.box.urlTest(
                     tag,
                     DataStore.connectionTestURL,
                     DataStore.connectionTestTimeout,
                 )
             } catch (e: Exception) {
                 Logs.e(e)
-                error(Protocols.genFriendlyMsg(e.readableMessage))
+                error(urlTestMessage(data!!.service as Context, e.readableMessage))
             }
         }
 

@@ -3,9 +3,9 @@ package io.nekohasekai.sagernet.fmt.socks
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxUot
 import io.nekohasekai.sagernet.ktx.JSONMap
-import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import libcore.Libcore
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.ktx.b64DecodeToString
 
 fun parseSOCKS(link: String): SOCKSBean {
     val url = Libcore.parseURL(link)
@@ -26,7 +26,7 @@ fun parseSOCKS(link: String): SOCKSBean {
         // v2rayN fmt
         if (password.isNullOrBlank() && !username.isNullOrBlank()) {
             try {
-                val n = username.decodeBase64UrlSafe()
+                val n = username.b64DecodeToString()
                 username = n.substringBefore(":")
                 password = n.substringAfter(":")
             } catch (_: Exception) {

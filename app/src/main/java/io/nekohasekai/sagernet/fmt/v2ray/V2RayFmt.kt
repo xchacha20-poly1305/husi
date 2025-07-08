@@ -33,8 +33,8 @@ import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.b64DecodeToString
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
@@ -182,7 +182,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
 // SagerNet's
 // Do not support some format and then throw exception
 fun parseV2RayN(link: String): VMessBean {
-    val result = link.substringAfter("vmess://").decodeBase64UrlSafe()
+    val result = link.substringAfter("vmess://").b64DecodeToString()
     if (result.contains("= vmess")) {
         return parseCsvVMess(result)
     }
