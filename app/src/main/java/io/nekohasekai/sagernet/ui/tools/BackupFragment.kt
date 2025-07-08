@@ -18,22 +18,33 @@ import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
-import io.nekohasekai.sagernet.database.*
+import io.nekohasekai.sagernet.database.ParcelizeBridge
+import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.RuleEntity
+import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.databinding.LayoutBackupBinding
 import io.nekohasekai.sagernet.databinding.LayoutImportBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressBinding
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.alert
+import io.nekohasekai.sagernet.ktx.b64Decode
+import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.snackbar
+import io.nekohasekai.sagernet.ktx.startFilesForResult
+import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.NamedFragment
-import moe.matsuri.nb4a.utils.Util
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
 
 class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
@@ -130,7 +141,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         val parcel = Parcel.obtain()
         writeToParcel(parcel, 0)
         try {
-            return Util.b64EncodeUrlSafe(parcel.marshall())
+            return parcel.marshall().b64EncodeUrlSafe()
         } finally {
             parcel.recycle()
         }
@@ -273,7 +284,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             val profiles = mutableListOf<ProxyEntity>()
             val jsonProfiles = content.getJSONArray("profiles")
             for (i in 0 until jsonProfiles.length()) {
-                val data = Util.b64Decode(jsonProfiles[i] as String)
+                val data = (jsonProfiles[i] as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -286,7 +297,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             val groups = mutableListOf<ProxyGroup>()
             val jsonGroups = content.getJSONArray("groups")
             for (i in 0 until jsonGroups.length()) {
-                val data = Util.b64Decode(jsonGroups[i] as String)
+                val data = (jsonGroups[i] as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -300,7 +311,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             val rules = mutableListOf<RuleEntity>()
             val jsonRules = content.getJSONArray("rules")
             for (i in 0 until jsonRules.length()) {
-                val data = Util.b64Decode(jsonRules[i] as String)
+                val data = (jsonRules[i] as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -314,7 +325,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             val settings = mutableListOf<KeyValuePair>()
             val jsonSettings = content.getJSONArray("settings")
             for (i in 0 until jsonSettings.length()) {
-                val data = Util.b64Decode(jsonSettings[i] as String)
+                val data = (jsonSettings[i] as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)

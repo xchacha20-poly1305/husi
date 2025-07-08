@@ -42,7 +42,6 @@ import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
 import libcore.StringIterator
-import moe.matsuri.nb4a.utils.JavaUtil
 import java.io.File
 import androidx.work.Configuration as WorkConfiguration
 
@@ -56,7 +55,7 @@ class SagerNet : Application(),
     }
 
     val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
-    val process: String = JavaUtil.getProcessName()
+    val process = tryGetProcessName()
     val isMainProcess = process == BuildConfig.APPLICATION_ID
     private val isBgProcess = process.endsWith(":bg")
 
@@ -223,5 +222,20 @@ class SagerNet : Application(),
 
     }
 
+    @SuppressLint("PrivateApi")
+    private fun tryGetProcessName(): String {
+        if (Build.VERSION.SDK_INT >= 28) return getProcessName()
+
+        // Using the same technique as Application.getProcessName() for older devices
+        // Using reflection since ActivityThread is an internal API
+        try {
+            val activityThread = Class.forName("android.app.ActivityThread")
+            val methodName = "currentProcessName"
+            val getProcessName = activityThread.getDeclaredMethod(methodName)
+            return getProcessName.invoke(null) as String
+        } catch (_: Exception) {
+            return BuildConfig.APPLICATION_ID
+        }
+    }
 
 }

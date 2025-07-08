@@ -2,8 +2,10 @@
 
 package io.nekohasekai.sagernet.ktx
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.ToNumberPolicy
 import com.google.gson.annotations.SerializedName
-import moe.matsuri.nb4a.utils.JavaUtil.gson
 import org.json.JSONObject
 import java.lang.reflect.Modifier
 import kotlin.reflect.KProperty
@@ -184,3 +186,12 @@ fun <K, V> Map<K, V>.reverse(): Map<V, K> {
     }
     return map
 }
+
+@Suppress("DEPRECATION")
+public val gson: Gson = GsonBuilder()
+    .setPrettyPrinting()
+    .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+    .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+    .setLenient()
+    .disableHtmlEscaping()
+    .create()

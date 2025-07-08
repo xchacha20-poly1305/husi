@@ -52,6 +52,7 @@ import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.alert
+import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.launchCustomTab
@@ -59,11 +60,11 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.zlibDecompress
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.dashboard.DashboardFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
 import io.nekohasekai.sfa.utils.MIUIUtils
-import moe.matsuri.nb4a.utils.Util
 import java.io.File
 
 class MainActivity : ThemedActivity(),
@@ -243,7 +244,7 @@ class MainActivity : ThemedActivity(),
             try {
                 group = KryoConverters.deserialize(
                     ProxyGroup().apply { export = true },
-                    Util.zlibDecompress(Util.b64Decode(data)),
+                    data.b64Decode().zlibDecompress()
                 ).apply {
                     export = false
                 }

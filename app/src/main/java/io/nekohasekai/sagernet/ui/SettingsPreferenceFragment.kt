@@ -35,7 +35,7 @@ import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.FixedLinearLayout
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import io.nekohasekai.sagernet.widget.updateSummary
-import moe.matsuri.nb4a.ui.ColorPickerPreference
+import io.nekohasekai.sagernet.widget.ColorPickerPreference
 import rikka.preference.SimpleMenuPreference
 import java.util.Locale
 

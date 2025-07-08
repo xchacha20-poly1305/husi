@@ -52,7 +52,7 @@ import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.parseWireGuardEndpoint
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.forEach
-import moe.matsuri.nb4a.utils.JavaUtil.gson
+import io.nekohasekai.sagernet.ktx.gson
 import org.json.JSONArray
 import org.json.JSONObject
 

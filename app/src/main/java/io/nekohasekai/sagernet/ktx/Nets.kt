@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import libcore.Libcore
 import libcore.URL
-import moe.matsuri.nb4a.utils.NGUtil
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.security.KeyStore
@@ -51,11 +50,23 @@ fun currentSocks5(): URL? = if (!DataStore.serviceState.started) {
 }
 
 fun String.isIpAddress(): Boolean {
-    return NGUtil.isIpv4Address(this) || NGUtil.isIpv6Address(this)
+    return isIPv4() || isIPv6()
 }
 
-fun String.isIpAddressV6(): Boolean {
-    return NGUtil.isIpv6Address(this)
+fun String.isIPv4(): Boolean {
+    return Regex("^([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$")
+        .matches(this)
+}
+
+fun String.isIPv6(): Boolean {
+    var addr = this
+    if (addr.indexOf("[") == 0 && addr.lastIndexOf("]") > 0) {
+        addr = addr.drop(1)
+        addr = addr.dropLast(addr.count() - addr.lastIndexOf("]"))
+    }
+    val regV6 =
+        Regex("^((?:[0-9A-Fa-f]{1,4}))?((?::[0-9A-Fa-f]{1,4}))*::((?:[0-9A-Fa-f]{1,4}))?((?::[0-9A-Fa-f]{1,4}))*|((?:[0-9A-Fa-f]{1,4}))((?::[0-9A-Fa-f]{1,4})){7}$")
+    return regV6.matches(addr)
 }
 
 // [2001:4860:4860::8888] -> 2001:4860:4860::8888
@@ -69,7 +80,7 @@ fun String.unwrapIPV6Host(): String {
 // [2001:4860:4860::8888] or 2001:4860:4860::8888 -> [2001:4860:4860::8888]
 fun String.wrapIPV6Host(): String {
     val unwrapped = this.unwrapIPV6Host()
-    return if (unwrapped.isIpAddressV6()) {
+    return if (unwrapped.isIPv6()) {
         "[$unwrapped]"
     } else {
         this

@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.internal.InternalBean;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 /**
  * Custom config
@@ -60,10 +59,10 @@ public class ConfigBean extends InternalBean {
 
     @Override
     public String displayName() {
-        if (JavaUtil.isNotBlank(name)) {
-            return name;
-        } else {
+        if (name == null || name.isEmpty()) {
             return "Custom " + Math.abs(hashCode());
+        } else {
+            return name;
         }
     }
 

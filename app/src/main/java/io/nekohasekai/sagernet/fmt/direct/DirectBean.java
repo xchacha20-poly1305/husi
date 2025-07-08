@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
 import io.nekohasekai.sagernet.fmt.SingBoxOptions;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 /**
  * @implNote {@link #serverAddress} & {@link #serverPort} as overrideAddress & overridePort
@@ -59,7 +58,7 @@ public class DirectBean extends AbstractBean {
 
     @Override
     public String displayName() {
-        if (JavaUtil.isNotBlank(name)) {
+        if (name == null || name.isEmpty()) {
             return name;
         } else {
             return SingBoxOptions.TYPE_DIRECT;

@@ -1,4 +1,4 @@
-package moe.matsuri.nb4a.ui
+package io.nekohasekai.sagernet.widget
 
 import android.content.Context
 import android.content.res.Resources
@@ -19,8 +19,8 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
-import kotlin.math.roundToInt
 
 class ColorPickerPreference
 @JvmOverloads constructor(
@@ -33,18 +33,18 @@ class ColorPickerPreference
     context, attrs, defStyle
 ) {
 
-    var inited = false
+    private var initialized = false
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
 
         val widgetFrame = holder.findViewById(android.R.id.widget_frame) as LinearLayout
 
-        if (!inited) {
-            inited = true
+        if (!initialized) {
+            initialized = true
 
             widgetFrame.addView(
-                getNekoImageViewAtColor(
+                createColorSwatchView(
                     context.getColorAttr(androidx.appcompat.R.attr.colorPrimary),
                     48,
                     0,
@@ -54,27 +54,25 @@ class ColorPickerPreference
         }
     }
 
-    fun getNekoImageViewAtColor(color: Int, sizeDp: Int, paddingDp: Int): ImageView {
-        // dp to pixel
-        val factor = context.resources.displayMetrics.density
-        val size = (sizeDp * factor).roundToInt()
-        val paddingSize = (paddingDp * factor).roundToInt()
+    private fun createColorSwatchView(color: Int, sizeDp: Int, paddingDp: Int): ImageView {
+        val size = dp2px(sizeDp)
+        val paddingSize = dp2px(paddingDp)
 
         return ImageView(context).apply {
             layoutParams = ViewGroup.LayoutParams(size, size)
             setPadding(paddingSize)
-            setImageDrawable(getNekoAtColor(resources, color))
+            setImageDrawable(generateColorDrawer(resources, color))
         }
     }
 
-    fun getNekoAtColor(res: Resources, color: Int): Drawable {
-        val neko = ResourcesCompat.getDrawable(
+    private fun generateColorDrawer(res: Resources, color: Int): Drawable {
+        val circle = ResourcesCompat.getDrawable(
             res,
             R.drawable.ic_baseline_fiber_manual_record_24,
-            null
+            null,
         )!!
-        DrawableCompat.setTint(neko.mutate(), color)
-        return neko
+        DrawableCompat.setTint(circle.mutate(), color)
+        return circle
     }
 
     override fun onClick() {
@@ -89,10 +87,10 @@ class ColorPickerPreference
             var i = 0
 
             for (color in colors) {
-                i++ //Theme.kt
+                i++ // Theme.kt
 
                 val themeId = i
-                val view = getNekoImageViewAtColor(color, 64, 0).apply {
+                val view = createColorSwatchView(color, 64, 0).apply {
                     setOnClickListener {
                         persistInt(themeId)
                         dialog.dismiss()
@@ -104,6 +102,7 @@ class ColorPickerPreference
 
         }
 
+        @Suppress("AssignedValueIsNeverRead") // Will be used on view click
         dialog = MaterialAlertDialogBuilder(context).setTitle(title)
             .setView(LinearLayout(context).apply {
                 gravity = Gravity.CENTER

@@ -1,4 +1,4 @@
-package moe.matsuri.nb4a.ui
+package io.nekohasekai.sagernet.widget
 
 import android.content.Context
 import android.content.Intent
@@ -30,7 +30,7 @@ class EditConfigPreference : Preference {
         return if (DataStore.serverConfig.isBlank()) {
             return context.getString(androidx.preference.R.string.not_set)
         } else {
-            context.getString(R.string.lines, config.split('\n').size)
+            context.getString(R.string.lines, config.count { it == 'n' } + 1)
         }
     }
 

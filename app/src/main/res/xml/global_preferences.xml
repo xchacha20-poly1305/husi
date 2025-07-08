@@ -10,7 +10,7 @@
             app:key="isAutoConnect"
             app:summary="@string/auto_connect_summary"
             app:title="@string/auto_connect" />
-        <moe.matsuri.nb4a.ui.ColorPickerPreference
+        <io.nekohasekai.sagernet.widget.ColorPickerPreference
             android:title="@string/theme"
             app:icon="@drawable/ic_baseline_color_lens_24"
             app:key="appTheme" />

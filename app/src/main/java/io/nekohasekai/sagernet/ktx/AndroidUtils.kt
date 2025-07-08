@@ -35,8 +35,6 @@ import kotlinx.coroutines.delay
 import androidx.core.view.isVisible
 import androidx.core.view.isGone
 import androidx.preference.Preference
-import io.nekohasekai.sagernet.database.ProxyEntity
-import io.nekohasekai.sagernet.database.ProxyGroup
 
 // Utils that require Android. Split it so that test can not include Android parts.
 
@@ -183,3 +181,23 @@ fun Resources.Theme.resolveResourceId(@AttrRes resId: Int): Int {
 }
 
 fun Preference.remove() = parent!!.removePreference(this)
+
+/** Generate friendly and easy-understand message for failed URL test */
+fun urlTestMessage(context: Context, error: String): String {
+    val lowercase = error.lowercase()
+    return when {
+        lowercase.contains("timeout") || lowercase.contains("deadline") -> {
+            context.getString(R.string.connection_test_timeout)
+        }
+
+        lowercase.contains("refused") || lowercase.contains("closed pipe") || lowercase.contains("reset") -> {
+            context.getString(R.string.connection_test_refused)
+        }
+
+        lowercase.contains("via clientconn.close") -> {
+            context.getString(R.string.connection_test_mux)
+        }
+
+        else -> error
+    }
+}

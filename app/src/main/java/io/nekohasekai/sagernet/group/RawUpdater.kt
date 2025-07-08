@@ -16,7 +16,6 @@ import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
-import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
@@ -32,6 +31,7 @@ import org.json.JSONTokener
 import java.io.StringReader
 import androidx.core.net.toUri
 import io.nekohasekai.sagernet.SagerNet.Companion.app
+import io.nekohasekai.sagernet.ktx.b64DecodeToString
 
 @Suppress("EXPERIMENTAL_API_USAGE", "UNCHECKED_CAST")
 object RawUpdater : GroupUpdater() {
@@ -119,7 +119,7 @@ object RawUpdater : GroupUpdater() {
         }
 
         try {
-            return parseProxies(text.decodeBase64UrlSafe()).takeIf { it.isNotEmpty() }
+            return parseProxies(text.b64DecodeToString()).takeIf { it.isNotEmpty() }
                 ?: error("Not found")
         } catch (e: Exception) {
             Logs.w(e)

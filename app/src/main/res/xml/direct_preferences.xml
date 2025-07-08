@@ -6,15 +6,4 @@
         app:title="@string/profile_name"
         app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreference
-        app:icon="@drawable/ic_baseline_import_contacts_24"
-        app:key="isOutboundOnly"
-        app:title="@string/is_outbound_only" />
-
-    <moe.matsuri.nb4a.ui.EditConfigPreference
-        app:icon="@drawable/ic_baseline_layers_24"
-        app:key="serverConfig"
-        app:title="@string/custom_config"
-        app:useSimpleSummaryProvider="true" />
-
 </PreferenceScreen>

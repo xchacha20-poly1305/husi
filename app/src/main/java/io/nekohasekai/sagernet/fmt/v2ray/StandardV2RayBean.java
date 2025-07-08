@@ -4,8 +4,6 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
-import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
-import moe.matsuri.nb4a.utils.JavaUtil;
 
 public abstract class StandardV2RayBean extends AbstractBean {
 
@@ -72,22 +70,22 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (uuid == null) uuid = "";
 
-        if (JavaUtil.isNullOrBlank(v2rayTransport)) v2rayTransport = "tcp";
+        if (v2rayTransport == null) v2rayTransport = "tcp";
         else if ("h2".equals(v2rayTransport)) v2rayTransport = "http";
 
         v2rayTransport = v2rayTransport.toLowerCase();
 
-        if (JavaUtil.isNullOrBlank(host)) host = "";
-        if (JavaUtil.isNullOrBlank(path)) path = "";
-        if (JavaUtil.isNullOrBlank(headers)) headers = "";
+        if (host == null) host = "";
+        if (path == null) path = "";
+        if (headers == null) headers = "";
 
-        if (JavaUtil.isNullOrBlank(security)) security = "";
-        if (JavaUtil.isNullOrBlank(sni)) sni = "";
-        if (JavaUtil.isNullOrBlank(alpn)) alpn = "";
+        if (security == null) security = "";
+        if (sni == null) sni = "";
+        if (alpn == null) alpn = "";
 
-        if (JavaUtil.isNullOrBlank(certificates)) certificates = "";
-        if (JavaUtil.isNullOrBlank(earlyDataHeaderName)) earlyDataHeaderName = "";
-        if (JavaUtil.isNullOrBlank(utlsFingerprint)) utlsFingerprint = "";
+        if (certificates == null) certificates = "";
+        if (earlyDataHeaderName == null) earlyDataHeaderName = "";
+        if (utlsFingerprint == null) utlsFingerprint = "";
 
         if (fragment == null) fragment = false;
         if (fragmentFallbackDelay == null) fragmentFallbackDelay = "500ms";

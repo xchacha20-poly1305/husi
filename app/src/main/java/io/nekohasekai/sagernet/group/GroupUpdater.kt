@@ -33,7 +33,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
-import moe.matsuri.nb4a.Protocols
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.util.Collections
@@ -67,7 +66,7 @@ abstract class GroupUpdater {
             GroupUpdater.progress[groupId] = progress
             GroupManager.postReload(groupId)
         }
-        val ipv6First = when(networkStrategy) {
+        val ipv6First = when (networkStrategy) {
             SingBoxOptions.STRATEGY_IPV6_ONLY, SingBoxOptions.STRATEGY_PREFER_IPV6 -> true
             else -> false
         }
@@ -173,10 +172,10 @@ abstract class GroupUpdater {
         val duplicate = ArrayList<String>()
         if (subscription.deduplication) {
             Logs.d("Before deduplication: ${newProxies.size}")
-            val uniqueProxies = LinkedHashSet<Protocols.Deduplication>()
-            val uniqueNames = HashMap<Protocols.Deduplication, String>()
+            val uniqueProxies = LinkedHashSet<Deduplication>()
+            val uniqueNames = HashMap<Deduplication, String>()
             for (_proxy in newProxies) {
-                val proxy = Protocols.Deduplication(_proxy, _proxy.javaClass.toString())
+                val proxy = Deduplication(_proxy, _proxy.javaClass.toString())
                 if (!uniqueProxies.add(proxy)) {
                     val index = uniqueProxies.indexOf(proxy)
                     if (uniqueNames.containsKey(proxy)) {
@@ -295,6 +294,29 @@ abstract class GroupUpdater {
             runOnDefaultDispatcher {
                 executeUpdate(proxyGroup, byUser)
             }
+        }
+
+        class Deduplication(
+            val bean: AbstractBean, val type: String
+        ) {
+
+            fun hash(): String {
+                return bean.serverAddress + bean.serverPort + type
+            }
+
+            override fun hashCode(): Int {
+                return hash().toByteArray().contentHashCode()
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Deduplication
+
+                return hash() == other.hash()
+            }
+
         }
 
         suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {

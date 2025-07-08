@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ktx
 
+import android.util.Base64
 import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Serializable
@@ -16,11 +17,13 @@ import io.nekohasekai.sagernet.fmt.socks.parseSOCKS
 import io.nekohasekai.sagernet.fmt.trojan.parseTrojan
 import io.nekohasekai.sagernet.fmt.tuic.parseTuic
 import io.nekohasekai.sagernet.fmt.v2ray.parseV2Ray
-import moe.matsuri.nb4a.utils.JavaUtil.gson
-import moe.matsuri.nb4a.utils.Util
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.util.zip.Deflater
+import java.util.zip.Inflater
+import kotlin.io.use
 
 // JSON & Base64
 
@@ -101,9 +104,83 @@ fun JSONObject.getLongOrNull(name: String): Long? {
     }
 }
 
+fun String.b64EncodeUrlSafe(): String {
+    return toByteArray().b64EncodeUrlSafe()
+}
 
-fun String.decodeBase64UrlSafe(): String {
-    return String(Util.b64Decode(this))
+fun ByteArray.b64EncodeUrlSafe(): String {
+    return String(Base64.encode(this, Base64.NO_PADDING or Base64.NO_WRAP or Base64.URL_SAFE))
+}
+
+// v2rayN Style
+fun ByteArray.b64EncodeOneLine(): String {
+    return String(Base64.encode(this, Base64.NO_WRAP))
+}
+
+fun ByteArray.b64EncodeDefault(): String {
+    return String(Base64.encode(this, Base64.DEFAULT))
+}
+
+fun String.b64Decode(): ByteArray {
+    var ret: ByteArray? = null
+
+    // padding 自动处理，不用理
+    // URLSafe 需要替换这两个，不要用 URL_SAFE 否则处理非 Safe 的时候会乱码
+    val str = replace("-", "+").replace("_", "/")
+
+    val flags = listOf(
+        Base64.DEFAULT, // 多行
+        Base64.NO_WRAP, // 单行
+    )
+
+    for (flag in flags) {
+        try {
+            ret = Base64.decode(str, flag)
+        } catch (_: Exception) {
+        }
+        if (ret != null) return ret
+    }
+
+    throw IllegalStateException("Cannot decode base64")
+}
+
+fun String.b64DecodeToString(): String {
+    return b64Decode().decodeToString()
+}
+
+// zlib
+
+fun ByteArray.zlibCompress(level: Int): ByteArray {
+    // Compress the bytes
+    // 1 to 4 bytes/char for UTF-8
+    val output = ByteArray(size * 4)
+    val compressor = Deflater(level).apply {
+        setInput(this@zlibCompress)
+        finish()
+    }
+    val compressedDataLength: Int = compressor.deflate(output)
+    compressor.end()
+    return output.copyOfRange(0, compressedDataLength)
+}
+
+fun ByteArray.zlibDecompress(): ByteArray {
+    val inflater = Inflater()
+    val outputStream = ByteArrayOutputStream()
+
+    return outputStream.use {
+        val buffer = ByteArray(1024)
+
+        inflater.setInput(this)
+
+        var count = -1
+        while (count != 0) {
+            count = inflater.inflate(buffer)
+            outputStream.write(buffer, 0, count)
+        }
+
+        inflater.end()
+        outputStream.toByteArray()
+    }
 }
 
 // Sub
