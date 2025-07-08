@@ -24,5 +24,23 @@
     "managerFilePatterns": [
       "/.github/workflows/.*.yml$/"
     ]
-  }
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "enabled": false
+    },
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "github.com/sagernet/sing-box",
+        "github.com/sagernet/gomobile"
+      ],
+      "enabled": true
+    }
+  ]
 }
