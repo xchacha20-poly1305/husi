@@ -8,7 +8,7 @@ require (
 	github.com/sagernet/gomobile v0.1.7
 	github.com/sagernet/sing v0.6.12-0.20250703120903-7081a0c40539
 	github.com/sagernet/sing-box v1.12.0-beta.31
-	github.com/sagernet/sing-tun v0.6.10-0.20250703121732-a0881ada3251
+	github.com/sagernet/sing-tun v0.6.10-0.20250708080221-68a9a8461744
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.6.1
 	github.com/xchacha20-poly1305/libping v0.9.0
