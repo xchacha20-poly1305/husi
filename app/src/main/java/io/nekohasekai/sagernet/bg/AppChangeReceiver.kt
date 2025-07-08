@@ -36,7 +36,11 @@ class AppChangeReceiver : BroadcastReceiver() {
         }
         val isChinaApp = AppManagerActivity.isChinaApp(packageName)
         Logs.d("scan china app result for $packageName: $isChinaApp")
-        DataStore.individual += "\n$packageName"
+        if (isChinaApp && DataStore.bypassMode) {
+            DataStore.packages += packageName
+        } else if (!isChinaApp && !DataStore.bypassMode) {
+            DataStore.packages += packageName
+        }
     }
 
 }

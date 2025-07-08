@@ -249,8 +249,9 @@ class AppManagerActivity : ThemedActivity() {
 
         override fun onClick(v: View?) {
             if (isProxiedApp(item)) proxiedUids.delete(item.uid) else proxiedUids[item.uid] = true
-            DataStore.individual = apps.filter { isProxiedApp(it) }
-                .joinToString("\n") { it.packageName }
+            DataStore.packages = apps.mapNotNullTo(mutableSetOf()) {
+                it.takeIf { isProxiedApp(it) }?.packageName
+            }
 
             appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
         }
@@ -320,11 +321,13 @@ class AppManagerActivity : ThemedActivity() {
     private var apps = emptyList<ProxiedApp>()
     private val appsAdapter = AppsAdapter()
 
-    private fun initProxiedUids(str: String = DataStore.individual) {
+    private fun initProxiedUids(packageNames: Set<String> = DataStore.packages) {
         proxiedUids.clear()
         val apps = cachedApps
-        for (line in str.lineSequence()) proxiedUids[(apps[line]
-            ?: continue).applicationInfo!!.uid] = true
+        for (packageName in packageNames) {
+            val packageInfo = apps[packageName] ?: continue
+            proxiedUids[packageInfo.applicationInfo!!.uid] = true
+        }
     }
 
     private fun isProxiedApp(app: ProxiedApp) = proxiedUids[app.uid]
@@ -439,8 +442,9 @@ class AppManagerActivity : ThemedActivity() {
                             proxiedUids[app.uid] = true
                         }
                     }
-                    DataStore.individual = apps.filter { isProxiedApp(it) }
-                        .joinToString("\n") { it.packageName }
+                    DataStore.packages = apps.mapNotNullTo(mutableSetOf()) {
+                        it.takeIf { isProxiedApp(it) }?.packageName
+                    }
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
                         appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
@@ -453,7 +457,7 @@ class AppManagerActivity : ThemedActivity() {
             R.id.action_clear_selections -> {
                 runOnDefaultDispatcher {
                     proxiedUids.clear()
-                    DataStore.individual = ""
+                    DataStore.packages = emptySet()
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
                         appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
@@ -462,12 +466,13 @@ class AppManagerActivity : ThemedActivity() {
             }
 
             R.id.action_export_clipboard -> {
+                val packagesByLine = DataStore.packages.joinToString("\n")
                 val success =
-                    SagerNet.trySetPrimaryClip("${DataStore.bypassMode}\n${DataStore.individual}")
+                    SagerNet.trySetPrimaryClip("${DataStore.bypassMode}\n${packagesByLine}")
                 Snackbar.make(
                     binding.list,
                     if (success) R.string.action_export_msg else R.string.action_export_err,
-                    Snackbar.LENGTH_LONG
+                    Snackbar.LENGTH_LONG,
                 ).show()
                 return true
             }
@@ -478,17 +483,20 @@ class AppManagerActivity : ThemedActivity() {
                 if (!proxiedAppString.isNullOrEmpty()) {
                     val i = proxiedAppString.indexOf('\n')
                     try {
-                        val (enabled, apps) = if (i < 0) {
+                        val (enabled, appsString) = if (i < 0) {
                             proxiedAppString to ""
                         } else proxiedAppString.substring(
                             0, i
                         ) to proxiedAppString.substring(i + 1)
                         binding.bypassGroup.check(if (enabled.toBoolean()) R.id.appProxyModeBypass else R.id.appProxyModeOn)
-                        DataStore.individual = apps
+                        val packages = appsString.lines().mapNotNullTo(mutableSetOf()) { line ->
+                            line.trim().takeIf { it.isNotEmpty() }
+                        }
+                        DataStore.packages = packages
                         Snackbar.make(
                             binding.list, R.string.action_import_msg, Snackbar.LENGTH_LONG
                         ).show()
-                        initProxiedUids(apps)
+                        initProxiedUids(packages)
                         appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
                         return true
                     } catch (_: IllegalArgumentException) {
@@ -558,8 +566,9 @@ class AppManagerActivity : ThemedActivity() {
 
             }
 
-            DataStore.individual = apps.filter { isProxiedApp(it) }
-                .joinToString("\n") { it.packageName }
+            DataStore.packages = apps.mapNotNullTo(mutableSetOf()) {
+                it.takeIf { isProxiedApp(it) }?.packageName
+            }
 
             apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
 

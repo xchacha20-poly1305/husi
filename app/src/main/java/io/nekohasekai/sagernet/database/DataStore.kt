@@ -37,6 +37,16 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     val configurationStore = RoomPreferenceDataStore(PublicDatabase.kvPairDao)
     val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
 
+    init {
+        // Migration
+        val oldPackages = configurationStore.getString("individual")?.split("\n")
+        if (oldPackages?.isNotEmpty() == true && configurationStore.getStringSet(Key.PACKAGES) == null) {
+            configurationStore.putStringSet(Key.PACKAGES, oldPackages.toMutableSet())
+            // remove old key
+            configurationStore.remove("individual")
+        }
+    }
+
     // last used, but may not be running
     var currentProfile by configurationStore.long(Key.PROFILE_CURRENT)
 
@@ -161,7 +171,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var proxyApps by configurationStore.boolean(Key.PROXY_APPS)
     var updateProxyAppsWhenInstall by configurationStore.boolean(Key.UPDATE_PROXY_APPS_WHEN_INSTALL)
     var bypassMode by configurationStore.boolean(Key.BYPASS_MODE) { true } // VPN bypass mode
-    var individual by configurationStore.string(Key.INDIVIDUAL)
+
+    // var individual by configurationStore.string(Key.INDIVIDUAL) // old packages that split by '\n'
+    var packages by configurationStore.stringSet(Key.PACKAGES)
     var showDirectSpeed by configurationStore.boolean(Key.SHOW_DIRECT_SPEED) { true }
 
     val persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
