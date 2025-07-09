@@ -71,7 +71,6 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setDecorFitsSystemWindowsForParticularAPIs()
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(

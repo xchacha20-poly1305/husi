@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.app.Activity
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -31,7 +30,7 @@ class VpnRequestActivity : AppCompatActivity() {
                 registerReceiver(
                     receiver,
                     IntentFilter(Intent.ACTION_USER_PRESENT),
-                    Context.RECEIVER_NOT_EXPORTED
+                    RECEIVER_NOT_EXPORTED
                 )
             } else {
                 registerReceiver(receiver, IntentFilter(Intent.ACTION_USER_PRESENT))
@@ -68,7 +67,7 @@ class VpnRequestActivity : AppCompatActivity() {
             cachedIntent!!.also { cachedIntent = null }
 
         override fun parseResult(resultCode: Int, intent: Intent?) =
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == RESULT_OK) {
                 SagerNet.startService()
                 false
             } else {

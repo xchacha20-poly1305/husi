@@ -61,7 +61,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.dashboardTab) { v, insets ->
             val bars = insets.getInsets(
@@ -71,7 +71,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.dashboardPager) { v, insets ->
             val bars = insets.getInsets(
@@ -82,7 +82,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 right = bars.right,
                 bottom = bars.bottom,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         binding.dashboardPager.adapter = TrafficAdapter(this).also {

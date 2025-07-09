@@ -30,7 +30,6 @@ class GetCertActivity : ThemedActivity() {
         setContentView(binding.root)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -40,7 +39,7 @@ class GetCertActivity : ThemedActivity() {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->
             val bars = insets.getInsets(
@@ -51,7 +50,7 @@ class GetCertActivity : ThemedActivity() {
                 right = bars.right,
                 bottom = bars.bottom,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         setSupportActionBar(toolbar)

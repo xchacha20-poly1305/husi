@@ -38,7 +38,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                 right = bars.right + dp2px(4),
                 bottom = bars.bottom + dp2px(4),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         val service = (requireActivity() as MainActivity).connection.service

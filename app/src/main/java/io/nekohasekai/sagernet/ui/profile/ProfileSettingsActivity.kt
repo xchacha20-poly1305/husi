@@ -118,7 +118,6 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         super.onCreate(savedInstanceState)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -128,7 +127,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
@@ -360,7 +359,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     right = bars.right,
                     bottom = bars.bottom,
                 )
-                WindowInsetsCompat.CONSUMED
+                insets
             }
 
             activity?.apply {

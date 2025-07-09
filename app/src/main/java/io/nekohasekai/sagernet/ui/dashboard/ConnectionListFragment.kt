@@ -39,7 +39,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                 right = bars.right + dp2px(8),
                 bottom = bars.bottom + dp2px(64),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         binding.recycleView.adapter = ConnectionAdapter().also {
             adapter = it

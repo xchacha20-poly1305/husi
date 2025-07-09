@@ -350,7 +350,6 @@ class AppManagerActivity : ThemedActivity() {
         super.onCreate(savedInstanceState)
 
 
-        setDecorFitsSystemWindowsForParticularAPIs()
         binding = LayoutAppsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -363,7 +362,7 @@ class AppManagerActivity : ThemedActivity() {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.list) { v, insets ->
             val bars = insets.getInsets(
@@ -374,7 +373,7 @@ class AppManagerActivity : ThemedActivity() {
                 right = bars.right,
                 bottom = bars.bottom,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {

@@ -29,7 +29,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 right = bars.right,
                 bottom = bars.bottom + dp2px(64),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         binding.stunTest.setOnClickListener {

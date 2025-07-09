@@ -221,7 +221,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         val activity = activity
@@ -245,7 +245,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         adapter = GroupPagerAdapter()
@@ -1227,7 +1227,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     right = bars.right + dp2px(4),
                     bottom = bars.bottom + dp2px(64),
                 )
-                WindowInsetsCompat.CONSUMED
+                insets
             }
             adapter = ConfigurationAdapter()
             ProfileManager.addListener(adapter!!)

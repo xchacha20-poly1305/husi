@@ -72,7 +72,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.logView) { v, insets ->
             val bars = insets.getInsets(
@@ -83,7 +83,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                 right = bars.right + dp2px(8),
                 bottom = bars.bottom + dp2px(64),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         logAdapter = LogAdapter(
