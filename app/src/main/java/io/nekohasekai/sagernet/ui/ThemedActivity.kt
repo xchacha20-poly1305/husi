@@ -28,7 +28,21 @@ abstract class ThemedActivity : AppCompatActivity {
         }
         Theme.applyNightTheme()
 
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
+            // BAKLAVA and later VANILLA_ICE_CREAM have fixed this
+            // set this before super.onCreate(savedInstanceState)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        }
+
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = !Theme.usingNightMode()
+        }
 
         uiMode = resources.configuration.uiMode
 
@@ -70,10 +84,4 @@ abstract class ThemedActivity : AppCompatActivity {
     internal open fun snackbarInternal(text: CharSequence): Snackbar = throw NotImplementedError()
 
     open val onBackPressedCallback: OnBackPressedCallback? get() = null
-
-    internal fun setDecorFitsSystemWindowsForParticularAPIs() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-        }
-    }
 }

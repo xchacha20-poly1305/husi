@@ -193,11 +193,9 @@ class AppListActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setDecorFitsSystemWindowsForParticularAPIs()
         binding = LayoutAppListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(binding.collapsingToolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -207,7 +205,7 @@ class AppListActivity : ThemedActivity() {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.list) { v, insets ->
             val bars = insets.getInsets(
@@ -218,7 +216,7 @@ class AppListActivity : ThemedActivity() {
                 right = bars.right,
                 bottom = bars.bottom,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         setSupportActionBar(binding.toolbar)

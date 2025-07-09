@@ -57,7 +57,6 @@ class AssetsActivity : ThemedActivity() {
         updating.visibility = View.GONE
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -67,7 +66,7 @@ class AssetsActivity : ThemedActivity() {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.recyclerView) { v, insets ->
             val bars = insets.getInsets(
@@ -78,7 +77,7 @@ class AssetsActivity : ThemedActivity() {
                 right = bars.right + dp2px(4),
                 bottom = bars.bottom + dp2px(64),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         setSupportActionBar(toolbar)
         supportActionBar?.apply {

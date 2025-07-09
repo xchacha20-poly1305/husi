@@ -101,7 +101,6 @@ class MainActivity : ThemedActivity(),
             binding.drawerLayout.removeView(binding.navView)
         }
         navigation.setNavigationItemSelectedListener(this)
-        setDecorFitsSystemWindowsForParticularAPIs()
         if (resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
             ViewCompat.setOnApplyWindowInsetsListener(navigation) { v, insets ->
                 val bars = insets.getInsets(
@@ -112,7 +111,7 @@ class MainActivity : ThemedActivity(),
                     right = bars.right,
                     bottom = bars.bottom,
                 )
-                WindowInsetsCompat.CONSUMED
+                insets
             }
         } else {
             ViewCompat.setOnApplyWindowInsetsListener(navigation) { v, insets ->
@@ -124,7 +123,7 @@ class MainActivity : ThemedActivity(),
                     left = bars.left,
                     bottom = bars.bottom,
                 )
-                WindowInsetsCompat.CONSUMED
+                insets
             }
         }
 

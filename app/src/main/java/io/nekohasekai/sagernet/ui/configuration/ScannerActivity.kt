@@ -86,7 +86,6 @@ class ScannerActivity : ThemedActivity() {
         binding = LayoutScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar)) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -96,7 +95,7 @@ class ScannerActivity : ThemedActivity() {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {

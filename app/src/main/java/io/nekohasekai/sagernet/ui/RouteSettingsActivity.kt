@@ -410,7 +410,6 @@ class RouteSettingsActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar)) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -420,7 +419,7 @@ class RouteSettingsActivity(
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
@@ -569,7 +568,7 @@ class RouteSettingsActivity(
                     right = bars.right,
                     bottom = bars.bottom,
                 )
-                WindowInsetsCompat.CONSUMED
+                insets
             }
 
             activity?.apply {

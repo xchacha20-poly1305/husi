@@ -54,7 +54,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 left = bars.left,
                 right = bars.right,
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.layoutAbout) { v, insets ->
             val bars = insets.getInsets(
@@ -65,7 +65,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 right = bars.right,
                 bottom = bars.bottom + dp2px(64),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
 
         parentFragmentManager.beginTransaction()

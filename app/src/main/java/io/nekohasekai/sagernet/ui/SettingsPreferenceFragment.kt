@@ -57,7 +57,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 right = bars.right,
                 bottom = bars.bottom + dp2px(64),
             )
-            WindowInsetsCompat.CONSUMED
+            insets
         }
     }
 

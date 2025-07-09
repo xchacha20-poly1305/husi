@@ -71,7 +71,6 @@ class ConfigEditActivity : ThemedActivity() {
         setContentView(binding.root)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setDecorFitsSystemWindowsForParticularAPIs()
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
