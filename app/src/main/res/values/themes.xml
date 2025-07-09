@@ -207,7 +207,7 @@
     <style name="Theme.SagerNet.Grey">
         <item name="colorPrimary">@color/material_grey_500</item>
         <item name="colorPrimaryDark">@color/material_grey_700</item>
-        <item name="colorAccent">@color/material_grey_200</item>
+        <item name="colorAccent">@color/material_grey_700</item>
         <item name="colorMaterial100">@color/material_grey_100</item>
         <item name="colorMaterial300">@color/material_grey_300</item>
     </style>
