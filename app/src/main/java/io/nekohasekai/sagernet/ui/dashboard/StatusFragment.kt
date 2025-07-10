@@ -1,5 +1,8 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +13,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
@@ -17,8 +21,11 @@ import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import libcore.Libcore
+import java.net.Inet4Address
+import java.net.Inet6Address
 
 class StatusFragment : Fragment(R.layout.layout_status) {
 
@@ -39,6 +46,42 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                 bottom = bars.bottom + dp2px(4),
             )
             insets
+        }
+
+        val (ipv4, ipv6) = getLocalAddresses()
+        binding.ipv4AddressText.text = ipv4.toString()
+        if (ipv4 != null) {
+            binding.ipv4AddressText.setOnClickListener {
+                snackbar(
+                    if (SagerNet.trySetPrimaryClip(ipv4)) {
+                        R.string.copy_success
+                    } else {
+                        R.string.copy_failed
+                    }
+                ).show()
+            }
+            binding.ipv4AddressText.setOnLongClickListener { view ->
+                view.performClick()
+            }
+        } else {
+            binding.ipv4AddressText.setTextIsSelectable(true)
+        }
+        binding.ipv6AddressText.text = ipv6.toString()
+        if (ipv6 != null) {
+            binding.ipv6AddressText.setOnClickListener {
+                snackbar(
+                    if (SagerNet.trySetPrimaryClip(ipv6)) {
+                        R.string.copy_success
+                    } else {
+                        R.string.copy_failed
+                    }
+                ).show()
+            }
+            binding.ipv6AddressText.setOnLongClickListener {  view ->
+                view.performClick()
+            }
+        } else {
+            binding.ipv6AddressText.setTextIsSelectable(true)
         }
 
         val service = (requireActivity() as MainActivity).connection.service
@@ -116,5 +159,50 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                 }
             }
         }
+    }
+
+    /**
+     * IPv4 + IPv6
+     * @see <a href="https://github.com/chen08209/FlClash/blob/adb890d7637c2d6d10e7034b3599be7eacbfee99/lib/common/utils.dart#L304-L328">FlClash</a>
+     * */
+    private fun getLocalAddresses(): Pair<String?, String?> {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        var wifiIPv4: String? = null
+        var wifiIPv6: String? = null
+        var cellularIPv4: String? = null
+        var cellularIPv6: String? = null
+
+        @Suppress("DEPRECATION")
+        connectivityManager.allNetworks.forEach { network ->
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return@forEach
+            val linkProperties = connectivityManager.getLinkProperties(network) ?: return@forEach
+
+            linkProperties.linkAddresses.forEach { linkAddress ->
+                val address = linkAddress.address
+                if (!address.isLoopbackAddress) {
+                    if (address is Inet4Address) {
+                        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                            if (wifiIPv4 == null) wifiIPv4 = address.hostAddress
+                        } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                            if (cellularIPv4 == null) cellularIPv4 = address.hostAddress
+                        }
+                    } else if (address is Inet6Address && !address.isLinkLocalAddress) {
+                        val hostAddress = address.hostAddress?.substringBefore('%')
+                        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                            if (wifiIPv6 == null) wifiIPv6 = hostAddress
+                        } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                            if (cellularIPv6 == null) cellularIPv6 = hostAddress
+                        }
+                    }
+                }
+            }
+        }
+
+        val finalIPv4 = wifiIPv4 ?: cellularIPv4
+        val finalIPv6 = wifiIPv6 ?: cellularIPv6
+
+        return Pair(finalIPv4, finalIPv6)
     }
 }
