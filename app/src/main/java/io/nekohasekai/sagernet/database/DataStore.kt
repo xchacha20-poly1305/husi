@@ -110,6 +110,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         NetworkInterfaceStrategy.DEFAULT
     }
     var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
+    var forcedSearchProcess by configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
 
     //    var tcpKeepAliveInterval by configurationStore.stringToInt(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
     var mtu by configurationStore.stringToInt(Key.MTU) { 9000 }

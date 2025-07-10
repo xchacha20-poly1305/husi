@@ -439,7 +439,7 @@
                     android:id="@+id/connProcess"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="[1000] android"
                     android:textIsSelectable="true" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
