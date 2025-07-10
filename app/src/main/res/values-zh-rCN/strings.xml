@@ -614,4 +614,5 @@
     <string name="ignore_device_idle">忽略设备休眠</string>
     <string name="max_log_size">最大日志大小 (kb)</string>
     <string name="process">进程</string>
+    <string name="forced_search_process">强制搜索进程</string>
 </resources>

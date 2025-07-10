@@ -326,6 +326,7 @@ fun buildConfig(
             auto_detect_interface = true
             rules = mutableListOf()
             rule_set = mutableListOf()
+            if (!forTest && DataStore.forcedSearchProcess) find_process = true
         }
 
         // returns outbound tag

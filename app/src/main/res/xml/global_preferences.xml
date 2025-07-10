@@ -168,6 +168,11 @@
             app:icon="@drawable/baseline_public_24"
             app:key="networkPreferredInterfaces"
             app:title="@string/network_interface_preference" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_baseline_android_24"
+            app:key="forcedSearchProcess"
+            app:title="@string/forced_search_process" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="0"
             app:entries="@array/rules_dat_provider"
