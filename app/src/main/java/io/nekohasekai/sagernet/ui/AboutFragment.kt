@@ -24,7 +24,6 @@ import com.danielstone.materialaboutlibrary.model.MaterialAboutCard
 import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
 import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.ktx.Logs
@@ -110,7 +109,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                 .text(R.string.app_version)
                                 .subText(displayVersion)
                                 .setOnClickAction {
-                                    requireContext().launchCustomTab(
+                                    activityContext.launchCustomTab(
                                         if (Libcore.isPreRelease(BuildConfig.VERSION_NAME)) {
                                             "https://github.com/xchacha20-poly1305/husi/releases"
                                         } else {
@@ -122,10 +121,10 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         .addItem(
                             MaterialAboutActionItem.Builder()
                                 .icon(R.drawable.ic_baseline_layers_24)
-                                .text(getString(R.string.version_x, "sing-box"))
+                                .text(activityContext.getString(R.string.version_x, "sing-box"))
                                 .subText(Libcore.version())
                                 .setOnClickAction {
-                                    requireContext().launchCustomTab(
+                                    activityContext.launchCustomTab(
                                         "https://github.com/SagerNet/sing-box"
                                     )
                                 }
@@ -141,14 +140,14 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                         MaterialAboutActionItem.Builder()
                                             .icon(R.drawable.ic_baseline_nfc_24)
                                             .text(
-                                                getString(
+                                                activityContext.getString(
                                                     R.string.version_x,
                                                     pluginId
                                                 ) + " (${Plugins.displayExeProvider(pkg.packageName)})"
                                             )
                                             .subText("v" + pkg.versionName)
                                             .setOnClickAction {
-                                                startActivity(Intent().apply {
+                                                activityContext.startActivity(Intent().apply {
                                                     action =
                                                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                                                     data = Uri.fromParts(
@@ -161,7 +160,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                                     pkg.providers!![0].loadString(Plugins.METADATA_KEY_ID)
                                                 PluginEntry.find(id)?.let { entry ->
                                                     setOnLongClickAction {
-                                                        requireContext().launchCustomTab(
+                                                        activityContext.launchCustomTab(
                                                             entry.downloadSource.downloadLink
                                                         )
                                                     }
@@ -175,8 +174,9 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         }
                         .apply {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                val pm = app.getSystemService(Context.POWER_SERVICE) as PowerManager
-                                if (!pm.isIgnoringBatteryOptimizations(app.packageName)) {
+                                val pm =
+                                    activityContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+                                if (!pm.isIgnoringBatteryOptimizations(activityContext.packageName)) {
                                     addItem(
                                         MaterialAboutActionItem.Builder()
                                             .icon(R.drawable.ic_baseline_running_with_errors_24)
@@ -186,7 +186,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                                 requestIgnoreBatteryOptimizations.launch(
                                                     Intent(
                                                         Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                                        "package:${app.packageName}".toUri()
+                                                        "package:${activityContext.packageName}".toUri()
                                                     )
                                                 )
                                             }
@@ -198,7 +198,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                     .icon(R.drawable.ic_baseline_card_giftcard_24)
                                     .text(R.string.sekai)
                                     .setOnClickAction {
-                                        requireContext().launchCustomTab("https://sekai.icu/sponsors/")
+                                        activityContext.launchCustomTab("https://sekai.icu/sponsors/")
                                     }
                                     .build()
                             )
@@ -213,7 +213,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                 .icon(R.drawable.ic_baseline_sanitizer_24)
                                 .text(R.string.github)
                                 .setOnClickAction {
-                                    requireContext().launchCustomTab(
+                                    activityContext.launchCustomTab(
                                         "https://github.com/xchacha20-poly1305/husi"
 
                                     )
@@ -224,7 +224,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                 .icon(R.drawable.baseline_translate_24)
                                 .text(R.string.translate_platform)
                                 .setOnClickAction {
-                                    requireContext().launchCustomTab(
+                                    activityContext.launchCustomTab(
                                         "https://hosted.weblate.org/projects/husi/husi/"
 
                                     )
