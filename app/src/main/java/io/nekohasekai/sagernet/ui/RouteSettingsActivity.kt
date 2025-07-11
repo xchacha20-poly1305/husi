@@ -70,7 +70,7 @@ class RouteSettingsActivity(
         RuleEntity().apply {
             if (!packageName.isNullOrBlank()) {
                 packages = setOf(packageName)
-                name = app.getString(R.string.route_for, PackageCache.loadLabel(packageName))
+                name = getString(R.string.route_for, PackageCache.loadLabel(packageName))
             }
         }.init()
     }
