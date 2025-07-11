@@ -7,7 +7,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.preference.EditTextPreference
 import com.google.android.material.textfield.TextInputLayout
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 
@@ -49,7 +48,7 @@ constructor(
                     val url = Libcore.parseURL(link)
                     when (url.scheme.lowercase()) {
                         "content" -> continue
-                        "http" -> errors.add(app.getString(R.string.cleartext_http_warning))
+                        "http" -> errors.add(context.getString(R.string.cleartext_http_warning))
                     }
                 } catch (e: Exception) {
                     errors.add(e.readableMessage)
