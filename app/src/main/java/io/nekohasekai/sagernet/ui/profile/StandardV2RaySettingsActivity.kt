@@ -18,11 +18,7 @@ import rikka.preference.SimpleMenuPreference
 
 abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV2RayBean>() {
 
-    private lateinit var bean: StandardV2RayBean
-
     override fun StandardV2RayBean.init() {
-        bean = this
-
         DataStore.profileName = name
         DataStore.serverAddress = serverAddress
         DataStore.serverPort = serverPort
@@ -210,8 +206,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     /** Sets up the initial state of preferences based on the profile bean. */
     private fun PreferenceFragmentCompat.setupInitialState() {
         val isHttp = bean is HttpBean
-        val isVmess = bean is VMessBean && !bean.isVLESS
-        val isVless = bean.isVLESS
+        val isVmess = bean is VMessBean && !bean!!.isVLESS
+        val isVless = bean!!.isVLESS
         val isTrojan = bean is TrojanBean
 
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.setOnBindEditTextListener(
@@ -398,7 +394,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
     private fun isTLS(security: String): Boolean = security == "tls"
 
-    private fun getFlow(): String? = if (bean.isVLESS) {
+    private fun getFlow(): String? = if (bean!!.isVLESS) {
         serverEncryption.value
     } else {
         null
