@@ -645,4 +645,5 @@
     <string name="ignore_device_idle">Игнорировать режим ожидания устройства</string>
     <string name="max_log_size">Максимальный размер журнала (КБ)</string>
     <string name="process">Процесс</string>
+    <string name="forced_search_process">Принудительный поиск процесса</string>
 </resources>
