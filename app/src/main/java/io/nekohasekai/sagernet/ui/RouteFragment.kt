@@ -30,15 +30,12 @@ import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 
 class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItemClickListener {
 
-    lateinit var activity: MainActivity
     lateinit var ruleListView: RecyclerView
     lateinit var ruleAdapter: RuleAdapter
     lateinit var undoManager: UndoSnackbarManager<RuleEntity>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        activity = requireActivity() as MainActivity
 
         toolbar.setTitle(R.string.menu_route)
         toolbar.inflateMenu(R.menu.add_route_menu)
@@ -70,7 +67,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         ruleAdapter = RuleAdapter()
         ProfileManager.addListener(ruleAdapter)
         ruleListView.adapter = ruleAdapter
-        undoManager = UndoSnackbarManager(activity, ruleAdapter)
+        undoManager = UndoSnackbarManager(requireActivity() as ThemedActivity, ruleAdapter)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN,
@@ -140,7 +137,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             }
 
             R.id.action_reset_route -> {
-                MaterialAlertDialogBuilder(activity).setTitle(R.string.confirm)
+                MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                     .setMessage(R.string.clear_profiles_message)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         runOnDefaultDispatcher {

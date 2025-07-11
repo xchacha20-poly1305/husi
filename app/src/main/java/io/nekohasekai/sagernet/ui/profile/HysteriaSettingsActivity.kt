@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 import rikka.preference.SimpleMenuPreference
 
 class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {

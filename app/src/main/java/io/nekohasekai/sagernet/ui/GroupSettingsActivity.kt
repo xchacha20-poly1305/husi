@@ -357,12 +357,13 @@ class GroupSettingsActivity(
 
     class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
 
-        var activity: GroupSettingsActivity? = null
+        val activity: GroupSettingsActivity
+            get() = requireActivity() as GroupSettingsActivity
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = DataStore.profileCacheStore
             try {
-                activity = (requireActivity() as GroupSettingsActivity).apply {
+                activity.apply {
                     createPreferences(savedInstanceState, rootKey)
                 }
             } catch (e: Exception) {
@@ -390,19 +391,6 @@ class GroupSettingsActivity(
                 insets
             }
         }
-    }
-
-    object PasswordSummaryProvider : Preference.SummaryProvider<EditTextPreference> {
-
-        override fun provideSummary(preference: EditTextPreference): CharSequence {
-            val text = preference.text
-            return if (text.isNullOrBlank()) {
-                preference.context.getString(androidx.preference.R.string.not_set)
-            } else {
-                "\u2022".repeat(text.length)
-            }
-        }
-
     }
 
     val selectProfileForAddFront = registerForActivityResult(

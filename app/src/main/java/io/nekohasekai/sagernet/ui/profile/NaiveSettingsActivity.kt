@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
 

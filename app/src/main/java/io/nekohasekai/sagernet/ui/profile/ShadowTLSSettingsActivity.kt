@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
 

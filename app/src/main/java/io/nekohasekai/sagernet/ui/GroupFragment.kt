@@ -49,14 +49,12 @@ import java.util.Date
 class GroupFragment : ToolbarFragment(R.layout.layout_group),
     Toolbar.OnMenuItemClickListener {
 
-    lateinit var activity: MainActivity
     lateinit var groupListView: RecyclerView
     lateinit var groupAdapter: GroupAdapter
     lateinit var undoManager: UndoSnackbarManager<ProxyGroup>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity = requireActivity() as MainActivity
 
         toolbar.setTitle(R.string.menu_group)
         toolbar.inflateMenu(R.menu.add_group_menu)
@@ -89,7 +87,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         GroupManager.addListener(groupAdapter)
         groupListView.adapter = groupAdapter
 
-        undoManager = UndoSnackbarManager(activity, groupAdapter)
+        undoManager = UndoSnackbarManager(requireActivity() as ThemedActivity, groupAdapter)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
@@ -362,8 +360,13 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
             fun export(link: String) {
                 val success = SagerNet.trySetPrimaryClip(link)
-                activity.snackbar(if (success) R.string.action_export_msg else R.string.action_export_err)
-                    .show()
+                (requireActivity() as ThemedActivity).snackbar(
+                    if (success) {
+                        R.string.action_export_msg
+                    } else {
+                        R.string.action_export_err
+                    }
+                ).show()
             }
 
             when (item.itemId) {
