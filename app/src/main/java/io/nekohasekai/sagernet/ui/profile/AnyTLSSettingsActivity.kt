@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.widget.DurationPreference
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
     override fun createBean() = AnyTLSBean().applyDefaultValues()

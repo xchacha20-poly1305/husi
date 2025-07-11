@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
 

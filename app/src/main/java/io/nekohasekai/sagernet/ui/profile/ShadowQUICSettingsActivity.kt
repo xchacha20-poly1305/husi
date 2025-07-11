@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
     override fun createBean() = ShadowQUICBean().applyDefaultValues()

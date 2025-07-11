@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
 

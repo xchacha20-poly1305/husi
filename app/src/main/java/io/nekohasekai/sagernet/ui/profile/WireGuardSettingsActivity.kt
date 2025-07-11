@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
 
