@@ -57,7 +57,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         addPreferencesFromResource(R.xml.name_preferences)
     }
 
-    lateinit var configurationList: RecyclerView
+    val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
     lateinit var configurationAdapter: ProxiesAdapter
 
     @SuppressLint("InlinedApi")
@@ -65,7 +65,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         super.onCreate(savedInstanceState)
 
         supportActionBar!!.setTitle(R.string.chain_settings)
-        configurationList = findViewById(R.id.configuration_list)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -148,6 +147,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                 .mapNotNull { it.takeIf { it.isNotBlank() }?.toLong() }
             if (idList.isNotEmpty()) {
                 val profiles = ProfileManager.getProfiles(idList).mapX { it.id to it }.toMap()
+                proxyList.clear()
                 for (id in idList) {
                     proxyList.add(profiles[id] ?: continue)
                 }
