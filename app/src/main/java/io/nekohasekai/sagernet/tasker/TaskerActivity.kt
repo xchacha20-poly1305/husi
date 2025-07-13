@@ -111,6 +111,7 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
     }
 
     lateinit var profile: SimpleMenuPreference
+    lateinit var action: SimpleMenuPreference
 
     fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -127,6 +128,8 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
                     putExtra(ProfileSelectActivity.EXTRA_SELECTED, settings.profileId)
                 })
         }
+        action = findPreference(Key.TASKER_ACTION)!!
+        profile.isEnabled = action.value == "0"
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
