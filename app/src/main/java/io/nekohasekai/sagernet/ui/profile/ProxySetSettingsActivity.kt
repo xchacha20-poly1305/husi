@@ -179,6 +179,16 @@ class ProxySetSettingsActivity :
         super.onCreate(savedInstanceState)
 
         supportActionBar!!.setTitle(R.string.group_settings)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(
+                left = bars.left,
+                right = bars.right,
+            )
+            insets
+        }
         ViewCompat.setOnApplyWindowInsetsListener(configurationList) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
