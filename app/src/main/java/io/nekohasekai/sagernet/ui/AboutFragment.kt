@@ -34,14 +34,21 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.plugin.Plugins
 import io.nekohasekai.sagernet.utils.PackageCache
+import kotlinx.coroutines.delay
 import libcore.Libcore
 
 class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
+    companion object {
+        const val KEY_LICENSE = "license"
+    }
+
+    lateinit var binding: LayoutAboutBinding
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val binding = LayoutAboutBinding.bind(view)
+        binding = LayoutAboutBinding.bind(view)
 
         toolbar.setTitle(R.string.menu_about)
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
@@ -67,17 +74,37 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             insets
         }
 
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.about_fragment_holder, AboutContent())
-            .commitAllowingStateLoss()
+        if (savedInstanceState == null) {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.about_fragment_holder, AboutContent())
+                .commit()
 
-        runOnDefaultDispatcher {
-            val license = view.context.assets.open("LICENSE").bufferedReader().readText()
+            runOnDefaultDispatcher {
+                val license = readLicense()
+                onMainDispatcher {
+                    bindLicense(license)
+                }
+            }
+        } else runOnDefaultDispatcher {
+            val license = savedInstanceState.getString(KEY_LICENSE) ?: readLicense()
             onMainDispatcher {
-                binding.license.text = license
-                Linkify.addLinks(binding.license, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)
+                bindLicense(license)
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(KEY_LICENSE, binding.license.text.toString())
+        super.onSaveInstanceState(outState)
+    }
+
+    private suspend fun readLicense(): String {
+        return requireContext().assets.open("LICENSE").bufferedReader().readText()
+    }
+
+    private fun bindLicense(license: String) {
+        binding.license.text = license
+        Linkify.addLinks(binding.license, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)
     }
 
     class AboutContent : MaterialAboutFragment() {
@@ -85,10 +112,13 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         val requestIgnoreBatteryOptimizations = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { (resultCode, _) ->
-            if (resultCode == Activity.RESULT_OK) {
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.about_fragment_holder, AboutContent())
-                    .commitAllowingStateLoss()
+            if (resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
+                delay(1000) // Wait for updating battery optimization config
+                onMainDispatcher {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.about_fragment_holder, AboutContent())
+                        .commitAllowingStateLoss()
+                }
             }
         }
 
