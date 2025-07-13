@@ -18,8 +18,8 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         DataStore.profileName = name
         DataStore.serverAddress = serverAddress
         DataStore.serverPort = serverPort
-        DataStore.serverJLSPassword = jlsPassword
-        DataStore.serverJLSIV = jlsIv
+        DataStore.serverUsername = username
+        DataStore.serverPassword = password
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
         DataStore.serverInitialMTU = initialMTU
@@ -33,8 +33,8 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         name = DataStore.profileName
         serverAddress = DataStore.serverAddress
         serverPort = DataStore.serverPort
-        jlsPassword = DataStore.serverJLSPassword
-        jlsIv = DataStore.serverJLSIV
+        username = DataStore.serverUsername
+        password = DataStore.serverPassword
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
         initialMTU = DataStore.serverInitialMTU
@@ -53,10 +53,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         }
-        findPreference<EditTextPreference>(Key.SERVER_JLS_PASSWORD)!!.apply {
-            summaryProvider = PasswordSummaryProvider
-        }
-        findPreference<EditTextPreference>(Key.SERVER_JLS_IV)!!.apply {
+        findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
             summaryProvider = PasswordSummaryProvider
         }
         findPreference<EditTextPreference>(Key.SERVER_INITIAL_MTU)!!.apply {

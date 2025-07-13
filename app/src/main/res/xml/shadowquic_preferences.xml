@@ -19,16 +19,15 @@
             app:title="@string/server_port"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
-            app:dialogLayout="@layout/layout_password_dialog"
-            app:icon="@drawable/ic_settings_password"
-            app:key="serverJLSPassword"
-            app:title="@string/jls_password"
-            app:useSimpleSummaryProvider="true" />
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="serverUsername"
+            app:title="@string/username" />
         <EditTextPreference
             app:dialogLayout="@layout/layout_password_dialog"
-            app:icon="@drawable/ic_baseline_texture_24"
-            app:key="serverJLSIV"
-            app:title="@string/jls_iv" />
+            app:icon="@drawable/ic_settings_password"
+            app:key="serverPassword"
+            app:title="@string/password"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:defaultValue="h3"
             app:icon="@drawable/ic_baseline_legend_toggle_24"

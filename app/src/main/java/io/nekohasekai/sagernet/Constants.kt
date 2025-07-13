@@ -158,8 +158,6 @@ object Key {
     const val SERVER_VMESS_EXPERIMENTS_CATEGORY = "serverVMessExperimentsCategory"
     const val SERVER_AUTHENTICATED_LENGTH = "serverAuthenticatedLength"
 
-    const val SERVER_JLS_PASSWORD = "serverJLSPassword"
-    const val SERVER_JLS_IV = "serverJLSIV"
     const val SERVER_INITIAL_MTU = "serverInitialMTU"
     const val SERVER_MINIMUM_MTU = "serverMinimumMTU"
 

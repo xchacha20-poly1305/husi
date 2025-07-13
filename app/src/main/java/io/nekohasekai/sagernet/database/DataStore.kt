@@ -292,8 +292,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverDisableSNI by profileCacheStore.boolean(Key.SERVER_DISABLE_SNI)
     var serverZeroRTT by profileCacheStore.boolean(Key.SERVER_ZERO_RTT)
 
-    var serverJLSPassword by profileCacheStore.string(Key.SERVER_JLS_PASSWORD)
-    var serverJLSIV by profileCacheStore.string(Key.SERVER_JLS_IV)
     var serverInitialMTU by profileCacheStore.stringToInt(Key.SERVER_INITIAL_MTU) { 1300 }
     var serverMinimumMTU by profileCacheStore.stringToInt(Key.SERVER_MINIMUM_MTU) { 1290 }
 

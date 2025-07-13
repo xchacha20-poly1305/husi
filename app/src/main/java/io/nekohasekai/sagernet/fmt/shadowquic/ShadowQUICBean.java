@@ -24,8 +24,8 @@ public class ShadowQUICBean extends AbstractBean {
         }
     };
 
-    public String jlsPassword;
-    public String jlsIv;
+    public String username; // JLS IV
+    public String password; // JLS password
     public String sni;
     public String alpn;
     public Integer initialMTU;
@@ -37,8 +37,8 @@ public class ShadowQUICBean extends AbstractBean {
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
-        if (jlsPassword == null) jlsPassword = "";
-        if (jlsIv == null) jlsIv = "";
+        if (password == null) password = "";
+        if (username == null) username = "";
         if (sni == null) sni = "";
         if (alpn == null) alpn = "h3";
         if (initialMTU == null) initialMTU = 1300;
@@ -52,8 +52,8 @@ public class ShadowQUICBean extends AbstractBean {
     public void serialize(ByteBufferOutput output) {
         output.writeInt(0);
         super.serialize(output);
-        output.writeString(jlsPassword);
-        output.writeString(jlsIv);
+        output.writeString(password);
+        output.writeString(username);
         output.writeString(sni);
         output.writeString(alpn);
         output.writeInt(initialMTU);
@@ -67,8 +67,8 @@ public class ShadowQUICBean extends AbstractBean {
     public void deserialize(ByteBufferInput input) {
         int version = input.readInt();
         super.deserialize(input);
-        jlsPassword = input.readString();
-        jlsIv = input.readString();
+        password = input.readString();
+        username = input.readString();
         sni = input.readString();
         alpn = input.readString();
         initialMTU = input.readInt();
@@ -82,8 +82,8 @@ public class ShadowQUICBean extends AbstractBean {
     public void applyFeatureSettings(AbstractBean other) {
         if (!(other instanceof ShadowQUICBean)) return;
         ShadowQUICBean bean = (ShadowQUICBean) other;
-        bean.jlsPassword = jlsPassword;
-        bean.jlsIv = jlsIv;
+        bean.password = password;
+        bean.username = username;
         bean.sni = sni;
         bean.alpn = alpn;
         bean.initialMTU = initialMTU;

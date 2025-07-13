@@ -18,8 +18,8 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
         append("outbound:\n")
         append("    type: shadowquic\n")
         append("    addr: \"${displayAddress()}\"\n")
-        append("    jls-pwd: \"$jlsPassword\"\n")
-        append("    jls-iv: \"$jlsIv\"\n")
+        append("    username: \"$username\"\n")
+        append("    password: \"$password\"\n")
         sni.blankAsNull()?.let {
             append("    server-name: \"$it\"\n")
         }
