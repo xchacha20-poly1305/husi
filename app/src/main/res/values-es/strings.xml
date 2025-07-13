@@ -578,14 +578,12 @@
     <string name="v2ray_transport">Transporte V2Ray</string>
     <string name="persistent_keepalive_interval">Intervalo de Keepalive persistente</string>
     <string name="route_action">Acción de ruta</string>
-    <string name="jls_password">Contraseña de JLS</string>
     <string name="initial_mtu">MTU inicial</string>
     <string name="minimum_mtu">MTU mínimo</string>
     <string name="import_http_url">Estás importando una URL HTTP. ¿Qué acción quieres?</string>
     <string name="route_options">Opciones de ruta</string>
     <string name="ipv6_only">Solo IPv6</string>
     <string name="ipv4_only">Solo IPv4</string>
-    <string name="jls_iv">JLS IV</string>
     <string name="tls_fragment_fallback_delay">Demora de Fallback de fragmento TLS</string>
     <string name="hijack_dns">Secuestro de DNS</string>
     <string name="network_strategy">Estrategia de red</string>

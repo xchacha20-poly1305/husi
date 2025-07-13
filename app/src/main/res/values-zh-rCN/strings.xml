@@ -591,8 +591,6 @@
     <string name="sniff">嗅探</string>
     <string name="network_strategy">网络策略</string>
     <string name="hijack_dns">劫持 DNS</string>
-    <string name="jls_password">JLS 密码</string>
-    <string name="jls_iv">JLS 初始化向量</string>
     <string name="initial_mtu">初始 MTU</string>
     <string name="minimum_mtu">最小 MTU</string>
     <string name="management">管理</string>

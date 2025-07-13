@@ -664,8 +664,6 @@
     <string name="sniff">Sniff</string>
     <string name="network_strategy">Network Strategy</string>
     <string name="hijack_dns">Hijack DNS</string>
-    <string name="jls_password">JLS Password</string>
-    <string name="jls_iv">JLS IV</string>
     <string name="initial_mtu">Initial MTU</string>
     <string name="udp_over_stream" translatable="false">UDP Over Stream</string>
     <string name="minimum_mtu">Minimum MTU</string>
