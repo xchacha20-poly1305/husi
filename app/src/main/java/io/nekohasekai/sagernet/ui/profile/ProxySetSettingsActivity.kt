@@ -121,8 +121,6 @@ class ProxySetSettingsActivity :
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
 
-        itemView = findViewById(R.id.list_cell)
-
         fun updateType(type: Int = groupType.value.toInt()) {
             when (type) {
                 ProxySetBean.TYPE_LIST -> {
@@ -172,8 +170,8 @@ class ProxySetSettingsActivity :
         }
     }
 
-    lateinit var itemView: LinearLayout
-    lateinit var configurationList: RecyclerView
+    val itemView: LinearLayout by lazy { findViewById(R.id.list_cell) }
+    val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
     lateinit var configurationAdapter: ProxiesAdapter
 
     @SuppressLint("InlinedApi")
@@ -181,7 +179,6 @@ class ProxySetSettingsActivity :
         super.onCreate(savedInstanceState)
 
         supportActionBar!!.setTitle(R.string.group_settings)
-        configurationList = findViewById(R.id.configuration_list)
         ViewCompat.setOnApplyWindowInsetsListener(configurationList) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -270,7 +267,8 @@ class ProxySetSettingsActivity :
             val idList = DataStore.serverProxies.split(",")
                 .mapNotNull { it.takeIf { it.isNotBlank() }?.toLong() }
             if (idList.isNotEmpty()) {
-                val profiles = ProfileManager.getProfiles(idList).associate { it.id to it }
+                val profiles = ProfileManager.getProfiles(idList).associateBy { it.id }
+                proxyList.clear()
                 for (id in idList) {
                     proxyList.add(profiles[id] ?: continue)
                 }
