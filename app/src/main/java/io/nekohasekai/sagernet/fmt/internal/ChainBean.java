@@ -27,10 +27,10 @@ public class ChainBean extends InternalBean {
 
     @Override
     public String displayName() {
-        if (name == null || name.isEmpty()) {
-            return name;
-        } else {
+        if (name != null && !name.isEmpty()) {
             return "Chain " + Math.abs(hashCode());
+        } else {
+            return name;
         }
     }
 
