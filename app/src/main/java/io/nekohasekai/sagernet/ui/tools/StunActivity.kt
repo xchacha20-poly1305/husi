@@ -20,6 +20,8 @@ class StunActivity : ThemedActivity() {
 
     companion object {
         const val STUN_SOFTWARE_NAME = "husi ${BuildConfig.VERSION_NAME}"
+
+        private const val KEY_RESULT = "stun_result"
     }
 
     private lateinit var binding: LayoutStunBinding
@@ -66,6 +68,15 @@ class StunActivity : ThemedActivity() {
             SagerNet.inputMethod.hideSoftInputFromWindow(binding.root.windowToken, 0)
             doTest()
         }
+
+        if (savedInstanceState != null) {
+            binding.natResult.text = savedInstanceState.getCharSequence(KEY_RESULT, "")
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putCharSequence(KEY_RESULT, binding.natResult.text)
     }
 
     private fun doTest() {

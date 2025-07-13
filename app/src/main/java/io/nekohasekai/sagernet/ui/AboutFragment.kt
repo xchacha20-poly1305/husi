@@ -40,7 +40,7 @@ import libcore.Libcore
 class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
     companion object {
-        const val KEY_LICENSE = "license"
+        private const val KEY_LICENSE = "license"
     }
 
     lateinit var binding: LayoutAboutBinding
@@ -94,8 +94,8 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString(KEY_LICENSE, binding.license.text.toString())
         super.onSaveInstanceState(outState)
+        outState.putString(KEY_LICENSE, binding.license.text.toString())
     }
 
     private suspend fun readLicense(): String {
