@@ -71,7 +71,7 @@ public class ProxySetBean extends InternalBean {
 
     @Override
     public String displayName() {
-        if (!name.isEmpty()) {
+        if (name != null && !name.isEmpty()) {
             return name;
         } else {
             int hash = Math.abs(hashCode());
