@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SPEED_TEST_URL
@@ -15,16 +16,20 @@ import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import libcore.CopyCallback
 import libcore.HTTPResponse
 import libcore.Libcore
 
 class SpeedtestActivity : ThemedActivity() {
+
+    companion object {
+        private val KEY_SPEED = "speed"
+    }
 
     private lateinit var binding: LayoutSpeedTestBinding
 
@@ -73,6 +78,15 @@ class SpeedtestActivity : ThemedActivity() {
         binding.speedTest.setOnClickListener {
             doTest()
         }
+
+        savedInstanceState?.getCharSequence(KEY_SPEED)?.let {
+            binding.speedTestResult.text = it
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putCharSequence(KEY_SPEED, binding.speedTestResult.text)
     }
 
     // Make sure just one job.
@@ -101,7 +115,7 @@ class SpeedtestActivity : ThemedActivity() {
         runCatching {
             currentResponse?.close()
         }
-        speedtestJob = runOnDefaultDispatcher {
+        speedtestJob = lifecycleScope.launch {
             try {
                 Libcore.newHttpClient()
                     .apply {
@@ -125,17 +139,17 @@ class SpeedtestActivity : ThemedActivity() {
                     }
                     .writeTo(Libcore.DevNull, CopyCallBack(binding.speedTestResult))
             } catch (_: CancellationException) {
-                return@runOnDefaultDispatcher
+                return@launch
             } catch (e: Exception) {
-                Logs.w(e)
+                Logs.e(e)
                 onMainDispatcher {
-                    AlertDialog.Builder(binding.root.context)
+                    AlertDialog.Builder(this@SpeedtestActivity)
                         .setTitle(R.string.error_title)
                         .setMessage(e.toString())
                         .setPositiveButton(android.R.string.ok) { _, _ -> }
                         .runCatching { show() }
                 }
-                return@runOnDefaultDispatcher
+                return@launch
             } finally {
                 onMainDispatcher {
                     binding.speedTest.isEnabled = true
@@ -159,7 +173,7 @@ class SpeedtestActivity : ThemedActivity() {
             val duration = (System.nanoTime() - start) / 1_000_000_000.0
             runOnMainDispatcher {
                 val savedDouble = saved.toDouble()
-                text.text = getString(
+                text.text = text.context.getString(
                     R.string.speed,
                     Libcore.formatBytes((savedDouble / duration).toLong()),
                 )

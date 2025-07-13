@@ -12,7 +12,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutRuleSetMatchBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -21,6 +20,10 @@ import io.nekohasekai.sagernet.ui.ThemedActivity
 import libcore.Libcore
 
 class RuleSetMatchActivity : ThemedActivity() {
+
+    companion object {
+        private const val KEY_RULE_SET_MATCHED = "rule_set_matched"
+    }
 
     private lateinit var binding: LayoutRuleSetMatchBinding
     private lateinit var adapter: Adapter
@@ -74,6 +77,17 @@ class RuleSetMatchActivity : ThemedActivity() {
         binding.ruleSetMatchView.adapter = Adapter(mutableListOf()).also {
             adapter = it
         }
+
+        if (savedInstanceState != null) {
+            val matched = savedInstanceState.getStringArray(KEY_RULE_SET_MATCHED) ?: emptyArray()
+            adapter.list.clear()
+            adapter.list.addAll(matched)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putStringArray(KEY_RULE_SET_MATCHED, adapter.list.toTypedArray())
     }
 
     private fun start(keyword: String) {
@@ -99,7 +113,6 @@ class RuleSetMatchActivity : ThemedActivity() {
                 }
                 return@runOnDefaultDispatcher
             }
-            Logs.w(adapter.list.toString())
             onMainDispatcher {
                 binding.startMatch.isEnabled = true
             }
