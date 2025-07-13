@@ -7,6 +7,7 @@ import android.widget.ScrollView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ScrollingView
 import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class HideOnBottomFabBehavior @JvmOverloads constructor(
@@ -54,20 +55,28 @@ class HideOnBottomFabBehavior @JvmOverloads constructor(
             consumed,
         )
 
-        if (dyConsumed < 0) {
-            child.show()
-            return
+        if (dyConsumed < 0 || dyUnconsumed < 0) {
+            if (!child.isVisible) {
+                child.show()
+                return
+            }
         }
 
-        if (target is ScrollingView || target is ScrollView) {
-            if (!target.canScrollVertically(1)) {
-                child.hide(object : FloatingActionButton.OnVisibilityChangedListener() {
-                    override fun onHidden(fab: FloatingActionButton) {
-                        super.onHidden(fab)
-                        fab.visibility = View.INVISIBLE
-                    }
-                })
-            }
+        val isScrollingDown = dyConsumed > 0 || dyUnconsumed > 0
+        if (!isScrollingDown) {
+            return
+        }
+        if (target !is ScrollingView && target !is ScrollView) {
+            return
+        }
+        val hasReachedBottom = !target.canScrollVertically(1)
+        if (hasReachedBottom) {
+            child.hide(object : FloatingActionButton.OnVisibilityChangedListener() {
+                override fun onHidden(fab: FloatingActionButton) {
+                    super.onHidden(fab)
+                    fab.visibility = View.INVISIBLE
+                }
+            })
         }
     }
 }
