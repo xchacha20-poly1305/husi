@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import android.content.Context
 import android.content.Intent
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -7,14 +8,12 @@ import androidx.core.view.updatePadding
 import android.os.Bundle
 import android.view.View
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.databinding.LayoutNetworkBinding
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ui.NamedFragment
 
 class NetworkFragment : NamedFragment(R.layout.layout_network) {
 
-    override fun name0() = app.getString(R.string.tools_network)
+    override fun getName(context: Context) = context.getString(R.string.tools_network)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
