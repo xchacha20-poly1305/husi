@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -39,7 +40,6 @@ import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.NamedFragment
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -53,7 +53,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         const val MIME_TYPE = "application/json"
     }
 
-    override fun name0() = app.getString(R.string.backup)
+    override fun getName(context: Context) = context.getString(R.string.backup)
 
     var content = ""
     private val exportSettings =

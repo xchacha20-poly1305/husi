@@ -11,7 +11,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutToolsBinding
 import io.nekohasekai.sagernet.ktx.isExpert
-import io.nekohasekai.sagernet.ui.NamedFragment
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 
 class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
@@ -62,7 +61,7 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
         }
 
         TabLayoutMediator(binding.toolsTab, binding.toolsPager) { tab, position ->
-            tab.text = tools[position].name()
+            tab.text = tools[position].getName(requireContext())
             tab.view.setOnLongClickListener { // clear toast
                 true
             }

@@ -1,16 +1,16 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutDebugBinding
 import io.nekohasekai.sagernet.ktx.snackbar
-import io.nekohasekai.sagernet.ui.NamedFragment
 
 class DebugFragment : NamedFragment(R.layout.layout_debug) {
 
-    override fun name0() = "Debug"
+    override fun getName(context: Context) = "DEBUG"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
