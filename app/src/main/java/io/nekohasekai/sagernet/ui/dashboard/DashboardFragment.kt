@@ -204,54 +204,63 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
             R.id.action_sort_ascending -> {
                 DataStore.trafficDescending = false
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_descending -> {
                 DataStore.trafficDescending = true
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_time -> {
                 DataStore.trafficSortMode = TrafficSortMode.START
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_inbound -> {
                 DataStore.trafficSortMode = TrafficSortMode.INBOUND
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_source -> {
                 DataStore.trafficSortMode = TrafficSortMode.SRC
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_destination -> {
                 DataStore.trafficSortMode = TrafficSortMode.DST
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_upload -> {
                 DataStore.trafficSortMode = TrafficSortMode.UPLOAD
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_download -> {
                 DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
             R.id.action_sort_rule -> {
                 DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
                 item.isChecked = true
+                recreateComparator()
                 true
             }
 
@@ -285,6 +294,10 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
     fun refreshClashMode() {
         if (binding.dashboardPager.currentItem != POSITION_STATUS) return
         (getFragment(POSITION_STATUS) as? StatusFragment)?.refreshClashMode()
+    }
+
+    private fun recreateComparator() {
+        (getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)?.recreateComparator()
     }
 
     private fun getFragment(position: Int): Fragment? {

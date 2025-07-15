@@ -142,22 +142,32 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
         }
     }
 
-    private val connectionComparator = Comparator<Connection> { a, b ->
-        var result = when (DataStore.trafficSortMode) {
-            TrafficSortMode.START -> compareValues(a.start, b.start)
-            TrafficSortMode.INBOUND -> compareValues(a.uuid, b.uuid)
-            TrafficSortMode.SRC -> compareValues(a.src, b.src)
-            TrafficSortMode.DST -> compareValues(a.dst, b.dst)
-            TrafficSortMode.UPLOAD -> compareValues(a.uploadTotal, b.uploadTotal)
-            TrafficSortMode.DOWNLOAD -> compareValues(a.downloadTotal, b.downloadTotal)
-            TrafficSortMode.MATCHED_RULE -> compareValues(a.matchedRule, b.matchedRule)
-            else -> throw IllegalArgumentException()
+    fun recreateComparator() {
+        comparator = createConnectionComparator()
+    }
+
+    private var comparator = createConnectionComparator()
+
+    private fun createConnectionComparator(): Comparator<Connection> {
+        val sortMode = DataStore.trafficSortMode
+        val isDescending = DataStore.trafficDescending
+
+        val primarySelector: (Connection) -> Comparable<*> = when (sortMode) {
+            TrafficSortMode.START -> Connection::start
+            TrafficSortMode.INBOUND -> Connection::inbound
+            TrafficSortMode.SRC -> Connection::src
+            TrafficSortMode.DST -> Connection::dst
+            TrafficSortMode.UPLOAD -> Connection::uploadTotal
+            TrafficSortMode.DOWNLOAD -> Connection::downloadTotal
+            TrafficSortMode.MATCHED_RULE -> Connection::matchedRule
+            else -> throw IllegalArgumentException("Unsupported sort mode: $sortMode")
         }
 
-        // If same, sort by uuid
-        if (result == 0) result = compareValues(a.uuid, b.uuid)
-
-        if (DataStore.trafficDescending) -result else result
+        return if (isDescending) {
+            compareByDescending(primarySelector).thenByDescending(Connection::uuid)
+        } else {
+            compareBy(primarySelector).thenBy(Connection::uuid)
+        }
     }
 
     var searchString: String? = null
@@ -185,7 +195,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                         it.protocol?.contains(str) == true ||
                         it.process?.contains(str) == true
             } ?: true
-        }.sortedWith(connectionComparator).toMutableList()
+        }.sortedWith(comparator).toMutableList()
 
         onMainDispatcher {
             binding.recycleView.post {
