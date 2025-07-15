@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -18,6 +20,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
 import androidx.recyclerview.widget.RecyclerView
+import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -295,6 +298,22 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         }
 
                         Key.CERT_PROVIDER -> preference.onPreferenceChangeListener = restartListener
+
+                        Key.DISABLE_PROCESS_TEXT -> preference.setOnPreferenceChangeListener { _, newValue ->
+                            preference.context.packageManager.setComponentEnabledSetting(
+                                ComponentName(
+                                    preference.context,
+                                    "io.nekohasekai.sagernet.ui.ProcessTextActivityAlias",
+                                ),
+                                if (newValue as Boolean) {
+                                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                                } else {
+                                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                                },
+                                PackageManager.DONT_KILL_APP,
+                            )
+                            true
+                        }
 
                         Key.CONNECTION_TEST_URL, Key.IGNORE_DEVICE_IDLE -> Unit
 

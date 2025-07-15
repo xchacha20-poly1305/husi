@@ -193,6 +193,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
     var certProvider by configurationStore.stringToInt(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
     var ignoreDeviceIdle by configurationStore.boolean(Key.IGNORE_DEVICE_IDLE)
+    var disableProcessText by configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
 
     var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
     var trafficSortMode by configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }

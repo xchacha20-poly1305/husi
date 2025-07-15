@@ -96,6 +96,7 @@ object Key {
 
     const val CERT_PROVIDER = "certProvider"
     const val IGNORE_DEVICE_IDLE = "ignoreDeviceIdle"
+    const val DISABLE_PROCESS_TEXT = "disableProcessText"
 
     const val TRAFFIC_DESCENDING = "trafficDescending"
     const val TRAFFIC_SORT_MODE = "trafficSortMode"
