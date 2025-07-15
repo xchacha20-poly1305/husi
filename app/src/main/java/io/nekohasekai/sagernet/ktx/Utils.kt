@@ -169,17 +169,6 @@ fun String.listByLineOrComma(): List<String> {
     return this.split(",", "\n").mapX { it.trim() }.filter { it.isNotEmpty() }
 }
 
-/* Make server address blurred. */
-fun String.blur(): String {
-    return if (length < 20) {
-        val halfLength = length / 2
-        this.substring(0, halfLength) + "*".repeat(length - halfLength)
-    } else {
-        this.substring(0, 15) + "*".repeat(length - 15)
-    }
-}
-
-
 fun Closeable.closeQuietly() {
     try {
         close()

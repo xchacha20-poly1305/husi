@@ -72,7 +72,6 @@ import io.nekohasekai.sagernet.ktx.ResultLocal
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.blockOrientation
-import io.nekohasekai.sagernet.ktx.blur
 import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
@@ -1873,4 +1872,16 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
+}
+
+/** Make server address blurred. */
+private fun String.blur(): String = when (length) {
+    in 0 until 20 -> {
+        val halfLength = length / 2
+        substring(0, halfLength) + "*".repeat(length - halfLength)
+    }
+
+    in 20..30 -> substring(0, 15) + "*".repeat(length - 15)
+
+    else -> substring(0, 15) + "*".repeat(15)
 }
