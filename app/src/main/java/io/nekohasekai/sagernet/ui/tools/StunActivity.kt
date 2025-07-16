@@ -1,30 +1,22 @@
 package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.databinding.LayoutStunBinding
 import io.nekohasekai.sagernet.ktx.currentSocks5
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import libcore.Libcore
 
 class StunActivity : ThemedActivity() {
 
-    companion object {
-        const val STUN_SOFTWARE_NAME = "husi ${BuildConfig.VERSION_NAME}"
-
-        private const val KEY_RESULT = "stun_result"
-    }
-
     private lateinit var binding: LayoutStunBinding
+    private val viewModel: StunActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,41 +47,46 @@ class StunActivity : ThemedActivity() {
             )
             insets
         }
+
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
-            setTitle(R.string.stun_test)
+            title = getString(R.string.stun_test)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
+
         currentSocks5()?.string?.let {
             binding.proxyServer.setText(it)
         }
+
         binding.stunTest.setOnClickListener {
             SagerNet.inputMethod.hideSoftInputFromWindow(binding.root.windowToken, 0)
-            doTest()
+            viewModel.doTest(
+                binding.natStunServer.text.toString(),
+                binding.proxyServer.text.toString(),
+            )
         }
 
-        if (savedInstanceState != null) {
-            binding.natResult.text = savedInstanceState.getCharSequence(KEY_RESULT, "")
-        }
+        viewModel.uiState.observe(this, ::handleUiState)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putCharSequence(KEY_RESULT, binding.natResult.text)
-    }
-
-    private fun doTest() {
-        binding.waitLayout.isVisible = true
-        val server = binding.natStunServer.text.toString()
-        val proxy = binding.proxyServer.text.toString()
-        runOnDefaultDispatcher {
-            val result = Libcore.stunTest(server, proxy, STUN_SOFTWARE_NAME)
-            onMainDispatcher {
+    private fun handleUiState(state: StunUiState) {
+        when (state) {
+            is StunUiState.Idle -> {
                 binding.waitLayout.isVisible = false
-                binding.natResult.text = result
+                binding.stunTest.isEnabled = true
+            }
+
+            is StunUiState.Doing -> {
+                binding.waitLayout.isVisible = true
+                binding.stunTest.isEnabled = false
+            }
+
+            is StunUiState.Done -> {
+                binding.waitLayout.isVisible = false
+                binding.stunTest.isEnabled = true
+                binding.natResult.text = state.result
             }
         }
     }
-
 }
