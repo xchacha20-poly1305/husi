@@ -28,6 +28,7 @@ import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SubscriptionType
@@ -172,8 +173,8 @@ class MainActivity : ThemedActivity(),
             val f = File(application.filesDir, "consent")
             if (!f.exists()) {
                 MaterialAlertDialogBuilder(this@MainActivity)
-                    .setTitle("LICENSE")
-                    .setMessage(this.assets.open("LICENSE").bufferedReader().readText())
+                    .setTitle(R.string.license)
+                    .setMessage(LICENSE)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         f.createNewFile()
                     }
