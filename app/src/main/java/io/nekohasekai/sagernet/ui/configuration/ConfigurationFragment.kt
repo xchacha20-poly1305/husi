@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.ui.configuration
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -23,6 +22,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -34,6 +34,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.size
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceDataStore
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -50,7 +51,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
-import io.nekohasekai.sagernet.bg.proto.TestInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -71,13 +71,11 @@ import io.nekohasekai.sagernet.ktx.ResultInsecure
 import io.nekohasekai.sagernet.ktx.ResultLocal
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.blockOrientation
 import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.isInsecure
-import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -89,9 +87,7 @@ import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
-import io.nekohasekai.sagernet.ktx.unlockOrientation
 import io.nekohasekai.sagernet.ktx.urlTestMessage
-import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
@@ -116,20 +112,8 @@ import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import libcore.Libcore
-import java.net.InetAddress
-import java.net.UnknownHostException
-import java.util.Collections
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipInputStream
 
 /**
@@ -152,6 +136,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     lateinit var adapter: GroupPagerAdapter
     lateinit var tabLayout: TabLayout
     lateinit var groupPager: ViewPager2
+    private val viewModel: ConfigurationFragmentViewModel by viewModels()
     val securityAdvisory by lazy { DataStore.securityAdvisory }
 
     val alwaysShowAddress by lazy { DataStore.alwaysShowAddress }
@@ -326,6 +311,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         DataStore.profileCacheStore.registerChangeListener(this)
 
         activity?.onBackPressedCallback?.isEnabled = false
+
+        viewModel.uiTestState.observe(viewLifecycleOwner, ::handleTestState)
     }
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
@@ -629,334 +616,114 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             R.id.action_connection_icmp_ping -> {
-                pingTest(true)
+                viewModel.doTest(DataStore.currentGroupId(), TestType.ICMPPing)
             }
 
             R.id.action_connection_tcp_ping -> {
-                pingTest(false)
+                viewModel.doTest(DataStore.currentGroupId(), TestType.TCPPing)
             }
 
             R.id.action_connection_url_test -> {
-                urlTests()
+                viewModel.doTest(DataStore.currentGroupId(), TestType.URLTest)
             }
         }
         return true
     }
 
-    inner class TestDialog {
+    private var testDialog: AlertDialog? = null
+
+    private fun handleTestState(state: UiTestState) {
+        when (state) {
+            is UiTestState.Idle, is UiTestState.Complete -> {
+                testDialog?.dismiss()
+                testDialog = null
+            }
+
+            is UiTestState.InProgress -> {
+                createDialog()
+                updateDialogContent(state)
+            }
+        }
+    }
+
+    /** Recreate dialog if configuration change. */
+    private fun createDialog() {
+        if (testDialog != null || !isAdded) return
+
         val binding = LayoutProgressListBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(requireContext()).setView(binding.root)
+        testDialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(binding.root)
             .setNegativeButton(android.R.string.cancel) { _, _ ->
-                cancel()
-            }.setOnDismissListener {
-                cancel()
-            }.setCancelable(false)
-
-        lateinit var cancel: () -> Unit
-        val fragment by lazy { getCurrentGroupFragment() }
-        val results = Collections.synchronizedList(mutableListOf<ProxyEntity?>())
-        var proxyN = 0
-        val finishedN = AtomicInteger(0)
-
-        suspend fun insert(profile: ProxyEntity?) {
-            results.add(profile)
-        }
-
-        suspend fun update(profile: ProxyEntity) {
-            fragment?.configurationListView?.post {
-                val context = context ?: return@post
-                if (!isAdded) return@post
-
-                var profileStatusText: String? = null
-                var profileStatusColor = 0
-
-                when (profile.status) {
-                    ProxyEntity.STATUS_INVALID -> {
-                        profileStatusText = profile.error
-                        profileStatusColor = context.getColorAttr(android.R.attr.textColorSecondary)
-                    }
-
-                    ProxyEntity.STATUS_INITIAL -> {
-                        profileStatusText = getString(R.string.connection_test_testing)
-                        profileStatusColor = context.getColorAttr(android.R.attr.textColorSecondary)
-                    }
-
-                    ProxyEntity.STATUS_AVAILABLE -> {
-                        profileStatusText = getString(R.string.available, profile.ping)
-                        profileStatusColor = context.getColour(R.color.material_green_500)
-                    }
-
-                    ProxyEntity.STATUS_UNREACHABLE -> {
-                        profileStatusText = profile.error
-                        profileStatusColor = context.getColour(R.color.material_red_500)
-                    }
-
-                    ProxyEntity.STATUS_UNAVAILABLE -> {
-                        val err = profile.error ?: ""
-                        val msg = urlTestMessage(context, err)
-                        profileStatusText = if (msg != err) msg else getString(R.string.unavailable)
-                        profileStatusColor = context.getColour(R.color.material_red_500)
-                    }
-                }
-
-                val text = SpannableStringBuilder().apply {
-                    append("\n" + profile.displayName())
-                    append("\n")
-                    append(
-                        profile.displayType(),
-                        ForegroundColorSpan(context.getColorAttr(R.attr.accentOrTextSecondary)),
-                        SPAN_EXCLUSIVE_EXCLUSIVE,
-                    )
-                    append(" ")
-                    append(
-                        profileStatusText,
-                        ForegroundColorSpan(profileStatusColor),
-                        SPAN_EXCLUSIVE_EXCLUSIVE,
-                    )
-                    append("\n")
-                }
-
-                binding.nowTesting.text = text
-                binding.progress.text = "${finishedN.addAndGet(1)} / $proxyN"
+                viewModel.cancelTest()
             }
-        }
-
+            .setOnDismissListener {
+                viewModel.cancelTest()
+                testDialog = null
+            }
+            .setCancelable(false)
+            .show()
     }
 
-    private var cancelTest: (() -> Unit)? = null
+    private fun updateDialogContent(state: UiTestState.InProgress) {
+        if (testDialog == null) return
 
-    @OptIn(DelicateCoroutinesApi::class)
-    @Suppress("EXPERIMENTAL_API_USAGE")
-    fun pingTest(icmpPing: Boolean) {
-        val test = TestDialog()
-        val testJobs = mutableListOf<Job>()
-        val dialog = test.builder.show()
-        activity?.blockOrientation()
-        val mainJob = runOnDefaultDispatcher {
-            val group = DataStore.currentGroup()
-            val profilesUnfiltered = SagerDatabase.proxyDao.getByGroup(group.id)
-            test.proxyN = profilesUnfiltered.size
-            val profiles = ConcurrentLinkedQueue(profilesUnfiltered)
-            val testPool = newFixedThreadPoolContext(
-                DataStore.connectionTestConcurrent,
-                "pingTest",
+        val profile = state.latestResult.profile
+        val result = state.latestResult.result
+
+        val (statusText, statusColor) = getStatusTextAndColor(result)
+
+        val spannableText = SpannableStringBuilder().apply {
+            append("\n" + profile.displayName())
+            append("\n")
+            append(
+                profile.displayType(),
+                ForegroundColorSpan(requireContext().getColorAttr(R.attr.accentOrTextSecondary)),
+                SPAN_EXCLUSIVE_EXCLUSIVE,
             )
-            val context = requireContext()
-            repeat(DataStore.connectionTestConcurrent) {
-                testJobs.add(launch(testPool) {
-                    while (isActive) {
-                        val profile = profiles.poll() ?: break
-
-                        if (icmpPing) {
-                            if (!profile.requireBean().canICMPing()) {
-                                profile.status = ProxyEntity.STATUS_INVALID
-                                profile.error =
-                                    context.getString(R.string.connection_test_icmp_ping_unavailable)
-                                test.insert(profile)
-                                continue
-                            }
-                        } else {
-                            if (!profile.requireBean().canTCPing()) {
-                                profile.status = ProxyEntity.STATUS_INVALID
-                                profile.error =
-                                    context.getString(R.string.connection_test_tcp_ping_unavailable)
-                                test.insert(profile)
-                                continue
-                            }
-                        }
-
-                        profile.status = ProxyEntity.STATUS_INVALID
-                        test.insert(profile)
-                        val bean = profile.requireBean()
-                        var address = bean.serverAddress
-                        if (!address.isIpAddress()) {
-                            try {
-                                InetAddress.getAllByName(address).apply {
-                                    if (isNotEmpty()) {
-                                        address = this[0].hostAddress
-                                    }
-                                }
-                            } catch (_: UnknownHostException) {
-                            }
-                        }
-                        if (!isActive) break
-                        if (!address.isIpAddress()) {
-                            profile.status = ProxyEntity.STATUS_UNREACHABLE
-                            profile.error =
-                                context.getString(R.string.connection_test_domain_not_found)
-                            test.update(profile)
-                            continue
-                        }
-                        try {
-                            if (icmpPing) {
-                                try {
-                                    val result = Libcore.icmpPing(address, 5000)
-                                    if (!isActive) break
-                                    profile.status = ProxyEntity.STATUS_AVAILABLE
-                                    profile.ping = result
-                                    test.update(profile)
-                                } catch (_: Exception) {
-                                    profile.status = ProxyEntity.STATUS_UNREACHABLE
-                                    profile.error = getString(R.string.connection_test_unreachable)
-                                }
-                            } else {
-                                try {
-                                    val result =
-                                        Libcore.tcpPing(address, bean.serverPort.toString(), 3000)
-                                    if (!isActive) break
-                                    profile.status = ProxyEntity.STATUS_AVAILABLE
-                                    profile.ping = result
-                                    test.update(profile)
-                                } catch (_: Exception) {
-                                    profile.status = ProxyEntity.STATUS_UNREACHABLE
-                                    profile.error = getString(R.string.connection_test_unreachable)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Logs.e(e)
-                            if (!isActive) break
-                            val message = e.readableMessage
-                            profile.status = ProxyEntity.STATUS_UNREACHABLE
-
-                            if (icmpPing) {
-                                profile.error = getString(R.string.connection_test_unreachable)
-                            } else {
-                                when {
-                                    !message.contains("failed:") -> profile.error =
-                                        getString(R.string.connection_test_timeout)
-
-                                    else -> when {
-                                        message.contains("ECONNREFUSED") -> {
-                                            profile.error =
-                                                getString(R.string.connection_test_refused)
-                                        }
-
-                                        message.contains("ENETUNREACH") -> {
-                                            profile.error =
-                                                getString(R.string.connection_test_unreachable)
-                                        }
-
-                                        else -> {
-                                            profile.status = ProxyEntity.STATUS_UNAVAILABLE
-                                            profile.error = message
-                                        }
-                                    }
-                                }
-                            }
-                            test.update(profile)
-                        }
-                    }
-                })
-            }
-
-            testJobs.joinAll()
-            testPool.close()
-
-            onMainDispatcher {
-                dialog.dismiss()
-            }
-            cancelTest = null
-            activity?.unlockOrientation()
-        }
-        test.cancel = {
-            runOnDefaultDispatcher {
-                cancelTest = null
-                activity?.unlockOrientation()
-                test.results.filterNotNull().forEach {
-                    try {
-                        ProfileManager.updateProfile(it)
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                    }
-                }
-                GroupManager.postReload(DataStore.currentGroupId())
-                mainJob.cancel()
-                testJobs.forEach { it.cancel() }
-            }
-        }
-        cancelTest = test.cancel
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    fun urlTests() {
-        val test = TestDialog()
-        val dialog = test.builder.show()
-        activity?.blockOrientation()
-        val testJobs = mutableListOf<Job>()
-
-        val mainJob = runOnDefaultDispatcher {
-            val group = DataStore.currentGroup()
-            val profilesUnfiltered = SagerDatabase.proxyDao.getByGroup(group.id)
-            test.proxyN = profilesUnfiltered.size
-            val profiles = ConcurrentLinkedQueue(profilesUnfiltered)
-            val testPool = newFixedThreadPoolContext(
-                DataStore.connectionTestConcurrent,
-                "urlTest",
+            append(" ")
+            append(
+                statusText,
+                ForegroundColorSpan(statusColor),
+                SPAN_EXCLUSIVE_EXCLUSIVE,
             )
-            repeat(DataStore.connectionTestConcurrent) {
-                testJobs.add(launch(testPool) {
-                    // note: this is NOT in bg process
-
-                    // Store here to avoid reading datastore frequently
-                    val testURL = DataStore.connectionTestURL
-                    val testTimeout = DataStore.connectionTestTimeout
-                    val underVPN =
-                        DataStore.serviceMode == Key.MODE_VPN && DataStore.serviceState.started
-                    while (isActive) {
-                        val profile = profiles.poll() ?: break
-                        profile.status = ProxyEntity.STATUS_INITIAL
-                        test.insert(profile)
-                        try {
-                            val result = TestInstance(profile, testURL, testTimeout)
-                                .doTest(underVPN)
-                            profile.status = ProxyEntity.STATUS_AVAILABLE
-                            profile.ping = result
-                        } catch (e: PluginManager.PluginNotFoundException) {
-                            profile.status = ProxyEntity.STATUS_INVALID
-                            profile.error = e.readableMessage
-                        } catch (e: Exception) {
-                            profile.status = ProxyEntity.STATUS_UNAVAILABLE
-                            profile.error = e.readableMessage
-                        }
-                        test.update(profile)
-                    }
-                })
-            }
-
-            testJobs.joinAll()
-
-            onMainDispatcher {
-                dialog.dismiss()
-            }
-            cancelTest = null
-            activity?.unlockOrientation()
+            append("\n")
         }
-        test.cancel = {
-            runOnDefaultDispatcher {
-                activity?.unlockOrientation()
-                cancelTest = null
-                test.results.filterNotNull().forEach {
-                    try {
-                        ProfileManager.updateProfile(it)
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                    }
-                }
-                GroupManager.postReload(DataStore.currentGroupId())
-                mainJob.cancel()
-                testJobs.forEach { it.cancel() }
-            }
-        }
-        cancelTest = test.cancel
+
+        testDialog!!.findViewById<TextView>(R.id.now_testing)!!.text = spannableText
+        testDialog!!.findViewById<TextView>(R.id.progress)!!.text =
+            "${state.processedCount} / ${state.totalCount}"
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        // If config changed, the TestDialog will lose it's window manager.
-        // Cancel test here does not break the behavior, because it crashes before.
-        // Furthermore, we disallow orientation change in the dialog,
-        // ensuring test not be interrupted when user enabled "Automatic orientation".
-        cancelTest?.invoke()
-        super.onConfigurationChanged(newConfig)
+    private fun getStatusTextAndColor(result: TestResult): Pair<String, Int> {
+        val context = requireContext()
+        when (result) {
+            is TestResult.Success -> {
+                return getString(
+                    R.string.available,
+                    result.ping
+                ) to context.getColour(R.color.material_green_500)
+            }
+
+            is TestResult.Failure -> {
+                val color = context.getColour(R.color.material_red_500)
+                val text = when (val reason = result.reason) {
+                    FailureReason.InvalidConfig -> getString(R.string.unavailable)
+                    FailureReason.DomainNotFound -> getString(R.string.connection_test_domain_not_found)
+                    FailureReason.IcmpUnavailable -> getString(R.string.connection_test_icmp_ping_unavailable)
+                    FailureReason.TcpUnavailable -> getString(R.string.connection_test_tcp_ping_unavailable)
+                    FailureReason.ConnectionRefused -> getString(R.string.connection_test_refused)
+                    FailureReason.NetworkUnreachable -> getString(R.string.connection_test_unreachable)
+                    FailureReason.Timeout -> getString(R.string.connection_test_timeout)
+
+                    is FailureReason.Generic -> reason.message?.let {
+                        urlTestMessage(requireContext(), it)
+                    } ?: getString(R.string.unavailable)
+
+                    is FailureReason.PluginNotFound -> reason.message
+                }
+                return text to color
+            }
+        }
     }
 
     inner class GroupPagerAdapter : FragmentStateAdapter(this), ProfileManager.Listener,

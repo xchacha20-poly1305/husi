@@ -12,6 +12,7 @@ import android.util.TypedValue
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
@@ -137,10 +138,12 @@ fun Fragment.needRestart() {
     }.show()
 }
 
+@ColorInt
 fun Context.getColour(@ColorRes colorRes: Int): Int {
     return ContextCompat.getColor(this, colorRes)
 }
 
+@ColorInt
 fun Context.getColorAttr(@AttrRes resId: Int): Int {
     return ContextCompat.getColor(this, TypedValue().also {
         theme.resolveAttribute(resId, it, true)
