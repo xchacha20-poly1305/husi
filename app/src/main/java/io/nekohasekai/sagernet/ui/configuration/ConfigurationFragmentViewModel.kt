@@ -36,13 +36,13 @@ import kotlin.concurrent.atomics.incrementAndFetch
 sealed class UiTestState {
     object Idle : UiTestState()
 
+    object Start : UiTestState()
+
     data class InProgress(
         val latestResult: ProfileTestResult,
         val processedCount: Int,
         val totalCount: Int,
     ) : UiTestState()
-
-    object Complete : UiTestState()
 }
 
 data class ProfileTestResult(
@@ -95,10 +95,11 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
             val concurrent = DataStore.connectionTestConcurrent
 
             if (proxies.isEmpty()) {
-                _uiTestState.value = UiTestState.Complete
+                _uiTestState.value = UiTestState.Idle
                 return@launch
             }
 
+            _uiTestState.value = UiTestState.Start
             val results = Collections.synchronizedList(mutableListOf<ProfileTestResult>())
 
             try {
@@ -129,9 +130,9 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             results.forEach {
                 try {
-                    when (val result = it.result) {
-                        is TestResult.Success -> it.profile.ping = result.ping
-                        is TestResult.Failure -> it.profile.ping = -1
+                    it.profile.ping = when (val result = it.result) {
+                        is TestResult.Success -> result.ping
+                        is TestResult.Failure -> 0
                     }
                     ProfileManager.updateProfile(it.profile)
                 } catch (e: Exception) {
@@ -141,7 +142,7 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
             GroupManager.postReload(group)
 
             onMainDispatcher {
-                _uiTestState.value = UiTestState.Complete
+                _uiTestState.value = UiTestState.Idle
             }
         }
     }

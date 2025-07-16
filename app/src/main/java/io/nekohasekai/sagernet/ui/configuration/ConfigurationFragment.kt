@@ -634,7 +634,11 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     private fun handleTestState(state: UiTestState) {
         when (state) {
-            is UiTestState.Idle, is UiTestState.Complete -> {
+            is UiTestState.Start -> {
+                createDialog()
+            }
+
+            is UiTestState.Idle -> {
                 testDialog?.dismiss()
                 testDialog = null
             }
@@ -671,6 +675,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         val result = state.latestResult.result
 
         val (statusText, statusColor) = getStatusTextAndColor(result)
+        profile.error = statusText
 
         val spannableText = SpannableStringBuilder().apply {
             append("\n" + profile.displayName())
