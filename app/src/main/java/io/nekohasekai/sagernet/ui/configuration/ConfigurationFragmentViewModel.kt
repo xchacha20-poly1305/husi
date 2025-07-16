@@ -130,9 +130,21 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             results.forEach {
                 try {
-                    it.profile.ping = when (val result = it.result) {
-                        is TestResult.Success -> result.ping
-                        is TestResult.Failure -> 0
+                    when (val result = it.result) {
+                        is TestResult.Success -> it.profile.ping = result.ping
+                        is TestResult.Failure -> {
+                            it.profile.ping = 0
+
+                            it.profile.status = when (result.reason) {
+                                FailureReason.ConnectionRefused, FailureReason.IcmpUnavailable,
+                                FailureReason.NetworkUnreachable, FailureReason.Timeout -> ProxyEntity.STATUS_UNREACHABLE
+
+                                is FailureReason.PluginNotFound, FailureReason.DomainNotFound,
+                                FailureReason.InvalidConfig -> ProxyEntity.STATUS_INVALID
+
+                                is FailureReason.Generic, FailureReason.TcpUnavailable -> ProxyEntity.STATUS_UNAVAILABLE
+                            }
+                        }
                     }
                     ProfileManager.updateProfile(it.profile)
                 } catch (e: Exception) {
