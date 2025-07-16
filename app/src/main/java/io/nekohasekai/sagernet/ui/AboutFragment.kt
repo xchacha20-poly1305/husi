@@ -23,6 +23,7 @@ import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard
 import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import io.nekohasekai.sagernet.BuildConfig
+import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
 import io.nekohasekai.sagernet.fmt.PluginEntry
@@ -38,10 +39,6 @@ import kotlinx.coroutines.delay
 import libcore.Libcore
 
 class AboutFragment : ToolbarFragment(R.layout.layout_about) {
-
-    companion object {
-        private const val KEY_LICENSE = "license"
-    }
 
     lateinit var binding: LayoutAboutBinding
 
@@ -78,32 +75,9 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.about_fragment_holder, AboutContent())
                 .commit()
-
-            runOnDefaultDispatcher {
-                val license = readLicense()
-                onMainDispatcher {
-                    bindLicense(license)
-                }
-            }
-        } else runOnDefaultDispatcher {
-            val license = savedInstanceState.getString(KEY_LICENSE) ?: readLicense()
-            onMainDispatcher {
-                bindLicense(license)
-            }
         }
-    }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString(KEY_LICENSE, binding.license.text.toString())
-    }
-
-    private suspend fun readLicense(): String {
-        return requireContext().assets.open("LICENSE").bufferedReader().readText()
-    }
-
-    private fun bindLicense(license: String) {
-        binding.license.text = license
+        binding.license.text = LICENSE
         Linkify.addLinks(binding.license, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)
     }
 
