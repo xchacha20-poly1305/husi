@@ -688,4 +688,5 @@
     <string name="process">Process</string>
     <string name="forced_search_process">Forceed search process</string>
     <string name="disable_process_text">Disable Process Text</string>
+    <string name="refresh">Refresh</string>
 </resources>

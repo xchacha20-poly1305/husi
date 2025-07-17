@@ -1,41 +1,35 @@
 package io.nekohasekai.sagernet.ui.tools
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.ViewGroup
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
-import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import libcore.Libcore
-import java.io.File
-import java.util.zip.ZipFile
 import kotlin.math.roundToInt
 
 class VPNScannerActivity : ThemedActivity() {
 
-    private var binding: LayoutVpnScannerBinding? = null
-    private var adapter: Adapter? = null
-    private val appInfoList = mutableListOf<AppInfo>()
+    private lateinit var binding: LayoutVpnScannerBinding
+    private lateinit var toolbar: Toolbar
+    private var refresh: MenuItem? = null
+    private val viewModel: VPNScannerActivityViewModel by viewModels()
+    private lateinit var adapter: VpnAppAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -43,7 +37,7 @@ class VPNScannerActivity : ThemedActivity() {
         this.binding = binding
         setContentView(binding.root)
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        toolbar = findViewById(R.id.toolbar)
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -73,67 +67,110 @@ class VPNScannerActivity : ThemedActivity() {
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
 
-        binding.scanVPNResult.adapter = Adapter().also {
+        binding.scanVPNResult.adapter = VpnAppAdapter().also {
             adapter = it
         }
-        lifecycleScope.launch(Dispatchers.IO) {
-            scanVPN()
+
+        viewModel.uiState.observe(this, ::handleUIState)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.refresh_menu, menu)
+        refresh = menu.findItem(R.id.action_refresh)
+        handleUIState(viewModel.uiState.value ?: VPNScannerUiState.Idle)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_refresh -> {
+            viewModel.scanVPN()
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun handleUIState(state: VPNScannerUiState) {
+        when (state) {
+            VPNScannerUiState.Idle -> {
+                binding.scanVPNProgress.isVisible = false
+                refresh?.isVisible = false
+                viewModel.scanVPN()
+            }
+
+            is VPNScannerUiState.Doing -> {
+                binding.scanVPNProgress.isVisible = true
+                refresh?.isVisible = false
+
+                if (state.all > 0) {
+                    binding.scanVPNProgress.setProgressCompat(
+                        ((state.appInfos.size + 1).toDouble() / state.all.toDouble() * 100).roundToInt(),
+                        true,
+                    )
+                }
+                adapter.submitList(state.appInfos) {
+                    // submitList is not synchronous
+                    binding.scanVPNResult.scrollToPosition(state.appInfos.size - 1)
+                }
+            }
+
+            is VPNScannerUiState.Finished -> {
+                binding.scanVPNProgress.isVisible = false
+                refresh?.isVisible = true
+                adapter.submitList(state.appInfos)
+            }
         }
     }
 
-    class VPNType(
-        val appType: String?,
-        val coreType: VPNCoreType?,
-    )
-
-    class VPNCoreType(
-        val coreType: String,
-        val corePath: String,
-        val goVersion: String
-    )
-
-    class AppInfo(
-        val packageInfo: PackageInfo,
-        val vpnType: VPNType,
-    )
-
-    inner class Adapter : RecyclerView.Adapter<Holder>() {
+    private class VpnAppAdapter : ListAdapter<AppInfo, Holder>(AppInfoDiffCallback()) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-            return Holder(ViewVpnAppItemBinding.inflate(layoutInflater, parent, false))
-        }
-
-        override fun getItemCount(): Int {
-            return appInfoList.size
+            return Holder(
+                ViewVpnAppItemBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+            )
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
-            holder.bind(appInfoList[position])
+            holder.bind(getItem(position))
         }
     }
 
-    class Holder(
+    private class AppInfoDiffCallback : DiffUtil.ItemCallback<AppInfo>() {
+        override fun areItemsTheSame(oldItem: AppInfo, newItem: AppInfo): Boolean {
+            return oldItem.packageInfo.packageName == newItem.packageInfo.packageName
+        }
+
+        override fun areContentsTheSame(oldItem: AppInfo, newItem: AppInfo): Boolean {
+            return oldItem == newItem
+        }
+    }
+
+    private class Holder(
         private val binding: ViewVpnAppItemBinding
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(element: AppInfo) {
-            binding.appIcon.setImageDrawable(element.packageInfo.applicationInfo!!.loadIcon(binding.root.context.packageManager))
+        fun bind(info: AppInfo) {
+            binding.appIcon.setImageDrawable(info.packageInfo.applicationInfo!!.loadIcon(binding.root.context.packageManager))
             binding.appName.text =
-                element.packageInfo.applicationInfo!!.loadLabel(binding.root.context.packageManager)
-            binding.packageName.text = element.packageInfo.packageName
-            val appType = element.vpnType.appType
+                info.packageInfo.applicationInfo!!.loadLabel(binding.root.context.packageManager)
+            binding.packageName.text = info.packageInfo.packageName
+            val appType = info.vpnType.appType
             if (appType != null) {
-                binding.appTypeText.text = element.vpnType.appType
+                binding.appTypeText.text = info.vpnType.appType
             } else {
                 binding.appTypeText.setText(R.string.vpn_app_type_other)
             }
-            val coreType = element.vpnType.coreType?.coreType
+            val coreType = info.vpnType.coreType?.coreType
             if (coreType != null) {
-                binding.coreTypeText.text = element.vpnType.coreType.coreType
+                binding.coreTypeText.text = info.vpnType.coreType.coreType
             } else {
                 binding.coreTypeText.setText(R.string.vpn_core_type_unknown)
             }
-            val corePath = element.vpnType.coreType?.corePath.takeIf { !it.isNullOrBlank() }
+            val corePath = info.vpnType.coreType?.corePath.takeIf { !it.isNullOrBlank() }
             if (corePath != null) {
                 binding.corePathLayout.isVisible = true
                 binding.corePathText.text = corePath
@@ -141,7 +178,7 @@ class VPNScannerActivity : ThemedActivity() {
                 binding.corePathLayout.isVisible = false
             }
 
-            val goVersion = element.vpnType.coreType?.goVersion.takeIf { !it.isNullOrBlank() }
+            val goVersion = info.vpnType.coreType?.goVersion.takeIf { !it.isNullOrBlank() }
             if (goVersion != null) {
                 binding.goVersionLayout.isVisible = true
                 binding.goVersionText.text = goVersion
@@ -155,151 +192,11 @@ class VPNScannerActivity : ThemedActivity() {
                         .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                         .setData(
                             Uri.fromParts(
-                                "package", element.packageInfo.packageName, null
+                                "package", info.packageInfo.packageName, null
                             )
                         )
                 )
             }
         }
-    }
-
-    private suspend fun scanVPN() {
-        val adapter = adapter ?: return
-        val binding = binding ?: return
-        val flag =
-            PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                PackageManager.MATCH_UNINSTALLED_PACKAGES
-            } else {
-                @Suppress("DEPRECATION")
-                PackageManager.GET_UNINSTALLED_PACKAGES
-            }
-        val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(flag.toLong()))
-        } else {
-            packageManager.getInstalledPackages(flag)
-        }
-        val vpnAppList =
-            installedPackages.filter {
-                it.services?.any { serviceInfo ->
-                    serviceInfo.permission == Manifest.permission.BIND_VPN_SERVICE
-                } ?: false
-            }
-        for ((index, packageInfo) in vpnAppList.withIndex()) {
-            val appType = runCatching { getVPNAppType(packageInfo) }.getOrNull()
-            val coreType = runCatching { getVPNCoreType(packageInfo) }.getOrNull()
-            appInfoList.add(AppInfo(packageInfo, VPNType(appType, coreType)))
-            onMainDispatcher {
-                adapter.notifyItemInserted(index)
-                binding.scanVPNResult.scrollToPosition(index)
-                binding.scanVPNProgress.setProgressCompat(
-                    (((index + 1).toFloat() / vpnAppList.size.toFloat()) * 100).roundToInt(),
-                    true
-                )
-            }
-            System.gc()
-        }
-        onMainDispatcher {
-            binding.scanVPNProgress.isVisible = false
-        }
-    }
-
-    companion object {
-
-        private val v2rayNGClasses = listOf(
-            "com.v2ray.ang",
-            ".dto.V2rayConfig",
-            ".service.V2RayVpnService",
-        )
-
-        private val clashForAndroidClasses = listOf(
-            "com.github.kr328.clash",
-            ".core.Clash",
-            ".service.TunService",
-        )
-
-        private val sfaClasses = listOf(
-            "io.nekohasekai.sfa",
-        )
-
-        private val sagerNetClasses = listOf(
-            "io.nekohasekai.sagernet",
-            ".fmt.ConfigBuilder",
-        )
-
-        private val shadowsocksAndroidClasses = listOf(
-            "com.github.shadowsocks",
-            ".bg.VpnService",
-            "GuardedProcessPool",
-        )
-    }
-
-    private fun getVPNAppType(packageInfo: PackageInfo): String? {
-        ZipFile(File(packageInfo.applicationInfo!!.publicSourceDir)).use { packageFile ->
-            var type: String? = null
-            for (packageEntry in packageFile.entries()) {
-                if (!(packageEntry.name.startsWith("classes") && packageEntry.name.endsWith(
-                        ".dex"
-                    ))
-                ) {
-                    continue
-                }
-                if (packageEntry.size > 15000000) {
-                    continue
-                }
-                val input = packageFile.getInputStream(packageEntry).buffered()
-                val dexFile = try {
-                    DexBackedDexFile.fromInputStream(null, input)
-                } catch (e: Exception) {
-                    Logs.e("Read dex file", e)
-                    continue
-                }
-                for (clazz in dexFile.classes) {
-                    val clazzName = clazz.type.substring(1, clazz.type.length - 1)
-                        .replace("/", ".")
-                        .replace("$", ".")
-                    for (v2rayNGClass in v2rayNGClasses) {
-                        if (clazzName.contains(v2rayNGClass)) {
-                            return "V2RayNG"
-                        }
-                    }
-                    for (clashForAndroidClass in clashForAndroidClasses) {
-                        if (clazzName.contains(clashForAndroidClass)) {
-                            return "ClashForAndroid"
-                        }
-                    }
-                    for (sfaClass in sfaClasses) {
-                        if (clazzName.contains(sfaClass)) {
-                            return "sing-box"
-                        }
-                    }
-                    for (sagerNetClass in sagerNetClasses) {
-                        if (clazzName.contains(sagerNetClass)) {
-                            return "SagerNet"
-                        }
-                    }
-                    for (shadowsocksAndroidClass in shadowsocksAndroidClasses) {
-                        if (clazzName.contains(shadowsocksAndroidClass)) {
-                            // May be SagerNet, too.
-                            type = "shadowsocks-android"
-                            continue
-                        }
-                    }
-                }
-            }
-            return type
-        }
-    }
-
-    private fun getVPNCoreType(packageInfo: PackageInfo): VPNCoreType? {
-        val packageFiles = mutableListOf(packageInfo.applicationInfo!!.publicSourceDir)
-        packageInfo.applicationInfo!!.splitPublicSourceDirs?.also {
-            packageFiles.addAll(it)
-        }
-        val vpnType = try {
-            Libcore.readAndroidVPNType(packageFiles.let { it.toStringIterator(it.size) })
-        } catch (_: Exception) {
-            return null
-        }
-        return VPNCoreType(vpnType.coreType, vpnType.corePath, vpnType.goVersion)
     }
 }
