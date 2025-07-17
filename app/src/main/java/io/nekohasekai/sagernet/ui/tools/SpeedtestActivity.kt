@@ -1,37 +1,24 @@
 package io.nekohasekai.sagernet.ui.tools
 
-import android.app.AlertDialog
 import android.os.Bundle
-import android.widget.TextView
+import android.text.format.Formatter
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
-import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.USER_AGENT
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import libcore.CopyCallback
-import libcore.HTTPResponse
-import libcore.Libcore
 
 class SpeedtestActivity : ThemedActivity() {
 
-    companion object {
-        private val KEY_SPEED = "speed"
-    }
-
     private lateinit var binding: LayoutSpeedTestBinding
+    private val viewModel: SpeedTestActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,30 +63,16 @@ class SpeedtestActivity : ThemedActivity() {
         binding.speedTestTimeout.setText(DataStore.speedTestTimeout.toString())
 
         binding.speedTest.setOnClickListener {
-            doTest()
+            viewModel.doTest(
+                binding.speedTestServer.text.toString(),
+                binding.speedTestTimeout.text.toString().toInt(),
+            )
         }
 
-        savedInstanceState?.getCharSequence(KEY_SPEED)?.let {
-            binding.speedTestResult.text = it
-        }
+        viewModel.uiState.observe(this, ::handleState)
     }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putCharSequence(KEY_SPEED, binding.speedTestResult.text)
-    }
-
-    // Make sure just one job.
-    private var speedtestJob: Job? = null
-    private var currentResponse: HTTPResponse? = null
 
     override fun onDestroy() {
-        speedtestJob?.cancel()
-        runCatching {
-            currentResponse?.close()
-        }.onFailure { e ->
-            Logs.w(e)
-        }
         DataStore.speedTestUrl = binding.speedTestServer.text.toString()
         DataStore.speedTestTimeout = binding.speedTestTimeout.text.toString().toInt()
         super.onDestroy()
@@ -109,74 +82,26 @@ class SpeedtestActivity : ThemedActivity() {
         return Snackbar.make(binding.mainLayout, text, Snackbar.LENGTH_LONG)
     }
 
-    private fun doTest() {
-        binding.speedTest.isEnabled = false
-        speedtestJob?.cancel()
-        runCatching {
-            currentResponse?.close()
-        }
-        speedtestJob = lifecycleScope.launch {
-            try {
-                Libcore.newHttpClient()
-                    .apply {
-                        if (DataStore.serviceState.started) {
-                            useSocks5(
-                                DataStore.mixedPort,
-                                DataStore.inboundUsername,
-                                DataStore.inboundPassword,
-                            )
-                        }
-                    }
-                    .newRequest()
-                    .apply {
-                        setURL(binding.speedTestServer.text.toString())
-                        setUserAgent(USER_AGENT)
-                        setTimeout(binding.speedTestTimeout.text.toString().toInt())
-                    }
-                    .execute()
-                    .also {
-                        currentResponse = it
-                    }
-                    .writeTo(Libcore.DevNull, CopyCallBack(binding.speedTestResult))
-            } catch (_: CancellationException) {
-                return@launch
-            } catch (e: Exception) {
-                Logs.e(e)
-                onMainDispatcher {
-                    AlertDialog.Builder(this@SpeedtestActivity)
-                        .setTitle(R.string.error_title)
-                        .setMessage(e.toString())
-                        .setPositiveButton(android.R.string.ok) { _, _ -> }
-                        .runCatching { show() }
-                }
-                return@launch
-            } finally {
-                onMainDispatcher {
-                    binding.speedTest.isEnabled = true
-                }
+    private fun handleState(state: SpeedTestActivityUiState) {
+        when (state) {
+            SpeedTestActivityUiState.Idle -> {
+                binding.speedTest.isEnabled = true
             }
-            snackbar(R.string.done).show()
-        }
-    }
 
-    inner class CopyCallBack(val text: TextView) : CopyCallback {
+            is SpeedTestActivityUiState.Doing -> {
+                binding.speedTest.isEnabled = false
 
-        val start = System.nanoTime()
+                val speed = Formatter.formatFileSize(this, state.result)
+                val text = getString(R.string.speed, speed)
+                binding.speedTestResult.text = text
+            }
 
-        private var saved: Long = 0L
-
-        override fun setLength(length: Long) {}
-
-        override fun update(n: Long) {
-            saved += n
-
-            val duration = (System.nanoTime() - start) / 1_000_000_000.0
-            runOnMainDispatcher {
-                val savedDouble = saved.toDouble()
-                text.text = text.context.getString(
-                    R.string.speed,
-                    Libcore.formatBytes((savedDouble / duration).toLong()),
-                )
+            is SpeedTestActivityUiState.Done -> {
+                binding.speedTest.isEnabled = true
+                snackbar(R.string.done).show()
+                state.exception?.let { e ->
+                    alertAndLog(e).show()
+                }
             }
         }
     }

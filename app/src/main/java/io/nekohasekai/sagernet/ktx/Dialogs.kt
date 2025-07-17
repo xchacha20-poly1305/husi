@@ -13,4 +13,9 @@ fun Context.alert(text: String): AlertDialog {
         .create()
 }
 
+fun Context.alertAndLog(e: Exception): AlertDialog {
+    Logs.e(e)
+    return alert(e.readableMessage)
+}
+
 fun Fragment.alert(text: String) = requireContext().alert(text)
