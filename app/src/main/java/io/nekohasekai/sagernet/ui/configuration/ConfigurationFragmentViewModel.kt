@@ -131,7 +131,12 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
             results.forEach {
                 try {
                     when (val result = it.result) {
-                        is TestResult.Success -> it.profile.ping = result.ping
+                        is TestResult.Success -> {
+                            it.profile.ping = result.ping
+                            it.profile.status = ProxyEntity.STATUS_AVAILABLE
+                            it.profile.error = null
+                        }
+
                         is TestResult.Failure -> {
                             it.profile.ping = 0
 
