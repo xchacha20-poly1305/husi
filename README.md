@@ -77,7 +77,7 @@ If you don't want to use the same package name, you can run `./run rename target
 Environment:
 
 * jdk-21
-* ndk 28.1.13356709
+* ndk 28.2.13676358
 
 If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script
 `buildScript/init/env_ndk.sh`:
