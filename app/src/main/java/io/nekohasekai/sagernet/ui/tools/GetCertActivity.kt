@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -12,16 +12,14 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ktx.currentSocks5
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import libcore.Libcore
 
 class GetCertActivity : ThemedActivity() {
 
     private lateinit var binding: LayoutGetCertBinding
+    private val viewModel: GetCertActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,44 +64,44 @@ class GetCertActivity : ThemedActivity() {
 
         binding.getCert.setOnClickListener {
             SagerNet.inputMethod.hideSoftInputFromWindow(binding.root.windowToken, 0)
-            copyCert()
+
+            val server = binding.pinCertServer.text.toString()
+            val serverName = binding.pinCertServerName.text.toString()
+            val protocol = binding.pinCertProtocol.selectedItemPosition
+            val proxy = binding.proxyServer.text.toString()
+            viewModel.getCert(server, serverName, protocol, proxy)
         }
+
+        viewModel.uiState.observe(this, ::handleUiState)
     }
 
+    private fun handleUiState(state: GetCertUiState) {
+        when (state) {
+            GetCertUiState.Idle -> {
+                binding.waitLayout.isVisible = false
+            }
 
-    private fun copyCert() {
-        binding.waitLayout.isVisible = true
+            GetCertUiState.Doing -> {
+                binding.waitLayout.isVisible = true
+            }
 
-        val server = binding.pinCertServer.text.toString()
-        val serverName = binding.pinCertServerName.text.toString()
-        val protocol = binding.pinCertProtocol.selectedItemPosition
-        val proxy = binding.proxyServer.text.toString()
+            is GetCertUiState.Done -> {
+                binding.waitLayout.isVisible = false
 
-        runOnDefaultDispatcher {
-            try {
-                val certificate = Libcore.getCert(server, serverName, protocol, proxy)
-                Logs.i(certificate)
-                SagerNet.trySetPrimaryClip(certificate)
+                Logs.i(state.cert)
+                SagerNet.trySetPrimaryClip(state.cert)
                 Snackbar.make(
                     binding.root,
                     R.string.get_cert_success,
                     Snackbar.LENGTH_SHORT,
                 ).show()
-            } catch (e: Exception) {
-                Logs.w(e)
-                onMainDispatcher {
-                    AlertDialog.Builder(this@GetCertActivity)
-                        .setTitle(R.string.error_title)
-                        .setMessage(e.readableMessage)
-                        .setPositiveButton(android.R.string.ok) { _, _ -> }
-                        .runCatching { show() }
-                }
-            } finally {
-                onMainDispatcher {
-                    binding.waitLayout.isVisible = false
-                }
+            }
+
+            is GetCertUiState.Failure -> {
+                binding.waitLayout.isVisible = false
+
+                alertAndLog(state.exception).show()
             }
         }
     }
-
 }
