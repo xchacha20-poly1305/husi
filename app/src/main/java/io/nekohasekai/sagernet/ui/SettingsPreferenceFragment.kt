@@ -20,11 +20,9 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
 import androidx.recyclerview.widget.RecyclerView
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
@@ -93,9 +91,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         lateinit var profileTrafficStatistics: SwitchPreference
         lateinit var speedInterval: SimpleMenuPreference
         lateinit var showDirectSpeed: SwitchPreference
-
-        lateinit var ruleProvider: SimpleMenuPreference
-        lateinit var customRuleProvider: EditTextPreference
 
         lateinit var appendHttpProxy: SwitchPreference
         lateinit var httpProxyBypass: EditTextPreference
@@ -233,15 +228,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             }
                         }
 
-                        Key.RULES_PROVIDER -> ruleProvider = preference as SimpleMenuPreference
                         Key.CUSTOM_RULE_PROVIDER -> {
-                            customRuleProvider = (preference as LinkOrContentPreference).also {
-                                it.allowMultipleLines = true
-                                it.isVisible = DataStore.rulesProvider == RuleProvider.CUSTOM
-                            }
+                            preference as LinkOrContentPreference
+                            preference.allowMultipleLines = true
                         }
 
-                        Key.UPDATE_PROXY_APPS_WHEN_INSTALL -> {}
+                        Key.RULES_PROVIDER, Key.UPDATE_PROXY_APPS_WHEN_INSTALL -> {}
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }
@@ -377,11 +369,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         blurredAddress.isEnabled = alwaysShowAddress.isChecked
         alwaysShowAddress.setOnPreferenceChangeListener { _, newValue ->
             blurredAddress.isEnabled = newValue as Boolean
-            true
-        }
-
-        ruleProvider.setOnPreferenceChangeListener { _, newValue ->
-            customRuleProvider.isVisible = (newValue as String) == RuleProvider.CUSTOM.toString()
             true
         }
 

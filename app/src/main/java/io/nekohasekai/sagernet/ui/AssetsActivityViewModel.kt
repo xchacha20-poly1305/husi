@@ -55,39 +55,55 @@ internal class AssetsActivityViewModel : ViewModel() {
             File(assetsDir, "geosite.version.txt")
         )
         val provider = DataStore.rulesProvider
+        val customRuleProviders = DataStore.customRuleProvider.lines()
+        var forcedUpdateCustom = false
         val updater = if (provider == RuleProvider.CUSTOM) {
             CustomAssetUpdater(
                 versionFiles,
                 updateProgress,
                 cacheDir,
                 destinationDir,
-                DataStore.customRuleProvider.lines(),
+                customRuleProviders,
             )
-        } else GithubAssetUpdater(
+        } else {
+            forcedUpdateCustom = customRuleProviders.isNotEmpty()
+            GithubAssetUpdater(
+                versionFiles,
+                updateProgress,
+                cacheDir,
+                destinationDir,
+                when (provider) {
+                    RuleProvider.OFFICIAL -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
+                    RuleProvider.LOYALSOLDIER -> listOf(
+                        "xchacha20-poly1305/sing-geoip",
+                        "xchacha20-poly1305/sing-geosite",
+                    )
+
+                    RuleProvider.CHOCOLATE4U -> listOf("Chocolate4U/Iran-sing-box-rules")
+                    else -> throw IllegalStateException("Unknown provider $provider")
+                },
+                RuleProvider.hasUnstableBranch(provider),
+            )
+        }
+
+        updater.runUpdateIfAvailable()
+
+        if (!forcedUpdateCustom) return
+
+        val customUpdater = CustomAssetUpdater(
             versionFiles,
             updateProgress,
             cacheDir,
             destinationDir,
-            when (provider) {
-                RuleProvider.OFFICIAL -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
-                RuleProvider.LOYALSOLDIER -> listOf(
-                    "xchacha20-poly1305/sing-geoip",
-                    "xchacha20-poly1305/sing-geosite"
-                )
-
-                RuleProvider.CHOCOLATE4U -> listOf("Chocolate4U/Iran-sing-box-rules")
-                else -> throw IllegalStateException("Unknown provider $provider")
-            },
-            RuleProvider.hasUnstableBranch(provider),
+            customRuleProviders,
         )
-
-        updater.runUpdateIfAvailable()
+        customUpdater.runUpdateIfAvailable()
     }
 
 
     suspend fun importFile(destinationDir: File, sourceFile: File) {
         try {
-            tryOpenCompressed(sourceFile.absolutePath, destinationDir.absolutePath)
+            tryOpenCompressedOrCopy(sourceFile, destinationDir.absolutePath)
         } catch (e: Exception) {
             _uiState.update { AssetsUiState.Done(e) }
             return
@@ -181,7 +197,7 @@ internal class CustomAssetUpdater(
 
             updateProgress(25)
             for (file in cacheFiles) {
-                tryOpenCompressed(file.absolutePath, destinationDir.absolutePath)
+                tryOpenCompressedOrCopy(file, destinationDir.absolutePath)
             }
 
             updateProgress(25)
@@ -281,15 +297,23 @@ internal class GithubAssetUpdater(
     }
 }
 
-private suspend fun tryOpenCompressed(from: String, toDir: String) {
+private suspend fun tryOpenCompressedOrCopy(from: File, toDir: String) {
+    val fileName = from.name
+    if (fileName.endsWith(".srs")) {
+        from.copyTo(File(toDir, fileName))
+        return
+    }
+
     val exceptions = mutableListOf<Throwable>()
+    val absolutePath = from.absolutePath
     runCatching {
-        Libcore.untargzWithoutDir(from, toDir)
+        Libcore.untargzWithoutDir(absolutePath, toDir)
     }.onSuccess { return }
         .onFailure { exceptions += it }
     runCatching {
-        Libcore.unzipWithoutDir(from, toDir)
+        Libcore.unzipWithoutDir(absolutePath, toDir)
     }.onSuccess { return }
         .onFailure { exceptions += it }
+
     error(exceptions.joinToString("; ") { it.readableMessage })
 }
