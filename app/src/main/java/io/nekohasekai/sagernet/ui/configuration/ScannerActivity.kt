@@ -22,7 +22,6 @@ package io.nekohasekai.sagernet.ui.configuration
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ShortcutManager
 import android.graphics.ImageDecoder
 import android.os.Build
@@ -33,6 +32,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.Toolbar
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -60,6 +60,7 @@ import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.forEachTry
+import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -69,7 +70,6 @@ import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
 
 class ScannerActivity : ThemedActivity() {
 
@@ -86,7 +86,8 @@ class ScannerActivity : ThemedActivity() {
         binding = LayoutScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar)) { v, insets ->
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -97,7 +98,7 @@ class ScannerActivity : ThemedActivity() {
             )
             insets
         }
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
@@ -110,10 +111,7 @@ class ScannerActivity : ThemedActivity() {
                 binding.previewView.implementationMode = PreviewView.ImplementationMode.PERFORMANCE
             }
         }
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (hasPermission(Manifest.permission.CAMERA)) {
             startCamera()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)

@@ -7,44 +7,41 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.RuleProvider
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAssetItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.use
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
-import libcore.HTTPClient
-import libcore.Libcore
-import org.json.JSONObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileWriter
-import kotlin.io.path.absolutePathString
 
 class AssetsActivity : ThemedActivity() {
 
-    lateinit var adapter: AssetAdapter
-    lateinit var layout: LayoutAssetsBinding
-    lateinit var undoManager: UndoSnackbarManager<File>
-    lateinit var updating: LinearProgressIndicator
+    private val viewModel: AssetsActivityViewModel by viewModels()
+    private lateinit var adapter: AssetAdapter
+    private lateinit var layout: LayoutAssetsBinding
+    private lateinit var undoManager: UndoSnackbarManager<File>
+    private lateinit var updating: LinearProgressIndicator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,14 +83,8 @@ class AssetsActivity : ThemedActivity() {
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
-        adapter = AssetAdapter()
+        adapter = AssetAdapter(assetsDir)
         binding.recyclerView.adapter = adapter
-
-        binding.refreshLayout.setOnRefreshListener {
-            adapter.reloadAssets()
-            binding.refreshLayout.isRefreshing = false
-        }
-        binding.refreshLayout.setColorSchemeColors(getColorAttr(R.attr.primaryOrTextPrimary))
 
         undoManager = UndoSnackbarManager(this, adapter)
 
@@ -122,6 +113,41 @@ class AssetsActivity : ThemedActivity() {
             ) = false
 
         }).attachToRecyclerView(binding.recyclerView)
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
+        }
+    }
+
+    private fun handleUiState(state: AssetsUiState) {
+        when (state) {
+            AssetsUiState.Idle -> {
+                updating.setProgressCompat(0, true)
+                updating.visibility = View.GONE
+                adapter.reloadAssets()
+            }
+
+            is AssetsUiState.Doing -> {
+                updating.isVisible = true
+                updating.setProgressCompat(state.progress, true)
+            }
+
+            is AssetsUiState.Done -> {
+                updating.setProgressCompat(0, true)
+                updating.visibility = View.GONE
+
+                when (state.e) {
+                    null -> adapter.reloadAssets()
+                    is AssetsActivityViewModel.NoUpdateException -> snackbar(R.string.route_asset_no_update)
+                    else -> {
+                        Logs.e(state.e)
+                        snackbar(state.e.readableMessage).show()
+                    }
+                }
+            }
+        }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
@@ -144,64 +170,42 @@ class AssetsActivity : ThemedActivity() {
                 }?.takeIf { it.isNotBlank() } ?: fileUri.path
             if (fileName == null) return@registerForActivityResult
 
-            runOnDefaultDispatcher {
-                val filesDir = getExternalFilesDir(null) ?: filesDir
-                val geoDir = File(filesDir, "geo")
-                if (!geoDir.exists()) {
-                    geoDir.mkdirs()
-                }
-
-                val outFile = File(filesDir, fileName).apply {
+            lifecycleScope.launch(Dispatchers.IO) {
+                val tempImportFile = File(cacheDir, fileName).apply {
                     parentFile?.mkdirs()
                 }
-                contentResolver.openInputStream(fileUri)?.use(outFile.outputStream())
-
-                try {
-                    tryOpenCompressed(outFile.absolutePath, geoDir.absolutePath)
-                } catch (e: Exception) {
-                    onMainDispatcher {
-                        snackbar(e.readableMessage).show()
-                    }
-                    return@runOnDefaultDispatcher
-                } finally {
-                    outFile.delete()
-                }
-
-                val nameList = listOf("geosite", "geoip")
-                for (name in nameList) {
-                    File(filesDir, "$name.version.txt").apply {
-                        if (isFile) delete()
-                        createNewFile()
-                        val fw = FileWriter(this)
-                        fw.write("Custom")
-                        fw.close()
-                    }
-                }
-
-                adapter.reloadAssets()
+                contentResolver.openInputStream(fileUri)?.use(tempImportFile.outputStream())
+                viewModel.importFile(geoDir, tempImportFile)
             }
 
         }
 
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_import_file -> {
-                startFilesForResult(importFile, "*/*")
-                return true
-            }
-
-            R.id.action_update_all -> {
-                runOnDefaultDispatcher {
-                    updateAsset()
-                }
-                return true
-            }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_import_file -> {
+            startFilesForResult(importFile, "*/*")
+            true
         }
-        return false
+
+        R.id.action_update_all -> {
+            viewModel.updateAsset(destinationDir = geoDir, cacheDir = cacheDir)
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
     }
 
-    inner class AssetAdapter : RecyclerView.Adapter<AssetHolder>(),
+    private val assetsDir: File by lazy {
+        val dir = getExternalFilesDir(null) ?: filesDir
+        dir.mkdirs()
+        dir
+    }
+
+    private val geoDir: File by lazy {
+        File(assetsDir, "geo").also { it.mkdirs() }
+    }
+
+    inner class AssetAdapter(private val assetsDir: File) : RecyclerView.Adapter<AssetHolder>(),
         UndoSnackbarManager.Interface<File> {
 
         private val assets = ArrayList<File>()
@@ -211,20 +215,11 @@ class AssetsActivity : ThemedActivity() {
         }
 
         fun reloadAssets() {
-            val filesDir = getExternalFilesDir(null) ?: filesDir
-            val geoDir = File(filesDir, "geo")
-            if (!geoDir.exists()) {
-                geoDir.mkdirs()
-            }
             assets.clear()
-            assets.add(File(filesDir, "geoip.version.txt"))
-            assets.add(File(filesDir, "geosite.version.txt"))
+            assets.add(File(assetsDir, "geoip.version.txt"))
+            assets.add(File(assetsDir, "geosite.version.txt"))
 
-            layout.refreshLayout.post {
-                notifyDataSetChanged()
-            }
-
-            updating.setProgressCompat(0, true)
+            notifyDataSetChanged()
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetHolder {
@@ -235,9 +230,7 @@ class AssetsActivity : ThemedActivity() {
             holder.bind(assets[position])
         }
 
-        override fun getItemCount(): Int {
-            return assets.size
-        }
+        override fun getItemCount(): Int = assets.size
 
         fun remove(index: Int) {
             assets.removeAt(index)
@@ -252,12 +245,11 @@ class AssetsActivity : ThemedActivity() {
         }
 
         override fun commit(actions: List<Pair<Int, File>>) {
-            val groups = actions.mapX { it.second }.toTypedArray()
+            val filesToDelete = actions.mapX { it.second }.toTypedArray()
             runOnDefaultDispatcher {
-                groups.forEach { it.deleteRecursively() }
+                filesToDelete.forEach { it.deleteRecursively() }
             }
         }
-
     }
 
     inner class AssetHolder(val binding: LayoutAssetItemBinding) :
@@ -276,217 +268,11 @@ class AssetsActivity : ThemedActivity() {
                 "Unknown"
             }
 
-            binding.assetStatus.text = getString(R.string.route_asset_status, localVersion)
+            binding.assetStatus.text =
+                binding.root.context.getString(R.string.route_asset_status, localVersion)
 
         }
 
-    }
-
-    interface RulesFetcher {
-        val versionFiles: List<File>
-        val updateAssets: ((Int) -> Unit)
-
-        /**
-         * Fetch rules
-         * @return true means not need to update.
-         */
-        fun fetch(): Boolean
-    }
-
-    private class GithubRuleFetcher(
-        override val versionFiles: List<File>,
-        override val updateAssets: ((Int) -> Unit),
-        val repos: List<String>,
-        val client: HTTPClient,
-        val geoDir: String,
-        val unstableBranch: Boolean = false, // rule-set v2
-    ) : RulesFetcher {
-        override fun fetch(): Boolean {
-            // Compare version
-            val versions = mutableListOf<String>()
-            var shouldUpdate = false
-            for ((i, repo) in repos.withIndex()) {
-                val version = fetchVersion(repo)
-                updateAssets(5)
-                versions.add(version)
-                if (versionFiles[i].readText() != version) {
-                    shouldUpdate = true
-                }
-            }
-            if (!shouldUpdate) return true
-
-            // single repo
-            while (versions.size == repos.size) {
-                versions.add(versions[0])
-            }
-
-            // Download
-            val cacheFiles = mutableListOf<File>()
-            for (repo in repos) {
-                cacheFiles.add(download(repo))
-                updateAssets(5)
-            }
-
-            try {
-                for (file in cacheFiles) {
-                    Libcore.untargzWithoutDir(file.absolutePath, geoDir)
-                    updateAssets(10)
-                }
-            } catch (e: Exception) {
-                throw e
-            } finally {
-                // Make sure delete cache
-                for (file in cacheFiles) {
-                    file.delete()
-                }
-            }
-
-            // Write version
-            for ((i, version) in versionFiles.withIndex()) {
-                version.writeText(versions[i])
-                updateAssets(5)
-            }
-
-            return false
-        }
-
-        private fun fetchVersion(repo: String): String {
-            val response = client.newRequest().apply {
-                setURL("https://api.github.com/repos/$repo/releases/latest")
-                setUserAgent(USER_AGENT)
-            }.execute()
-            return JSONObject(response.contentString).optString("tag_name")
-        }
-
-        private fun download(repo: String): File {
-            // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
-            var branchName = "rule-set"
-            if (unstableBranch && repo.endsWith("sing-geosite")) branchName += "-unstable"
-            val response = client.newRequest().apply {
-                setURL("https://codeload.github.com/$repo/tar.gz/refs/heads/${branchName}")
-                setUserAgent(USER_AGENT)
-            }.execute()
-
-            val cacheFile = File(
-                kotlin.io.path.createTempFile(repo.substringAfter("/"), "tmp").absolutePathString()
-            )
-            cacheFile.parentFile?.mkdirs()
-            response.writeTo(cacheFile.absolutePath, null)
-            return cacheFile
-        }
-    }
-
-    private suspend fun updateAsset() {
-        val filesDir = getExternalFilesDir(null) ?: filesDir
-        val geoDir = File(filesDir, "geo")
-        var progress = 0
-        val updateProgress: (p: Int) -> Unit = { p ->
-            progress += p
-            updating.setProgressCompat(progress, true)
-        }
-
-        val client = Libcore.newHttpClient().apply {
-            modernTLS()
-            keepAlive()
-            if (DataStore.serviceState.started) {
-                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
-            }
-        }
-
-        val versionFileList: List<File> = listOf(
-            File(filesDir, "geoip.version.txt"),
-            File(filesDir, "geosite.version.txt")
-        )
-        val provider: RulesFetcher = if (DataStore.rulesProvider != RuleProvider.CUSTOM) {
-            GithubRuleFetcher(
-                versionFileList,
-                updateProgress,
-                when (DataStore.rulesProvider) {
-                    RuleProvider.OFFICIAL -> {
-                        listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
-                    }
-
-                    RuleProvider.LOYALSOLDIER -> {
-                        listOf("xchacha20-poly1305/sing-geoip", "xchacha20-poly1305/sing-geosite")
-                    }
-
-                    RuleProvider.CHOCOLATE4U -> listOf("Chocolate4U/Iran-sing-box-rules")
-
-                    else -> error("?")
-                },
-                client,
-                geoDir.absolutePath,
-                RuleProvider.hasUnstableBranch(DataStore.rulesProvider),
-            )
-        } else {
-            object : RulesFetcher {
-                override val versionFiles: List<File> = versionFileList
-                override val updateAssets: (Int) -> Unit = updateProgress
-
-                override fun fetch(): Boolean {
-                    val links = DataStore.customRuleProvider.listByLineOrComma()
-                    val cacheFiles = mutableListOf<File>()
-
-                    updateProgress(35)
-                    for ((i, link) in links.withIndex()) {
-                        val response = client.newRequest().apply {
-                            setURL(link)
-                            setUserAgent(USER_AGENT)
-                        }.execute()
-
-                        val cacheFile = File(cacheDir.parentFile, cacheDir.name + i + ".tmp")
-                        cacheFile.parentFile?.mkdirs()
-                        response.writeTo(cacheFile.canonicalPath, null)
-                        cacheFiles.add(cacheFile)
-                    }
-
-                    updateProgress(25)
-                    try {
-                        for (file in cacheFiles) {
-                            tryOpenCompressed(file.absolutePath, geoDir.absolutePath)
-                        }
-                    } catch (e: Exception) {
-                        throw e
-                    } finally {
-                        for (file in cacheFiles) {
-                            file.delete()
-                        }
-                    }
-
-                    updateProgress(25)
-                    for (version in versionFiles) {
-                        version.writeText("custom")
-                    }
-
-                    return false
-                }
-            }
-        }
-
-        onMainDispatcher {
-            updating.visibility = View.VISIBLE
-            updateProgress(15)
-        }
-
-        var notNeedUpdate = false
-        runCatching {
-            notNeedUpdate = provider.fetch()
-        }.onFailure { e ->
-            Logs.e(e)
-            snackbar(e.readableMessage).show()
-        }.onSuccess {
-            if (notNeedUpdate) {
-                snackbar(R.string.route_asset_no_update).show()
-            } else {
-                snackbar(R.string.route_asset_updated).show()
-            }
-        }
-
-        updating.setProgressCompat(100, true)
-        onMainDispatcher {
-            updating.visibility = View.GONE
-            adapter.reloadAssets()
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -500,16 +286,6 @@ class AssetsActivity : ThemedActivity() {
         if (::adapter.isInitialized) {
             adapter.reloadAssets()
         }
-    }
-
-    private fun tryOpenCompressed(from: String, toDir: String) {
-        runCatching {
-            Libcore.untargzWithoutDir(from, toDir)
-        }.onSuccess { return }
-        runCatching {
-            Libcore.unzipWithoutDir(from, toDir)
-        }.onSuccess { return }
-        error("unknown file")
     }
 
 }
