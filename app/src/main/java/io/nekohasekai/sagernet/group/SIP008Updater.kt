@@ -68,7 +68,7 @@ object SIP008Updater : GroupUpdater() {
                 setUserAgent(generateUserAgent(subscription.customUserAgent))
             }.execute()
 
-            sip008Response = JSONObject(response.contentString)
+            sip008Response = JSONObject(response.contentString.value)
         }
 
         subscription.bytesUsed = sip008Response.getLongOrNull("bytes_used") ?: -1
