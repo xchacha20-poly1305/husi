@@ -182,7 +182,7 @@
             app:title="@string/route_rules_provider"
             app:useSimpleSummaryProvider="true" />
         <io.nekohasekai.sagernet.widget.LinkOrContentPreference
-            app:defaultValue="0"
+            app:defaultValue="https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set"
             app:icon="@drawable/ic_baseline_import_contacts_24"
             app:isPreferenceVisible="false"
             app:key="customRuleProvider"

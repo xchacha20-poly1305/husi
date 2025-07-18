@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -139,8 +140,15 @@ class AssetsActivity : ThemedActivity() {
                 updating.visibility = View.GONE
 
                 when (state.e) {
-                    null -> adapter.reloadAssets()
-                    is AssetsActivityViewModel.NoUpdateException -> snackbar(R.string.route_asset_no_update)
+                    null -> {
+                        snackbar(R.string.route_asset_updated).show()
+                        adapter.reloadAssets()
+                    }
+
+                    is NoUpdateException -> {
+                        snackbar(R.string.route_asset_no_update).show()
+                    }
+
                     else -> {
                         Logs.e(state.e)
                         snackbar(state.e.readableMessage).show()
@@ -205,7 +213,7 @@ class AssetsActivity : ThemedActivity() {
         File(assetsDir, "geo").also { it.mkdirs() }
     }
 
-    inner class AssetAdapter(private val assetsDir: File) : RecyclerView.Adapter<AssetHolder>(),
+    private class AssetAdapter(val assetsDir: File) : RecyclerView.Adapter<AssetHolder>(),
         UndoSnackbarManager.Interface<File> {
 
         private val assets = ArrayList<File>()
@@ -223,7 +231,8 @@ class AssetsActivity : ThemedActivity() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetHolder {
-            return AssetHolder(LayoutAssetItemBinding.inflate(layoutInflater, parent, false))
+            val inflater = LayoutInflater.from(parent.context)
+            return AssetHolder(LayoutAssetItemBinding.inflate(inflater, parent, false))
         }
 
         override fun onBindViewHolder(holder: AssetHolder, position: Int) {
@@ -252,7 +261,7 @@ class AssetsActivity : ThemedActivity() {
         }
     }
 
-    inner class AssetHolder(val binding: LayoutAssetItemBinding) :
+    private class AssetHolder(val binding: LayoutAssetItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         lateinit var file: File
 
