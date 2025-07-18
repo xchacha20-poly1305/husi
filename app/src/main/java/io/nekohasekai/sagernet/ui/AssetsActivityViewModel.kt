@@ -252,7 +252,7 @@ internal class AssetsActivityViewModel : ViewModel() {
         private fun fetchVersion(repo: String): String {
             val response =
                 newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
-            return JSONObject(response.contentString).optString("tag_name")
+            return JSONObject(response.contentString.value).optString("tag_name")
         }
     }
 
