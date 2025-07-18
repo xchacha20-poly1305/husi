@@ -116,7 +116,7 @@ internal sealed class UpdateInfo {
     data class Custom(val link: String) : UpdateInfo()
 }
 
-abstract internal class AssetsUpdater(
+internal abstract class AssetsUpdater(
     val versionFiles: List<File>,
     val updateProgress: UpdateProgress,
     val cacheDir: File,
