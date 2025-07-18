@@ -29,17 +29,10 @@ internal class AssetsActivityViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<AssetsUiState> = MutableStateFlow(AssetsUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
-    class NoUpdateException : Exception()
-
-    sealed class UpdateInfo {
-        data class Github(val repo: String, val newVersion: String) : UpdateInfo()
-        data class Custom(val link: String) : UpdateInfo()
-    }
-
     fun updateAsset(destinationDir: File, cacheDir: File) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateAsset0(destinationDir,cacheDir)
+                updateAsset0(destinationDir, cacheDir)
                 _uiState.update { AssetsUiState.Done() }
             } catch (e: Exception) {
                 _uiState.update { AssetsUiState.Done(e) }
@@ -91,170 +84,6 @@ internal class AssetsActivityViewModel : ViewModel() {
         updater.runUpdateIfAvailable()
     }
 
-    abstract inner class AssetsUpdater(
-        val versionFiles: List<File>,
-        val updateProgress: UpdateProgress,
-        val cacheDir: File,
-        val destinationDir: File,
-    ) {
-        private val httpClient = Libcore.newHttpClient().apply {
-            modernTLS()
-            keepAlive()
-            if (DataStore.serviceState.started) {
-                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
-            }
-        }
-
-        fun newRequest(url: String): HTTPRequest = httpClient.newRequest().apply {
-            setURL(url)
-            setUserAgent(USER_AGENT)
-        }
-
-        suspend fun runUpdateIfAvailable() {
-            val updatesToPerform = check()
-
-            if (updatesToPerform.isNotEmpty()) {
-                performUpdate(updatesToPerform)
-            } else {
-                throw NoUpdateException()
-            }
-        }
-
-        protected abstract suspend fun check(): List<UpdateInfo>
-
-        protected abstract suspend fun performUpdate(updates: List<UpdateInfo>)
-    }
-
-    inner class CustomAssetUpdater(
-        versionFiles: List<File>,
-        updateProgress: UpdateProgress,
-        cacheDir: File,
-        destinationDir: File,
-        val links: List<String>,
-    ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
-
-        override suspend fun check(): List<UpdateInfo> = links.mapX { link ->
-            UpdateInfo.Custom(link)
-        }
-
-        override suspend fun performUpdate(updates: List<UpdateInfo>) {
-            val cacheFiles = ArrayList<File>(updates.size)
-
-            try {
-                updateProgress(35)
-                for ((i, update) in updates.withIndex()) {
-                    update as UpdateInfo.Custom
-                    val response = newRequest(update.link).execute()
-
-                    val cacheFile = File(cacheDir,"custom_asset_$i.tmp")
-                    cacheFile.parentFile?.mkdirs()
-                    cacheFile.deleteOnExit()
-
-                    response.writeTo(cacheFile.absolutePath, null)
-                    cacheFiles.add(cacheFile)
-                }
-
-                updateProgress(25)
-                for (file in cacheFiles) {
-                    tryOpenCompressed(file.absolutePath, destinationDir.absolutePath)
-                }
-
-                updateProgress(25)
-                for (version in versionFiles) {
-                    version.writeText("custom")
-                }
-                updateProgress(15)
-            } finally {
-                for (file in cacheFiles) {
-                    file.runCatching { delete() }
-                }
-            }
-        }
-    }
-
-    inner class GithubAssetUpdater(
-        versionFiles: List<File>,
-        updateProgress: UpdateProgress,
-        parent: File,
-        toDir: File,
-        val repos: List<String>,
-        val unstableBranch: Boolean,
-    ) : AssetsUpdater(versionFiles, updateProgress, parent, toDir) {
-
-        override suspend fun check(): List<UpdateInfo> {
-            val updatesNeeded = mutableListOf<UpdateInfo.Github>()
-
-            for ((i, repo) in repos.withIndex()) {
-                val latestVersion = fetchVersion(repo)
-                val currentVersion =
-                    versionFiles[i].readText()
-
-                if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
-                    updatesNeeded.add(UpdateInfo.Github(repo, latestVersion))
-                    updateProgress(5)
-                }
-            }
-            return updatesNeeded
-        }
-
-        override suspend fun performUpdate(updates: List<UpdateInfo>) {
-            val cacheFiles = ArrayList<File>(updates.size)
-            val progressTotalDownload = 60
-            val progressTotalUnpack = 25
-
-            try {
-                val progressPerDownload = progressTotalDownload / updates.size
-                for (update in updates) {
-                    update as UpdateInfo.Github
-                    // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
-                    var branchName = "rule-set"
-                    if (unstableBranch && update.repo.endsWith("sing-geosite")) {
-                        branchName += "-unstable"
-                    }
-                    val url =
-                        "https://codeload.github.com/${update.repo}/tar.gz/refs/heads/${branchName}"
-                    val response = newRequest(url).execute()
-
-                    val cacheFile = File(
-                        cacheDir,
-                        "${update.repo.replace('/', '_')}-${update.newVersion}.tmp"
-                    )
-                    cacheFile.parentFile?.mkdirs()
-                    cacheFile.deleteOnExit()
-
-                    response.writeTo(cacheFile.absolutePath, null)
-                    cacheFiles.add(cacheFile)
-
-                    updateProgress(progressPerDownload)
-                }
-
-                val progressPerUnpack = progressTotalUnpack / cacheFiles.size
-                for (file in cacheFiles) {
-                    Libcore.untargzWithoutDir(file.absolutePath, destinationDir.absolutePath)
-                    updateProgress(progressPerUnpack)
-                }
-
-                for (update in updates) {
-                    update as UpdateInfo.Github
-                    val repoIndex = repos.indexOf(update.repo)
-                    if (repoIndex != -1) {
-                        versionFiles[repoIndex].writeText(update.newVersion)
-                    }
-                }
-
-            } finally {
-                for (file in cacheFiles) {
-                    file.runCatching { delete() }
-                }
-            }
-        }
-
-        private fun fetchVersion(repo: String): String {
-            val response =
-                newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
-            return JSONObject(response.contentString.value).optString("tag_name")
-        }
-    }
 
     suspend fun importFile(destinationDir: File, sourceFile: File) {
         try {
@@ -266,7 +95,8 @@ internal class AssetsActivityViewModel : ViewModel() {
             sourceFile.delete()
         }
 
-        val assetsDir = destinationDir.parentFile ?: throw IllegalStateException("Destination has no parent")
+        val assetsDir =
+            destinationDir.parentFile ?: throw IllegalStateException("Destination has no parent")
         val nameList = listOf("geosite", "geoip")
         for (name in nameList) {
             val file = File(assetsDir, "$name.version.txt")
@@ -277,18 +107,189 @@ internal class AssetsActivityViewModel : ViewModel() {
 
         _uiState.update { AssetsUiState.Done() }
     }
+}
 
+internal class NoUpdateException : Exception()
 
-    private suspend fun tryOpenCompressed(from: String, toDir: String) {
-        val exceptions = mutableListOf<Throwable>()
-        runCatching {
-            Libcore.untargzWithoutDir(from, toDir)
-        }.onSuccess { return }
-            .onFailure { exceptions += it }
-        runCatching {
-            Libcore.unzipWithoutDir(from, toDir)
-        }.onSuccess { return }
-            .onFailure { exceptions += it }
-        error(exceptions.joinToString("; ") { it.readableMessage })
+internal sealed class UpdateInfo {
+    data class Github(val repo: String, val newVersion: String) : UpdateInfo()
+    data class Custom(val link: String) : UpdateInfo()
+}
+
+abstract internal class AssetsUpdater(
+    val versionFiles: List<File>,
+    val updateProgress: UpdateProgress,
+    val cacheDir: File,
+    val destinationDir: File,
+) {
+    private val httpClient = Libcore.newHttpClient().apply {
+        modernTLS()
+        keepAlive()
+        if (DataStore.serviceState.started) {
+            useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+        }
     }
+
+    fun newRequest(url: String): HTTPRequest = httpClient.newRequest().apply {
+        setURL(url)
+        setUserAgent(USER_AGENT)
+    }
+
+    suspend fun runUpdateIfAvailable() {
+        val updatesToPerform = check()
+
+        if (updatesToPerform.isNotEmpty()) {
+            performUpdate(updatesToPerform)
+        } else {
+            throw NoUpdateException()
+        }
+    }
+
+    protected abstract suspend fun check(): List<UpdateInfo>
+
+    protected abstract suspend fun performUpdate(updates: List<UpdateInfo>)
+}
+
+internal class CustomAssetUpdater(
+    versionFiles: List<File>,
+    updateProgress: UpdateProgress,
+    cacheDir: File,
+    destinationDir: File,
+    val links: List<String>,
+) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
+
+    override suspend fun check(): List<UpdateInfo> = links.mapX { link ->
+        UpdateInfo.Custom(link)
+    }
+
+    override suspend fun performUpdate(updates: List<UpdateInfo>) {
+        val cacheFiles = ArrayList<File>(updates.size)
+
+        try {
+            updateProgress(35)
+            for ((i, update) in updates.withIndex()) {
+                update as UpdateInfo.Custom
+                val response = newRequest(update.link).execute()
+
+                val cacheFile = File(cacheDir, "custom_asset_$i.tmp")
+                cacheFile.parentFile?.mkdirs()
+                cacheFile.deleteOnExit()
+
+                response.writeTo(cacheFile.absolutePath, null)
+                cacheFiles.add(cacheFile)
+            }
+
+            updateProgress(25)
+            for (file in cacheFiles) {
+                tryOpenCompressed(file.absolutePath, destinationDir.absolutePath)
+            }
+
+            updateProgress(25)
+            for (version in versionFiles) {
+                version.writeText("custom")
+            }
+            updateProgress(15)
+        } finally {
+            for (file in cacheFiles) {
+                file.runCatching { delete() }
+            }
+        }
+    }
+}
+
+internal class GithubAssetUpdater(
+    versionFiles: List<File>,
+    updateProgress: UpdateProgress,
+    parent: File,
+    toDir: File,
+    val repos: List<String>,
+    val unstableBranch: Boolean,
+) : AssetsUpdater(versionFiles, updateProgress, parent, toDir) {
+
+    override suspend fun check(): List<UpdateInfo> {
+        val updatesNeeded = mutableListOf<UpdateInfo.Github>()
+
+        for ((i, repo) in repos.withIndex()) {
+            val latestVersion = fetchVersion(repo)
+            val currentVersion =
+                versionFiles[i].readText()
+
+            if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
+                updatesNeeded.add(UpdateInfo.Github(repo, latestVersion))
+                updateProgress(5)
+            }
+        }
+        return updatesNeeded
+    }
+
+    override suspend fun performUpdate(updates: List<UpdateInfo>) {
+        val cacheFiles = ArrayList<File>(updates.size)
+        val progressTotalDownload = 60
+        val progressTotalUnpack = 25
+
+        try {
+            val progressPerDownload = progressTotalDownload / updates.size
+            for (update in updates) {
+                update as UpdateInfo.Github
+                // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
+                var branchName = "rule-set"
+                if (unstableBranch && update.repo.endsWith("sing-geosite")) {
+                    branchName += "-unstable"
+                }
+                val url =
+                    "https://codeload.github.com/${update.repo}/tar.gz/refs/heads/${branchName}"
+                val response = newRequest(url).execute()
+
+                val cacheFile = File(
+                    cacheDir,
+                    "${update.repo.replace('/', '_')}-${update.newVersion}.tmp"
+                )
+                cacheFile.parentFile?.mkdirs()
+                cacheFile.deleteOnExit()
+
+                response.writeTo(cacheFile.absolutePath, null)
+                cacheFiles.add(cacheFile)
+
+                updateProgress(progressPerDownload)
+            }
+
+            val progressPerUnpack = progressTotalUnpack / cacheFiles.size
+            for (file in cacheFiles) {
+                Libcore.untargzWithoutDir(file.absolutePath, destinationDir.absolutePath)
+                updateProgress(progressPerUnpack)
+            }
+
+            for (update in updates) {
+                update as UpdateInfo.Github
+                val repoIndex = repos.indexOf(update.repo)
+                if (repoIndex != -1) {
+                    versionFiles[repoIndex].writeText(update.newVersion)
+                }
+            }
+
+        } finally {
+            for (file in cacheFiles) {
+                file.runCatching { delete() }
+            }
+        }
+    }
+
+    private fun fetchVersion(repo: String): String {
+        val response =
+            newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
+        return JSONObject(response.contentString.value).optString("tag_name")
+    }
+}
+
+private suspend fun tryOpenCompressed(from: String, toDir: String) {
+    val exceptions = mutableListOf<Throwable>()
+    runCatching {
+        Libcore.untargzWithoutDir(from, toDir)
+    }.onSuccess { return }
+        .onFailure { exceptions += it }
+    runCatching {
+        Libcore.unzipWithoutDir(from, toDir)
+    }.onSuccess { return }
+        .onFailure { exceptions += it }
+    error(exceptions.joinToString("; ") { it.readableMessage })
 }
