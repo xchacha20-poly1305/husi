@@ -275,14 +275,20 @@ internal class GithubAssetUpdater(
                 updateProgress(progressPerUnpack)
             }
 
-            for (update in updates) {
-                update as UpdateInfo.Github
-                val repoIndex = repos.indexOf(update.repo)
-                if (repoIndex != -1) {
-                    versionFiles[repoIndex].writeText(update.newVersion)
+            if (updates.size == 1 && versionFiles.size > 1) {
+                // One repository like Chocolate4U
+                val newVersion = (updates[0] as UpdateInfo.Github).newVersion
+                versionFiles.forEach { it.writeText(newVersion) }
+            } else {
+                // Normal situation
+                for (update in updates) {
+                    update as UpdateInfo.Github
+                    val repoIndex = repos.indexOf(update.repo)
+                    if (repoIndex != -1) {
+                        versionFiles[repoIndex].writeText(update.newVersion)
+                    }
                 }
             }
-
         } finally {
             for (file in cacheFiles) {
                 file.runCatching { delete() }
