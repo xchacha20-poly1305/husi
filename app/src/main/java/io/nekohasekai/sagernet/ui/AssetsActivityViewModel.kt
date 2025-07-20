@@ -4,20 +4,37 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import libcore.CopyCallback
 import libcore.HTTPRequest
 import libcore.Libcore
 import org.json.JSONObject
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 internal typealias UpdateProgress = (Int) -> Unit
+
+internal sealed class AssetEvent {
+    class UpdateItem(val asset: File, val state: AssetItemUiState) : AssetEvent()
+}
+
+sealed class AssetItemUiState {
+    // object Idle : AssetItemUiState()
+    class Doing(val progress: Int) : AssetItemUiState()
+    class Done(val e: Exception? = null) : AssetItemUiState()
+}
 
 internal sealed class AssetsUiState {
     object Idle : AssetsUiState()
@@ -29,6 +46,44 @@ internal class AssetsActivityViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<AssetsUiState> = MutableStateFlow(AssetsUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
+    private val _uiEvent = MutableSharedFlow<AssetEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    private val _assets = MutableStateFlow<List<File>>(emptyList())
+    val assets = _assets.asStateFlow()
+
+    private lateinit var assetsDir: File
+    private lateinit var geoDir: File
+
+    fun initialize(assetsDir: File, geoDir: File) {
+        this.assetsDir = assetsDir
+        this.geoDir = geoDir
+        refreshAssets()
+    }
+
+    fun refreshAssets() {
+        val assetFiles = mutableListOf<File>()
+
+        assetFiles.add(File(assetsDir, "geoip.version.txt"))
+        assetFiles.add(File(assetsDir, "geosite.version.txt"))
+
+        SagerDatabase.assetDao.getAll().forEach {
+            assetFiles.add(File(geoDir, it.name))
+        }
+
+        _assets.value = assetFiles
+    }
+
+    suspend fun deleteAssets(files: List<File>) {
+        for (file in files) {
+            file.delete()
+            val versionFile = File(file.parentFile!!.parentFile!!, "${file.name}.version.txt")
+            if (versionFile.isFile) versionFile.delete()
+            SagerDatabase.assetDao.delete(file.name)
+        }
+        refreshAssets()
+    }
+
     fun updateAsset(destinationDir: File, cacheDir: File) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -36,6 +91,8 @@ internal class AssetsActivityViewModel : ViewModel() {
                 _uiState.update { AssetsUiState.Done() }
             } catch (e: Exception) {
                 _uiState.update { AssetsUiState.Done(e) }
+            } finally {
+                refreshAssets()
             }
         }
     }
@@ -52,7 +109,7 @@ internal class AssetsActivityViewModel : ViewModel() {
         val assetsDir = destinationDir.parentFile!!
         val versionFiles = listOf(
             File(assetsDir, "geoip.version.txt"),
-            File(assetsDir, "geosite.version.txt")
+            File(assetsDir, "geosite.version.txt"),
         )
         val provider = DataStore.rulesProvider
         val updater = if (provider == RuleProvider.CUSTOM) {
@@ -72,7 +129,7 @@ internal class AssetsActivityViewModel : ViewModel() {
                 RuleProvider.OFFICIAL -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
                 RuleProvider.LOYALSOLDIER -> listOf(
                     "xchacha20-poly1305/sing-geoip",
-                    "xchacha20-poly1305/sing-geosite"
+                    "xchacha20-poly1305/sing-geosite",
                 )
 
                 RuleProvider.CHOCOLATE4U -> listOf("Chocolate4U/Iran-sing-box-rules")
@@ -84,10 +141,66 @@ internal class AssetsActivityViewModel : ViewModel() {
         updater.runUpdateIfAvailable()
     }
 
+    fun updateSingleAsset(asset: File, destinationDir: File, cacheDir: File) {
+        Logs.w("update single")
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                updateSingleAsset0(asset, destinationDir, cacheDir)
+                _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done()))
+            } catch (e: Exception) {
+                _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done(e)))
+            }
+        }
+    }
+
+    private suspend fun updateSingleAsset0(
+        asset: File,
+        destinationDir: File,
+        cacheDir: File,
+    ) {
+        val name = asset.name
+        val entity = SagerDatabase.assetDao.get(name)!!
+        val url = entity.url
+
+        _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Doing(0)))
+
+        Libcore.newHttpClient().apply {
+            modernTLS()
+            keepAlive()
+            useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+        }.newRequest().apply {
+            setURL(url)
+            setUserAgent(USER_AGENT)
+        }.execute()
+            .writeTo(File(geoDir, name).absolutePath, object : CopyCallback {
+                var saved: Double = 0.0
+                var length: Double = 0.0
+                override fun setLength(length: Long) {
+                    this.length = length.toDouble()
+                }
+
+                override fun update(n: Long) {
+                    if (length <= 0) return
+                    saved += n.toDouble()
+                    val progress = ((saved / length) * 100).toInt()
+                    viewModelScope.launch {
+                        _uiEvent.emit(
+                            AssetEvent.UpdateItem(
+                                asset, AssetItemUiState.Doing(progress)
+                            ),
+                        )
+                    }
+                }
+
+            })
+
+        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
+        File(assetsDir, "$name.version.txt").writeText(time)
+    }
 
     suspend fun importFile(destinationDir: File, sourceFile: File) {
         try {
-            tryOpenCompressed(sourceFile.absolutePath, destinationDir.absolutePath)
+            tryOpenCompressed(sourceFile, destinationDir.absolutePath)
         } catch (e: Exception) {
             _uiState.update { AssetsUiState.Done(e) }
             return
@@ -105,6 +218,7 @@ internal class AssetsActivityViewModel : ViewModel() {
             file.writeText("Custom")
         }
 
+        refreshAssets()
         _uiState.update { AssetsUiState.Done() }
     }
 }
@@ -181,7 +295,7 @@ internal class CustomAssetUpdater(
 
             updateProgress(25)
             for (file in cacheFiles) {
-                tryOpenCompressed(file.absolutePath, destinationDir.absolutePath)
+                tryOpenCompressed(file, destinationDir.absolutePath)
             }
 
             updateProgress(25)
@@ -287,14 +401,19 @@ internal class GithubAssetUpdater(
     }
 }
 
-private suspend fun tryOpenCompressed(from: String, toDir: String) {
+/**
+ * @param copyName If the file may be copied, set it as not null.
+ */
+private suspend fun tryOpenCompressed(from: File, toDir: String, copyName: String? = null) {
+    val absolutePath = from.absolutePath
+
     val exceptions = mutableListOf<Throwable>()
     runCatching {
-        Libcore.untargzWithoutDir(from, toDir)
+        Libcore.untargzWithoutDir(absolutePath, toDir)
     }.onSuccess { return }
         .onFailure { exceptions += it }
     runCatching {
-        Libcore.unzipWithoutDir(from, toDir)
+        Libcore.unzipWithoutDir(absolutePath, toDir)
     }.onSuccess { return }
         .onFailure { exceptions += it }
     error(exceptions.joinToString("; ") { it.readableMessage })

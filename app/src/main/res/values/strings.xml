@@ -689,4 +689,14 @@
     <string name="forced_search_process">Forceed search process</string>
     <string name="disable_process_text">Disable Process Text</string>
     <string name="refresh">Refresh</string>
+    <string name="url" translatable="false">URL</string>
+    <string name="route_asset_name">Asset Name</string>
+    <string name="invalid_filename">Invalid filename</string>
+    <string name="add_route_asset">Add Route Asset</string>
+    <string name="assets_settings">Asset Settings</string>
+    <string name="import_asset">Import Asset</string>
+    <string name="import_url">Import URL</string>
+    <string name="duplicate_name">Duplicate Name</string>
+    <string name="expect_srs">Expect filename ends with \".srs\"</string>
+    <string name="warn_starte_with_geo">Filename starts with \"geosite-\" or \"geoip-\" may be cleaned.</string>
 </resources>

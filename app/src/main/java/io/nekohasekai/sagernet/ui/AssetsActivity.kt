@@ -1,23 +1,27 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
@@ -25,6 +29,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutAssetItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -36,7 +41,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-class AssetsActivity : ThemedActivity() {
+class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
+
+    companion object {
+        private fun isBuiltIn(index: Int): Boolean = index < 2
+    }
 
     private val viewModel: AssetsActivityViewModel by viewModels()
     private lateinit var adapter: AssetAdapter
@@ -51,8 +60,10 @@ class AssetsActivity : ThemedActivity() {
         layout = binding
         setContentView(binding.root)
 
+        viewModel.initialize(assetsDir, geoDir)
+
         updating = findViewById(R.id.action_updating)
-        updating.visibility = View.GONE
+        updating.isGone = true
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
@@ -84,10 +95,10 @@ class AssetsActivity : ThemedActivity() {
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
-        adapter = AssetAdapter(assetsDir)
+        adapter = AssetAdapter()
         binding.recyclerView.adapter = adapter
 
-        undoManager = UndoSnackbarManager(this, adapter)
+        undoManager = UndoSnackbarManager(this, this)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             0, ItemTouchHelper.START
@@ -97,7 +108,7 @@ class AssetsActivity : ThemedActivity() {
                 recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
             ): Int {
                 val index = viewHolder.bindingAdapterPosition
-                if (index < 2) return 0
+                if (isBuiltIn(index)) return 0
                 return super.getSwipeDirs(recyclerView, viewHolder)
             }
 
@@ -120,14 +131,27 @@ class AssetsActivity : ThemedActivity() {
                 viewModel.uiState.collect(::handleUiState)
             }
         }
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.assets.collect { assets ->
+                    adapter.submitList(assets)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiEvent.collect(::handleUiEvent)
+            }
+        }
     }
 
     private fun handleUiState(state: AssetsUiState) {
         when (state) {
             AssetsUiState.Idle -> {
                 updating.setProgressCompat(0, true)
-                updating.visibility = View.GONE
-                adapter.reloadAssets()
+                updating.isGone = true
             }
 
             is AssetsUiState.Doing -> {
@@ -137,12 +161,11 @@ class AssetsActivity : ThemedActivity() {
 
             is AssetsUiState.Done -> {
                 updating.setProgressCompat(0, true)
-                updating.visibility = View.GONE
+                updating.isGone = true
 
                 when (state.e) {
                     null -> {
                         snackbar(R.string.route_asset_updated).show()
-                        adapter.reloadAssets()
                     }
 
                     is NoUpdateException -> {
@@ -154,6 +177,21 @@ class AssetsActivity : ThemedActivity() {
                         snackbar(state.e.readableMessage).show()
                     }
                 }
+            }
+        }
+    }
+
+    private fun handleUiEvent(event: AssetEvent) {
+        when (event) {
+            is AssetEvent.UpdateItem -> {
+                val index =
+                    adapter.currentList.indexOfFirst { it.absolutePath == event.asset.absolutePath }
+                if (index == -1) return
+
+                val holder =
+                    layout.recyclerView.findViewHolderForAdapterPosition(index) as? AssetHolder
+
+                holder?.updateUiState(event.state)
             }
         }
     }
@@ -188,10 +226,38 @@ class AssetsActivity : ThemedActivity() {
 
         }
 
+    private val importUrl = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val assetName = result.data?.getStringExtra(AssetEditActivity.EXTRA_ASSET_NAME)
+
+        when (result.resultCode) {
+            RESULT_OK -> viewModel.refreshAssets()
+
+            AssetEditActivity.RESULT_SHOULD_UPDATE -> {
+                viewModel.refreshAssets()
+                viewModel.updateSingleAsset(
+                    File(geoDir, assetName!!),
+                    geoDir,
+                    cacheDir,
+                )
+            }
+
+            AssetEditActivity.RESULT_DELETE -> runOnDefaultDispatcher {
+                viewModel.deleteAssets(listOf(File(geoDir, assetName!!)))
+            }
+        }
+    }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.action_import_file -> {
             startFilesForResult(importFile, "*/*")
+            true
+        }
+
+        R.id.action_import_url -> {
+            importUrl.launch(Intent(this, AssetEditActivity::class.java))
             true
         }
 
@@ -213,22 +279,7 @@ class AssetsActivity : ThemedActivity() {
         File(assetsDir, "geo").also { it.mkdirs() }
     }
 
-    private class AssetAdapter(val assetsDir: File) : RecyclerView.Adapter<AssetHolder>(),
-        UndoSnackbarManager.Interface<File> {
-
-        private val assets = ArrayList<File>()
-
-        init {
-            reloadAssets()
-        }
-
-        fun reloadAssets() {
-            assets.clear()
-            assets.add(File(assetsDir, "geoip.version.txt"))
-            assets.add(File(assetsDir, "geosite.version.txt"))
-
-            notifyDataSetChanged()
-        }
+    inner class AssetAdapter : ListAdapter<File, AssetHolder>(AssetDiffCallback) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetHolder {
             val inflater = LayoutInflater.from(parent.context)
@@ -236,50 +287,112 @@ class AssetsActivity : ThemedActivity() {
         }
 
         override fun onBindViewHolder(holder: AssetHolder, position: Int) {
-            holder.bind(assets[position])
+            holder.bind(getItem(position), isBuiltIn(position))
         }
-
-        override fun getItemCount(): Int = assets.size
 
         fun remove(index: Int) {
-            assets.removeAt(index)
-            notifyItemRemoved(index)
+            val currentList = currentList.toMutableList()
+            currentList.removeAt(index)
+            submitList(currentList)
         }
 
-        override fun undo(actions: List<Pair<Int, File>>) {
-            for ((index, item) in actions) {
-                assets.add(index, item)
-                notifyItemInserted(index)
-            }
-        }
-
-        override fun commit(actions: List<Pair<Int, File>>) {
-            val filesToDelete = actions.mapX { it.second }.toTypedArray()
-            runOnDefaultDispatcher {
-                filesToDelete.forEach { it.deleteRecursively() }
-            }
+        fun addAssetsIndex(index: Int, file: File) {
+            val currentList = currentList.toMutableList()
+            currentList.add(index, file)
+            submitList(currentList)
         }
     }
 
-    private class AssetHolder(val binding: LayoutAssetItemBinding) :
+    private object AssetDiffCallback : DiffUtil.ItemCallback<File>() {
+        override fun areItemsTheSame(oldItem: File, newItem: File): Boolean {
+            return oldItem.absolutePath == newItem.absolutePath
+        }
+
+        override fun areContentsTheSame(oldItem: File, newItem: File): Boolean {
+            return oldItem.absolutePath == newItem.absolutePath
+        }
+    }
+
+    inner class AssetHolder(val binding: LayoutAssetItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         lateinit var file: File
+        var isBuiltIn = false
 
-        fun bind(file: File) {
+        fun bind(file: File, isBuiltIn: Boolean) {
             this.file = file
+            this.isBuiltIn = isBuiltIn
 
-            binding.assetName.text = file.name.removeSuffix(".version.txt")
-
-            val localVersion = if (file.isFile) {
-                file.readText().trim()
+            val name = file.name
+            val isVersionName = file.name.endsWith(".version.txt")
+            binding.assetName.text = if (isVersionName) {
+                name.removeSuffix(".version.txt")
             } else {
-                file.writeText("Unknown")
+                name
+            }
+
+            val versionFile = if (isVersionName) {
+                file
+            } else {
+                File(assetsDir, "${file.name}.version.txt")
+            }
+            val localVersion = if (versionFile.isFile) {
+                versionFile.readText().trim()
+            } else {
+                versionFile.writeText("Unknown")
                 "Unknown"
             }
 
             binding.assetStatus.text =
-                binding.root.context.getString(R.string.route_asset_status, localVersion)
+                binding.assetStatus.context.getString(R.string.route_asset_status, localVersion)
 
+            if (isBuiltIn) {
+                binding.edit.isVisible = false
+                binding.edit.setOnClickListener(null)
+
+                binding.rulesUpdate.isVisible = false
+                binding.rulesUpdate.setOnClickListener(null)
+            } else {
+                binding.edit.isVisible = true
+                binding.edit.setOnClickListener {
+                    importUrl.launch(
+                        Intent(this@AssetsActivity, AssetEditActivity::class.java)
+                            .putExtra(AssetEditActivity.EXTRA_ASSET_NAME, file.name)
+                    )
+                }
+
+                binding.rulesUpdate.isVisible = true
+                binding.rulesUpdate.setOnClickListener {
+                    viewModel.updateSingleAsset(file, geoDir, cacheDir)
+                }
+            }
+        }
+
+        fun updateUiState(state: AssetItemUiState) {
+            when (state) {
+                /*is AssetItemUiState.Idle -> {
+                    binding.subscriptionUpdateProgress.visibility = View.GONE
+                    binding.rulesUpdate.isVisible = !isBuiltIn
+                }*/
+
+                is AssetItemUiState.Doing -> {
+                    binding.rulesUpdate.isVisible = false
+                    binding.subscriptionUpdateProgress.isVisible = true
+                    binding.subscriptionUpdateProgress.setProgressCompat(state.progress, true)
+                }
+
+                is AssetItemUiState.Done -> {
+                    binding.subscriptionUpdateProgress.setProgressCompat(0, true)
+                    binding.subscriptionUpdateProgress.isInvisible = true
+                    binding.rulesUpdate.isVisible = !isBuiltIn
+
+                    if (state.e == null) {
+                        snackbar(R.string.route_asset_updated).show()
+                        bind(this.file, this.isBuiltIn)
+                    } else {
+                        alertAndLog(state.e)
+                    }
+                }
+            }
         }
 
     }
@@ -289,11 +402,18 @@ class AssetsActivity : ThemedActivity() {
         return true
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun undo(actions: List<Pair<Int, File>>) {
+        for ((index, item) in actions) {
+            adapter.addAssetsIndex(index, item)
+            adapter.notifyItemInserted(index)
+        }
+    }
 
-        if (::adapter.isInitialized) {
-            adapter.reloadAssets()
+    override fun commit(actions: List<Pair<Int, File>>) {
+        // Store file first to prevent list be cleared. FIXME this is the duty of undo manager.
+        val filesToDelete = actions.mapX { it.second }
+        runOnDefaultDispatcher {
+            viewModel.deleteAssets(filesToDelete)
         }
     }
 

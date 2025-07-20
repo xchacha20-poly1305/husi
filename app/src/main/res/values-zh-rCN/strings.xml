@@ -615,4 +615,13 @@
     <string name="forced_search_process">强制搜索进程</string>
     <string name="disable_process_text">禁用 Process Text</string>
     <string name="refresh">刷新</string>
+    <string name="route_asset_name">资源名称</string>
+    <string name="invalid_filename">无效文件名</string>
+    <string name="add_route_asset">添加路由资源</string>
+    <string name="assets_settings">资源设置</string>
+    <string name="import_asset">导入资源</string>
+    <string name="import_url">导入 URL</string>
+    <string name="duplicate_name">重复名称</string>
+    <string name="expect_srs">期望文件名以 “.srs” 结尾</string>
+    <string name="warn_starte_with_geo">使用 \"geosite-\" 或 \"geoip-\" 开头的文件名可能被清理。</string>
 </resources>
