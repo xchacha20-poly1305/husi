@@ -19,13 +19,20 @@ import (
 	"github.com/sagernet/sing/protocol/socks"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
+	"github.com/xchacha20-poly1305/cazilla"
 )
 
-//go:linkname systemRoots crypto/x509.systemRoots
-var systemRoots *x509.CertPool
+func init() {
+	// Smaller than do nothing and override with nil.
+	boxMozillaCert = x509.NewCertPool()
+}
 
-//go:linkname mozillaRoots github.com/sagernet/sing-box/common/certificate.mozillaIncluded
-var mozillaRoots *x509.CertPool
+//go:linkname systemRoots crypto/x509.systemRoots
+//go:linkname boxMozillaCert github.com/sagernet/sing-box/common/certificate.mozillaIncluded
+var (
+	systemRoots    *x509.CertPool
+	boxMozillaCert *x509.CertPool
+)
 
 const customCaFile = "ca.pem"
 
@@ -43,7 +50,7 @@ func UpdateRootCACerts(enableCazilla bool, certFromJava StringIterator) {
 
 	var roots *x509.CertPool
 	if enableCazilla {
-		roots = mozillaRoots.Clone()
+		roots = cazilla.CA.Clone()
 	} else {
 		if certFromJava == nil {
 			roots = sysRoots

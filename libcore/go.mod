@@ -11,6 +11,7 @@ require (
 	github.com/sagernet/sing-tun v0.6.10-0.20250718030019-3af7305b853e
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.6.1
+	github.com/xchacha20-poly1305/cazilla v1.0.2
 	github.com/xchacha20-poly1305/libping v0.9.1
 	golang.org/x/sync v0.15.0
 	golang.org/x/sys v0.33.0

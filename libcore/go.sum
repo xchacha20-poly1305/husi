@@ -130,6 +130,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1 h1:W+K57x0xgc1lKar0gUBlIGF2/F
 github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1/go.mod h1:6RaTiUA0fY3guTvQqyJKkoH5cTO79FzCTJc6j8cWIkw=
 github.com/xchacha20-poly1305/anchor v0.6.1 h1:9OT+wt0Yg+3G8WpifABTU23AIq8UsuKSumn/hT9MV7c=
 github.com/xchacha20-poly1305/anchor v0.6.1/go.mod h1:RK9BA6G8DtOQlz0ppLPAeJ8WaKnxxJTIjOsJMC1GYaE=
+github.com/xchacha20-poly1305/cazilla v1.0.2 h1:IFant4Apw7saEwwLMr6UDlRiJ/F+x30k6BEm0rvCUBo=
+github.com/xchacha20-poly1305/cazilla v1.0.2/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.9.1 h1:tKQdM6hg8yNekpgvSeyu+qsRQLOp7ctMu0siqswbWnE=
 github.com/xchacha20-poly1305/libping v0.9.1/go.mod h1:2jTtabr3FbIWfIolum/U8zmE77vvmb3qMwDCJTcV3/8=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
