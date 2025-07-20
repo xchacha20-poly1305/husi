@@ -191,7 +191,7 @@ class GroupSettingsActivity(
         }
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
+    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
@@ -208,7 +208,7 @@ class GroupSettingsActivity(
 
     @Parcelize
     data class GroupIdArg(val groupId: Long) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<GroupIdArg, Empty>() {
+    class DeleteConfirmationDialogFragment : AlertDialogFragment<GroupIdArg, Empty>(GroupIdArg::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_group_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->

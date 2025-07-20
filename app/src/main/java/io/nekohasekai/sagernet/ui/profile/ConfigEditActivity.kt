@@ -44,7 +44,7 @@ class ConfigEditActivity : ThemedActivity() {
         }
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
+    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->

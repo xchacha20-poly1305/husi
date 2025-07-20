@@ -70,7 +70,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         }
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
+    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
@@ -87,7 +87,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
     @Parcelize
     data class ProfileIdArg(val profileId: Long, val groupId: Long) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<ProfileIdArg, Empty>() {
+    class DeleteConfirmationDialogFragment : AlertDialogFragment<ProfileIdArg, Empty>(ProfileIdArg::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_confirm_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->

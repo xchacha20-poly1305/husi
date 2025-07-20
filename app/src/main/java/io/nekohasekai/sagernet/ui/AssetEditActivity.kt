@@ -56,7 +56,7 @@ class AssetEditActivity(
         addPreferencesFromResource(R.xml.asset_preferences)
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
+    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
@@ -73,7 +73,7 @@ class AssetEditActivity(
 
     @Parcelize
     data class AssetNameArg(val assetName: String) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<AssetNameArg, Empty>() {
+    class DeleteConfirmationDialogFragment : AlertDialogFragment<AssetNameArg, Empty>(AssetNameArg::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_confirm_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
