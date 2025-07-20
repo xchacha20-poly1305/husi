@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"context"
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -61,19 +60,4 @@ func ScanRuleSet(keyword string, callback ScanRuleSetCallback) error {
 		return err
 	}
 	return nil
-}
-
-// IsSrs checks if a given file path points to a valid sing-box Rule Set (SRS) file.
-func IsSrs(path string) bool {
-	file, err := os.Open(path)
-	if err != nil {
-		return false
-	}
-	defer file.Close()
-	var magic [len(srs.MagicBytes)]byte
-	_, err = io.ReadFull(file, magic[:])
-	if err != nil {
-		return false
-	}
-	return magic == srs.MagicBytes
 }
