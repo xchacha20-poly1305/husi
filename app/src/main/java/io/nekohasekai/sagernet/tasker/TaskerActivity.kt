@@ -59,7 +59,8 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
         private const val OUTBOUND_POSITION = "1"
     }
 
-    override val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
+    override val onBackPressedCallback: OnBackPressedCallback =
+        object : OnBackPressedCallback(enabled = false) {
             override fun handleOnBackPressed() {
                 UnsavedChangesDialogFragment().apply {
                     key()
@@ -204,7 +205,7 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
         super.onDestroy()
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
+    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->

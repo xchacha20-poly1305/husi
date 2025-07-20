@@ -368,7 +368,7 @@ class RouteSettingsActivity(
         return false
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>() {
+    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.unsaved_changes_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
@@ -385,7 +385,7 @@ class RouteSettingsActivity(
 
     @Parcelize
     data class ProfileIdArg(val ruleId: Long) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<ProfileIdArg, Empty>() {
+    class DeleteConfirmationDialogFragment : AlertDialogFragment<ProfileIdArg, Empty>(ProfileIdArg::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_route_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
