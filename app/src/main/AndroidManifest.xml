@@ -196,6 +196,7 @@
         <activity android:name=".ui.GroupSettingsActivity" />
         <activity android:name=".ui.RouteSettingsActivity" />
         <activity android:name=".ui.AssetsActivity" />
+        <activity android:name=".ui.AssetEditActivity" />
         <activity android:name=".ui.AppListActivity" />
         <activity
             android:name=".QuickToggleShortcut"

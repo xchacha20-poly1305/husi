@@ -349,6 +349,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeSniffTimeout by profileCacheStore.string(Key.ROUTE_SNIFF_TIMEOUT)
     var routeSniffers by profileCacheStore.stringSet(Key.ROUTE_SNIFFERS)
 
+
+    var assetName by profileCacheStore.string(Key.ASSET_NAME)
+    var assetUrl by profileCacheStore.string(Key.ASSET_URL)
+
     var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")
     var landingProxy by profileCacheStore.long(Key.GROUP_LANDING_PROXY + "Long")
     var frontProxyTmp by profileCacheStore.stringToInt(Key.GROUP_FRONT_PROXY)

@@ -18,6 +18,7 @@ import (
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/bufio"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/metadata"
@@ -297,7 +298,7 @@ func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
 		callback.SetLength(h.Response.ContentLength)
 		writer = &callbackWriter{writer, callback.Update}
 	}
-	return common.Error(io.Copy(writer, h.Response.Body))
+	return common.Error(bufio.Copy(writer, h.Response.Body))
 }
 
 func (h *httpResponse) Close() error {

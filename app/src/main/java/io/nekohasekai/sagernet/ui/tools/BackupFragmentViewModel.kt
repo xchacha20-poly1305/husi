@@ -5,6 +5,7 @@ import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.ParcelizeBridge
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -151,6 +152,11 @@ internal class BackupViewModel : ViewModel() {
                         put(it.toBase64Str())
                     }
                 })
+                put("assets", JSONArray().apply {
+                    SagerDatabase.assetDao.getAll().forEach {
+                        put(it.toBase64Str())
+                    }
+                })
             }
             if (setting) {
                 put("settings", JSONArray().apply {
@@ -167,7 +173,7 @@ internal class BackupViewModel : ViewModel() {
         content: JSONObject,
         profile: Boolean,
         rule: Boolean,
-        setting: Boolean
+        setting: Boolean,
     ) {
         if (profile && content.has("profiles")) {
             val profiles = mutableListOf<ProxyEntity>()
@@ -209,6 +215,19 @@ internal class BackupViewModel : ViewModel() {
             }
             SagerDatabase.rulesDao.reset()
             SagerDatabase.rulesDao.insert(rules)
+
+            val assets = mutableListOf<AssetEntity>()
+            val jsonAssets = content.getJSONArray("assets")
+            for (i in 0 until jsonAssets.length()) {
+                val data = (jsonRules[i] as String).b64Decode()
+                val parcel = Parcel.obtain()
+                parcel.unmarshall(data, 0, data.size)
+                parcel.setDataPosition(0)
+                assets.add(ParcelizeBridge.createAsset(parcel))
+                parcel.recycle()
+            }
+            SagerDatabase.assetDao.reset()
+            SagerDatabase.assetDao.insert(assets)
         }
         if (setting && content.has("settings")) {
             val settings = mutableListOf<KeyValuePair>()

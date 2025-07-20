@@ -260,6 +260,10 @@ object Key {
 
     const val RULES_FIRST_CREATE = "rulesFirstCreate"
 
+
+    const val ASSET_NAME = "assetName"
+    const val ASSET_URL = "assetUrl"
+
     const val GROUP_NAME = "groupName"
     const val GROUP_TYPE = "groupType"
     const val GROUP_ORDER = "groupOrder"
