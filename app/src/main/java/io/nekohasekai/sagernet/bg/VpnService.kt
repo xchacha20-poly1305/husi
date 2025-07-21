@@ -2,12 +2,14 @@ package io.nekohasekai.sagernet.bg
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ProxyInfo
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -33,6 +35,11 @@ class VpnService : BaseVpnService(),
         const val PRIVATE_VLAN6_CLIENT = "fdfe:dcba:9876::1"
         const val PRIVATE_VLAN6_ROUTER = "fdfe:dcba:9876::2"
 
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val languageContext = ContextCompat.getContextForLanguage(newBase)
+        super.attachBaseContext(languageContext)
     }
 
     var conn: ParcelFileDescriptor? = null

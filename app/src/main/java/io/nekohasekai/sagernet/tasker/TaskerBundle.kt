@@ -58,17 +58,17 @@ class TaskerBundle(val bundle: Bundle) {
                 if (profileId > 0) {
                     val entity = ProfileManager.getProfile(profileId)
                     if (entity != null) {
-                        blurb = app.getString(
+                        blurb = app.getStringCompat(
                             R.string.tasker_blurb_start_profile, entity.displayName()
                         )
                     }
                 }
                 if (blurb.isBlank()) {
-                    blurb = app.getString(R.string.tasker_action_start_service)
+                    blurb = app.getStringCompat(R.string.tasker_action_start_service)
                 }
             }
             ACTION_STOP -> {
-                blurb = app.getString(R.string.tasker_action_stop_service)
+                blurb = app.getStringCompat(R.string.tasker_action_stop_service)
             }
         }
         return Intent().apply {

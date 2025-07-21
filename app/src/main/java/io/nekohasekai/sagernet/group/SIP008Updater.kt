@@ -19,7 +19,6 @@
 
 package io.nekohasekai.sagernet.group
 
-import android.net.Uri
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
@@ -35,6 +34,7 @@ import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.getLongOrNull
 import libcore.Libcore
 import org.json.JSONObject
+import androidx.core.net.toUri
 
 /** https://shadowsocks.org/doc/sip008.html */
 object SIP008Updater : GroupUpdater() {
@@ -49,12 +49,12 @@ object SIP008Updater : GroupUpdater() {
 
         val sip008Response: JSONObject
         if (subscription.link.startsWith("content://")) {
-            val contentText = app.contentResolver.openInputStream(Uri.parse(subscription.link))
+            val contentText = app.contentResolver.openInputStream(subscription.link.toUri())
                 ?.bufferedReader()
                 ?.readText()
 
             sip008Response = contentText?.let { JSONObject(contentText) }
-                ?: error(app.getString(R.string.no_proxies_found_in_subscription))
+                ?: error(app.getStringCompat(R.string.no_proxies_found_in_subscription))
         } else {
 
             val response = Libcore.newHttpClient().apply {

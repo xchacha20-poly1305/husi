@@ -583,7 +583,7 @@ fun buildConfig(
                 if (!isVPN) {
                     Toast.makeText(
                         app,
-                        app.getString(R.string.route_need_vpn, rule.displayName()),
+                        app.getStringCompat(R.string.route_need_vpn, rule.displayName()),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }

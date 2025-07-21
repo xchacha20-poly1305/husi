@@ -157,6 +157,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                                 )
                                 appLanguage.summary = getLanguageDisplayName(newValue)
                                 appLanguage.value = newValue
+                                // Restart to make sure the context wrappers using
+                                // ContextCompat.getLanguageContext can work.
+                                needRestart()
                                 true
                             }
                         }

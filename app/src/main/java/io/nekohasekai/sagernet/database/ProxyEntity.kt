@@ -147,7 +147,7 @@ data class ProxyEntity(
         /** Has obvious error */
         const val STATUS_UNAVAILABLE = 3
 
-        val chainName by lazy { app.getString(R.string.proxy_chain) }
+        val chainName by lazy { app.getStringCompat(R.string.proxy_chain) }
 
         private val placeHolderBean = SOCKSBean().applyDefaultValues()
 

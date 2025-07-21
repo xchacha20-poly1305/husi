@@ -262,6 +262,6 @@ object RawUpdater : GroupUpdater() {
     }
 
     private fun <T> errNotFound(): T {
-        error(app.getString(R.string.no_proxies_found))
+        error(app.getStringCompat(R.string.no_proxies_found))
     }
 }

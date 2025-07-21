@@ -14,7 +14,7 @@ object PluginManager {
     class PluginNotFoundException(val plugin: String) : FileNotFoundException(plugin),
         BaseService.ExpectedException {
         override fun getLocalizedMessage() =
-            app.getString(R.string.plugin_unknown, plugin)
+            app.getStringCompat(R.string.plugin_unknown, plugin)
     }
 
     data class InitResult(

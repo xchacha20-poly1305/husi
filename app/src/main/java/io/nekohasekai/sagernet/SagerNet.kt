@@ -21,6 +21,7 @@ import android.os.StrictMode
 import android.os.UserManager
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import go.Seq
@@ -142,6 +143,20 @@ class SagerNet : Application(),
                 .build()
         }
 
+    val languageContext by lazy { ContextCompat.getContextForLanguage(this) }
+
+    fun getStringCompat(@StringRes id: Int): String {
+        return languageContext.getString(id)
+    }
+
+    fun getStringCompat(@StringRes id: Int, vararg formatArgs: Any): String {
+        return languageContext.getString(id, *formatArgs)
+    }
+
+    fun getTextCompat(@StringRes id: Int): CharSequence {
+        return languageContext.getText(id)
+    }
+
     @SuppressLint("InlinedApi")
     companion object {
 
@@ -192,17 +207,17 @@ class SagerNet : Application(),
                     listOf(
                         NotificationChannel(
                             "service-vpn",
-                            app.getText(R.string.service_vpn),
+                            app.getTextCompat(R.string.service_vpn),
                             if (Build.VERSION.SDK_INT >= 28) NotificationManager.IMPORTANCE_MIN
                             else NotificationManager.IMPORTANCE_LOW
                         ),   // #1355
                         NotificationChannel(
                             "service-proxy",
-                            app.getText(R.string.service_proxy),
+                            app.getTextCompat(R.string.service_proxy),
                             NotificationManager.IMPORTANCE_LOW
                         ), NotificationChannel(
                             "service-subscription",
-                            app.getText(R.string.service_subscription),
+                            app.getTextCompat(R.string.service_subscription),
                             NotificationManager.IMPORTANCE_DEFAULT
                         )
                     )
