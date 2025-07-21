@@ -45,21 +45,22 @@ class ZxingQRCodeAnalyzer(
                 0,
                 0,
                 bitmap.getWidth(),
-                bitmap.getHeight()
+                bitmap.getHeight(),
             )
             val source = RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(), intArray)
             val result = try {
                 qrCodeReader.decode(BinaryBitmap(GlobalHistogramBinarizer(source)))
-            } catch (e: NotFoundException) {
+            } catch (_: NotFoundException) {
                 try {
                     qrCodeReader.decode(BinaryBitmap(GlobalHistogramBinarizer(source.invert())))
-                } catch (ignore: NotFoundException) {
+                } catch (_: NotFoundException) {
                     return
                 }
             }
             Logs.d("ZxingQRCodeAnalyzer: barcode decode success: ${result.text}")
             onSuccess(result.text)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            onFailure(e)
         } finally {
             image.close()
         }
