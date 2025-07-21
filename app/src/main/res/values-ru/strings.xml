@@ -257,7 +257,7 @@
     <string name="action_import_msg">Успешно импортировано!</string>
     <string name="action_export_err">Не удалось экспортировать.</string>
     <string name="action_export_msg">Успешно экспортировано!</string>
-    <string name="action_import_file">Импортировать из файла</string>
+    <string name="action_import_file">Импортирт из файла</string>
     <string name="action_import">Импорт из буфера обмена</string>
     <string name="action_export">Экспортировать</string>
     <string name="action_export_clipboard">Экспорт в буфер обмена</string>
@@ -646,4 +646,15 @@
     <string name="max_log_size">Максимальный размер журнала (КБ)</string>
     <string name="process">Процесс</string>
     <string name="forced_search_process">Принудительный поиск процесса</string>
+    <string name="disable_process_text">Отключить анализ текста в пакетах</string>
+    <string name="refresh">Обновить</string>
+    <string name="route_asset_name">Имя ресурса</string>
+    <string name="invalid_filename">Неверное имя файла</string>
+    <string name="add_route_asset">Добавить ресурсы маршрута</string>
+    <string name="assets_settings">Данные ресурса</string>
+    <string name="import_asset">Импорт ресурсов</string>
+    <string name="import_url">Импорт из URL</string>
+    <string name="expect_srs">Ожидается, что имя файла заканчивается на «.srs».</string>
+    <string name="warn_starte_with_geo">Файлы, начинающиеся с \"geosite-\" или \"geoip-\", могут быть удалены.</string>
+    <string name="duplicate_name">Дубликат имени</string>
 </resources>
