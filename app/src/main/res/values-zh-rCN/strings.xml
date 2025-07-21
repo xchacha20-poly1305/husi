@@ -624,4 +624,7 @@
     <string name="duplicate_name">重复名称</string>
     <string name="expect_srs">期望文件名以 “.srs” 结尾</string>
     <string name="warn_starte_with_geo">使用 \"geosite-\" 或 \"geoip-\" 开头的文件名可能被清理。</string>
+    <string name="permission_denied">权限被拒</string>
+    <string name="save_to_system">保存到系统</string>
+    <string name="saved_to_download">文件已保存到下载文件夹。</string>
 </resources>
