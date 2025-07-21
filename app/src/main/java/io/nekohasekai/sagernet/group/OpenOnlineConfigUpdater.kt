@@ -92,7 +92,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             certSha256 = apiToken.getStr("certSha256")
         } catch (e: Exception) {
             Logs.e("OOC token check failed, token = ${subscription.token}", e)
-            error(app.getString(R.string.ooc_subscription_token_invalid))
+            error(app.getStringCompat(R.string.ooc_subscription_token_invalid))
         }
 
         val response = Libcore.newHttpClient().apply {
@@ -112,7 +112,9 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         val protocols = oocResponse.getJSONArray("protocols").filterIsInstance<String>()
         for (protocol in protocols) {
             if (protocol !in OOC_PROTOCOLS) {
-                userInterface?.alert(app.getString(R.string.ooc_missing_protocol, protocol))
+                userInterface?.alert(
+                    app.getStringCompat(R.string.ooc_missing_protocol, protocol)
+                )
             }
         }
 

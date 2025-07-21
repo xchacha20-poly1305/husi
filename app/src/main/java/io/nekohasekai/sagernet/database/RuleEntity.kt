@@ -94,7 +94,7 @@ data class RuleEntity(
         if (network.isNotBlank()) summary += "network: $network\n"
         if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
         if (clientType.isNotEmpty()) summary += "client: $clientType\n"
-        if (packages.isNotEmpty()) summary += app.getString(
+        if (packages.isNotEmpty()) summary += app.getStringCompat(
             R.string.apps_message, packages.size
         ) + "\n"
         if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
@@ -133,11 +133,11 @@ data class RuleEntity(
 
     fun displayOutbound(): String {
         return when (outbound) {
-            OUTBOUND_PROXY -> app.getString(R.string.route_proxy)
-            OUTBOUND_DIRECT -> app.getString(R.string.route_bypass)
-            OUTBOUND_BLOCK -> app.getString(R.string.route_block)
+            OUTBOUND_PROXY -> app.getStringCompat(R.string.route_proxy)
+            OUTBOUND_DIRECT -> app.getStringCompat(R.string.route_bypass)
+            OUTBOUND_BLOCK -> app.getStringCompat(R.string.route_block)
             else -> ProfileManager.getProfile(outbound)?.displayName()
-                ?: app.getString(R.string.error_title)
+                ?: app.getStringCompat(R.string.error_title)
         }
     }
 

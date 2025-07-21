@@ -329,7 +329,7 @@ abstract class GroupUpdater {
                 val userInterface = GroupManager.userInterface
 
                 if (byUser && (subscription.link?.startsWith("http://") == true || subscription.updateWhenConnectedOnly) && !connected) {
-                    if (userInterface == null || !userInterface.confirm(app.getString(R.string.update_subscription_warning))) {
+                    if (userInterface == null || !userInterface.confirm(app.getStringCompat(R.string.update_subscription_warning))) {
                         finishUpdate(proxyGroup)
                         cancel()
                         return@coroutineScope true

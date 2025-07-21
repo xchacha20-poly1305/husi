@@ -2,11 +2,18 @@ package io.nekohasekai.sagernet.bg
 
 import android.annotation.SuppressLint
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.SagerNet
 
 class ProxyService : Service(), BaseService.Interface {
+    override fun attachBaseContext(newBase: Context) {
+        val languageContext = ContextCompat.getContextForLanguage(newBase)
+        super.attachBaseContext(languageContext)
+    }
+
     override val data = BaseService.Data(this)
     override val tag: String get() = "SagerNetProxyService"
     override fun createNotification(profileName: String): ServiceNotification =

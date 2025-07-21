@@ -11,7 +11,7 @@ enum class PluginEntry(
 ) {
     MieruProxy(
         "mieru-plugin",
-        app.getString(R.string.action_mieru),
+        app.getStringCompat(R.string.action_mieru),
         "fr.husi.plugin.mieru",
         DownloadSource(
             fdroid = false,
@@ -20,7 +20,7 @@ enum class PluginEntry(
     ),
     NaiveProxy(
         "naive-plugin",
-        app.getString(R.string.action_naive),
+        app.getStringCompat(R.string.action_naive),
         "fr.husi.plugin.naive",
         DownloadSource(
             fdroid = false,
@@ -29,7 +29,7 @@ enum class PluginEntry(
     ),
     Hysteria(
         "hysteria-plugin",
-        app.getString(R.string.action_hysteria),
+        app.getStringCompat(R.string.action_hysteria),
         "moe.matsuri.exe.hysteria",
         DownloadSource(
             fdroid = false,
@@ -38,7 +38,7 @@ enum class PluginEntry(
     ),
     Hysteria2(
         "hysteria2-plugin",
-        app.getString(R.string.action_hysteria) + "2",
+        app.getStringCompat(R.string.action_hysteria) + "2",
         "fr.husi.plugin.hysteria2",
         DownloadSource(
             fdroid = false,
@@ -47,7 +47,7 @@ enum class PluginEntry(
     ),
     Juicity(
         "juicity-plugin",
-        app.getString(R.string.action_juicity),
+        app.getStringCompat(R.string.action_juicity),
         "fr.husi.plugin.juicity",
         DownloadSource(
             fdroid = false,
@@ -56,7 +56,7 @@ enum class PluginEntry(
     ),
     ShadowQuic(
         "shadowquic-plugin",
-        app.getString(R.string.action_shadowquic),
+        app.getStringCompat(R.string.action_shadowquic),
         "fr.husi.plugin.shadowquic",
         DownloadSource(
             fdroid = false,
