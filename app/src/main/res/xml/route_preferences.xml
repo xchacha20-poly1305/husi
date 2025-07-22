@@ -149,7 +149,7 @@
             app:key="routeResolveDisableCache"
             app:title="Disable Cache"
             app:useSimpleSummaryProvider="true" />
-        <io.nekohasekai.sagernet.widget.DurationPreference
+        <EditTextPreference
             app:icon="@drawable/ic_baseline_timelapse_24"
             app:key="routeResolveRewriteTTL"
             app:title="Rewrite TTL"

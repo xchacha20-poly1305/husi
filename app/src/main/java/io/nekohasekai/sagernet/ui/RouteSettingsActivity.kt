@@ -271,6 +271,10 @@ class RouteSettingsActivity(
             true
         }
 
+        /*rewriteTTL =*/ findPreference<EditTextPreference>(Key.ROUTE_RESOLVE_REWRITE_TTL)!!.apply {
+            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
+
         actionRoute = findPreference(Key.ROUTE_ACTION_ROUTE)!!
         actionRouteOptions = findPreference(Key.ROUTE_ACTION_ROUTE_OPTIONS)!!
         actionResolve = findPreference(Key.ROUTE_ACTION_RESOLVE_OPTIONS)!!
@@ -385,7 +389,8 @@ class RouteSettingsActivity(
 
     @Parcelize
     data class ProfileIdArg(val ruleId: Long) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<ProfileIdArg, Empty>(ProfileIdArg::class.java) {
+    class DeleteConfirmationDialogFragment :
+        AlertDialogFragment<ProfileIdArg, Empty>(ProfileIdArg::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_route_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
