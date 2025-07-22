@@ -32,6 +32,8 @@ body:
         Please check all of the following options to prove that you have read and understood the requirements, otherwise this issue will be closed.
         Husi is not a project aimed to please users who can't make any meaningful contributions and gain unethical influence, or a client which serve dark industry of 'airport' services, nor is it an advertising drainage too. If you deceive here to deliberately waste the time of the developers, you will be permanently blocked.
       options:
+        - label: I have read the [FAQ](https://github.com/xchacha20-poly1305/husi/wiki/FAQ) but failed to find the resolution. However, successfully understand the basic rule of creating an issue.
+          required: true
         - label: I confirm that my problem is the bug of husi, but not the problem of my own network environment or my server.
           required: true
         - label: I confirm that I have provided the simplest configuration that can be used to reproduce the error I reported.
