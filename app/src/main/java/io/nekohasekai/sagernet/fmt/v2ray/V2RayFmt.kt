@@ -472,7 +472,8 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
     if (bean.security != "tls") return null
     return OutboundTLSOptions().apply {
         enabled = true
-        insecure = bean.allowInsecure
+        if (bean.allowInsecure) insecure = true
+        if (bean.disableSNI) disable_sni = true
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
         if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
@@ -661,6 +662,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.setTLS(tls.enabled)
                 bean.sni = tls.server_name
                 bean.allowInsecure = tls.insecure
+                bean.disableSNI = tls.disable_sni
                 bean.alpn = tls.alpn?.joinToString(",")
                 bean.certificates = tls.certificate?.joinToString("\n")
                 bean.utlsFingerprint = tls.utls?.fingerprint

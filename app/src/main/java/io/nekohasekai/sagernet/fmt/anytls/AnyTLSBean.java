@@ -34,11 +34,13 @@ public class AnyTLSBean extends AbstractBean {
     public String certificates;
     public String utlsFingerprint;
     public Boolean allowInsecure;
+    public Boolean disableSNI;
     public Boolean fragment;
     public String fragmentFallbackDelay;
     public Boolean recordFragment;
     // In sing-box, this seemed can be used with REALITY.
     // But even mihomo appended many options, it still not provide REALITY.
+    // Their developer said that unless the original author allow, they will never add it. We follow it.
     // https://github.com/anytls/anytls-go/blob/4636d90462fa21a510420512d7706a9acf69c7b9/docs/faq.md?plain=1#L25-L37
 
     public Boolean ech;
@@ -56,6 +58,7 @@ public class AnyTLSBean extends AbstractBean {
         if (certificates == null) certificates = "";
         if (utlsFingerprint == null) utlsFingerprint = "";
         if (allowInsecure == null) allowInsecure = false;
+        if (disableSNI == null) disableSNI = false;
         if (fragment == null) fragment = false;
         if (fragmentFallbackDelay == null) fragmentFallbackDelay = "500ms";
         if (recordFragment == null) recordFragment = false;
@@ -65,7 +68,7 @@ public class AnyTLSBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(3);
+        output.writeInt(4);
 
         // version 0
         super.serialize(output);
@@ -89,6 +92,9 @@ public class AnyTLSBean extends AbstractBean {
         output.writeBoolean(fragment);
         output.writeString(fragmentFallbackDelay);
         output.writeBoolean(recordFragment);
+
+        // version 4
+        output.writeBoolean(disableSNI);
     }
 
     @Override
@@ -117,6 +123,10 @@ public class AnyTLSBean extends AbstractBean {
             fragment = input.readBoolean();
             fragmentFallbackDelay = input.readString();
             recordFragment = input.readBoolean();
+        }
+
+        if (version >= 4) {
+            disableSNI = input.readBoolean();
         }
     }
 

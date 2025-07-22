@@ -55,7 +55,7 @@
             app:title="@string/tuic_congestion_controller"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
-            app:icon="@drawable/ic_baseline_fingerprint_24"
+            app:icon="@drawable/ic_baseline_transgender_24"
             app:key="serverDisableSNI"
             app:title="@string/tuic_disable_sni" />
         <EditTextPreference

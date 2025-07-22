@@ -70,6 +70,7 @@ fun parseHttpOutbound(json: JSONMap): HttpBean = HttpBean().apply {
                 alpn = tls.alpn?.joinToString(",")
                 utlsFingerprint = tls.utls?.fingerprint
                 allowInsecure = tls.insecure
+                disableSNI = tls.disable_sni
                 certificates = tls.certificate?.joinToString("\n")
                 tls.reality?.let {
                     realityPublicKey = it.public_key

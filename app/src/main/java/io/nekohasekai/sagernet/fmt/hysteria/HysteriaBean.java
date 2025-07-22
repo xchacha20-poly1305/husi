@@ -45,6 +45,7 @@ public class HysteriaBean extends AbstractBean {
     public String obfuscation;
     public String sni;
     public String certificates;
+    public Boolean disableSNI;
 
     // HY1
     public Boolean allowInsecure;
@@ -75,7 +76,7 @@ public class HysteriaBean extends AbstractBean {
         if (alpn == null) alpn = "";
         if (certificates == null) certificates = "";
         if (allowInsecure == null) allowInsecure = false;
-
+        if (disableSNI == null) disableSNI = false;
 
         if (streamReceiveWindow == null) streamReceiveWindow = 0;
         if (connectionReceiveWindow == null) connectionReceiveWindow = 0;
@@ -89,7 +90,7 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -113,6 +114,7 @@ public class HysteriaBean extends AbstractBean {
         output.writeBoolean(ech);
         output.writeString(echConfig);
 
+        output.writeBoolean(disableSNI);
     }
 
     @Override
@@ -133,7 +135,7 @@ public class HysteriaBean extends AbstractBean {
         connectionReceiveWindow = input.readInt();
         disableMtuDiscovery = input.readBoolean();
         if (version < 1) {
-            hopInterval = input.readInt()+"s";
+            hopInterval = input.readInt() + "s";
         } else {
             hopInterval = input.readString();
         }
@@ -142,6 +144,10 @@ public class HysteriaBean extends AbstractBean {
 
         ech = input.readBoolean();
         echConfig = input.readString();
+
+        if (version >= 2) {
+            disableSNI = input.readBoolean();
+        }
     }
 
     @Override
@@ -149,6 +155,7 @@ public class HysteriaBean extends AbstractBean {
         if (!(other instanceof HysteriaBean)) return;
         HysteriaBean bean = ((HysteriaBean) other);
         bean.allowInsecure = allowInsecure;
+        bean.disableSNI = disableSNI;
         bean.disableMtuDiscovery = disableMtuDiscovery;
         bean.hopInterval = hopInterval;
         bean.ech = ech;
@@ -177,7 +184,7 @@ public class HysteriaBean extends AbstractBean {
     @Override
     public @NotNull String outboundType() throws Throwable {
         return switch (protocolVersion) {
-            case PROTOCOL_VERSION_1-> SingBoxOptions.TYPE_HYSTERIA;
+            case PROTOCOL_VERSION_1 -> SingBoxOptions.TYPE_HYSTERIA;
             case PROTOCOL_VERSION_2 -> SingBoxOptions.TYPE_HYSTERIA2;
             default -> throw unknownVersion();
         };

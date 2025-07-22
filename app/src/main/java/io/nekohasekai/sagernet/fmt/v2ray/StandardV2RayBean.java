@@ -33,6 +33,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public Boolean allowInsecure;
 
+    public Boolean disableSNI;
+
     public Boolean fragment;
 
     public String fragmentFallbackDelay;
@@ -93,6 +95,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (wsMaxEarlyData == null) wsMaxEarlyData = 0;
         if (allowInsecure == null) allowInsecure = false;
+        if (disableSNI == null) disableSNI = false;
         if (packetEncoding == null) packetEncoding = 0;
 
         if (realityPublicKey == null) realityPublicKey = "";
@@ -104,7 +107,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(6);
+        output.writeInt(7);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -157,6 +160,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
             output.writeBoolean(fragment);
             output.writeString(fragmentFallbackDelay);
             output.writeBoolean(recordFragment);
+            output.writeBoolean(disableSNI);
         }
 
         output.writeInt(packetEncoding);
@@ -227,6 +231,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
                 fragmentFallbackDelay = input.readString();
                 recordFragment = input.readBoolean();
             }
+
+            if (version >= 7) {
+                disableSNI = input.readBoolean();
+            }
         }
 
         packetEncoding = input.readInt();
@@ -246,6 +254,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (!(other instanceof StandardV2RayBean)) return;
         StandardV2RayBean bean = ((StandardV2RayBean) other);
         bean.allowInsecure = allowInsecure;
+        bean.disableSNI = disableSNI;
         bean.utlsFingerprint = utlsFingerprint;
         bean.packetEncoding = packetEncoding;
         bean.ech = ech;

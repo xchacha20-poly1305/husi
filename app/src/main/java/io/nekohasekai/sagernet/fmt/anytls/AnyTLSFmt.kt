@@ -53,6 +53,7 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
             enabled = true
             server_name = bean.serverName.blankAsNull()
             if (bean.allowInsecure) insecure = true
+            if (bean.disableSNI) disable_sni = true
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
             bean.certificates.blankAsNull()?.let {
                 certificate = listOf(it)
@@ -69,7 +70,8 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
             }
             if (bean.recordFragment) record_fragment = true
             if (bean.ech) {
-                val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
+                val echConfig =
+                    bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                 ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
                     config = echConfig
@@ -93,6 +95,7 @@ fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
                 val tls = parseBoxTLS(tlsField)
                 serverName = tls.server_name
                 allowInsecure = tls.insecure
+                disableSNI = tls.disable_sni
                 alpn = tls.alpn?.joinToString(",")
                 certificates = tls.certificate?.joinToString("\n")
                 utlsFingerprint = tls.utls?.fingerprint

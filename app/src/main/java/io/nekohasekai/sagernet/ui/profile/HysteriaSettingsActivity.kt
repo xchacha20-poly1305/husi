@@ -30,6 +30,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.serverDisableSNI = disableSNI
         DataStore.serverStreamReceiveWindow = streamReceiveWindow
         DataStore.serverConnectionReceiveWindow = connectionReceiveWindow
         DataStore.serverDisableMtuDiscovery = disableMtuDiscovery
@@ -51,6 +52,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
         allowInsecure = DataStore.serverAllowInsecure
+        disableSNI = DataStore.serverDisableSNI
         streamReceiveWindow = DataStore.serverStreamReceiveWindow
         connectionReceiveWindow = DataStore.serverConnectionReceiveWindow
         disableMtuDiscovery = DataStore.serverDisableMtuDiscovery
