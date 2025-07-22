@@ -12,6 +12,8 @@ import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
@@ -20,12 +22,10 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import androidx.preference.forEach
 import androidx.recyclerview.widget.RecyclerView
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -33,17 +33,20 @@ import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.FixedLinearLayout
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import io.nekohasekai.sagernet.widget.updateSummary
 import io.nekohasekai.sagernet.widget.ColorPickerPreference
+import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 import java.util.Locale
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
+    private val viewModel: SettingsPreferenceFragmentViewModel by viewModels()
     private lateinit var isProxyApps: SwitchPreference
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -62,6 +65,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             )
             insets
         }
+
+        if (viewModel.tryReceiveShouldRestart()) lifecycleScope.launch {
+            onMainDispatcher {
+                needRestart()
+            }
+        }
     }
 
     private val reloadListener = Preference.OnPreferenceChangeListener { _, _ ->
@@ -76,7 +85,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
-        DataStore.initGlobal()
+        viewModel.initDataStore()
         addPreferencesFromResource(R.xml.global_preferences)
 
         lateinit var ntpEnable: SwitchPreference
@@ -108,9 +117,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         Key.APP_THEME -> {
                             preference as ColorPickerPreference
                             preference.setOnPreferenceChangeListener { _, newTheme ->
-                                if (DataStore.serviceState.started) {
-                                    SagerNet.reloadService()
-                                }
+                                viewModel.tryReloadService()
                                 val theme = Theme.getTheme(newTheme as Int)
                                 app.setTheme(theme)
                                 ActivityCompat.recreate(requireActivity())
@@ -152,14 +159,15 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                                 }
                             appLanguage.setOnPreferenceChangeListener { _, newValue ->
                                 newValue as String
+                                // Restart to make sure the context wrappers using
+                                // ContextCompat.getLanguageContext can work.
+                                // We store the message even Activity recreate.
+                                viewModel.storeShouldRestart()
                                 AppCompatDelegate.setApplicationLocales(
                                     LocaleListCompat.forLanguageTags(newValue)
                                 )
                                 appLanguage.summary = getLanguageDisplayName(newValue)
                                 appLanguage.value = newValue
-                                // Restart to make sure the context wrappers using
-                                // ContextCompat.getLanguageContext can work.
-                                needRestart()
                                 true
                             }
                         }
@@ -171,7 +179,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         }
 
                         Key.SERVICE_MODE -> preference.setOnPreferenceChangeListener { _, _ ->
-                            if (DataStore.serviceState.started) SagerNet.stopService()
+                            viewModel.tryStopService()
                             true
                         }
 

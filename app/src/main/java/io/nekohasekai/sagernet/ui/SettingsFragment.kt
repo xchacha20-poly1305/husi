@@ -25,7 +25,7 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings) {
             insets
         }
 
-        parentFragmentManager.beginTransaction()
+        if (savedInstanceState == null) parentFragmentManager.beginTransaction()
             .replace(R.id.settings, SettingsPreferenceFragment())
             .commitAllowingStateLoss()
     }
