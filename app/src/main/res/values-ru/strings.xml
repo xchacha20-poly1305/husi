@@ -257,7 +257,7 @@
     <string name="action_import_msg">Успешно импортировано!</string>
     <string name="action_export_err">Не удалось экспортировать.</string>
     <string name="action_export_msg">Успешно экспортировано!</string>
-    <string name="action_import_file">Импортирт из файла</string>
+    <string name="action_import_file">Импорт из файла</string>
     <string name="action_import">Импорт из буфера обмена</string>
     <string name="action_export">Экспортировать</string>
     <string name="action_export_clipboard">Экспорт в буфер обмена</string>
