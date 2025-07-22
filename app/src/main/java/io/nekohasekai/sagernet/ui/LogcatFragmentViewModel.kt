@@ -98,10 +98,7 @@ internal class LogcatFragmentViewModel : ViewModel() {
             }
             logList.addAll(initialLogs)
             lastPosition = logFile.length()
-
-            if (initialLogs.isNotEmpty()) {
-                _updateEvents.emit(LogcatUpdateEvent.Appended(initialLogs))
-            }
+            _updateEvents.emit(LogcatUpdateEvent.Appended(initialLogs))
 
             fileObserver.startWatching()
             updateLogOnChange(RandomAccessFile(logFile, "r"))
