@@ -48,12 +48,6 @@ abstract class GroupUpdater {
         byUser: Boolean,
     )
 
-    data class Progress(
-        var max: Int,
-    ) {
-        var progress by AtomicInteger()
-    }
-
     @OptIn(DelicateCoroutinesApi::class)
     protected suspend fun forceResolve(
         profiles: List<AbstractBean>, groupId: Long?,
@@ -61,9 +55,7 @@ abstract class GroupUpdater {
         val networkStrategy = DataStore.networkStrategy
         val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
         val lookupJobs = mutableListOf<Job>()
-        val progress = Progress(profiles.size)
         if (groupId != null) {
-            GroupUpdater.progress[groupId] = progress
             GroupManager.postReload(groupId)
         }
         val ipv6First = when (networkStrategy) {
@@ -100,7 +92,6 @@ abstract class GroupUpdater {
                     Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
                 }
                 if (groupId != null) {
-                    progress.progress++
                     GroupManager.postReload(groupId)
                 }
             })
@@ -288,7 +279,6 @@ abstract class GroupUpdater {
     companion object {
 
         val updating = Collections.synchronizedSet<Long>(mutableSetOf())
-        val progress = Collections.synchronizedMap<Long, Progress>(mutableMapOf())
 
         fun startUpdate(proxyGroup: ProxyGroup, byUser: Boolean) {
             runOnDefaultDispatcher {
@@ -356,7 +346,6 @@ abstract class GroupUpdater {
 
         suspend fun finishUpdate(proxyGroup: ProxyGroup) {
             updating.remove(proxyGroup.id)
-            progress.remove(proxyGroup.id)
             GroupManager.postUpdate(proxyGroup)
         }
 
