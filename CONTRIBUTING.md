@@ -14,6 +14,9 @@ Truly readable code is more than just clear; it's understandable even without co
 
 * All comments use English.
 
+* Keep polite. Never use f-words in comments. 
+  You can be grumpy, but please express them in a decent words..
+
 * Reduce Confusing abbreviations.
 
 Bad

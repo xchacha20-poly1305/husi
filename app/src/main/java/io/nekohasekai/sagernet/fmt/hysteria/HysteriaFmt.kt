@@ -363,6 +363,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 if (bean.certificates.isNotBlank()) {
                     certificate = listOf(bean.certificates)
                 }
+                if (bean.disableSNI) disable_sni = true
                 if (bean.ech) {
                     val echConfig =
                         bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
@@ -417,7 +418,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                         config = echConfig
                     }
                 }
-                insecure = bean.allowInsecure
+                if (bean.allowInsecure) insecure = true
+                if (bean.disableSNI) disable_sni = true
                 enabled = true
             }
         }

@@ -38,6 +38,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.serverDisableSNI = disableSNI
         DataStore.serverFragment = fragment
         DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
         DataStore.serverRecordFragment = recordFragment
@@ -97,6 +98,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
         allowInsecure = DataStore.serverAllowInsecure
+        disableSNI = DataStore.serverDisableSNI
         fragment = DataStore.serverFragment
         fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
         recordFragment = DataStore.serverRecordFragment
@@ -156,6 +158,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var serverMuxStrategy: SimpleMenuPreference
     private lateinit var serverMuxPadding: SwitchPreference
 
+    private lateinit var realityPublicKey: EditTextPreference
+    private lateinit var disableSNI: SwitchPreference
     private lateinit var fragment: SwitchPreference
     private lateinit var fragmentFallbackDelay: DurationPreference
 
@@ -196,6 +200,8 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         serverMuxPadding = findPreference(Key.SERVER_MUX_PADDING)!!
         serverMuxNumber = findPreference(Key.SERVER_MUX_NUMBER)!!
 
+        realityPublicKey = findPreference(Key.SERVER_REALITY_PUBLIC_KEY)!!
+        disableSNI = findPreference(Key.SERVER_DISABLE_SNI)!!
         fragment = findPreference(Key.SERVER_FRAGMENT)!!
         fragmentFallbackDelay = findPreference(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
 
@@ -282,6 +288,11 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             true
         }
 
+        realityPublicKey.setOnPreferenceChangeListener { _, newValue ->
+            val isRealityEnabled = newValue.toString().isNotBlank()
+            updateTlsCategoriesVisibility(isTLS(serverSecurity.value), isRealityEnabled)
+            true
+        }
         fragment.setOnPreferenceChangeListener { _, newValue ->
             fragmentFallbackDelay.isEnabled = newValue as Boolean
             true
@@ -296,7 +307,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         val isTls = isTLS(security)
         val isHttp = bean is HttpBean
 
-        updateTlsCategoriesVisibility(isTls)
+        updateTlsCategoriesVisibility(isTls, realityPublicKey.text?.isNotBlank() == true)
 
         updateTransportViews(network, isHttp)
 
@@ -359,9 +370,10 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         }
     }
 
-    private fun updateTlsCategoriesVisibility(isTls: Boolean) {
+    private fun updateTlsCategoriesVisibility(isTls: Boolean, isReality: Boolean) {
         securityCategory.isVisible = isTls
         tlsCamouflageCategory.isVisible = isTls
+        disableSNI.isVisible = !isReality
         echCategory.isVisible = isTls
     }
 

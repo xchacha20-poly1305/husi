@@ -72,6 +72,10 @@
             app:title="@string/utls_fingerprint"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
+            app:icon="@drawable/ic_baseline_transgender_24"
+            app:key="serverDisableSNI"
+            app:title="@string/tuic_disable_sni" />
+        <SwitchPreference
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="serverFragment"
             app:title="@string/tls_fragment" />

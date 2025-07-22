@@ -29,6 +29,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         certificates = DataStore.serverCertificates
         utlsFingerprint = DataStore.serverUtlsFingerPrint
         allowInsecure = DataStore.serverAllowInsecure
+        disableSNI = DataStore.serverDisableSNI
         fragment = DataStore.serverFragment
         fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
         recordFragment = DataStore.serverRecordFragment
@@ -49,6 +50,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         DataStore.serverCertificates = certificates
         DataStore.serverUtlsFingerPrint = utlsFingerprint
         DataStore.serverAllowInsecure = allowInsecure
+        DataStore.serverDisableSNI = disableSNI
         DataStore.serverFragment = fragment
         DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
         DataStore.serverRecordFragment = recordFragment
