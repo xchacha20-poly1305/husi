@@ -14,6 +14,10 @@ Husi is a non-professional and recreational proxy tool integration, aiming at pr
 
 [CONTRIBUTING](./CONTRIBUTING.md)
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/xchacha20-poly1305/husi)
+
+New here? You can use [DeepWiki](https://deepwiki.com/xchacha20-poly1305/husi) to known basic structure of husi and ask anything you want.
+
 ### 📚 Localization
 
 Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the
