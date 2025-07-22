@@ -21,7 +21,8 @@
         <EditTextPreference
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="serverUsername"
-            app:title="@string/username" />
+            app:title="@string/username"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:dialogLayout="@layout/layout_password_dialog"
             app:icon="@drawable/ic_settings_password"
