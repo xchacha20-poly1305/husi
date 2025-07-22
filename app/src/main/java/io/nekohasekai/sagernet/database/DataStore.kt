@@ -343,7 +343,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var routeResolveStrategy by profileCacheStore.string(Key.ROUTE_RESOLVE_STRATEGY)
     var routeResolveDisableCache by profileCacheStore.boolean(Key.ROUTE_RESOLVE_DISABLE_CACHE)
-    var routeResolveRewriteTTL by profileCacheStore.int(Key.ROUTE_RESOLVE_REWRITE_TTL)
+    var routeResolveRewriteTTL by profileCacheStore.stringToInt(Key.ROUTE_RESOLVE_REWRITE_TTL)
     var routeResolveClientSubnet by profileCacheStore.string(Key.ROUTE_RESOLVE_CLIENT_SUBNET)
 
     var routeSniffTimeout by profileCacheStore.string(Key.ROUTE_SNIFF_TIMEOUT)
