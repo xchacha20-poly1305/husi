@@ -103,11 +103,13 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
             insets
         }
 
-        if (savedInstanceState == null) supportFragmentManager.beginTransaction()
-            .replace(R.id.settings, MyPreferenceFragmentCompat())
-            .commit()
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.settings, MyPreferenceFragmentCompat())
+                .commit()
+            DataStore.dirty = false
+        }
 
-        DataStore.dirty = false
         DataStore.profileCacheStore.registerChangeListener(this)
     }
 
