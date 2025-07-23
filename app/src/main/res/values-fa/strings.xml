@@ -352,7 +352,6 @@
     <string name="group_order_origin">مبدا</string>
     <string name="group_order_by_name">براساس اسم</string>
     <string name="group_order_by_delay">براساس تاخیر</string>
-    <string name="plugin_exists_but_on_shit_system">پروفایل %s به %s افزونه نیاز دارد، اما فروشنده تجهیزات اختصاصی شما (معمولا غول های سرمایه نظارتی و سازنده بدافزار) اندروید شما را دستکاری کرده و باعث غیرقابل استفاده شدن افزونه شده است.</string>
     <string name="shadowsocks_plugin_simple_obfs">Obfs ساده (افزونه اندروید شدوساکس)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (افزونه اندروید شدوساکس)</string>
     <string name="tcp_connections">%d اتصال TCP</string>

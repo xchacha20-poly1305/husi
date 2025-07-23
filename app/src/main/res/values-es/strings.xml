@@ -362,7 +362,6 @@
     <string name="group_order_origin">Origen</string>
     <string name="group_order_by_name">Por nombre</string>
     <string name="group_order_by_delay">Por demora</string>
-    <string name="plugin_exists_but_on_shit_system">El perfil %s requiere el plugin %s, pero tu proveedor de equipos patentados (normalmente gigantes del capital de vigilancia y fabricantes de malware) manipuló tu Android, haciendo que el plugin sea inutilizable.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Plugin de Shadowsocks para Android)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Plugin de Shadowsocks para Android)</string>
     <string name="traffic_uplink" translatable="false">%s | %s/s ↑</string>

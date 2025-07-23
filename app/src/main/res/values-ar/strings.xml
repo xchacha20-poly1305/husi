@@ -374,12 +374,7 @@
     <string name="udp_connections">%d اتصالات UDP</string>
     <string name="tcp_connections">%d اتصالات TCP</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (مكون أندرويد الإضافي Shadowsocks)</string>
-    <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (مكون أندرويد الإضافي Shadowsocks)
-    </string>
-    <string name="plugin_exists_but_on_shit_system">يتطلب الملف التعریف %s المكوّن الإضافي %s، لكن
-        بائع المعدات المملوكة لك (عادةً عمالقة المراقبة وصانع البرامج الضارة) تلاعب بجهاز أندرويد،
-        مما يجعل المكون الإضافي غير قابل للاستخدام.
-    </string>
+    <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (مكون أندرويد الإضافي Shadowsocks)</string>
     <string name="group_order_by_delay">عن طريق التأخير</string>
     <string name="group_order_by_name">بالاسم</string>
     <string name="group_order_origin">أصل</string>

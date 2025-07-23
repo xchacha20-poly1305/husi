@@ -480,7 +480,6 @@
     <string name="get_cert_fail">Не вдалося отримати сертифікати!</string>
     <string name="experimental_authenticated_length">Зробити довжину кожного сегменту корисного навантаження незмінною. Цей експеримент потребує, аби клієнт та сервер обидва використовували однакову версію v2ray-core. Більше оновлень з часом.</string>
     <string name="select_apps">Оберіть застосунки</string>
-    <string name="plugin_exists_but_on_shit_system">Профіль %s потребує плагін %s, але постачальник вашого пропрієтарного обладнання (зазвичай це великі компанії, що займаються стеженням та розробники шкідливого ПЗ) змінив ваш Android, зробивши плагін непридатним до використання.</string>
     <string name="location_permission_background_description">На Android 10 та вище потрібно надати дозвіл на визначення місцерозташування у фоновому режимі. Оберіть Дозволити постійно, аби надати дозвіл.</string>
     <string name="source_address">Вихідна адреса</string>
     <string name="sort">Сортувати</string>
