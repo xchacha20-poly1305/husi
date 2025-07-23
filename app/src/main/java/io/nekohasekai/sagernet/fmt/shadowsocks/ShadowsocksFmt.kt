@@ -34,7 +34,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
         // ss-android style
         var url = Libcore.parseURL(rawUrl)
 
-        if (url.username.isBlank()) { // fix justmysocks' shit link
+        if (url.username.isBlank()) { // fix justmysocks' non-standard link
             url = Libcore.parseURL(rawUrl.substringBefore("#").b64DecodeToString())
             url.fragment = rawUrl.substringAfter("#")
         }

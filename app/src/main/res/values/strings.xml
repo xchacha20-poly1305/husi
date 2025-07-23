@@ -404,10 +404,6 @@
     <string name="group_order_origin">Origin</string>
     <string name="group_order_by_name">By Name</string>
     <string name="group_order_by_delay">By Delay</string>
-    <string name="plugin_exists_but_on_shit_system">Profile %s requires the %s plugin, but your
-        proprietary equipment vendor (usually surveillance capital giants and malware maker)
-        tampered with your Android, making the plugin unusable.
-    </string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android Plugin)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android Plugin)</string>
     <string name="traffic_uplink" translatable="false">%s | %s/s ↑</string>
