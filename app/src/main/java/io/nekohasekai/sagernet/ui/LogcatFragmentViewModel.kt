@@ -23,10 +23,10 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import kotlin.coroutines.cancellation.CancellationException
 
-internal sealed class LogcatUpdateEvent {
-    data class Appended(val newLogs: List<String>) : LogcatUpdateEvent()
-    object Cleared : LogcatUpdateEvent()
-    data class Error(val message: String) : LogcatUpdateEvent()
+internal sealed interface LogcatUpdateEvent {
+    data class Appended(val newLogs: List<String>) : LogcatUpdateEvent
+    object Cleared : LogcatUpdateEvent
+    data class Error(val message: String) : LogcatUpdateEvent
 }
 
 internal class LogcatFragmentViewModel : ViewModel() {

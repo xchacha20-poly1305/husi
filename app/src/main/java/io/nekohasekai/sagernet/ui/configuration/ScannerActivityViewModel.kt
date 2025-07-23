@@ -31,11 +31,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
-internal sealed class ScannerUiEvent {
-    class ImportSubscription(val uri: Uri) : ScannerUiEvent()
-    class Snakebar(val message: String) : ScannerUiEvent()
-    class SnakebarR(@param:StringRes val message: Int) : ScannerUiEvent()
-    object Finish : ScannerUiEvent()
+internal sealed interface ScannerUiEvent {
+    class ImportSubscription(val uri: Uri) : ScannerUiEvent
+    class Snakebar(val message: String) : ScannerUiEvent
+    class SnakebarR(@param:StringRes val message: Int) : ScannerUiEvent
+    object Finish : ScannerUiEvent
 }
 
 internal class ScannerActivityViewModel : ViewModel() {
