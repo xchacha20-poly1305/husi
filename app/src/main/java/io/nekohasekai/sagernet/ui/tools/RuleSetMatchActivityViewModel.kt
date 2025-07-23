@@ -1,23 +1,23 @@
 package io.nekohasekai.sagernet.ui.tools
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
-internal sealed class RuleSetMatchUiState {
-    object Idle : RuleSetMatchUiState()
-    class Doing(val matched: List<String> = emptyList()) : RuleSetMatchUiState()
-    class Done(val exception: Exception? = null) : RuleSetMatchUiState()
+internal sealed interface RuleSetMatchUiState {
+    object Idle : RuleSetMatchUiState
+    class Doing(val matched: List<String> = emptyList()) : RuleSetMatchUiState
+    class Done(val matched: List<String>, val exception: Exception? = null) : RuleSetMatchUiState
 }
 
 internal class RuleSetMatchActivityViewModel : ViewModel() {
-    private val _uiState: MutableLiveData<RuleSetMatchUiState> =
-        MutableLiveData(RuleSetMatchUiState.Idle)
-    val uiState: LiveData<RuleSetMatchUiState> = _uiState
+    private val _uiState = MutableStateFlow<RuleSetMatchUiState>(RuleSetMatchUiState.Idle)
+    val uiState = _uiState.asStateFlow()
 
     fun scan(keyword: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -26,16 +26,16 @@ internal class RuleSetMatchActivityViewModel : ViewModel() {
     }
 
     private suspend fun scan0(keyword: String) {
-        _uiState.postValue(RuleSetMatchUiState.Doing())
+        _uiState.update { RuleSetMatchUiState.Doing() }
+        val matched = mutableListOf<String>()
         try {
-            val all = mutableListOf<String>()
             Libcore.scanRuleSet(keyword) {
-                all.add(it)
-                _uiState.postValue(RuleSetMatchUiState.Doing(all.toList()))
+                matched.add(it)
+                _uiState.update { RuleSetMatchUiState.Doing(matched.toList()) }
             }
-            _uiState.postValue(RuleSetMatchUiState.Done())
+            _uiState.update { RuleSetMatchUiState.Done(matched) }
         } catch (e: Exception) {
-            _uiState.postValue(RuleSetMatchUiState.Done(e))
+            _uiState.update { RuleSetMatchUiState.Done(matched,e) }
         }
     }
 }
