@@ -11,6 +11,9 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -20,6 +23,7 @@ import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.utils.SimpleDiffCallback
+import kotlinx.coroutines.launch
 
 class RuleSetMatchActivity : ThemedActivity() {
 
@@ -80,7 +84,11 @@ class RuleSetMatchActivity : ThemedActivity() {
             adapter = it
         }
 
-        viewModel.uiState.observe(this, ::handleUiState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
+        }
     }
 
     private fun handleUiState(state: RuleSetMatchUiState) {
@@ -96,6 +104,7 @@ class RuleSetMatchActivity : ThemedActivity() {
 
             is RuleSetMatchUiState.Done -> {
                 binding.startMatch.isEnabled = true
+                adapter.submitList(state.matched)
 
                 state.exception?.let { e ->
                     alertAndLog(e)
