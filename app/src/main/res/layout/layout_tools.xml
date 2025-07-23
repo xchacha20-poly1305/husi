@@ -14,17 +14,13 @@
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tools_tab"
+        style="@style/Widget.Material3.TabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?colorPrimary"
         android:elevation="4dp"
-        app:tabIndicatorColor="?tabIndicatorColor"
         app:tabIndicatorFullWidth="false"
         app:tabMode="fixed"
         app:tabPaddingStart="16dp"
-        app:tabRippleColor="?tabRippleColor"
-        app:tabSelectedTextColor="?tabSelectedTextColor"
-        app:tabTextColor="?tabTextColor"
         app:tabUnboundedRipple="false" />
 
     <androidx.viewpager2.widget.ViewPager2

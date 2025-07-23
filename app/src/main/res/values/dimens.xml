@@ -2,4 +2,13 @@
     <dimen name="qrcode_size">264dp</dimen>
     <dimen name="main_list_padding_bottom">88dp</dimen>
     <dimen name="bottom_sheet_padding">8dp</dimen>
+
+    <!-- Compat for Material About Library -->
+    <dimen name="mal_baseline">16dp</dimen>
+    <dimen name="mal_baseline_half">8dp</dimen>
+    <dimen name="mal_baseline_quarter">4dp</dimen>
+    <dimen name="mal_action_item_image_size">24dp</dimen>
+    <dimen name="mal_title_item_image_size">40dp</dimen>
+    <dimen name="mal_card_elevation">1dp</dimen>
+    <dimen name="mal_stroke_width">1dp</dimen>
 </resources>

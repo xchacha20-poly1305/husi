@@ -12,8 +12,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="?attr/colorPrimary"
-            android:theme="?actionBarTheme"
             android:touchscreenBlocksFocus="false"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight"
             app:title="@string/app_name"/>
 </com.google.android.material.appbar.AppBarLayout>

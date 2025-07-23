@@ -11,7 +11,9 @@
         android:id="@+id/clashModeButtonText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?selectableItemBackground"
         android:gravity="center"
         android:paddingVertical="8dp"
+        android:textColor="?android:textColorPrimaryInverse"
         tools:text="rule" />
 </LinearLayout>

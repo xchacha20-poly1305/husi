@@ -16,15 +16,10 @@
             android:id="@+id/dashboard_tab"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?colorPrimary"
             android:elevation="4dp"
-            app:tabIndicatorColor="?tabIndicatorColor"
             app:tabIndicatorFullWidth="false"
             app:tabMode="fixed"
             app:tabPaddingStart="16dp"
-            app:tabRippleColor="?tabRippleColor"
-            app:tabSelectedTextColor="?tabSelectedTextColor"
-            app:tabTextColor="?tabTextColor"
             app:tabUnboundedRipple="false" />
 
     <androidx.viewpager2.widget.ViewPager2

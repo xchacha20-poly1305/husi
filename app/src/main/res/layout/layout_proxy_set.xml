@@ -35,14 +35,14 @@
 
                     <TextView
                         android:id="@+id/proxySetName"
-                        style="?attr/textAppearanceHeadline6"
+                        style="?attr/textAppearanceTitleLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="Proxy Set Name" />
 
                     <TextView
                         android:id="@+id/proxySetType"
-                        style="?attr/textAppearanceLabelLarge"
+                        style="?attr/textAppearanceBodyLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -60,26 +60,26 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
-                        android:background="?attr/colorPrimary"
+                        android:backgroundTint="?colorSurfaceContainerLow"
                         android:contentDescription="@string/action_urltest"
                         android:src="@drawable/ic_baseline_bolt"
-                        app:tint="@color/chip_text_color" />
+                        app:tint="?colorControlNormal" />
 
                     <ImageButton
                         android:id="@+id/expandButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
-                        android:backgroundTint="?attr/colorPrimary"
+                        android:backgroundTint="?colorSurfaceContainerLow"
                         android:contentDescription="@string/expand"
                         android:src="@drawable/ic_expand_less_24"
-                        app:tint="@color/chip_text_color" />
+                        app:tint="?colorControlNormal" />
                 </LinearLayout>
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/proxy_set_selected"
-                style="@style/Widget.App.ExposedDropdownTextInputLayout"
+                style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
