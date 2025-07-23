@@ -6,8 +6,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.7
-	github.com/sagernet/sing v0.7.0-beta.1.0.20250720120749-5ee6ddd30ca3
-	github.com/sagernet/sing-box v1.12.0-rc.1
+	github.com/sagernet/sing v0.7.0-beta.1.0.20250722151551-64142925accb
+	github.com/sagernet/sing-box v1.12.0-rc.3
 	github.com/sagernet/sing-tun v0.6.10-0.20250721014417-ebbe32588cfb
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.7.1
@@ -33,7 +33,6 @@ require (
 	github.com/anytls/sing-anytls v0.0.8 // indirect
 	github.com/caddyserver/certmagic v0.23.0 // indirect
 	github.com/caddyserver/zerossl v0.1.3 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
