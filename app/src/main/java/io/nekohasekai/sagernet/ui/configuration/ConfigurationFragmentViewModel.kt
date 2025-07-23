@@ -33,16 +33,16 @@ import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
 
-sealed class UiTestState {
-    object Idle : UiTestState()
+sealed interface UiTestState {
+    object Idle : UiTestState
 
-    object Start : UiTestState()
+    object Start : UiTestState
 
     data class InProgress(
         val latestResult: ProfileTestResult,
         val processedCount: Int,
         val totalCount: Int,
-    ) : UiTestState()
+    ) : UiTestState
 }
 
 data class ProfileTestResult(
@@ -50,22 +50,22 @@ data class ProfileTestResult(
     val result: TestResult,
 )
 
-sealed class TestResult {
-    data class Success(val ping: Int) : TestResult()
-    data class Failure(val reason: FailureReason) : TestResult()
+sealed interface TestResult {
+    data class Success(val ping: Int) : TestResult
+    data class Failure(val reason: FailureReason) : TestResult
 }
 
 /** Let UI map tp the R class resource. */
-sealed class FailureReason {
-    object InvalidConfig : FailureReason()
-    object DomainNotFound : FailureReason()
-    object IcmpUnavailable : FailureReason()
-    object TcpUnavailable : FailureReason()
-    object ConnectionRefused : FailureReason()
-    object NetworkUnreachable : FailureReason()
-    object Timeout : FailureReason()
-    data class Generic(val message: String?) : FailureReason()
-    data class PluginNotFound(val message: String) : FailureReason()
+sealed interface FailureReason {
+    object InvalidConfig : FailureReason
+    object DomainNotFound : FailureReason
+    object IcmpUnavailable : FailureReason
+    object TcpUnavailable : FailureReason
+    object ConnectionRefused : FailureReason
+    object NetworkUnreachable : FailureReason
+    object Timeout : FailureReason
+    data class Generic(val message: String?) : FailureReason
+    data class PluginNotFound(val message: String) : FailureReason
 }
 
 internal enum class TestType {

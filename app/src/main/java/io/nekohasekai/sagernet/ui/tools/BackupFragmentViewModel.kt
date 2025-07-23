@@ -31,19 +31,19 @@ import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-internal sealed class BackupFragmentEvent {
-    data class RequestExport(val fileName: String, val content: String) : BackupFragmentEvent()
-    data class RequestShare(val fileName: String, val content: String) : BackupFragmentEvent()
+internal sealed interface BackupFragmentEvent {
+    data class RequestExport(val fileName: String, val content: String) : BackupFragmentEvent
+    data class RequestShare(val fileName: String, val content: String) : BackupFragmentEvent
     data class ShowImportDialog(
         val contentJson: String,
         val hasProfiles: Boolean,
         val hasRules: Boolean,
         val hasSettings: Boolean
-    ) : BackupFragmentEvent()
+    ) : BackupFragmentEvent
 
-    data class ShowSnackbar(val message: String) : BackupFragmentEvent()
-    data class ShowError(val message: String) : BackupFragmentEvent()
-    object RestartApp : BackupFragmentEvent()
+    data class ShowSnackbar(val message: String) : BackupFragmentEvent
+    data class ShowError(val message: String) : BackupFragmentEvent
+    object RestartApp : BackupFragmentEvent
 }
 
 internal class BackupViewModel : ViewModel() {

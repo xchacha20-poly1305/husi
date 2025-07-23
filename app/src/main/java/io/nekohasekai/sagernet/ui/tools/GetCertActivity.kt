@@ -7,6 +7,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -15,6 +18,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ktx.currentSocks5
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import kotlinx.coroutines.launch
 
 class GetCertActivity : ThemedActivity() {
 
@@ -72,7 +76,11 @@ class GetCertActivity : ThemedActivity() {
             viewModel.getCert(server, serverName, protocol, proxy)
         }
 
-        viewModel.uiState.observe(this, ::handleUiState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
+        }
     }
 
     private fun handleUiState(state: GetCertUiState) {

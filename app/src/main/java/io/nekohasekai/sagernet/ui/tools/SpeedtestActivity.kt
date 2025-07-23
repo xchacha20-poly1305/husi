@@ -7,6 +7,9 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SPEED_TEST_URL
@@ -14,6 +17,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import kotlinx.coroutines.launch
 
 class SpeedtestActivity : ThemedActivity() {
 
@@ -69,7 +73,11 @@ class SpeedtestActivity : ThemedActivity() {
             )
         }
 
-        viewModel.uiState.observe(this, ::handleState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleState)
+            }
+        }
     }
 
     override fun onDestroy() {

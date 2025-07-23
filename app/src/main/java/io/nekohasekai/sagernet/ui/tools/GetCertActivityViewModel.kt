@@ -1,23 +1,24 @@
 package io.nekohasekai.sagernet.ui.tools
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
-internal sealed class GetCertUiState {
-    object Idle : GetCertUiState()
-    object Doing : GetCertUiState()
-    class Done(val cert: String) : GetCertUiState()
-    class Failure(val exception: Exception) : GetCertUiState()
+internal sealed interface GetCertUiState {
+    object Idle : GetCertUiState
+    object Doing : GetCertUiState
+    class Done(val cert: String) : GetCertUiState
+    class Failure(val exception: Exception) : GetCertUiState
 }
 
 internal class GetCertActivityViewModel : ViewModel() {
-    private val _uiState: MutableLiveData<GetCertUiState> = MutableLiveData(GetCertUiState.Idle)
-    val uiState: LiveData<GetCertUiState> = _uiState
+    private val _uiState = MutableStateFlow<GetCertUiState>(GetCertUiState.Idle)
+    val uiState = _uiState.asStateFlow()
 
     fun getCert(server: String, serverName: String, protocol: Int, proxy: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -26,12 +27,12 @@ internal class GetCertActivityViewModel : ViewModel() {
     }
 
     private suspend fun getCert0(server: String, serverName: String, protocol: Int, proxy: String) {
-        _uiState.postValue(GetCertUiState.Doing)
+        _uiState.update { GetCertUiState.Doing }
         try {
             val cert = Libcore.getCert(server, serverName, protocol, proxy)
-            _uiState.postValue(GetCertUiState.Done(cert))
+            _uiState.update { GetCertUiState.Done(cert) }
         } catch (e: Exception) {
-            _uiState.postValue(GetCertUiState.Failure(e))
+            _uiState.update { GetCertUiState.Failure(e) }
         }
     }
 }

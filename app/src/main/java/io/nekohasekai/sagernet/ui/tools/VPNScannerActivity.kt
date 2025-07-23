@@ -14,6 +14,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +24,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class VPNScannerActivity : ThemedActivity() {
@@ -71,13 +75,17 @@ class VPNScannerActivity : ThemedActivity() {
             adapter = it
         }
 
-        viewModel.uiState.observe(this, ::handleUIState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUIState)
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.refresh_menu, menu)
         refresh = menu.findItem(R.id.action_refresh)
-        handleUIState(viewModel.uiState.value ?: VPNScannerUiState.Idle)
+        handleUIState(viewModel.uiState.value)
         return true
     }
 

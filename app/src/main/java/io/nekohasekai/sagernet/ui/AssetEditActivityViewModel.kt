@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-internal sealed class AssetEditEvents {
-    class UpdateName(val name: String) : AssetEditEvents()
+internal sealed interface AssetEditEvents {
+    class UpdateName(val name: String) : AssetEditEvents
 }
 
 internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreChangeListener {

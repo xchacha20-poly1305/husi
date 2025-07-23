@@ -26,20 +26,20 @@ import java.time.format.DateTimeFormatter
 
 internal typealias UpdateProgress = (Int) -> Unit
 
-internal sealed class AssetEvent {
-    class UpdateItem(val asset: File, val state: AssetItemUiState) : AssetEvent()
+internal sealed interface AssetEvent {
+    class UpdateItem(val asset: File, val state: AssetItemUiState) : AssetEvent
 }
 
-sealed class AssetItemUiState {
-    // object Idle : AssetItemUiState()
-    class Doing(val progress: Int) : AssetItemUiState()
-    class Done(val e: Exception? = null) : AssetItemUiState()
+sealed interface AssetItemUiState {
+    // object Idle : AssetItemUiState
+    class Doing(val progress: Int) : AssetItemUiState
+    class Done(val e: Exception? = null) : AssetItemUiState
 }
 
-internal sealed class AssetsUiState {
-    object Idle : AssetsUiState()
-    class Doing(val progress: Int) : AssetsUiState()
-    class Done(val e: Exception? = null) : AssetsUiState()
+internal sealed interface AssetsUiState {
+    object Idle : AssetsUiState
+    class Doing(val progress: Int) : AssetsUiState
+    class Done(val e: Exception? = null) : AssetsUiState
 }
 
 internal class AssetsActivityViewModel : ViewModel() {
