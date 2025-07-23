@@ -13,6 +13,7 @@ import com.google.android.material.bottomappbar.BottomAppBar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.findActivity
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -105,16 +106,16 @@ class StatsBar @JvmOverloads constructor(
     }
 
     fun testConnection() {
-        val activity = context as MainActivity
+        val activity = context.findActivity<MainActivity>()!!
         isEnabled = false
-        setStatus(activity.getText(R.string.connection_test_testing))
+        setStatus(context.getText(R.string.connection_test_testing))
         runOnDefaultDispatcher {
             try {
                 val elapsed = activity.urlTest()
                 onMainDispatcher {
                     isEnabled = true
                     setStatus(
-                        activity.getString(
+                        context.getString(
                             if (DataStore.connectionTestURL.startsWith("https://")) {
                                 R.string.connection_test_available
                             } else {
@@ -127,11 +128,11 @@ class StatsBar @JvmOverloads constructor(
             } catch (e: Exception) {
                 onMainDispatcher {
                     isEnabled = true
-                    setStatus(activity.getText(R.string.connection_test_testing))
+                    setStatus(context.getText(R.string.connection_test_testing))
 
                     val readable = urlTestMessage(context, e.readableMessage)
                     activity.snackbar(
-                        activity.getString(
+                        context.getString(
                             R.string.connection_test_error, readable
                         )
                     ).show()
