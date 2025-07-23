@@ -1,7 +1,10 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
@@ -119,6 +122,30 @@ class RuleSetMatchActivity : ThemedActivity() {
     private class Holder(val binding: ViewLogItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(text: String) {
             binding.text.text = text
+
+            // Make ripple even text selectable.
+            val gestureDetector = GestureDetector(
+                binding.root.context,
+                object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onSingleTapUp(e: MotionEvent): Boolean {
+                        binding.root.performClick()
+                        return true
+                    }
+                },
+            )
+            @SuppressLint("ClickableViewAccessibility") binding.text.setOnTouchListener { _, event ->
+                gestureDetector.onTouchEvent(event)
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        binding.root.isPressed = true
+                    }
+
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        binding.root.isPressed = false
+                    }
+                }
+                false
+            }
         }
     }
 
