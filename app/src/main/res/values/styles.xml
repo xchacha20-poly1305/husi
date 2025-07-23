@@ -1,30 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppNameAppearance" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+
+    <style name="AppNameAppearance" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:fontFamily">@font/shuowenxiaozhuan_husi</item>
+        <item name="fontFamily">@font/shuowenxiaozhuan_husi</item>
         <item name="android:textColor">?whiteOrTextPrimary</item>
     </style>
 
-    <style name="Widget.App.ExposedDropdownTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="boxBackgroundMode">outline</item>
-        <item name="endIconMode">dropdown_menu</item>
-        <item name="boxStrokeColor">?attr/colorPrimary</item>
-        <item name="boxStrokeWidth">1dp</item>
-        <item name="boxStrokeWidthFocused">2dp</item>
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Corner4dp</item>
-        <item name="boxBackgroundColor">?attr/colorBackgroundFloating</item>
-    </style>
-
-    <style name="Widget.App.ExposedDropdownAutoCompleteTextView" parent="Widget.MaterialComponents.AutoCompleteTextView.OutlinedBox">
-        <item name="shapeAppearance">@style/ShapeAppearance.App.Corner4dp</item>
+    <style name="Widget.App.ExposedDropdownAutoCompleteTextView" parent="Widget.Material3.AutoCompleteTextView.OutlinedBox">
         <item name="android:paddingStart">12dp</item>
         <item name="android:paddingEnd">12dp</item>
         <item name="android:textSize">14sp</item>
     </style>
 
-
-    <style name="ShapeAppearance.App.Corner4dp" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">4dp</item>
+    <style name="AppearanceFoundation.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">
+            @style/Widget.App.Button.TextButton.Dialog.Primary
+        </item>
+        <item name="buttonBarNegativeButtonStyle">
+            @style/Widget.App.Button.TextButton.Dialog.Primary
+        </item>
+        <item name="buttonBarNeutralButtonStyle">
+            @style/Widget.App.Button.TextButton.Dialog.Flush.Primary
+        </item>
+    </style>
+
+    <style name="Widget.App.Button.TextButton.Dialog.Primary" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">?primaryOrTextPrimary</item>
+    </style>
+
+    <style name="Widget.App.Button.TextButton.Dialog.Flush.Primary" parent="Widget.Material3.Button.TextButton.Dialog.Flush">
+        <item name="android:textColor">?primaryOrTextPrimary</item>
+    </style>
+
+    <style name="Widget.App.Chip.Choice" parent="Widget.Material3.Chip.Filter">
+        <item name="textStartPadding">30dp</item>
+        <item name="textEndPadding">30dp</item>
+        <item name="chipBackgroundColor">@color/chip_background</item>
+        <item name="android:textColor">@color/chip_text_color</item>
+        <item name="checkedIconTint">?primaryOrTextPrimary</item>
+        <item name="rippleColor">@color/chip_ripple_color</item>
+    </style>
+
+    <style name="Widget.Preference.SimpleMenuPreference.PopupMenu" parent="android:Widget">
+        <item name="android:popupBackground">?attr/colorSurfaceContainer</item>
+
+        <item name="android:elevation">8dp</item>
+
+        <item name="listMarginHorizontal">@dimen/simple_menu_margin</item>
+        <item name="listMarginVertical">8dp</item>
+        <item name="listItemPadding">16dp</item>
+        <item name="listElevation">8dp</item>
+
+        <item name="dialogMarginHorizontal">16dp</item>
+        <item name="dialogMarginVertical">24dp</item>
+        <item name="dialogItemPadding">24dp</item>
+        <item name="dialogElevation">24dp</item>
+        <item name="dialogMaxWidth">@dimen/simple_menu_dialog_max_width</item>
+
+        <item name="unit">@dimen/simple_menu_unit</item>
+        <item name="maxUnits">@integer/simple_menu_max_units</item>
+
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:divider">?android:attr/listDivider</item>
+    </style>
+
+    <style name="ThemeOverlay.Preference.SimpleMenuPreference.PopupMenu" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Material3.MediumComponent</item>
+        <item name="android:colorBackground">?attr/colorSurfaceContainer</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:divider">?android:attr/listDivider</item>
+    </style>
+
 </resources>
