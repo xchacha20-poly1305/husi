@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppNameAppearance" parent="TextAppearance.Material3.TitleLarge">
+    <style name="AppNameAppearanceHusi" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:fontFamily">@font/shuowenxiaozhuan_husi</item>
         <item name="fontFamily">@font/shuowenxiaozhuan_husi</item>
-        <item name="android:textColor">?whiteOrTextPrimary</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="AppNameAppearance" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@android:color/white</item>
     </style>
 
     <style name="Widget.App.ExposedDropdownAutoCompleteTextView" parent="Widget.Material3.AutoCompleteTextView.OutlinedBox">
