@@ -187,7 +187,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         if (!select) {
             toolbar.inflateMenu(R.menu.add_profile_menu)
             toolbar.setOnMenuItemClickListener(this)
-            toolbar.setTitleTextAppearance(context, R.style.AppNameAppearance)
+            toolbar.setTitleTextAppearance(context, R.style.AppNameAppearanceHusi)
         } else {
             toolbar.setTitle(titleRes)
             toolbar.setNavigationIcon(R.drawable.ic_navigation_close)
