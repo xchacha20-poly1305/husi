@@ -25,10 +25,9 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
                 android:elevation="4dp"
-                android:theme="?actionBarTheme"
                 android:touchscreenBlocksFocus="false"
                 app:layout_collapseMode="parallax"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight"
+                app:popupTheme="@android:style/Widget"
                 app:title="@string/app_name" />
 
             <LinearLayout
@@ -80,7 +79,7 @@
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/show_system_apps"
-                            style="@style/Widget.MaterialComponents.Chip.Filter"
+                            style="@style/Widget.Material3.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="4dp"
@@ -131,9 +130,9 @@
         android:scrollbarSize="0dp"
         android:visibility="gone"
         app:fastScrollAutoHide="true"
-        app:fastScrollPopupTextColor="?colorPrimary"
-        app:fastScrollThumbColor="?colorPrimary"
-        app:fastScrollThumbInactiveColor="?colorPrimary"
+        app:fastScrollPopupTextColor="?attr/colorOnPrimary"
+        app:fastScrollThumbColor="?attr/colorPrimary"
+        app:fastScrollThumbInactiveColor="?attr/colorPrimary"
         app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/layout_apps_item" />
