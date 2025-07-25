@@ -95,6 +95,7 @@
             android:layout_marginBottom="40dp"
             android:elevation="6dp"
             android:nextFocusDown="@+id/stats"
+            android:backgroundTint="?attr/fabColorBackground"
             app:layout_anchor="@id/stats"
             app:layout_anchorGravity="top|end"
             app:layout_behavior="io.nekohasekai.sagernet.widget.HideOnBottomFabBehavior"
