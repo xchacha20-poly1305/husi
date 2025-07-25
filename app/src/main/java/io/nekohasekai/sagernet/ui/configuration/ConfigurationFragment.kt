@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.configuration
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -17,7 +18,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,6 +41,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -1323,11 +1324,9 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             val trafficText: TextView = view.findViewById(R.id.traffic_text)
             val selectedView: LinearLayout = view.findViewById(R.id.selected_view)
-            val editButton: ImageView = view.findViewById(R.id.edit)
-            val shareLayout: LinearLayout = view.findViewById(R.id.share)
-            val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
-            val shareButton: ImageView = view.findViewById(R.id.shareIcon)
-            val removeButton: ImageView = view.findViewById(R.id.remove)
+            val editButton: MaterialButton = view.findViewById(R.id.edit)
+            val shareButton: MaterialButton = view.findViewById(R.id.share)
+            val removeButton: MaterialButton = view.findViewById(R.id.remove)
 
             fun bind(proxyEntity: ProxyEntity, trafficData: TrafficData? = null) {
                 val pf = parentFragment as? ConfigurationFragment ?: return
@@ -1372,7 +1371,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 profileName.text = proxyEntity.displayName()
                 profileType.text = proxyEntity.displayType()
-                profileType.setTextColor(requireContext().getColorAttr(R.attr.accentOrTextSecondary))
+                profileType.setTextColor(profileType.context.getColorAttr(R.attr.accentOrTextSecondary))
 
                 var rx = proxyEntity.rx
                 var tx = proxyEntity.tx
@@ -1387,8 +1386,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (showTraffic) {
                     trafficText.text = view.context.getString(
                         R.string.traffic,
-                        Formatter.formatFileSize(view.context, tx),
-                        Formatter.formatFileSize(view.context, rx)
+                        Formatter.formatFileSize(trafficText.context, tx),
+                        Formatter.formatFileSize(trafficText.context, rx),
                     )
                 }
 
@@ -1416,16 +1415,19 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (proxyEntity.status <= ProxyEntity.STATUS_INITIAL) {
                     if (showTraffic) {
                         profileStatus.text = trafficText.text
-                        profileStatus.setTextColor(requireContext().getColorAttr(android.R.attr.textColorSecondary))
+                        profileStatus.setTextColor(profileStatus.context.getColorAttr(android.R.attr.textColorSecondary))
                         trafficText.text = ""
                     } else {
                         profileStatus.text = ""
                     }
                 } else if (proxyEntity.status == ProxyEntity.STATUS_AVAILABLE) {
-                    profileStatus.text = getString(R.string.available, proxyEntity.ping)
-                    profileStatus.setTextColor(requireContext().getColour(R.color.material_green_500))
+                    profileStatus.text = profileStatus.context.getString(
+                        R.string.available,
+                        proxyEntity.ping,
+                    )
+                    profileStatus.setTextColor(profileStatus.context.getColour(R.color.material_green_500))
                 } else {
-                    profileStatus.setTextColor(requireContext().getColour(R.color.material_red_500))
+                    profileStatus.setTextColor(profileStatus.context.getColour(R.color.material_red_500))
                     if (proxyEntity.status == ProxyEntity.STATUS_UNREACHABLE) {
                         profileStatus.text = proxyEntity.error
                     }
@@ -1433,8 +1435,12 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 if (proxyEntity.status == ProxyEntity.STATUS_UNAVAILABLE) {
                     val err = proxyEntity.error ?: "<?>"
-                    val msg = urlTestMessage(view.context, err)
-                    profileStatus.text = if (msg != err) msg else getString(R.string.unavailable)
+                    val msg = urlTestMessage(profileStatus.context, err)
+                    profileStatus.text = if (msg != err) {
+                        msg
+                    } else {
+                        profileStatus.context.getString(R.string.unavailable)
+                    }
                     profileStatus.setOnClickListener {
                         alert(err).show()
                     }
@@ -1459,7 +1465,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                shareLayout.isGone = select
+                shareButton.isGone = select
                 editButton.isGone = select
                 removeButton.isGone = select
 
@@ -1507,14 +1513,14 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                         when (validateResult) {
                             is ResultInsecure -> onMainDispatcher {
-                                shareLayer.isVisible = true
+                                shareButton.isVisible = true
 
-                                shareLayer.setBackgroundColor(Color.RED)
-                                shareButton.setImageResource(R.drawable.ic_baseline_warning_24)
-                                shareButton.setColorFilter(Color.WHITE)
+                                shareButton.setBackgroundColor(Color.RED)
+                                shareButton.setIconResource(R.drawable.ic_baseline_warning_24)
+                                shareButton.setIconTint(ColorStateList.valueOf(Color.WHITE))
 
-                                shareLayout.setOnClickListener {
-                                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.insecure)
+                                shareButton.setOnClickListener {
+                                    MaterialAlertDialogBuilder(it.context).setTitle(R.string.insecure)
                                         .setMessage(
                                             resources.openRawResource(validateResult.textRes)
                                                 .bufferedReader().use { it.readText() })
@@ -1530,14 +1536,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                             }
 
                             is ResultDeprecated -> onMainDispatcher {
-                                shareLayout.isVisible = true
+                                shareButton.isVisible = true
 
-                                shareLayer.setBackgroundColor(Color.YELLOW)
-                                shareButton.setImageResource(R.drawable.ic_baseline_warning_24)
-                                shareButton.setColorFilter(Color.GRAY)
+                                shareButton.setBackgroundColor(Color.YELLOW)
+                                shareButton.setIconResource(R.drawable.ic_baseline_warning_24)
+                                shareButton.setIconTint(ColorStateList.valueOf(Color.GRAY))
 
-                                shareLayout.setOnClickListener {
-                                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.deprecated)
+                                shareButton.setOnClickListener {
+                                    MaterialAlertDialogBuilder(it.context).setTitle(R.string.deprecated)
                                         .setMessage(
                                             resources.openRawResource(validateResult.textRes)
                                                 .bufferedReader().use { it.readText() })
@@ -1553,12 +1559,18 @@ class ConfigurationFragment @JvmOverloads constructor(
                             }
 
                             else -> onMainDispatcher {
-                                shareLayer.setBackgroundColor(Color.TRANSPARENT)
-                                shareButton.setImageResource(R.drawable.ic_social_share)
-                                shareButton.setColorFilter(Color.GRAY)
+                                shareButton.setBackgroundColor(Color.TRANSPARENT)
+                                shareButton.setIconResource(R.drawable.ic_social_share)
+                                shareButton.setIconTint(
+                                    ColorStateList.valueOf(
+                                        shareButton.context.getColour(
+                                            com.google.android.material.R.color.m3_icon_button_icon_color_selector
+                                        )
+                                    )
+                                )
                                 shareButton.isVisible = true
 
-                                shareLayout.setOnClickListener {
+                                shareButton.setOnClickListener {
                                     showShare(it)
                                 }
                             }

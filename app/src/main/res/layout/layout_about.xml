@@ -43,15 +43,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_name_long"
-                        android:textAppearance="?attr/textAppearanceSubtitle2" />
+                        android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="@string/app_desc"
-                        android:textAppearance="?attr/textAppearanceBody2"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
 
@@ -80,17 +80,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/license"
-                        android:textAppearance="?attr/textAppearanceSubtitle2" />
+                        android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                     <TextView
                         android:id="@+id/license"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:textAppearance="?attr/textAppearanceBody2"
-                        android:textColor="?android:textColorSecondary"
-                        android:textIsSelectable="true"
-                        android:textSize="12sp" />
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textIsSelectable="true" />
 
                 </LinearLayout>
 
@@ -99,6 +98,5 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-
 
 </LinearLayout>

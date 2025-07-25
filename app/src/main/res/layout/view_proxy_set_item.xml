@@ -3,9 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item_card"
+    style="?materialCardViewElevatedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="2dp"
+    app:cardBackgroundColor="?colorSurfaceContainer"
     app:cardCornerRadius="4dp"
     app:cardElevation="0dp">
 

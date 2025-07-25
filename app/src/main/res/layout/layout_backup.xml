@@ -4,67 +4,61 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
 
-        <CheckBox
-                android:id="@+id/backup_configurations"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/backup_groups_and_configurations"
-                android:textAppearance="?attr/textAppearanceSubtitle2"/>
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/backup_configurations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/backup_groups_and_configurations" />
 
-        <CheckBox
-                android:id="@+id/backup_rules"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/backup_rules"
-                android:textAppearance="?attr/textAppearanceSubtitle2"/>
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/backup_rules"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/backup_rules" />
 
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/backup_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/backup_settings" />
 
-        <CheckBox
-                android:id="@+id/backup_settings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/backup_settings"
-                android:textAppearance="?attr/textAppearanceSubtitle2"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/action_export"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/action_export" />
 
-        <Button
-                android:id="@+id/action_export"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/action_export"
-                android:textColor="?whiteOrTextPrimary"/>
-
-        <Button
-                android:id="@+id/action_share"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/share"
-                android:textColor="?whiteOrTextPrimary"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/action_share"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/share" />
 
         <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/backup_summary"
-                android:textColor="?android:textColorTertiary"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/backup_summary"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
-        <Button
-                android:id="@+id/action_import_file"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/action_import_file"
-                android:textColor="?whiteOrTextPrimary"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/action_import_file"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/action_import_file" />
 
     </LinearLayout>
 

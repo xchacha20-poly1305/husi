@@ -25,7 +25,6 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
-import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import libcore.Libcore
@@ -170,7 +169,6 @@ class ConfigEditActivity : ThemedActivity() {
             setKeyListener { char -> binding.editor.insert(char) }
             setHasFixedSize(true)
             submitList(listOf("{", "}", ",", ":", "_", "\""))
-            setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
         }
     }
 

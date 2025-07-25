@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:nextFocusUp="@+id/fab"
-            app:backgroundTint="?colorPrimary"
+            app:backgroundTint="?colorPrimaryContainer"
             app:contentInsetStart="0dp"
             app:hideOnScroll="true"
             app:layout_scrollFlags="enterAlways|scroll">
@@ -44,7 +44,7 @@
                     android:layout_gravity="fill_horizontal"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:textColor="?colorOnPrimary"
+                    android:textColor="?attr/colorOnPrimaryContainer"
                     android:textSize="14sp" />
 
                 <TextView
@@ -55,7 +55,7 @@
                     android:layout_gravity="fill_horizontal"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:textColor="?colorOnPrimary"
+                    android:textColor="?attr/colorOnPrimaryContainer"
                     android:textSize="14sp" />
 
                 <TextView
@@ -65,7 +65,7 @@
                     android:layout_gravity="fill_horizontal"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="?colorOnPrimary"
+                    android:textColor="?attr/colorOnPrimaryContainer"
                     android:textSize="16sp"
                     tools:text="@string/connection_test_available" />
 
@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:max="1"
             android:visibility="invisible"
-            app:indicatorColor="?colorMaterial100"
+            app:indicatorColor="?attr/colorPrimary"
             app:layout_anchor="@+id/fab"
             app:layout_anchorGravity="center"
             app:layout_behavior="io.nekohasekai.sagernet.widget.FabProgressBehavior"
@@ -106,7 +106,7 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
-        style="@style/Widget.Design.NavigationView"
+        style="@style/Widget.Material3.NavigationView"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
@@ -116,7 +116,7 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view_black"
-        style="@style/Widget.Design.NavigationView"
+        style="@style/Widget.Material3.NavigationView"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"

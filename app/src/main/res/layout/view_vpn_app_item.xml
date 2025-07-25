@@ -5,9 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
-    android:focusable="true"
-    android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,19 +34,18 @@
 
                 <TextView
                     android:id="@+id/appName"
+                    style="?attr/textAppearanceTitleMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textIsSelectable="true"
-                    android:textSize="18sp"
                     tools:text="App Name" />
-
 
                 <TextView
                     android:id="@+id/packageName"
+                    style="?attr/textAppearanceBodySmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textIsSelectable="true"
-                    android:textSize="14sp"
                     tools:text="com.myapp" />
             </LinearLayout>
 
@@ -79,7 +76,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/scanning"
-                    android:textColor="?android:colorForeground"
+                    android:textColor="?attr/colorOnSurface"
                     android:textIsSelectable="true" />
 
             </LinearLayout>
@@ -111,7 +108,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/scanning"
-                    android:textColor="?android:colorForeground"
+                    android:textColor="?attr/colorOnSurface"
                     android:textIsSelectable="true" />
 
             </LinearLayout>
@@ -144,14 +141,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/scanning"
-                    android:textColor="?android:colorForeground"
+                    android:textColor="?attr/colorOnSurface"
                     android:textIsSelectable="true" />
 
             </LinearLayout>
-
-
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/goVersionLayout"
@@ -178,7 +172,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/scanning"
-                    android:textColor="?android:colorForeground"
+                    android:textColor="?attr/colorOnSurface"
                     android:textIsSelectable="true" />
 
             </LinearLayout>

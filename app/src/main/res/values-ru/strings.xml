@@ -462,7 +462,6 @@
     <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копировать</string>
     <string name="mux_sum">Протокол Mux предназначен для уменьшения задержки соединения TCP, а не для увеличения пропускной способности. Использование Mux для просмотра видео, загрузки или проверки скорости обычно непродуктивно. Если сервер не поддерживает Mux, вы не сможете получить доступ к Интернету.</string>
-    <string name="log_level_help">Удерживайте для настройки размера буфера.</string>
     <string name="mux_type">Протокол мультиплексирования</string>
     <string name="subscription_expire">Истекает: %s</string>
     <string name="tuic_disable_sni">Отключить SNI</string>
