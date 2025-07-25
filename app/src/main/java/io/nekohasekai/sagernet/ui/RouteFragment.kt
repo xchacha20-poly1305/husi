@@ -310,17 +310,16 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             RecyclerView.ViewHolder(binding.root) {
 
             lateinit var rule: RuleEntity
-            val profileName = binding.profileName
-            val profileType = binding.profileType
+            val routeName = binding.routeName
+            val ruleSummary = binding.ruleSummary
             val routeAction = binding.routeAction
             val editButton = binding.edit
-            val shareLayout = binding.share
             val enableSwitch = binding.enable
 
             fun bind(ruleEntity: RuleEntity) {
                 rule = ruleEntity
-                profileName.text = rule.displayName()
-                profileType.text = rule.mkSummary()
+                routeName.text = rule.displayName()
+                ruleSummary.text = rule.mkSummary()
                 routeAction.text = when (rule.action) {
                     "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
                     else -> "action: ${rule.action}"

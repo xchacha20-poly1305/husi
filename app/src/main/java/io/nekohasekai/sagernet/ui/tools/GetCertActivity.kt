@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
@@ -66,12 +67,22 @@ class GetCertActivity : ThemedActivity() {
             binding.proxyServer.setText(it)
         }
 
+        val protocols = resources.getStringArray(R.array.naive_proto_entry)
+        binding.pinCertProtocol.setAdapter(
+            ArrayAdapter(
+                binding.pinCertProtocol.context,
+                android.R.layout.simple_list_item_1,
+                protocols,
+            )
+        )
+        binding.pinCertProtocol.setText(protocols[0], false)
+
         binding.getCert.setOnClickListener {
             SagerNet.inputMethod.hideSoftInputFromWindow(binding.root.windowToken, 0)
 
             val server = binding.pinCertServer.text.toString()
             val serverName = binding.pinCertServerName.text.toString()
-            val protocol = binding.pinCertProtocol.selectedItemPosition
+            val protocol = binding.pinCertProtocol.text.toString()
             val proxy = binding.proxyServer.text.toString()
             viewModel.getCert(server, serverName, protocol, proxy)
         }

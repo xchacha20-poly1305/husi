@@ -20,13 +20,13 @@ internal class GetCertActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<GetCertUiState>(GetCertUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
-    fun getCert(server: String, serverName: String, protocol: Int, proxy: String) {
+    fun getCert(server: String, serverName: String, protocol: String, proxy: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            getCert0(server, serverName, protocol, proxy)
+            getCert0(server, serverName, protocol.lowercase(), proxy)
         }
     }
 
-    private suspend fun getCert0(server: String, serverName: String, protocol: Int, proxy: String) {
+    private suspend fun getCert0(server: String, serverName: String, protocol: String, proxy: String) {
         _uiState.update { GetCertUiState.Doing }
         try {
             val cert = Libcore.getCert(server, serverName, protocol, proxy)
