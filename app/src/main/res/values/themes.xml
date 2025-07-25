@@ -724,63 +724,51 @@
     </style>
 
     <style name="Theme.SagerNet.Black" parent="Theme.SagerNet">
-        <item name="android:windowBackground">@color/material_light_black</item>
-        <item name="colorSurface">@color/material_light_black</item>
-        <item name="colorOnSurface">@color/white</item>
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:textColorSecondary">@color/material_grey_400</item>
-
-        <item name="colorPrimary">@color/color_ng_black_accent</item>
+        <item name="colorPrimary">@color/material_light_black</item>
         <item name="colorOnPrimary">@color/white</item>
-
-        <item name="colorPrimaryContainer">@color/color_ng_black_primary</item>
+        <item name="colorPrimaryContainer">@color/material_grey_800</item>
         <item name="colorOnPrimaryContainer">@color/white</item>
-
-        <item name="colorSecondary">?colorPrimary</item>
-        <item name="colorOnSecondary">?colorOnPrimary</item>
+        <item name="colorSecondary">@color/color_ng_black_accent</item>
+        <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_grey_700</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
-        <item name="colorTertiary">@color/material_grey_700</item>
+        <item name="colorTertiary">@color/material_grey_500</item>
         <item name="colorOnTertiary">@color/white</item>
-        <item name="colorTertiaryContainer">@color/color_ng_black_primary</item>
+        <item name="colorTertiaryContainer">@color/material_grey_800</item>
         <item name="colorOnTertiaryContainer">@color/white</item>
 
-        <item name="accentOrTextPrimary">?android:textColorPrimary</item>
-        <item name="accentOrTextSecondary">?android:textColorSecondary</item>
-        <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
-        <item name="primaryOrTextSecondary">?android:textColorSecondary</item>
-        <item name="selectedColorPrimary">?colorPrimary</item>
-        <item name="fabColorBackground">@color/color_ng_fab</item>
+        <item name="colorMaterial100">@color/fab_color_progress</item>
+        <item name="colorMaterial300">@color/material_light_black</item>
 
-        <item name="colorMaterial100">@color/color_ng_black_primary</item>
-        <item name="colorMaterial300">@color/material_grey_700</item>
+        <item name="android:textColorLink">?attr/accentOrTextSecondary</item>
+        <item name="fabColorBackground">?colorPrimaryDark</item>
+        <item name="selectedColorPrimary">?attr/primaryOrTextPrimary</item>
+
+        <item name="accentOrTextSecondary">?android:textColorSecondary</item>
+        <item name="accentOrTextPrimary">?android:textColorPrimary</item>
+        <item name="primaryOrTextSecondary">?android:textColorSecondary</item>
+        <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Dialog">
-        <item name="colorSurface">@color/material_light_black</item>
-        <item name="colorOnSurface">@color/white</item>
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:textColorSecondary">@color/material_grey_400</item>
-        <item name="colorPrimary">@color/color_ng_black_accent</item>
+        <item name="colorPrimary">@color/color_ng_black_primary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/color_ng_black_primary</item>
+        <item name="colorPrimaryContainer">@color/material_grey_800</item>
         <item name="colorOnPrimaryContainer">@color/white</item>
-        <item name="colorSecondary">?colorPrimary</item>
-        <item name="colorOnSecondary">?colorOnPrimary</item>
+        <item name="colorSecondary">@color/color_ng_black_accent</item>
+        <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_grey_700</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
-        <item name="colorTertiary">@color/material_grey_700</item>
+        <item name="colorTertiary">@color/material_grey_500</item>
         <item name="colorOnTertiary">@color/white</item>
-        <item name="colorTertiaryContainer">@color/color_ng_black_primary</item>
+        <item name="colorTertiaryContainer">@color/material_grey_800</item>
         <item name="colorOnTertiaryContainer">@color/white</item>
-        <item name="accentOrTextPrimary">?android:textColorPrimary</item>
-        <item name="accentOrTextSecondary">?android:textColorSecondary</item>
-        <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
-        <item name="primaryOrTextSecondary">?android:textColorSecondary</item>
-        <item name="selectedColorPrimary">?colorPrimary</item>
-        <item name="fabColorBackground">@color/color_ng_fab</item>
+
         <item name="colorMaterial100">@color/color_ng_black_primary</item>
-        <item name="colorMaterial300">@color/material_grey_700</item>
+        <item name="colorMaterial300">@color/color_ng_black_primary</item>
+
+        <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
+        <item name="fabColorBackground">@color/color_ng_black_accent</item>
     </style>
 
     <style name="Theme.Start" parent="Theme.Material3.DayNight.NoActionBar">
