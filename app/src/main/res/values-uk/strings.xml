@@ -474,7 +474,6 @@
     <string name="tuic_reduce_rtt">Увімкнути рукостискання 0-RTT QUIC</string>
     <string name="is_outbound_only">Зробити JSON вихідним</string>
     <string name="show_group_in_notification">Показувати назву групи у сповіщенні</string>
-    <string name="log_level_help">Утримуйте для нашалтування розміру буфера.</string>
     <string name="save">Зберегти</string>
     <string name="log_level">Тип журналу</string>
     <string name="get_cert_fail">Не вдалося отримати сертифікати!</string>

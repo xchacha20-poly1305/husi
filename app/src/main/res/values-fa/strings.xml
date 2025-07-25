@@ -475,7 +475,6 @@
     <string name="http_upgrade_host">میزبان HTTPUpgrade</string>
     <string name="http_upgrade_path">مسیر HTTPUpgrade</string>
     <string name="vpn_golang_version">نسخه زبان Go</string>
-    <string name="log_level_help">برای تنظیم اندازه بافر ترجیح را طولانی فشار دهید.</string>
     <string name="tls_camouflage_settings">تنظیمات استتار TLS</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>
     <string name="get_cert_success">با موفقیت انجام شد! گواهی ها در کلیپ بورد کپی شدند.</string>

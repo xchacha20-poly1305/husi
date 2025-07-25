@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/coordinator"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,9 +26,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:gravity="center"
                 android:text="@string/stun_attest_loading"
-                android:textAppearance="@style/AppearanceFoundation.Title" />
+                android:textAppearance="?attr/textAppearanceHeadlineSmall" />
         </LinearLayout>
 
 
@@ -51,7 +50,7 @@
                     android:layout_marginRight="16dp"
                     android:clickable="true"
                     android:focusable="true"
-                    app:cardElevation="2dp">
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -59,33 +58,35 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/nat_stun_server_hint"
-                            android:textAppearance="?attr/textAppearanceSubtitle2" />
-
-                        <EditText
-                            android:id="@+id/nat_stun_server"
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="?attr/textInputFilledStyle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:ems="10"
-                            android:inputType="text"
-                            android:text="stun.voipgate.com:3478" />
+                            android:hint="@string/nat_stun_server_hint">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/route_proxy"
-                            android:textAppearance="?attr/textAppearanceSubtitle2" />
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/nat_stun_server"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ems="10"
+                                android:inputType="text"
+                                android:text="stun.voipgate.com:3478" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <EditText
-                            android:id="@+id/proxy_server"
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="?attr/textInputFilledStyle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:ems="10"
-                            android:inputType="text"
-                            tools:ignore="LabelFor" />
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/route_proxy">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/proxy_server"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ems="10"
+                                android:inputType="text" />
+                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -97,7 +98,7 @@
                     android:layout_marginRight="16dp"
                     android:clickable="true"
                     android:focusable="true"
-                    app:cardElevation="2dp">
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -109,17 +110,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/nat_result_hint"
-                            android:textAppearance="?attr/textAppearanceSubtitle2" />
+                            android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                         <TextView
                             android:id="@+id/nat_result"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textIsSelectable="true" />
 
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -129,14 +131,13 @@
                     android:gravity="end"
                     android:orientation="horizontal">
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/stunTest"
-                        style="@style/Widget.AppCompat.Button.Borderless"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:text="@string/start"
-                        android:textColor="?primaryOrTextPrimary" />
+                        android:text="@string/start" />
                 </LinearLayout>
 
             </LinearLayout>

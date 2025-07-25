@@ -463,7 +463,6 @@
     <string name="protocol_version">Versión del protocolo</string>
     <string name="reset_connections">Restablecer conexiones</string>
     <string name="remove_duplicate">Eliminar servidores duplicados</string>
-    <string name="log_level_help">Mantén pulsada la preferencia para establecer el tamaño del búfer.</string>
     <string name="test_concurrency">Concurrencia de prueba</string>
     <string name="get_cert_server_hint">Servidor de destino</string>
     <string name="get_cert">Obtener certificados</string>
