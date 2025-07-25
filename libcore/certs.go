@@ -96,15 +96,10 @@ func tryAddCert(pool *x509.CertPool, raw []byte) bool {
 	return true
 }
 
-const (
-	ScribeTLS int32 = iota
-	ScribeQUIC
-)
-
 // GetCert try to get cert from create a connection to address with serverName as SNI.
-// mode can choose to use TLS or QUIC.
+// mode can choose TLS or QUIC.
 // proxy is a socks5 URL for dialer.
-func GetCert(address, serverName string, mode int32, proxy string) (cert string, err error) {
+func GetCert(address, serverName, mode string, proxy string) (cert string, err error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443
@@ -131,9 +126,9 @@ func GetCert(address, serverName string, mode int32, proxy string) (cert string,
 
 	var certs []*x509.Certificate
 	switch mode {
-	case ScribeTLS:
+	case "https":
 		certs, err = scribe.GetCert(ctx, options)
-	case ScribeQUIC:
+	case "quic":
 		if target.IsFqdn() {
 			ips, err := net.LookupIP(target.Fqdn)
 			if err != nil {
