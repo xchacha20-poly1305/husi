@@ -4,7 +4,7 @@
     <PreferenceCategory
         app:key="generalSettings"
         app:title="@string/general_settings">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_communication_phonelink_ring"
             app:key="isAutoConnect"
@@ -37,7 +37,7 @@
             app:key="serviceMode"
             app:title="@string/service_mode"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_baseline_local_bar_24"
             app:key="memoryLimit"
@@ -62,7 +62,7 @@
             app:key="mtu"
             app:title="@string/mtu"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_transform_24"
             app:key="allowAppsBypassVpn"
             app:title="@string/allow_apps_bypass_vpn" />
@@ -74,36 +74,36 @@
             app:key="speedInterval"
             app:title="@string/speed_interval"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="true"
             app:key="profileTrafficStatistics"
             app:summary="@string/profile_traffic_statistics_summary"
             app:title="@string/profile_traffic_statistics" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/ic_baseline_speed_24"
             app:key="showDirectSpeed"
             app:summary="@string/show_direct_speed_sum"
             app:title="@string/show_direct_speed"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:key="showGroupInNotification"
             app:title="@string/show_group_in_notification" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_center_focus_weak_24"
             app:key="alwaysShowAddress"
             app:summary="@string/always_show_address_sum"
             app:title="@string/always_show_address" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_transgender_24"
             app:key="blurredAddress"
             app:title="@string/blurred_address" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/ic_baseline_security_24"
             app:key="securityAdvisory"
             app:title="@string/insecure_warn" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_device_data_usage"
             app:key="meteredNetwork"
             app:summary="@string/metered_summary"
@@ -128,21 +128,21 @@
         app:initialExpandedChildrenCount="0"
         app:key="routeSettings"
         app:title="@string/route_options">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_navigation_apps"
             app:key="proxyApps"
             app:summary="@string/proxied_apps_summary"
             app:title="@string/proxied_apps" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/baseline_keyboard_tab_24"
             app:key="updateProxyAppsWhenInstall"
             app:title="@string/update_proxy_apps_when_install" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/ic_baseline_legend_toggle_24"
             app:key="bypassLan"
             app:title="@string/route_opt_bypass_lan" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:key="bypassLanInCore"
             app:title="@string/bypass_lan_in_core" />
         <rikka.preference.SimpleMenuPreference
@@ -168,7 +168,7 @@
             app:icon="@drawable/baseline_public_24"
             app:key="networkPreferredInterfaces"
             app:title="@string/network_interface_preference" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_baseline_android_24"
             app:key="forcedSearchProcess"
@@ -249,7 +249,7 @@
             app:key="domain_strategy_for_server"
             app:title="@string/domain_strategy_for_server"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_baseline_lock_24"
             app:key="enableFakeDns"
@@ -278,7 +278,7 @@
             app:key="portLocalDns"
             app:title="@string/port_local_dns"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:key="appendHttpProxy"
             app:summary="@string/append_http_proxy_sum"
@@ -287,7 +287,7 @@
             app:icon="@drawable/ic_baseline_domain_24"
             app:key="httpProxyBypass"
             app:title="@string/http_proxy_bypass" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_nat_24"
             app:key="allowAccess"
             app:summary="@string/allow_access_sum"
@@ -320,7 +320,7 @@
             app:key="connectionTestURL"
             app:title="@string/connection_test_url"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/baseline_developer_board_24"
             app:key="acquireWakeLock"
@@ -340,12 +340,12 @@
             app:key="tcpKeepAliveInterval"
             app:title="@string/tcp_keep_alive_interval"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_communication_phonelink_ring"
             app:key="ignoreDeviceIdle"
             app:title="@string/ignore_device_idle" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_baseline_format_align_left_24"
             app:key="disableProcessText"
@@ -357,7 +357,7 @@
         app:initialExpandedChildrenCount="0"
         app:key="ntpSettings"
         app:title="@string/ntp_category">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:key="ntpEnable"
             app:summary="@string/ntp_sum"
             app:title="@string/enable_ntp" />

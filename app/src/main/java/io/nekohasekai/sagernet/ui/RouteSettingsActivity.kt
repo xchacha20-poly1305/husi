@@ -23,7 +23,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -47,6 +46,7 @@ import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.AppListPreference
 import io.nekohasekai.sagernet.widget.DurationPreference
+import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
 import io.nekohasekai.sagernet.widget.updateSummary
@@ -237,7 +237,7 @@ class RouteSettingsActivity(
     private lateinit var clientType: MultiSelectListPreference
     private lateinit var overridePort: EditTextPreference
     private lateinit var sniffers: MultiSelectListPreference
-    private lateinit var tlsFragment: SwitchPreference
+    private lateinit var tlsFragment: MaterialSwitchPreference
     private lateinit var tlsFragmentFallbackDelay: DurationPreference
 
     private lateinit var actionRoute: PreferenceCategory

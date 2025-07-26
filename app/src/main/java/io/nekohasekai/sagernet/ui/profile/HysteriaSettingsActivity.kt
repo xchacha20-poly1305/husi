@@ -3,13 +3,13 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 import rikka.preference.SimpleMenuPreference
 
@@ -63,7 +63,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
 
     lateinit var serverStreamReceiveWindow: EditTextPreference
     lateinit var serverConnectionReceiveWindow: EditTextPreference
-    lateinit var serverDisableMTUDiscovery: SwitchPreference
+    lateinit var serverDisableMTUDiscovery: MaterialSwitchPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,

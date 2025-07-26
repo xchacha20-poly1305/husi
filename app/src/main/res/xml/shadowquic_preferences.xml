@@ -53,11 +53,11 @@
             app:key="serverSNI"
             app:title="@string/sni"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/baseline_flight_takeoff_24"
             app:key="serverZeroRTT"
             app:title="@string/tuic_reduce_rtt" />
-        <!--        <SwitchPreference-->
+        <!--        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference-->
         <!--            app:icon="@drawable/ic_notification_enhanced_encryption"-->
         <!--            app:key="serverAllowInsecure"-->
         <!--            app:title="@string/allow_insecure" />-->
@@ -73,7 +73,7 @@
             app:key="serverMinimumMTU"
             app:title="@string/minimum_mtu"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_nat_24"
             app:key="udpOverTcp"
             app:title="@string/udp_over_stream" />

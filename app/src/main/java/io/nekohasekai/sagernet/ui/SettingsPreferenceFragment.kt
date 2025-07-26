@@ -19,7 +19,6 @@ import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import androidx.preference.forEach
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
@@ -35,11 +34,12 @@ import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.utils.Theme
+import io.nekohasekai.sagernet.widget.ColorPickerPreference
 import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.FixedLinearLayout
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
+import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.updateSummary
-import io.nekohasekai.sagernet.widget.ColorPickerPreference
 import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 import java.util.Locale
@@ -47,7 +47,7 @@ import java.util.Locale
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
     private val viewModel: SettingsPreferenceFragmentViewModel by viewModels()
-    private lateinit var isProxyApps: SwitchPreference
+    private lateinit var isProxyApps: MaterialSwitchPreference
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -88,25 +88,25 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         viewModel.initDataStore()
         addPreferencesFromResource(R.xml.global_preferences)
 
-        lateinit var ntpEnable: SwitchPreference
+        lateinit var ntpEnable: MaterialSwitchPreference
         lateinit var ntpAddress: EditTextPreference
         lateinit var ntpPort: EditTextPreference
         lateinit var ntpInterval: DurationPreference
 
-        lateinit var bypassLan: SwitchPreference
-        lateinit var bypassLanInCore: SwitchPreference
+        lateinit var bypassLan: MaterialSwitchPreference
+        lateinit var bypassLanInCore: MaterialSwitchPreference
 
-        lateinit var alwaysShowAddress: SwitchPreference
-        lateinit var blurredAddress: SwitchPreference
+        lateinit var alwaysShowAddress: MaterialSwitchPreference
+        lateinit var blurredAddress: MaterialSwitchPreference
 
-        lateinit var profileTrafficStatistics: SwitchPreference
+        lateinit var profileTrafficStatistics: MaterialSwitchPreference
         lateinit var speedInterval: SimpleMenuPreference
-        lateinit var showDirectSpeed: SwitchPreference
+        lateinit var showDirectSpeed: MaterialSwitchPreference
 
         lateinit var ruleProvider: SimpleMenuPreference
         lateinit var customRuleProvider: EditTextPreference
 
-        lateinit var appendHttpProxy: SwitchPreference
+        lateinit var appendHttpProxy: MaterialSwitchPreference
         lateinit var httpProxyBypass: EditTextPreference
 
         preferenceScreen.forEach { preferenceCategory ->
@@ -193,17 +193,19 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         }
 
                         Key.ALWAYS_SHOW_ADDRESS -> {
-                            alwaysShowAddress = preference as SwitchPreference
+                            alwaysShowAddress = preference as MaterialSwitchPreference
                         }
 
-                        Key.BLURRED_ADDRESS -> blurredAddress = preference as SwitchPreference
+                        Key.BLURRED_ADDRESS -> blurredAddress =
+                            preference as MaterialSwitchPreference
 
                         Key.PROFILE_TRAFFIC_STATISTICS -> profileTrafficStatistics =
-                            preference as SwitchPreference
+                            preference as MaterialSwitchPreference
 
                         Key.SPEED_INTERVAL -> speedInterval = preference as SimpleMenuPreference
 
-                        Key.SHOW_DIRECT_SPEED -> showDirectSpeed = preference as SwitchPreference
+                        Key.SHOW_DIRECT_SPEED -> showDirectSpeed =
+                            preference as MaterialSwitchPreference
 
                         Key.DEBUG_LISTEN -> {
                             preference.isVisible = isExpert
@@ -224,7 +226,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 Key.ROUTE_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
                         Key.PROXY_APPS -> {
-                            isProxyApps = preference as SwitchPreference
+                            isProxyApps = preference as MaterialSwitchPreference
                             isProxyApps.setOnPreferenceChangeListener { _, newValue ->
                                 startActivity(Intent(activity, AppManagerActivity::class.java))
                                 if (newValue as Boolean) DataStore.dirty = true
@@ -232,8 +234,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             }
                         }
 
-                        Key.BYPASS_LAN -> bypassLan = preference as SwitchPreference
-                        Key.BYPASS_LAN_IN_CORE -> bypassLanInCore = preference as SwitchPreference
+                        Key.BYPASS_LAN -> bypassLan = preference as MaterialSwitchPreference
+                        Key.BYPASS_LAN_IN_CORE -> bypassLanInCore =
+                            preference as MaterialSwitchPreference
+
                         Key.NETWORK_PREFERRED_INTERFACES -> (preference as MultiSelectListPreference).let {
                             it.updateSummary()
                             it.setOnPreferenceChangeListener { _, newValue ->
@@ -282,7 +286,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                             preference.onPreferenceChangeListener = reloadListener
                         }
 
-                        Key.APPEND_HTTP_PROXY -> appendHttpProxy = preference as SwitchPreference
+                        Key.APPEND_HTTP_PROXY -> appendHttpProxy =
+                            preference as MaterialSwitchPreference
+
                         Key.HTTP_PROXY_BYPASS -> httpProxyBypass = preference as EditTextPreference
 
                         else -> preference.onPreferenceChangeListener = reloadListener
@@ -334,7 +340,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
                 Key.NTP_SETTINGS -> preferenceCategory.forEach { preference ->
                     when (preference.key) {
-                        Key.ENABLE_NTP -> ntpEnable = preference as SwitchPreference
+                        Key.ENABLE_NTP -> ntpEnable = preference as MaterialSwitchPreference
                         Key.NTP_SERVER -> ntpAddress = preference as EditTextPreference
                         Key.NTP_PORT -> ntpPort = preference as EditTextPreference
                         Key.NTP_INTERVAL -> ntpInterval = preference as DurationPreference

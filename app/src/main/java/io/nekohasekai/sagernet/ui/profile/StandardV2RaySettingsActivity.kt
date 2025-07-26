@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -14,6 +13,7 @@ import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.widget.DurationPreference
+import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 import rikka.preference.SimpleMenuPreference
 
@@ -151,21 +151,21 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private lateinit var serverSecurity: SimpleMenuPreference
     private lateinit var serverEncryption: SimpleMenuPreference // VLESS: flow
 
-    private lateinit var serverMux: SwitchPreference
-    private lateinit var serverBrutal: SwitchPreference
+    private lateinit var serverMux: MaterialSwitchPreference
+    private lateinit var serverBrutal: MaterialSwitchPreference
     private lateinit var serverMuxType: SimpleMenuPreference
     private lateinit var serverMuxNumber: EditTextPreference
     private lateinit var serverMuxStrategy: SimpleMenuPreference
-    private lateinit var serverMuxPadding: SwitchPreference
+    private lateinit var serverMuxPadding: MaterialSwitchPreference
 
     private lateinit var realityPublicKey: EditTextPreference
-    private lateinit var disableSNI: SwitchPreference
-    private lateinit var fragment: SwitchPreference
+    private lateinit var disableSNI: MaterialSwitchPreference
+    private lateinit var fragment: MaterialSwitchPreference
     private lateinit var fragmentFallbackDelay: DurationPreference
 
     private lateinit var experimentsCategory: PreferenceCategory
-    private lateinit var authenticatedLength: SwitchPreference
-    private lateinit var udpOverTcp: SwitchPreference
+    private lateinit var authenticatedLength: MaterialSwitchPreference
+    private lateinit var udpOverTcp: MaterialSwitchPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
