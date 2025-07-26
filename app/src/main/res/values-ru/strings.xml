@@ -22,8 +22,8 @@
     <string name="connection_test_error_status_code">Код ошибки: #%d</string>
     <string name="connection_test_fail">Интернет недоступен</string>
     <string name="connection_test_error">Ошибка: %s</string>
-    <string name="connection_test_available_http">HTTP-соединение установлено за %d мс</string>
-    <string name="connection_test_available">HTTPS-соединение установлено за %d мс</string>
+    <string name="connection_test_available_http">Время отклика по HTTP %d мс</string>
+    <string name="connection_test_available">Время отклика по HTTPS %d мс</string>
     <string name="connection_test_testing">Тестирование…</string>
     <string name="speed_detail">Прокси ：%1$s↑ %2$s↓
         \nПрямой ：%3$s↑%4$s↓
@@ -49,11 +49,11 @@
     <string name="ws_browser_forwarding">Пересылка через браузер</string>
     <string name="cag_ws">Настройки WebSocket</string>
     <string name="general_settings">Настройки приложения</string>
-    <string name="inbound_settings">Входящие настройки</string>
+    <string name="inbound_settings">Настройки входящих соединений</string>
     <string name="allow_access_sum">Сервер будет слушать на адресе 0.0.0.0</string>
     <string name="allow_access">Разрешить подключения из локальной сети</string>
     <string name="service_mode_proxy">Только прокси</string>
-    <string name="service_mode">Сервисный режим</string>
+    <string name="service_mode">Режим работы</string>
     <string name="group_duplicate">Дубликат:
         \n%s
     </string>
@@ -86,7 +86,7 @@
     <string name="tile_title">Переключатель</string>
     <string name="quick_toggle">Переключить</string>
     <string name="group_default">Разгруппировано</string>
-    <string name="document">Документы</string>
+    <string name="document">Документация</string>
     <string name="theme">Тема</string>
     <string name="menu_about">О приложении</string>
     <string name="menu_group">Группы</string>
@@ -96,7 +96,7 @@
     <string name="server_port">Удаленный порт</string>
     <string name="server_address">Сервер</string>
     <string name="profile_name">Имя профиля</string>
-    <string name="connection_test_url">URL-адрес проверки подключения</string>
+    <string name="connection_test_url">URL-адрес для тестирования соединений</string>
     <string name="port_proxy">Порт прокси SOCKS5</string>
     <string name="app_version">Версия</string>
     <string name="oss_licenses">Лицензии с открытым исходным кодом</string>
@@ -144,7 +144,7 @@
         продолжить обновление\?
     </string>
     <string name="ooc_subscription_token_invalid">Недействительный токен OOCv1</string>
-    <string name="download">Скачать</string>
+    <string name="download">Получено</string>
     <string name="install_from_fdroid">Установить с F-Droid</string>
     <string name="install_from_play_store">Установить из Play Store</string>
     <string name="action_download">СКАЧАТЬ</string>
@@ -159,7 +159,7 @@
     <string name="update_when_connected_only">Обновлять только при подключении</string>
     <string name="auto_update_delay">Задержка автоматического обновления (в минутах)</string>
     <string name="auto_update">Автоматическое обновление</string>
-    <string name="update_settings">Обновить настройки</string>
+    <string name="update_settings">Настройки обновления</string>
     <string name="force_resolve_sum">При обновлении преобразовать все доменные имена в IP-адреса.
         Хост и SNI будут добавлены автоматически, если это возможно
     </string>
@@ -174,7 +174,7 @@
     <string name="group_settings">Настройки группы</string>
     <string name="group_basic">Базовый</string>
     <string name="trojan_provider">Провайдер Trojan</string>
-    <string name="protocol_settings">Настройки протокола</string>
+    <string name="protocol_settings">Настройки протоколов</string>
     <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера /
         некоторых поддерживаемых приложений), без использования виртуального сетевого интерфейса
         (Android 10+)
@@ -239,7 +239,7 @@
     </string>
     <string name="subscriptions">Подписки</string>
     <string name="not_connected">Не подключен</string>
-    <string name="vpn_connected">Подключено, нажмите, чтобы проверить подключение</string>
+    <string name="vpn_connected">Подключено, нажмите для проверки соединения</string>
     <string name="connecting">Подключение…</string>
     <string name="deprecated">Устарело</string>
     <string name="insecure">Ненадежный</string>
@@ -290,10 +290,10 @@
     <string name="vpn_permission_denied">Отказано в разрешении на создание службы VPN</string>
     <string name="vpn_error">%s</string>
     <string name="stopping">Выключение…</string>
-    <string name="stop">Остановить</string>
+    <string name="stop">Стоп</string>
     <string name="service_failed">Не удалось:</string>
     <string name="invalid_server">Неверное имя сервера</string>
-    <string name="forward_success">Прокси запустился.</string>
+    <string name="forward_success">Прокси запущен.</string>
     <string name="service_proxy">Прокси-сервис</string>
     <string name="service_vpn">VPN-сервис</string>
     <string name="direct_boot_aware_summary">Выбранная вами информация профиля будет менее
@@ -451,13 +451,13 @@
     <string name="action_open">Открыть</string>
     <string name="update_all_subscription">Обновить все подписки</string>
     <string name="connection_test_delete_unavailable">Удалить недоступные</string>
-    <string name="custom_outbound_json">Пользовательский исходящий JSON</string>
+    <string name="custom_outbound_json">Правка исходящего JSON</string>
     <string name="move">Переместить</string>
     <string name="app_name_long">husi для Андроид</string>
     <string name="assets_update">Обновить геоданные</string>
     <string name="log_level">Тип журнала</string>
     <string name="bypass_lan_in_core">Обход LAN в ядре</string>
-    <string name="landing_proxy">Обратный прокси</string>
+    <string name="landing_proxy">Обратный (последний) прокси</string>
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
     <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копировать</string>
@@ -474,8 +474,8 @@
     <string name="need_restart">Перезапустите приложение для принятия изменений</string>
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>
-    <string name="front_proxy">Прямой прокси</string>
-    <string name="reset_connections">Сбросить соединения</string>
+    <string name="front_proxy">Прямой (передний) прокси</string>
+    <string name="reset_connections">Сброс соединений</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
     <string name="inbound_password">Пароль пользователя SOCKS5</string>
     <string name="vpn_app_type">Тип приложения</string>
@@ -497,13 +497,13 @@
     <string name="enable_brutal">Включить контроллер перегрузки TCP Brutal</string>
     <string name="release_wake_lock">Отключить WakeLock</string>
     <string name="acquire_wake_lock_summary">Сохранять CPU включенным</string>
-    <string name="action_switch">Переключить</string>
+    <string name="action_switch">Сменить</string>
     <string name="nat_result_hint">Провести проверку NAT</string>
     <string name="acquire_wake_lock">Включить WakeLock</string>
     <string name="resolve_server">Разрешить адрес сервера в соответствии с политикой IPv6</string>
     <string name="app_name">husi</string>
     <string name="tuic_congestion_controller">Контроллер перегруженности</string>
-    <string name="custom_config_json">Пользовательская конфигурация JSON</string>
+    <string name="custom_config_json">Правка всего конфига JSON</string>
     <string name="save">Сохранить</string>
     <string name="ech_config">Конфигурация ECH</string>
     <string name="http_upgrade_host">HTTPUpgrade Host</string>
@@ -512,11 +512,11 @@
     <string name="create_shortcut">Создать ярлык</string>
     <string name="xtls_flow">Flow</string>
     <string name="tls_camouflage_settings">Настройки камуфляжа TLS</string>
-    <string name="test_concurrency">Число параллельных подключений</string>
+    <string name="test_concurrency">Количество параллельных тестовых соединений</string>
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
     <string name="tuic_reduce_rtt">Включить рукопожатие 0-RTT QUIC</string>
     <string name="hop_interval">Интервал переключения портов(второй)</string>
-    <string name="test_timeout">Таймаут (мс)</string>
+    <string name="test_timeout">Таймаут теста (мс)</string>
     <string name="get_cert_server_hint">Целевой сервер</string>
     <string name="sekai">nekohasekai</string>
     <string name="no_thanks">Нет, спасибо</string>
@@ -559,8 +559,8 @@
     <string name="have_reset_network">Все сети были сброшены</string>
     <string name="ensure_close_all">Вы уверены, что хотите закрыть %s соединений?</string>
     <string name="by_inbound">По входящему подключению</string>
-    <string name="by_matched_rule">По совпадающему правилу</string>
-    <string name="upload">Загрузить</string>
+    <string name="by_matched_rule">По совпадению правила</string>
+    <string name="upload">Отправлено</string>
     <string name="inbound">Входящее подключение</string>
     <string name="ip_version">Версия IP</string>
     <string name="outbound">Исходящее подключение</string>
@@ -586,7 +586,7 @@
     <string name="override_address">Переопределить адрес</string>
     <string name="override_port">Переопределить порт</string>
     <string name="allow_apps_bypass_vpn">Разрешить приложениям обходить VPN</string>
-    <string name="clash_mode">Режим Cash</string>
+    <string name="clash_mode">Clash-режим</string>
     <string name="network_type">Тип сети</string>
     <string name="sniff_timeout">Таймаут перехвата</string>
     <string name="network_ethernet">Проводное подключение</string>
@@ -602,7 +602,7 @@
     <string name="idle_session_check_interval">Интервал проверки сеанса IDLE</string>
     <string name="idle_session_timeout">Тайм -аут сеанса IDLE</string>
     <string name="min_idle_session">Минимальный сеанс IDLE</string>
-    <string name="import_http_url">Импортирт HTTP URL.</string>
+    <string name="import_http_url">Вы импортируете HTTP-ссылку. Какое действие выполнить?</string>
     <string name="persistent_keepalive_interval">Интервал проверки активности</string>
     <string name="low">Низкий</string>
     <string name="middle">Средний</string>
@@ -617,13 +617,13 @@
     <string name="proxy_set">Набор прокси</string>
     <string name="interrupt_exist_connections">Прерывание существующих соединений</string>
     <string name="urltest_interval">Интервал URL-теста</string>
-    <string name="idle_timeout">Тайм-аут IDLE</string>
-    <string name="urltest_tolerance">Допуск проверки</string>
-    <string name="route_action">Настройки маршрута</string>
+    <string name="idle_timeout">Тайм-аут до IDLE (прекращения цикла тестирования)</string>
+    <string name="urltest_tolerance">Допустимая задержка ответа</string>
+    <string name="route_action">Действие маршрутизации</string>
     <string name="prefer_ipv4">Предпочитать IPv4</string>
     <string name="network_strategy">Сетевая стратегия</string>
     <string name="hijack_dns">Перехват DNS</string>
-    <string name="route_options">Варианты маршрута</string>
+    <string name="route_options">Опции маршрутизации</string>
     <string name="rule_set_match">Соответствие набору правил</string>
     <string name="prefer_ipv6">Предпочитать IPv6</string>
     <string name="ipv4_only">Только IPv4</string>
@@ -636,19 +636,23 @@
     <string name="tasker_action_stop_service">Остановка сервиса</string>
     <string name="tasker_start_current_profile">Текущий профиль</string>
     <string name="tasker_blurb_start_profile">Запуск профиля %s</string>
-    <string name="ignore_device_idle">Игнорировать режим ожидания устройства</string>
+    <string name="ignore_device_idle">Игнорировать сигнал о входе устройства в режим бездействия</string>
     <string name="max_log_size">Максимальный размер журнала (КБ)</string>
     <string name="process">Процесс</string>
     <string name="forced_search_process">Принудительный поиск процесса</string>
-    <string name="disable_process_text">Отключить анализ текста в пакетах</string>
+    <string name="disable_process_text">Отключить обработку выделенного текста с помощью внешних контекстных меню</string>
     <string name="refresh">Обновить</string>
-    <string name="route_asset_name">Имя ресурса</string>
+    <string name="route_asset_name">Название ресурса (имя файла)</string>
     <string name="invalid_filename">Неверное имя файла</string>
     <string name="add_route_asset">Добавить ресурсы маршрута</string>
     <string name="assets_settings">Данные ресурса</string>
     <string name="import_asset">Импорт ресурсов</string>
     <string name="import_url">Импорт из URL</string>
-    <string name="expect_srs">Ожидается, что имя файла заканчивается на «.srs».</string>
-    <string name="warn_starte_with_geo">Файлы, начинающиеся с \"geosite-\" или \"geoip-\", могут быть удалены.</string>
+    <string name="expect_srs">Ожидается, что имя файла заканчивается на \".srs\"</string>
+    <string name="warn_starte_with_geo">Файлы, имя которых начинается с \"geosite-\" или \"geoip-\", могут быть удалены.</string>
     <string name="duplicate_name">Дубликат имени</string>
+    <string name="sniff">Сниффер трафика</string>
+    <string name="saved_to_download">Файл сохранен в каталоге загрузок (Download).</string>
+    <string name="save_to_system">Сохранить в файловой системе</string>
+    <string name="permission_denied">Доступ запрещен (отсутствует разрешение)</string>
 </resources>
