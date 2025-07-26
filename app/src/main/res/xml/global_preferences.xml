@@ -314,11 +314,23 @@
         app:initialExpandedChildrenCount="0"
         app:key="miscSettings"
         app:title="@string/cag_misc">
-        <io.nekohasekai.sagernet.widget.UrlTestPreference
+        <io.nekohasekai.sagernet.widget.LinkOrContentPreference
             app:defaultValue="http://cp.cloudflare.com/"
             app:icon="@drawable/ic_baseline_cast_connected_24"
             app:key="connectionTestURL"
             app:title="@string/connection_test_url"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="5"
+            app:icon="@drawable/ic_baseline_fast_forward_24"
+            app:key="connectionTestConcurrent"
+            app:title="@string/test_concurrency"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="3000"
+            app:icon="@drawable/ic_navigation_apps"
+            app:key="connectionTestTimeout"
+            app:title="@string/test_timeout"
             app:useSimpleSummaryProvider="true" />
         <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="true"
