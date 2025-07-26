@@ -10,4 +10,9 @@
     <attr name="fabColorBackground" format="color"/>
     <attr name="selectedColorPrimary" format="color"/>
     <attr name="whiteOrTextPrimary" format="color"/>
+
+    <declare-styleable name="MaterialSwitchPreference">
+    </declare-styleable>
+
+    <attr name="materialSwitchPreferenceStyle" format="reference"/>
 </resources>

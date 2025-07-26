@@ -3,12 +3,12 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
+import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 import rikka.preference.SimpleMenuPreference
 
@@ -56,12 +56,12 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         }
     }
 
-    private lateinit var serverBrutal: SwitchPreference
+    private lateinit var serverBrutal: MaterialSwitchPreference
     private lateinit var serverMuxType: SimpleMenuPreference
     private lateinit var serverMuxNumber: EditTextPreference
     private lateinit var serverMuxStrategy: SimpleMenuPreference
-    private lateinit var serverMuxPadding: SwitchPreference
-    private lateinit var udpOverTcp: SwitchPreference
+    private lateinit var serverMuxPadding: MaterialSwitchPreference
+    private lateinit var udpOverTcp: MaterialSwitchPreference
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -95,7 +95,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
             summaryProvider = PasswordSummaryProvider
         }
 
-        findPreference<SwitchPreference>(Key.SERVER_MUX)!!.apply {
+        findPreference<MaterialSwitchPreference>(Key.SERVER_MUX)!!.apply {
             setOnPreferenceChangeListener { _, newValue ->
                 updateMuxState(newValue as Boolean)
                 true

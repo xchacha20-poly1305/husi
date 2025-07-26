@@ -34,12 +34,12 @@
     <PreferenceCategory
         app:key="serverMuxCategory"
         app:title="@string/mux_preference">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_compare_arrows_24"
             app:key="serverMux"
             app:summary="@string/mux_sum"
             app:title="@string/enable_mux" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_bolt"
             app:key="serverBrutal"
             app:title="@string/enable_brutal" />
@@ -63,7 +63,7 @@
             app:key="serverMuxNumber"
             app:title="@string/mux_number"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/baseline_developer_board_24"
             app:key="serverMuxPadding"
             app:title="@string/padding" />
@@ -89,7 +89,7 @@
     <PreferenceCategory
         app:icon="@drawable/ic_baseline_grid_3x3_24"
         app:title="@string/experimental_settings">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:key="udpOverTcp"
             app:title="@string/udp_over_tcp" />
     </PreferenceCategory>

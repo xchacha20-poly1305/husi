@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
@@ -11,6 +10,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.widget.DurationPreference
+import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
 class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
@@ -74,7 +74,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
 
-        val fragment = findPreference<SwitchPreference>(Key.SERVER_FRAGMENT)!!
+        val fragment = findPreference<MaterialSwitchPreference>(Key.SERVER_FRAGMENT)!!
         val fragmentFallbackDelay =
             findPreference<DurationPreference>(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
 

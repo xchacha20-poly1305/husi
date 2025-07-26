@@ -73,12 +73,12 @@
             app:key="serverCertificates"
             app:title="@string/certificates"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="serverAllowInsecure"
             app:summary="@string/allow_insecure_sum"
             app:title="@string/allow_insecure" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_transgender_24"
             app:key="serverDisableSNI"
             app:title="@string/tuic_disable_sni" />
@@ -92,7 +92,7 @@
             app:key="serverConnectionReceiveWindow"
             app:title="@string/hysteria_connection_receive_window"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_multiple_stop_24"
             app:key="serverDisableMtuDiscovery"
             app:title="@string/hysteria_disable_mtu_discovery" />
@@ -101,7 +101,7 @@
     <PreferenceCategory
         app:key="serverEchCategory"
         app:title="@string/ech">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_security_24"
             app:key="serverECH"
             app:title="@string/enable" />

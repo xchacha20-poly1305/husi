@@ -54,7 +54,7 @@
             app:key="serverCongestionController"
             app:title="@string/tuic_congestion_controller"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_transgender_24"
             app:key="serverDisableSNI"
             app:title="@string/tuic_disable_sni" />
@@ -63,11 +63,11 @@
             app:key="serverSNI"
             app:title="@string/sni"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/baseline_flight_takeoff_24"
             app:key="serverZeroRTT"
             app:title="@string/tuic_reduce_rtt" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="serverAllowInsecure"
             app:title="@string/allow_insecure" />
@@ -76,7 +76,7 @@
     <PreferenceCategory
         app:key="serverEchCategory"
         app:title="@string/ech">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_security_24"
             app:key="serverECH"
             app:title="@string/enable" />
