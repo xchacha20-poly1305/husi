@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.onSuccess
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.runBlocking
 
 class SettingsPreferenceFragmentViewModel : ViewModel() {

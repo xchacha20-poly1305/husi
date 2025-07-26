@@ -540,7 +540,7 @@ class RouteSettingsActivity(
         }
     }
 
-    class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
+    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
 
         var activity: RouteSettingsActivity? = null
 

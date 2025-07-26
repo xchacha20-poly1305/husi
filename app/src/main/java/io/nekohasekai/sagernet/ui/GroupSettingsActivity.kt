@@ -354,7 +354,7 @@ class GroupSettingsActivity(
         }
     }
 
-    class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
+    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
 
         val activity: GroupSettingsActivity
             get() = requireActivity() as GroupSettingsActivity

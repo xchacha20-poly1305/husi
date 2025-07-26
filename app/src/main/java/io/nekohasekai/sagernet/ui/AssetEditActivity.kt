@@ -239,7 +239,7 @@ class AssetEditActivity(
         super.onStop()
     }
 
-    class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
+    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
 
         val activity: AssetEditActivity
             get() = requireActivity() as AssetEditActivity

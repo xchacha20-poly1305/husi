@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 import java.util.Locale
 
-class SettingsPreferenceFragment : PreferenceFragmentCompat() {
+class SettingsPreferenceFragment : MaterialPreferenceFragment() {
 
     private val viewModel: SettingsPreferenceFragmentViewModel by viewModels()
     private lateinit var isProxyApps: MaterialSwitchPreference
