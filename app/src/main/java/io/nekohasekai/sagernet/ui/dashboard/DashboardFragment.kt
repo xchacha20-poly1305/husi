@@ -50,7 +50,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
 
         binding = LayoutDashboardBinding.bind(view)
         toolbar.setTitle(R.string.menu_dashboard)
-        toolbar.inflateMenu(R.menu.traffic_menu)
+        toolbar.inflateMenu(R.menu.dashboard_menu)
         toolbar.setOnMenuItemClickListener(this)
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
             val bars = insets.getInsets(
@@ -191,10 +191,10 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
             R.id.action_traffic_pause -> {
                 if (isPausing) {
                     isPausing = false
-                    item.setIcon(android.R.drawable.ic_media_pause)
+                    item.setIcon(R.drawable.baseline_pause_24)
                 } else {
                     isPausing = true
-                    item.setIcon(android.R.drawable.ic_media_play)
+                    item.setIcon(R.drawable.baseline_play_24)
                 }
                 true
             }

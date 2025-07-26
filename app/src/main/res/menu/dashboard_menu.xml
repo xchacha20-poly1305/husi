@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/action_traffic_pause"
-        android:icon="@android:drawable/ic_media_pause"
+        android:icon="@drawable/baseline_pause_24"
         android:title="@string/pause"
         app:showAsAction="always" />
 
