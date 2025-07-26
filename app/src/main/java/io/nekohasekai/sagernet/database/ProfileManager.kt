@@ -240,7 +240,7 @@ object ProfileManager {
                     RuleEntity(
                         name = app.getStringCompat(R.string.route_play_store, displayCountry),
                         action = ACTION_ROUTE,
-                        domains = "domain+dns:googleapis.cn",
+                        domains = "set+dns:geosite-google-play",
                         outbound = RuleEntity.OUTBOUND_PROXY
                     ), false
                 )
