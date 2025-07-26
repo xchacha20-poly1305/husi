@@ -137,12 +137,7 @@ Plugin name list:
 
 ## 🤝 Acknowledgements
 
-Core:
-
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
-
-Android GUI:
-
 - [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)
 - [SagerNet/SagerNet](https://github.com/SagerNet/SagerNet)
 - [XTLS/AnXray](https://github.com/XTLS/AnXray)
@@ -152,8 +147,10 @@ Android GUI:
 - [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
 - [dyhkwong/Exclave](https://github.com/dyhkwong/Exclave)
 - [chen08209/FlClash](https://github.com/chen08209/FlClash)
+- [RikkaApps/RikkaX](https://github.com/RikkaApps/RikkaX)
 
 Developing
 
 - [![](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://www.jetbrains.com)
+
     JetBrains' powerful IDE.

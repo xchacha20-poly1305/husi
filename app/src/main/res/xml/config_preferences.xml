@@ -6,7 +6,7 @@
         app:title="@string/profile_name"
         app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreference
+    <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
         app:icon="@drawable/ic_baseline_import_contacts_24"
         app:key="isOutboundOnly"
         app:title="@string/is_outbound_only" />

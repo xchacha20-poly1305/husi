@@ -88,7 +88,7 @@
             app:key="routeClashMode"
             app:title="@string/clash_mode"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_card_giftcard_24"
             app:key="routeNetworkIsExpensive"
             app:title="@string/network_expensive"
@@ -119,7 +119,7 @@
             app:key="routeOverridePort"
             app:title="@string/override_port"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="routeTlsFragment"
             app:title="@string/tls_fragment" />
@@ -128,7 +128,7 @@
             app:key="routeTlsFragmentFallbackDelay"
             app:title="@string/tls_fragment_fallback_delay"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_wb_sunny_24"
             app:key="routeTlsRecordFragment"
             app:title="@string/tls_record_fragment" />
@@ -144,7 +144,7 @@
             app:key="routeResolveStrategy"
             app:title="Resolve Strategy"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_cached"
             app:key="routeResolveDisableCache"
             app:title="Disable Cache"

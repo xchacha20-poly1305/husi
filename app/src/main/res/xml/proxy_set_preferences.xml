@@ -14,7 +14,7 @@
         app:title="@string/management"
         app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreference
+    <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
         app:defaultValue="true"
         app:icon="@drawable/ic_baseline_fiber_manual_record_24"
         app:key="serverInterruptExistConnections"

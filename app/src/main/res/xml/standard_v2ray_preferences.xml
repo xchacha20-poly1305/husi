@@ -118,16 +118,16 @@
             app:key="serverCertificates"
             app:title="@string/certificates"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="serverAllowInsecure"
             app:summary="@string/allow_insecure_sum"
             app:title="@string/allow_insecure" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_transgender_24"
             app:key="serverDisableSNI"
             app:title="@string/tuic_disable_sni" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="serverFragment"
             app:title="@string/tls_fragment" />
@@ -136,7 +136,7 @@
             app:key="serverFragmentFallbackDelay"
             app:title="@string/tls_fragment_fallback_delay"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_wb_sunny_24"
             app:key="serverRecordFragment"
             app:title="@string/tls_record_fragment" />
@@ -168,12 +168,12 @@
     <PreferenceCategory
         app:key="serverMuxCategory"
         app:title="@string/mux_preference">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_compare_arrows_24"
             app:key="serverMux"
             app:summary="@string/mux_sum"
             app:title="@string/enable_mux" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_bolt"
             app:key="serverBrutal"
             app:title="@string/enable_brutal" />
@@ -197,7 +197,7 @@
             app:key="serverMuxNumber"
             app:title="@string/mux_number"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/baseline_developer_board_24"
             app:key="serverMuxPadding"
             app:title="@string/padding" />
@@ -206,7 +206,7 @@
     <PreferenceCategory
         app:key="serverEchCategory"
         app:title="@string/ech">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_baseline_security_24"
             app:key="serverECH"
             app:title="@string/enable" />
@@ -221,11 +221,11 @@
         app:icon="@drawable/ic_baseline_grid_3x3_24"
         app:key="serverVMessExperimentsCategory"
         app:title="@string/experimental_settings">
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:key="serverAuthenticatedLength"
             app:summary="@string/experimental_authenticated_length"
             app:title="@string/authenticated_length" />
-        <SwitchPreference
+        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:key="udpOverTcp"
             app:title="@string/udp_over_tcp" />
     </PreferenceCategory>
