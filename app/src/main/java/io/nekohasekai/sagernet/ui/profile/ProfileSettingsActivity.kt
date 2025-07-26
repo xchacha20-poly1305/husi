@@ -51,6 +51,7 @@ import io.nekohasekai.sagernet.ktx.byteBuffer
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
@@ -345,7 +346,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         return false
     }
 
-    class MyPreferenceFragmentCompat : PreferenceFragmentCompat() {
+    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
 
         val activity: ProfileSettingsActivity<*>
             get() = requireActivity() as ProfileSettingsActivity<*>
