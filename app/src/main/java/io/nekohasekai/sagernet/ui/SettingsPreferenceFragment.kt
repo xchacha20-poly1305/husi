@@ -18,7 +18,6 @@ import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.forEach
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
@@ -330,6 +329,23 @@ class SettingsPreferenceFragment : MaterialPreferenceFragment() {
                                 PackageManager.DONT_KILL_APP,
                             )
                             true
+                        }
+
+                        Key.CONNECTION_TEST_CONCURRENT -> {
+                            preference as EditTextPreference
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+                            preference.setOnPreferenceChangeListener { _, newValue ->
+                                (newValue.toString().toIntOrNull() ?: 0) >= 5
+                            }
+                        }
+
+                        Key.CONNECTION_TEST_TIMEOUT -> {
+                            preference as EditTextPreference
+                            preference.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+                            preference.setOnPreferenceChangeListener { _, newValue ->
+                                val new = newValue.toString().toIntOrNull() ?: 0
+                                new >= 1000 && new <= 10000
+                            }
                         }
 
                         Key.CONNECTION_TEST_URL, Key.IGNORE_DEVICE_IDLE -> Unit
