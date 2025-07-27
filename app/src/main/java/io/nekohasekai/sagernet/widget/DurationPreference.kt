@@ -24,7 +24,7 @@ constructor(
 ) : EditTextPreference(context, attrs, defStyleAttr, defStyleRes) {
 
     init {
-        dialogLayoutResource = R.layout.layout_edittext_dialog
+        dialogLayoutResource = R.layout.m3_dialog_edit_text
 
         setOnBindEditTextListener {
             val inputLayout = it.rootView.findViewById<TextInputLayout>(R.id.input_layout)
