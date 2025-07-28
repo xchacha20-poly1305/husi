@@ -25,7 +25,7 @@ abstract class MaterialPreferenceFragment : PreferenceFragmentCompat() {
             dialog.setTargetFragment(this, 0)
             dialog.show(
                 parentFragmentManager,
-                MaterialEditTextPreferenceDialogFragment.TAG,
+                MaterialMultiSelectListPreferenceDialogFragment.TAG,
             )
         }
 

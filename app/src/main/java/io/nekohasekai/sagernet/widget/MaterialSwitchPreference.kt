@@ -35,7 +35,7 @@ class MaterialSwitchPreference : SwitchPreferenceCompat {
         context: Context,
         attrs: AttributeSet?,
         defStyleAttr: Int,
-        defStyleRes: Int = R.style.Preference_Rikka_MateriaSwitchPreference,
+        defStyleRes: Int = R.style.Preference_Rikka_MaterialSwitchPreference,
     ) : super(context, attrs, defStyleAttr, defStyleRes)
 
     @JvmOverloads
