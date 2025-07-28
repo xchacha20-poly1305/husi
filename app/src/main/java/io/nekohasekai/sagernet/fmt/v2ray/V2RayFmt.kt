@@ -33,12 +33,14 @@ import io.nekohasekai.sagernet.fmt.parseBoxTLS
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.b64DecodeToString
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.queryParameterUnescapeNotBlank
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 import libcore.URL
@@ -96,7 +98,10 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
     return bean
 }
 
-// https://github.com/XTLS/Xray-core/issues/91
+const val BEGIN_ECH = "-----BEGIN ECH CONFIG-----"
+const val END_ECH = "-----END ECH CONFIG-----"
+
+// https://github.com/XTLS/Xray-core/discussions/716
 fun StandardV2RayBean.parseDuckSoft(url: URL) {
     serverAddress = url.host
     serverPort = url.ports.toIntOrNull() ?: 443
@@ -125,6 +130,22 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
             certificates = url.queryParameterNotBlank("cert")
             realityPublicKey = url.queryParameterNotBlank("pbk")
             realityShortID = url.queryParameterNotBlank("sid")
+
+            // Is DNS address: enable ECH and get config from DNS
+            // Is base64: use it directly
+            url.queryParameterUnescapeNotBlank("ech")?.let {
+                ech = true
+
+                val isEchConfig = try {
+                    it.b64Decode().isNotEmpty()
+                } catch (_: Exception) {
+                    // Invalid or DNS address
+                    false
+                }
+                if (isEchConfig) {
+                    echConfig = "$BEGIN_ECH\n$it\n$END_ECH"
+                }
+            }
         }
     }
 
@@ -365,6 +386,12 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
                     builder.setQueryParameter("security", "reality")
                     builder.addQueryParameter("pbk", realityPublicKey)
                     builder.addQueryParameter("sid", realityShortID)
+                }
+                // Xray requires a DNS server in ECH field, which is coupling.
+                // We don't set a hard-coded DNS server here. 😅
+                if (ech) echConfig.blankAsNull()?.let {
+                    val config = it.removeSuffix("$BEGIN_ECH\n").removeSuffix("\n$END_ECH")
+                    builder.setQueryParameter("ech", config)
                 }
             }
         }

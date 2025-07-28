@@ -39,6 +39,7 @@ type URL interface {
 	SetRawPath(rawPath string) error
 
 	QueryParameterNotBlank(key string) string
+	QueryParameterUnescape(key string) string
 	AddQueryParameter(key, value string)
 	SetQueryParameter(key, value string)
 
@@ -209,6 +210,15 @@ func (u *netURL) SetRawPath(rawPath string) error {
 
 func (u *netURL) QueryParameterNotBlank(key string) string {
 	return u.Get(key)
+}
+
+func (u *netURL) QueryParameterUnescape(key string) string {
+	value := u.Get(key)
+	unescape, err := url.QueryUnescape(value)
+	if err != nil {
+		return value
+	}
+	return unescape
 }
 
 func (u *netURL) AddQueryParameter(key, value string) {
