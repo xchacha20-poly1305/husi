@@ -21,21 +21,10 @@
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
 
-        <item name="accentOrTextSecondary">?colorSecondary</item>
-        <item name="accentOrTextPrimary">?colorSecondary</item>
-        <item name="primaryOrTextSecondary">?colorPrimary</item>
-        <item name="primaryOrTextPrimary">?colorPrimary</item>
-
-        <item name="fabColorBackground">?colorPrimary</item>
-        <item name="selectedColorPrimary">?colorPrimary</item>
         <item name="whiteOrTextPrimary">@color/white</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
-
-        <!-- Remove ActionBar but keep styles and themes -->
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
 
         <item name="chipStyle">@style/Widget.App.Chip.Choice</item>
 

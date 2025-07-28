@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -20,20 +20,10 @@
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
 
-        <item name="accentOrTextSecondary">?colorSecondary</item>
-        <item name="accentOrTextPrimary">?colorSecondary</item>
-        <item name="primaryOrTextSecondary">?colorPrimary</item>
-        <item name="primaryOrTextPrimary">?colorPrimary</item>
-
-        <item name="fabColorBackground">?colorPrimary</item>
-        <item name="selectedColorPrimary">?colorPrimary</item>
         <item name="whiteOrTextPrimary">@color/white</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
-
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
 
         <item name="chipStyle">@style/Widget.App.Chip.Choice</item>
 
@@ -59,20 +49,10 @@
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
 
-        <item name="accentOrTextSecondary">?colorSecondary</item>
-        <item name="accentOrTextPrimary">?colorSecondary</item>
-        <item name="primaryOrTextSecondary">?colorPrimary</item>
-        <item name="primaryOrTextPrimary">?colorPrimary</item>
-
-        <item name="fabColorBackground">?colorPrimary</item>
-        <item name="selectedColorPrimary">?colorPrimary</item>
         <item name="whiteOrTextPrimary">@color/white</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
-
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
 
         <item name="chipStyle">@style/Widget.App.Chip.Choice</item>
 
@@ -741,7 +721,6 @@
         <item name="colorMaterial300">@color/material_light_black</item>
 
         <item name="android:textColorLink">?attr/accentOrTextSecondary</item>
-        <item name="fabColorBackground">?colorPrimaryDark</item>
         <item name="selectedColorPrimary">?attr/primaryOrTextPrimary</item>
 
         <item name="accentOrTextSecondary">?android:textColorSecondary</item>
@@ -768,7 +747,6 @@
         <item name="colorMaterial300">@color/color_ng_black_primary</item>
 
         <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
-        <item name="fabColorBackground">@color/color_ng_black_accent</item>
     </style>
 
     <style name="Theme.Start" parent="Theme.Material3.DayNight.NoActionBar">
@@ -777,7 +755,6 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="windowActionBar">false</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.Rikka.Material3</item>
     </style>
 
