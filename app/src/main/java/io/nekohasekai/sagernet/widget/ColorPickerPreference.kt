@@ -84,12 +84,8 @@ class ColorPickerPreference
             columnCount = 4
 
             val colors = context.resources.getIntArray(R.array.material_colors)
-            var i = 0
-
-            for (color in colors) {
-                i++ // Theme.kt
-
-                val themeId = i
+            for ((i, color) in colors.withIndex()) {
+                val themeId = i + 1
                 val view = createColorSwatchView(color, 64, 0).apply {
                     setOnClickListener {
                         persistInt(themeId)

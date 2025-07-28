@@ -299,7 +299,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
             profileName.text = proxyEntity.displayName()
             profileType.text = proxyEntity.displayType()
-            profileType.setTextColor(getColorAttr(R.attr.accentOrTextSecondary))
+            profileType.setTextColor(getColorAttr(com.google.android.material.R.attr.colorAccent))
 
             val rx = proxyEntity.rx
             val tx = proxyEntity.tx
