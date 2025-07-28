@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.utils
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
@@ -30,8 +31,13 @@ object Theme {
     const val GREY = 19
     const val BLUE_GREY = 20
     const val BLACK = 21
+    const val DYNAMIC = 22
 
-    const val DEFAULT = PINK
+    val DEFAULT = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        DYNAMIC
+    } else {
+        RED
+    }
 
     fun apply(context: Context) {
         context.setTheme(getTheme())
@@ -72,6 +78,11 @@ object Theme {
             GREY -> R.style.Theme_SagerNet_Grey
             BLUE_GREY -> R.style.Theme_SagerNet_BlueGrey
             BLACK -> R.style.Theme_SagerNet_Black
+            DYNAMIC -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                R.style.Theme_SagerNet_Dynamic
+            } else {
+                getTheme(DEFAULT)
+            }
             else -> getTheme(DEFAULT)
         }
     }
@@ -99,6 +110,11 @@ object Theme {
             GREY -> R.style.Theme_SagerNet_Dialog_Grey
             BLUE_GREY -> R.style.Theme_SagerNet_Dialog_BlueGrey
             BLACK -> R.style.Theme_SagerNet_Dialog_Black
+            DYNAMIC -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                R.style.Theme_SagerNet_Dynamic
+            } else {
+                getDialogTheme(DEFAULT)
+            }
             else -> getDialogTheme(DEFAULT)
         }
     }

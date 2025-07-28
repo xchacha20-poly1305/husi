@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <integer-array name="material_colors" tools:ignore="InconsistentArrays">
+        <item>@color/material_red_500</item>
+        <item>@color/color_pink_ssr</item>
+        <item>@color/material_pink_500</item>
+        <item>@color/material_purple_500</item>
+        <item>@color/material_deep_purple_500</item>
+        <item>@color/material_indigo_500</item>
+        <item>@color/material_blue_500</item>
+        <item>@color/material_light_blue_500</item>
+        <item>@color/material_cyan_500</item>
+        <item>@color/material_teal_500</item>
+        <item>@color/material_green_500</item>
+
+        <item>@color/material_light_green_500</item>
+        <item>@color/material_lime_500</item>
+        <item>@color/material_yellow_500</item>
+        <item>@color/material_amber_500</item>
+        <item>@color/material_orange_500</item>
+        <item>@color/material_deep_orange_500</item>
+
+        <item>@color/material_brown_500</item>
+        <item>@color/material_grey_500</item>
+        <item>@color/material_blue_grey_500</item>
+        <item>@color/material_light_black</item>
+        <item tools:ignore="InconsistentArrays">@android:color/system_accent1_600</item>
+    </integer-array>
+</resources>

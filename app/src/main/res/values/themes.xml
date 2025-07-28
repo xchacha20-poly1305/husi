@@ -17,11 +17,6 @@
         <item name="colorTertiaryContainer">@color/material_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
 
-        <item name="colorMaterial100">@color/material_pink_100</item>
-        <item name="colorMaterial300">@color/material_pink_300</item>
-
-        <item name="whiteOrTextPrimary">@color/white</item>
-
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
 
@@ -46,11 +41,6 @@
         <item name="colorTertiaryContainer">@color/material_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
 
-        <item name="colorMaterial100">@color/material_pink_100</item>
-        <item name="colorMaterial300">@color/material_pink_300</item>
-
-        <item name="whiteOrTextPrimary">@color/white</item>
-
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
 
@@ -72,8 +62,6 @@
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_pink_100</item>
         <item name="colorOnSecondaryContainer">@color/material_pink_900</item>
-        <item name="colorMaterial100">@color/material_pink_accent_100</item>
-        <item name="colorMaterial300">@color/color_pink_ssr</item>
     </style>
 
     <style name="Theme.SagerNet.Amber" parent="Theme.SagerNet">
@@ -89,8 +77,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_orange_100</item>
         <item name="colorOnTertiaryContainer">@color/material_orange_900</item>
-        <item name="colorMaterial100">@color/material_amber_100</item>
-        <item name="colorMaterial300">@color/material_amber_300</item>
     </style>
 
     <style name="Theme.SagerNet.Blue" parent="Theme.SagerNet">
@@ -106,8 +92,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_light_blue_100</item>
         <item name="colorOnTertiaryContainer">@color/material_light_blue_900</item>
-        <item name="colorMaterial100">@color/material_blue_100</item>
-        <item name="colorMaterial300">@color/material_blue_300</item>
     </style>
 
     <style name="Theme.SagerNet.BlueGrey" parent="Theme.SagerNet">
@@ -123,8 +107,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_grey_200</item>
         <item name="colorOnTertiaryContainer">@color/material_grey_700</item>
-        <item name="colorMaterial100">@color/material_blue_grey_100</item>
-        <item name="colorMaterial300">@color/material_blue_grey_300</item>
     </style>
 
     <style name="Theme.SagerNet.Brown" parent="Theme.SagerNet">
@@ -140,8 +122,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_deep_orange_100</item>
         <item name="colorOnTertiaryContainer">@color/material_deep_orange_900</item>
-        <item name="colorMaterial100">@color/material_brown_100</item>
-        <item name="colorMaterial300">@color/material_brown_300</item>
     </style>
 
     <style name="Theme.SagerNet.Cyan" parent="Theme.SagerNet">
@@ -157,8 +137,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_teal_100</item>
         <item name="colorOnTertiaryContainer">@color/material_teal_900</item>
-        <item name="colorMaterial100">@color/material_cyan_100</item>
-        <item name="colorMaterial300">@color/material_cyan_300</item>
     </style>
 
     <style name="Theme.SagerNet.DeepOrange" parent="Theme.SagerNet">
@@ -174,8 +152,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_orange_100</item>
         <item name="colorOnTertiaryContainer">@color/material_orange_900</item>
-        <item name="colorMaterial100">@color/material_deep_orange_100</item>
-        <item name="colorMaterial300">@color/material_deep_orange_300</item>
     </style>
 
     <style name="Theme.SagerNet.DeepPurple" parent="Theme.SagerNet">
@@ -191,8 +167,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
-        <item name="colorMaterial100">@color/material_deep_purple_100</item>
-        <item name="colorMaterial300">@color/material_deep_purple_300</item>
     </style>
 
     <style name="Theme.SagerNet.Green" parent="Theme.SagerNet">
@@ -208,8 +182,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_light_green_100</item>
         <item name="colorOnTertiaryContainer">@color/material_light_green_900</item>
-        <item name="colorMaterial100">@color/material_green_100</item>
-        <item name="colorMaterial300">@color/material_green_300</item>
     </style>
 
     <style name="Theme.SagerNet.Grey" parent="Theme.SagerNet">
@@ -225,8 +197,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_blue_grey_200</item>
         <item name="colorOnTertiaryContainer">@color/material_blue_grey_700</item>
-        <item name="colorMaterial100">@color/material_grey_100</item>
-        <item name="colorMaterial300">@color/material_grey_300</item>
     </style>
 
     <style name="Theme.SagerNet.Indigo" parent="Theme.SagerNet">
@@ -242,8 +212,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_deep_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_deep_purple_900</item>
-        <item name="colorMaterial100">@color/material_indigo_100</item>
-        <item name="colorMaterial300">@color/material_indigo_300</item>
     </style>
 
     <style name="Theme.SagerNet.LightBlue" parent="Theme.SagerNet">
@@ -259,8 +227,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_cyan_100</item>
         <item name="colorOnTertiaryContainer">@color/material_cyan_900</item>
-        <item name="colorMaterial100">@color/material_light_blue_100</item>
-        <item name="colorMaterial300">@color/material_light_blue_300</item>
     </style>
 
     <style name="Theme.SagerNet.LightGreen" parent="Theme.SagerNet">
@@ -276,8 +242,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_green_100</item>
         <item name="colorOnTertiaryContainer">@color/material_green_900</item>
-        <item name="colorMaterial100">@color/material_light_green_100</item>
-        <item name="colorMaterial300">@color/material_light_green_300</item>
     </style>
 
     <style name="Theme.SagerNet.Lime" parent="Theme.SagerNet">
@@ -293,8 +257,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_yellow_100</item>
         <item name="colorOnTertiaryContainer">@color/material_yellow_900</item>
-        <item name="colorMaterial100">@color/material_lime_100</item>
-        <item name="colorMaterial300">@color/material_lime_300</item>
     </style>
 
     <style name="Theme.SagerNet.Orange" parent="Theme.SagerNet">
@@ -310,8 +272,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_amber_100</item>
         <item name="colorOnTertiaryContainer">@color/material_amber_900</item>
-        <item name="colorMaterial100">@color/material_orange_100</item>
-        <item name="colorMaterial300">@color/material_orange_300</item>
     </style>
 
     <style name="Theme.SagerNet.Purple" parent="Theme.SagerNet">
@@ -327,8 +287,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_deep_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_deep_purple_900</item>
-        <item name="colorMaterial100">@color/material_purple_100</item>
-        <item name="colorMaterial300">@color/material_purple_300</item>
     </style>
 
     <style name="Theme.SagerNet.Red" parent="Theme.SagerNet">
@@ -344,8 +302,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_pink_100</item>
         <item name="colorOnTertiaryContainer">@color/material_pink_900</item>
-        <item name="colorMaterial100">@color/material_red_100</item>
-        <item name="colorMaterial300">@color/material_red_300</item>
     </style>
 
     <style name="Theme.SagerNet.Teal" parent="Theme.SagerNet">
@@ -361,8 +317,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_green_100</item>
         <item name="colorOnTertiaryContainer">@color/material_green_900</item>
-        <item name="colorMaterial100">@color/material_teal_100</item>
-        <item name="colorMaterial300">@color/material_teal_300</item>
     </style>
 
     <style name="Theme.SagerNet.Yellow" parent="Theme.SagerNet">
@@ -378,8 +332,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_lime_100</item>
         <item name="colorOnTertiaryContainer">@color/material_lime_900</item>
-        <item name="colorMaterial100">@color/material_yellow_100</item>
-        <item name="colorMaterial300">@color/material_yellow_300</item>
         <item name="colorOnPrimarySurface">@color/black</item>
     </style>
 
@@ -396,8 +348,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_orange_100</item>
         <item name="colorOnTertiaryContainer">@color/material_orange_900</item>
-        <item name="colorMaterial100">@color/material_amber_100</item>
-        <item name="colorMaterial300">@color/material_amber_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Blue" parent="Theme.SagerNet.Dialog">
@@ -413,8 +363,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_light_blue_100</item>
         <item name="colorOnTertiaryContainer">@color/material_light_blue_900</item>
-        <item name="colorMaterial100">@color/material_blue_100</item>
-        <item name="colorMaterial300">@color/material_blue_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.BlueGrey" parent="Theme.SagerNet.Dialog">
@@ -430,8 +378,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_grey_200</item>
         <item name="colorOnTertiaryContainer">@color/material_grey_700</item>
-        <item name="colorMaterial100">@color/material_blue_grey_100</item>
-        <item name="colorMaterial300">@color/material_blue_grey_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Brown" parent="Theme.SagerNet.Dialog">
@@ -447,8 +393,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_deep_orange_100</item>
         <item name="colorOnTertiaryContainer">@color/material_deep_orange_900</item>
-        <item name="colorMaterial100">@color/material_brown_100</item>
-        <item name="colorMaterial300">@color/material_brown_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Cyan" parent="Theme.SagerNet.Dialog">
@@ -464,8 +408,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_teal_100</item>
         <item name="colorOnTertiaryContainer">@color/material_teal_900</item>
-        <item name="colorMaterial100">@color/material_cyan_100</item>
-        <item name="colorMaterial300">@color/material_cyan_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.DeepOrange" parent="Theme.SagerNet.Dialog">
@@ -481,8 +423,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_orange_100</item>
         <item name="colorOnTertiaryContainer">@color/material_orange_900</item>
-        <item name="colorMaterial100">@color/material_deep_orange_100</item>
-        <item name="colorMaterial300">@color/material_deep_orange_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.DeepPurple" parent="Theme.SagerNet.Dialog">
@@ -498,8 +438,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
-        <item name="colorMaterial100">@color/material_deep_purple_100</item>
-        <item name="colorMaterial300">@color/material_deep_purple_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Green" parent="Theme.SagerNet.Dialog">
@@ -515,8 +453,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_light_green_100</item>
         <item name="colorOnTertiaryContainer">@color/material_light_green_900</item>
-        <item name="colorMaterial100">@color/material_green_100</item>
-        <item name="colorMaterial300">@color/material_green_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Grey" parent="Theme.SagerNet.Dialog">
@@ -532,8 +468,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_blue_grey_200</item>
         <item name="colorOnTertiaryContainer">@color/material_blue_grey_700</item>
-        <item name="colorMaterial100">@color/material_grey_100</item>
-        <item name="colorMaterial300">@color/material_grey_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Indigo" parent="Theme.SagerNet.Dialog">
@@ -549,8 +483,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_deep_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_deep_purple_900</item>
-        <item name="colorMaterial100">@color/material_indigo_100</item>
-        <item name="colorMaterial300">@color/material_indigo_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.LightBlue" parent="Theme.SagerNet.Dialog">
@@ -566,8 +498,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_cyan_100</item>
         <item name="colorOnTertiaryContainer">@color/material_cyan_900</item>
-        <item name="colorMaterial100">@color/material_light_blue_100</item>
-        <item name="colorMaterial300">@color/material_light_blue_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.LightGreen" parent="Theme.SagerNet.Dialog">
@@ -583,8 +513,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_green_100</item>
         <item name="colorOnTertiaryContainer">@color/material_green_900</item>
-        <item name="colorMaterial100">@color/material_light_green_100</item>
-        <item name="colorMaterial300">@color/material_light_green_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Lime" parent="Theme.SagerNet.Dialog">
@@ -600,8 +528,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_yellow_100</item>
         <item name="colorOnTertiaryContainer">@color/material_yellow_900</item>
-        <item name="colorMaterial100">@color/material_lime_100</item>
-        <item name="colorMaterial300">@color/material_lime_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Orange" parent="Theme.SagerNet.Dialog">
@@ -617,8 +543,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_amber_100</item>
         <item name="colorOnTertiaryContainer">@color/material_amber_900</item>
-        <item name="colorMaterial100">@color/material_orange_100</item>
-        <item name="colorMaterial300">@color/material_orange_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Purple" parent="Theme.SagerNet.Dialog">
@@ -634,8 +558,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_deep_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_deep_purple_900</item>
-        <item name="colorMaterial100">@color/material_purple_100</item>
-        <item name="colorMaterial300">@color/material_purple_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Red" parent="Theme.SagerNet.Dialog">
@@ -651,8 +573,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_pink_100</item>
         <item name="colorOnTertiaryContainer">@color/material_pink_900</item>
-        <item name="colorMaterial100">@color/material_red_100</item>
-        <item name="colorMaterial300">@color/material_red_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Pink_SSR" parent="Theme.SagerNet.Dialog">
@@ -664,8 +584,6 @@
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_pink_100</item>
         <item name="colorOnSecondaryContainer">@color/material_pink_900</item>
-        <item name="colorMaterial100">@color/material_pink_accent_100</item>
-        <item name="colorMaterial300">@color/color_pink_ssr</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Teal" parent="Theme.SagerNet.Dialog">
@@ -681,8 +599,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_green_100</item>
         <item name="colorOnTertiaryContainer">@color/material_green_900</item>
-        <item name="colorMaterial100">@color/material_teal_100</item>
-        <item name="colorMaterial300">@color/material_teal_300</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Yellow" parent="Theme.SagerNet.Dialog">
@@ -698,8 +614,6 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_lime_100</item>
         <item name="colorOnTertiaryContainer">@color/material_lime_900</item>
-        <item name="colorMaterial100">@color/material_yellow_100</item>
-        <item name="colorMaterial300">@color/material_yellow_300</item>
         <item name="colorOnPrimarySurface">@color/black</item>
     </style>
 
@@ -716,17 +630,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_grey_800</item>
         <item name="colorOnTertiaryContainer">@color/white</item>
-
-        <item name="colorMaterial100">@color/fab_color_progress</item>
-        <item name="colorMaterial300">@color/material_light_black</item>
-
-        <item name="android:textColorLink">?attr/accentOrTextSecondary</item>
-        <item name="selectedColorPrimary">?attr/primaryOrTextPrimary</item>
-
-        <item name="accentOrTextSecondary">?android:textColorSecondary</item>
-        <item name="accentOrTextPrimary">?android:textColorPrimary</item>
-        <item name="primaryOrTextSecondary">?android:textColorSecondary</item>
-        <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Dialog">
@@ -742,11 +645,6 @@
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_grey_800</item>
         <item name="colorOnTertiaryContainer">@color/white</item>
-
-        <item name="colorMaterial100">@color/color_ng_black_primary</item>
-        <item name="colorMaterial300">@color/color_ng_black_primary</item>
-
-        <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
     </style>
 
     <style name="Theme.Start" parent="Theme.Material3.DayNight.NoActionBar">

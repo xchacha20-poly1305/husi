@@ -18,11 +18,6 @@
         <item name="colorTertiaryContainer">@color/material_purple_100</item>
         <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
 
-        <item name="colorMaterial100">@color/material_pink_100</item>
-        <item name="colorMaterial300">@color/material_pink_300</item>
-
-        <item name="whiteOrTextPrimary">@color/white</item>
-
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
 

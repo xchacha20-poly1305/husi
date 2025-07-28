@@ -683,7 +683,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             append("\n")
             append(
                 profile.displayType(),
-                ForegroundColorSpan(requireContext().getColorAttr(R.attr.accentOrTextSecondary)),
+                ForegroundColorSpan(requireContext().getColorAttr(com.google.android.material.R.attr.colorAccent)),
                 SPAN_EXCLUSIVE_EXCLUSIVE,
             )
             append(" ")
@@ -1371,7 +1371,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 profileName.text = proxyEntity.displayName()
                 profileType.text = proxyEntity.displayType()
-                profileType.setTextColor(profileType.context.getColorAttr(R.attr.accentOrTextSecondary))
+                profileType.setTextColor(profileType.context.getColorAttr(com.google.android.material.R.attr.colorSecondary))
 
                 var rx = proxyEntity.rx
                 var tx = proxyEntity.tx
