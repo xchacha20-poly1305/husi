@@ -43,8 +43,8 @@
     </style>
 
     <style name="Widget.App.Chip.Choice" parent="Widget.Material3.Chip.Filter">
-        <item name="textStartPadding">30dp</item>
-        <item name="textEndPadding">30dp</item>
+        <item name="chipStartPadding">30dp</item>
+        <item name="chipEndPadding">30dp</item>
         <item name="chipBackgroundColor">@color/chip_background</item>
         <item name="android:textColor">@color/chip_text_color</item>
         <item name="checkedIconTint">?primaryOrTextPrimary</item>
