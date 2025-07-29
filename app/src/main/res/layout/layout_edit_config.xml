@@ -30,7 +30,6 @@
                 android:id="@+id/editor"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@null"
                 android:completionThreshold="2"
                 android:importantForAutofill="no"
                 android:scrollbars="none" />
@@ -55,14 +54,14 @@
 
             <ImageView
                 android:id="@+id/action_tab"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginStart="8dp"
                 android:background="@null"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
+                android:padding="7dp"
                 android:src="@drawable/baseline_keyboard_tab_24"
                 app:tint="?attr/colorOnSurface" />
 
@@ -75,59 +74,59 @@
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 android:paddingHorizontal="0dp"
-                app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
+                app:layoutManager="io.nekohasekai.sagernet.widget.NoScrollLinearLayout"
                 tools:itemCount="6"
                 tools:listitem="@layout/item_keyboard_key" />
 
             <ImageView
                 android:id="@+id/action_undo"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginEnd="4dp"
                 android:background="@null"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
+                android:padding="7dp"
                 android:src="@drawable/baseline_undo_24"
                 app:tint="?attr/colorOnSurface" />
 
             <ImageView
                 android:id="@+id/action_redo"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginEnd="4dp"
                 android:background="@null"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
+                android:padding="7dp"
                 android:src="@drawable/baseline_redo_24"
                 app:tint="?attr/colorOnSurface" />
 
             <ImageView
                 android:id="@+id/action_format"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginEnd="4dp"
                 android:background="@null"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
+                android:padding="7dp"
                 android:src="@drawable/ic_baseline_format_align_left_24"
                 app:tint="?attr/colorOnSurface" />
 
             <ImageView
                 android:id="@+id/action_config_test"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginEnd="8dp"
                 android:background="@null"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
+                android:padding="7dp"
                 android:src="@drawable/ic_baseline_info_24"
                 app:tint="?attr/colorOnSurface" />
 
