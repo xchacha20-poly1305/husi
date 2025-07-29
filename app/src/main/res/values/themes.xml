@@ -21,9 +21,7 @@
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
 
         <item name="chipStyle">@style/Widget.App.Chip.Choice</item>
-
         <item name="itemShapeAppearance">@style/ShapeAppearance.Material3.MediumComponent</item>
-
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
     </style>
 
