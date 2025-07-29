@@ -26,7 +26,7 @@
             android:background="@android:color/darker_gray"
             android:orientation="horizontal" />
 
-        <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/configuration_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -34,14 +34,10 @@
             android:overScrollMode="never"
             android:padding="4dp"
             android:scrollbarSize="0dp"
-            app:fastScrollAutoHide="true"
-            app:fastScrollPopupTextColor="?colorPrimary"
-            app:fastScrollThumbColor="?colorPrimary"
-            app:fastScrollThumbInactiveColor="?colorPrimary"
             app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        </com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView>
+        </androidx.recyclerview.widget.RecyclerView>
 
     </LinearLayout>
 

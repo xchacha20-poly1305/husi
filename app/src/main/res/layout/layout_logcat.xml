@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".ui.tools.ToolsFragment">
 
     <include
@@ -21,6 +20,12 @@
         android:padding="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="64dp"
+        android:scrollbars="none"
+        app:fastScrollEnabled="true"
+        app:fastScrollHorizontalThumbDrawable="@drawable/fastscroll_thumb_thick"
+        app:fastScrollHorizontalTrackDrawable="@drawable/fastscroll_track_thick"
+        app:fastScrollVerticalThumbDrawable="@drawable/fastscroll_thumb_thick"
+        app:fastScrollVerticalTrackDrawable="@drawable/fastscroll_track_thick"
         app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 

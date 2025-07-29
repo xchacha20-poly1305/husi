@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/configuration_list"
@@ -12,8 +12,10 @@
     android:paddingRight="4dp"
     android:paddingBottom="48dp"
     android:scrollbarSize="0dp"
-    app:fastScrollAutoHide="true"
-    app:fastScrollThumbColor="?colorPrimary"
-    app:fastScrollThumbInactiveColor="?colorPrimary"
+    app:fastScrollEnabled="true"
+    app:fastScrollHorizontalThumbDrawable="@drawable/fastscroll_thumb"
+    app:fastScrollHorizontalTrackDrawable="@drawable/fastscroll_track"
+    app:fastScrollVerticalThumbDrawable="@drawable/fastscroll_thumb"
+    app:fastScrollVerticalTrackDrawable="@drawable/fastscroll_track"
     app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
     tools:listitem="@layout/layout_profile" />
