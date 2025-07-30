@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item_card"
-    style="?materialCardViewElevatedStyle"
+    style="?attr/materialCardViewElevatedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="2dp"
-    app:cardBackgroundColor="?colorSurfaceContainer"
+    app:cardBackgroundColor="?attr/colorSurfaceContainer"
     app:cardCornerRadius="4dp"
     app:cardElevation="0dp">
 
@@ -36,11 +36,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="?android:attr/textColorPrimary"
-                android:textStyle="bold"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
                 tools:text="Name" />
-
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -52,24 +50,18 @@
                     android:id="@+id/item_type"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?android:attr/textColorSecondary"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorSecondary"
                     tools:text="Type" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/item_status"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="end">
-
-                    <TextView
-                        android:id="@+id/item_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        tools:text="Status" />
-                </LinearLayout>
-
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    tools:text="Status" />
 
             </LinearLayout>
 
