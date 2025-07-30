@@ -1371,7 +1371,6 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 profileName.text = proxyEntity.displayName()
                 profileType.text = proxyEntity.displayType()
-                profileType.setTextColor(profileType.context.getColorAttr(com.google.android.material.R.attr.colorSecondary))
 
                 var rx = proxyEntity.rx
                 var tx = proxyEntity.tx

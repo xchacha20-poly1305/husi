@@ -132,7 +132,7 @@
                     android:layout_weight="1"
                     android:maxLines="1"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:textColor="?attr/colorSecondary" />
 
                 <TextView
                     android:id="@+id/profile_status"
