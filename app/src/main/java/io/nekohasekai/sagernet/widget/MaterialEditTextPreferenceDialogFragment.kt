@@ -87,7 +87,6 @@ class MaterialEditTextPreferenceDialogFragment : PreferenceDialogFragmentCompat(
         val builder = MaterialAlertDialogBuilder(context)
             .setTitle(preference.dialogTitle ?: preference.title)
             .setIcon(preference.dialogIcon ?: preference.icon)
-            .setMessage(preference.dialogMessage)
             .setPositiveButton(
                 preference.positiveButtonText ?: getString(android.R.string.ok),
                 this,
