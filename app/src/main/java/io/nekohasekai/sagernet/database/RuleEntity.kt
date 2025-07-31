@@ -123,6 +123,7 @@ data class RuleEntity(
         if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
         if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
 
+        // Even has "\n" suffix, TextView's "..." will be added and remove the last "\n".
         val lines = summary.trim().split("\n")
         return if (lines.size > 5) {
             lines.subList(0, 5).joinToString("\n", postfix = "\n...")

@@ -1400,10 +1400,6 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                     proxyEntity.requireBean().name.isBlank() || !pf.alwaysShowAddress -> ""
 
-                    showTraffic && tmpAddress.length >= 30 -> {
-                        tmpAddress.substring(0, 27) + "..."
-                    }
-
                     else -> tmpAddress
                 }
 
