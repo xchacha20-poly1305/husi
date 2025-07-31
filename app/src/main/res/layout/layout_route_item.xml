@@ -106,11 +106,11 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="Route: Proxy" />
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
+                <!-- 😇 Thanks google for unclear name: not switchmaterial -->
+                <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/enable"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="32dp" />
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
         </LinearLayout>
