@@ -6,9 +6,9 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.7
-	github.com/sagernet/sing v0.7.0-beta.1.0.20250722151551-64142925accb
-	github.com/sagernet/sing-box v1.12.0-rc.3
-	github.com/sagernet/sing-tun v0.6.10-0.20250721014417-ebbe32588cfb
+	github.com/sagernet/sing v0.7.0-beta.2
+	github.com/sagernet/sing-box v1.12.0-rc.4
+	github.com/sagernet/sing-tun v0.7.0-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/cazilla v1.0.2
@@ -65,7 +65,7 @@ require (
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
-	github.com/sagernet/sing-vmess v0.2.4 // indirect
+	github.com/sagernet/sing-vmess v0.2.6 // indirect
 	github.com/sagernet/smux v1.5.34-mod.2 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
