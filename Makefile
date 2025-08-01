@@ -10,10 +10,10 @@ libcore:
 	./run lib core
 
 apk:
-	BUILD_PLUGIN=none ./gradlew app:assembleFossRelease
+	BUILD_PLUGIN=none ./gradlew app:assembleFossRelease --configuration-cache
 
 apk_debug:
-	BUILD_PLUGIN=none ./gradlew app:assembleFossDebug
+	BUILD_PLUGIN=none ./gradlew app:assembleFossDebug --configuration-cache
 
 assets:
 	./run lib assets
@@ -45,7 +45,7 @@ test_go:
 	cd libcore/ && go test -v -count=1 ./...
 
 plugin:
-	BUILD_PLUGIN=$(PLUGIN) ./gradlew :plugin:$(PLUGIN):assembleFossRelease
+	BUILD_PLUGIN=$(PLUGIN) ./gradlew :plugin:$(PLUGIN):assembleFossRelease --configuration-cache
 
 generate_option:
 	cd ./libcore/cmd/boxoption && go run . | xclip -selection clipboard
