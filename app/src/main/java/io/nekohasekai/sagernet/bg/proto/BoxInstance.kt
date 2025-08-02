@@ -20,10 +20,12 @@ import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.fmt.shadowquic.buildShadowQUICConfig
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.plus
 import libcore.BoxInstance
 import libcore.Libcore
@@ -265,7 +267,10 @@ abstract class BoxInstance(
                 Logs.w(e)
                 // Kill the process if it is not closed properly to clean exist inbound listeners.
                 // Do not kill in main process, whose test not starts any listener.
-                if (!app.isMainProcess) exitProcess(0)
+                if (!app.isMainProcess) runOnDefaultDispatcher {
+                    delay(500) // Wait for error handling
+                    exitProcess(0)
+                }
             }
         }
     }
