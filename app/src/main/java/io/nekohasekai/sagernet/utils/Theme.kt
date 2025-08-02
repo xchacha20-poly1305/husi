@@ -83,6 +83,7 @@ object Theme {
             } else {
                 getTheme(DEFAULT)
             }
+
             else -> getTheme(DEFAULT)
         }
     }
@@ -115,6 +116,7 @@ object Theme {
             } else {
                 getDialogTheme(DEFAULT)
             }
+
             else -> getDialogTheme(DEFAULT)
         }
     }

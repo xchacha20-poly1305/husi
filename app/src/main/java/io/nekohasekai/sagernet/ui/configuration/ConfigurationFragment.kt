@@ -27,6 +27,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.net.toUri
+import androidx.core.os.BundleCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
@@ -892,11 +893,13 @@ class ConfigurationFragment @JvmOverloads constructor(
         override fun onViewStateRestored(savedInstanceState: Bundle?) {
             super.onViewStateRestored(savedInstanceState)
 
-            @Suppress("DEPRECATION") savedInstanceState?.getParcelable<ProxyGroup>("proxyGroup")
-                ?.also {
-                    proxyGroup = it
-                    onViewCreated(requireView(), null)
-                }
+            savedInstanceState?.let {
+                BundleCompat.getParcelable(savedInstanceState, "proxyGroup", ProxyGroup::class.java)
+                    ?.let { group ->
+                        proxyGroup = group
+                        onViewCreated(requireView(), null)
+                    }
+            }
         }
 
         private val isEnabled: Boolean
@@ -1558,8 +1561,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 shareButton.setIconResource(R.drawable.ic_social_share)
                                 shareButton.setIconTint(
                                     ColorStateList.valueOf(
-                                        shareButton.context.getColour(
-                                            com.google.android.material.R.color.m3_icon_button_icon_color_selector
+                                        shareButton.context.getColorAttr(
+                                            com.google.android.material.R.attr.colorOnSurface
                                         )
                                     )
                                 )

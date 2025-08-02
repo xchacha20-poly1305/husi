@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:indeterminate="true"
             android:visibility="gone"
-            app:indicatorColor="?attr/colorPrimary" />
+            app:indicatorColor="?attr/selectedColorPrimary" />
 
         <LinearLayout
             android:layout_width="match_parent"

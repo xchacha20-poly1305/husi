@@ -25,8 +25,7 @@
             android:layout_height="wrap_content"
             android:indeterminate="true"
             android:visibility="invisible"
-            app:indicatorColor="?attr/colorPrimary"
-            app:trackColor="?attr/colorSurfaceContainerLow" />
+            app:indicatorColor="?attr/selectedColorPrimary" />
 
         <LinearLayout
             android:layout_width="match_parent"

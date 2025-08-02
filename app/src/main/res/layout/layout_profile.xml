@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content"
-    style="?attr/materialCardViewOutlinedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="8dp"
     android:layout_marginTop="8dp"
     android:layout_marginEnd="8dp"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:id="@+id/content_lin"
@@ -23,7 +23,7 @@
             android:id="@+id/selected_view"
             android:layout_width="4dp"
             android:layout_height="match_parent"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/selectedColorPrimary"
             android:orientation="horizontal"
             android:visibility="invisible"
             tools:visibility="visible" />
@@ -61,7 +61,8 @@
                     android:contentDescription="@string/edit"
                     android:minWidth="40dp"
                     android:minHeight="40dp"
-                    app:icon="@drawable/ic_image_edit" />
+                    app:icon="@drawable/ic_image_edit"
+                    app:iconTint="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/share"
@@ -71,7 +72,8 @@
                     android:contentDescription="@string/share"
                     android:minWidth="40dp"
                     android:minHeight="40dp"
-                    app:icon="@drawable/ic_social_share" />
+                    app:icon="@drawable/ic_social_share"
+                    app:iconTint="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/remove"
@@ -82,7 +84,8 @@
                     android:minWidth="40dp"
                     android:minHeight="40dp"
                     android:visibility="gone"
-                    app:icon="@drawable/ic_action_delete" />
+                    app:icon="@drawable/ic_action_delete"
+                    app:iconTint="?attr/colorOnSurface" />
 
             </LinearLayout>
 
@@ -127,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorSecondary" />
+                    android:textColor="?attr/colorOnTertiaryContainer" />
 
                 <TextView
                     android:id="@+id/profile_status"

@@ -3,29 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content"
-    style="?attr/materialCardViewOutlinedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="8dp"
     android:layout_marginTop="8dp"
     android:layout_marginEnd="8dp"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:id="@+id/content_lin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/selected_view"
-            android:layout_width="4dp"
-            android:layout_height="match_parent"
-            android:background="?attr/colorPrimary"
-            android:orientation="horizontal"
-            android:visibility="invisible"
-            tools:visibility="visible" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,7 +55,8 @@
                     android:minWidth="40dp"
                     android:minHeight="40dp"
                     app:icon="@drawable/ic_image_edit"
-                    app:iconSize="30dp" />
+                    app:iconSize="30dp"
+                    app:iconTint="?attr/colorOnSurface" />
 
             </LinearLayout>
 

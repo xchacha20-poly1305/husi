@@ -12,6 +12,5 @@
         android:layout_height="match_parent"
         android:background="?attr/colorPrimary"
         android:touchscreenBlocksFocus="false"
-        app:title="@string/app_name"
-        app:titleTextAppearance="@style/AppNameAppearance" />
+        app:title="@string/app_name" />
 </com.google.android.material.appbar.AppBarLayout>
