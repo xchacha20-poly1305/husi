@@ -25,6 +25,9 @@ constructor(
 ) : EditTextPreference(context, attrs, defStyleAttr, defStyleRes) {
 
     init {
+        // !! load custom first
+        dialogLayoutResource = R.layout.m3_dialog_edit_text
+
         setOnBindEditTextListener {
             val linkLayout = it.rootView.findViewById<TextInputLayout>(R.id.input_layout)
             fun validate() {
