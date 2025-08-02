@@ -1,18 +1,25 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.content.DialogInterface
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.core.widget.addTextChangedListener
 import com.blacksquircle.ui.editorkit.insert
-import com.blacksquircle.ui.editorkit.utils.EditorTheme
+import com.blacksquircle.ui.editorkit.model.ColorScheme
+import com.blacksquircle.ui.editorkit.plugin.autoindent.autoIndentation
+import com.blacksquircle.ui.editorkit.plugin.base.PluginSupplier
+import com.blacksquircle.ui.editorkit.plugin.delimiters.highlightDelimiters
+import com.blacksquircle.ui.editorkit.plugin.dirtytext.OnChangeListener
+import com.blacksquircle.ui.editorkit.plugin.dirtytext.onChangeListener
+import com.blacksquircle.ui.editorkit.plugin.linenumbers.lineNumbers
 import com.blacksquircle.ui.language.json.JsonLanguage
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
@@ -25,8 +32,10 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
+import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.utils.Theme
 import libcore.Libcore
 import kotlin.math.max
 
@@ -112,8 +121,20 @@ class ConfigEditActivity : ThemedActivity() {
             language = JsonLanguage()
             setHorizontallyScrolling(true)
             setTextContent(DataStore.profileCacheStore.getString(key)!!)
-            colorScheme = EditorTheme.DARCULA // Don't remove this line!
-            addTextChangedListener {
+            colorScheme = myTheme
+            plugins(PluginSupplier.create {
+                lineNumbers {
+                    lineNumbers = true
+                    highlightCurrentLine = true
+                }
+                highlightDelimiters()
+                autoIndentation {
+                    autoIndentLines = true
+                    autoCloseBrackets = true
+                    autoCloseQuotes = true
+                }
+            })
+            onChangeListener = OnChangeListener {
                 if (!dirty) {
                     dirty = true
                     DataStore.dirty = true
@@ -215,4 +236,98 @@ class ConfigEditActivity : ThemedActivity() {
     override fun snackbarInternal(text: CharSequence): Snackbar {
         return Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT)
     }
+
+    val myTheme: ColorScheme
+        get() {
+            val colorPrimary = getColorAttr(androidx.appcompat.R.attr.colorPrimary)
+            val colorPrimaryDark = getColorAttr(androidx.appcompat.R.attr.colorPrimaryDark)
+            val appTheme = Theme.getTheme()
+            val nightMode = Theme.usingNightMode()
+
+            return ColorScheme(
+                textColor = when (appTheme) {
+                    R.style.Theme_SagerNet_Black -> if (nightMode) {
+                        Color.WHITE
+                    } else {
+                        Color.BLACK
+                    }
+
+                    else -> colorPrimary
+                },
+                cursorColor = "#BBBBBB".toColorInt(),
+                backgroundColor = if (nightMode) {
+                    Color.BLACK
+                } else {
+                    Color.WHITE
+                },
+                gutterColor = colorPrimary,
+                gutterDividerColor = if (nightMode) {
+                    Color.BLACK
+                } else {
+                    Color.WHITE
+                },
+                gutterCurrentLineNumberColor = when (appTheme) {
+                    R.style.Theme_SagerNet_Black -> if (nightMode) {
+                        Color.WHITE
+                    } else {
+                        Color.BLACK
+                    }
+
+                    else -> Color.WHITE
+                },
+                gutterTextColor = when (appTheme) {
+                    R.style.Theme_SagerNet_Black -> if (nightMode) {
+                        Color.WHITE
+                    } else {
+                        Color.BLACK
+                    }
+
+                    else -> Color.WHITE
+                },
+                selectedLineColor = if (nightMode) {
+                    "#2C2C2C".toColorInt()
+                } else {
+                    "#D3D3D3".toColorInt()
+                },
+                selectionColor = when (appTheme) {
+                    R.style.Theme_SagerNet_Black -> if (nightMode) {
+                        "#4C4C4C".toColorInt()
+                    } else {
+                        "#B3B3B3".toColorInt()
+                    }
+
+                    else -> colorPrimary
+                },
+                suggestionQueryColor = "#7CE0F3".toColorInt(),
+                findResultBackgroundColor = "#5F5E5A".toColorInt(),
+                delimiterBackgroundColor = "#5F5E5A".toColorInt(),
+                numberColor = "#BB8FF8".toColorInt(),
+                operatorColor = if (nightMode) {
+                    Color.WHITE
+                } else {
+                    Color.BLACK
+                },
+                keywordColor = "#EB347E".toColorInt(),
+                typeColor = "#7FD0E4".toColorInt(),
+                langConstColor = "#EB347E".toColorInt(),
+                preprocessorColor = "#EB347E".toColorInt(),
+                variableColor = "#7FD0E4".toColorInt(),
+                methodColor = "#B6E951".toColorInt(),
+                stringColor = when (Theme.getTheme()) {
+                    R.style.Theme_SagerNet_Black -> if (nightMode) {
+                        Color.WHITE
+                    } else {
+                        Color.BLACK
+                    }
+
+                    else -> colorPrimaryDark
+                },
+                commentColor = "#89826D".toColorInt(),
+                tagColor = "#F8F8F8".toColorInt(),
+                tagNameColor = "#EB347E".toColorInt(),
+                attrNameColor = "#B6E951".toColorInt(),
+                attrValueColor = "#EBE48C".toColorInt(),
+                entityRefColor = "#BB8FF8".toColorInt(),
+            )
+        }
 }
