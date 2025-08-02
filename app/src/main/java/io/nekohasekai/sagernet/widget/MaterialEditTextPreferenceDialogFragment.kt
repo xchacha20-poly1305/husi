@@ -35,12 +35,11 @@ class MaterialEditTextPreferenceDialogFragment : PreferenceDialogFragmentCompat(
 
     override fun onCreateDialogView(context: Context): View {
         val preference = preference as EditTextPreference
-        val layoutResId = preference.dialogLayoutResource
+        val layoutResId = preference.dialogLayoutResource.takeIf {
+            it > 0
+        } ?: R.layout.m3_dialog_edit_text
 
-        val view = layoutInflater.inflate(
-            if (layoutResId != 0) layoutResId else R.layout.m3_dialog_edit_text,
-            null
-        )
+        val view = layoutInflater.inflate(layoutResId, null)
 
         val editText = view.findViewById<EditText>(android.R.id.edit)
         if (editText == null) {
