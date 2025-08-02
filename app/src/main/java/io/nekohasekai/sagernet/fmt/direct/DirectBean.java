@@ -13,7 +13,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions;
 
 /**
  * @implNote {@link #serverAddress} & {@link #serverPort} as overrideAddress & overridePort
-  */
+ */
 public class DirectBean extends AbstractBean {
     public static final Creator<DirectBean> CREATOR = new CREATOR<DirectBean>() {
         @NonNull
@@ -59,10 +59,9 @@ public class DirectBean extends AbstractBean {
     @Override
     public String displayName() {
         if (name == null || name.isEmpty()) {
-            return name;
-        } else {
             return SingBoxOptions.TYPE_DIRECT;
         }
+        return name;
     }
 
     @Override
