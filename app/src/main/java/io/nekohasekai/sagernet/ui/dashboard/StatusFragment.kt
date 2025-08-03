@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +24,6 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
-import libcore.Libcore
 import java.net.Inet4Address
 import java.net.Inet6Address
 
@@ -94,7 +94,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
 
     suspend fun emitStats(memory: Long, goroutines: Int) {
         onMainDispatcher {
-            binding.memoryText.text = Libcore.formatMemoryBytes(memory)
+            binding.memoryText.text = Formatter.formatFileSize(binding.memoryText.context, memory)
             binding.goroutinesText.text = goroutines.toString()
         }
     }
