@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
+import android.text.format.Formatter
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.Toolbar
@@ -20,7 +21,6 @@ import io.nekohasekai.sagernet.ui.ToolbarFragment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import libcore.Libcore
 
 class ConnectionFragment(val conn: Connection) :
     ToolbarFragment(R.layout.layout_connection),
@@ -113,8 +113,10 @@ class ConnectionFragment(val conn: Connection) :
     }
 
     private fun bindTraffic() {
-        binding.connUpload.text = Libcore.formatBytes(conn.uploadTotal)
-        binding.connDownload.text = Libcore.formatBytes(conn.downloadTotal)
+        binding.connUpload.text =
+            Formatter.formatFileSize(binding.connUpload.context, conn.uploadTotal)
+        binding.connDownload.text =
+            Formatter.formatFileSize(binding.connDownload.context, conn.downloadTotal)
     }
 
     private suspend fun emitStats(connections: List<Connection>) {

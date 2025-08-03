@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
+import android.text.format.Formatter
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
@@ -19,7 +20,6 @@ import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
-import libcore.Libcore
 
 class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
@@ -101,8 +101,14 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
             }
             binding.connectionTraffic.text = getString(
                 R.string.traffic,
-                Libcore.formatBytes(connection.uploadTotal),
-                Libcore.formatBytes(connection.downloadTotal),
+                Formatter.formatFileSize(
+                    binding.connectionTraffic.context,
+                    connection.uploadTotal,
+                ),
+                Formatter.formatFileSize(
+                    binding.connectionTraffic.context,
+                    connection.downloadTotal,
+                ),
             )
             binding.connectionChain.text = connection.chain
             binding.root.setOnClickListener {

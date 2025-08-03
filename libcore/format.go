@@ -12,23 +12,12 @@ import (
 	"github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing/common/byteformats"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
 
 	"libcore/distro"
 )
-
-// FormatBytes formats the bytes length to humanize.
-func FormatBytes(length int64) string {
-	return byteformats.FormatBytes(uint64(length))
-}
-
-// FormatMemoryBytes formats the bytes length in memory format.
-func FormatMemoryBytes(length int64) string {
-	return byteformats.FormatMemoryBytes(uint64(length))
-}
 
 func baseContext(platformInterface PlatformInterface) context.Context {
 	dnsRegistry := distro.DNSTransportRegistry()
