@@ -10,7 +10,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
@@ -23,8 +26,6 @@ import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ktx.setOnFocusCancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
@@ -38,6 +39,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
     }
 
     private lateinit var binding: LayoutDashboardBinding
+    private val viewModel by viewModels<DashboardFragmentViewModel>()
     private lateinit var adapter: TrafficAdapter
 
     private val menuSearch by lazy { toolbar.menu.findItem(R.id.action_traffic_search) }
@@ -129,7 +131,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 toolbar.menu.findItem(R.id.action_sort_rule)!!.isChecked = true
             }
         }
-        searchView = toolbar.findViewById<SearchView>(R.id.action_traffic_search).apply {
+        toolbar.findViewById<SearchView>(R.id.action_traffic_search).apply {
             setOnQueryTextListener(this@DashboardFragment)
             maxWidth = Int.MAX_VALUE
             setOnFocusCancel()
@@ -144,8 +146,7 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
         }
         binding.dashboardTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                val isConnectionUI = tab.position == POSITION_CONNECTIONS
-                updateMenu(isConnectionUI)
+                viewModel.onTabSelected(tab.position)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {}
@@ -153,25 +154,29 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
             override fun onTabReselected(tab: TabLayout.Tab) {}
 
         })
-        updateMenu(false)
 
         lifecycleScope.launch {
-            val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
-            while (isActive) {
-                emitStats()
-                delay(interval)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect {
+                    if (it.isPausing) {
+                        menuPause.setIcon(R.drawable.baseline_play_24)
+                    } else {
+                        menuPause.setIcon(R.drawable.baseline_pause_24)
+                    }
+                    updateMenu(it.isConnectionUiVisible)
+                }
             }
         }
+        viewModel.onTabSelected(binding.dashboardTab.selectedTabPosition)
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_reset_network -> {
-                val mainActivity = (requireActivity() as? MainActivity) ?: return true
-                val size =
-                    (adapter.getCurrentFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)
-                        ?.adapter?.data?.size ?: 0
-                MaterialAlertDialogBuilder(mainActivity)
+                val fragment =
+                    getFragment<ConnectionListFragment>(POSITION_CONNECTIONS) ?: return false
+                val size = fragment.connectionSize()
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.reset_connections)
                     .setMessage(
                         getString(
@@ -180,87 +185,75 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                         )
                     )
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        mainActivity.connection.service?.resetNetwork()
+                        lifecycleScope.launch {
+                            (requireActivity() as? MainActivity)?.connection?.service?.resetNetwork()
+                        }
                         snackbar(R.string.have_reset_network).show()
                     }
-                    .setNegativeButton(R.string.no_thanks) { _, _ -> }
+                    .setNegativeButton(R.string.no_thanks, null)
                     .show()
                 true
             }
 
             R.id.action_traffic_pause -> {
-                if (isPausing) {
-                    isPausing = false
-                    item.setIcon(R.drawable.baseline_pause_24)
-                } else {
-                    isPausing = true
-                    item.setIcon(R.drawable.baseline_play_24)
-                }
+                viewModel.reversePausing()
                 true
             }
 
             // Sort
 
             R.id.action_sort_ascending -> {
-                DataStore.trafficDescending = false
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortDescending(false)
                 true
             }
 
             R.id.action_sort_descending -> {
                 DataStore.trafficDescending = true
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortDescending(true)
                 true
             }
 
             R.id.action_sort_time -> {
-                DataStore.trafficSortMode = TrafficSortMode.START
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.START)
                 true
             }
 
             R.id.action_sort_inbound -> {
-                DataStore.trafficSortMode = TrafficSortMode.INBOUND
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.INBOUND)
                 true
             }
 
             R.id.action_sort_source -> {
-                DataStore.trafficSortMode = TrafficSortMode.SRC
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.SRC)
                 true
             }
 
             R.id.action_sort_destination -> {
-                DataStore.trafficSortMode = TrafficSortMode.DST
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.DST)
                 true
             }
 
             R.id.action_sort_upload -> {
-                DataStore.trafficSortMode = TrafficSortMode.UPLOAD
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.UPLOAD)
                 true
             }
 
             R.id.action_sort_download -> {
-                DataStore.trafficSortMode = TrafficSortMode.DOWNLOAD
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.DOWNLOAD)
                 true
             }
 
             R.id.action_sort_rule -> {
-                DataStore.trafficSortMode = TrafficSortMode.MATCHED_RULE
                 item.isChecked = true
-                recreateComparator()
+                viewModel.setSortMode(TrafficSortMode.MATCHED_RULE)
                 true
             }
 
@@ -268,43 +261,11 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
         }
     }
 
-    private var isPausing = false
-
-    private suspend fun emitStats() {
-        when (binding.dashboardPager.currentItem) {
-            POSITION_STATUS -> {
-                val dashboard = getFragment(POSITION_STATUS) as? StatusFragment ?: return
-                val service = (requireActivity() as? MainActivity)?.connection?.service ?: return
-                dashboard.emitStats(service.queryMemory(), service.queryGoroutines())
-            }
-
-            POSITION_CONNECTIONS -> {
-                if (isPausing) return
-                val connectionFragment =
-                    getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment ?: return
-                val service = (requireActivity() as? MainActivity)?.connection?.service ?: return
-                connectionFragment.emitStats(service.queryConnections().connections)
-            }
-
-            // TODO proxy set use emitStats, too.
-            POSITION_PROXY_SET -> {}
-        }
+    private inline fun <reified T : Fragment> getFragment(position: Int): T? {
+        return childFragmentManager.findFragmentByTag("f$position") as? T
     }
 
-    fun refreshClashMode() {
-        if (binding.dashboardPager.currentItem != POSITION_STATUS) return
-        (getFragment(POSITION_STATUS) as? StatusFragment)?.refreshClashMode()
-    }
-
-    private fun recreateComparator() {
-        (getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)?.recreateComparator()
-    }
-
-    private fun getFragment(position: Int): Fragment? {
-        return adapter.getCurrentFragment(position)
-    }
-
-    inner class TrafficAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
+    class TrafficAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
         override fun getItemCount(): Int {
             return 3
         }
@@ -317,21 +278,15 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 else -> throw IllegalArgumentException()
             }
         }
-
-        fun getCurrentFragment(position: Int): Fragment? {
-            return childFragmentManager.findFragmentByTag("f$position")
-        }
     }
 
-    private lateinit var searchView: SearchView
-
     override fun onQueryTextSubmit(query: String?): Boolean {
-        (getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)?.searchString = query
+        viewModel.setSearchQuery(query)
         return false
     }
 
     override fun onQueryTextChange(query: String?): Boolean {
-        (getFragment(POSITION_CONNECTIONS) as? ConnectionListFragment)?.searchString = query
+        viewModel.setSearchQuery(query)
         return false
     }
 }

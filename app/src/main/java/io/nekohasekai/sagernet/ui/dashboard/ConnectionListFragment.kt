@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
 import android.text.format.Formatter
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
@@ -9,22 +10,30 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.common.hash.Hashing
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutDashboardListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
+import kotlinx.coroutines.launch
+import java.nio.charset.StandardCharsets
 
 class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
-    lateinit var binding: LayoutDashboardListBinding
-    lateinit var adapter: ConnectionAdapter
+    private lateinit var binding: LayoutDashboardListBinding
+    private val viewModel by viewModels<ConnectionListFragmentViewModel>()
+    private val dashboardViewModel by viewModels<DashboardFragmentViewModel>({ requireParentFragment() })
+    private lateinit var adapter: ConnectionAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,40 +54,101 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
             adapter = it
         }
         ItemTouchHelper(SwipeToDeleteCallback(adapter)).attachToRecyclerView(binding.recycleView)
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
+        }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                dashboardViewModel.uiState.collect {
+                    if (it.isPausing) {
+                        viewModel.stop()
+                    } else {
+                        viewModel.initialize((requireActivity() as MainActivity).connection.service!!)
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                dashboardViewModel.sortState.collect { sortState ->
+                    viewModel.setDescending(sortState.isDescending)
+                    viewModel.updateSortMode(sortState.sortMode)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                dashboardViewModel.searchQuery.collect { query ->
+                    viewModel.query = query
+                }
+            }
+        }
     }
 
-    inner class ConnectionAdapter : RecyclerView.Adapter<Holder>() {
+    private suspend fun handleUiState(state: ConnectionListFragmentUiState) {
+        if (state.connections.isEmpty()) {
+            binding.connectionNotFound.isVisible = true
+            binding.recycleView.isVisible = false
+            adapter.submitList(emptyList())
+            return
+        }
+
+        binding.connectionNotFound.isVisible = false
+        binding.recycleView.isVisible = true
+        adapter.submitList(state.connections)
+    }
+
+    override fun onPause() {
+        viewModel.stop()
+        super.onPause()
+    }
+
+    private inner class ConnectionAdapter :
+        ListAdapter<Connection, Holder>(connectionDiffCallback) {
         init {
             setHasStableIds(true)
         }
 
-        var data: MutableList<Connection> = mutableListOf()
-
-        // Upstream uses UUID (String) as ID, when Adapter use Long.
-        // LinkedHashSet marks an unique index for each uuid.
-        private var idStore = linkedSetOf<String>()
-
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-            return Holder(ViewConnectionItemBinding.inflate(layoutInflater, parent, false))
-        }
-
-        override fun getItemCount(): Int {
-            return data.size
+            return Holder(
+                ViewConnectionItemBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false,
+                )
+            )
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
-            idStore.add(data[position].uuid)
-            holder.bind(data[position])
+            holder.bind(getItem(position))
         }
 
         override fun getItemId(position: Int): Long {
-            idStore.add(data[position].uuid)
-            return idStore.indexOf(data[position].uuid).toLong()
+            return getItem(position).uuid.murmurHash()
+        }
+
+        private fun String.murmurHash(): Long {
+            return Hashing.murmur3_128().hashString(this, StandardCharsets.UTF_8).asLong()
         }
 
     }
 
-    inner class Holder(
+    private val connectionDiffCallback = object : DiffUtil.ItemCallback<Connection>() {
+        override fun areItemsTheSame(old: Connection, new: Connection): Boolean {
+            return old.uuid == new.uuid
+        }
+
+        override fun areContentsTheSame(old: Connection, new: Connection): Boolean {
+            return old == new
+        }
+    }
+
+    private inner class Holder(
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
@@ -99,7 +169,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                     false
                 }
             }
-            binding.connectionTraffic.text = getString(
+            binding.connectionTraffic.text = binding.connectionTraffic.context.getString(
                 R.string.traffic,
                 Formatter.formatFileSize(
                     binding.connectionTraffic.context,
@@ -122,7 +192,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
         }
     }
 
-    inner class SwipeToDeleteCallback(private val adapter: ConnectionAdapter) :
+    private inner class SwipeToDeleteCallback(private val adapter: ConnectionAdapter) :
         ItemTouchHelper.Callback() {
         override fun getMovementFlags(
             recyclerView: RecyclerView,
@@ -142,75 +212,16 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            (requireActivity() as MainActivity)
-                .connection
-                .service?.closeConnection(adapter.data[viewHolder.absoluteAdapterPosition].uuid)
-        }
-    }
-
-    fun recreateComparator() {
-        comparator = createConnectionComparator()
-    }
-
-    private var comparator = createConnectionComparator()
-
-    private fun createConnectionComparator(): Comparator<Connection> {
-        val sortMode = DataStore.trafficSortMode
-        val isDescending = DataStore.trafficDescending
-
-        val primarySelector: (Connection) -> Comparable<*> = when (sortMode) {
-            TrafficSortMode.START -> Connection::start
-            TrafficSortMode.INBOUND -> Connection::inbound
-            TrafficSortMode.SRC -> Connection::src
-            TrafficSortMode.DST -> Connection::dst
-            TrafficSortMode.UPLOAD -> Connection::uploadTotal
-            TrafficSortMode.DOWNLOAD -> Connection::downloadTotal
-            TrafficSortMode.MATCHED_RULE -> Connection::matchedRule
-            else -> throw IllegalArgumentException("Unsupported sort mode: $sortMode")
-        }
-
-        return if (isDescending) {
-            compareByDescending(primarySelector).thenByDescending(Connection::uuid)
-        } else {
-            compareBy(primarySelector).thenBy(Connection::uuid)
-        }
-    }
-
-    var searchString: String? = null
-
-    suspend fun emitStats(list: List<Connection>) {
-        if (list.isEmpty()) {
-            onMainDispatcher {
-                binding.connectionNotFound.isVisible = true
-                binding.recycleView.isVisible = false
+            lifecycleScope.launch {
+                (requireActivity() as MainActivity)
+                    .connection
+                    .service
+                    ?.closeConnection(adapter.currentList[viewHolder.absoluteAdapterPosition].uuid)
             }
-            return
         }
+    }
 
-        val newList = list.filter {
-            searchString?.let { str ->
-                it.inbound.contains(str) ||
-                        it.network.contains(str) ||
-                        it.start.contains(str) ||
-                        it.src.contains(str) ||
-                        it.dst.contains(str) ||
-                        it.host.contains(str) ||
-                        it.matchedRule.contains(str) ||
-                        it.outbound.contains(str) ||
-                        it.chain.contains(str) ||
-                        it.protocol?.contains(str) == true ||
-                        it.process?.contains(str) == true
-            } ?: true
-        }.sortedWith(comparator).toMutableList()
-
-        onMainDispatcher {
-            binding.recycleView.post {
-                adapter.data = newList
-                adapter.notifyDataSetChanged()
-            }
-
-            binding.connectionNotFound.isVisible = false
-            binding.recycleView.isVisible = true
-        }
+    fun connectionSize(): Int {
+        return adapter.currentList.size
     }
 }

@@ -9,31 +9,44 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutConnectionBinding
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class ConnectionFragment(val conn: Connection) :
+class ConnectionFragment() :
     ToolbarFragment(R.layout.layout_connection),
     Toolbar.OnMenuItemClickListener {
 
+    constructor(conn: Connection) : this() {
+        initialConn = conn
+    }
+
+    private var initialConn: Connection? = null
+    private var uuid: String? = null
+        get() = field ?: initialConn?.uuid
+        set(value) {
+            field = value
+        }
+
     private lateinit var binding: LayoutConnectionBinding
+    private val viewModel by viewModels<ConnectionFragmentViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = LayoutConnectionBinding.bind(view)
         toolbar.apply {
-            setTitle(conn.uuid)
+            uuid?.let {
+                title = it
+            }
             inflateMenu(R.menu.connection_menu)
             setOnMenuItemClickListener(this@ConnectionFragment)
 
@@ -62,21 +75,26 @@ class ConnectionFragment(val conn: Connection) :
 
         val activity = (requireActivity() as MainActivity)
         activity.onBackPressedCallback.isEnabled = false
-
-        bind()
+        viewModel.initialize(initialConn) {
+            activity.connection.service?.queryConnections()?.connections
+        }
 
         lifecycleScope.launch {
-            val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
-            while (isActive) {
-                activity.connection.service?.queryConnections()?.let {
-                    emitStats(it.connections)
-                }
-                delay(interval)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect(::handleUiState)
             }
         }
     }
 
-    private fun bind() {
+    override fun onDestroy() {
+        viewModel.stop()
+        super.onDestroy()
+    }
+
+    private fun handleUiState(state: ConnectionFragmentState) {
+        val conn = state.connection
+        uuid = conn.uuid
+        toolbar.title = conn.uuid
         binding.connNetwork.text = conn.network.uppercase()
         if (conn.protocol != null) {
             binding.connProtocolCard.isVisible = true
@@ -91,7 +109,10 @@ class ConnectionFragment(val conn: Connection) :
         } else {
             binding.connIPVersionCard.isVisible = false
         }
-        bindTraffic()
+        binding.connUpload.text =
+            Formatter.formatFileSize(binding.connUpload.context, conn.uploadTotal)
+        binding.connDownload.text =
+            Formatter.formatFileSize(binding.connDownload.context, conn.downloadTotal)
         binding.connInbound.text = conn.inbound
         binding.connSource.text = conn.src
         binding.connDestination.text = conn.dst
@@ -104,42 +125,26 @@ class ConnectionFragment(val conn: Connection) :
         binding.connRule.text = conn.matchedRule
         binding.connOutbound.text = conn.outbound
         binding.connChain.text = conn.chain
-        conn.process?.let {
-            binding.connProcessCard.isVisible = true
-            binding.connProcess.text = it
-        } ?: run {
+        if (conn.process.isNullOrBlank()) {
             binding.connProcessCard.isVisible = false
+        } else {
+            binding.connProcessCard.isVisible = true
+            binding.connProcess.text = conn.process
         }
     }
 
-    private fun bindTraffic() {
-        binding.connUpload.text =
-            Formatter.formatFileSize(binding.connUpload.context, conn.uploadTotal)
-        binding.connDownload.text =
-            Formatter.formatFileSize(binding.connDownload.context, conn.downloadTotal)
-    }
-
-    private suspend fun emitStats(connections: List<Connection>) {
-        val new = connections.find { it.uuid == conn.uuid } ?: return
-        onMainDispatcher {
-            conn.apply {
-                uploadTotal = new.uploadTotal
-                downloadTotal = new.downloadTotal
-            }
-            bindTraffic()
-        }
-    }
-
-    override fun onMenuItemClick(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_close_connection -> {
-                (requireActivity() as? MainActivity)?.apply {
-                    connection.service?.closeConnection(conn.uuid)
-                    supportFragmentManager.popBackStack()
+    override fun onMenuItemClick(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_close_connection -> {
+            (requireActivity() as? MainActivity)?.apply {
+                uuid?.let {
+                    connection.service?.closeConnection(it)
                 }
-                return true
+                supportFragmentManager.popBackStack()
+                onBackPressedCallback.isEnabled = true
             }
+            true
         }
-        return false
+
+        else -> false
     }
 }
