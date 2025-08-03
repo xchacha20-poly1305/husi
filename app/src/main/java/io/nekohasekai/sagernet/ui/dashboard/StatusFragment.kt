@@ -1,36 +1,38 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
-import java.net.Inet4Address
-import java.net.Inet6Address
+import kotlinx.coroutines.launch
 
 class StatusFragment : Fragment(R.layout.layout_status) {
 
     private lateinit var binding: LayoutStatusBinding
     private lateinit var adapter: ClashModeAdapter
+    private val viewModel by viewModels<StatusFragmentViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -48,70 +50,77 @@ class StatusFragment : Fragment(R.layout.layout_status) {
             insets
         }
 
-        val (ipv4, ipv6) = getLocalAddresses()
-        binding.ipv4AddressText.text = ipv4.toString()
-        if (ipv4 != null) {
-            binding.ipv4AddressText.setOnClickListener {
-                snackbar(
-                    if (SagerNet.trySetPrimaryClip(ipv4)) {
-                        R.string.copy_success
-                    } else {
-                        R.string.copy_failed
-                    }
-                ).show()
-            }
-            binding.ipv4AddressText.setOnLongClickListener { view ->
-                view.performClick()
-            }
-        } else {
-            binding.ipv4AddressText.setTextIsSelectable(true)
+        binding.ipv4AddressText.setOnClickListener { view ->
+            snackbar(
+                if (SagerNet.trySetPrimaryClip((view as TextView).text.toString())) {
+                    R.string.copy_success
+                } else {
+                    R.string.copy_failed
+                }
+            ).show()
         }
-        binding.ipv6AddressText.text = ipv6.toString()
-        if (ipv6 != null) {
-            binding.ipv6AddressText.setOnClickListener {
-                snackbar(
-                    if (SagerNet.trySetPrimaryClip(ipv6)) {
-                        R.string.copy_success
-                    } else {
-                        R.string.copy_failed
-                    }
-                ).show()
-            }
-            binding.ipv6AddressText.setOnLongClickListener {  view ->
-                view.performClick()
-            }
-        } else {
-            binding.ipv6AddressText.setTextIsSelectable(true)
+        binding.ipv4AddressText.setOnLongClickListener { view ->
+            view.performClick()
         }
 
-        val service = (requireActivity() as MainActivity).connection.service
-        val clashModes = service?.clashModes ?: emptyList()
-        val selected = service?.clashMode ?: RuleEntity.MODE_RULE
-        binding.clashModeList.adapter = ClashModeAdapter(clashModes, selected).also {
+        binding.ipv6AddressText.setOnClickListener { view ->
+            snackbar(
+                if (SagerNet.trySetPrimaryClip((view as TextView).text.toString())) {
+                    R.string.copy_success
+                } else {
+                    R.string.copy_failed
+                }
+            ).show()
+        }
+        binding.ipv6AddressText.setOnLongClickListener { view ->
+            view.performClick()
+        }
+
+        binding.clashModeList.adapter = ClashModeAdapter().also {
             adapter = it
         }
-    }
 
-    suspend fun emitStats(memory: Long, goroutines: Int) {
-        onMainDispatcher {
-            binding.memoryText.text = Formatter.formatFileSize(binding.memoryText.context, memory)
-            binding.goroutinesText.text = goroutines.toString()
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
         }
     }
 
-    fun refreshClashMode() {
-        val service = (requireActivity() as MainActivity).connection.service
-        adapter.items = service?.clashModes ?: emptyList()
-        adapter.selected = service?.clashMode ?: RuleEntity.MODE_RULE
-        runOnMainDispatcher {
-            adapter.notifyDataSetChanged()
-        }
+    override fun onResume() {
+        super.onResume()
+        viewModel.initialize((requireActivity() as MainActivity).connection.service!!)
     }
 
-    private inner class ClashModeAdapter(
-        var items: List<String>,
-        var selected: String,
-    ) : RecyclerView.Adapter<ClashModeItemView>() {
+    private suspend fun handleUiState(state: StatusFragmentUiState) {
+        val items = state.clashModes.mapX {
+            ClashModeItem(it, it == state.selectedClashMode)
+        }
+
+        binding.memoryText.text = Formatter.formatFileSize(
+            binding.memoryText.context,
+            state.memory,
+        )
+        binding.goroutinesText.text = state.goroutines.toString()
+
+        binding.ipv4AddressText.text = state.ipv4 ?: getString(R.string.no_statistics)
+        binding.ipv6AddressText.text = state.ipv6 ?: getString(R.string.no_statistics)
+
+        adapter.submitList(items)
+    }
+
+    override fun onPause() {
+        viewModel.stop()
+        super.onPause()
+    }
+
+    private data class ClashModeItem(
+        val name: String,
+        val isSelected: Boolean,
+    )
+
+    private inner class ClashModeAdapter() :
+        ListAdapter<ClashModeItem, ClashModeItemView>(clashModeCallback) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClashModeItemView {
             val view = ClashModeItemView(
                 ViewClashModeBinding.inflate(
@@ -124,25 +133,39 @@ class StatusFragment : Fragment(R.layout.layout_status) {
             return view
         }
 
-        override fun getItemCount(): Int {
-            return items.size
-        }
 
         override fun onBindViewHolder(holder: ClashModeItemView, position: Int) {
-            val mode = items[position]
-            holder.bind(mode, mode == selected) {
-                adapter.selected = mode
-                adapter.notifyDataSetChanged()
+            val instance = getItem(position)
+            holder.bind(instance) {
+                (requireActivity() as MainActivity).connection.service?.setClashMode(instance.name)
             }
         }
     }
 
-    private inner class ClashModeItemView(val binding: ViewClashModeBinding) :
+    private val clashModeCallback = object : DiffUtil.ItemCallback<ClashModeItem>() {
+        override fun areItemsTheSame(
+            old: ClashModeItem,
+            new: ClashModeItem,
+        ): Boolean {
+            return old.name == new.name
+        }
+
+        override fun areContentsTheSame(
+            old: ClashModeItem,
+            new: ClashModeItem,
+        ): Boolean {
+            // Already checked name in areItemsTheSame
+            return old.isSelected == new.isSelected
+        }
+
+    }
+
+    private class ClashModeItemView(val binding: ViewClashModeBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: String, isSelected: Boolean, updateSelected: () -> Unit) {
-            binding.clashModeButtonText.text = item
-            if (isSelected) {
+        fun bind(instance: ClashModeItem, onClick: (mode: String) -> Unit) {
+            binding.clashModeButtonText.text = instance.name
+            if (instance.isSelected) {
                 binding.clashModeButtonText.setTextColor(
                     binding.root.context.getColorAttr(com.google.android.material.R.attr.colorOnPrimary)
                 )
@@ -154,55 +177,9 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                 )
                 binding.clashModeButton.setBackgroundResource(R.drawable.bg_rounded_rectangle)
                 binding.clashModeButton.setOnClickListener {
-                    (requireActivity() as MainActivity).connection.service?.setClashMode(item)
-                    updateSelected()
+                    onClick(instance.name)
                 }
             }
         }
-    }
-
-    /**
-     * IPv4 + IPv6
-     * @see <a href="https://github.com/chen08209/FlClash/blob/adb890d7637c2d6d10e7034b3599be7eacbfee99/lib/common/utils.dart#L304-L328">FlClash</a>
-     * */
-    private fun getLocalAddresses(): Pair<String?, String?> {
-        val connectivityManager =
-            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        var wifiIPv4: String? = null
-        var wifiIPv6: String? = null
-        var cellularIPv4: String? = null
-        var cellularIPv6: String? = null
-
-        @Suppress("DEPRECATION")
-        connectivityManager.allNetworks.forEach { network ->
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return@forEach
-            val linkProperties = connectivityManager.getLinkProperties(network) ?: return@forEach
-
-            linkProperties.linkAddresses.forEach { linkAddress ->
-                val address = linkAddress.address
-                if (!address.isLoopbackAddress) {
-                    if (address is Inet4Address) {
-                        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                            if (wifiIPv4 == null) wifiIPv4 = address.hostAddress
-                        } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                            if (cellularIPv4 == null) cellularIPv4 = address.hostAddress
-                        }
-                    } else if (address is Inet6Address && !address.isLinkLocalAddress) {
-                        val hostAddress = address.hostAddress?.substringBefore('%')
-                        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                            if (wifiIPv6 == null) wifiIPv6 = hostAddress
-                        } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                            if (cellularIPv6 == null) cellularIPv6 = hostAddress
-                        }
-                    }
-                }
-            }
-        }
-
-        val finalIPv4 = wifiIPv4 ?: cellularIPv4
-        val finalIPv6 = wifiIPv6 ?: cellularIPv6
-
-        return Pair(finalIPv4, finalIPv6)
     }
 }

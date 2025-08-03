@@ -11,8 +11,6 @@ data class ProxySet(
     val selectable: Boolean = false,
     var selected: String = "",
     var items: List<ProxySetItem> = emptyList(),
-    var isExpanded: Boolean = false,
-    val delays: MutableMap<String, Short> = mutableMapOf()
 ) : Parcelable {
     constructor(set: libcore.ProxySet) : this(
         tag = set.tag,

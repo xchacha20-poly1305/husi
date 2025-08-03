@@ -426,13 +426,6 @@ class MainActivity : ThemedActivity(),
         binding.stats.changeState(state)
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
 
-        // If is in dashboard, enable dashboard status loop.
-        val dashboardFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? DashboardFragment
-        if (dashboardFragment != null && state == BaseService.State.Connected) {
-            dashboardFragment.refreshClashMode()
-        }
-
         when (state) {
             BaseService.State.Connected, BaseService.State.Stopped -> {
                 runOnDefaultDispatcher {
