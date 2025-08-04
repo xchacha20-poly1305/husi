@@ -10,9 +10,6 @@ plugins {
 setupApp()
 
 android {
-    androidResources {
-        generateLocaleConfig = true
-    }
     defaultConfig {
         splits.abi {
             reset()
