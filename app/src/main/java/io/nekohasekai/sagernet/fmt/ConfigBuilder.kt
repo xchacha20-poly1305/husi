@@ -374,6 +374,18 @@ fun buildConfig(
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
 
+                globalOutbounds[proxyEntity.id]?.let { existingTag ->
+                    if (!isProxySet) {
+                        if (index > 0) {
+                            pastOutbound["detour"] = existingTag
+                        } else {
+                            chainTagOut = existingTag
+                        }
+                    }
+
+                    return@forEachIndexed
+                }
+
                 // needGlobal: can only contain one?
                 var needGlobal = false
 
