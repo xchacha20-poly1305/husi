@@ -6,9 +6,9 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.7
-	github.com/sagernet/sing v0.7.0-beta.1.0.20250722151551-64142925accb
-	github.com/sagernet/sing-box v1.12.0-rc.3
-	github.com/sagernet/sing-tun v0.6.10-0.20250721014417-ebbe32588cfb
+	github.com/sagernet/sing v0.7.0-beta.2
+	github.com/sagernet/sing-box v1.12.0
+	github.com/sagernet/sing-tun v0.7.0-beta.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/cazilla v1.0.2
@@ -23,7 +23,7 @@ require (
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.37.0
+	github.com/v2fly/v2ray-core/v5 v5.38.0
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -65,7 +65,7 @@ require (
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
-	github.com/sagernet/sing-vmess v0.2.4 // indirect
+	github.com/sagernet/sing-vmess v0.2.6 // indirect
 	github.com/sagernet/smux v1.5.34-mod.2 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
@@ -83,7 +83,7 @@ require (
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
-	google.golang.org/grpc v1.73.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/grpc v1.74.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
