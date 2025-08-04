@@ -34,14 +34,10 @@ import androidx.appcompat.widget.Toolbar
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
-import androidx.camera.core.TorchState
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -70,17 +66,6 @@ class ScannerActivity : ThemedActivity() {
         setContentView(binding.root)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                top = bars.top,
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setTitle(R.string.add_profile_methods_scan_qr_code)

@@ -41,18 +41,6 @@ class VPNScannerActivity : ThemedActivity() {
         this.binding = binding
         setContentView(binding.root)
 
-        toolbar = findViewById(R.id.toolbar)
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                top = bars.top,
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.scanVPNResult) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -64,6 +52,8 @@ class VPNScannerActivity : ThemedActivity() {
             )
             insets
         }
+
+        toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setTitle(R.string.scan_vpn_app)

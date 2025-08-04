@@ -28,17 +28,6 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
         val binding = LayoutToolsBinding.bind(view)
         binding.toolsPager.adapter = ToolsAdapter(tools)
 
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                top = bars.top,
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.toolsTab) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()

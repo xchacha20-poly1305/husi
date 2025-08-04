@@ -54,17 +54,6 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
         toolbar.setTitle(R.string.menu_dashboard)
         toolbar.inflateMenu(R.menu.dashboard_menu)
         toolbar.setOnMenuItemClickListener(this)
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                top = bars.top,
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.dashboardTab) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
