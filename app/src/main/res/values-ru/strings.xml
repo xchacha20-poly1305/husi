@@ -617,7 +617,7 @@
     <string name="interrupt_exist_connections">Прерывание существующих соединений</string>
     <string name="urltest_interval">Интервал URL-теста</string>
     <string name="idle_timeout">Тайм-аут до IDLE (прекращения цикла тестирования)</string>
-    <string name="urltest_tolerance">Допустимая задержка ответа</string>
+    <string name="urltest_tolerance">Допустимое отклонение от лучшего сервера (мс)</string>
     <string name="route_action">Действие маршрутизации</string>
     <string name="prefer_ipv4">Предпочитать IPv4</string>
     <string name="network_strategy">Сетевая стратегия</string>
