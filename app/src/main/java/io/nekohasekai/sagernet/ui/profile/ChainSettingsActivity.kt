@@ -27,7 +27,6 @@ import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -299,7 +298,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
             profileName.text = proxyEntity.displayName()
             profileType.text = proxyEntity.displayType()
-            profileType.setTextColor(getColorAttr(com.google.android.material.R.attr.colorAccent))
 
             val rx = proxyEntity.rx
             val tx = proxyEntity.tx
