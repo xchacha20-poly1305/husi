@@ -147,6 +147,14 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
                 }
             }
         }
+
+        "" -> if (this is TrojanBean) {
+            // The end users who use edge tunnel requires using VLESS without TLS.
+            // Fortunately, they didn't pollute trojan's ecosystem.
+            // And this standard force trojan's link to use TLS.
+            // https://github.com/p4gefau1t/trojan-go/issues/132
+            security = "tls"
+        }
     }
 
     when (v2rayTransport) {
@@ -183,8 +191,8 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         }
     }
 
-    // maybe from Matsuri vmess export
     if (this is VMessBean) {
+        // maybe from Matsuri vmess export
         when (url.queryParameterNotBlank("packetEncoding")) {
             "packetaddr" -> packetEncoding = 1
             "xudp" -> packetEncoding = 2
