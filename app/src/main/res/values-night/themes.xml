@@ -1,36 +1,57 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.SagerNet.Black" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/black</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_light_black</item>
-        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorOnPrimaryContainer">@color/material_grey_200</item>
+        <item name="colorPrimaryInverse">@color/white</item>
         <item name="colorSecondary">@color/material_grey_800</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_grey_900</item>
-        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorOnSecondaryContainer">@color/material_grey_400</item>
         <item name="colorTertiary">@color/material_grey_700</item>
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_grey_800</item>
-        <item name="colorOnTertiaryContainer">@color/white</item>
+        <item name="colorOnTertiaryContainer">@color/material_grey_300</item>
+        <item name="colorError">@color/material_red_500</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/material_red_900</item>
+        <item name="colorOnErrorContainer">@color/material_red_100</item>
+        <item name="android:colorBackground">@color/black</item>
+        <item name="colorOnBackground">@color/white</item>
         <item name="colorSurface">@color/black</item>
         <item name="colorOnSurface">@color/white</item>
         <item name="colorSurfaceVariant">@color/material_light_black</item>
-        <item name="colorOnSurfaceVariant">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/material_grey_400</item>
+        <item name="colorSurfaceInverse">@color/material_grey_200</item>
+        <item name="colorOnSurfaceInverse">@color/black</item>
+        <item name="colorSurfaceContainerLowest">#121212</item>
+        <item name="colorSurfaceContainerLow">#1F1F1F</item>
+        <item name="colorSurfaceContainer">@color/material_light_black</item>
+        <item name="colorSurfaceContainerHigh">#2D2D2D</item>
+        <item name="colorSurfaceContainerHighest">#383838</item>
+        <item name="colorOutline">@color/material_grey_700</item>
+        <item name="colorOutlineVariant">@color/material_grey_800</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/material_grey_400</item>
+        <item name="android:textColorTertiary">@color/material_grey_500</item>
+        <item name="android:textColorLink">@color/material_grey_400</item>
+
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
 
         <item name="selectedColorPrimary">@color/white</item>
-
-        <item name="preferenceCategoryTitleTextColor">@color/white</item>
+        <item name="preferenceCategoryTitleTextColor">@color/material_grey_300</item>
         <item name="tabSelectedTextColor">@color/white</item>
-        <item name="tabTextColor">@color/material_grey_500</item>
-        <item name="android:textColorLink">@color/color_ng_black_accent</item>
+        <item name="tabTextColor">@color/material_grey_400</item>
         <item name="android:progressTint">@color/white</item>
         <item name="materialCardViewStyle">@style/Widget.AnXray.CardView.BlackTheme</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Black">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
-        <item name="colorSurface">@color/black</item>
+        <item name="colorSurface">@color/material_light_black</item>
         <item name="colorOnSurface">@color/white</item>
     </style>
+
 </resources>

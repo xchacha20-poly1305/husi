@@ -8,14 +8,43 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_pink_100</item>
         <item name="colorOnPrimaryContainer">@color/material_pink_900</item>
+        <item name="colorPrimaryInverse">@color/material_pink_200</item>
         <item name="colorSecondary">@color/material_pink_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_pink_100</item>
         <item name="colorOnSecondaryContainer">@color/material_pink_900</item>
-        <item name="colorTertiary">@color/material_purple_500</item>
+        <item name="colorTertiary">@color/material_pink_400</item>
         <item name="colorOnTertiary">@color/white</item>
-        <item name="colorTertiaryContainer">@color/material_purple_100</item>
-        <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
+        <item name="colorTertiaryContainer">@color/material_pink_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_pink_900</item>
+        <item name="colorError">@color/material_red_500</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/material_red_100</item>
+        <item name="colorOnErrorContainer">@color/material_red_900</item>
+        <item name="android:colorBackground">@color/material_grey_50</item>
+        <item name="colorOnBackground">@color/black</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="colorSurfaceVariant">@color/material_grey_200</item>
+        <item name="colorOnSurfaceVariant">@color/material_grey_900</item>
+        <item name="colorSurfaceInverse">@color/material_grey_800</item>
+        <item name="colorOnSurfaceInverse">@color/white</item>
+        <item name="colorSurfaceContainerLowest">@color/white</item>
+        <item name="colorSurfaceContainerLow">@color/material_grey_50</item>
+        <item name="colorSurfaceContainer">@color/white</item>
+        <item name="colorSurfaceContainerHigh">@color/material_grey_200</item>
+        <item name="colorSurfaceContainerHighest">@color/material_grey_300</item>
+        <item name="colorOutline">@color/material_grey_500</item>
+        <item name="colorOutlineVariant">@color/material_grey_300</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorPrimaryInverse">@color/white</item>
+        <item name="android:textColorSecondary">@color/material_grey_700</item>
+        <item name="android:textColorSecondaryInverse">@color/material_grey_300</item>
+        <item name="android:textColorTertiary">@color/material_grey_500</item>
+        <item name="android:textColorTertiaryInverse">@color/material_grey_400</item>
+        <item name="android:textColorPrimaryDisableOnly">@color/material_grey_300</item>
+        <item name="android:textColorHighlight">@color/material_pink_200</item>
+        <item name="android:textColorLink">?colorPrimary</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
@@ -32,14 +61,36 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_pink_100</item>
         <item name="colorOnPrimaryContainer">@color/material_pink_900</item>
+        <item name="colorPrimaryInverse">@color/material_pink_200</item>
         <item name="colorSecondary">@color/material_pink_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_pink_100</item>
         <item name="colorOnSecondaryContainer">@color/material_pink_900</item>
-        <item name="colorTertiary">@color/material_purple_500</item>
+        <item name="colorTertiary">@color/material_pink_400</item>
         <item name="colorOnTertiary">@color/white</item>
-        <item name="colorTertiaryContainer">@color/material_purple_100</item>
-        <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
+        <item name="colorTertiaryContainer">@color/material_pink_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_pink_900</item>
+        <item name="colorError">@color/material_red_500</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/material_red_100</item>
+        <item name="colorOnErrorContainer">@color/material_red_900</item>
+        <item name="android:colorBackground">@color/material_grey_50</item>
+        <item name="colorOnBackground">@color/black</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="colorSurfaceVariant">@color/material_grey_200</item>
+        <item name="colorOnSurfaceVariant">@color/material_grey_900</item>
+        <item name="colorSurfaceInverse">@color/material_grey_800</item>
+        <item name="colorOnSurfaceInverse">@color/white</item>
+        <item name="colorSurfaceContainerLowest">@color/white</item>
+        <item name="colorSurfaceContainerLow">@color/material_grey_50</item>
+        <item name="colorSurfaceContainer">@color/white</item>
+        <item name="colorSurfaceContainerHigh">@color/material_grey_200</item>
+        <item name="colorSurfaceContainerHighest">@color/material_grey_300</item>
+        <item name="colorOutline">@color/material_grey_500</item>
+        <item name="colorOutlineVariant">@color/material_grey_300</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorPrimaryInverse">@color/white</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
@@ -58,6 +109,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_pink_100</item>
         <item name="colorOnPrimaryContainer">@color/material_pink_900</item>
+        <item name="colorPrimaryInverse">@color/material_pink_200</item>
         <item name="colorSecondary">@color/material_pink_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_pink_100</item>
@@ -69,6 +121,7 @@
         <item name="colorOnPrimary">@color/black</item>
         <item name="colorPrimaryContainer">@color/material_amber_100</item>
         <item name="colorOnPrimaryContainer">@color/material_amber_900</item>
+        <item name="colorPrimaryInverse">@color/material_amber_200</item>
         <item name="colorSecondary">@color/material_amber_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_amber_accent_100</item>
@@ -84,6 +137,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_blue_100</item>
         <item name="colorOnPrimaryContainer">@color/material_blue_900</item>
+        <item name="colorPrimaryInverse">@color/material_blue_200</item>
         <item name="colorSecondary">@color/material_blue_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_blue_accent_100</item>
@@ -99,6 +153,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_blue_grey_100</item>
         <item name="colorOnPrimaryContainer">@color/material_blue_grey_900</item>
+        <item name="colorPrimaryInverse">@color/material_blue_grey_200</item>
         <item name="colorSecondary">@color/material_blue_grey_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_blue_grey_50</item>
@@ -114,6 +169,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_brown_100</item>
         <item name="colorOnPrimaryContainer">@color/material_brown_900</item>
+        <item name="colorPrimaryInverse">@color/material_brown_200</item>
         <item name="colorSecondary">@color/material_brown_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_brown_50</item>
@@ -129,6 +185,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_cyan_100</item>
         <item name="colorOnPrimaryContainer">@color/material_cyan_900</item>
+        <item name="colorPrimaryInverse">@color/material_cyan_200</item>
         <item name="colorSecondary">@color/material_cyan_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_cyan_accent_100</item>
@@ -144,6 +201,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_deep_orange_100</item>
         <item name="colorOnPrimaryContainer">@color/material_deep_orange_900</item>
+        <item name="colorPrimaryInverse">@color/material_deep_orange_200</item>
         <item name="colorSecondary">@color/material_deep_orange_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_deep_orange_accent_100</item>
@@ -159,6 +217,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_deep_purple_100</item>
         <item name="colorOnPrimaryContainer">@color/material_deep_purple_900</item>
+        <item name="colorPrimaryInverse">@color/material_deep_purple_200</item>
         <item name="colorSecondary">@color/material_deep_purple_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_deep_purple_accent_100</item>
@@ -174,6 +233,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_green_100</item>
         <item name="colorOnPrimaryContainer">@color/material_green_900</item>
+        <item name="colorPrimaryInverse">@color/material_green_200</item>
         <item name="colorSecondary">@color/material_green_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_green_accent_100</item>
@@ -189,6 +249,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_grey_200</item>
         <item name="colorOnPrimaryContainer">@color/material_grey_700</item>
+        <item name="colorPrimaryInverse">@color/material_grey_200</item>
         <item name="colorSecondary">@color/material_grey_700</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_grey_400</item>
@@ -204,6 +265,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_indigo_100</item>
         <item name="colorOnPrimaryContainer">@color/material_indigo_900</item>
+        <item name="colorPrimaryInverse">@color/material_indigo_200</item>
         <item name="colorSecondary">@color/material_indigo_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_indigo_accent_100</item>
@@ -219,6 +281,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_light_blue_100</item>
         <item name="colorOnPrimaryContainer">@color/material_light_blue_900</item>
+        <item name="colorPrimaryInverse">@color/material_light_blue_200</item>
         <item name="colorSecondary">@color/material_light_blue_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_light_blue_accent_100</item>
@@ -234,6 +297,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_light_green_100</item>
         <item name="colorOnPrimaryContainer">@color/material_light_green_900</item>
+        <item name="colorPrimaryInverse">@color/material_light_green_200</item>
         <item name="colorSecondary">@color/material_light_green_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_light_green_accent_100</item>
@@ -249,6 +313,7 @@
         <item name="colorOnPrimary">@color/black</item>
         <item name="colorPrimaryContainer">@color/material_lime_100</item>
         <item name="colorOnPrimaryContainer">@color/material_lime_900</item>
+        <item name="colorPrimaryInverse">@color/material_lime_200</item>
         <item name="colorSecondary">@color/material_lime_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_lime_accent_100</item>
@@ -264,6 +329,7 @@
         <item name="colorOnPrimary">@color/black</item>
         <item name="colorPrimaryContainer">@color/material_orange_100</item>
         <item name="colorOnPrimaryContainer">@color/material_orange_900</item>
+        <item name="colorPrimaryInverse">@color/material_orange_200</item>
         <item name="colorSecondary">@color/material_orange_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_orange_accent_100</item>
@@ -279,6 +345,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_purple_100</item>
         <item name="colorOnPrimaryContainer">@color/material_purple_900</item>
+        <item name="colorPrimaryInverse">@color/material_purple_200</item>
         <item name="colorSecondary">@color/material_purple_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_purple_accent_100</item>
@@ -294,6 +361,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_red_100</item>
         <item name="colorOnPrimaryContainer">@color/material_red_900</item>
+        <item name="colorPrimaryInverse">@color/material_red_200</item>
         <item name="colorSecondary">@color/material_red_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_red_accent_100</item>
@@ -309,6 +377,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_teal_100</item>
         <item name="colorOnPrimaryContainer">@color/material_teal_900</item>
+        <item name="colorPrimaryInverse">@color/material_teal_200</item>
         <item name="colorSecondary">@color/material_teal_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_teal_accent_100</item>
@@ -324,6 +393,7 @@
         <item name="colorOnPrimary">@color/black</item>
         <item name="colorPrimaryContainer">@color/material_yellow_100</item>
         <item name="colorOnPrimaryContainer">@color/material_yellow_900</item>
+        <item name="colorPrimaryInverse">@color/material_yellow_200</item>
         <item name="colorSecondary">@color/material_yellow_accent_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_yellow_accent_100</item>
@@ -340,6 +410,7 @@
         <item name="colorOnPrimary">@color/black</item>
         <item name="colorPrimaryContainer">@color/material_grey_200</item>
         <item name="colorOnPrimaryContainer">@color/black</item>
+        <item name="colorPrimaryInverse">@color/black</item>
         <item name="colorSecondary">@color/material_grey_50</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorSecondaryContainer">@color/material_grey_200</item>
@@ -348,6 +419,10 @@
         <item name="colorOnTertiary">@color/black</item>
         <item name="colorTertiaryContainer">@color/material_grey_200</item>
         <item name="colorOnTertiaryContainer">@color/black</item>
+        <item name="colorError">@color/material_red_500</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/material_red_100</item>
+        <item name="colorOnErrorContainer">@color/material_red_900</item>
         <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/black</item>
         <item name="colorSurfaceVariant">@color/material_grey_200</item>

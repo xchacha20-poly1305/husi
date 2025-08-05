@@ -9,6 +9,7 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/material_pink_100</item>
         <item name="colorOnPrimaryContainer">@color/material_pink_900</item>
+        <item name="colorPrimaryInverse">@color/material_pink_200</item>
         <item name="colorSecondary">@color/material_pink_accent_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/material_pink_100</item>
@@ -16,7 +17,34 @@
         <item name="colorTertiary">@color/material_purple_500</item>
         <item name="colorOnTertiary">@color/white</item>
         <item name="colorTertiaryContainer">@color/material_purple_100</item>
-        <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
+        <item name="colorOnTertiaryContainer">@color/material_purple_900</item> <item name="colorError">@color/material_red_500</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/material_red_100</item>
+        <item name="colorOnErrorContainer">@color/material_red_900</item>
+        <item name="android:colorBackground">@color/material_grey_50</item>
+        <item name="colorOnBackground">@color/black</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="colorSurfaceVariant">@color/material_grey_200</item>
+        <item name="colorOnSurfaceVariant">@color/material_grey_900</item>
+        <item name="colorSurfaceInverse">@color/material_grey_800</item>
+        <item name="colorOnSurfaceInverse">@color/white</item>
+        <item name="colorSurfaceContainerLowest">@color/white</item>
+        <item name="colorSurfaceContainerLow">@color/material_grey_50</item>
+        <item name="colorSurfaceContainer">@color/white</item>
+        <item name="colorSurfaceContainerHigh">@color/material_grey_200</item>
+        <item name="colorSurfaceContainerHighest">@color/material_grey_300</item>
+        <item name="colorOutline">@color/material_grey_500</item>
+        <item name="colorOutlineVariant">@color/material_grey_300</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorPrimaryInverse">@color/white</item>
+        <item name="android:textColorSecondary">@color/material_grey_700</item>
+        <item name="android:textColorSecondaryInverse">@color/material_grey_300</item>
+        <item name="android:textColorTertiary">@color/material_grey_500</item>
+        <item name="android:textColorTertiaryInverse">@color/material_grey_400</item>
+        <item name="android:textColorPrimaryDisableOnly">@color/material_grey_300</item>
+        <item name="android:textColorHighlight">@color/material_pink_200</item>
+        <item name="android:textColorLink">?colorPrimary</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>

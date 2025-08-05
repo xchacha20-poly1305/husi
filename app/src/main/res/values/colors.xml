@@ -281,14 +281,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="fab_color_progress">@color/material_light_black</color>
-
     <color name="color_pink_ssr">#fb7299</color>
 
     <color name="color_ng_black_accent">#9E9E9E</color>
     <color name="color_ng_black_primary">#2B2B2B</color>
-
-    <color name="preference_simple_menu_background">#FAFAFA</color>
 
     <!--log-->
     <color name="log_red">#ff2158</color>
