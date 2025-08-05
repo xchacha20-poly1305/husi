@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.fmt.direct;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
@@ -58,7 +60,7 @@ public class DirectBean extends AbstractBean {
 
     @Override
     public String displayName() {
-        if (name == null || name.isEmpty()) {
+        if (TextUtils.isEmpty(name)) {
             return SingBoxOptions.TYPE_DIRECT;
         }
         return name;

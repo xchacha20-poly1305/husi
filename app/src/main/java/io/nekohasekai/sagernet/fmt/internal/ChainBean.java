@@ -1,9 +1,14 @@
 package io.nekohasekai.sagernet.fmt.internal;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
+
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,11 +32,10 @@ public class ChainBean extends InternalBean {
 
     @Override
     public String displayName() {
-        if (name != null && !name.isEmpty()) {
-            return name;
-        } else {
+        if (TextUtils.isEmpty(name)) {
             return "Chain " + Math.abs(hashCode());
         }
+        return name;
     }
 
     @Override
