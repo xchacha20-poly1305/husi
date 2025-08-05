@@ -5,17 +5,17 @@ import android.os.Bundle
 import android.view.View
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.databinding.LayoutDebugBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsDebugBinding
 import io.nekohasekai.sagernet.ktx.snackbar
 
-class DebugFragment : NamedFragment(R.layout.layout_debug) {
+class DebugFragment : NamedFragment(R.layout.layout_tools_debug) {
 
     override fun getName(context: Context) = "DEBUG"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val binding = LayoutDebugBinding.bind(view)
+        val binding = LayoutToolsDebugBinding.bind(view)
 
         binding.debugCrash.setOnClickListener {
             error("test crash")

@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/coordinator"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,10 +26,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:gravity="center"
                 android:text="@string/stun_attest_loading"
-                android:textAppearance="?attr/textAppearanceTitleLarge" />
+                android:textAppearance="?attr/textAppearanceHeadlineSmall" />
         </LinearLayout>
+
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/main_layout"
@@ -50,7 +50,7 @@
                     android:layout_marginRight="16dp"
                     android:clickable="true"
                     android:focusable="true"
-                    app:cardElevation="2dp">
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -59,50 +59,22 @@
                         android:padding="16dp">
 
                         <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                            style="?attr/textInputFilledStyle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/get_cert_server_hint">
+                            android:hint="@string/nat_stun_server_hint">
 
                             <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/pin_cert_server"
+                                android:id="@+id/nat_stun_server"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:ems="10"
                                 android:inputType="text"
-                                android:text="www.microsoft.com:443" />
+                                android:text="stun.voipgate.com:3478" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:hint="@string/sni">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/pin_cert_server_name"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="text"
-                                android:text="" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:hint="@string/protocol">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/pin_cert_protocol"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                            style="?attr/textInputFilledStyle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -112,9 +84,9 @@
                                 android:id="@+id/proxy_server"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:ems="10"
                                 android:inputType="text" />
                         </com.google.android.material.textfield.TextInputLayout>
-
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -126,7 +98,30 @@
                     android:layout_marginRight="16dp"
                     android:clickable="true"
                     android:focusable="true"
-                    app:cardElevation="2dp" />
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/nat_result_hint"
+                            android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                        <TextView
+                            android:id="@+id/nat_result"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textIsSelectable="true" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -137,15 +132,17 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/getCert"
+                        android:id="@+id/stunTest"
                         style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:text="@string/start" />
+                        android:text="@string/start"
+                        android:textColor="?attr/selectedColorPrimary" />
                 </LinearLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.databinding.LayoutRuleSetMatchBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsRuleSetMatchBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -27,14 +27,14 @@ import kotlinx.coroutines.launch
 
 class RuleSetMatchActivity : ThemedActivity() {
 
-    private lateinit var binding: LayoutRuleSetMatchBinding
-    private val viewModel: RuleSetMatchActivityViewModel by viewModels()
+    private lateinit var binding: LayoutToolsRuleSetMatchBinding
+    private val viewModel by viewModels<RuleSetMatchActivityViewModel>()
     private lateinit var adapter: RuleSetAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutRuleSetMatchBinding.inflate(layoutInflater)
+        binding = LayoutToolsRuleSetMatchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->

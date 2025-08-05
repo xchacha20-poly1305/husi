@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.databinding.LayoutVpnScannerBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.launch
@@ -29,15 +29,15 @@ import kotlin.math.roundToInt
 
 class VPNScannerActivity : ThemedActivity() {
 
-    private lateinit var binding: LayoutVpnScannerBinding
+    private lateinit var binding: LayoutToolsVpnScannerBinding
     private lateinit var toolbar: Toolbar
     private var refresh: MenuItem? = null
-    private val viewModel: VPNScannerActivityViewModel by viewModels()
+    private val viewModel by viewModels<VPNScannerActivityViewModel>()
     private lateinit var adapter: VpnAppAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding = LayoutVpnScannerBinding.inflate(layoutInflater)
+        val binding = LayoutToolsVpnScannerBinding.inflate(layoutInflater)
         this.binding = binding
         setContentView(binding.root)
 

@@ -14,20 +14,20 @@ import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.databinding.LayoutSpeedTestBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.launch
 
 class SpeedtestActivity : ThemedActivity() {
 
-    private lateinit var binding: LayoutSpeedTestBinding
-    private val viewModel: SpeedTestActivityViewModel by viewModels()
+    private lateinit var binding: LayoutToolsSpeedTestBinding
+    private val viewModel by viewModels<SpeedTestActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutSpeedTestBinding.inflate(layoutInflater)
+        binding = LayoutToolsSpeedTestBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->

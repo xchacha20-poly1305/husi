@@ -14,7 +14,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.databinding.LayoutGetCertBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsGetCertBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ktx.currentSocks5
@@ -23,13 +23,13 @@ import kotlinx.coroutines.launch
 
 class GetCertActivity : ThemedActivity() {
 
-    private lateinit var binding: LayoutGetCertBinding
-    private val viewModel: GetCertActivityViewModel by viewModels()
+    private lateinit var binding: LayoutToolsGetCertBinding
+    private val viewModel by viewModels<GetCertActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutGetCertBinding.inflate(layoutInflater)
+        binding = LayoutToolsGetCertBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->
