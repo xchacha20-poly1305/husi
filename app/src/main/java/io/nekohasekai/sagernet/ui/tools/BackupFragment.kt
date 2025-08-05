@@ -18,9 +18,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.databinding.LayoutBackupBinding
 import io.nekohasekai.sagernet.databinding.LayoutImportBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsBackupBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -31,11 +31,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-class BackupFragment : NamedFragment(R.layout.layout_backup) {
+class BackupFragment : NamedFragment(R.layout.layout_tools_backup) {
     override fun getName(context: Context) = context.getString(R.string.backup)
 
-    private val viewModel: BackupViewModel by viewModels()
-    private lateinit var binding: LayoutBackupBinding
+    private val viewModel by viewModels<BackupViewModel>()
+    private lateinit var binding: LayoutToolsBackupBinding
 
     private var contentToExport: String = ""
     private var progressDialog: AlertDialog? = null
@@ -78,7 +78,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = LayoutBackupBinding.bind(view)
+        binding = LayoutToolsBackupBinding.bind(view)
 
         binding.actionExport.setOnClickListener {
             viewModel.onExportClicked(

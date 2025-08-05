@@ -12,20 +12,20 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.databinding.LayoutStunBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsStunBinding
 import io.nekohasekai.sagernet.ktx.currentSocks5
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.launch
 
 class StunActivity : ThemedActivity() {
 
-    private lateinit var binding: LayoutStunBinding
-    private val viewModel: StunActivityViewModel by viewModels()
+    private lateinit var binding: LayoutToolsStunBinding
+    private val viewModel by viewModels<StunActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutStunBinding.inflate(layoutInflater)
+        binding = LayoutToolsStunBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->

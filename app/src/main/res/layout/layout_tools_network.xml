@@ -48,7 +48,7 @@
                     android:layout_gravity="end"
                     android:layout_marginTop="8dp"
                     android:text="@string/start"
-                    android:textColor="?attr/colorTertiary" />
+                    android:textColor="?attr/selectedColorPrimary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -89,7 +89,7 @@
                     android:layout_gravity="end"
                     android:layout_marginTop="8dp"
                     android:text="@string/start"
-                    android:textColor="?attr/colorTertiary" />
+                    android:textColor="?attr/selectedColorPrimary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -130,7 +130,7 @@
                     android:layout_gravity="end"
                     android:layout_marginTop="8dp"
                     android:text="@string/start"
-                    android:textColor="?attr/colorTertiary" />
+                    android:textColor="?attr/selectedColorPrimary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -163,7 +163,7 @@
                     android:layout_gravity="end"
                     android:layout_marginTop="8dp"
                     android:text="@string/start"
-                    android:textColor="?attr/colorTertiary" />
+                    android:textColor="?attr/selectedColorPrimary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -196,7 +196,7 @@
                     android:layout_gravity="end"
                     android:layout_marginTop="8dp"
                     android:text="@string/start"
-                    android:textColor="?attr/colorTertiary" />
+                    android:textColor="?attr/selectedColorPrimary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -8,17 +8,17 @@ import androidx.core.view.updatePadding
 import android.os.Bundle
 import android.view.View
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.databinding.LayoutNetworkBinding
+import io.nekohasekai.sagernet.databinding.LayoutToolsNetworkBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 
-class NetworkFragment : NamedFragment(R.layout.layout_network) {
+class NetworkFragment : NamedFragment(R.layout.layout_tools_network) {
 
     override fun getName(context: Context) = context.getString(R.string.tools_network)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val binding = LayoutNetworkBinding.bind(view)
+        val binding = LayoutToolsNetworkBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(binding.networkLayout) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
