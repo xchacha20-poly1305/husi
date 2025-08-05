@@ -85,7 +85,6 @@ const val TAG_TUN = "tun-in"
 const val TAG_DNS_IN = "dns-in" // strategic
 
 // Outbound
-const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
 const val TAG_BLOCK = "block" // Build block outbound for custom json
 
@@ -101,10 +100,10 @@ const val LOCALHOST4 = "127.0.0.1"
 val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
 
 class ConfigBuildResult(
+    val mainTag: String,
     var config: String,
     var externalIndex: List<IndexEntity>,
     var trafficMap: Map<String, List<ProxyEntity>>,
-    val main: Long,
     val tagToID: Map<String, Long>,
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
@@ -117,19 +116,19 @@ fun buildConfig(
     if (proxy.type == TYPE_CONFIG) {
         val bean = proxy.configBean!!
         if (bean.type == ConfigBean.TYPE_CONFIG) {
+            val tagProxy = bean.displayName()
             return ConfigBuildResult(
+                tagProxy,
                 bean.config,
                 listOf(),
-                mapOf(TAG_PROXY to listOf(proxy)),
-                proxy.id,
-                mapOf(TAG_PROXY to proxy.id),
+                mapOf(tagProxy to listOf(proxy)),
+                mapOf(tagProxy to proxy.id),
             )
         }
     }
 
     val trafficMap = HashMap<String, List<ProxyEntity>>()
     val tagMap = HashMap<Long, String>()
-    val globalOutbounds = HashMap<Long, String>()
     val optionsToMerge = proxy.requireBean().customConfigJson ?: ""
 
     fun ProxyEntity.resolveChainInternal(): MutableList<ProxyEntity> {
@@ -231,6 +230,9 @@ fun buildConfig(
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
     var hasJuicity = false
     val defaultStrategy = DataStore.networkStrategy.blankAsNull()
+    lateinit var mainTag: String
+
+    val readableNames = mutableSetOf<String>()
 
     // server+port:tags
     // This structure may reduce rules when multiple rules share the same server+port.
@@ -351,15 +353,16 @@ fun buildConfig(
             val chainTag = "c-$chainId"
 
             val isProxySet = entity.type == ProxyEntity.TYPE_PROXY_SET
-            val readableNames = if (isProxySet) {
-                mutableSetOf<String>()
+
+            val proxySetChildren = if (isProxySet) {
+                LinkedHashSet<String>()
             } else {
                 null
             }
 
             fun addReadableName(name: String): String {
-                if (readableNames == null) return name
                 if (readableNames.add(name)) {
+                    proxySetChildren?.add(name)
                     return name
                 }
                 var count = 0
@@ -368,40 +371,24 @@ fun buildConfig(
                     count++
                     newName = "$name-$count"
                 }
+                proxySetChildren?.add(newName)
                 return newName
             }
 
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
 
-                globalOutbounds[proxyEntity.id]?.let { existingTag ->
-                    if (!isProxySet) {
-                        if (index > 0) {
-                            pastOutbound["detour"] = existingTag
-                        } else {
-                            chainTagOut = existingTag
-                        }
-                    }
-
-                    return@forEachIndexed
-                }
-
-                // needGlobal: can only contain one?
-                var needGlobal = false
-
                 // first profile set as global
                 if (index == profileList.lastIndex) {
-                    needGlobal = true
                     bypassDNSBeans.add(proxyEntity.requireBean())
                 }
 
-                val tagOut = if (
+                val tagOut = addReadableName(proxyEntity.displayName())
+                if (
                     chainId == 0L &&
                     ((isProxySet && index == profileList.lastIndex) || (!isProxySet && index == 0))
                 ) {
-                    TAG_PROXY
-                } else {
-                    addReadableName(proxyEntity.displayName())
+                    mainTag = tagOut
                 }
 
                 // chain rules
@@ -424,15 +411,6 @@ fun buildConfig(
                     if (index == profileList.lastIndex) {
                         chainTagOut = tagOut
                     }
-                }
-
-                // now tagOut is determined
-                if (needGlobal) {
-                    globalOutbounds[proxyEntity.id]?.let {
-                        if (index == 0) chainTagOut = it // single, duplicate chain
-                        return@forEachIndexed
-                    }
-                    globalOutbounds[proxyEntity.id] = tagOut
                 }
 
                 if (proxyEntity.needExternal()) { // external outbound
@@ -567,7 +545,7 @@ fun buildConfig(
             }
 
             // If this is proxy set, migrate it to the new list's top.
-            // Then the structure is clear and make sure TAG_PROXY is the first.
+            // Then the structure is clear and make sure tagProxy is the first.
             if (isProxySet) {
                 outbounds.add(
                     outbounds.size - profileList.size,
@@ -709,7 +687,7 @@ fun buildConfig(
                                 userDNSRuleList.add(makeDnsRuleObj().apply {
                                     server = TAG_DNS_REMOTE
                                 })
-                                outbound = TAG_PROXY
+                                outbound = mainTag
                             }
 
                             RuleEntity.OUTBOUND_BLOCK -> {
@@ -720,7 +698,7 @@ fun buildConfig(
                             }
 
                             else -> outbound = if (outID == proxy.id) {
-                                TAG_PROXY
+                                mainTag
                             } else {
                                 tagMap[outID] ?: ""
                             }
@@ -865,7 +843,7 @@ fun buildConfig(
             dns.servers.add(
                 buildDNSServer(
                     it,
-                    TAG_PROXY,
+                    mainTag,
                     TAG_DNS_REMOTE,
                     DomainResolveOptions().apply {
                         server = TAG_DNS_DIRECT
@@ -909,7 +887,7 @@ fun buildConfig(
             // clash mode
             route.rules.add(0, Rule_Default().apply {
                 clash_mode = RuleEntity.MODE_GLOBAL
-                outbound = TAG_PROXY
+                outbound = mainTag
             })
             route.rules.add(0, Rule_Default().apply {
                 clash_mode = RuleEntity.MODE_DIRECT
@@ -1010,7 +988,7 @@ fun buildConfig(
                 network = listOf(SingBoxOptions.NetworkUDP)
             })
 
-            route.final_ = TAG_PROXY
+            route.final_ = mainTag
         }
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
 
@@ -1066,6 +1044,7 @@ fun buildConfig(
         partitionEndpoints()
     }.let {
         ConfigBuildResult(
+            mainTag,
             gson.toJson(it.asMap().apply {
                 optionsToMerge.blankAsNull()?.toJsonMap()?.let { jsonMap ->
                     mergeJson(jsonMap, this)
@@ -1073,7 +1052,6 @@ fun buildConfig(
             }),
             externalIndexMap,
             trafficMap,
-            proxy.id,
             tagMap.reverse(),
         )
     }

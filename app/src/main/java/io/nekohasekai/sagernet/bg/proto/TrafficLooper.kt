@@ -8,7 +8,6 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.TAG_DIRECT
-import io.nekohasekai.sagernet.fmt.TAG_PROXY
 import io.nekohasekai.sagernet.ktx.Logs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -86,7 +85,8 @@ class TrafficLooper(
                 if (!proxy.isInitialized()) continue
                 idMap.clear()
                 idMap[-1] = itemBypass
-                val tags = hashSetOf(TAG_PROXY, TAG_DIRECT)
+                val tags = hashSetOf(proxy.config.mainTag, TAG_DIRECT)
+                val mainID = proxy.config.tagToID[proxy.config.mainTag]
                 proxy.config.trafficMap.forEach { (tag, entities) ->
                     tags.add(tag)
                     val isProxySet = entities.any { it.type == ProxyEntity.TYPE_PROXY_SET }
@@ -97,7 +97,7 @@ class TrafficLooper(
                             tx = ent.tx,
                             rxBase = ent.rx,
                             txBase = ent.tx,
-                            ignore = isProxySet && ent.id != proxy.config.main,
+                            ignore = isProxySet && ent.id != mainID,
                         )
                         idMap[ent.id] = item
                         tagMap[tag] = item
