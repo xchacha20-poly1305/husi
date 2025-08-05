@@ -19,6 +19,8 @@
 
 package io.nekohasekai.sagernet.fmt.internal;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
@@ -71,9 +73,7 @@ public class ProxySetBean extends InternalBean {
 
     @Override
     public String displayName() {
-        if (name != null && !name.isEmpty()) {
-            return name;
-        } else {
+        if (TextUtils.isEmpty(name)) {
             int hash = Math.abs(hashCode());
             return switch (management) {
                 case MANAGEMENT_SELECTOR -> "Selector " + hash;
@@ -81,6 +81,7 @@ public class ProxySetBean extends InternalBean {
                 default -> "Unknown " + hash;
             };
         }
+        return name;
     }
 
     @Override

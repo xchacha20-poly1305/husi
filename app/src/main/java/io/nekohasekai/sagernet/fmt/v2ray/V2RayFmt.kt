@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.fmt.v2ray
 
-import android.text.TextUtils
 import com.google.gson.Gson
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
@@ -219,10 +218,11 @@ fun parseV2RayN(link: String): VMessBean {
     val vmessQRCode = Gson().fromJson(result, VmessQRCode::class.java)
 
     // Although VmessQRCode fields are non null, looks like Gson may still create null fields
-    if (TextUtils.isEmpty(vmessQRCode.add)
-        || TextUtils.isEmpty(vmessQRCode.port)
-        || TextUtils.isEmpty(vmessQRCode.id)
-        || TextUtils.isEmpty(vmessQRCode.net)
+    @Suppress("UselessCallOnNotNull")
+    if (vmessQRCode.add.isNullOrEmpty()
+        || vmessQRCode.port.isNullOrBlank()
+        || vmessQRCode.id.isNullOrBlank()
+        || vmessQRCode.net.isNullOrBlank()
     ) {
         throw Exception("invalid VmessQRCode")
     }

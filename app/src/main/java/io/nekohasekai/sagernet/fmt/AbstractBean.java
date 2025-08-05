@@ -2,6 +2,8 @@ package io.nekohasekai.sagernet.fmt;
 
 import static io.nekohasekai.sagernet.ktx.MapsKt.getGson;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
@@ -33,11 +35,10 @@ public abstract class AbstractBean extends Serializable {
     private transient boolean serializeWithoutName;
 
     public String displayName() {
-        if (name != null && !name.isEmpty()) {
-            return name;
-        } else {
+        if (TextUtils.isEmpty(name)) {
             return displayAddress();
         }
+        return name;
     }
 
     public String displayAddress() {

@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.fmt.config;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
@@ -59,11 +61,10 @@ public class ConfigBean extends InternalBean {
 
     @Override
     public String displayName() {
-        if (name == null || name.isEmpty()) {
+        if (TextUtils.isEmpty(name)) {
             return "Custom " + Math.abs(hashCode());
-        } else {
-            return name;
         }
+        return name;
     }
 
     public String displayType() {
