@@ -1,128 +1,145 @@
-# Welcome to husi contributing guide
+# Husi Contributing Guide
 
-Welcome and thank you for contributing! 🎉
+Welcome, and thank you for contributing! 🎉
 
-# Overview
+---
 
-Readable > Useful > High performance but poorly readable.
+## Overview
 
-Truly readable code is more than just clear; it's understandable even without context. (Contextless readable)
+**Readable > Useful > High performance but poorly readable.**
 
-# Coding detail
+Truly readable code is more than just clear—it's understandable even without context (**contextless readability**).
 
-## Common
+---
 
-* All comments use English.
+## Coding Details
 
-* Keep polite. Never use f-words in comments. 
-  You can be grumpy, but please express them in a decent words..
+### Common Guidelines
 
-* Reduce Confusing abbreviations.
+* Use **English** for all comments.
 
-Bad
+* Stay **polite** in code comments. Avoid offensive language.
 
-```go
-dl := &net.Dialer{}
-```
+  * You can be grumpy, but express it with **decent wording**.
 
-Good
+* Avoid **confusing abbreviations**.
 
-```go
-dialer := &net.Dialer{}
-```
+  **Bad:**
 
-* If a comment is meaningless， it is meaningless like this sentence, which is redundant.
+  ```go
+  dl := &net.Dialer{}
+  ```
 
-* Readable code from naming, not comments.
+  **Good:**
 
-* Use constant as much as possible.
+  ```go
+  dialer := &net.Dialer{}
+  ```
 
-Bad
+* **Redundant comments** are as useless as this sentence.
 
-```go
-import (
-    "net"
+* Strive for **readability through naming**, not excessive comments.
 
-    N "github.com/sagernet/sing/common/network"
-)
+* Use **constants** wherever possible.
 
-func defaultDNS() (net.Conn, error) {
-    return net.Dial(N.NetworkUDP, "8.8.8.8:53") // Google DNS
-}
-```
+  **Bad:**
 
-Good
+  ```go
+  import (
+      "net"
 
-```go
-import (
-    "net"
+      N "github.com/sagernet/sing/common/network"
+  )
 
-    N "github.com/sagernet/sing/common/network"
-)
+  func dnsConn() (net.Conn, error) {
+      return net.Dial(N.NetworkUDP, "8.8.8.8:53") // Google DNS
+  }
+  ```
 
+  **Good:**
 
-func defaultDNS() (net.Conn, error) {
-    const googleDNS = "8.8.8.8:53"
-    return net.Dial(N.NetworkUDP, googleDNS)
-}
-```
+  ```go
+  import (
+      "net"
 
-Our style use **name** to tell reader what's this mean.
+      N "github.com/sagernet/sing/common/network"
+  )
 
-## Go
+  func dnsConn() (net.Conn, error) {
+      const googleDNS = "8.8.8.8:53"
+      return net.Dial(N.NetworkUDP, googleDNS)
+  }
+  ```
 
-* Use `make fmt_go` and `make test_go` before committing.
+* Our style uses **names** to communicate meaning.
 
-* Create unit test as much as possible.
+---
 
-* Make writing documentions a habbit.
+### Go Guidelines
 
-## Java / Kotlin
+* Run `make fmt_go` and `make test_go` before committing.
+* Write **unit tests** wherever possible.
+* Make **documentation writing** a habit.
 
-* Reduce `forEach`.
+---
 
-Bad
+### Java / Kotlin Guidelines
+
+#### `forEach` vs `for` loops
+
+* `forEach` is fluent, especially at the end of a chain:
+
+  ```kotlin
+  strings.filter { it.isNotEmpty() }.forEach { println(it) }
+  ```
+
+* For standalone iterations, `for` loops are often more flexible:
+
+  * Can use `break`
+  * Can use `return` from enclosing function
+  * Explicit variable names are clearer
+
+  ```kotlin
+  fun firstNonEmptyString(strings: List<String>): String? {
+      for (string in strings) {
+          if (string.isNotEmpty()) {
+              return string
+          }
+      }
+      return null
+  }
+  ```
+
+#### `also` vs `apply`
+
+* Prefer `also` over `apply` when `this` is ambiguous.
+* `apply` is great for object configuration, but nested scopes (e.g. in Activities or Fragments) may introduce confusion.
+* `also` makes the receiver explicit via `it`, improving readability.
+
+*Example of ambiguity with `apply`:*
 
 ```kotlin
-val numberList = listOf(1, 2, 3)
-numberList.forEach(::println)
-```
-
-Good
-
-```kotlin
-val numberList = listOf(1, 2, 3)
-for (number in numberList) {
-    println(number)
-}
-```
-
-* `also` sometimes better than `apply`.
-
-Bad
-
-```kotlin
-lateinit var textView: TextView
-val isVisible = true
+private lateinit var textView: TextView
+private val isVisible = true
 
 override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     textView = findViewByID(R.id.textView).apply {
-        this@apply.isVisible = isVisible
+        this@apply.isVisible = isVisible // `this` is ambiguous
     }
 }
 ```
 
-Good
+*Preferred version with `also`:*
 
 ```kotlin
-lateinit var textView: TextView
-val isVisible = true
+private lateinit var textView: TextView
+private val isVisible = true
 
 override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     textView = findViewByID(R.id.textView).also {
-        it.isVisible = isVisible
+        it.isVisible = isVisible // `it` clearly refers to the TextView
     }
 }
 ```
