@@ -51,7 +51,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
                 serverPort = url.ports.toIntOrNull() ?: 8388
                 method = url.username
                 password = pass
-                plugin = url.queryParameterNotBlank("plugin")
+                plugin = url.queryParameter("plugin")
                 name = url.fragment
                 pluginToLocal()
             }
@@ -65,7 +65,7 @@ fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
             }
             serverAddress = url.host
             serverPort = url.ports.toIntOrNull() ?: 8388
-            plugin = url.queryParameterNotBlank("plugin")
+            plugin = url.queryParameter("plugin")
             name = url.fragment
             pluginToLocal()
         }

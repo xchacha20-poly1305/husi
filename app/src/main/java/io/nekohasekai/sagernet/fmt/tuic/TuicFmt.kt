@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
+import io.nekohasekai.sagernet.ktx.parseBoolean
 
 // https://github.com/daeuniverse/dae/discussions/182
 fun parseTuic(link: String): TuicBean {
@@ -22,24 +23,12 @@ fun parseTuic(link: String): TuicBean {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
 
-        url.queryParameterNotBlank("sni").let {
-            sni = it
-        }
-        url.queryParameterNotBlank("congestion_control").let {
-            congestionController = it
-        }
-        url.queryParameterNotBlank("udp_relay_mode").let {
-            udpRelayMode = it
-        }
-        url.queryParameterNotBlank("alpn").let {
-            alpn = it
-        }
-        url.queryParameterNotBlank("allow_insecure").let {
-            if (it == "1") allowInsecure = true
-        }
-        url.queryParameterNotBlank("disable_sni").let {
-            if (it == "1") disableSNI = true
-        }
+        sni = url.queryParameter("sni")
+        congestionController = url.queryParameter("congestion_control")
+        udpRelayMode = url.queryParameter("udp_relay_mode")
+        alpn = url.queryParameter("alpn")
+        allowInsecure = url.parseBoolean("allow_insecure")
+        disableSNI = url.parseBoolean("disable_sni")
     }
 }
 
@@ -91,7 +80,8 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 certificate = listOf(bean.certificates)
             }
             if (bean.ech) {
-                val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
+                val echConfig =
+                    bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                 ech = OutboundECHOptions().apply {
                     enabled = true
                     config = echConfig

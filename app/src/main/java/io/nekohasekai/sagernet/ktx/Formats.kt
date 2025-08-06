@@ -345,9 +345,3 @@ fun <T : Serializable> T.applyDefaultValues(): T {
     initializeDefaultValues()
     return this
 }
-
-/**
- * Due to the lack of standards, the different share links use different style to
- * store boolean.
- */
-fun String.linkBoolean(): Boolean = this.lowercase().let { it == "1" || it == "true" }

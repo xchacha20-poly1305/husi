@@ -38,7 +38,7 @@ type URL interface {
 	GetRawPath() string
 	SetRawPath(rawPath string) error
 
-	QueryParameterNotBlank(key string) string
+	QueryParameter(key string) string
 	QueryParameterUnescape(key string) string
 	AddQueryParameter(key, value string)
 	SetQueryParameter(key, value string)
@@ -208,7 +208,7 @@ func (u *netURL) SetRawPath(rawPath string) error {
 	return setPath(&u.URL, rawPath)
 }
 
-func (u *netURL) QueryParameterNotBlank(key string) string {
+func (u *netURL) QueryParameter(key string) string {
 	return u.Get(key)
 }
 

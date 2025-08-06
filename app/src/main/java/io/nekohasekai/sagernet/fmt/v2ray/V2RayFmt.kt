@@ -39,6 +39,7 @@ import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.queryParameterUnescapeNotBlank
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
@@ -112,19 +113,17 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         uuid = url.username
     }
 
-    v2rayTransport = url.queryParameterNotBlank("type")
+    v2rayTransport = url.queryParameter("type")
     if (v2rayTransport.isNullOrBlank()) v2rayTransport = "tcp"
-    if (v2rayTransport == "h2" || url.queryParameterNotBlank("headerType") == "http") {
+    if (v2rayTransport == "h2" || url.queryParameter("headerType") == "http") {
         v2rayTransport = "http"
     }
 
-    security = url.queryParameterNotBlank("security")
+    security = url.queryParameter("security")
     when (security) {
         "tls", "reality" -> {
             security = "tls"
-            sni = url.queryParameterNotBlank("sni").ifBlank {
-                url.queryParameterNotBlank("host")
-            }
+            sni = url.queryParameterNotBlank("sni") ?: url.queryParameterNotBlank("host")
             alpn = url.queryParameterNotBlank("alpn")
             certificates = url.queryParameterNotBlank("cert")
             realityPublicKey = url.queryParameterNotBlank("pbk")
@@ -167,16 +166,9 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         "ws" -> {
             host = url.queryParameterNotBlank("host")
             path = url.queryParameterNotBlank("path")
-            url.queryParameterNotBlank("ed").let { ed ->
-                if (ed.isNotBlank()) {
-                    wsMaxEarlyData = ed.toIntOrNull() ?: 2048
-
-                    url.queryParameterNotBlank("eh").let { eh ->
-                        earlyDataHeaderName = eh.ifBlank {
-                            "Sec-WebSocket-Protocol"
-                        }
-                    }
-                }
+            url.queryParameterNotBlank("ed")?.let { ed ->
+                wsMaxEarlyData = ed.toIntOrNull() ?: 2048
+                earlyDataHeaderName = url.queryParameterNotBlank("eh") ?: "Sec-WebSocket-Protocol"
             }
         }
 
@@ -192,13 +184,13 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
 
     if (this is VMessBean) {
         // maybe from Matsuri vmess export
-        when (url.queryParameterNotBlank("packetEncoding")) {
+        when (url.queryParameter("packetEncoding")) {
             "packetaddr" -> packetEncoding = 1
             "xudp" -> packetEncoding = 2
         }
 
         encryption = if (isVLESS) {
-            url.queryParameterNotBlank("flow").removeSuffix("-udp443")
+            url.queryParameterNotBlank("flow")?.removeSuffix("-udp443")
         } else {
             url.queryParameterNotBlank("encryption")
         }

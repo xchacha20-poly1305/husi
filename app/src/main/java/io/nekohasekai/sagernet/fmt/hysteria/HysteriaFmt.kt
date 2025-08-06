@@ -11,11 +11,11 @@ import io.nekohasekai.sagernet.ktx.getBool
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.isIpAddress
-import io.nekohasekai.sagernet.ktx.linkBoolean
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.queryParameter
+import io.nekohasekai.sagernet.ktx.parseBoolean
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.sha256Hex
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
@@ -32,22 +32,22 @@ fun parseHysteria1(link: String): HysteriaBean {
         serverPorts = url.ports
         name = url.fragment
 
-        sni = url.queryParameter("peer")
-        url.queryParameter("auth")?.let {
+        sni = url.queryParameterNotBlank("peer")
+        url.queryParameterNotBlank("auth")?.let {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
         }
-        allowInsecure = url.queryParameterNotBlank("insecure").linkBoolean()
-        alpn = url.queryParameter("alpn")
-        obfuscation = url.queryParameter("obfsParam")
-        protocol = when (url.queryParameter("protocol")) {
+        allowInsecure = url.parseBoolean("insecure")
+        alpn = url.queryParameterNotBlank("alpn")
+        obfuscation = url.queryParameterNotBlank("obfsParam")
+        protocol = when (url.queryParameterNotBlank("protocol")) {
             "faketcp" -> HysteriaBean.PROTOCOL_FAKETCP
 
             "wechat-video" -> HysteriaBean.PROTOCOL_WECHAT_VIDEO
 
             else -> HysteriaBean.PROTOCOL_UDP
         }
-        url.queryParameter("mport")?.let {
+        url.queryParameterNotBlank("mport")?.let {
             serverPorts = it
         }
     }
@@ -61,12 +61,12 @@ fun parseHysteria2(link: String): HysteriaBean {
         serverAddress = url.host
         serverPorts = url.ports
 
-        var ps: String? = null
+        var pwd: String? = null
         try {
-            ps = url.password
+            pwd = url.password
         } catch (_: Exception) {
         }
-        authPayload = if (ps.isNullOrBlank()) {
+        authPayload = if (pwd.isNullOrBlank()) {
             url.username
         } else {
             url.username + ":" + url.password
@@ -75,7 +75,7 @@ fun parseHysteria2(link: String): HysteriaBean {
         name = url.fragment
 
         sni = url.queryParameter("sni")
-        allowInsecure = url.queryParameterNotBlank("insecure").linkBoolean()
+        allowInsecure = url.parseBoolean("insecure")
         obfuscation = url.queryParameter("obfs-password")
         /*url.queryParameterNotBlank("pinSHA256").also {
             // TODO sing-box do not support it
