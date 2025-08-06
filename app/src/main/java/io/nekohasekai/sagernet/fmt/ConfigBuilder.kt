@@ -232,7 +232,7 @@ fun buildConfig(
     val defaultStrategy = DataStore.networkStrategy.blankAsNull()
     lateinit var mainTag: String
 
-    val readableNames = mutableSetOf<String>()
+    val readableNames = mutableSetOf(TAG_DIRECT, TAG_BLOCK)
 
     // server+port:tags
     // This structure may reduce rules when multiple rules share the same server+port.
@@ -449,7 +449,7 @@ fun buildConfig(
                         is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean).asMap()
 
                         is ProxySetBean -> {
-                            val tags = readableNames!!.toList().filterNot { it == tagOut }
+                            val tags = proxySetChildren!!.toList().filterNot { it == tagOut }
                             buildSingBoxOutboundProxySetBean(
                                 bean,
                                 tags,
