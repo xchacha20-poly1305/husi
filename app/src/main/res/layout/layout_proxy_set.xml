@@ -63,7 +63,7 @@
                         android:backgroundTint="?colorSurfaceContainerLow"
                         android:contentDescription="@string/action_urltest"
                         android:src="@drawable/ic_baseline_bolt"
-                        app:tint="?colorControlNormal" />
+                        app:tint="?attr/colorOnSurfaceVariant" />
 
                     <ImageButton
                         android:id="@+id/expandButton"
@@ -73,7 +73,7 @@
                         android:backgroundTint="?colorSurfaceContainerLow"
                         android:contentDescription="@string/expand"
                         android:src="@drawable/ic_expand_less_24"
-                        app:tint="?colorControlNormal" />
+                        app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </LinearLayout>
 
