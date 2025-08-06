@@ -364,86 +364,351 @@
         <item name="android:progressTint">@color/black</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Amber" parent="Theme.SagerNet.Amber">
+    <style name="Theme.SagerNet.Dialog.Amber" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_amber_500</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/material_amber_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_amber_900</item>
+        <item name="colorSecondary">@color/material_amber_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_amber_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_amber_900</item>
+        <item name="colorTertiary">@color/material_orange_500</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_orange_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_orange_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Blue" parent="Theme.SagerNet.Blue">
+    <style name="Theme.SagerNet.Dialog.Blue" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_blue_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_blue_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_blue_900</item>
+        <item name="colorSecondary">@color/material_blue_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_blue_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_blue_900</item>
+        <item name="colorTertiary">@color/material_light_blue_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_light_blue_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_light_blue_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.BlueGrey" parent="Theme.SagerNet.BlueGrey">
+    <style name="Theme.SagerNet.Dialog.BlueGrey" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_blue_grey_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_blue_grey_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_blue_grey_900</item>
+        <item name="colorSecondary">@color/material_blue_grey_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_blue_grey_50</item>
+        <item name="colorOnSecondaryContainer">@color/material_blue_grey_900</item>
+        <item name="colorTertiary">@color/material_grey_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_grey_200</item>
+        <item name="colorOnTertiaryContainer">@color/material_grey_700</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Brown" parent="Theme.SagerNet.Brown">
+    <style name="Theme.SagerNet.Dialog.Brown" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_brown_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_brown_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_brown_900</item>
+        <item name="colorSecondary">@color/material_brown_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_brown_50</item>
+        <item name="colorOnSecondaryContainer">@color/material_brown_900</item>
+        <item name="colorTertiary">@color/material_deep_orange_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_deep_orange_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_deep_orange_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Cyan" parent="Theme.SagerNet.Cyan">
+    <style name="Theme.SagerNet.Dialog.Cyan" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_cyan_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_cyan_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_cyan_900</item>
+        <item name="colorSecondary">@color/material_cyan_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_cyan_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_cyan_900</item>
+        <item name="colorTertiary">@color/material_teal_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_teal_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_teal_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.DeepOrange" parent="Theme.SagerNet.DeepOrange">
+    <style name="Theme.SagerNet.Dialog.DeepOrange" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_deep_orange_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_deep_orange_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_deep_orange_900</item>
+        <item name="colorSecondary">@color/material_deep_orange_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_deep_orange_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_deep_orange_900</item>
+        <item name="colorTertiary">@color/material_orange_500</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_orange_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_orange_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.DeepPurple" parent="Theme.SagerNet.DeepPurple">
+    <style name="Theme.SagerNet.Dialog.DeepPurple" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_deep_purple_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_deep_purple_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_deep_purple_900</item>
+        <item name="colorSecondary">@color/material_deep_purple_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_deep_purple_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_deep_purple_900</item>
+        <item name="colorTertiary">@color/material_purple_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_purple_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Green" parent="Theme.SagerNet.Green">
+    <style name="Theme.SagerNet.Dialog.Green" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_green_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_green_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_green_900</item>
+        <item name="colorSecondary">@color/material_green_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_green_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_green_900</item>
+        <item name="colorTertiary">@color/material_light_green_500</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_light_green_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_light_green_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Grey" parent="Theme.SagerNet.Grey">
+    <style name="Theme.SagerNet.Dialog.Grey" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_grey_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_grey_200</item>
+        <item name="colorOnPrimaryContainer">@color/material_grey_700</item>
+        <item name="colorSecondary">@color/material_grey_700</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_grey_400</item>
+        <item name="colorOnSecondaryContainer">@color/black</item>
+        <item name="colorTertiary">@color/material_blue_grey_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_blue_grey_200</item>
+        <item name="colorOnTertiaryContainer">@color/material_blue_grey_700</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Indigo" parent="Theme.SagerNet.Indigo">
+    <style name="Theme.SagerNet.Dialog.Indigo" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_indigo_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_indigo_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_indigo_900</item>
+        <item name="colorSecondary">@color/material_indigo_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_indigo_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_indigo_900</item>
+        <item name="colorTertiary">@color/material_deep_purple_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_deep_purple_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_deep_purple_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.LightBlue" parent="Theme.SagerNet.LightBlue">
+    <style name="Theme.SagerNet.Dialog.LightBlue" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_light_blue_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_light_blue_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_light_blue_900</item>
+        <item name="colorSecondary">@color/material_light_blue_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_light_blue_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_light_blue_900</item>
+        <item name="colorTertiary">@color/material_cyan_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_cyan_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_cyan_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.LightGreen" parent="Theme.SagerNet.LightGreen">
+    <style name="Theme.SagerNet.Dialog.LightGreen" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_light_green_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_light_green_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_light_green_900</item>
+        <item name="colorSecondary">@color/material_light_green_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_light_green_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_light_green_900</item>
+        <item name="colorTertiary">@color/material_green_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_green_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_green_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Lime" parent="Theme.SagerNet.Lime">
+    <style name="Theme.SagerNet.Dialog.Lime" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_lime_500</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/material_lime_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_lime_900</item>
+        <item name="colorSecondary">@color/material_lime_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_lime_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_lime_900</item>
+        <item name="colorTertiary">@color/material_yellow_500</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_yellow_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_yellow_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Orange" parent="Theme.SagerNet.Orange">
+    <style name="Theme.SagerNet.Dialog.Orange" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_orange_500</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/material_orange_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_orange_900</item>
+        <item name="colorSecondary">@color/material_orange_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_orange_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_orange_900</item>
+        <item name="colorTertiary">@color/material_amber_500</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_amber_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_amber_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Purple" parent="Theme.SagerNet.Purple">
+    <style name="Theme.SagerNet.Dialog.Purple" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_purple_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_purple_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_purple_900</item>
+        <item name="colorSecondary">@color/material_purple_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_purple_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_purple_900</item>
+        <item name="colorTertiary">@color/material_deep_purple_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_deep_purple_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_deep_purple_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Red" parent="Theme.SagerNet.Red">
+    <style name="Theme.SagerNet.Dialog.Red" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_red_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_red_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_red_900</item>
+        <item name="colorSecondary">@color/material_red_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_red_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_red_900</item>
+        <item name="colorTertiary">@color/material_pink_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_pink_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_pink_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Pink_SSR" parent="Theme.SagerNet.Pink_SSR">
+    <style name="Theme.SagerNet.Dialog.Pink_SSR" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/color_pink_ssr</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_pink_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_pink_900</item>
+        <item name="colorSecondary">@color/material_pink_accent_200</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/material_pink_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_pink_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Teal" parent="Theme.SagerNet.Teal">
+    <style name="Theme.SagerNet.Dialog.Teal" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_teal_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/material_teal_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_teal_900</item>
+        <item name="colorSecondary">@color/material_teal_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_teal_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_teal_900</item>
+        <item name="colorTertiary">@color/material_green_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/material_green_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_green_900</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Yellow" parent="Theme.SagerNet.Yellow">
+    <style name="Theme.SagerNet.Dialog.Yellow" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/material_yellow_500</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/material_yellow_100</item>
+        <item name="colorOnPrimaryContainer">@color/material_yellow_900</item>
+        <item name="colorSecondary">@color/material_yellow_accent_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_yellow_accent_100</item>
+        <item name="colorOnSecondaryContainer">@color/material_yellow_900</item>
+        <item name="colorTertiary">@color/material_lime_500</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_lime_100</item>
+        <item name="colorOnTertiaryContainer">@color/material_lime_900</item>
+        <item name="colorOnPrimarySurface">@color/black</item>
     </style>
 
-    <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Black">
+    <style name="Theme.SagerNet.Dialog.Black" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/material_grey_200</item>
+        <item name="colorOnPrimaryContainer">@color/black</item>
+        <item name="colorSecondary">@color/material_grey_50</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryContainer">@color/material_grey_200</item>
+        <item name="colorOnSecondaryContainer">@color/black</item>
+        <item name="colorTertiary">@color/material_grey_400</item>
+        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorTertiaryContainer">@color/material_grey_200</item>
+        <item name="colorOnTertiaryContainer">@color/black</item>
         <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/black</item>
+        <item name="colorSurfaceVariant">@color/material_grey_200</item>
+        <item name="colorOnSurfaceVariant">@color/black</item>
+        <item name="selectedColorPrimary">@color/material_light_black</item>
+        <item name="preferenceCategoryTitleTextColor">@color/black</item>
+        <item name="tabSelectedTextColor">@color/black</item>
+        <item name="tabTextColor">@color/color_ng_black_primary</item>
+        <item name="android:textColorLink">@color/color_ng_black_primary</item>
+        <item name="android:progressTint">@color/black</item>
     </style>
 
     <style name="Theme.Start" parent="Theme.Material3.DayNight.NoActionBar">
