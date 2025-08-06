@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright (C) 2021 The Android Open Source Project
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -11,27 +10,27 @@
     See the License for the specific language governing permissions and
     limitations under the License.
   -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/icon_frame"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:minWidth="48dp"
     android:gravity="start|center_vertical"
+    android:minWidth="48dp"
     android:orientation="horizontal"
-    android:paddingLeft="0dp"
     android:paddingStart="0dp"
-    android:paddingRight="8dp"
-    android:paddingEnd="8dp"
+    android:paddingLeft="0dp"
     android:paddingTop="4dp"
+    android:paddingEnd="8dp"
+    android:paddingRight="8dp"
     android:paddingBottom="4dp">
 
     <androidx.preference.internal.PreferenceImageView
         android:id="@android:id/icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:maxWidth="48dp"
-        app:maxHeight="48dp"/>
+        android:tint="?attr/colorOnSurface"
+        app:maxHeight="48dp"
+        app:maxWidth="48dp" />
 
 </LinearLayout>
