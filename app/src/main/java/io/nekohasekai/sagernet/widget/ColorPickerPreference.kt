@@ -1,8 +1,9 @@
 package io.nekohasekai.sagernet.widget
 
 import android.content.Context
-import android.content.res.Resources
+import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
@@ -10,10 +11,9 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.content.res.TypedArrayUtils
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.setPadding
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
@@ -21,6 +21,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.utils.Theme
 
 class ColorPickerPreference
 @JvmOverloads constructor(
@@ -47,7 +48,7 @@ class ColorPickerPreference
                 createColorSwatchView(
                     context.getColorAttr(androidx.appcompat.R.attr.colorPrimary),
                     48,
-                    0,
+                    8,
                 )
             )
             widgetFrame.visibility = View.VISIBLE
@@ -61,18 +62,15 @@ class ColorPickerPreference
         return ImageView(context).apply {
             layoutParams = ViewGroup.LayoutParams(size, size)
             setPadding(paddingSize)
-            setImageDrawable(generateColorDrawer(resources, color))
+            setImageDrawable(generateColorDrawer(color))
         }
     }
 
-    private fun generateColorDrawer(res: Resources, color: Int): Drawable {
-        val circle = ResourcesCompat.getDrawable(
-            res,
-            R.drawable.ic_baseline_fiber_manual_record_24,
-            null,
-        )!!
-        DrawableCompat.setTint(circle.mutate(), color)
-        return circle
+    private fun generateColorDrawer(@ColorInt color: Int): Drawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
     }
 
     override fun onClick() {
@@ -85,8 +83,17 @@ class ColorPickerPreference
 
             val colors = context.resources.getIntArray(R.array.material_colors)
             for ((i, color) in colors.withIndex()) {
-                val themeId = i + 1
-                val view = createColorSwatchView(color, 64, 0).apply {
+                val themeId = i + 1 // Theme.kt
+                val displayColor = if (themeId == Theme.BLACK) {
+                    if (Theme.usingNightMode()) {
+                        Color.WHITE
+                    } else {
+                        Color.BLACK
+                    }
+                } else {
+                    color
+                }
+                val view = createColorSwatchView(displayColor, 64, 8).apply {
                     setOnClickListener {
                         persistInt(themeId)
                         dialog.dismiss()
