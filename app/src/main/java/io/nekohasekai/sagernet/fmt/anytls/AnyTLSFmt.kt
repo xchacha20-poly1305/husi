@@ -17,8 +17,8 @@ fun parseAnyTLS(link: String): AnyTLSBean = AnyTLSBean().apply {
     serverAddress = url.host
     serverPort = url.ports.toIntOrNull() ?: 443
     password = url.username
-    serverName = url.queryParameterNotBlank("sni")
-    allowInsecure = url.queryParameterNotBlank("insecure") == "1"
+    serverName = url.queryParameter("sni")
+    allowInsecure = url.queryParameter("insecure") == "1"
 }
 
 fun AnyTLSBean.toUri(): String {

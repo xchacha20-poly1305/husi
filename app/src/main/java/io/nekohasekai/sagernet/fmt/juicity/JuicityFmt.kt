@@ -2,6 +2,8 @@ package io.nekohasekai.sagernet.fmt.juicity
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
+import io.nekohasekai.sagernet.ktx.parseBoolean
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import libcore.Libcore
 import org.json.JSONObject
@@ -18,9 +20,7 @@ fun parseJuicity(link: String): JuicityBean {
 
         // url.queryParameterNotBlank("congestion_control")
         sni = url.queryParameterNotBlank("sni")
-        url.queryParameterNotBlank("allow_insecure").let {
-            allowInsecure = it == "1"
-        }
+        url.parseBoolean("allow_insecure")
         pinSHA256 = url.queryParameterNotBlank("pinned_certchain_sha256")
     }
 }

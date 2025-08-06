@@ -2,7 +2,11 @@ package io.nekohasekai.sagernet.fmt.naive
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
-import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
+import io.nekohasekai.sagernet.ktx.toStringPretty
+import io.nekohasekai.sagernet.ktx.unUrlSafe
+import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
 import org.json.JSONObject
 

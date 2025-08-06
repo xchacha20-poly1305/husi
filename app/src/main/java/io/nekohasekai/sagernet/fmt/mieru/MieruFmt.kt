@@ -18,7 +18,7 @@
 
 package io.nekohasekai.sagernet.fmt.mieru
 
-import io.nekohasekai.sagernet.ktx.queryParameter
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.logLevelString
 import libcore.Libcore
@@ -76,7 +76,7 @@ fun parseMieru(link: String): MieruBean = MieruBean().apply {
     serverPort = url.ports.toIntOrNull()
 
     name = url.queryParameterNotBlank("profile")
-    mtu = url.queryParameterNotBlank("mtu").toIntOrNull()
+    mtu = url.queryParameterNotBlank("mtu")?.toIntOrNull()
     serverMuxNumber = url.queryParameter("multiplexing")?.let {
         parseMieruMux(it)
     }

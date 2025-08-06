@@ -21,7 +21,7 @@ fun parseHttp(link: String): HttpBean = HttpBean().apply {
         password = url.password
     } catch (_: Exception) {
     }
-    sni = url.queryParameterNotBlank("sni")
+    sni = url.queryParameter("sni")
     name = url.fragment
     setTLS(url.scheme == "https")
     path = url.path
