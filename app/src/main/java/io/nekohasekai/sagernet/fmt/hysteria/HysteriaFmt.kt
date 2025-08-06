@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.queryParameter
+import io.nekohasekai.sagernet.ktx.sha256Hex
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
@@ -140,7 +141,7 @@ fun HysteriaBean.toUri(): String {
             url.addQueryParameter("obfs-password", obfuscation)
         }
         if (certificates.isNotBlank()) {
-            url.addQueryParameter("pinSHA256", Libcore.sha256Hex(certificates.toByteArray()))
+            url.addQueryParameter("pinSHA256", certificates.sha256Hex())
         }
     }
 

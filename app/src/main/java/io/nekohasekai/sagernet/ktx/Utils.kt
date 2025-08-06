@@ -12,6 +12,7 @@ import java.net.InetAddress
 import java.net.Socket
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -166,7 +167,7 @@ fun <T> defaultOr(default: T, vararg getters: () -> T?): T {
 }
 
 fun String.listByLineOrComma(): List<String> {
-    return this.split(",", "\n").mapX { it.trim() }.filter { it.isNotEmpty() }
+    return splitToSequence(",", "\n").map { it.trim() }.filter { it.isNotEmpty() }.toList()
 }
 
 fun Closeable.closeQuietly() {
@@ -177,3 +178,11 @@ fun Closeable.closeQuietly() {
     } catch (_: Exception) {
     }
 }
+
+fun String.sha256Hex(): String = toByteArray().sha256Hex()
+
+fun ByteArray.sha256Hex(): String = MessageDigest.getInstance("SHA-256")
+    .digest(this)
+    .joinToString("") {
+        "%02x".format(it)
+    }
