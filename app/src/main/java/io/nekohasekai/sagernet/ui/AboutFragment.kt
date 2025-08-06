@@ -9,38 +9,39 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.text.util.Linkify
+import android.view.LayoutInflater
 import android.view.View
-import androidx.activity.result.component1
-import androidx.activity.result.component2
+import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.danielstone.materialaboutlibrary.MaterialAboutFragment
-import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
-import com.danielstone.materialaboutlibrary.model.MaterialAboutCard
-import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
-import io.nekohasekai.sagernet.fmt.PluginEntry
-import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.databinding.ViewAboutCardBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.plugin.PluginManager.loadString
-import io.nekohasekai.sagernet.plugin.Plugins
-import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import libcore.Libcore
 
 class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
-    lateinit var binding: LayoutAboutBinding
+    private lateinit var binding: LayoutAboutBinding
+    private val viewModel by viewModels<AboutFragmentViewModel>()
+    private lateinit var adapter: AboutAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,181 +61,182 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             insets
         }
 
-        if (savedInstanceState == null) {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.about_fragment_holder, AboutContent())
-                .commit()
+        binding.aboutRecycler.adapter = AboutAdapter().also {
+            adapter = it
+        }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
         }
 
         binding.license.text = LICENSE
         Linkify.addLinks(binding.license, Linkify.EMAIL_ADDRESSES or Linkify.WEB_URLS)
     }
 
-    class AboutContent : MaterialAboutFragment() {
+    private fun handleUiState(state: AboutFragmentUiState) {
+        val context = requireContext()
+        val shouldRequestBatteryOptimizations = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !(requireContext().getSystemService(Context.POWER_SERVICE) as PowerManager)
+            .isIgnoringBatteryOptimizations(context.packageName)
+        val cards = ArrayList<AboutCard>(
+            2 // App version and SingBox version
+                    + state.plugins.size // Plugins
+                    + if (shouldRequestBatteryOptimizations) 1 else 0 // Battery optimization
+        ).apply {
+            add(AboutCard.AppVersion())
+            add(AboutCard.SingBoxVersion())
+            state.plugins.forEach { plugin ->
+                add(AboutCard.Plugin(plugin))
+            }
+            if (shouldRequestBatteryOptimizations) {
+                add(AboutCard.BatteryOptimization(requestIgnoreBatteryOptimizations))
+            }
+        }
+        adapter.submitList(cards)
+    }
 
-        val requestIgnoreBatteryOptimizations = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { (resultCode, _) ->
-            if (resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
-                delay(1000) // Wait for updating battery optimization config
-                onMainDispatcher {
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.about_fragment_holder, AboutContent())
-                        .commitAllowingStateLoss()
-                }
+    val requestIgnoreBatteryOptimizations = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) lifecycleScope.launch {
+            delay(1000) // Wait for updating battery optimization config
+            handleUiState(viewModel.uiState.value)
+        }
+    }
+
+    private sealed interface AboutCard {
+        class AppVersion() : AboutCard
+        class SingBoxVersion() : AboutCard
+        data class Plugin(val plugin: AboutPlugin) : AboutCard
+        class BatteryOptimization(val launcher: ActivityResultLauncher<Intent>) : AboutCard {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+                return true
+            }
+
+            override fun hashCode(): Int {
+                return javaClass.hashCode()
+            }
+        }
+    }
+
+    private class AboutAdapter :
+        ListAdapter<AboutCard, AboutPluginHolder>(AboutCardDiffCallback()) {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AboutPluginHolder {
+            return AboutPluginHolder(
+                ViewAboutCardBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false,
+                )
+            )
+        }
+
+        override fun onBindViewHolder(
+            holder: AboutPluginHolder,
+            position: Int,
+        ) {
+            when (val item = getItem(position)) {
+                is AboutCard.AppVersion -> holder.bindAppVersion()
+                is AboutCard.SingBoxVersion -> holder.bindSingBoxVersion()
+                is AboutCard.Plugin -> holder.bindPlugin(item.plugin)
+                is AboutCard.BatteryOptimization ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        holder.bindBatteryOptimization(item.launcher)
+                    }
             }
         }
 
-        override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {
+    }
+
+    private class AboutCardDiffCallback : DiffUtil.ItemCallback<AboutCard>() {
+        override fun areItemsTheSame(old: AboutCard, new: AboutCard): Boolean {
+            return when (old) {
+                is AboutCard.AppVersion -> new is AboutCard.AppVersion
+                is AboutCard.SingBoxVersion -> new is AboutCard.SingBoxVersion
+                is AboutCard.Plugin -> new is AboutCard.Plugin && old.plugin.id == new.plugin.id
+                is AboutCard.BatteryOptimization -> new is AboutCard.BatteryOptimization
+            }
+        }
+
+        override fun areContentsTheSame(old: AboutCard, new: AboutCard): Boolean {
+            return old == new
+        }
+    }
+
+    private class AboutPluginHolder(private val binding: ViewAboutCardBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bindAppVersion() {
+            binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_sanitizer_24)
+            binding.aboutCardTitle.setText(R.string.app_name)
 
             var displayVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             if (BuildConfig.DEBUG) {
                 displayVersion += " DEBUG"
             }
+            binding.aboutCardDescription.text = displayVersion
 
-            return MaterialAboutList.Builder()
-                .addCard(
-                    MaterialAboutCard.Builder()
-                        .addItem(
-                            MaterialAboutActionItem.Builder()
-                                .icon(R.drawable.ic_baseline_update_24)
-                                .text(R.string.app_version)
-                                .subText(displayVersion)
-                                .setOnClickAction {
-                                    activityContext.launchCustomTab(
-                                        if (Libcore.isPreRelease(BuildConfig.VERSION_NAME)) {
-                                            "https://github.com/xchacha20-poly1305/husi/releases"
-                                        } else {
-                                            "https://github.com/xchacha20-poly1305/husi/releases/latest"
-                                        }
-                                    )
-                                }
-                                .build())
-                        .addItem(
-                            MaterialAboutActionItem.Builder()
-                                .icon(R.drawable.ic_baseline_layers_24)
-                                .text(activityContext.getString(R.string.version_x, "sing-box"))
-                                .subText(Libcore.version())
-                                .setOnClickAction {
-                                    activityContext.launchCustomTab(
-                                        "https://github.com/SagerNet/sing-box"
-                                    )
-                                }
-                                .build())
-                        .apply {
-                            PackageCache.awaitLoadSync()
-                            for ((_, pkg) in PackageCache.installedPluginPackages) {
-                                try {
-                                    val pluginId =
-                                        pkg.providers!![0].loadString(Plugins.METADATA_KEY_ID)
-                                    if (pluginId.isNullOrBlank()) continue
-                                    addItem(
-                                        MaterialAboutActionItem.Builder()
-                                            .icon(R.drawable.ic_baseline_nfc_24)
-                                            .text(
-                                                activityContext.getString(
-                                                    R.string.version_x,
-                                                    pluginId
-                                                ) + " (${Plugins.displayExeProvider(pkg.packageName)})"
-                                            )
-                                            .subText("v" + pkg.versionName)
-                                            .setOnClickAction {
-                                                activityContext.startActivity(Intent().apply {
-                                                    action =
-                                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                                    data = Uri.fromParts(
-                                                        "package", pkg.packageName, null
-                                                    )
-                                                })
-                                            }
-                                            .apply {
-                                                val id =
-                                                    pkg.providers!![0].loadString(Plugins.METADATA_KEY_ID)
-                                                PluginEntry.find(id)?.let { entry ->
-                                                    setOnLongClickAction {
-                                                        activityContext.launchCustomTab(
-                                                            entry.downloadSource.downloadLink
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            .build())
-                                } catch (e: Exception) {
-                                    Logs.w(e)
-                                }
-                            }
-                        }
-                        .apply {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                val pm =
-                                    activityContext.getSystemService(Context.POWER_SERVICE) as PowerManager
-                                if (!pm.isIgnoringBatteryOptimizations(activityContext.packageName)) {
-                                    addItem(
-                                        MaterialAboutActionItem.Builder()
-                                            .icon(R.drawable.ic_baseline_running_with_errors_24)
-                                            .text(R.string.ignore_battery_optimizations)
-                                            .subText(R.string.ignore_battery_optimizations_sum)
-                                            .setOnClickAction {
-                                                requestIgnoreBatteryOptimizations.launch(
-                                                    Intent(
-                                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                                        "package:${activityContext.packageName}".toUri()
-                                                    )
-                                                )
-                                            }
-                                            .build())
-                                }
-                            }
-                            addItem(
-                                MaterialAboutActionItem.Builder()
-                                    .icon(R.drawable.ic_baseline_card_giftcard_24)
-                                    .text(R.string.sekai)
-                                    .setOnClickAction {
-                                        activityContext.launchCustomTab("https://sekai.icu/sponsors/")
-                                    }
-                                    .build()
-                            )
-                        }
-                        .build())
-                .addCard(
-                    MaterialAboutCard.Builder()
-                        .title(R.string.project)
-                        .addItem(
-                            MaterialAboutActionItem.Builder()
-                                .icon(R.drawable.ic_baseline_sanitizer_24)
-                                .text(R.string.github)
-                                .setOnClickAction {
-                                    activityContext.launchCustomTab(
-                                        "https://github.com/xchacha20-poly1305/husi"
-
-                                    )
-                                }
-                                .build())
-                        .addItem(
-                            MaterialAboutActionItem.Builder()
-                                .icon(R.drawable.baseline_translate_24)
-                                .text(R.string.translate_platform)
-                                .setOnClickAction {
-                                    activityContext.launchCustomTab(
-                                        "https://hosted.weblate.org/projects/husi/husi/"
-
-                                    )
-                                }
-                                .build())
-                        .build())
-                .build()
-
+            binding.root.setOnClickListener { view ->
+                view.context.launchCustomTab(
+                    if (Libcore.isPreRelease(BuildConfig.VERSION_NAME)) {
+                        "https://github.com/xchacha20-poly1305/husi/releases"
+                    } else {
+                        "https://github.com/xchacha20-poly1305/husi/releases/latest"
+                    }
+                )
+            }
         }
 
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
+        fun bindSingBoxVersion() {
+            binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_layers_24)
+            binding.aboutCardTitle.text = binding.aboutCardTitle.context.getString(
+                R.string.version_x,
+                "sing-box",
+            )
+            binding.aboutCardDescription.text = Libcore.version()
+            binding.root.setOnClickListener { view ->
+                view.context.launchCustomTab("https://github.com/SagerNet/sing-box")
+            }
+        }
 
-            view.findViewById<RecyclerView>(com.danielstone.materialaboutlibrary.R.id.mal_recyclerview)
-                .apply {
-                    overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+        fun bindPlugin(plugin: AboutPlugin) {
+            binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_nfc_24)
+            binding.aboutCardTitle.text = binding.aboutCardTitle.context.getString(
+                R.string.version_x,
+                plugin.id,
+            ) + " (${plugin.provider})"
+            binding.aboutCardDescription.text = "v${plugin.version}"
+            binding.root.setOnClickListener { view ->
+                view.context.startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", plugin.packageName, null)
+                })
+            }
+            plugin.entry?.let {
+                binding.root.setOnLongClickListener { view ->
+                    view.context.launchCustomTab(it.downloadSource.downloadLink)
+                    true
                 }
+            }
         }
 
+        @RequiresApi(Build.VERSION_CODES.M)
+        fun bindBatteryOptimization(launcher: ActivityResultLauncher<Intent>) {
+            binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_running_with_errors_24)
+            binding.aboutCardTitle.setText(R.string.ignore_battery_optimizations)
+            binding.aboutCardDescription.setText(R.string.ignore_battery_optimizations_sum)
+            binding.root.setOnClickListener { view ->
+                launcher.launch(Intent().apply {
+                    action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                    data = "package:${view.context.packageName}".toUri()
+                })
+            }
+        }
     }
 
 }
