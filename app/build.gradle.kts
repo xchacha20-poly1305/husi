@@ -83,7 +83,6 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.4.2")
     implementation("com.google.zxing:core:3.5.3")
 
-    implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
     implementation("com.jakewharton:process-phoenix:3.0.0")
     implementation("com.esotericsoftware:kryo:5.6.2")
     implementation("org.ini4j:ini4j:0.5.4")
