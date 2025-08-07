@@ -228,8 +228,8 @@ class ConfigEditActivity : ThemedActivity() {
 
     val myTheme: ColorScheme
         get() {
-            val colorPrimary = getColorAttr(androidx.appcompat.R.attr.colorPrimary)
-            val colorPrimaryDark = getColorAttr(androidx.appcompat.R.attr.colorPrimaryDark)
+            val colorPrimary = getColorAttr(com.google.android.material.R.attr.colorPrimary)
+            val colorPrimaryDark = getColorAttr(com.google.android.material.R.attr.colorPrimaryDark)
             val appTheme = Theme.getTheme()
             val nightMode = Theme.usingNightMode()
 
