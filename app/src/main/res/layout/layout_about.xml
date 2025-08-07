@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -74,7 +75,8 @@
                     android:padding="4dp"
                     android:paddingBottom="64dp"
                     android:scrollbarSize="0dp"
-                    app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout" />
+                    app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout"
+                    tools:listitem="@layout/view_about_card" />
 
             </com.google.android.material.card.MaterialCardView>
 

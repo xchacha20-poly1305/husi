@@ -85,8 +85,8 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                     + state.plugins.size // Plugins
                     + if (shouldRequestBatteryOptimizations) 1 else 0 // Battery optimization
         ).apply {
-            add(AboutCard.AppVersion())
-            add(AboutCard.SingBoxVersion())
+            add(AboutCard.AppVersion)
+            add(AboutCard.SingBoxVersion)
             state.plugins.forEach { plugin ->
                 add(AboutCard.Plugin(plugin))
             }
@@ -107,8 +107,8 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
     }
 
     private sealed interface AboutCard {
-        class AppVersion() : AboutCard
-        class SingBoxVersion() : AboutCard
+        object AppVersion : AboutCard
+        object SingBoxVersion : AboutCard
         data class Plugin(val plugin: AboutPlugin) : AboutCard
         class BatteryOptimization(val launcher: ActivityResultLauncher<Intent>) : AboutCard {
             override fun equals(other: Any?): Boolean {
