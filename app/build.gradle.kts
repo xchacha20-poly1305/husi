@@ -17,7 +17,7 @@ android {
                 "arm64-v8a",
                 "armeabi-v7a",
                 "x86_64",
-                "x86"
+                "x86",
             )
         }
         ndkVersion = "28.2.13676358"
@@ -61,8 +61,6 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.10.1")
     implementation("androidx.fragment:fragment-ktx:1.8.8")
     implementation("androidx.browser:browser:1.9.0")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.3")
     implementation("androidx.navigation:navigation-ui-ktx:2.9.3")
     implementation("androidx.preference:preference-ktx:1.2.1")

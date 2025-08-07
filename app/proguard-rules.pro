@@ -2,7 +2,6 @@
 -allowaccessmodification
 
 -keep class io.nekohasekai.sagernet.** { *;}
--keep class moe.matsuri.nb4a.** { *;}
 
 # Clean Kotlin
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
@@ -33,13 +32,5 @@
 -dontwarn java.beans.Transient
 -dontwarn java.beans.VetoableChangeListener
 -dontwarn java.beans.VetoableChangeSupport
--dontwarn org.apache.harmony.xnet.provider.jsse.SSLParametersImpl
--dontwarn org.bouncycastle.jce.provider.BouncyCastleProvider
--dontwarn org.bouncycastle.jsse.BCSSLParameters
--dontwarn org.bouncycastle.jsse.BCSSLSocket
--dontwarn org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
--dontwarn org.openjsse.javax.net.ssl.SSLParameters
--dontwarn org.openjsse.javax.net.ssl.SSLSocket
--dontwarn org.openjsse.net.ssl.OpenJSSE
 -dontwarn java.beans.PropertyVetoException
 -dontwarn android.app.ActivityThread
