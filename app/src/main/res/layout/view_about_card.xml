@@ -15,7 +15,8 @@
         android:layout_height="24dp"
         android:contentDescription="@null"
         android:scaleType="fitCenter"
-        app:srcCompat="@android:drawable/sym_def_app_icon" />
+        app:srcCompat="@drawable/ic_baseline_android_24"
+        app:tint="?attr/colorOnSurface" />
 
     <LinearLayout
         android:layout_width="0dp"
