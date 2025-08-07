@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,26 +42,29 @@ internal class ConnectionListFragmentViewModel : ViewModel() {
     }
 
     private suspend fun updateState() {
-        val connections = service?.queryConnections()?.connections?.asSequence() ?: return
-        connections.sortedWith(comparator.load()).let {
-            val query = query
-            if (query.isNullOrBlank()) {
-                it
-            } else it.filter { conn ->
-                conn.inbound.contains(query)
-                        || conn.network.contains(query)
-                        || conn.start.contains(query)
-                        || conn.src.contains(query)
-                        || conn.dst.contains(query)
-                        || conn.host.contains(query)
-                        || conn.matchedRule.contains(query)
-                        || conn.outbound.contains(query)
-                        || conn.chain.contains(query)
-                        || conn.protocol?.contains(query) == true
-                        || conn.process?.contains(query) == true
+        val connections = service?.queryConnections()
+            ?.connections?.asSequence()
+            ?.let {
+                val query = query
+                if (query.isNullOrBlank()) {
+                    it
+                } else it.filter { conn ->
+                    conn.inbound.contains(query)
+                            || conn.network.contains(query)
+                            || conn.start.contains(query)
+                            || conn.src.contains(query)
+                            || conn.dst.contains(query)
+                            || conn.host.contains(query)
+                            || conn.matchedRule.contains(query)
+                            || conn.outbound.contains(query)
+                            || conn.chain.contains(query)
+                            || conn.protocol?.contains(query) == true
+                            || conn.process?.contains(query) == true
+                }
             }
-        }
-        _uiState.value = _uiState.value.copy(connections = connections.toList())
+            ?.sortedWith(comparator.load())
+            ?: return
+        _uiState.emit(_uiState.value.copy(connections = connections.toList()))
     }
 
     fun stop() {
@@ -69,7 +73,7 @@ internal class ConnectionListFragmentViewModel : ViewModel() {
         service = null
     }
 
-    fun updateSortMode(mode: Int) = viewModelScope.launch {
+    fun updateSortMode(mode: Int) = runOnDefaultDispatcher {
         comparator.store(
             createConnectionComparator(
                 mode,
@@ -79,7 +83,7 @@ internal class ConnectionListFragmentViewModel : ViewModel() {
         DataStore.trafficSortMode = mode
     }
 
-    fun setDescending(isDescending: Boolean) {
+    fun setDescending(isDescending: Boolean) = runOnDefaultDispatcher {
         comparator.store(
             createConnectionComparator(
                 DataStore.trafficSortMode,
