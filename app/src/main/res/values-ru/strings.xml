@@ -457,7 +457,7 @@
     <string name="assets_update">Обновить геоданные</string>
     <string name="log_level">Тип журнала</string>
     <string name="bypass_lan_in_core">Обход LAN в ядре</string>
-    <string name="landing_proxy">Обратный (последний) прокси</string>
+    <string name="landing_proxy">Конечный прокси</string>
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
     <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копировать</string>
@@ -473,7 +473,7 @@
     <string name="need_restart">Перезапустите приложение для принятия изменений</string>
     <string name="share_subscription">Поделиться подпиской</string>
     <string name="protocol_version">Версия протокола</string>
-    <string name="front_proxy">Прямой (передний) прокси</string>
+    <string name="front_proxy">Начальный прокси</string>
     <string name="reset_connections">Сброс соединений</string>
     <string name="remove_duplicate">Удалить дубликаты серверов</string>
     <string name="inbound_password">Пароль пользователя SOCKS5</string>
@@ -495,10 +495,10 @@
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
     <string name="enable_brutal">Включить контроллер перегрузки TCP Brutal</string>
     <string name="release_wake_lock">Отключить WakeLock</string>
-    <string name="acquire_wake_lock_summary">Сохранять CPU включенным</string>
+    <string name="acquire_wake_lock_summary">Удерживать CPU в активном состоянии</string>
     <string name="action_switch">Сменить</string>
     <string name="nat_result_hint">Провести проверку NAT</string>
-    <string name="acquire_wake_lock">Включить WakeLock</string>
+    <string name="acquire_wake_lock">Использовать WakeLock</string>
     <string name="resolve_server">Разрешить адрес сервера в соответствии с политикой IPv6</string>
     <string name="app_name">husi</string>
     <string name="tuic_congestion_controller">Контроллер перегруженности</string>
@@ -617,7 +617,7 @@
     <string name="interrupt_exist_connections">Прерывание существующих соединений</string>
     <string name="urltest_interval">Интервал URL-теста</string>
     <string name="idle_timeout">Тайм-аут до IDLE (прекращения цикла тестирования)</string>
-    <string name="urltest_tolerance">Допустимое отклонение от лучшего сервера (мс)</string>
+    <string name="urltest_tolerance">Допустимое отклонение от сервера с лучшим откликом (мс)</string>
     <string name="route_action">Действие маршрутизации</string>
     <string name="prefer_ipv4">Предпочитать IPv4</string>
     <string name="network_strategy">Сетевая стратегия</string>
