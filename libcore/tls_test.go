@@ -1,7 +1,7 @@
 package libcore
 
 import (
-	"crypto/tls"
+	"context"
 	"net"
 	"os"
 	"testing"
@@ -9,7 +9,10 @@ import (
 
 	aTLS "github.com/sagernet/sing-box/common/tls"
 	"github.com/sagernet/sing/common"
+	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
+
+	utls "github.com/metacubex/utls"
 )
 
 func Test_UpdateRootCACerts(t *testing.T) {
@@ -29,9 +32,9 @@ func Test_UpdateRootCACerts(t *testing.T) {
 
 	done := make(chan struct{})
 	go func(listener net.Listener, done chan struct{}) {
-		cert := common.Must1(tls.X509KeyPair(publicKey, privateKey))
-		config := &tls.Config{
-			Certificates: []tls.Certificate{cert},
+		cert := common.Must1(utls.X509KeyPair(publicKey, privateKey))
+		config := &utls.Config{
+			Certificates: []utls.Certificate{cert},
 			ServerName:   husi,
 		}
 		done <- struct{}{}
@@ -49,11 +52,14 @@ func Test_UpdateRootCACerts(t *testing.T) {
 			if err != nil {
 				return
 			}
-			go func(config *tls.Config, conn net.Conn) {
+			go func(config *utls.Config, conn net.Conn) {
 				defer conn.Close()
-				tlsConn := tls.Server(conn, config)
-				err := tlsConn.Handshake()
+				tlsConn := utls.Server(conn, config)
+				err := tlsConn.HandshakeContext(t.Context())
 				if err != nil {
+					if !E.IsClosedOrCanceled(err) {
+						t.Logf("TLS conn close because: %v", err)
+					}
 					return
 				}
 				defer tlsConn.Close()
@@ -65,11 +71,22 @@ func Test_UpdateRootCACerts(t *testing.T) {
 	<-done
 	defer close(done)
 
-	testConnect := func(serverName, address string, wantErr bool, testName string) {
-		config := &tls.Config{
+	refreshRandomFingerprint()
+
+	testConnect := func(ctx context.Context, serverName, address string, wantErr bool, testName string) {
+		config := &utls.Config{
 			ServerName: serverName,
 		}
-		conn, err := tls.Dial(N.NetworkTCP, address, config)
+		dialer := &net.Dialer{}
+		conn, err := dialer.DialContext(ctx, N.NetworkTCP, address)
+		if err != nil {
+			t.Errorf("dial tcp conn: %v", err)
+			return
+		}
+		defer conn.Close()
+		client := utls.UClient(conn, config, randomFingerprint)
+		defer client.Close()
+		err = client.HandshakeContext(ctx)
 		if err == nil {
 			_ = conn.Close()
 			if wantErr {
@@ -82,17 +99,33 @@ func Test_UpdateRootCACerts(t *testing.T) {
 		}
 	}
 
+	newContext := func() (context.Context, context.CancelFunc) {
+		const Timeout = 10 * time.Second
+		return context.WithTimeout(t.Context(), Timeout)
+	}
 	// normal
-	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306")
-	testConnect(husi, listen, true, "normal local")
+	ctx, cancel := newContext()
+	testConnect(ctx, chinaRailway, trustAsiaAddress, false, "normal 12306")
+	cancel()
+	ctx, cancel = newContext()
+	testConnect(ctx, husi, listen, true, "normal local")
+	cancel()
 
 	// Load local cert and Mozilla CA
 	UpdateRootCACerts(true, nil)
-	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
-	testConnect(husi, listen, false, "loaded custom")
+	ctx, cancel = newContext()
+	testConnect(ctx, chinaRailway, trustAsiaAddress, true, "mozilla 12306")
+	cancel()
+	ctx, cancel = newContext()
+	testConnect(ctx, husi, listen, false, "loaded custom")
+	cancel()
 
 	// Set back but load local
 	UpdateRootCACerts(false, nil)
-	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
-	testConnect(husi, listen, false, "loaded custom 2")
+	ctx, cancel = newContext()
+	testConnect(ctx, chinaRailway, trustAsiaAddress, false, "normal 12306 2")
+	cancel()
+	ctx, cancel = newContext()
+	testConnect(ctx, husi, listen, false, "loaded custom 2")
+	cancel()
 }

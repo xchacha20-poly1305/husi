@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+	"math/rand/v2"
 	"net"
 	"os"
 	"path/filepath"
@@ -18,6 +19,7 @@ import (
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
 
+	utls "github.com/metacubex/utls"
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/cazilla"
 )
@@ -158,4 +160,29 @@ func GetCert(address, serverName, mode string, proxy string) (cert string, err e
 	}
 
 	return builder.String(), nil
+}
+
+//go:linkname randomFingerprint github.com/sagernet/sing-box/common/tls.randomFingerprint
+//go:linkname randomizedFingerprint github.com/sagernet/sing-box/common/tls.randomizedFingerprint
+var (
+	randomFingerprint     utls.ClientHelloID
+	randomizedFingerprint utls.ClientHelloID
+)
+
+func refreshRandomFingerprint() {
+	modernFingerprints := []utls.ClientHelloID{
+		utls.HelloChrome_Auto,
+		utls.HelloFirefox_Auto,
+		utls.HelloEdge_Auto,
+		utls.HelloSafari_Auto,
+		utls.HelloIOS_Auto,
+	}
+	randomFingerprint = modernFingerprints[rand.IntN(len(modernFingerprints))]
+
+	weights := utls.DefaultWeights
+	weights.TLSVersMax_Set_VersionTLS13 = 1
+	weights.FirstKeyShare_Set_CurveP256 = 0
+	randomizedFingerprint = utls.HelloRandomized
+	randomizedFingerprint.Seed, _ = utls.NewPRNGSeed()
+	randomizedFingerprint.Weights = &weights
 }

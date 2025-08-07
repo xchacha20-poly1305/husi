@@ -138,6 +138,8 @@ func (b *BoxInstance) Start() (err error) {
 	}
 
 	if !b.forTest {
+		refreshRandomFingerprint()
+
 		debug.FreeOSMemory()
 	}
 
