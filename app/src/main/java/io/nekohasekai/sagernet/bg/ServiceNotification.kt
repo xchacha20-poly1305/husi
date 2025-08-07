@@ -130,7 +130,7 @@ class ServiceNotification(
 
         Theme.apply(app)
         Theme.apply(service)
-        builder.color = service.getColorAttr(androidx.appcompat.R.attr.colorPrimary)
+        builder.color = service.getColorAttr(com.google.android.material.R.attr.colorPrimary)
 
         service.registerReceiver(this, IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)

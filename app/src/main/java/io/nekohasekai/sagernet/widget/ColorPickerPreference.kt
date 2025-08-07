@@ -46,7 +46,7 @@ class ColorPickerPreference
 
             widgetFrame.addView(
                 createColorSwatchView(
-                    context.getColorAttr(androidx.appcompat.R.attr.colorPrimary),
+                    context.getColorAttr(com.google.android.material.R.attr.colorPrimary),
                     48,
                     8,
                 )

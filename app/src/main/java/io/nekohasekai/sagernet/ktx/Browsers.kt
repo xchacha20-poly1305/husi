@@ -10,15 +10,15 @@ fun Context.launchCustomTab(link: String) {
         setColorScheme(CustomTabsIntent.COLOR_SCHEME_SYSTEM)
         setColorSchemeParams(
             CustomTabsIntent.COLOR_SCHEME_LIGHT,
-            CustomTabColorSchemeParams.Builder().apply {
-                setToolbarColor(getColorAttr(androidx.appcompat.R.attr.colorPrimary))
-            }.build()
+            CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(getColorAttr(com.google.android.material.R.attr.colorPrimary))
+                .build(),
         )
         setColorSchemeParams(
             CustomTabsIntent.COLOR_SCHEME_DARK,
-            CustomTabColorSchemeParams.Builder().apply {
-                setToolbarColor(getColorAttr(androidx.appcompat.R.attr.colorPrimary))
-            }.build()
+            CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(getColorAttr(com.google.android.material.R.attr.colorPrimary))
+                .build(),
         )
     }.build().apply {
         if (intent.resolveActivity(packageManager) != null) {
