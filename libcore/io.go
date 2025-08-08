@@ -2,8 +2,6 @@ package libcore
 
 import (
 	"archive/tar"
-	"archive/zip"
-	"compress/gzip"
 	"io"
 	"io/fs"
 	"os"
@@ -13,6 +11,8 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 
+	"github.com/klauspost/compress/gzip"
+	"github.com/klauspost/compress/zip"
 	"github.com/klauspost/compress/zstd"
 )
 
