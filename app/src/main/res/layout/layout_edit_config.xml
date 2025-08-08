@@ -24,7 +24,8 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:layoutDirection="ltr">
 
             <com.blacksquircle.ui.editorkit.widget.TextProcessor
                 android:id="@+id/editor"
@@ -32,14 +33,7 @@
                 android:layout_height="match_parent"
                 android:completionThreshold="2"
                 android:importantForAutofill="no"
-                android:scrollbars="none" />
-
-            <com.blacksquircle.ui.editorkit.widget.TextScroller
-                android:id="@+id/scroller"
-                android:layout_width="30dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="end"
-                app:thumbTint="?attr/colorPrimary" />
+                android:scrollbars="vertical|horizontal" />
 
         </FrameLayout>
 

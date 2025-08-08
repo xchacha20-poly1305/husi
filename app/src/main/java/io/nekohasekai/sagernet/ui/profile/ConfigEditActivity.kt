@@ -12,13 +12,12 @@ import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.core.widget.addTextChangedListener
 import com.blacksquircle.ui.editorkit.insert
 import com.blacksquircle.ui.editorkit.model.ColorScheme
 import com.blacksquircle.ui.editorkit.plugin.autoindent.autoIndentation
 import com.blacksquircle.ui.editorkit.plugin.base.PluginSupplier
 import com.blacksquircle.ui.editorkit.plugin.delimiters.highlightDelimiters
-import com.blacksquircle.ui.editorkit.plugin.dirtytext.OnChangeListener
-import com.blacksquircle.ui.editorkit.plugin.dirtytext.onChangeListener
 import com.blacksquircle.ui.editorkit.plugin.linenumbers.lineNumbers
 import com.blacksquircle.ui.language.json.JsonLanguage
 import com.github.shadowsocks.plugin.Empty
@@ -29,6 +28,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
@@ -41,14 +41,22 @@ import kotlin.math.max
 
 class ConfigEditActivity : ThemedActivity() {
 
-    private var dirty = false
     var key = Key.SERVER_CONFIG
 
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
-            UnsavedChangesDialogFragment().apply {
-                key()
-            }.show(supportFragmentManager, null)
+            if (ViewCompat.getRootWindowInsets(binding.editor)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+            /* this also works on Android Emulator Android 5.0 anyway */
+            ) {
+                this@ConfigEditActivity.currentFocus?.windowToken?.let {
+                    SagerNet.inputMethod.hideSoftInputFromWindow(it, 0)
+                }
+            } else {
+                UnsavedChangesDialogFragment().apply {
+                    key()
+                }.show(supportFragmentManager, null)
+            }
         }
     }
 
@@ -65,7 +73,7 @@ class ConfigEditActivity : ThemedActivity() {
         }
     }
 
-    lateinit var binding: LayoutEditConfigBinding
+    private lateinit var binding: LayoutEditConfigBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,10 +131,8 @@ class ConfigEditActivity : ThemedActivity() {
                     autoCloseQuotes = true
                 }
             })
-            onChangeListener = OnChangeListener {
-                if (!dirty) {
-                    dirty = true
-                    DataStore.dirty = true
+            addTextChangedListener {
+                if (!onBackPressedCallback.isEnabled) {
                     onBackPressedCallback.isEnabled = true
                 }
             }
