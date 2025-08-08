@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/gofrs/uuid/v5 v5.3.2
-	github.com/klauspost/compress v1.17.11
+	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.7
 	github.com/sagernet/sing v0.7.0-beta.2
