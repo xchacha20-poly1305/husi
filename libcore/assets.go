@@ -26,9 +26,9 @@ const (
 )
 
 const (
-	tgzSuffix      = ".tgz"
-	geoipArchive   = geoipDat + tgzSuffix
-	geositeArchive = geositeDat + tgzSuffix
+	tarZstSuffix   = ".tar.zst"
+	geoipArchive   = geoipDat + tarZstSuffix
+	geositeArchive = geositeDat + tarZstSuffix
 )
 
 var (
@@ -69,20 +69,20 @@ func extractGeo(name, targetDir string) error {
 	}
 
 	// Unpack
-	assetFile, err := asset.Open(filepath.Join(apkAssetPrefixSingBox, name) + tgzSuffix)
+	assetFile, err := asset.Open(filepath.Join(apkAssetPrefixSingBox, name) + tarZstSuffix)
 	if err != nil {
 		return E.Cause(err, "open asset file ", name)
 	}
-	tmpPackName := filepath.Join(targetDir, name) + tgzSuffix
+	tmpPackName := filepath.Join(targetDir, name) + tarZstSuffix
 	if err = extractAssetToFile(assetFile, tmpPackName); err != nil {
 		return E.Cause(err, "copy tmp file of ", name)
 	}
 
 	_ = removeIfHasPrefix(targetDir, name+"-")
-	err = UntargzWithoutDir(tmpPackName, targetDir)
+	err = UnTarZstdWithoutDir(tmpPackName, targetDir)
 	_ = os.Remove(tmpPackName)
 	if err != nil {
-		return E.Cause(err, "untargz ", name)
+		return E.Cause(err, "UnTarZstd ", name)
 	}
 
 	_ = os.Remove(versionPath)
@@ -128,7 +128,7 @@ func extractAssetToFile(assetFile asset.File, path string) error {
 func deleteDeprecated() {
 	dashboardPath := filepath.Join(internalAssetsPath, "dashboard")
 	_ = os.RemoveAll(dashboardPath)
-	_ = os.Remove(dashboardPath + tgzSuffix)
+	_ = os.Remove(dashboardPath + "tgz")
 	_ = os.Remove(dashboardPath + versionSuffix)
 
 	_ = os.Remove(filepath.Join(externalAssetsPath, "geo", "pax_global_header"))

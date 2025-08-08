@@ -18,6 +18,7 @@ go.work*
 *.srs
 *.zip
 *.tgz
+*.zst
 *.tar.*
 *.tar
 

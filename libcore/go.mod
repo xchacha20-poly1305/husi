@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/gofrs/uuid/v5 v5.3.2
+	github.com/klauspost/compress v1.17.11
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.7
 	github.com/sagernet/sing v0.7.0-beta.2
@@ -42,7 +43,6 @@ require (
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/libdns/alidns v1.0.5-libdns.v1.beta1 // indirect
 	github.com/libdns/cloudflare v0.2.2-0.20250708034226-c574dccb31a6 // indirect

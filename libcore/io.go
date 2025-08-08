@@ -11,7 +11,23 @@ import (
 	"strings"
 
 	"github.com/sagernet/sing/common"
+	E "github.com/sagernet/sing/common/exceptions"
+
+	"github.com/klauspost/compress/zstd"
 )
+
+func TryUnpack(archive, path string) error {
+	var errors []error
+	type unpackFunc func(archive, path string) error
+	for _, unpack := range []unpackFunc{UnTarZstdWithoutDir, UntargzWithoutDir, UnzipWithoutDir} {
+		err := unpack(archive, path)
+		if err == nil {
+			return nil
+		}
+		errors = append(errors, err)
+	}
+	return E.Errors(errors...)
+}
 
 // UntargzWithoutDir untargz the archive to path,
 // but ignore the directory in tar.
@@ -65,11 +81,11 @@ func UntargzWithoutDir(archive, path string) (err error) {
 // UnzipWithoutDir unzip the archive to path,
 // but ignore the directory in tar.
 func UnzipWithoutDir(archive, path string) error {
-	r, err := zip.OpenReader(archive)
+	reader, err := zip.OpenReader(archive)
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer reader.Close()
 
 	_ = os.MkdirAll(path, os.ModePerm)
 	root, err := os.OpenRoot(path)
@@ -78,7 +94,7 @@ func UnzipWithoutDir(archive, path string) error {
 	}
 	defer root.Close()
 
-	for _, file := range r.File {
+	for _, file := range reader.File {
 		fileInfo := file.FileInfo()
 		if fileInfo.IsDir() {
 			continue
@@ -91,6 +107,52 @@ func UnzipWithoutDir(archive, path string) error {
 
 		err = copyToFile(root, fileInfo.Name(), zipFile)
 		_ = zipFile.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func UnTarZstdWithoutDir(archive, path string) error {
+	file, err := os.Open(archive)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	zReader, err := zstd.NewReader(file, zstd.WithDecoderLowmem(common.LowMemory))
+	if err != nil {
+		return err
+	}
+	defer zReader.Close()
+
+	_ = os.MkdirAll(path, os.ModePerm)
+	root, err := os.OpenRoot(path)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+
+	tReader := tar.NewReader(zReader)
+	for {
+		header, err := tReader.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if header.Typeflag != tar.TypeReg {
+			continue
+		}
+
+		fileInfo := header.FileInfo()
+		if fileInfo.IsDir() {
+			continue
+		}
+
+		err = copyToFile(root, fileInfo.Name(), tReader)
 		if err != nil {
 			return err
 		}
