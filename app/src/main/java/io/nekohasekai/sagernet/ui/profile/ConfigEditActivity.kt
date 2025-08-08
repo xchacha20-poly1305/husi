@@ -1,18 +1,21 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.blacksquircle.ui.editorkit.insert
 import com.blacksquircle.ui.editorkit.model.ColorScheme
 import com.blacksquircle.ui.editorkit.plugin.autoindent.autoIndentation
@@ -20,66 +23,45 @@ import com.blacksquircle.ui.editorkit.plugin.base.PluginSupplier
 import com.blacksquircle.ui.editorkit.plugin.delimiters.highlightDelimiters
 import com.blacksquircle.ui.editorkit.plugin.linenumbers.lineNumbers
 import com.blacksquircle.ui.language.json.JsonLanguage
-import com.github.shadowsocks.plugin.Empty
-import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.utils.Theme
-import libcore.Libcore
+import kotlinx.coroutines.launch
 import kotlin.math.max
 
 class ConfigEditActivity : ThemedActivity() {
 
-    var key = Key.SERVER_CONFIG
-
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
-            if (ViewCompat.getRootWindowInsets(binding.editor)
-                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
-            /* this also works on Android Emulator Android 5.0 anyway */
-            ) {
-                this@ConfigEditActivity.currentFocus?.windowToken?.let {
-                    SagerNet.inputMethod.hideSoftInputFromWindow(it, 0)
+            MaterialAlertDialogBuilder(this@ConfigEditActivity)
+                .setTitle(R.string.unsaved_changes_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    lifecycleScope.launch {
+                        viewModel.saveAndExit(binding.editor.text.toString())
+                    }
                 }
-            } else {
-                UnsavedChangesDialogFragment().apply {
-                    key()
-                }.show(supportFragmentManager, null)
-            }
-        }
-    }
-
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.unsaved_changes_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                (requireActivity() as ConfigEditActivity).saveAndExit()
-            }
-            setNegativeButton(R.string.no) { _, _ ->
-                requireActivity().finish()
-            }
-            setNeutralButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.no) { _, _ ->
+                    finish()
+                }
+                .setNeutralButton(android.R.string.cancel, null)
+                .show()
         }
     }
 
     private lateinit var binding: LayoutEditConfigBinding
+    private val viewModel by viewModels<ConfigEditActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intent?.extras?.apply {
-            getString("key")?.let { key = it }
+        intent?.extras?.getString("key")?.let {
+            viewModel.key = it
         }
 
         binding = LayoutEditConfigBinding.inflate(layoutInflater)
@@ -115,10 +97,14 @@ class ConfigEditActivity : ThemedActivity() {
         }
 
         binding.editor.apply {
+            useSpacesInsteadOfTabs = true
+            // https://github.com/SagerNet/sing-box/blob/43fef1dae66e581309d62bb4421df4d07683a49c/experimental/libbox/config.go#L166C25-L166C27
+            tabWidth = 2
             language = JsonLanguage()
             setHorizontallyScrolling(true)
-            setTextContent(DataStore.profileCacheStore.getString(key)!!)
-            colorScheme = myTheme
+            viewModel.content = DataStore.profileCacheStore.getString(viewModel.key)!!
+            setTextContent(viewModel.content)
+            colorScheme = editorScheme
             plugins(PluginSupplier.create {
                 lineNumbers {
                     lineNumbers = true
@@ -132,7 +118,9 @@ class ConfigEditActivity : ThemedActivity() {
                 }
             })
             addTextChangedListener {
+                viewModel.content = it.toString()
                 if (!onBackPressedCallback.isEnabled) {
+                    viewModel.needSave = true
                     onBackPressedCallback.isEnabled = true
                 }
             }
@@ -154,58 +142,53 @@ class ConfigEditActivity : ThemedActivity() {
             }
         }
         binding.actionFormat.setOnClickListener {
-            formatText()?.let {
-                binding.editor.setTextContent(it)
+            lifecycleScope.launch {
+                viewModel.formatJson(binding.editor.text)
             }
         }
         binding.actionConfigTest.setOnClickListener {
-            try {
-                val content = binding.editor.text.toString()
-                val jsonContent = if (content.contains("outbound")) {
-                    content
-                } else {
-                    // make it full outbounds
-                    val singleOutbound = JsonParser.parseString(content)
-                    val jsonArray = JsonArray().also { it.add(singleOutbound) }
-                    JsonObject().also { it.add("outbounds", jsonArray) }.toString()
-                }
-                Libcore.checkConfig(jsonContent)
-            } catch (e: Exception) {
-                AlertDialog.Builder(this)
-                    .setTitle(R.string.error_title)
-                    .setMessage(e.toString())
-                    .setPositiveButton(android.R.string.ok) { _, _ -> }
-                    .show()
-                return@setOnClickListener
+            lifecycleScope.launch {
+                viewModel.checkConfig(binding.editor.text.toString())
             }
-            snackbar(android.R.string.ok).show()
         }
 
         binding.extendedKeyboard.apply {
-            setKeyListener { char -> binding.editor.insert(char) }
+            setKeyListener { char ->
+                binding.editor.insert(char)
+            }
             setHasFixedSize(true)
             submitList(listOf("{", "}", ",", ":", "_", "\""))
         }
-    }
 
-    private fun formatText(): String? {
-        try {
-            val txt = binding.editor.text.toString()
-            if (txt.isBlank()) {
-                return ""
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiEvent.collect(::handleUiEvent)
             }
-            return Libcore.formatConfig(txt).value
-        } catch (e: Exception) {
-            alert(e.readableMessage).show()
-            return null
+        }
+
+        onBackPressedCallback.isEnabled = viewModel.needSave
+    }
+
+    private fun handleUiEvent(event: ConfigEditActivityUiEvent) {
+        when (event) {
+            is ConfigEditActivityUiEvent.UpdateText -> {
+                binding.editor.setText(event.text)
+            }
+
+            is ConfigEditActivityUiEvent.Alert -> alert(event.message).show()
+            is ConfigEditActivityUiEvent.SnackBar -> snackbar(event.id).show()
+            ConfigEditActivityUiEvent.Finish -> finish()
         }
     }
 
-    fun saveAndExit() {
-        formatText()?.let {
-            DataStore.profileCacheStore.putString(key, it)
-            finish()
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_TAB) {
+            if (currentFocus == binding.editor) {
+                binding.editor.insert(binding.editor.tab())
+                return true
+            }
         }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -221,7 +204,9 @@ class ConfigEditActivity : ThemedActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_apply -> {
-                saveAndExit()
+                lifecycleScope.launch {
+                    viewModel.saveAndExit(binding.editor.text.toString())
+                }
                 return true
             }
         }
@@ -232,7 +217,7 @@ class ConfigEditActivity : ThemedActivity() {
         return Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT)
     }
 
-    val myTheme: ColorScheme
+    private val editorScheme: ColorScheme
         get() {
             val colorPrimary = getColorAttr(com.google.android.material.R.attr.colorPrimary)
             val colorPrimaryDark = getColorAttr(com.google.android.material.R.attr.colorPrimaryDark)
