@@ -211,7 +211,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                     parentFile?.mkdirs()
                 }
                 contentResolver.openInputStream(fileUri)?.use(tempImportFile.outputStream())
-                viewModel.importFile(geoDir, tempImportFile)
+                viewModel.importFile(tempImportFile, geoDir)
             }
 
         }
@@ -226,11 +226,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
             AssetEditActivity.RESULT_SHOULD_UPDATE -> {
                 viewModel.refreshAssets()
-                viewModel.updateSingleAsset(
-                    File(geoDir, assetName!!),
-                    geoDir,
-                    cacheDir,
-                )
+                viewModel.updateSingleAsset(File(geoDir, assetName!!))
             }
 
             AssetEditActivity.RESULT_DELETE -> runOnDefaultDispatcher {
@@ -352,7 +348,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
                 binding.rulesUpdate.isVisible = true
                 binding.rulesUpdate.setOnClickListener {
-                    viewModel.updateSingleAsset(file, geoDir, cacheDir)
+                    viewModel.updateSingleAsset(file)
                 }
             }
         }

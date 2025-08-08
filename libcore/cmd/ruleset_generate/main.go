@@ -3,7 +3,6 @@ package main
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"flag"
 	"io"
 	"net/http"
@@ -15,14 +14,16 @@ import (
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common"
+
+	"github.com/klauspost/compress/zstd"
 )
 
 var (
 	geositeDate = flag.String("geosite", "", "geosite date")
 	geoipDate   = flag.String("geoip", "", "geoip date")
 
-	geositeOutput = flag.String("so", "geosite.tgz", "geosite tar.gz output")
-	geoipOutput   = flag.String("io", "geoip.tgz", "geoip tar.gz output")
+	geositeOutput = flag.String("so", "geosite.tar.zst", "geosite tar.zst output")
+	geoipOutput   = flag.String("io", "geoip.tar.zst", "geoip tar.zst output")
 )
 
 const (
@@ -44,14 +45,14 @@ func main() {
 	buf.Grow(finalBufCap)
 
 	if *geositeDate != "" {
-		siteFile, err := os.OpenFile(*geositeOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+		siteFile, err := os.Create(*geositeOutput)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer siteFile.Close()
-		gWriter := common.Must1(gzip.NewWriterLevel(siteFile, gzip.BestCompression))
-		defer gWriter.Close()
-		tWriter := tar.NewWriter(gWriter)
+		zWriter := common.Must1(newZstdWriter(siteFile))
+		defer zWriter.Close()
+		tWriter := tar.NewWriter(zWriter)
 		defer tWriter.Close()
 
 		geositeData, err := fetch(geositeRepo, *geositeDate, siteName)
@@ -101,14 +102,14 @@ func main() {
 	log.Trace("Buf length: ", buf.Len(), " cap: ", buf.Cap())
 
 	if *geoipDate != "" {
-		ipFile, err := os.OpenFile(*geoipOutput, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+		ipFile, err := os.Create(*geoipOutput)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer ipFile.Close()
-		gWriter := common.Must1(gzip.NewWriterLevel(ipFile, gzip.BestCompression))
-		defer gWriter.Close()
-		tWriter := tar.NewWriter(gWriter)
+		zWriter := common.Must1(newZstdWriter(ipFile))
+		defer zWriter.Close()
+		tWriter := tar.NewWriter(zWriter)
 		defer tWriter.Close()
 
 		geoipData, err := fetch(geoipRepo, *geoipDate, ipName)
@@ -166,4 +167,12 @@ func fetch(repo, tag, name string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	return io.ReadAll(resp.Body)
+}
+
+func newZstdWriter(writer io.Writer) (*zstd.Encoder, error) {
+	return zstd.NewWriter(
+		writer,
+		zstd.WithEncoderLevel(zstd.SpeedBestCompression),
+		zstd.WithWindowSize(zstd.MaxWindowSize),
+	)
 }

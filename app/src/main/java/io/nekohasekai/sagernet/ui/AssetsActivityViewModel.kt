@@ -5,10 +5,8 @@ import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.readableMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -141,11 +139,10 @@ internal class AssetsActivityViewModel : ViewModel() {
         updater.runUpdateIfAvailable()
     }
 
-    fun updateSingleAsset(asset: File, destinationDir: File, cacheDir: File) {
-        Logs.w("update single")
+    fun updateSingleAsset(asset: File) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateSingleAsset0(asset, destinationDir, cacheDir)
+                updateSingleAsset0(asset)
                 _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done()))
             } catch (e: Exception) {
                 _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done(e)))
@@ -153,11 +150,7 @@ internal class AssetsActivityViewModel : ViewModel() {
         }
     }
 
-    private suspend fun updateSingleAsset0(
-        asset: File,
-        destinationDir: File,
-        cacheDir: File,
-    ) {
+    private suspend fun updateSingleAsset0(asset: File) {
         val name = asset.name
         val entity = SagerDatabase.assetDao.get(name)!!
         val url = entity.url
@@ -198,9 +191,9 @@ internal class AssetsActivityViewModel : ViewModel() {
         File(assetsDir, "$name.version.txt").writeText(time)
     }
 
-    suspend fun importFile(destinationDir: File, sourceFile: File) {
+    suspend fun importFile(sourceFile: File, destinationDir: File) {
         try {
-            tryOpenCompressed(sourceFile, destinationDir.absolutePath)
+            Libcore.tryUnpack(sourceFile.absolutePath, destinationDir.absolutePath)
         } catch (e: Exception) {
             _uiState.update { AssetsUiState.Done(e) }
             return
@@ -295,7 +288,7 @@ internal class CustomAssetUpdater(
 
             updateProgress(25)
             for (file in cacheFiles) {
-                tryOpenCompressed(file, destinationDir.absolutePath)
+                Libcore.tryUnpack(file.absolutePath, destinationDir.absolutePath)
             }
 
             updateProgress(25)
@@ -399,22 +392,4 @@ internal class GithubAssetUpdater(
             newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
         return JSONObject(response.contentString.value).optString("tag_name")
     }
-}
-
-/**
- * @param copyName If the file may be copied, set it as not null.
- */
-private suspend fun tryOpenCompressed(from: File, toDir: String, copyName: String? = null) {
-    val absolutePath = from.absolutePath
-
-    val exceptions = mutableListOf<Throwable>()
-    runCatching {
-        Libcore.untargzWithoutDir(absolutePath, toDir)
-    }.onSuccess { return }
-        .onFailure { exceptions += it }
-    runCatching {
-        Libcore.unzipWithoutDir(absolutePath, toDir)
-    }.onSuccess { return }
-        .onFailure { exceptions += it }
-    error(exceptions.joinToString("; ") { it.readableMessage })
 }

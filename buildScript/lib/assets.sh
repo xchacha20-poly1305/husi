@@ -18,12 +18,12 @@ mkdir -p $DIR
 echo "GEOIP: $GEOIP_VERSION"
 echo "GEOSITE: $GEOSITE_VERSION"
 pushd $GENERATER
-go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION -so="geosite.tgz" -io="geoip.tgz"
+go run . -geoip=$GEOIP_VERSION -geosite=$GEOSITE_VERSION -so="geosite.tar.zst" -io="geoip.tar.zst"
 popd
 
-cp -r "$GENERATER/geoip.tgz" "$DIR"
-cp -r "$GENERATER/geosite.tgz" "$DIR"
-sha256sum $DIR/*.tgz
+cp -r "$GENERATER/geoip.tar.zst" "$DIR"
+cp -r "$GENERATER/geosite.tar.zst" "$DIR"
+sha256sum $DIR/*.tar.zst
 
 cd $DIR
 echo -n $GEOIP_VERSION >geoip.version.txt
