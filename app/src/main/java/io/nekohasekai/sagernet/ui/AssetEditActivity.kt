@@ -37,15 +37,19 @@ class AssetEditActivity(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
 ) : ThemedActivity(resId) {
 
-    override val onBackPressedCallback: OnBackPressedCallback
-        get() = mOnBackPressedCallback
-    private val mOnBackPressedCallback by lazy {
-        object : OnBackPressedCallback(enabled = viewModel.backEnabled.value) {
-            override fun handleOnBackPressed() {
-                UnsavedChangesDialogFragment().apply {
-                    key()
-                }.show(supportFragmentManager, null)
-            }
+    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
+        override fun handleOnBackPressed() {
+            MaterialAlertDialogBuilder(this@AssetEditActivity)
+                .setTitle(R.string.unsaved_changes_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    lifecycleScope.launch {
+                        saveAndExit()
+                    }
+                }
+                .setNegativeButton(R.string.no) { _, _ ->
+                    finish()
+                }
+                .show()
         }
     }
 
@@ -56,24 +60,10 @@ class AssetEditActivity(
         addPreferencesFromResource(R.xml.asset_preferences)
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.unsaved_changes_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                lifecycleScope.launch {
-                    (requireActivity() as AssetEditActivity).saveAndExit()
-                }
-            }
-            setNegativeButton(R.string.no) { _, _ ->
-                requireActivity().finish()
-            }
-            setNeutralButton(android.R.string.cancel, null)
-        }
-    }
-
     @Parcelize
     data class AssetNameArg(val assetName: String) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<AssetNameArg, Empty>(AssetNameArg::class.java) {
+    class DeleteConfirmationDialogFragment :
+        AlertDialogFragment<AssetNameArg, Empty>(AssetNameArg::class.java) {
         override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
             setTitle(R.string.delete_confirm_prompt)
             setPositiveButton(android.R.string.ok) { _, _ ->
@@ -117,7 +107,7 @@ class AssetEditActivity(
             lifecycleScope.launch {
                 if (editingAssetName.isEmpty()) {
                     // Create at first time
-                    viewModel.shouldUpdate = true
+                    viewModel.shouldUpdateFromInternet = true
                     viewModel.loadAssetEntity(AssetEntity())
                 } else {
                     val entity = SagerDatabase.assetDao.get(editingAssetName)
@@ -134,19 +124,15 @@ class AssetEditActivity(
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.settings, MyPreferenceFragmentCompat())
                         .commit()
-
-                    DataStore.dirty = false
                 }
             }
 
         }
 
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
-
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.backEnabled.collect { enabled ->
-                    onBackPressedCallback.isEnabled = enabled
+                viewModel.dirty.collect {
+                    onBackPressedCallback.isEnabled = it
                 }
             }
         }
@@ -161,13 +147,14 @@ class AssetEditActivity(
     private fun handleEvent(event: AssetEditEvents) {
         when (event) {
             is AssetEditEvents.UpdateName -> {
-                val fragment = supportFragmentManager.findFragmentById(R.id.settings) as? MyPreferenceFragmentCompat
+                val fragment =
+                    supportFragmentManager.findFragmentById(R.id.settings) as? MyPreferenceFragmentCompat
                 fragment?.updateAssetNamePreference(event.name)
             }
         }
     }
 
-    suspend fun saveAndExit() {
+    private suspend fun saveAndExit() {
         viewModel.validate()?.let {
             onMainDispatcher {
                 MaterialAlertDialogBuilder(this@AssetEditActivity)
@@ -180,11 +167,13 @@ class AssetEditActivity(
         }
 
         viewModel.save()
-        setResult(if (viewModel.shouldUpdate) {
-            RESULT_SHOULD_UPDATE
-        } else {
-            RESULT_OK
-        }, Intent().putExtra(EXTRA_ASSET_NAME, DataStore.assetName))
+        setResult(
+            if (viewModel.shouldUpdateFromInternet) {
+                RESULT_SHOULD_UPDATE
+            } else {
+                RESULT_OK
+            }, Intent().putExtra(EXTRA_ASSET_NAME, DataStore.assetName)
+        )
         finish()
     }
 
