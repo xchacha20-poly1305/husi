@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.databinding.LayoutGroupBinding
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
@@ -54,10 +55,10 @@ import java.util.Date
 class GroupFragment : ToolbarFragment(R.layout.layout_group),
     Toolbar.OnMenuItemClickListener {
 
+    private lateinit var binding: LayoutGroupBinding
     private val viewModel: GroupFragmentViewModel by viewModels()
-    lateinit var groupListView: RecyclerView
-    lateinit var groupAdapter: GroupAdapter
-    lateinit var undoManager: UndoSnackbarManager<ProxyGroup>
+    private lateinit var groupAdapter: GroupAdapter
+    private lateinit var undoManager: UndoSnackbarManager<ProxyGroup>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -66,8 +67,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         toolbar.inflateMenu(R.menu.add_group_menu)
         toolbar.setOnMenuItemClickListener(this)
 
-        groupListView = view.findViewById(R.id.group_list)
-        ViewCompat.setOnApplyWindowInsetsListener(groupListView) { v, insets ->
+        binding = LayoutGroupBinding.bind(view)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.groupList) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
@@ -79,7 +80,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             insets
         }
         GroupManager.addListener(viewModel)
-        groupListView.adapter = GroupAdapter().also {
+        binding.groupList.adapter = GroupAdapter().also {
             groupAdapter = it
         }
 
@@ -129,7 +130,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 super.clearView(recyclerView, viewHolder)
                 viewModel.commitMove(groupAdapter.currentList)
             }
-        }).attachToRecyclerView(groupListView)
+        }).attachToRecyclerView(binding.groupList)
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
