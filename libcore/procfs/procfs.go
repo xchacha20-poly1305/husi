@@ -4,31 +4,20 @@ import (
 	"bufio"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"net"
 	"net/netip"
 	"os"
 	"strconv"
 	"strings"
-	"unsafe"
 
+	F "github.com/sagernet/sing/common/format"
 	N "github.com/sagernet/sing/common/network"
 )
 
 var (
 	netIndexOfLocal = -1
 	netIndexOfUid   = -1
-	nativeEndian    binary.ByteOrder
 )
-
-func init() {
-	var x uint32 = 0x01020304
-	if *(*byte)(unsafe.Pointer(&x)) == 0x01 {
-		nativeEndian = binary.BigEndian
-	} else {
-		nativeEndian = binary.LittleEndian
-	}
-}
 
 func ResolveSocketByProcSearch(network string, source, _ netip.AddrPort) int32 {
 	if netIndexOfLocal < 0 || netIndexOfUid < 0 {
@@ -36,13 +25,11 @@ func ResolveSocketByProcSearch(network string, source, _ netip.AddrPort) int32 {
 	}
 
 	path := "/proc/net/"
-
 	if network == N.NetworkTCP {
 		path += "tcp"
 	} else {
 		path += "udp"
 	}
-
 	if source.Addr().Is6() {
 		path += "6"
 	}
@@ -52,19 +39,18 @@ func ResolveSocketByProcSearch(network string, source, _ netip.AddrPort) int32 {
 		return -1
 	}
 
-	var bytes [2]byte
-	binary.BigEndian.PutUint16(bytes[:], source.Port())
-	local := fmt.Sprintf("%s:%s", hex.EncodeToString(nativeEndianIP(sIP)), hex.EncodeToString(bytes[:]))
+	var port [2]byte
+	binary.BigEndian.PutUint16(port[:], source.Port())
+
+	local := F.ToString(hex.EncodeToString(nativeEndianIP(sIP)), ":", hex.EncodeToString(port[:]))
 
 	file, err := os.Open(path)
 	if err != nil {
 		return -1
 	}
-
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-
 	for {
 		row, _, err := reader.ReadLine()
 		if err != nil {
@@ -72,7 +58,6 @@ func ResolveSocketByProcSearch(network string, source, _ netip.AddrPort) int32 {
 		}
 
 		fields := strings.Fields(string(row))
-
 		if len(fields) <= netIndexOfLocal || len(fields) <= netIndexOfUid {
 			continue
 		}
@@ -93,8 +78,7 @@ func nativeEndianIP(ip net.IP) []byte {
 
 	for i := 0; i < len(ip); i += 4 {
 		value := binary.BigEndian.Uint32(ip[i:])
-
-		nativeEndian.PutUint32(result[i:], value)
+		binary.NativeEndian.PutUint32(result[i:], value)
 	}
 
 	return result
@@ -119,7 +103,7 @@ func init() {
 
 	var txQueue, rxQueue, tr, tmWhen bool
 
-	for idx, col := range columns {
+	for i, column := range columns {
 		offset := 0
 
 		if txQueue && rxQueue {
@@ -130,7 +114,7 @@ func init() {
 			offset--
 		}
 
-		switch col {
+		switch column {
 		case "tx_queue":
 			txQueue = true
 		case "rx_queue":
@@ -140,9 +124,9 @@ func init() {
 		case "tm->when":
 			tmWhen = true
 		case "local_address":
-			netIndexOfLocal = idx + offset
+			netIndexOfLocal = i + offset
 		case "uid":
-			netIndexOfUid = idx + offset
+			netIndexOfUid = i + offset
 		}
 	}
 }
