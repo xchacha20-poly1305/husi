@@ -22,14 +22,14 @@ internal sealed interface AssetEditEvents {
 }
 
 internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreChangeListener {
-    private val _backEnabled = MutableStateFlow(false)
-    val backEnabled = _backEnabled.asStateFlow()
+    private val _dirty = MutableStateFlow(false)
+    val dirty = _dirty.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<AssetEditEvents>()
     val uiEvent = _uiEvent.asSharedFlow()
 
     var editingAssetName = ""
-    var shouldUpdate = false
+    var shouldUpdateFromInternet = false
 
     fun loadAssetEntity(entity: AssetEntity) {
         DataStore.assetName = entity.name
@@ -40,8 +40,6 @@ internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreCh
         entity.name = DataStore.assetName
         entity.url = DataStore.assetUrl
     }
-
-    private fun needSave() = DataStore.dirty
 
     /** @return Error string res */
     @StringRes
@@ -77,7 +75,7 @@ internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreCh
             val entity = AssetEntity()
             serializeAssetEntity(entity)
             SagerDatabase.assetDao.create(entity)
-        } else if (needSave()) {
+        } else if (_dirty.value) {
             val entity = SagerDatabase.assetDao.get(editingAssetName)
             if (entity == null) {
                 return
@@ -91,14 +89,10 @@ internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreCh
         store: PreferenceDataStore,
         key: String,
     ) {
-        if (key == Key.PROFILE_DIRTY) {
-            return
-        }
-
         viewModelScope.launch {
             when (key) {
                 Key.ASSET_URL -> {
-                    shouldUpdate = true
+                    shouldUpdateFromInternet = true
                     if (DataStore.assetName.isEmpty()) {
                         _uiEvent.emit(
                             AssetEditEvents.UpdateName(DataStore.assetUrl.substringAfterLast("/"))
@@ -107,8 +101,7 @@ internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreCh
                 }
             }
 
-            DataStore.dirty = true
-            _backEnabled.emit(true)
+            _dirty.emit(true)
         }
     }
 }
