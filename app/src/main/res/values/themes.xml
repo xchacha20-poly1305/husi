@@ -50,6 +50,8 @@
         <item name="itemShapeAppearance">@style/ShapeAppearance.Material3.MediumComponent</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
 
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
     </style>
 
@@ -365,6 +367,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Amber" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_amber_500</item>
@@ -382,6 +386,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Blue" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_blue_500</item>
@@ -399,6 +405,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.BlueGrey" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_blue_grey_500</item>
@@ -416,6 +424,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Brown" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_brown_500</item>
@@ -433,6 +443,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Cyan" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_cyan_500</item>
@@ -450,6 +462,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.DeepOrange" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_deep_orange_500</item>
@@ -467,6 +481,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.DeepPurple" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_deep_purple_500</item>
@@ -484,6 +500,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Green" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_green_500</item>
@@ -501,6 +519,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Grey" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_grey_500</item>
@@ -518,6 +538,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Indigo" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_indigo_500</item>
@@ -535,6 +557,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.LightBlue" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_light_blue_500</item>
@@ -552,6 +576,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.LightGreen" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_light_green_500</item>
@@ -569,6 +595,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Lime" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_lime_500</item>
@@ -586,6 +614,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Orange" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_orange_500</item>
@@ -603,6 +633,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Purple" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_purple_500</item>
@@ -620,6 +652,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Red" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_red_500</item>
@@ -637,6 +671,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Pink_SSR" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/color_pink_ssr</item>
@@ -650,6 +686,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Teal" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_teal_500</item>
@@ -667,6 +705,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Yellow" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/material_yellow_500</item>
@@ -685,6 +725,8 @@
     </style>
 
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
         <item name="colorPrimary">@color/white</item>
