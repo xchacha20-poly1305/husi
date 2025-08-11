@@ -815,6 +815,12 @@ public class SingBoxOptions {
 
         public List<String> wifi_bssid;
 
+        public Map<String, List<String>> interface_address;
+
+        public Map<String, List<String>> network_interface_address;
+
+        public List<String> default_interface_address;
+
         public List<String> rule_set;
 
         public Boolean rule_set_ip_cidr_match_source;
@@ -1058,6 +1064,12 @@ public class SingBoxOptions {
         public List<String> wifi_ssid;
 
         public List<String> wifi_bssid;
+
+        public Map<String, List<String>> interface_address;
+
+        public Map<String, List<String>> network_interface_address;
+
+        public List<String> default_interface_address;
 
         public List<String> rule_set;
 

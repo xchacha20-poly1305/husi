@@ -31,7 +31,7 @@ TAGS=(
 IFS="," BUILD_TAGS="${TAGS[*]}"
 
 # Just install gomobile & gobind if not have or version not same
-GOMOBILE_VERSION="v0.1.7"
+GOMOBILE_VERSION="v0.1.8"
 if [ "$(compare_version "$(command -v gomobile)" "$GOMOBILE_VERSION")" == "0" ]; then
     echo ">> Installing gomobile"
     CGO_ENABLED=0 go install -v -trimpath -ldflags="-w -s" github.com/sagernet/gomobile/cmd/gomobile@$GOMOBILE_VERSION
@@ -46,7 +46,7 @@ export CGO_ENABLED=1
 export GO386=softfloat
 
 # -buildvcs require: https://github.com/SagerNet/gomobile/commit/6bc27c2027e816ac1779bf80058b1a7710dad260
-GOEXPERIMENT="synchashtriemap" gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
+GOEXPERIMENT="synchashtriemap,greenteagc" gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
     -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid=" \
     -tags="$BUILD_TAGS" . || exit 1
 
