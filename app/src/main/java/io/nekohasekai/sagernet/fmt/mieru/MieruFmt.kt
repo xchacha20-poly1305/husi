@@ -62,6 +62,7 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
                         put("level", levelString)
                     })
                 }
+                put("handshakeMode", "HANDSHAKE_NO_WAIT") // v3.18.0 Socks fast open
             })
         })
     }.toStringPretty()
