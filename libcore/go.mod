@@ -6,7 +6,7 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.67
-	github.com/sagernet/gomobile v0.1.7
+	github.com/sagernet/gomobile v0.1.8
 	github.com/sagernet/sing v0.7.5
 	github.com/sagernet/sing-box v1.12.1
 	github.com/sagernet/sing-tun v0.7.0-beta.1
@@ -15,7 +15,7 @@ require (
 	github.com/xchacha20-poly1305/cazilla v1.0.2
 	github.com/xchacha20-poly1305/libping v0.9.1
 	golang.org/x/sync v0.16.0
-	golang.org/x/sys v0.34.0
+	golang.org/x/sys v0.35.0
 )
 
 // replace github.com/sagernet/sing-box => ../../sing-box
@@ -75,13 +75,13 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
-	golang.org/x/tools v0.34.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
 	google.golang.org/grpc v1.74.2 // indirect
