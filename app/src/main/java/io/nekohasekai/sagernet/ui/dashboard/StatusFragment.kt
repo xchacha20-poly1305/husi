@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.LayoutInflater
@@ -21,6 +22,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
+import io.nekohasekai.sagernet.databinding.ViewNetworkInterfaceBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.mapX
@@ -31,7 +33,8 @@ import kotlinx.coroutines.launch
 class StatusFragment : Fragment(R.layout.layout_status) {
 
     private lateinit var binding: LayoutStatusBinding
-    private lateinit var adapter: ClashModeAdapter
+    private lateinit var clashModeAdapter: ClashModeAdapter
+    private lateinit var networkInterfaceAdapter: NetworkInterfaceAdapter
     private val viewModel by viewModels<StatusFragmentViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -76,8 +79,13 @@ class StatusFragment : Fragment(R.layout.layout_status) {
             view.performClick()
         }
 
-        binding.clashModeList.adapter = ClashModeAdapter().also {
-            adapter = it
+        binding.clashModeList.adapter = ClashModeAdapter {
+            (requireActivity() as MainActivity).connection.service?.clashMode = it
+        }.also {
+            clashModeAdapter = it
+        }
+        binding.networkInterfaceList.adapter = NetworkInterfaceAdapter().also {
+            networkInterfaceAdapter = it
         }
 
         lifecycleScope.launch {
@@ -106,7 +114,8 @@ class StatusFragment : Fragment(R.layout.layout_status) {
         binding.ipv4AddressText.text = state.ipv4 ?: getString(R.string.no_statistics)
         binding.ipv6AddressText.text = state.ipv6 ?: getString(R.string.no_statistics)
 
-        adapter.submitList(items)
+        clashModeAdapter.submitList(items)
+        networkInterfaceAdapter.submitList(state.networkInterfaces)
     }
 
     override fun onPause() {
@@ -119,8 +128,8 @@ class StatusFragment : Fragment(R.layout.layout_status) {
         val isSelected: Boolean,
     )
 
-    private inner class ClashModeAdapter() :
-        ListAdapter<ClashModeItem, ClashModeItemView>(clashModeCallback) {
+    private inner class ClashModeAdapter(val onClick: (String) -> Unit) :
+        ListAdapter<ClashModeItem, ClashModeItemView>(clashModeDiffCallback) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClashModeItemView {
             val view = ClashModeItemView(
                 ViewClashModeBinding.inflate(
@@ -136,24 +145,16 @@ class StatusFragment : Fragment(R.layout.layout_status) {
 
         override fun onBindViewHolder(holder: ClashModeItemView, position: Int) {
             val instance = getItem(position)
-            holder.bind(instance) {
-                (requireActivity() as MainActivity).connection.service?.setClashMode(instance.name)
-            }
+            holder.bind(instance, onClick)
         }
     }
 
-    private val clashModeCallback = object : DiffUtil.ItemCallback<ClashModeItem>() {
-        override fun areItemsTheSame(
-            old: ClashModeItem,
-            new: ClashModeItem,
-        ): Boolean {
+    private val clashModeDiffCallback = object : DiffUtil.ItemCallback<ClashModeItem>() {
+        override fun areItemsTheSame(old: ClashModeItem, new: ClashModeItem): Boolean {
             return old.name == new.name
         }
 
-        override fun areContentsTheSame(
-            old: ClashModeItem,
-            new: ClashModeItem,
-        ): Boolean {
+        override fun areContentsTheSame(old: ClashModeItem, new: ClashModeItem): Boolean {
             // Already checked name in areItemsTheSame
             return old.isSelected == new.isSelected
         }
@@ -180,6 +181,50 @@ class StatusFragment : Fragment(R.layout.layout_status) {
                     onClick(instance.name)
                 }
             }
+        }
+    }
+
+    private class NetworkInterfaceAdapter() :
+        ListAdapter<NetworkInterfaceInfo, NetworkInterfaceHolder>(NetworkInterfaceDiffUtil) {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NetworkInterfaceHolder {
+            return NetworkInterfaceHolder(
+                ViewNetworkInterfaceBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false,
+                )
+            )
+        }
+
+        override fun onBindViewHolder(holder: NetworkInterfaceHolder, position: Int) {
+            holder.bind(getItem(position))
+        }
+
+    }
+
+    private object NetworkInterfaceDiffUtil : DiffUtil.ItemCallback<NetworkInterfaceInfo>() {
+        override fun areItemsTheSame(
+            old: NetworkInterfaceInfo,
+            new: NetworkInterfaceInfo,
+        ): Boolean {
+            return old.name == new.name
+        }
+
+        @SuppressLint("DiffUtilEquals")
+        override fun areContentsTheSame(
+            old: NetworkInterfaceInfo,
+            new: NetworkInterfaceInfo,
+        ): Boolean {
+            return old.addresses == new.addresses
+        }
+    }
+
+    private class NetworkInterfaceHolder(val binding: ViewNetworkInterfaceBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(info: NetworkInterfaceInfo) {
+            binding.interfaceName.text = info.name
+            binding.interfaceAddress.text = info.addresses.joinToString("\n")
         }
     }
 }

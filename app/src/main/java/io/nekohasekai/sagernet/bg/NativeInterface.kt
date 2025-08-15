@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.toPrefix
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
@@ -18,9 +19,7 @@ import libcore.LocalDNSTransport
 import libcore.NetworkInterfaceIterator
 import libcore.PlatformInterface
 import libcore.WIFIState
-import java.net.Inet6Address
 import java.net.InetSocketAddress
-import java.net.InterfaceAddress
 import java.net.NetworkInterface
 import libcore.NetworkInterface as LibcoreNetworkInterface
 
@@ -179,14 +178,6 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
         override fun length(): Int = size
 
-    }
-
-    private fun InterfaceAddress.toPrefix(): String {
-        return if (address is Inet6Address) {
-            "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
-        } else {
-            "${address.hostAddress}/${networkPrefixLength}"
-        }
     }
 
     private class WifiState(var mSSID: String, var mBSSID: String) : WIFIState {
