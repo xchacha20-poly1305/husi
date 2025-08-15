@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.ktx.mapX
+import io.nekohasekai.sagernet.ktx.toPrefix
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.net.Inet4Address
 import java.net.Inet6Address
+import java.net.NetworkInterface
 
 internal data class StatusFragmentUiState(
     val memory: Long = 0L,
@@ -21,6 +24,12 @@ internal data class StatusFragmentUiState(
     val clashModes: List<String> = emptyList(),
     val ipv4: String? = null,
     val ipv6: String? = null,
+    val networkInterfaces: List<NetworkInterfaceInfo> = emptyList(),
+)
+
+internal data class NetworkInterfaceInfo(
+    val name: String,
+    val addresses: List<String>,
 )
 
 internal class StatusFragmentViewModel : ViewModel() {
@@ -48,14 +57,17 @@ internal class StatusFragmentViewModel : ViewModel() {
     private suspend fun updateState() {
         val service = service ?: return
         val (ipv4, ipv6) = getLocalAddresses()
-        _uiState.emit(StatusFragmentUiState(
-            memory = service.queryMemory(),
-            goroutines = service.queryGoroutines(),
-            selectedClashMode = service.clashMode,
-            clashModes = service.clashModes,
-            ipv4 = ipv4,
-            ipv6 = ipv6,
-        ))
+        _uiState.emit(
+            StatusFragmentUiState(
+                memory = service.queryMemory(),
+                goroutines = service.queryGoroutines(),
+                selectedClashMode = service.clashMode,
+                clashModes = service.clashModes,
+                ipv4 = ipv4,
+                ipv6 = ipv6,
+                networkInterfaces = getInterfaces(),
+            )
+        )
     }
 
     fun stop() {
@@ -106,5 +118,26 @@ internal class StatusFragmentViewModel : ViewModel() {
         val finalIPv6 = wifiIPv6 ?: cellularIPv6
 
         return Pair(finalIPv4, finalIPv6)
+    }
+
+    private fun getInterfaces(): List<NetworkInterfaceInfo> {
+        @Suppress("DEPRECATION") val networks = SagerNet.connectivity.allNetworks
+        val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
+        val interfaces = mutableListOf<NetworkInterfaceInfo>()
+        for (network in networks) {
+            val name = SagerNet.connectivity.getLinkProperties(network)?.interfaceName ?: continue
+            val networkInterface = networkInterfaces.find {
+                it.name == name
+            } ?: continue
+            interfaces.add(
+                NetworkInterfaceInfo(
+                    name = name,
+                    addresses = networkInterface.interfaceAddresses.mapX {
+                        it.toPrefix()
+                    },
+                )
+            )
+        }
+        return interfaces
     }
 }

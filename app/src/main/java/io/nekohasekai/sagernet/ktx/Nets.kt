@@ -6,7 +6,9 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import libcore.Libcore
 import libcore.URL
+import java.net.Inet6Address
 import java.net.InetSocketAddress
+import java.net.InterfaceAddress
 import java.net.Socket
 import java.security.KeyStore
 import kotlin.io.encoding.Base64
@@ -131,4 +133,12 @@ val systemCertificates by lazy {
         }
     }
     certificates
+}
+
+fun InterfaceAddress.toPrefix(): String {
+    return if (address is Inet6Address) {
+        "${Inet6Address.getByAddress(address.address).hostAddress}/${networkPrefixLength}"
+    } else {
+        "${address.hostAddress}/${networkPrefixLength}"
+    }
 }
