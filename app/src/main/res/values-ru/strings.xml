@@ -28,11 +28,9 @@
     <string name="speed_detail">Прокси ：%1$s↑ %2$s↓
         \nПрямой ：%3$s↑%4$s↓
     </string>
-    <string name="allow_insecure_sum">Отключить проверку сертификата. При включении эта функция
-        настолько же безопасна как передача пароля в открытом виде
-    </string>
+    <string name="allow_insecure_sum">Отключить проверку сертификата. При включении этой настройки безопасность становится эквивалентной передаче данных в открытом виде</string>
     <string name="allow_insecure">Разрешить небезопасное подключение</string>
-    <string name="security_settings">Настройки безопасности</string>
+    <string name="security_settings">Настройки безопасности (TLS)</string>
     <string name="show_direct_speed_sum">Также в уведомлении показывать скорость трафика без
         прокси
     </string>
@@ -187,7 +185,7 @@
     <string name="connection_test_icmp_ping_unavailable">ICMPing недоступен</string>
     <string name="connection_test_tcp_ping_unavailable">TCPing недоступен</string>
     <string name="connection_test_clear_results">Очистить результаты теста</string>
-    <string name="connection_test">Тест подключения</string>
+    <string name="connection_test">Тест соединения</string>
     <string name="clear_traffic_statistics">Очистить статистику трафика</string>
     <string name="always_show_address_sum">Всегда отображать адрес сервера на карте конфигурации
     </string>
@@ -349,8 +347,8 @@
     <string name="encryption">Шифрование</string>
     <string name="early_data_header_name">Имя заголовка ранних данных</string>
     <string name="certificates">Сертификаты</string>
-    <string name="alpn">Согласование протокола уровня приложений</string>
-    <string name="sni">Server Name Indication (SNI)</string>
+    <string name="alpn">Согласование протокола прикладного уровня</string>
+    <string name="sni">Имя хоста (SNI)</string>
     <string name="tls">Использовать TLS</string>
     <string name="grpc_service_name">Имя службы gRPC</string>
     <string name="http_path">HTTP-путь</string>
@@ -369,7 +367,7 @@
     <string name="hysteria_auth_payload">Полезные данные аутентификации</string>
     <string name="hysteria_auth_type">Тип аутентификации</string>
     <string name="hysteria_obfs">Обфускация пароля</string>
-    <string name="experimental_settings">Экспериментальный</string>
+    <string name="experimental_settings">Экспериментальные</string>
     <string name="route_need_vpn">Правило маршрутизации `%s` зависит от VPN, поэтому игнорируется.
     </string>
     <string name="route_for">Правило для %s</string>
@@ -390,7 +388,7 @@
     <string name="group_order_by_name">По имени</string>
     <string name="group_order_origin">По происхождению</string>
     <string name="group_order">Сортировка</string>
-    <string name="hysteria_disable_mtu_discovery">Отключить обнаружение MTU пути</string>
+    <string name="hysteria_disable_mtu_discovery">Отключить определение MTU маршрута</string>
     <string name="hysteria_connection_receive_window">Окно получения соединения QUIC</string>
     <string name="hysteria_stream_receive_window">Окно приема потока QUIC</string>
     <string name="menu_traffic">Трафик</string>
@@ -410,7 +408,7 @@
     <string name="app_statistics_disabled">Статистика трафика приложений отключена в настройках
     </string>
     <string name="tun_implementation">Реализация TUN</string>
-    <string name="wireguard_local_address">Частный адрес</string>
+    <string name="wireguard_local_address">Локальный адрес (интерфейс WG)</string>
     <string name="resolve_destination_summary">Если адрес назначения является доменом, то он передается в соответствии со стратегией IPv6 (конфликтует с FakeDNS)</string>
     <string name="pcap_notice">Pcap файлы будут сохранены в %s</string>
     <string name="route_play_store">Правило Play Store для %s</string>
@@ -461,7 +459,7 @@
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
     <string name="menu_dashboard">Панель</string>
     <string name="action_copy">Копировать</string>
-    <string name="mux_sum">Протокол Mux предназначен для уменьшения задержки соединения TCP, а не для увеличения пропускной способности. Использование Mux для просмотра видео, загрузки или проверки скорости обычно непродуктивно. Если сервер не поддерживает Mux, вы не сможете получить доступ к Интернету.</string>
+    <string name="mux_sum">Mux снижает задержку соединения, но не увеличивает его пропускную способность. Неэффективен для просмотра видео, загрузок и тестов скорости. Необходима поддержка на стороне сервера.</string>
     <string name="mux_type">Протокол мультиплексирования</string>
     <string name="subscription_expire">Истекает: %s</string>
     <string name="tuic_disable_sni">Отключить SNI</string>
@@ -505,17 +503,17 @@
     <string name="custom_config_json">Правка всего конфига JSON</string>
     <string name="save">Сохранить</string>
     <string name="ech_config">Конфигурация ECH</string>
-    <string name="http_upgrade_host">HTTPUpgrade Host</string>
+    <string name="http_upgrade_host">HTTPUpgrade - Хост</string>
     <string name="blurred_address">Сделать адрес сервера размытым</string>
     <string name="connection_test_mux">Сервер не поддерживает этот протокол мультиплексирования</string>
     <string name="create_shortcut">Создать ярлык</string>
-    <string name="xtls_flow">Flow</string>
+    <string name="xtls_flow">Под-протокол потока управления</string>
     <string name="tls_camouflage_settings">Настройки камуфляжа TLS</string>
     <string name="test_concurrency">Количество параллельных тестовых соединений</string>
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
-    <string name="tuic_reduce_rtt">Включить рукопожатие 0-RTT QUIC</string>
+    <string name="tuic_reduce_rtt">Использовать 0-RTT для ускорения рукопожатия через QUIC</string>
     <string name="hop_interval">Интервал переключения портов(второй)</string>
-    <string name="test_timeout">Таймаут теста (мс)</string>
+    <string name="test_timeout">Тайм-аут теста (мс)</string>
     <string name="get_cert_server_hint">Целевой сервер</string>
     <string name="sekai">nekohasekai</string>
     <string name="no_thanks">Нет, спасибо</string>
@@ -526,12 +524,12 @@
     <string name="hysteria2_provider">Провайдер Hysteria2</string>
     <string name="authenticated_length">Аутентифицированнная длина</string>
     <string name="insecure_warn">Советы по безопасности</string>
-    <string name="experimental_authenticated_length">Сделать длину каждого сегмента полезной нагрузки неизменяемым. Этот эксперимент требует, что бы клиент и сервер оба использовали одинаковую версию v2ray-core. Больше обновлений со временем.</string>
+    <string name="experimental_authenticated_length">Сделать длину каждого сегмента полезной нагрузки фиксированной. • Требуется, чтобы клиент и сервер использовали одинаковую версию v2ray-core. Ожидаются обновления, потенциально нарушающие обратную совместимость.</string>
     <string name="keep_default">Оставить по умолчанию</string>
     <string name="action_camera_switch">Изменить камеру</string>
     <string name="action_flash_on">Включить вспышку</string>
     <string name="action_flash_off">Выключить вспышку</string>
-    <string name="http_upgrade_path">HTTPUpgrade Path</string>
+    <string name="http_upgrade_path">HTTPUpgrade - Путь</string>
     <string name="memory_limit">Лимит памяти</string>
     <string name="enable_ntp">Включить NTP</string>
     <string name="ntp_server_address">Адрес сервера NTP</string>
@@ -541,7 +539,7 @@
     <string name="ntp_sum">Включить встроенный NTP-клиент и использовать предоставляемое им время вместо системного</string>
     <string name="start_time">Время начала</string>
     <string name="outbound_rule">Правило исходящего соединения</string>
-    <string name="source_address">Исходный адрес</string>
+    <string name="source_address">Адрес источника</string>
     <string name="descending">По убыванию</string>
     <string name="detail">Подробности</string>
     <string name="sort">Сортировать</string>
@@ -549,11 +547,11 @@
     <string name="ascending">По возрастанию</string>
     <string name="sort_mode">Режим сортировки</string>
     <string name="by_time">По времени</string>
-    <string name="by_source">По исходящему адресу</string>
+    <string name="by_source">По адресу источника</string>
     <string name="by_destination">По адресу назначения</string>
     <string name="by_upload">По загрузке</string>
     <string name="by_download">По скачиванию</string>
-    <string name="pinned_peer_certificate_chain_sha256">Хэш цепочки закрепленного сертификата</string>
+    <string name="pinned_peer_certificate_chain_sha256">Хэш фиксированной цепочки сертификатов</string>
     <string name="speed_test">Тест скорости</string>
     <string name="have_reset_network">Все сети были сброшены</string>
     <string name="ensure_close_all">Вы уверены, что хотите закрыть %s соединений?</string>
@@ -568,26 +566,26 @@
     <string name="client_type">Тип клиента</string>
     <string name="custom_rule_provider">Пользовательский поставщик ресурсов правил</string>
     <string name="pin_log">Закрепить журнал</string>
-    <string name="padding">Отступ</string>
+    <string name="padding">Паддинг (обфускация случайными байтами)</string>
     <string name="done">Готово</string>
     <string name="custom_plugin_prefix">Пользовательский префикс плагина</string>
     <string name="custom_plugin_prefix_summary">Пожалуйста, убедитесь, что вы полностью доверяете поставщику плагина.</string>
     <string name="traffic_status">Статистика</string>
     <string name="status_memory">Память</string>
     <string name="disable_post_quantum">Отключить постквантовое соглашение ключей</string>
-    <string name="mux_min_streams">Минимальное количество потоков</string>
-    <string name="mux_max_streams">Максимальное количество потоков</string>
+    <string name="mux_min_streams">Минимум потоков</string>
+    <string name="mux_max_streams">Максимум потоков</string>
     <string name="traffic_connections">Соединения</string>
     <string name="mux_max_connections">Максимум соединений</string>
     <string name="mux_strategy">Статегия Mux</string>
-    <string name="mux_number">Номер Mux</string>
+    <string name="mux_number">Стратегия Mux - Количество</string>
     <string name="status_status">Статус</string>
     <string name="override_address">Переопределить адрес</string>
     <string name="override_port">Переопределить порт</string>
     <string name="allow_apps_bypass_vpn">Разрешить приложениям обходить VPN</string>
     <string name="clash_mode">Clash-режим</string>
     <string name="network_type">Тип сети</string>
-    <string name="sniff_timeout">Таймаут перехвата</string>
+    <string name="sniff_timeout">Тайм-аут перехвата</string>
     <string name="network_ethernet">Проводное подключение</string>
     <string name="network_cellular">Сотовая связь</string>
     <string name="network_interface_preference_detail">Включение набора с использованием нескольких сетевых интерфейсов</string>
@@ -598,11 +596,11 @@
     <string name="certificate_authority">Центр сертификации</string>
     <string name="system_and_user">Система и Пользователь</string>
     <string name="http_proxy_bypass">Список обхода HTTP-прокси</string>
-    <string name="idle_session_check_interval">Интервал проверки сеанса IDLE</string>
-    <string name="idle_session_timeout">Тайм -аут сеанса IDLE</string>
-    <string name="min_idle_session">Минимальный сеанс IDLE</string>
+    <string name="idle_session_check_interval">Интервал проверки неактивных сессий</string>
+    <string name="idle_session_timeout">Тайм-аут до завершения неактивных сессий</string>
+    <string name="min_idle_session">Допустимое количество неактивных сессий</string>
     <string name="import_http_url">Вы импортируете HTTP-ссылку. Какое действие выполнить?</string>
-    <string name="persistent_keepalive_interval">Интервал проверки активности</string>
+    <string name="persistent_keepalive_interval">Интервал поддержания соединения (с)</string>
     <string name="low">Низкий</string>
     <string name="middle">Средний</string>
     <string name="high">Высокий</string>
@@ -654,4 +652,13 @@
     <string name="saved_to_download">Файл сохранен в каталоге загрузок (Download).</string>
     <string name="save_to_system">Сохранить в файловой системе</string>
     <string name="permission_denied">Доступ запрещен (отсутствует разрешение)</string>
+    <string name="network_interfaces">Сетевые интерфейсы</string>
+    <string name="v2ray_transport">V2Ray Транспорт</string>
+    <string name="tls_fragment">Фрагментация TLS</string>
+    <string name="tls_fragment_fallback_delay">Фрагментация TLS - Резервное время ожидания</string>
+    <string name="tls_record_fragment">Фрагментация TLS с упаковкой в TLS-записи</string>
+    <string name="reality_public_key">REALITY - Публичный ключ</string>
+    <string name="initial_mtu">Начальный MTU</string>
+    <string name="minimum_mtu">Минимальный MTU</string>
+    <string name="expand">Развернуть</string>
 </resources>
