@@ -15,6 +15,7 @@ import androidx.core.view.updatePadding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
 abstract class ThemedActivity : AppCompatActivity {
@@ -46,7 +47,15 @@ abstract class ThemedActivity : AppCompatActivity {
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = !Theme.usingNightMode()
+            val insetController = WindowCompat.getInsetsController(window, window.decorView)
+            val usingNightMode = Theme.usingNightMode()
+            insetController.isAppearanceLightNavigationBars = !usingNightMode
+            // https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1576
+            insetController.isAppearanceLightStatusBars = if (DataStore.appTheme == Theme.BLACK) {
+                !usingNightMode
+            } else {
+                false
+            }
         }
 
         uiMode = resources.configuration.uiMode
@@ -60,7 +69,10 @@ abstract class ThemedActivity : AppCompatActivity {
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = !Theme.usingNightMode()
+            WindowCompat.getInsetsController(
+                window,
+                window.decorView
+            ).isAppearanceLightNavigationBars = !Theme.usingNightMode()
         }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
             val bars = insets.getInsets(
