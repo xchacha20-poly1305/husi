@@ -507,7 +507,7 @@
     <string name="blurred_address">Сделать адрес сервера размытым</string>
     <string name="connection_test_mux">Сервер не поддерживает этот протокол мультиплексирования</string>
     <string name="create_shortcut">Создать ярлык</string>
-    <string name="xtls_flow">Под-протокол потока управления</string>
+    <string name="xtls_flow">Алгоритм управления потоком</string>
     <string name="tls_camouflage_settings">Настройки камуфляжа TLS</string>
     <string name="test_concurrency">Количество параллельных тестовых соединений</string>
     <string name="tuic_udp_relay_mode">Режим ретрансляции UDP</string>
@@ -583,7 +583,7 @@
     <string name="override_address">Переопределить адрес</string>
     <string name="override_port">Переопределить порт</string>
     <string name="allow_apps_bypass_vpn">Разрешить приложениям обходить VPN</string>
-    <string name="clash_mode">Clash-режим</string>
+    <string name="clash_mode">Режим Clash</string>
     <string name="network_type">Тип сети</string>
     <string name="sniff_timeout">Тайм-аут перехвата</string>
     <string name="network_ethernet">Проводное подключение</string>
