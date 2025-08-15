@@ -697,4 +697,5 @@
     <string name="permission_denied">Permission denied</string>
     <string name="save_to_system">Save to System</string>
     <string name="saved_to_download">File has saved to Download directory.</string>
+    <string name="network_interfaces">Network Interfaces</string>
 </resources>
