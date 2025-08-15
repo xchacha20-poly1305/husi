@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.databinding.LayoutStatusBinding
+import io.nekohasekai.sagernet.databinding.LayoutDashboardStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.databinding.ViewNetworkInterfaceBinding
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -30,9 +30,9 @@ import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import kotlinx.coroutines.launch
 
-class StatusFragment : Fragment(R.layout.layout_status) {
+class StatusFragment : Fragment(R.layout.layout_dashboard_status) {
 
-    private lateinit var binding: LayoutStatusBinding
+    private lateinit var binding: LayoutDashboardStatusBinding
     private lateinit var clashModeAdapter: ClashModeAdapter
     private lateinit var networkInterfaceAdapter: NetworkInterfaceAdapter
     private val viewModel by viewModels<StatusFragmentViewModel>()
@@ -40,7 +40,7 @@ class StatusFragment : Fragment(R.layout.layout_status) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutStatusBinding.bind(view)
+        binding = LayoutDashboardStatusBinding.bind(view)
         ViewCompat.setOnApplyWindowInsetsListener(binding.clashModeList) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()

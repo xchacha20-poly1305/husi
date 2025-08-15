@@ -15,14 +15,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.databinding.LayoutConnectionBinding
+import io.nekohasekai.sagernet.databinding.LayoutDashboardConnectionBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import kotlinx.coroutines.launch
 
 class ConnectionFragment() :
-    ToolbarFragment(R.layout.layout_connection),
+    ToolbarFragment(R.layout.layout_dashboard_connection),
     Toolbar.OnMenuItemClickListener {
 
     constructor(conn: Connection) : this() {
@@ -36,13 +36,13 @@ class ConnectionFragment() :
             field = value
         }
 
-    private lateinit var binding: LayoutConnectionBinding
+    private lateinit var binding: LayoutDashboardConnectionBinding
     private val viewModel by viewModels<ConnectionFragmentViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutConnectionBinding.bind(view)
+        binding = LayoutDashboardConnectionBinding.bind(view)
         toolbar.apply {
             uuid?.let {
                 title = it
