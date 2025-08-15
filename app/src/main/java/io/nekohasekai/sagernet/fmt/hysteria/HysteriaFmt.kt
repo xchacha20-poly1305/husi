@@ -81,7 +81,7 @@ fun parseHysteria2(link: String): HysteriaBean {
             // TODO sing-box do not support it
         }*/
         // May invented by shadowrocket
-        url.queryParameter("mport")?.let {
+        url.queryParameterNotBlank("mport")?.let {
             serverPorts = it
         }
     }
