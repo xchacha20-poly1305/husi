@@ -18,7 +18,6 @@
 
 package io.nekohasekai.sagernet.tasker
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -28,33 +27,32 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.preference.PreferenceDataStore
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceFragmentCompat
-import com.github.shadowsocks.plugin.Empty
-import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.setOutbound
 import io.nekohasekai.sagernet.widget.updateOutboundSummary
+import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 
-class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
-    OnPreferenceDataStoreChangeListener {
+class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
 
     companion object {
         private const val OUTBOUND_POSITION = "1"
@@ -63,13 +61,21 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
     override val onBackPressedCallback: OnBackPressedCallback =
         object : OnBackPressedCallback(enabled = false) {
             override fun handleOnBackPressed() {
-                UnsavedChangesDialogFragment().apply {
-                    key()
-                }.show(supportFragmentManager, null)
+                MaterialAlertDialogBuilder(this@TaskerActivity)
+                    .setTitle(R.string.unsaved_changes_prompt)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        saveAndExit()
+                    }
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        finish()
+                    }
+                    .setNeutralButton(android.R.string.cancel, null)
+                    .show()
             }
         }
 
-    val settings by lazy { TaskerBundle.fromIntent(intent) }
+    private val viewModel by viewModels<TaskerActivityViewModel>()
+    private val settings by lazy { TaskerBundle.fromIntent(intent) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,14 +103,38 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
             supportFragmentManager.beginTransaction()
                 .replace(R.id.settings, MyPreferenceFragmentCompat())
                 .commit()
-            DataStore.dirty = false
+        }
+        onBackPressedCallback.isEnabled = viewModel.dirty
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiEvent.collect(::handleUiEvent)
+            }
         }
 
-        DataStore.profileCacheStore.registerChangeListener(this)
+        DataStore.profileCacheStore.registerChangeListener(viewModel)
     }
 
-    lateinit var profile: SimpleMenuPreference
-    lateinit var action: SimpleMenuPreference
+    private suspend fun handleUiEvent(event: TaskerActivityUiEvent) {
+        when (event) {
+            TaskerActivityUiEvent.EnableBackPressCallback -> if (!onBackPressedCallback.isEnabled) {
+                onBackPressedCallback.isEnabled = true
+            }
+
+            is TaskerActivityUiEvent.SetAction -> {
+                settings.action = event.action
+                profile.isEnabled = event.action == TaskerBundle.ACTION_START
+            }
+
+            is TaskerActivityUiEvent.SetProfileID -> {
+                settings.profileId = event.id
+                profile.updateOutboundSummary()
+            }
+        }
+    }
+
+    private lateinit var profile: SimpleMenuPreference
+    private lateinit var action: SimpleMenuPreference
 
     fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -122,47 +152,16 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
                 })
         }
         action = findPreference(Key.TASKER_ACTION)!!
-        profile.isEnabled = action.value == "0"
+        profile.isEnabled = action.value == TaskerBundle.ACTION_START.toString()
     }
 
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        if (key != Key.PROFILE_DIRTY) {
-            DataStore.dirty = true
-            onBackPressedCallback.isEnabled = true
-        }
-        when (key) {
-            Key.TASKER_ACTION -> {
-                settings.action = DataStore.taskerAction
-                profile.isEnabled = settings.action == TaskerBundle.ACTION_START
-            }
-
-            Key.TASKER_PROFILE -> {
-                if (DataStore.taskerProfile == 0) DataStore.taskerProfileId = -1L
-            }
-
-            Key.TASKER_PROFILE_ID -> {
-                settings.profileId = DataStore.taskerProfileId
-                if (settings.profileId > 0L) runOnMainDispatcher {
-                    profile.summaryProvider = profile.summaryProvider
-                }
-            }
-        }
-    }
-
-    val selectProfileForTasker = registerForActivityResult(
+    private val selectProfileForTasker = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { (resultCode, data) ->
-        if (resultCode == RESULT_OK) runOnDefaultDispatcher {
-            val entity = ProfileManager.getProfile(
-                data!!.getLongExtra(
-                    ProfileSelectActivity.EXTRA_PROFILE_ID, 0
-                )
-            ) ?: return@runOnDefaultDispatcher
-            DataStore.taskerProfileId = entity.id
-            onMainDispatcher {
-                profile.value = OUTBOUND_POSITION
-                profile.updateOutboundSummary()
-            }
+        if (resultCode == RESULT_OK) {
+            val id = data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+            viewModel.onSelectProfile(id)
+            profile.value = OUTBOUND_POSITION
         }
     }
 
@@ -178,7 +177,7 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_apply -> {
-            runOnDefaultDispatcher {
+            lifecycleScope.launch {
                 saveAndExit()
             }
             true
@@ -193,23 +192,8 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings),
     }
 
     override fun onDestroy() {
-        DataStore.profileCacheStore.unregisterChangeListener(this)
+        DataStore.profileCacheStore.unregisterChangeListener(viewModel)
         super.onDestroy()
-    }
-
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.unsaved_changes_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                runOnDefaultDispatcher {
-                    (requireActivity() as TaskerActivity).saveAndExit()
-                }
-            }
-            setNegativeButton(R.string.no) { _, _ ->
-                requireActivity().finish()
-            }
-            setNeutralButton(android.R.string.cancel, null)
-        }
     }
 
     class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
