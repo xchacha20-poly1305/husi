@@ -285,7 +285,7 @@ object Key {
 
     const val TASKER_ACTION = "taskerAction"
     const val TASKER_PROFILE = "taskerProfile"
-    const val TASKER_PROFILE_ID = "taskerProfileId"
+    const val TASKER_PROFILE_ID = "taskerProfileLong"
 }
 
 fun logLevelString(level: Int): String = when (level) {

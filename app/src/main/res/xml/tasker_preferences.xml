@@ -9,11 +9,11 @@
         app:useSimpleSummaryProvider="true" />
 
     <rikka.preference.SimpleMenuPreference
+        app:defaultValue="0"
         app:entries="@array/tasker_outbound_entry"
         app:entryValues="@array/int_array_2"
         app:icon="@drawable/ic_hardware_router"
         app:key="taskerProfile"
-        app:title="@string/menu_configuration"
-        app:useSimpleSummaryProvider="true" />
+        app:title="@string/menu_configuration" />
 
 </PreferenceScreen>
