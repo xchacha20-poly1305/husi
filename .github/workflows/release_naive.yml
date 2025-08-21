@@ -45,7 +45,7 @@ jobs:
       - name: Fetch Status
         run: git submodule status 'plugin/naive/*' > naive_status
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           distribution: 'temurin'
