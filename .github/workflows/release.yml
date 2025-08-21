@@ -40,7 +40,7 @@ jobs:
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           java-version: "21"
@@ -80,7 +80,7 @@ jobs:
         with:
           name: "libcore"
           path: app/libs/libcore.aar
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: "21"
           distribution: "temurin"

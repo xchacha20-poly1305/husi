@@ -66,7 +66,7 @@ jobs:
           path: |
             plugin/juicity/src/main/jniLibs
           key: ${{ hashFiles('.github/workflows/*', 'bin/lib/juicity/*', 'juicity_status') }}
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: "21"
           distribution: "temurin"
