@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import libcore.CopyCallback
 import libcore.HTTPRequest
 import libcore.Libcore
@@ -28,7 +29,7 @@ internal sealed interface AssetEvent {
     class UpdateItem(val asset: File, val state: AssetItemUiState) : AssetEvent
 }
 
-sealed interface AssetItemUiState {
+internal sealed interface AssetItemUiState {
     // object Idle : AssetItemUiState
     class Doing(val progress: Int) : AssetItemUiState
     class Done(val e: Exception? = null) : AssetItemUiState
@@ -40,37 +41,57 @@ internal sealed interface AssetsUiState {
     class Done(val e: Exception? = null) : AssetsUiState
 }
 
+internal data class AssetListItem(
+    val file: File,
+    val version: String,
+    val builtIn: Boolean,
+)
+
 internal class AssetsActivityViewModel : ViewModel() {
+
+    companion object {
+        fun isBuiltIn(index: Int): Boolean = index < 2
+    }
+
     private val _uiState: MutableStateFlow<AssetsUiState> = MutableStateFlow(AssetsUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<AssetEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    private val _assets = MutableStateFlow<List<File>>(emptyList())
+    private val _assets = MutableStateFlow<List<AssetListItem>>(emptyList())
     val assets = _assets.asStateFlow()
 
     private lateinit var assetsDir: File
     private lateinit var geoDir: File
 
-    fun initialize(assetsDir: File, geoDir: File) {
+    suspend fun initialize(assetsDir: File, geoDir: File) {
         this.assetsDir = assetsDir
         this.geoDir = geoDir
         refreshAssets()
     }
 
-    fun refreshAssets() {
-        val assetFiles = mutableListOf<File>()
-
-        assetFiles.add(File(assetsDir, "geoip.version.txt"))
-        assetFiles.add(File(assetsDir, "geosite.version.txt"))
-
-        SagerDatabase.assetDao.getAll().forEach {
-            assetFiles.add(File(geoDir, it.name))
+    suspend fun refreshAssets() {
+        val files = buildList {
+            add(File(assetsDir, "geoip.version.txt"))
+            add(File(assetsDir, "geosite.version.txt"))
+            SagerDatabase.assetDao.getAll().forEach { add(File(geoDir, it.name)) }
         }
 
-        _assets.value = assetFiles
+        _assets.value = files.mapIndexed { index, file ->
+            val isVersionName = file.name.endsWith(".version.txt")
+            val versionFile =
+                if (isVersionName) file else File(assetsDir, "${file.name}.version.txt")
+            val version = if (versionFile.isFile) {
+                versionFile.readText().trim().ifBlank { "Unknown" }
+            } else {
+                versionFile.writeText("Unknown"); "Unknown"
+            }
+            AssetListItem(file = file, version = version, builtIn = isBuiltIn(index))
+        }
     }
+
+    private fun isBuiltIn(index: Int): Boolean = index < 2
 
     suspend fun deleteAssets(files: List<File>) {
         for (file in files) {
@@ -139,14 +160,14 @@ internal class AssetsActivityViewModel : ViewModel() {
         updater.runUpdateIfAvailable()
     }
 
-    fun updateSingleAsset(asset: File) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                updateSingleAsset0(asset)
-                _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done()))
-            } catch (e: Exception) {
-                _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done(e)))
-            }
+    suspend fun updateSingleAsset(asset: File) = withContext(Dispatchers.IO) {
+        try {
+            updateSingleAsset0(asset)
+            _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done()))
+        } catch (e: Exception) {
+            _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done(e)))
+        } finally {
+            refreshAssets()
         }
     }
 
@@ -366,12 +387,11 @@ internal class GithubAssetUpdater(
                 updateProgress(progressPerUnpack)
             }
 
-            if (updates.size == 1 && versionFiles.size > 1) {
-                // One repository like Chocolate4U
-                val newVersion = (updates[0] as UpdateInfo.Github).newVersion
+            if (repos.size == 1) {
+                // Chocolate4U
+                val newVersion = (updates.firstOrNull() as? UpdateInfo.Github)?.newVersion ?: return
                 versionFiles.forEach { it.writeText(newVersion) }
             } else {
-                // Normal situation
                 for (update in updates) {
                     update as UpdateInfo.Github
                     val repoIndex = repos.indexOf(update.repo)

@@ -43,10 +43,6 @@ import java.io.File
 
 class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
-    companion object {
-        private fun isBuiltIn(index: Int): Boolean = index < 2
-    }
-
     private val viewModel: AssetsActivityViewModel by viewModels()
     private lateinit var adapter: AssetAdapter
     private lateinit var layout: LayoutAssetsBinding
@@ -59,8 +55,6 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         val binding = LayoutAssetsBinding.inflate(layoutInflater)
         layout = binding
         setContentView(binding.root)
-
-        viewModel.initialize(assetsDir, geoDir)
 
         updating = findViewById(R.id.action_updating)
         updating.isGone = true
@@ -95,18 +89,22 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         ) {
 
             override fun getSwipeDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
             ): Int {
-                val index = viewHolder.bindingAdapterPosition
-                if (isBuiltIn(index)) return 0
+                val idx = viewHolder.bindingAdapterPosition
+                val item = adapter.currentList.getOrNull(idx)
+                if (item?.builtIn == true) return 0
                 return super.getSwipeDirs(recyclerView, viewHolder)
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val index = viewHolder.bindingAdapterPosition
+                val file = (viewHolder as AssetHolder).item.file
                 adapter.remove(index)
-                undoManager.remove(index to (viewHolder as AssetHolder).file)
+                undoManager.remove(index to file)
             }
+
 
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -115,6 +113,10 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
             ) = false
 
         }).attachToRecyclerView(binding.recyclerView)
+
+        lifecycleScope.launch {
+            viewModel.initialize(assetsDir, geoDir)
+        }
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -175,7 +177,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         when (event) {
             is AssetEvent.UpdateItem -> {
                 val index =
-                    adapter.currentList.indexOfFirst { it.absolutePath == event.asset.absolutePath }
+                    adapter.currentList.indexOfFirst { it.file.absolutePath == event.asset.absolutePath }
                 if (index == -1) return
 
                 val holder =
@@ -222,9 +224,11 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         val assetName = result.data?.getStringExtra(AssetEditActivity.EXTRA_ASSET_NAME)
 
         when (result.resultCode) {
-            RESULT_OK -> viewModel.refreshAssets()
+            RESULT_OK -> runOnDefaultDispatcher {
+                viewModel.refreshAssets()
+            }
 
-            AssetEditActivity.RESULT_SHOULD_UPDATE -> {
+            AssetEditActivity.RESULT_SHOULD_UPDATE -> runOnDefaultDispatcher {
                 viewModel.refreshAssets()
                 viewModel.updateSingleAsset(File(geoDir, assetName!!))
             }
@@ -265,7 +269,12 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         File(assetsDir, "geo").also { it.mkdirs() }
     }
 
-    inner class AssetAdapter : ListAdapter<File, AssetHolder>(AssetDiffCallback) {
+
+    private inner class AssetAdapter : ListAdapter<AssetListItem, AssetHolder>(AssetDiffCallback) {
+
+        init {
+            setHasStableIds(true)
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetHolder {
             val inflater = LayoutInflater.from(parent.context)
@@ -273,65 +282,67 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         }
 
         override fun onBindViewHolder(holder: AssetHolder, position: Int) {
-            holder.bind(getItem(position), isBuiltIn(position))
+            holder.bind(getItem(position))
         }
 
         fun remove(index: Int) {
-            val currentList = currentList.toMutableList()
-            currentList.removeAt(index)
-            submitList(currentList)
+            val current = currentList.toMutableList()
+            if (index in current.indices) {
+                current.removeAt(index)
+                submitList(current)
+            }
         }
 
         fun addAssetsIndex(index: Int, file: File) {
-            val currentList = currentList.toMutableList()
-            currentList.add(index, file)
-            submitList(currentList)
+            val versionFile = File(assetsDir, "${file.name}.version.txt")
+            val version = if (versionFile.isFile) versionFile.readText().trim()
+                .ifBlank { "Unknown" } else "Unknown"
+            val item =
+                AssetListItem(file, version, builtIn = AssetsActivityViewModel.isBuiltIn(index))
+            val current = currentList.toMutableList()
+            val safeIndex = index.coerceIn(0, current.size)
+            current.add(safeIndex, item)
+            submitList(current)
+        }
+
+        override fun getItemId(position: Int): Long {
+            return getItem(position).file.absolutePath.hashCode().toLong()
         }
     }
 
-    private object AssetDiffCallback : DiffUtil.ItemCallback<File>() {
-        override fun areItemsTheSame(oldItem: File, newItem: File): Boolean {
-            return oldItem.absolutePath == newItem.absolutePath
+    private object AssetDiffCallback : DiffUtil.ItemCallback<AssetListItem>() {
+        override fun areItemsTheSame(oldItem: AssetListItem, newItem: AssetListItem): Boolean {
+            return oldItem.file.absolutePath == newItem.file.absolutePath
         }
 
-        override fun areContentsTheSame(oldItem: File, newItem: File): Boolean {
-            return oldItem.absolutePath == newItem.absolutePath
+        override fun areContentsTheSame(oldItem: AssetListItem, newItem: AssetListItem): Boolean {
+            return oldItem.version == newItem.version &&
+                    oldItem.file.name == newItem.file.name &&
+                    oldItem.builtIn == newItem.builtIn
         }
     }
 
-    inner class AssetHolder(val binding: LayoutAssetItemBinding) :
+    private inner class AssetHolder(val binding: LayoutAssetItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        lateinit var file: File
-        var isBuiltIn = false
 
-        fun bind(file: File, isBuiltIn: Boolean) {
-            this.file = file
-            this.isBuiltIn = isBuiltIn
+        lateinit var item: AssetListItem
 
-            val name = file.name
+        fun bind(item: AssetListItem) {
+            this.item = item
+
+            val file = item.file
             val isVersionName = file.name.endsWith(".version.txt")
-            binding.assetName.text = if (isVersionName) {
-                name.removeSuffix(".version.txt")
-            } else {
-                name
-            }
 
-            val versionFile = if (isVersionName) {
-                file
+            binding.assetName.text = if (isVersionName) {
+                file.name.removeSuffix(".version.txt")
             } else {
-                File(assetsDir, "${file.name}.version.txt")
-            }
-            val localVersion = if (versionFile.isFile) {
-                versionFile.readText().trim()
-            } else {
-                versionFile.writeText("Unknown")
-                "Unknown"
+                file.name
             }
 
             binding.assetStatus.text =
-                binding.assetStatus.context.getString(R.string.route_asset_status, localVersion)
+                binding.assetStatus.context.getString(R.string.route_asset_status, item.version)
 
-            if (isBuiltIn) {
+            if (item.builtIn) {
                 binding.edit.isVisible = false
                 binding.edit.setOnClickListener(null)
 
@@ -348,18 +359,15 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
                 binding.rulesUpdate.isVisible = true
                 binding.rulesUpdate.setOnClickListener {
-                    viewModel.updateSingleAsset(file)
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        viewModel.updateSingleAsset(file)
+                    }
                 }
             }
         }
 
         fun updateUiState(state: AssetItemUiState) {
             when (state) {
-                /*is AssetItemUiState.Idle -> {
-                    binding.subscriptionUpdateProgress.visibility = View.GONE
-                    binding.rulesUpdate.isVisible = !isBuiltIn
-                }*/
-
                 is AssetItemUiState.Doing -> {
                     binding.rulesUpdate.isVisible = false
                     binding.subscriptionUpdateProgress.isVisible = true
@@ -369,18 +377,16 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 is AssetItemUiState.Done -> {
                     binding.subscriptionUpdateProgress.setProgressCompat(0, true)
                     binding.subscriptionUpdateProgress.isInvisible = true
-                    binding.rulesUpdate.isVisible = !isBuiltIn
+                    binding.rulesUpdate.isVisible = !item.builtIn
 
                     if (state.e == null) {
                         snackbar(R.string.route_asset_updated).show()
-                        bind(this.file, this.isBuiltIn)
                     } else {
                         alertAndLog(state.e)
                     }
                 }
             }
         }
-
     }
 
     override fun onSupportNavigateUp(): Boolean {
