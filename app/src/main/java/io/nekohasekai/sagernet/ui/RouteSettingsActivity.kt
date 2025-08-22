@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -13,7 +12,6 @@ import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.LayoutRes
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -23,8 +21,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.PreferenceCategory
-import com.github.shadowsocks.plugin.Empty
-import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -128,7 +124,13 @@ class RouteSettingsActivity(
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_delete -> {
-            DeleteConfirmationDialogFragment().show(supportFragmentManager, null)
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.delete_route_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    viewModel.deleteRule()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
             true
         }
 
@@ -147,17 +149,6 @@ class RouteSettingsActivity(
     override fun onSupportNavigateUp(): Boolean {
         if (!super.onSupportNavigateUp()) finish()
         return true
-    }
-
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            val activity = (requireActivity() as RouteSettingsActivity)
-            setTitle(R.string.delete_route_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                activity.viewModel.deleteRule()
-            }
-            setNegativeButton(android.R.string.cancel, null)
-        }
     }
 
     class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
