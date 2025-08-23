@@ -42,8 +42,8 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.UserAgentPreference
-import io.nekohasekai.sagernet.widget.setOutbound
-import io.nekohasekai.sagernet.widget.updateOutboundSummary
+import io.nekohasekai.sagernet.widget.launchOnPosition
+import io.nekohasekai.sagernet.widget.setSummaryForOutbound
 import kotlinx.parcelize.Parcelize
 import rikka.preference.SimpleMenuPreference
 
@@ -123,16 +123,16 @@ class GroupSettingsActivity(
         addPreferencesFromResource(R.xml.group_preferences)
 
         frontProxyPreference = findPreference(Key.GROUP_FRONT_PROXY)!!
-        frontProxyPreference.updateOutboundSummary()
-        frontProxyPreference.setOutbound(OUTBOUND_POSITION.toString()) {
+        frontProxyPreference.setSummaryForOutbound()
+        frontProxyPreference.launchOnPosition(OUTBOUND_POSITION.toString()) {
             selectProfileForAddFront.launch(
                 Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
             )
         }
 
         landingProxyPreference = findPreference(Key.GROUP_LANDING_PROXY)!!
-        landingProxyPreference.updateOutboundSummary()
-        landingProxyPreference.setOutbound(OUTBOUND_POSITION.toString()) {
+        landingProxyPreference.setSummaryForOutbound()
+        landingProxyPreference.launchOnPosition(OUTBOUND_POSITION.toString()) {
             selectProfileForAddLanding.launch(
                 Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
             )
@@ -390,7 +390,7 @@ class GroupSettingsActivity(
             DataStore.frontProxy = profile.id
             onMainDispatcher {
                 frontProxyPreference.value = OUTBOUND_POSITION.toString()
-                frontProxyPreference.updateOutboundSummary()
+                frontProxyPreference.setSummaryForOutbound()
             }
         }
     }
@@ -405,7 +405,7 @@ class GroupSettingsActivity(
             DataStore.landingProxy = profile.id
             onMainDispatcher {
                 landingProxyPreference.value = OUTBOUND_POSITION.toString()
-                landingProxyPreference.updateOutboundSummary()
+                landingProxyPreference.setSummaryForOutbound()
             }
         }
     }

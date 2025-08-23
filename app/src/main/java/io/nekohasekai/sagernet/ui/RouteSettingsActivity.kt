@@ -35,8 +35,8 @@ import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.AppListPreference
 import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
-import io.nekohasekai.sagernet.widget.setOutbound
-import io.nekohasekai.sagernet.widget.updateOutboundSummary
+import io.nekohasekai.sagernet.widget.launchOnPosition
+import io.nekohasekai.sagernet.widget.setSummaryForOutbound
 import io.nekohasekai.sagernet.widget.updateSummary
 import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
@@ -165,7 +165,7 @@ class RouteSettingsActivity(
                 DataStore.routeOutboundRule = profile.id
                 onMainDispatcher {
                     outbound.value = OUTBOUND_POSITION
-                    outbound.updateOutboundSummary()
+                    outbound.setSummaryForOutbound()
                 }
             }
         }
@@ -245,8 +245,8 @@ class RouteSettingsActivity(
                 findPreference(Key.ROUTE_ACTION_RESOLVE_OPTIONS)!!
             val actionSniff: PreferenceCategory = findPreference(Key.ROUTE_ACTION_SNIFF_OPTIONS)!!
 
-            outbound.updateOutboundSummary()
-            outbound.setOutbound(OUTBOUND_POSITION) {
+            outbound.setSummaryForOutbound()
+            outbound.launchOnPosition(OUTBOUND_POSITION) {
                 selectProfileForAdd.launch(
                     Intent(requireContext(), ProfileSelectActivity::class.java)
                 )

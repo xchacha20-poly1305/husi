@@ -40,15 +40,12 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
-import io.nekohasekai.sagernet.widget.setOutbound
-import io.nekohasekai.sagernet.widget.updateOutboundSummary
+import io.nekohasekai.sagernet.widget.launchOnPosition
+import io.nekohasekai.sagernet.widget.setSummaryForOutbound
 import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 
@@ -128,7 +125,7 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
 
             is TaskerActivityUiEvent.SetProfileID -> {
                 settings.profileId = event.id
-                profile.updateOutboundSummary()
+                profile.setSummaryForOutbound()
             }
         }
     }
@@ -142,8 +139,8 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
     ) {
         addPreferencesFromResource(R.xml.tasker_preferences)
         profile = findPreference(Key.TASKER_PROFILE)!!
-        profile.updateOutboundSummary()
-        profile.setOutbound(OUTBOUND_POSITION) {
+        profile.setSummaryForOutbound()
+        profile.launchOnPosition(OUTBOUND_POSITION) {
             selectProfileForTasker.launch(
                 Intent(
                     this@TaskerActivity, ProfileSelectActivity::class.java
