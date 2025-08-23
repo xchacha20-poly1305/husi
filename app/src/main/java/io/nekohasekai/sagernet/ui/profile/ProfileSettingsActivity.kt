@@ -1,10 +1,8 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -16,7 +14,6 @@ import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.LayoutRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -25,12 +22,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
 import com.esotericsoftware.kryo.io.ByteBufferInput
-import com.github.shadowsocks.plugin.Empty
-import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
@@ -52,7 +48,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import kotlinx.parcelize.Parcelize
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.properties.Delegates
 
@@ -63,40 +59,18 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
-            UnsavedChangesDialogFragment().apply {
-                key()
-            }.show(supportFragmentManager, null)
-        }
-    }
-
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.unsaved_changes_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                runOnDefaultDispatcher {
-                    (requireActivity() as ProfileSettingsActivity<*>).saveAndExit()
+            MaterialAlertDialogBuilder(this@ProfileSettingsActivity)
+                .setTitle(R.string.unsaved_changes_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    lifecycleScope.launch {
+                        saveAndExit()
+                    }
                 }
-            }
-            setNegativeButton(R.string.no) { _, _ ->
-                requireActivity().finish()
-            }
-            setNeutralButton(android.R.string.cancel, null)
-        }
-    }
-
-    @Parcelize
-    data class ProfileIdArg(val profileId: Long, val groupId: Long) : Parcelable
-    class DeleteConfirmationDialogFragment :
-        AlertDialogFragment<ProfileIdArg, Empty>(ProfileIdArg::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.delete_confirm_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                runOnDefaultDispatcher {
-                    ProfileManager.deleteProfile(arg.groupId, arg.profileId)
+                .setNegativeButton(R.string.no) { _, _ ->
+                    finish()
                 }
-                requireActivity().finish()
-            }
-            setNegativeButton(android.R.string.cancel, null)
+                .setNeutralButton(android.R.string.cancel, null)
+                .show()
         }
     }
 
@@ -189,8 +163,8 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             ) isVisible = true
         }
         menu.findItem(R.id.action_create_shortcut)?.apply {
-            if (Build.VERSION.SDK_INT >= 26 && !isNew) {
-                isVisible = true // not new profile
+            if (!isNew && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                isVisible = true // not for new profile
             }
         }
         return true
@@ -200,12 +174,19 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         R.id.action_delete -> {
             if (DataStore.editingId == 0L) {
                 finish()
-            } else {
-                DeleteConfirmationDialogFragment().apply {
-                    arg(ProfileIdArg(DataStore.editingId, DataStore.editingGroup))
-                    key()
-                }.show(supportFragmentManager, null)
-            }
+            } else MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.delete_confirm_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    runOnDefaultDispatcher {
+                        ProfileManager.deleteProfile(
+                            DataStore.editingId,
+                            DataStore.editingGroup
+                        )
+                    }
+                    finish()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
             true
         }
 

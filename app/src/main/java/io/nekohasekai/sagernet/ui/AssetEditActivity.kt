@@ -1,16 +1,13 @@
 package io.nekohasekai.sagernet.ui
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.os.Parcelable
 import android.support.annotation.LayoutRes
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -20,8 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
-import com.github.shadowsocks.plugin.Empty
-import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -31,7 +26,6 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
 
 class AssetEditActivity(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
@@ -58,22 +52,6 @@ class AssetEditActivity(
         rootKey: String?,
     ) {
         addPreferencesFromResource(R.xml.asset_preferences)
-    }
-
-    @Parcelize
-    data class AssetNameArg(val assetName: String) : Parcelable
-    class DeleteConfirmationDialogFragment :
-        AlertDialogFragment<AssetNameArg, Empty>(AssetNameArg::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.delete_confirm_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                (requireActivity() as AssetEditActivity).apply {
-                    setResult(RESULT_DELETE)
-                    finish()
-                }
-            }
-            setNegativeButton(android.R.string.cancel, null)
-        }
     }
 
     companion object {
@@ -187,12 +165,14 @@ class AssetEditActivity(
             val editingAssetName = viewModel.editingAssetName
             if (editingAssetName.isEmpty()) {
                 finish()
-            } else {
-                DeleteConfirmationDialogFragment().apply {
-                    arg(AssetNameArg(editingAssetName))
-                    key()
-                }.show(supportFragmentManager, null)
-            }
+            } else MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.delete_confirm_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    setResult(RESULT_DELETE)
+                    finish()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
             true
         }
 
