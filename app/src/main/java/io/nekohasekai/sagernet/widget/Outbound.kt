@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.widget
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.ktx.setSummaryUserInput
 import rikka.preference.SimpleMenuPreference
 
 /**
@@ -9,19 +10,19 @@ import rikka.preference.SimpleMenuPreference
  * @param position The position of outbound.
  * @param launch Launch outbound picking UI.
  */
-fun SimpleMenuPreference.setOutbound(position: String, launch: () -> Unit) {
+fun SimpleMenuPreference.launchOnPosition(position: String, launch: () -> Unit) {
     setOnPreferenceChangeListener { _, newValue ->
         if (newValue.toString() == position) {
             launch()
             false
         } else {
-            summary = entries[newValue.toString().toInt()]
+            setSummaryUserInput(entries[newValue.toString().toInt()].toString())
             true
         }
     }
 }
 
-fun SimpleMenuPreference.updateOutboundSummary() {
+fun SimpleMenuPreference.setSummaryForOutbound() {
     var sum: CharSequence? = null
 
     val outbound = DataStore.profileCacheStore.getLong(key + "Long") ?: 0
@@ -30,5 +31,5 @@ fun SimpleMenuPreference.updateOutboundSummary() {
     }
 
     if (sum == null) sum = entries[value.toInt()]
-    summary = sum
+    setSummaryUserInput(sum.toString())
 }

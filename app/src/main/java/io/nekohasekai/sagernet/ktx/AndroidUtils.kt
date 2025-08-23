@@ -35,6 +35,7 @@ import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.delay
 import androidx.core.view.isVisible
 import androidx.core.view.isGone
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 
 // Utils that require Android. Split it so that test can not include Android parts.
@@ -203,4 +204,13 @@ fun urlTestMessage(context: Context, error: String): String {
 
         else -> error
     }
+}
+
+/**
+ * If the summary has a [java.lang.String.format] String formatting} marker in it,
+ * (i.e. "%s" or "%1$s"), then the current entry value will be substituted in its place.
+ * @see [androidx.preference.ListPreference.getSummary]
+ */
+fun ListPreference.setSummaryUserInput(userInput: String) {
+    summary = userInput.replace("%", "%%")
 }
