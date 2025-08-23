@@ -1,10 +1,8 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -12,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.LayoutRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -21,8 +18,7 @@ import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
-import com.github.shadowsocks.plugin.Empty
-import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -44,7 +40,6 @@ import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.UserAgentPreference
 import io.nekohasekai.sagernet.widget.launchOnPosition
 import io.nekohasekai.sagernet.widget.setSummaryForOutbound
-import kotlinx.parcelize.Parcelize
 import rikka.preference.SimpleMenuPreference
 
 class GroupSettingsActivity(
@@ -54,9 +49,18 @@ class GroupSettingsActivity(
 
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
-            UnsavedChangesDialogFragment().apply {
-                key()
-            }.show(supportFragmentManager, null)
+            MaterialAlertDialogBuilder(this@GroupSettingsActivity)
+                .setTitle(R.string.unsaved_changes_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    runOnDefaultDispatcher {
+                        saveAndExit()
+                    }
+                }
+                .setNegativeButton(R.string.no) { _, _ ->
+                    finish()
+                }
+                .setNeutralButton(android.R.string.cancel, null)
+                .show()
         }
     }
 
@@ -190,36 +194,6 @@ class GroupSettingsActivity(
         }
     }
 
-    class UnsavedChangesDialogFragment : AlertDialogFragment<Empty, Empty>(Empty::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.unsaved_changes_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                runOnDefaultDispatcher {
-                    (requireActivity() as GroupSettingsActivity).saveAndExit()
-                }
-            }
-            setNegativeButton(R.string.no) { _, _ ->
-                requireActivity().finish()
-            }
-            setNeutralButton(android.R.string.cancel, null)
-        }
-    }
-
-    @Parcelize
-    data class GroupIdArg(val groupId: Long) : Parcelable
-    class DeleteConfirmationDialogFragment : AlertDialogFragment<GroupIdArg, Empty>(GroupIdArg::class.java) {
-        override fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener) {
-            setTitle(R.string.delete_group_prompt)
-            setPositiveButton(android.R.string.ok) { _, _ ->
-                runOnDefaultDispatcher {
-                    GroupManager.deleteGroup(arg.groupId)
-                }
-                requireActivity().finish()
-            }
-            setNegativeButton(android.R.string.cancel, null)
-        }
-    }
-
     companion object {
         const val EXTRA_GROUP_ID = "id"
 
@@ -306,12 +280,16 @@ class GroupSettingsActivity(
         R.id.action_delete -> {
             if (DataStore.editingId == 0L) {
                 finish()
-            } else {
-                DeleteConfirmationDialogFragment().apply {
-                    arg(GroupIdArg(DataStore.editingId))
-                    key()
-                }.show(supportFragmentManager, null)
-            }
+            } else MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.delete_group_prompt)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    runOnDefaultDispatcher {
+                        GroupManager.deleteGroup(DataStore.editingId)
+                    }
+                    finish()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
             true
         }
 
