@@ -56,6 +56,9 @@ internal class GroupFragmentViewModel : ViewModel(),
 
     private suspend fun loadGroups() {
         for (group in SagerDatabase.groupDao.allGroups()) {
+            if (group.ungrouped && SagerDatabase.proxyDao.countByGroup(group.id) == 0L) {
+                continue
+            }
             _uiState.update {
                 it.copy(groups = it.groups + buildItem(group))
             }
