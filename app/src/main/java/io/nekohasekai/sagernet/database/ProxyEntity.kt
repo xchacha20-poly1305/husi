@@ -562,10 +562,9 @@ data class ProxyEntity(
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 else -> throw IllegalArgumentException()
             }
-        ).apply {
-            putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
-            putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
-        }
+        )
+            .putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
+            .putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
     }
 
     @androidx.room.Dao

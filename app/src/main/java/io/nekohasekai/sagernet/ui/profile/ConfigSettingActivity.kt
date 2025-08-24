@@ -1,47 +1,16 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
-import androidx.preference.PreferenceDataStore
+import androidx.activity.viewModels
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.widget.EditConfigPreference
 
-class ConfigSettingActivity :
-    ProfileSettingsActivity<ConfigBean>(),
-    OnPreferenceDataStoreChangeListener {
+class ConfigSettingActivity : ProfileSettingsActivity<ConfigBean>() {
 
-    private val isOutboundOnlyKey = "isOutboundOnly"
-
-    override fun createBean() = ConfigBean()
-
-    override fun ConfigBean.init() {
-        // CustomBean to input
-        DataStore.profileCacheStore.putBoolean(isOutboundOnlyKey, type == ConfigBean.TYPE_OUTBOUND)
-        DataStore.profileName = name
-        DataStore.serverConfig = config
-    }
-
-    override fun ConfigBean.serialize() {
-        // CustomBean from input
-        type = if (DataStore.profileCacheStore.getBoolean(isOutboundOnlyKey, false)){
-            ConfigBean.TYPE_OUTBOUND
-        } else {
-            ConfigBean.TYPE_CONFIG
-        }
-        name = DataStore.profileName
-        config = DataStore.serverConfig
-    }
-
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        if (key != Key.PROFILE_DIRTY) {
-            DataStore.dirty = true
-            onBackPressedCallback.isEnabled = true
-        }
-    }
+    override val viewModel by viewModels<ConfigSettingsViewModel>()
 
     private lateinit var editConfigPreference: EditConfigPreference
 

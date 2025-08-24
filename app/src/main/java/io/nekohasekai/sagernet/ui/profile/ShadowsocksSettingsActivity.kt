@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
@@ -14,47 +15,7 @@ import rikka.preference.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
-    override fun createBean() = ShadowsocksBean()
-
-    override fun ShadowsocksBean.init() {
-        DataStore.profileName = name
-        DataStore.serverAddress = serverAddress
-        DataStore.serverPort = serverPort
-        DataStore.serverMethod = method
-        DataStore.serverPassword = password
-        DataStore.serverMux = serverMux
-        DataStore.serverBrutal = serverBrutal
-        DataStore.serverMuxType = serverMuxType
-        DataStore.serverMuxNumber = serverMuxNumber
-        DataStore.serverMuxStrategy = serverMuxStrategy
-        DataStore.serverMuxPadding = serverMuxPadding
-        DataStore.pluginName = plugin.substringBefore(";")
-        DataStore.pluginConfig = plugin.substringAfter(";")
-        DataStore.udpOverTcp = udpOverTcp
-    }
-
-    override fun ShadowsocksBean.serialize() {
-        name = DataStore.profileName
-        serverAddress = DataStore.serverAddress
-        serverPort = DataStore.serverPort
-        method = DataStore.serverMethod
-        password = DataStore.serverPassword
-        serverMux = DataStore.serverMux
-        serverBrutal = DataStore.serverBrutal
-        serverMuxType = DataStore.serverMuxType
-        serverMuxNumber = DataStore.serverMuxNumber
-        serverMuxStrategy = DataStore.serverMuxStrategy
-        serverMuxPadding = DataStore.serverMuxPadding
-        udpOverTcp = DataStore.udpOverTcp
-
-        val pluginName = DataStore.pluginName
-        val pluginConfig = DataStore.pluginConfig
-        plugin = if (pluginName.isNotBlank()) {
-            "$pluginName;$pluginConfig"
-        } else {
-            ""
-        }
-    }
+    override val viewModel by viewModels<ShadowsocksSettingsViewModel>()
 
     private lateinit var serverBrutal: MaterialSwitchPreference
     private lateinit var serverMuxType: SimpleMenuPreference

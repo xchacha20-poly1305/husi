@@ -1,10 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import androidx.activity.viewModels
 
 class TrojanSettingsActivity : StandardV2RaySettingsActivity() {
 
-    override fun createBean() = TrojanBean().applyDefaultValues()
+    override val viewModel by viewModels<TrojanSettingsViewModel>()
 
 }

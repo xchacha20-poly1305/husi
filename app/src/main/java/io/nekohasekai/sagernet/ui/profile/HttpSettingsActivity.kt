@@ -1,10 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import io.nekohasekai.sagernet.fmt.http.HttpBean
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import androidx.activity.viewModels
 
 class HttpSettingsActivity : StandardV2RaySettingsActivity() {
 
-    override fun createBean() = HttpBean().applyDefaultValues()
+    override val viewModel by viewModels<HttpSettingsViewModel>()
 
 }
