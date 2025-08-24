@@ -10,9 +10,8 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.component1
-import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.LayoutRes
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -22,11 +21,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.Preference
-import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
-import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
@@ -37,25 +36,20 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
-import io.nekohasekai.sagernet.ktx.byteBuffer
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.getStringOrRes
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import kotlin.properties.Delegates
 
 @Suppress("UNCHECKED_CAST")
 abstract class ProfileSettingsActivity<T : AbstractBean>(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
-) : ThemedActivity(resId), OnPreferenceDataStoreChangeListener {
+) : ThemedActivity(resId) {
 
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
@@ -77,23 +71,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     companion object {
         const val EXTRA_PROFILE_ID = "id"
         const val EXTRA_IS_SUBSCRIPTION = "sub"
-        const val KEY_TEMP_BEAN_BYTES = "temp_bean_bytes"
     }
 
-    abstract fun createBean(): T
-    abstract fun T.init()
-    abstract fun T.serialize()
 
-    val proxyEntity by lazy { SagerDatabase.proxyDao.getById(DataStore.editingId) }
-    protected lateinit var bean: T
-    protected var isSubscription by Delegates.notNull<Boolean>()
+    internal open val viewModel: ProfileSettingsViewModel<T> by viewModels<ProfileSettingsViewModel<T>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        savedInstanceState?.getByteArray(KEY_TEMP_BEAN_BYTES)?.let {
-            bean = createBean().apply {
-                deserialize(ByteBufferInput(it))
-            }
-        }
         super.onCreate(savedInstanceState)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
@@ -104,18 +87,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
-        if (savedInstanceState == null) runOnDefaultDispatcher {
+        if (savedInstanceState == null) lifecycleScope.launch {
             val editingId = intent.getLongExtra(EXTRA_PROFILE_ID, 0L)
-            isSubscription = intent.getBooleanExtra(EXTRA_IS_SUBSCRIPTION, false)
-            DataStore.editingId = editingId
-            bean = if (editingId == 0L) {
-                DataStore.editingGroup = DataStore.selectedGroupForImport()
-                createBean().applyDefaultValues()
-            } else {
-                DataStore.editingGroup = proxyEntity!!.groupId
-                (proxyEntity!!.requireBean() as T)
-            }
-            bean.init()
+            val isSubscription = intent.getBooleanExtra(EXTRA_IS_SUBSCRIPTION, false)
+            viewModel.initialize(editingId, isSubscription)
 
             onMainDispatcher {
                 supportFragmentManager.beginTransaction()
@@ -123,41 +98,43 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     .commit()
             }
         }
+
+        onBackPressedCallback.isEnabled = viewModel.dirty
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiEvent.collect(::handleUiEvent)
+            }
+        }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    private fun handleUiEvent(event: ProfileSettingsUiEvent) {
+        when (event) {
+            ProfileSettingsUiEvent.EnableBackPressCallback -> {
+                onBackPressedCallback.isEnabled = true
+            }
 
-        val output = ByteArrayOutputStream()
-        val buffer = output.byteBuffer()
-        bean.serializeToBuffer(buffer)
-        buffer.flush()
-        buffer.close()
-        outState.putByteArray(KEY_TEMP_BEAN_BYTES, output.toByteArray())
+            is ProfileSettingsUiEvent.Alert -> {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(getStringOrRes(event.title))
+                    .setMessage(getStringOrRes(event.message))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            }
+        }
     }
 
     open suspend fun saveAndExit() {
-        val entity = if (DataStore.editingId == 0L) {
-            val editingGroup = DataStore.editingGroup
-            ProfileManager.createProfile(editingGroup, createBean().apply { serialize() })
-        } else {
-            proxyEntity!!
-        }
-        bean.serialize()
-        entity.setBean(bean)
-        ProfileManager.updateProfile(entity)
+        viewModel.saveEntity()
         setResult(RESULT_OK)
         finish()
     }
-
-    val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         val isNew = DataStore.editingId == 0L
         menu.findItem(R.id.action_move)?.apply {
-            if (!isNew
-                && SagerDatabase.groupDao.getById(DataStore.editingGroup)?.type == GroupType.BASIC // not in subscription group
+            if (!isNew && !viewModel.isSubscription
                 && SagerDatabase.groupDao.allGroups()
                     .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
             ) isVisible = true
@@ -170,6 +147,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         return true
     }
 
+    private val resultCallbackCustomConfig = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.onEditedCustomConfig(result.resultCode == RESULT_OK)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_delete -> {
             if (DataStore.editingId == 0L) {
@@ -178,12 +161,9 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 .setTitle(R.string.delete_confirm_prompt)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     runOnDefaultDispatcher {
-                        ProfileManager.deleteProfile(
-                            DataStore.editingId,
-                            DataStore.editingGroup
-                        )
+                        viewModel.delete()
+                        finish()
                     }
-                    finish()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
@@ -198,33 +178,25 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         }
 
         R.id.action_custom_outbound_json -> {
-            DataStore.serverCustomOutbound = bean.customOutboundJson
-            child.callbackCustomOutbound = { bean.customOutboundJson = it }
-            child.resultCallbackCustomOutbound.launch(
-                Intent(
-                    baseContext,
-                    ConfigEditActivity::class.java,
-                ).apply {
-                    putExtra("key", Key.SERVER_CUSTOM_OUTBOUND)
-                })
+            viewModel.prepareForEditCustomConfig(ProfileSettingsViewModel.CustomConfigType.Outbound)
+            resultCallbackCustomConfig.launch(
+                Intent(baseContext, ConfigEditActivity::class.java)
+                    .putExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG, Key.SERVER_CUSTOM_OUTBOUND)
+            )
             true
         }
 
         R.id.action_custom_config_json -> {
-            DataStore.serverCustom = bean.customConfigJson
-            child.callbackCustom = { bean.customConfigJson = it }
-            child.resultCallbackCustom.launch(
-                Intent(
-                    baseContext,
-                    ConfigEditActivity::class.java,
-                ).apply {
-                    putExtra("key", Key.SERVER_CUSTOM)
-                })
+            viewModel.prepareForEditCustomConfig(ProfileSettingsViewModel.CustomConfigType.Fall)
+            resultCallbackCustomConfig.launch(
+                Intent(baseContext, ConfigEditActivity::class.java)
+                    .putExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG, Key.SERVER_CUSTOM)
+            )
             true
         }
 
         R.id.action_create_shortcut -> {
-            val entity = proxyEntity!!
+            val entity = viewModel.proxyEntity
             val shortcut = ShortcutInfoCompat.Builder(this, "shortcut-profile-${entity.id}")
                 .setShortLabel(entity.displayName())
                 .setLongLabel(entity.displayName())
@@ -235,15 +207,15 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 ).setIntent(
                     Intent(
                         baseContext, QuickToggleShortcut::class.java
-                    ).apply {
-                        action = Intent.ACTION_MAIN
-                        putExtra("profile", entity.id)
-                    }).build()
+                    )
+                        .setAction(Intent.ACTION_MAIN)
+                        .putExtra("profile", entity.id)
+                ).build()
             ShortcutManagerCompat.requestPinShortcut(this, shortcut, null)
         }
 
         R.id.action_move -> {
-            val entity = proxyEntity!!
+            val entity = viewModel.proxyEntity
             val view = LinearLayout(baseContext).apply {
                 orientation = LinearLayout.VERTICAL
 
@@ -256,7 +228,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                             groupName.text = group.displayName()
                             groupUpdate.text = getString(R.string.move)
                             groupUpdate.setOnClickListener {
-                                runOnDefaultDispatcher {
+                                lifecycleScope.launch {
                                     val oldGroupId = entity.groupId
                                     val newGroupId = group.id
                                     entity.groupId = newGroupId
@@ -264,7 +236,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                                     GroupManager.postUpdate(oldGroupId) // reload
                                     GroupManager.postUpdate(newGroupId)
                                     DataStore.editingGroup = newGroupId // post switch animation
-                                    runOnMainDispatcher {
+                                    onMainDispatcher {
                                         finish()
                                     }
                                 }
@@ -285,18 +257,6 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     override fun onSupportNavigateUp(): Boolean {
         if (!super.onSupportNavigateUp()) finish()
         return true
-    }
-
-    override fun onDestroy() {
-        DataStore.profileCacheStore.unregisterChangeListener(this)
-        super.onDestroy()
-    }
-
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        if (key != Key.PROFILE_DIRTY) {
-            DataStore.dirty = true
-            onBackPressedCallback.isEnabled = true
-        }
     }
 
     abstract fun PreferenceFragmentCompat.createPreferences(
@@ -350,24 +310,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
             activity.apply {
                 viewCreated(view, savedInstanceState)
-                DataStore.dirty = false
-                DataStore.profileCacheStore.registerChangeListener(this)
             }
-        }
-
-        var callbackCustom: ((String) -> Unit)? = null
-        var callbackCustomOutbound: ((String) -> Unit)? = null
-
-        val resultCallbackCustom = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { (_, _) ->
-            callbackCustom?.invoke(DataStore.serverCustom)
-        }
-
-        val resultCallbackCustomOutbound = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { (_, _) ->
-            callbackCustomOutbound?.invoke(DataStore.serverCustomOutbound)
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {

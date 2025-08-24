@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -30,68 +31,38 @@ import android.widget.TextView
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.mapX
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.setGroupBean
+import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 
 class ProxySetSettingsActivity :
     ProfileSettingsActivity<ProxySetBean>(R.layout.layout_chain_settings) {
-
-    override fun createBean() = ProxySetBean().applyDefaultValues()
-
-    private val proxyList = mutableListOf<ProxyEntity>()
-
-    override fun ProxySetBean.init() {
-        DataStore.profileName = name
-        DataStore.serverManagement = management
-        DataStore.serverInterruptExistConnections = interruptExistConnections
-        DataStore.serverTestURL = testURL
-        DataStore.serverTestInterval = testInterval
-        DataStore.serverIdleTimeout = testIdleTimeout
-        DataStore.serverTolerance = testTolerance
-        DataStore.serverType = type
-        DataStore.serverGroup = groupId
-        DataStore.serverFilterNotRegex = groupFilterNotRegex
-        DataStore.serverProxies = proxies.joinToString(",")
-    }
-
-    override fun ProxySetBean.serialize() {
-        name = DataStore.profileName
-        management = DataStore.serverManagement
-        interruptExistConnections = DataStore.serverInterruptExistConnections
-        testURL = DataStore.serverTestURL
-        testInterval = DataStore.serverTestInterval
-        testIdleTimeout = DataStore.serverIdleTimeout
-        testTolerance = DataStore.serverTolerance
-        type = DataStore.serverType
-        groupId = DataStore.serverGroup
-        groupFilterNotRegex = DataStore.serverFilterNotRegex
-        proxies = proxyList.mapX { it.id }
-    }
 
     private lateinit var groupType: SimpleMenuPreference
     private lateinit var groupPreference: SimpleMenuPreference
@@ -170,9 +141,10 @@ class ProxySetSettingsActivity :
         }
     }
 
-    val itemView: LinearLayout by lazy { findViewById(R.id.list_cell) }
-    val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
-    lateinit var configurationAdapter: ProxiesAdapter
+    override val viewModel by viewModels<ProxySetSettingsViewModel>()
+    private val itemView: LinearLayout by lazy { findViewById(R.id.list_cell) }
+    private val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
+    private lateinit var configurationAdapter: ProxiesAdapter
 
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -200,8 +172,9 @@ class ProxySetSettingsActivity :
             )
             insets
         }
-        configurationAdapter = ProxiesAdapter()
-        configurationList.adapter = configurationAdapter
+        configurationList.adapter = ProxiesAdapter().also {
+            configurationAdapter = it
+        }
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN,
@@ -232,18 +205,32 @@ class ProxySetSettingsActivity :
             ): Boolean = if (target !is ProfileHolder) {
                 false
             } else {
-                configurationAdapter.move(
-                    viewHolder.absoluteAdapterPosition, target.absoluteAdapterPosition,
-                )
+                lifecycleScope.launch {
+                    val from = viewHolder.absoluteAdapterPosition - 1
+                    val to = target.absoluteAdapterPosition - 1
+                    viewModel.move(from, to)
+                }
                 true
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                configurationAdapter.remove(viewHolder.absoluteAdapterPosition)
+                lifecycleScope.launch {
+                    val index = viewHolder.absoluteAdapterPosition - 1
+                    viewModel.remove(index)
+                }
             }
 
         }).attachToRecyclerView(configurationList)
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::handleUiState)
+            }
+        }
+    }
+
+    private fun handleUiState(state: ProxySetSettingsUiState) {
+        configurationAdapter.submitList(state.profiles)
     }
 
     override fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
@@ -266,43 +253,44 @@ class ProxySetSettingsActivity :
             }
         }
 
-        runOnDefaultDispatcher {
-            configurationAdapter.reload()
-        }
     }
 
-    inner class ProxiesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private inner class ProxiesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-        suspend fun reload() {
-            val idList = DataStore.serverProxies.split(",")
-                .mapNotNull { it.takeIf { it.isNotBlank() }?.toLong() }
-            if (idList.isNotEmpty()) {
-                val profiles = ProfileManager.getProfiles(idList).associateBy { it.id }
-                proxyList.clear()
-                for (id in idList) {
-                    proxyList.add(profiles[id] ?: continue)
+        init {
+            setHasStableIds(true)
+        }
+
+        private val proxyList = mutableListOf<ProxyEntity>()
+
+        fun submitList(list: List<ProxyEntity>) {
+            val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                override fun getOldListSize() = proxyList.size
+                override fun getNewListSize() = list.size
+                override fun areItemsTheSame(o: Int, n: Int) =
+                    ProxyEntityDiffCallback.areItemsTheSame(proxyList[o], list[n])
+                override fun areContentsTheSame(o: Int, n: Int) =
+                    ProxyEntityDiffCallback.areContentsTheSame(proxyList[o], list[n])
+            })
+            proxyList.clear()
+            proxyList.addAll(list)
+            val headerOffset = 1
+            diff.dispatchUpdatesTo(object : ListUpdateCallback {
+                override fun onInserted(position: Int, count: Int) {
+                    notifyItemRangeInserted(position + headerOffset, count)
                 }
-            }
-            onMainDispatcher {
-                notifyDataSetChanged()
-            }
+                override fun onRemoved(position: Int, count: Int) {
+                    notifyItemRangeRemoved(position + headerOffset, count)
+                }
+                override fun onMoved(fromPosition: Int, toPosition: Int) {
+                    notifyItemMoved(fromPosition + headerOffset, toPosition + headerOffset)
+                }
+                override fun onChanged(position: Int, count: Int, payload: Any?) {
+                    notifyItemRangeChanged(position + headerOffset, count, payload)
+                }
+            })
         }
 
-        fun move(from: Int, to: Int) {
-            val toMove = proxyList[to - 1]
-            proxyList[to - 1] = proxyList[from - 1]
-            proxyList[from - 1] = toMove
-            notifyItemMoved(from, to)
-            DataStore.dirty = true
-            onBackPressedCallback.isEnabled = true
-        }
-
-        fun remove(index: Int) {
-            proxyList.removeAt(index - 1)
-            notifyItemRemoved(index)
-            DataStore.dirty = true
-            onBackPressedCallback.isEnabled = true
-        }
 
         override fun getItemId(position: Int): Long {
             return if (position == 0) 0 else proxyList[position - 1].id
@@ -313,11 +301,19 @@ class ProxySetSettingsActivity :
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return if (viewType == 0) {
-                AddHolder(LayoutAddEntityBinding.inflate(layoutInflater, parent, false))
-            } else {
-                ProfileHolder(LayoutProfileBinding.inflate(layoutInflater, parent, false))
-            }
+            return if (viewType == 0) AddHolder(
+                LayoutAddEntityBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false,
+                )
+            ) else ProfileHolder(
+                LayoutProfileBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false,
+                )
+            )
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -334,74 +330,30 @@ class ProxySetSettingsActivity :
 
     }
 
-    fun testProfileAllowed(profile: ProxyEntity): Boolean {
-        if (profile.id == DataStore.editingId) return false
-
-        for (entity in proxyList) {
-            if (testProfileContains(entity, profile)) return false
+    private object ProxyEntityDiffCallback : DiffUtil.ItemCallback<ProxyEntity>() {
+        override fun areItemsTheSame(old: ProxyEntity, new: ProxyEntity): Boolean {
+            return old.id == new.id
         }
 
-        return true
+        override fun areContentsTheSame(old: ProxyEntity, new: ProxyEntity): Boolean {
+            return true
+        }
+
     }
-
-    fun testProfileContains(profile: ProxyEntity, anotherProfile: ProxyEntity): Boolean {
-        if (profile.type != ProxyEntity.TYPE_CHAIN || anotherProfile.type != ProxyEntity.TYPE_CHAIN) {
-            return false
-        }
-        if (profile.id == anotherProfile.id) return true
-        val proxies = profile.chainBean!!.proxies
-        if (proxies.contains(anotherProfile.id)) return true
-        if (proxies.isNotEmpty()) {
-            for (entity in ProfileManager.getProfiles(proxies)) {
-                if (testProfileContains(entity, anotherProfile)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    var replacing = 0
 
     val selectProfileForAdd =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { (resultCode, data) ->
             if (resultCode == RESULT_OK) runOnDefaultDispatcher {
-                DataStore.dirty = true
-                onBackPressedCallback.isEnabled = true
-
-                val profile = ProfileManager.getProfile(
-                    data!!.getLongExtra(
-                        ProfileSelectActivity.EXTRA_PROFILE_ID, 0
-                    )
-                )!!
-
-                if (!testProfileAllowed(profile)) {
-                    onMainDispatcher {
-                        MaterialAlertDialogBuilder(this@ProxySetSettingsActivity)
-                            .setTitle(R.string.circular_reference)
-                            .setMessage(R.string.circular_reference_sum)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show()
-                    }
-                } else {
-                    configurationList.post {
-                        if (replacing != 0) {
-                            proxyList[replacing - 1] = profile
-                            configurationAdapter.notifyItemChanged(replacing)
-                        } else {
-                            proxyList.add(profile)
-                            configurationAdapter.notifyItemInserted(proxyList.size)
-                        }
-                    }
-                }
+                val id = data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+                viewModel.onSelectProfile(id)
             }
         }
 
-    inner class AddHolder(val binding: LayoutAddEntityBinding) :
+    private inner class AddHolder(val binding: LayoutAddEntityBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind() {
             binding.root.setOnClickListener {
-                replacing = 0
+                viewModel.replacing = 0
                 selectProfileForAdd.launch(
                     Intent(
                         this@ProxySetSettingsActivity, ProfileSelectActivity::class.java
@@ -411,7 +363,7 @@ class ProxySetSettingsActivity :
         }
     }
 
-    inner class ProfileHolder(binding: LayoutProfileBinding) :
+    private inner class ProfileHolder(binding: LayoutProfileBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         val profileName = binding.profileName
@@ -440,7 +392,7 @@ class ProxySetSettingsActivity :
             }
 
             editButton.setOnClickListener {
-                replacing = absoluteAdapterPosition
+                viewModel.replacing = absoluteAdapterPosition
                 selectProfileForAdd.launch(
                     Intent(
                         this@ProxySetSettingsActivity, ProfileSelectActivity::class.java
@@ -453,7 +405,10 @@ class ProxySetSettingsActivity :
                 MaterialAlertDialogBuilder(this@ProxySetSettingsActivity)
                     .setTitle(getString(R.string.delete_confirm_prompt))
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        configurationAdapter.remove(absoluteAdapterPosition)
+                        lifecycleScope.launch {
+                            val index = absoluteAdapterPosition - 1
+                            viewModel.remove(index)
+                        }
                     }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()

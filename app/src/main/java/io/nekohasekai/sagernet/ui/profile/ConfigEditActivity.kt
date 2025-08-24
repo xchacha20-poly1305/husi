@@ -30,6 +30,8 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.launch
@@ -37,13 +39,17 @@ import kotlin.math.max
 
 class ConfigEditActivity : ThemedActivity() {
 
+    companion object {
+        const val EXTRA_CUSTOM_CONFIG = "custom_config"
+    }
+
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
             MaterialAlertDialogBuilder(this@ConfigEditActivity)
                 .setTitle(R.string.unsaved_changes_prompt)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    lifecycleScope.launch {
-                        viewModel.saveAndExit(binding.editor.text.toString())
+                    runOnDefaultDispatcher {
+                        saveAndExit()
                     }
                 }
                 .setNegativeButton(R.string.no) { _, _ ->
@@ -60,7 +66,7 @@ class ConfigEditActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intent?.extras?.getString("key")?.let {
+        intent?.extras?.getString(EXTRA_CUSTOM_CONFIG)?.let {
             viewModel.key = it
         }
 
@@ -177,7 +183,6 @@ class ConfigEditActivity : ThemedActivity() {
 
             is ConfigEditActivityUiEvent.Alert -> alert(event.message).show()
             is ConfigEditActivityUiEvent.SnackBar -> snackbar(event.id).show()
-            ConfigEditActivityUiEvent.Finish -> finish()
         }
     }
 
@@ -204,8 +209,8 @@ class ConfigEditActivity : ThemedActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_apply -> {
-                lifecycleScope.launch {
-                    viewModel.saveAndExit(binding.editor.text.toString())
+                runOnDefaultDispatcher {
+                    saveAndExit()
                 }
                 return true
             }
@@ -215,6 +220,14 @@ class ConfigEditActivity : ThemedActivity() {
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
         return Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT)
+    }
+
+    private suspend fun saveAndExit() {
+        onIoDispatcher {
+            viewModel.saveToDataStore(binding.editor.text.toString())
+        }
+        setResult(RESULT_OK)
+        finish()
     }
 
     private val editorScheme: ColorScheme

@@ -422,7 +422,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_vless -> {
                 startActivity(Intent(requireActivity(), VMessSettingsActivity::class.java).apply {
-                    putExtra("vless", true)
+                    putExtra(VMessSettingsActivity.EXTRA_VLESS, true)
                 })
             }
 

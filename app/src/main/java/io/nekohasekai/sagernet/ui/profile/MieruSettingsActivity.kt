@@ -20,42 +20,19 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 import rikka.preference.SimpleMenuPreference
 
 class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
 
-    override fun createBean() = MieruBean().applyDefaultValues()
-
-    override fun MieruBean.init() {
-        DataStore.profileName = name
-        DataStore.serverAddress = serverAddress
-        DataStore.serverPort = serverPort
-        DataStore.serverProtocol = protocol
-        DataStore.serverUsername = username
-        DataStore.serverPassword = password
-        DataStore.serverMTU = mtu
-        DataStore.serverMuxNumber = serverMuxNumber
-    }
-
-    override fun MieruBean.serialize() {
-        name = DataStore.profileName
-        serverAddress = DataStore.serverAddress
-        serverPort = DataStore.serverPort
-        protocol = DataStore.serverProtocol
-        username = DataStore.serverUsername
-        password = DataStore.serverPassword
-        mtu = DataStore.serverMTU
-        serverMuxNumber = DataStore.serverMuxNumber
-    }
+    override val viewModel by viewModels<MieruSettingsViewModel>()
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,

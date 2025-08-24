@@ -1,12 +1,12 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -19,124 +19,7 @@ import rikka.preference.SimpleMenuPreference
 
 abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV2RayBean>() {
 
-    override fun StandardV2RayBean.init() {
-        DataStore.profileName = name
-        DataStore.serverAddress = serverAddress
-        DataStore.serverPort = serverPort
-
-        // V2Ray Transport
-        DataStore.serverNetwork = v2rayTransport
-        DataStore.serverHost = host
-        DataStore.serverPath = path
-        DataStore.serverHeaders = headers
-        DataStore.serverWsMaxEarlyData = wsMaxEarlyData
-        DataStore.serverWsEarlyDataHeaderName = earlyDataHeaderName
-
-        // Security
-        DataStore.serverSecurity = security
-        DataStore.serverSNI = sni
-        DataStore.serverALPN = alpn
-        DataStore.serverCertificates = certificates
-        DataStore.serverAllowInsecure = allowInsecure
-        DataStore.serverDisableSNI = disableSNI
-        DataStore.serverFragment = fragment
-        DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
-        DataStore.serverRecordFragment = recordFragment
-        DataStore.serverUtlsFingerPrint = utlsFingerprint
-        DataStore.serverRealityPublicKey = realityPublicKey
-        DataStore.serverRealityShortID = realityShortID
-        DataStore.serverECH = ech
-        DataStore.serverECHConfig = echConfig
-
-        // Mux
-        DataStore.serverMux = serverMux
-        DataStore.serverBrutal = serverBrutal
-        DataStore.serverMuxType = serverMuxType
-        DataStore.serverMuxStrategy = serverMuxStrategy
-        DataStore.serverMuxNumber = serverMuxNumber
-        DataStore.serverMuxPadding = serverMuxPadding
-
-        // Protocol Specific
-        when (this) {
-            is HttpBean -> {
-                DataStore.serverUsername = username
-                DataStore.serverPassword = password
-                DataStore.udpOverTcp = udpOverTcp
-            }
-
-            is TrojanBean -> {
-                DataStore.serverPassword = password
-            }
-
-            is VMessBean -> {
-                DataStore.serverUserID = uuid
-                DataStore.serverAlterID = alterId
-                DataStore.serverEncryption = encryption
-                DataStore.serverPacketEncoding = packetEncoding
-                DataStore.serverAuthenticatedLength = authenticatedLength
-            }
-        }
-    }
-
-    override fun StandardV2RayBean.serialize() {
-        // Basic
-        name = DataStore.profileName
-        serverAddress = DataStore.serverAddress
-        serverPort = DataStore.serverPort
-
-        // V2Ray Transport
-        v2rayTransport = DataStore.serverNetwork
-        host = DataStore.serverHost
-        path = DataStore.serverPath
-        headers = DataStore.serverHeaders
-        wsMaxEarlyData = DataStore.serverWsMaxEarlyData
-        earlyDataHeaderName = DataStore.serverWsEarlyDataHeaderName
-
-        // Security
-        security = DataStore.serverSecurity
-        sni = DataStore.serverSNI
-        alpn = DataStore.serverALPN
-        certificates = DataStore.serverCertificates
-        allowInsecure = DataStore.serverAllowInsecure
-        disableSNI = DataStore.serverDisableSNI
-        fragment = DataStore.serverFragment
-        fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
-        recordFragment = DataStore.serverRecordFragment
-        utlsFingerprint = DataStore.serverUtlsFingerPrint
-        realityPublicKey = DataStore.serverRealityPublicKey
-        realityShortID = DataStore.serverRealityShortID
-        ech = DataStore.serverECH
-        echConfig = DataStore.serverECHConfig
-
-        // Mux
-        serverMux = DataStore.serverMux
-        serverBrutal = DataStore.serverBrutal
-        serverMuxType = DataStore.serverMuxType
-        serverMuxStrategy = DataStore.serverMuxStrategy
-        serverMuxNumber = DataStore.serverMuxNumber
-        serverMuxPadding = DataStore.serverMuxPadding
-
-        // Protocol Specific
-        when (this) {
-            is HttpBean -> {
-                username = DataStore.serverUsername
-                password = DataStore.serverPassword
-                udpOverTcp = DataStore.udpOverTcp
-            }
-
-            is TrojanBean -> {
-                password = DataStore.serverPassword
-            }
-
-            is VMessBean -> {
-                uuid = DataStore.serverUserID
-                alterId = DataStore.serverAlterID
-                encryption = DataStore.serverEncryption
-                packetEncoding = DataStore.serverPacketEncoding
-                authenticatedLength = DataStore.serverAuthenticatedLength
-            }
-        }
-    }
+    override val viewModel by viewModels<StandardV2RaySettingsViewModel>()
 
     private lateinit var securityCategory: PreferenceCategory
     private lateinit var tlsCamouflageCategory: PreferenceCategory
@@ -212,9 +95,10 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
     /** Sets up the initial state of preferences based on the profile bean. */
     private fun PreferenceFragmentCompat.setupInitialState() {
+        val bean = viewModel.bean
         val isHttp = bean is HttpBean
-        val isVmess = bean is VMessBean && !bean!!.isVLESS
-        val isVless = bean!!.isVLESS
+        val isVmess = bean is VMessBean && !bean.isVLESS
+        val isVless = bean.isVLESS
         val isTrojan = bean is TrojanBean
 
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.setOnBindEditTextListener(
@@ -305,7 +189,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
      */
     private fun updateUiState(network: String, security: String, flow: String?) {
         val isTls = isTLS(security)
-        val isHttp = bean is HttpBean
+        val isHttp = viewModel.bean is HttpBean
 
         updateTlsCategoriesVisibility(isTls, realityPublicKey.text?.isNotBlank() == true)
 
@@ -407,7 +291,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
     private fun isTLS(security: String): Boolean = security == "tls"
 
-    private fun getFlow(): String? = if (bean!!.isVLESS) {
+    private fun getFlow(): String? = if (viewModel.bean.isVLESS) {
         serverEncryption.value
     } else {
         null

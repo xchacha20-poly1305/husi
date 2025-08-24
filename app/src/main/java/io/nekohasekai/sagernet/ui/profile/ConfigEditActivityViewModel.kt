@@ -17,7 +17,6 @@ internal sealed interface ConfigEditActivityUiEvent {
     class UpdateText(val text: String) : ConfigEditActivityUiEvent
     class Alert(val message: String) : ConfigEditActivityUiEvent
     class SnackBar(@param:StringRes val id: Int) : ConfigEditActivityUiEvent
-    object Finish : ConfigEditActivityUiEvent
 }
 
 internal class ConfigEditActivityViewModel : ViewModel() {
@@ -28,10 +27,9 @@ internal class ConfigEditActivityViewModel : ViewModel() {
     var content = ""
     var needSave = false
 
-    suspend fun saveAndExit(text: String) {
+    suspend fun saveToDataStore(text: String) {
         val formated = formatJson(text) ?: return
         DataStore.profileCacheStore.putString(key, formated)
-        _uiEvent.emit(ConfigEditActivityUiEvent.Finish)
     }
 
     /**
