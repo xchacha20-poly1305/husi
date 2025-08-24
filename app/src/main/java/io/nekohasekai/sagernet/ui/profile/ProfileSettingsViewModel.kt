@@ -60,7 +60,7 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     }
 
     suspend fun delete() {
-        ProfileManager.deleteProfile(DataStore.editingId, DataStore.editingGroup)
+        ProfileManager.deleteProfile(DataStore.editingGroup, DataStore.editingId)
     }
 
     suspend fun saveEntity() = onIoDispatcher {
