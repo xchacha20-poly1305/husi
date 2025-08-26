@@ -61,16 +61,6 @@
 
         </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_action_note_add"
-            android:visibility="gone"
-            app:tint="?attr/colorOnSurfaceVariant"
-            tools:visibility="visible" />
-
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/itemcheck"
             android:layout_width="wrap_content"

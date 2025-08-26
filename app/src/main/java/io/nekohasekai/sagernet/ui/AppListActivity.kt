@@ -1,334 +1,73 @@
 package io.nekohasekai.sagernet.ui
 
-import android.content.Intent
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
-import android.os.Bundle
-import android.util.SparseBooleanArray
-import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Filter
-import android.widget.Filterable
-import androidx.annotation.UiThread
-import androidx.core.util.contains
-import androidx.core.util.set
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.RecyclerView
+import androidx.activity.viewModels
 import com.google.android.material.snackbar.Snackbar
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAppListBinding
-import io.nekohasekai.sagernet.databinding.LayoutAppsItemBinding
-import io.nekohasekai.sagernet.ktx.crossFadeFrom
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.utils.PackageCache
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.coroutineContext
 
-class AppListActivity : ThemedActivity() {
-    companion object {
-        private const val SWITCH = "switch"
-    }
+class AppListActivity : AbstractAppListActivity() {
 
-    private class ProxiedApp(
-        private val pm: PackageManager, private val appInfo: ApplicationInfo,
-        val packageName: String,
-    ) {
-        val name: CharSequence = appInfo.loadLabel(pm)    // cached for sorting
-        val icon: Drawable get() = appInfo.loadIcon(pm)
-        val uid get() = appInfo.uid
-        val sys get() = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-    }
-
-    private inner class AppViewHolder(val binding: LayoutAppsItemBinding) : RecyclerView.ViewHolder(
-        binding.root
-    ),
-        View.OnClickListener {
-        private lateinit var item: ProxiedApp
-
-        init {
-            binding.root.setOnClickListener(this)
-        }
-
-        fun bind(app: ProxiedApp) {
-            item = app
-            binding.itemicon.setImageDrawable(app.icon)
-            binding.title.text = app.name
-            binding.desc.text = "${app.packageName} (${app.uid})"
-            handlePayload(listOf(SWITCH))
-        }
-
-        fun handlePayload(payloads: List<String>) {
-            if (payloads.contains(SWITCH)) {
-                val selected = isProxiedApp(item)
-                binding.itemcheck.isChecked = selected
-                binding.button.isVisible = selected
-            }
-        }
-
-        override fun onClick(v: View?) {
-            if (isProxiedApp(item)) proxiedUids.delete(item.uid) else proxiedUids[item.uid] = true
-            DataStore.routePackages = apps.filter { isProxiedApp(it) }.let {
-                it.mapTo(HashSet(it.size)) { it.packageName }
-            }
-
-            appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
-        }
-    }
-
-    private inner class AppsAdapter : RecyclerView.Adapter<AppViewHolder>(),
-        Filterable {
-        var filteredApps = apps
-
-        suspend fun reload() {
-            apps = getCachedApps().map { (packageName, packageInfo) ->
-                coroutineContext[Job]!!.ensureActive()
-                ProxiedApp(packageManager, packageInfo.applicationInfo!!, packageName)
-            }.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
-        }
-
-        override fun onBindViewHolder(holder: AppViewHolder, position: Int) =
-            holder.bind(filteredApps[position])
-
-        override fun onBindViewHolder(holder: AppViewHolder, position: Int, payloads: List<Any>) {
-            if (payloads.isNotEmpty()) {
-                @Suppress("UNCHECKED_CAST") holder.handlePayload(payloads as List<String>)
-                return
-            }
-
-            onBindViewHolder(holder, position)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder =
-            AppViewHolder(LayoutAppsItemBinding.inflate(layoutInflater, parent, false))
-
-        override fun getItemCount(): Int = filteredApps.size
-
-        private val filterImpl = object : Filter() {
-            override fun performFiltering(constraint: CharSequence) = FilterResults().apply {
-                var filteredApps = if (constraint.isEmpty()) apps else apps.filter {
-                    it.name.contains(constraint, true) || it.packageName.contains(
-                        constraint, true
-                    ) || it.uid.toString().contains(constraint)
-                }
-                if (!sysApps) filteredApps = filteredApps.filter { !it.sys }
-                count = filteredApps.size
-                values = filteredApps
-            }
-
-            override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                @Suppress("UNCHECKED_CAST")
-                filteredApps = results.values as List<ProxiedApp>
-                notifyDataSetChanged()
-            }
-        }
-
-        override fun getFilter(): Filter = filterImpl
-
-    }
-
-    private val loading by lazy { findViewById<View>(R.id.loading) }
-
+    override val viewModel by viewModels<AppListActivityViewModel>()
     private lateinit var binding: LayoutAppListBinding
-    private val proxiedUids = SparseBooleanArray()
-    private var loader: Job? = null
-    private var apps = emptyList<ProxiedApp>()
-    private val appsAdapter = AppsAdapter()
+    override val root get() = binding.root
+    override val toolbarTitle get() = R.string.select_apps
+    override val toolbar get() = binding.toolbar
+    override val collapsingToolbar get() = binding.collapsingToolbar
+    override val search get() = binding.search
+    override val showSystemApps get() = binding.showSystemApps
+    override val loading get() = binding.loading
+    override val list get() = binding.list
+    override val snackbarAnchor get() = binding.list
 
-    private fun initProxiedUids(packages: Set<String> = DataStore.routePackages) {
-        proxiedUids.clear()
-        val apps = getCachedApps()
-        for (packageName in packages) proxiedUids[(apps[packageName]
-            ?: continue).applicationInfo!!.uid] = true
-    }
-
-    private fun isProxiedApp(app: ProxiedApp) = proxiedUids[app.uid]
-
-    @UiThread
-    private fun loadApps() {
-        loader?.cancel()
-        loader = lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                loading.crossFadeFrom(binding.list)
-                val adapter = binding.list.adapter as AppsAdapter
-                withContext(Dispatchers.IO) { adapter.reload() }
-                adapter.filter.filter(binding.search.text?.toString() ?: "")
-                binding.list.crossFadeFrom(loading)
-            }
-        }
-    }
-
-    fun getCachedApps(): MutableMap<String, PackageInfo> {
-        return PackageCache.installedPackages.toMutableMap().apply {
-            remove(BuildConfig.APPLICATION_ID)
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    override fun bind(layoutInflater: LayoutInflater) {
         binding = LayoutAppListBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding.collapsingToolbar) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                top = bars.top,
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.list) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-                bottom = bars.bottom,
-            )
-            insets
-        }
-
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.select_apps)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
-        }
-
-        initProxiedUids()
-        binding.list.itemAnimator = DefaultItemAnimator()
-        binding.list.adapter = appsAdapter
-
-        binding.search.addTextChangedListener {
-            appsAdapter.filter.filter(it?.toString() ?: "")
-        }
-
-        binding.showSystemApps.isChecked = sysApps
-        binding.showSystemApps.setOnCheckedChangeListener { _, isChecked ->
-            sysApps = isChecked
-            appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
-        }
-
-        loadApps()
     }
-
-    private var sysApps = false
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.app_list_menu, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_invert_selections -> {
-                runOnDefaultDispatcher {
-                    for (app in apps) {
-                        if (proxiedUids.contains(app.uid)) {
-                            proxiedUids.delete(app.uid)
-                        } else {
-                            proxiedUids[app.uid] = true
-                        }
-                    }
-                    DataStore.routePackages = apps.filter { isProxiedApp(it) }.let {
-                        it.mapTo(HashSet(it.size)) { it.packageName }
-                    }
-                    apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
-                    onMainDispatcher {
-                        appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
-                    }
-                }
-
-                return true
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_invert_selections -> {
+            runOnDefaultDispatcher {
+                viewModel.invertSelected()
             }
-
-            R.id.action_clear_selections -> {
-                runOnDefaultDispatcher {
-                    proxiedUids.clear()
-                    DataStore.routePackages = emptySet()
-                    apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
-                    onMainDispatcher {
-                        appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
-                    }
-                }
-            }
-
-            R.id.action_export_clipboard -> {
-                val success = SagerNet.trySetPrimaryClip("false\n${DataStore.routePackages}")
-                Snackbar.make(
-                    binding.list,
-                    if (success) R.string.action_export_msg else R.string.action_export_err,
-                    Snackbar.LENGTH_LONG
-                ).show()
-                return true
-            }
-
-            R.id.action_import_clipboard -> {
-                val proxiedAppString =
-                    SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString()
-                if (!proxiedAppString.isNullOrEmpty()) {
-                    val i = proxiedAppString.indexOf('\n')
-                    try {
-                        val apps = if (i < 0) {
-                            emptySet()
-                        } else {
-                            proxiedAppString.substring(i + 1).split("\n").toSet()
-                        }
-                        DataStore.routePackages = apps
-                        Snackbar.make(
-                            binding.list, R.string.action_import_msg, Snackbar.LENGTH_LONG
-                        ).show()
-                        initProxiedUids(apps)
-                        appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
-                        return true
-                    } catch (_: IllegalArgumentException) {
-                    }
-                }
-                Snackbar.make(binding.list, R.string.action_import_err, Snackbar.LENGTH_LONG).show()
-            }
+            true
         }
-        return super.onOptionsItemSelected(item)
+
+        R.id.action_clear_selections -> {
+            runOnDefaultDispatcher {
+                viewModel.clearSelections()
+            }
+            true
+        }
+
+        R.id.action_export_clipboard -> {
+            val body = viewModel.packages.joinToString("\n")
+            val success = SagerNet.trySetPrimaryClip("false\n$body")
+            Snackbar.make(
+                binding.list,
+                if (success) R.string.action_export_msg else R.string.action_export_err,
+                Snackbar.LENGTH_LONG
+            ).show()
+            true
+        }
+
+        R.id.action_import_clipboard -> {
+            val clipBoardString = SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString()
+            runOnDefaultDispatcher {
+                viewModel.importFromClipboard(clipBoardString)
+            }
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
-        return true
-    }
-
-    override fun supportNavigateUpTo(upIntent: Intent) =
-        super.supportNavigateUpTo(upIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
-
-    override fun onKeyUp(keyCode: Int, event: KeyEvent?) = if (keyCode == KeyEvent.KEYCODE_MENU) {
-        if (binding.toolbar.isOverflowMenuShowing) binding.toolbar.hideOverflowMenu() else binding.toolbar.showOverflowMenu()
-    } else super.onKeyUp(keyCode, event)
-
-    override fun onDestroy() {
-        loader?.cancel()
-        super.onDestroy()
-    }
 }
