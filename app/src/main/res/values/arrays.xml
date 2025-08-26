@@ -187,15 +187,17 @@
     </string-array>
 
     <string-array name="route_protocol_entry">
-        <item>TCP and UDP</item>
+        <item />
         <item>TCP</item>
         <item>UDP</item>
+        <item>ICMP</item>
     </string-array>
 
     <string-array name="route_protocol_value">
         <item />
         <item>tcp</item>
         <item>udp</item>
+        <item>icmp</item>
     </string-array>
 
     <string-array name="outbound_entry">
