@@ -6,32 +6,19 @@
     android:orientation="vertical">
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/process"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:indeterminate="true"
         app:indicatorColor="?attr/selectedColorPrimary" />
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/loadingText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Loading..."
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-        </FrameLayout>
-
-    </androidx.core.widget.NestedScrollView>
+        android:clipToPadding="false"
+        android:padding="16dp"
+        app:layoutManager="io.nekohasekai.sagernet.widget.FixedLinearLayout" />
 
 </LinearLayout>
