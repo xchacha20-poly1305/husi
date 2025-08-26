@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkICMP
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkUDP
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
@@ -209,6 +210,15 @@ object ProfileManager {
                     name = app.getStringCompat(R.string.hijack_dns),
                     protocol = setOf("dns"),
                     action = ACTION_HIJACK_DNS,
+                )
+            )
+            createRule(
+                RuleEntity(
+                    enabled = true,
+                    action = ACTION_ROUTE,
+                    name = app.getStringCompat(R.string.bypass_icmp),
+                    network = NetworkICMP,
+                    outbound = RuleEntity.OUTBOUND_DIRECT,
                 )
             )
             createRule(

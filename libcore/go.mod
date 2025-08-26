@@ -7,13 +7,13 @@ require (
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.8
-	github.com/sagernet/sing v0.7.6-0.20250815070458-d33ece7a184f
-	github.com/sagernet/sing-box v1.12.3-0.20250820082834-209f9c361ee9
-	github.com/sagernet/sing-tun v0.7.0-beta.1
+	github.com/sagernet/sing v0.7.6-0.20250825141840-811aa328e57b
+	github.com/sagernet/sing-box v1.13.0-alpha.6
+	github.com/sagernet/sing-tun v0.7.0-beta.1.0.20250826030950-79e2d3b56d01
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/cazilla v1.0.2
-	github.com/xchacha20-poly1305/libping v0.9.1
+	github.com/xchacha20-poly1305/libping v0.10.1
 	golang.org/x/sync v0.16.0
 	golang.org/x/sys v0.35.0
 )
@@ -59,7 +59,7 @@ require (
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/fswatch v0.1.1 // indirect
-	github.com/sagernet/gvisor v0.0.0-20250325023245-7a9c0f5725fb // indirect
+	github.com/sagernet/gvisor v0.0.0-20250822052253-5558536cf237 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.52.0-beta.1 // indirect

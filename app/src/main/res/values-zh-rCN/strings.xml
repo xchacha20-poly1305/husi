@@ -626,4 +626,5 @@
     <string name="save_to_system">保存到系统</string>
     <string name="saved_to_download">文件已保存到下载文件夹。</string>
     <string name="network_interfaces">网络接口</string>
+    <string name="bypass_icmp">绕过 ICMP</string>
 </resources>
