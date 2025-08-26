@@ -177,7 +177,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         }
 
         override fun areContentsTheSame(old: AboutCard, new: AboutCard): Boolean {
-            return old == new
+            return true
         }
     }
 

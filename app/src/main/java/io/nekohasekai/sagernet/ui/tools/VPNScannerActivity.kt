@@ -142,7 +142,7 @@ class VPNScannerActivity : ThemedActivity() {
         }
 
         override fun areContentsTheSame(oldItem: AppInfo, newItem: AppInfo): Boolean {
-            return oldItem == newItem
+            return true
         }
     }
 
