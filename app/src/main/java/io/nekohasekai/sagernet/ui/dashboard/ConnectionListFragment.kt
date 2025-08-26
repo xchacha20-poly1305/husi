@@ -109,7 +109,8 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
     }
 
     private inner class ConnectionAdapter :
-        ListAdapter<Connection, Holder>(connectionDiffCallback) {
+        ListAdapter<Connection, Holder>(ConnectionDiffCallback) {
+
         init {
             setHasStableIds(true)
         }
@@ -122,6 +123,19 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                     false,
                 )
             )
+        }
+
+        override fun onBindViewHolder(holder: Holder, position: Int, payloads: List<Any?>) {
+            var mask = 0
+            for (payload in payloads) {
+                mask = mask or payload as Int
+            }
+            if (mask == 0) {
+                super.onBindViewHolder(holder, position, payloads)
+            } else {
+                val item = getItem(position)
+                holder.bindTraffic(item.uploadTotal, item.downloadTotal)
+            }
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
@@ -138,13 +152,27 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
     }
 
-    private val connectionDiffCallback = object : DiffUtil.ItemCallback<Connection>() {
+    private object ConnectionDiffCallback : DiffUtil.ItemCallback<Connection>() {
+        const val PAYLOAD_TRAFFIC_CHANGED = 1 shl 0
+
         override fun areItemsTheSame(old: Connection, new: Connection): Boolean {
             return old.uuid == new.uuid
         }
 
         override fun areContentsTheSame(old: Connection, new: Connection): Boolean {
-            return old == new
+            return old.uploadTotal == new.uploadTotal && old.downloadTotal == new.downloadTotal
+        }
+
+        override fun getChangePayload(old: Connection, new: Connection): Any? {
+            var mask = 0
+            if (old.uploadTotal != new.uploadTotal || old.downloadTotal != new.downloadTotal) {
+                mask = mask or PAYLOAD_TRAFFIC_CHANGED
+            }
+            return if (mask != 0) {
+                mask
+            } else {
+                super.getChangePayload(old, new)
+            }
         }
     }
 
@@ -169,17 +197,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                     false
                 }
             }
-            binding.connectionTraffic.text = binding.connectionTraffic.context.getString(
-                R.string.traffic,
-                Formatter.formatFileSize(
-                    binding.connectionTraffic.context,
-                    connection.uploadTotal,
-                ),
-                Formatter.formatFileSize(
-                    binding.connectionTraffic.context,
-                    connection.downloadTotal,
-                ),
-            )
+            bindTraffic(connection.uploadTotal, connection.downloadTotal)
             binding.connectionChain.text = connection.chain
             binding.root.setOnClickListener {
                 (requireActivity() as MainActivity)
@@ -189,6 +207,20 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                     .addToBackStack(null)
                     .commit()
             }
+        }
+
+        fun bindTraffic(upload: Long, download: Long) {
+            binding.connectionTraffic.text = binding.connectionTraffic.context.getString(
+                R.string.traffic,
+                Formatter.formatFileSize(
+                    binding.connectionTraffic.context,
+                    upload,
+                ),
+                Formatter.formatFileSize(
+                    binding.connectionTraffic.context,
+                    download,
+                ),
+            )
         }
     }
 
