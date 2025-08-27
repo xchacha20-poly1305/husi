@@ -699,4 +699,7 @@
     <string name="saved_to_download">File has saved to Download directory.</string>
     <string name="network_interfaces">Network Interfaces</string>
     <string name="bypass_icmp">Bypass iCMP</string>
+    <string name="connection_status">Connection Status</string>
+    <string name="connection_status_active">Active</string>
+    <string name="connection_status_closed">Closed</string>
 </resources>

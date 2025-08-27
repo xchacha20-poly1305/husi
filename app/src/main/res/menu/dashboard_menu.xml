@@ -70,4 +70,22 @@
         </menu>
     </item>
 
+    <item
+        android:id="@+id/action_connection_status"
+        android:title="@string/connection_status"
+        app:showAsAction="never">
+
+        <menu>
+            <group android:checkableBehavior="all">
+                <item
+                    android:id="@+id/action_connections_status_active"
+                    android:title="@string/connection_status_active" />
+                <item
+                    android:id="@+id/action_connections_status_closed"
+                    android:title="@string/connection_status_closed" />
+            </group>
+        </menu>
+    </item>
+
+
 </menu>

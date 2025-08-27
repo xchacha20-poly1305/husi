@@ -627,4 +627,7 @@
     <string name="saved_to_download">文件已保存到下载文件夹。</string>
     <string name="network_interfaces">网络接口</string>
     <string name="bypass_icmp">绕过 ICMP</string>
+    <string name="connection_status">连接状态</string>
+    <string name="connection_status_active">活跃中</string>
+    <string name="connection_status_closed">已关闭</string>
 </resources>

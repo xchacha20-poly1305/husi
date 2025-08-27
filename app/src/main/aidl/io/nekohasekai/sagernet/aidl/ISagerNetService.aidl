@@ -14,16 +14,16 @@ interface ISagerNetService {
 
   int urlTest(String tag);
 
-  Connections queryConnections();
+  Connections queryConnections(in int options);
   long queryMemory();
   int queryGoroutines();
-  oneway void closeConnection(String id);
+  oneway void closeConnection(in String id);
   oneway void resetNetwork();
   List<String> getClashModes();
   String getClashMode();
-  oneway void setClashMode(String mode);
+  oneway void setClashMode(in String mode);
 
   List<ProxySet> queryProxySet();
-  boolean groupSelect(in String group, String proxy);
-  URLTestResult groupURLTest(String tag, int timeout);
+  boolean groupSelect(in String group, in String proxy);
+  URLTestResult groupURLTest(in String tag, in int timeout);
 }

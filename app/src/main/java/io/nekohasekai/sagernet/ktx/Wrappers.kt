@@ -54,6 +54,7 @@ fun TrackerInfoIterator.toConnectionList(): List<Connection> {
                     chain = trackerInfo.chain,
                     protocol = trackerInfo.protocol.blankAsNull(),
                     process = trackerInfo.process.blankAsNull(),
+                    closed = trackerInfo.closed,
                 )
             )
         }

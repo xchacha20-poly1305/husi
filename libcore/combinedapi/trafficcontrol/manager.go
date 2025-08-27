@@ -1,16 +1,20 @@
 package trafficcontrol
 
 import (
+	"sync"
+	"time"
+
 	"github.com/sagernet/sing-box/experimental/clashapi/compatible"
+	"github.com/sagernet/sing/common/x/list"
 
 	"github.com/gofrs/uuid/v5"
 )
 
 type Manager struct {
-	connections      compatible.Map[uuid.UUID, Tracker]
-	outboundCounters compatible.Map[string, *outboundCounter] // use sync.Map to avoid rare race.
-	// closedConnectionsAccess sync.Mutex
-	// closedConnections       list.List[TrackerMetadata]
+	connections             compatible.Map[uuid.UUID, Tracker]
+	outboundCounters        compatible.Map[string, *outboundCounter] // use sync.Map to avoid rare race.
+	closedConnectionsAccess sync.RWMutex
+	closedConnections       list.List[TrackerMetadata]
 	// process     *process.Process
 }
 
@@ -24,7 +28,17 @@ func (m *Manager) Join(c Tracker) {
 
 func (m *Manager) Leave(c Tracker) {
 	metadata := c.Metadata()
-	m.connections.Delete(metadata.ID)
+	_, loaded := m.connections.LoadAndDelete(metadata.ID)
+	if loaded {
+		metadata.CreatedAt = time.Now()
+		m.closedConnectionsAccess.Lock()
+		defer m.closedConnectionsAccess.Unlock()
+		const maxClosedConnections = 1000
+		if m.closedConnections.Len() >= maxClosedConnections {
+			m.closedConnections.PopFront()
+		}
+		m.closedConnections.PushBack(metadata)
+	}
 }
 
 func (m *Manager) Range(f func(uuid uuid.UUID, tracker Tracker) bool) {
@@ -37,6 +51,12 @@ func (m *Manager) Connection(id uuid.UUID) Tracker {
 		return nil
 	}
 	return connection
+}
+
+func (m *Manager) ClosedConnectionsMetadata() []TrackerMetadata {
+	m.closedConnectionsAccess.RLock()
+	defer m.closedConnectionsAccess.RUnlock()
+	return m.closedConnections.Array()
 }
 
 func (m *Manager) loadOrCreateTraffic(tag string) *outboundCounter {

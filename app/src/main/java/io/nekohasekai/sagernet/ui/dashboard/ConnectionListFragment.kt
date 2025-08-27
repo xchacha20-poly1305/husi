@@ -24,6 +24,7 @@ import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutDashboardListBinding
 import io.nekohasekai.sagernet.databinding.ViewConnectionItemBinding
 import io.nekohasekai.sagernet.ktx.dp2px
+import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ui.MainActivity
 import kotlinx.coroutines.launch
 import java.nio.charset.StandardCharsets
@@ -75,9 +76,10 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                dashboardViewModel.sortState.collect { sortState ->
-                    viewModel.setDescending(sortState.isDescending)
-                    viewModel.updateSortMode(sortState.sortMode)
+                dashboardViewModel.connectionState.collect { connectionState ->
+                    viewModel.setDescending(connectionState.isDescending)
+                    viewModel.updateSortMode(connectionState.sortMode)
+                    viewModel.setQueryOptions(connectionState.queryOptions)
                 }
             }
         }
@@ -134,7 +136,12 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                 super.onBindViewHolder(holder, position, payloads)
             } else {
                 val item = getItem(position)
-                holder.bindTraffic(item.uploadTotal, item.downloadTotal)
+                if (mask and ConnectionDiffCallback.PAYLOAD_TRAFFIC != 0) {
+                    holder.bindTraffic(item.uploadTotal, item.downloadTotal)
+                }
+                if (mask and ConnectionDiffCallback.PAYLOAD_STATUS != 0) {
+                    holder.bindStatus(item.closed)
+                }
             }
         }
 
@@ -153,20 +160,26 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
     }
 
     private object ConnectionDiffCallback : DiffUtil.ItemCallback<Connection>() {
-        const val PAYLOAD_TRAFFIC_CHANGED = 1 shl 0
+        const val PAYLOAD_TRAFFIC = 1 shl 0
+        const val PAYLOAD_STATUS = 1 shl 1
 
         override fun areItemsTheSame(old: Connection, new: Connection): Boolean {
             return old.uuid == new.uuid
         }
 
         override fun areContentsTheSame(old: Connection, new: Connection): Boolean {
-            return old.uploadTotal == new.uploadTotal && old.downloadTotal == new.downloadTotal
+            return old.uploadTotal == new.uploadTotal
+                    && old.downloadTotal == new.downloadTotal
+                    && old.closed == new.closed
         }
 
         override fun getChangePayload(old: Connection, new: Connection): Any? {
             var mask = 0
             if (old.uploadTotal != new.uploadTotal || old.downloadTotal != new.downloadTotal) {
-                mask = mask or PAYLOAD_TRAFFIC_CHANGED
+                mask = mask or PAYLOAD_TRAFFIC
+            }
+            if (old.closed != new.closed) {
+                mask = mask or PAYLOAD_STATUS
             }
             return if (mask != 0) {
                 mask
@@ -180,6 +193,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
         private val binding: ViewConnectionItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(connection: Connection) {
+            bindStatus(connection.closed)
             var networkText = connection.network.uppercase()
             connection.protocol?.let { networkText += "/" + it.uppercase() }
             binding.connectionNetwork.text = networkText
@@ -206,6 +220,16 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
                     .replace(R.id.fragment_holder, ConnectionFragment(connection))
                     .addToBackStack(null)
                     .commit()
+            }
+        }
+
+        fun bindStatus(closed: Boolean) {
+            if (closed) {
+                binding.connectionStatus.setText(R.string.connection_status_closed)
+                binding.connectionStatus.setTextColor(binding.connectionStatus.context.getColour(R.color.material_red_900))
+            } else {
+                binding.connectionStatus.setText(R.string.connection_status_active)
+                binding.connectionStatus.setTextColor(binding.connectionStatus.context.getColour(R.color.material_green_500))
             }
         }
 

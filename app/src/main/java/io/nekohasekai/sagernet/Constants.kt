@@ -100,6 +100,7 @@ object Key {
 
     const val TRAFFIC_DESCENDING = "trafficDescending"
     const val TRAFFIC_SORT_MODE = "trafficSortMode"
+    const val TRAFFIC_CONNECTION_QUERY = "trafficConnectionQuery"
 
     const val SPEED_TEST_URL = "speedTestURL"
     const val SPEED_TEST_TIMEOUT = "speedTestTimeout"
