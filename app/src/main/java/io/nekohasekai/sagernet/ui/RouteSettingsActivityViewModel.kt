@@ -140,7 +140,7 @@ internal class RouteSettingsActivityViewModel : ViewModel(),
             DataStore.routeIP.isBlank() &&
             DataStore.routePort.isBlank() &&
             DataStore.routeSourcePort.isBlank() &&
-            DataStore.routeNetwork.isBlank() &&
+            DataStore.routeNetwork.isEmpty() &&
             DataStore.routeSource.isBlank() &&
             DataStore.routeProtocol.isEmpty() &&
             DataStore.routeClient.isEmpty() &&

@@ -15,7 +15,6 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
-import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.forEach
@@ -38,7 +37,6 @@ import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.FixedLinearLayout
 import io.nekohasekai.sagernet.widget.LinkOrContentPreference
 import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
-import io.nekohasekai.sagernet.widget.updateSummary
 import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 import java.util.Locale
@@ -237,14 +235,8 @@ class SettingsPreferenceFragment : MaterialPreferenceFragment() {
                         Key.BYPASS_LAN_IN_CORE -> bypassLanInCore =
                             preference as MaterialSwitchPreference
 
-                        Key.NETWORK_PREFERRED_INTERFACES -> (preference as MultiSelectListPreference).let {
-                            it.updateSummary()
-                            it.setOnPreferenceChangeListener { _, newValue ->
-                                @Suppress("UNCHECKED_CAST")
-                                it.updateSummary(newValue as Set<String>)
-                                needReload()
-                                true
-                            }
+                        Key.NETWORK_PREFERRED_INTERFACES -> {
+                            preference.onPreferenceChangeListener = reloadListener
                         }
 
                         Key.RULES_PROVIDER -> ruleProvider = preference as SimpleMenuPreference

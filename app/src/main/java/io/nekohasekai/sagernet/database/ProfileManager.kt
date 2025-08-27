@@ -217,7 +217,7 @@ object ProfileManager {
                     enabled = true,
                     action = ACTION_ROUTE,
                     name = app.getStringCompat(R.string.bypass_icmp),
-                    network = NetworkICMP,
+                    network = setOf(NetworkICMP),
                     outbound = RuleEntity.OUTBOUND_DIRECT,
                 )
             )
@@ -226,7 +226,7 @@ object ProfileManager {
                     name = app.getStringCompat(R.string.route_opt_block_quic),
                     action = ACTION_ROUTE,
                     protocol = setOf("quic"),
-                    network = NetworkUDP,
+                    network = setOf(NetworkUDP),
                     outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )

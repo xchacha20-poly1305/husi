@@ -37,7 +37,6 @@ import io.nekohasekai.sagernet.widget.DurationPreference
 import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.launchOnPosition
 import io.nekohasekai.sagernet.widget.setSummaryForOutbound
-import io.nekohasekai.sagernet.widget.updateSummary
 import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 
@@ -215,12 +214,9 @@ class RouteSettingsActivity(
             val networkType: MultiSelectListPreference = findPreference(Key.ROUTE_NETWORK_TYPE)!!
             val ssid: EditTextPreference = findPreference(Key.ROUTE_SSID)!!
             val bssid: EditTextPreference = findPreference(Key.ROUTE_BSSID)!!
-            val protocol: MultiSelectListPreference = findPreference(Key.ROUTE_PROTOCOL)!!
-            val clientType: MultiSelectListPreference = findPreference(Key.ROUTE_CLIENT)!!
             findPreference<EditTextPreference>(Key.ROUTE_OVERRIDE_PORT)!!.apply {
                 setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
             }
-            val sniffers: MultiSelectListPreference = findPreference(Key.ROUTE_SNIFFERS)!!
             val tlsFragment: MaterialSwitchPreference = findPreference(Key.ROUTE_TLS_FRAGMENT)!!
             val tlsFragmentFallbackDelay: DurationPreference =
                 findPreference(Key.ROUTE_TLS_FRAGMENT_FALLBACK_DELAY)!!
@@ -260,7 +256,6 @@ class RouteSettingsActivity(
             }
 
             fun updateNetwork(newValue: Set<String> = networkType.values) {
-                networkType.updateSummary(newValue)
                 val visible = newValue.contains(NETWORK_TYPE_WIFI)
                 ssid.isVisible = visible
                 bssid.isVisible = visible
@@ -268,22 +263,6 @@ class RouteSettingsActivity(
             updateNetwork()
             networkType.setOnPreferenceChangeListener { _, newValue ->
                 updateNetwork(newValue as Set<String>)
-                true
-            }
-
-            protocol.updateSummary()
-            protocol.setOnPreferenceChangeListener { _, newValue ->
-                protocol.updateSummary(newValue as Set<String>)
-                true
-            }
-            clientType.updateSummary()
-            clientType.setOnPreferenceChangeListener { _, newValue ->
-                clientType.updateSummary(newValue as Set<String>)
-                true
-            }
-            sniffers.updateSummary()
-            sniffers.setOnPreferenceChangeListener { _, newValue ->
-                sniffers.updateSummary(newValue as Set<String>)
                 true
             }
 

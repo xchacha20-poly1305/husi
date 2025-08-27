@@ -28,7 +28,7 @@ data class RuleEntity(
     var ip: String = "",
     var port: String = "",
     var sourcePort: String = "",
-    var network: String = "",
+    var network: Set<String> = emptySet(),
     var source: String = "",
     var protocol: Set<String> = emptySet(),
     @ColumnInfo(defaultValue = "") var clientType: Set<String> = emptySet(),
@@ -91,7 +91,7 @@ data class RuleEntity(
         if (source.isNotBlank()) summary += "source: $source\n"
         if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort\n"
         if (port.isNotBlank()) summary += "port: $port\n"
-        if (network.isNotBlank()) summary += "network: $network\n"
+        if (network.isNotEmpty()) summary += "network: $network\n"
         if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
         if (clientType.isNotEmpty()) summary += "client: $clientType\n"
         if (packages.isNotEmpty()) summary += app.getStringCompat(
