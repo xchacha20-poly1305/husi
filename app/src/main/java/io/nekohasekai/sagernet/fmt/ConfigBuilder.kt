@@ -622,8 +622,8 @@ fun buildConfig(
                         }
                     }
                 }
-                if (rule.network.isNotBlank()) {
-                    network = listOf(rule.network)
+                if (rule.network.isNotEmpty()) {
+                    network = rule.network.toList()
                 }
                 if (rule.source.isNotBlank()) {
                     val sourceIPs = mutableListOf<String>()

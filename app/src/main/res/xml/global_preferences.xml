@@ -161,7 +161,7 @@
             app:key="networkInterfaceStrategy"
             app:title="@string/network_interface_strategy"
             app:useSimpleSummaryProvider="true" />
-        <MultiSelectListPreference
+        <io.nekohasekai.sagernet.widget.ValuesJointToSummaryMultiSelectListPreference
             app:defaultValue="@array/empty"
             app:entries="@array/network_type_entry"
             app:entryValues="@array/network_type_value"
