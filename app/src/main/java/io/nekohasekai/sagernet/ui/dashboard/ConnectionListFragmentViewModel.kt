@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import libcore.Libcore
+import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -42,7 +44,7 @@ internal class ConnectionListFragmentViewModel : ViewModel() {
     }
 
     private suspend fun updateState() {
-        val connections = service?.queryConnections()
+        val connections = service?.queryConnections(queryOptions.load())
             ?.connections?.asSequence()
             ?.let {
                 val query = query
@@ -126,4 +128,9 @@ internal class ConnectionListFragmentViewModel : ViewModel() {
     var query
         get() = mQuery.load()
         set(value) = mQuery.store(value)
+
+    private val queryOptions = AtomicInt(Libcore.ShowTrackerActively)
+    fun setQueryOptions(options: Int) {
+        queryOptions.store(options)
+    }
 }

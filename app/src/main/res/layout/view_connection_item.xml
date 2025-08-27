@@ -69,6 +69,16 @@
             android:layout_marginEnd="16dp"
             android:text="@string/traffic"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/connectionStatus"
+            style="?attr/textAppearanceBodySmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="@string/connection_status_active"
+            android:textColor="@color/material_green_500"
+            android:textSize="14sp" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

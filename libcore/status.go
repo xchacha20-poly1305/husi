@@ -16,39 +16,55 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
-// GetTrackerInfos returns TrackerInfo list. If not set clash API, it will return error.
-func (b *BoxInstance) GetTrackerInfos() TrackerInfoIterator {
-	var trackerInfos []*TrackerInfo
-	// Can't pre-distribute capacity
-	b.api.TrafficManager().Range(func(_ uuid.UUID, tracker trafficcontrol.Tracker) bool {
-		metadata := tracker.Metadata()
-		var rule string
-		if metadata.Rule == nil {
-			rule = "final"
-		} else {
-			rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
-		}
-		trackerInfos = append(trackerInfos, &TrackerInfo{
-			uuid:          metadata.ID,
-			Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
-			IPVersion:     int16(metadata.Metadata.IPVersion),
-			Network:       metadata.Metadata.Network,
-			src:           metadata.Metadata.Source,
-			dst:           metadata.Metadata.Destination,
-			Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
-			MatchedRule:   rule,
-			UploadTotal:   metadata.Upload.Load(),
-			DownloadTotal: metadata.Download.Load(),
-			start:         metadata.CreatedAt,
-			Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
-			Chain:         strings.Join(metadata.Chain, " => "),
-			Protocol:      metadata.Metadata.Protocol,
-			Process:       processToString(metadata.Metadata.ProcessInfo),
-		})
-		return true
-	})
+const (
+	ShowTrackerActively int32 = 1 << 0
+	ShowTrackerClosed   int32 = 1 << 1
+)
 
+// QueryTrackerInfos returns TrackerInfo list.
+func (b *BoxInstance) QueryTrackerInfos(option int32) TrackerInfoIterator {
+	var trackerInfos []*TrackerInfo
+	if option&ShowTrackerClosed != 0 {
+		metadatas := b.api.TrafficManager().ClosedConnectionsMetadata()
+		trackerInfos = make([]*TrackerInfo, 0, len(metadatas))
+		for _, metadata := range metadatas {
+			trackerInfos = append(trackerInfos, buildTrackerInfo(metadata, true))
+		}
+	}
+	if option&ShowTrackerActively != 0 {
+		b.api.TrafficManager().Range(func(_ uuid.UUID, tracker trafficcontrol.Tracker) bool {
+			trackerInfos = append(trackerInfos, buildTrackerInfo(tracker.Metadata(), false))
+			return true
+		})
+	}
 	return newIterator(trackerInfos)
+}
+
+func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata, closed bool) *TrackerInfo {
+	var rule string
+	if metadata.Rule == nil {
+		rule = "final"
+	} else {
+		rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
+	}
+	return &TrackerInfo{
+		uuid:          metadata.ID,
+		Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
+		IPVersion:     int16(metadata.Metadata.IPVersion),
+		Network:       metadata.Metadata.Network,
+		src:           metadata.Metadata.Source,
+		dst:           metadata.Metadata.Destination,
+		Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
+		MatchedRule:   rule,
+		UploadTotal:   metadata.Upload.Load(),
+		DownloadTotal: metadata.Download.Load(),
+		start:         metadata.CreatedAt,
+		Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
+		Chain:         strings.Join(metadata.Chain, " => "),
+		Protocol:      metadata.Metadata.Protocol,
+		Process:       processToString(metadata.Metadata.ProcessInfo),
+		Closed:        closed,
+	}
 }
 
 // CloseConnection closes the connection, whose UUID is `id`.
@@ -84,6 +100,7 @@ type TrackerInfo struct {
 	Chain         string
 	Protocol      string
 	Process       string
+	Closed        bool
 }
 
 func (t *TrackerInfo) GetSrc() string {

@@ -20,4 +20,5 @@ data class Connection(
     val chain: String = "",
     val protocol: String? = null,
     val process: String? = null,
+    var closed: Boolean = false,
 ) : Parcelable

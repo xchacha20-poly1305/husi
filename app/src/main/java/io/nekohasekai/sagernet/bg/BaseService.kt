@@ -190,9 +190,10 @@ class BaseService {
             }
         }
 
-        override fun queryConnections(): Connections {
+        override fun queryConnections(options: Int): Connections {
             return Connections(
-                connections = data?.proxy?.box?.trackerInfos?.toConnectionList() ?: emptyList(),
+                connections = data?.proxy?.box?.queryTrackerInfos(options)?.toConnectionList()
+                    ?: emptyList(),
             )
         }
 

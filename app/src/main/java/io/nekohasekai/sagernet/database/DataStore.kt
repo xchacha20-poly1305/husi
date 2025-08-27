@@ -197,6 +197,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
     var trafficSortMode by configurationStore.int(Key.TRAFFIC_SORT_MODE) { TrafficSortMode.START }
+    var trafficConnectionQuery by configurationStore.int(Key.TRAFFIC_CONNECTION_QUERY) { 1 shl 0 }
 
     var speedTestUrl by configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
     var speedTestTimeout by configurationStore.int(Key.SPEED_TEST_TIMEOUT) { 20000 }

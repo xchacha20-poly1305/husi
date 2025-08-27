@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutDashboardConnectionBinding
 import io.nekohasekai.sagernet.ktx.dp2px
+import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ToolbarFragment
 import kotlinx.coroutines.launch
@@ -38,6 +39,7 @@ class ConnectionFragment() :
 
     private lateinit var binding: LayoutDashboardConnectionBinding
     private val viewModel by viewModels<ConnectionFragmentViewModel>()
+    private val dashboardViewModel by viewModels<DashboardFragmentViewModel>({ requireParentFragment() })
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -71,7 +73,7 @@ class ConnectionFragment() :
         val activity = (requireActivity() as MainActivity)
         activity.onBackPressedCallback.isEnabled = false
         viewModel.initialize(initialConn) {
-            activity.connection.service?.queryConnections()?.connections
+            activity.connection.service?.queryConnections(dashboardViewModel.connectionState.value.queryOptions)?.connections
         }
 
         lifecycleScope.launch {
@@ -82,6 +84,7 @@ class ConnectionFragment() :
     }
 
     override fun onDestroy() {
+        toolbar.setOnLongClickListener(null)
         viewModel.stop()
         super.onDestroy()
     }
@@ -90,6 +93,13 @@ class ConnectionFragment() :
         val conn = state.connection
         uuid = conn.uuid
         toolbar.title = conn.uuid
+        if (conn.closed) {
+            binding.connStatus.setText(R.string.connection_status_closed)
+            binding.connStatus.setTextColor(binding.connStatus.context.getColour(R.color.material_red_900))
+        } else {
+            binding.connStatus.setText(R.string.connection_status_active)
+            binding.connStatus.setTextColor(binding.connStatus.context.getColour(R.color.material_green_500))
+        }
         binding.connNetwork.text = conn.network.uppercase()
         if (conn.protocol != null) {
             binding.connProtocolCard.isVisible = true
