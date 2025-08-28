@@ -702,4 +702,5 @@
     <string name="connection_status">Connection Status</string>
     <string name="connection_status_active">Active</string>
     <string name="connection_status_closed">Closed</string>
+    <string name="upload_size">Upload Size</string>
 </resources>

@@ -66,6 +66,8 @@ type HTTPRequest interface {
 	// SetContent sets the content you want to send to server.
 	SetContent(content []byte)
 	SetContentString(content string)
+	// SetContentZero writes zero to server.
+	SetContentZero(n int64, callback CopyCallback)
 
 	// SetUserAgent sets HTTP user agent.
 	SetUserAgent(userAgent string)
@@ -229,6 +231,16 @@ func (r *httpRequest) SetContentString(content string) {
 	r.SetContent([]byte(content))
 }
 
+func (r *httpRequest) SetContentZero(n int64, callback CopyCallback) {
+	reader := io.NopCloser(io.LimitReader(zeroReader{}, n))
+	if callback != nil {
+		callback.SetLength(n)
+		reader = callbackReader{reader, callback.Update}
+	}
+	r.request.Body = reader
+	r.request.ContentLength = n
+}
+
 func (r *httpRequest) SetTimeout(timeout int32) {
 	r.client.Timeout = time.Duration(timeout) * time.Millisecond
 }
@@ -294,11 +306,12 @@ func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {
 		defer file.Close()
 		writer = file
 	}
+	reader := h.Response.Body
 	if callback != nil {
 		callback.SetLength(h.Response.ContentLength)
-		writer = &callbackWriter{writer, callback.Update}
+		reader = &callbackReader{reader, callback.Update}
 	}
-	return common.Error(bufio.Copy(writer, h.Response.Body))
+	return common.Error(bufio.Copy(writer, reader))
 }
 
 func (h *httpResponse) Close() error {

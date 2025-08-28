@@ -6,23 +6,27 @@ import androidx.activity.viewModels
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SPEED_TEST_URL
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutToolsSpeedTestBinding
-import io.nekohasekai.sagernet.ktx.alertAndLog
+import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.getStringOrRes
 import kotlinx.coroutines.launch
 
 class SpeedtestActivity : ThemedActivity() {
 
     private lateinit var binding: LayoutToolsSpeedTestBinding
     private val viewModel by viewModels<SpeedTestActivityViewModel>()
+
+    /** Skip updating view model value for setting text from program */
+    private var setTextFromProgram = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,16 +54,36 @@ class SpeedtestActivity : ThemedActivity() {
             setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
         }
 
-        binding.speedTestServer.setText(DataStore.speedTestUrl.ifBlank {
-            SPEED_TEST_URL
-        })
-        binding.speedTestTimeout.setText(DataStore.speedTestTimeout.toString())
+        binding.speedTestMode.setOnCheckedChangeListener { _, checkedID ->
+            when (checkedID) {
+                R.id.speed_test_download -> {
+                    viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Download)
+                }
+
+                R.id.speed_test_upload -> {
+                    viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Upload)
+                }
+            }
+        }
+
+        binding.speedTestServer.addTextChangedListener {
+            if (!setTextFromProgram) {
+                viewModel.setServer(it.toString())
+            }
+        }
+        binding.speedTestTimeout.addTextChangedListener {
+            if (!setTextFromProgram) {
+                viewModel.setTimeout(it.toString().toInt())
+            }
+        }
+        binding.speedTestUploadSize.addTextChangedListener {
+            if (!setTextFromProgram) {
+                viewModel.setUploadSize(it.toString().toLong())
+            }
+        }
 
         binding.speedTest.setOnClickListener {
-            viewModel.doTest(
-                binding.speedTestServer.text.toString(),
-                binding.speedTestTimeout.text.toString().toInt(),
-            )
+            viewModel.doSpeedTest()
         }
 
         lifecycleScope.launch {
@@ -67,12 +91,12 @@ class SpeedtestActivity : ThemedActivity() {
                 viewModel.uiState.collect(::handleState)
             }
         }
-    }
 
-    override fun onDestroy() {
-        DataStore.speedTestUrl = binding.speedTestServer.text.toString()
-        DataStore.speedTestTimeout = binding.speedTestTimeout.text.toString().toInt()
-        super.onDestroy()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiEvent.collect(::handleUiEvent)
+            }
+        }
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
@@ -80,26 +104,51 @@ class SpeedtestActivity : ThemedActivity() {
     }
 
     private fun handleState(state: SpeedTestActivityUiState) {
-        when (state) {
-            SpeedTestActivityUiState.Idle -> {
-                binding.speedTest.isEnabled = true
+        setTextFromProgram = true
+        binding.speedTestResult.text = binding.speedTestResult.context.getString(
+            R.string.speed,
+            Formatter.formatFileSize(this, state.speed),
+        )
+        binding.speedTest.isClickable = state.canTest
+        // If user is typing, this can prevent the focus backing to the head.
+        val timeout = state.timeout.toString()
+        if (timeout != binding.speedTestTimeout.text.toString()) {
+            binding.speedTestTimeout.setText(state.timeout.toString())
+        }
+        when (state.mode) {
+            SpeedTestActivityViewModel.SpeedTestMode.Download -> {
+                binding.speedTestMode.check(R.id.speed_test_download)
+                if (state.downloadURL != binding.speedTestServer.text.toString()) {
+                    binding.speedTestServer.setText(state.downloadURL)
+                }
+                binding.speedTestUploadSizeCard.isVisible = false
             }
 
-            is SpeedTestActivityUiState.Doing -> {
-                binding.speedTest.isEnabled = false
-
-                val speed = Formatter.formatFileSize(this, state.result)
-                val text = getString(R.string.speed, speed)
-                binding.speedTestResult.text = text
-            }
-
-            is SpeedTestActivityUiState.Done -> {
-                binding.speedTest.isEnabled = true
-                snackbar(R.string.done).show()
-                state.exception?.let { e ->
-                    alertAndLog(e).show()
+            SpeedTestActivityViewModel.SpeedTestMode.Upload -> {
+                binding.speedTestMode.check(R.id.speed_test_upload)
+                if (state.uploadURL != binding.speedTestServer.text.toString()) {
+                    binding.speedTestServer.setText(state.uploadURL)
+                }
+                binding.speedTestUploadSizeCard.isVisible = true
+                val uploadLength = state.uploadLength.toString()
+                if (uploadLength != binding.speedTestUploadSize.text.toString()) {
+                    binding.speedTestUploadSize.setText(state.uploadLength.toString())
                 }
             }
         }
+        setTextFromProgram = false
     }
+
+    private fun handleUiEvent(event: SpeedTestActivityUiEvent) {
+        when (event) {
+            is SpeedTestActivityUiEvent.ErrorAlert -> {
+                alert(getStringOrRes(event.message))
+            }
+
+            is SpeedTestActivityUiEvent.Snackbar -> {
+                snackbar(getStringOrRes(event.message)).show()
+            }
+        }
+    }
+
 }
