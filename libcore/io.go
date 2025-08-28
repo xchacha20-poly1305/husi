@@ -193,17 +193,29 @@ type CopyCallback interface {
 	Update(n int64)
 }
 
-// callbackWriter use callback when writing.
+// callbackReader use callback when reading.
 // It is worth noting that it will never check nil for callback.
-type callbackWriter struct {
-	writer   io.Writer
+type callbackReader struct {
+	reader   io.Reader
 	callback func(n int64)
 }
 
-func (c *callbackWriter) Write(p []byte) (n int, err error) {
-	n, err = c.writer.Write(p)
+func (c callbackReader) Read(p []byte) (n int, err error) {
+	n, err = c.reader.Read(p)
 	if n > 0 {
 		c.callback(int64(n))
 	}
 	return
+}
+
+func (c callbackReader) Close() error {
+	return common.Close(c.reader)
+}
+
+// zeroReader is a reader that always fill the input p with zero like /dev/zero.
+type zeroReader struct{}
+
+func (z zeroReader) Read(p []byte) (int, error) {
+	clear(p)
+	return len(p), nil
 }

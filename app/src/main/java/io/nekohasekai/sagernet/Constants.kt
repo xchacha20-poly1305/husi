@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet
 
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
 const val SPEED_TEST_URL = "http://speed.cloudflare.com/__down?bytes=20000000"
+const val SPEED_TEST_UPLOAD_URL = "http://speed.cloudflare.com/__up"
 
 object Key {
 
@@ -103,6 +104,8 @@ object Key {
     const val TRAFFIC_CONNECTION_QUERY = "trafficConnectionQuery"
 
     const val SPEED_TEST_URL = "speedTestURL"
+    const val SPEED_TEST_UPLOAD_URL = "speedTestUploadURL"
+    const val SPEED_TEST_UPLOAD_LENGTH = "speedTestUploadLength"
     const val SPEED_TEST_TIMEOUT = "speedTestTimeout"
 
     const val PROFILE_DIRTY = "profileDirty"
