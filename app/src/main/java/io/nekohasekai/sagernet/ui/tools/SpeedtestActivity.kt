@@ -104,6 +104,12 @@ class SpeedtestActivity : ThemedActivity() {
     }
 
     private fun handleState(state: SpeedTestActivityUiState) {
+        if (state.progress == null) {
+            binding.speedTestProgress.isVisible = false
+        } else {
+            binding.speedTestProgress.isVisible = true
+            binding.speedTestProgress.setProgressCompat(state.progress, true)
+        }
         setTextFromProgram = true
         binding.speedTestResult.text = binding.speedTestResult.context.getString(
             R.string.speed,
