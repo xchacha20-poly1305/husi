@@ -17,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.CollapsingToolbarLayout
@@ -150,7 +151,7 @@ abstract class AbstractAppListActivity : ThemedActivity() {
     override fun supportNavigateUpTo(upIntent: Intent) =
         super.supportNavigateUpTo(upIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
 
-    internal class AppsAdapter(
+    private class AppsAdapter(
         val packageManager: PackageManager,
         val onItemClick: (ProxiedApp) -> Unit,
     ) : ListAdapter<ProxiedApp, AppViewHolder>(ProxiedAppDiffCallback) {
@@ -165,10 +166,16 @@ abstract class AbstractAppListActivity : ThemedActivity() {
         }
 
         override fun onBindViewHolder(holder: AppViewHolder, position: Int, payloads: List<Any?>) {
-            if (payloads.contains(ProxiedAppDiffCallback.PAYLOAD_CHECKED)) {
-                holder.binding.itemcheck.isChecked = getItem(position).isProxied
-            } else {
+            var mask = 0
+            for (payload in payloads) {
+                mask = mask or payload as Int
+            }
+            if (mask == 0) {
                 super.onBindViewHolder(holder, position, payloads)
+            } else {
+                if (mask and ProxiedAppDiffCallback.PAYLOAD_CHECKED != 0) {
+                    holder.isChecked = getItem(position).isProxied
+                }
             }
         }
 
@@ -188,7 +195,31 @@ abstract class AbstractAppListActivity : ThemedActivity() {
 
     }
 
-    internal class AppViewHolder(val binding: LayoutAppsItemBinding) :
+    private object ProxiedAppDiffCallback : DiffUtil.ItemCallback<ProxiedApp>() {
+        const val PAYLOAD_CHECKED = 1 shl 0
+
+        override fun areItemsTheSame(old: ProxiedApp, new: ProxiedApp): Boolean {
+            return old.packageName == new.packageName
+        }
+
+        override fun areContentsTheSame(old: ProxiedApp, new: ProxiedApp): Boolean {
+            return old.isProxied == new.isProxied
+        }
+
+        override fun getChangePayload(old: ProxiedApp, new: ProxiedApp): Any? {
+            var mask = 0
+            if (old.isProxied != new.isProxied) {
+                mask = mask or PAYLOAD_CHECKED
+            }
+            return if (mask != 0) {
+                mask
+            } else {
+                super.getChangePayload(old, new)
+            }
+        }
+    }
+
+    private class AppViewHolder(private val binding: LayoutAppsItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         var uid = 0
@@ -204,5 +235,11 @@ abstract class AbstractAppListActivity : ThemedActivity() {
                 onClick(app)
             }
         }
+
+        var isChecked
+            get() = binding.itemcheck.isChecked
+            set(value) {
+                binding.itemcheck.isChecked = value
+            }
     }
 }
