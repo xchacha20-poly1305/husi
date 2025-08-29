@@ -15,6 +15,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/speed_test_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            app:indicatorColor="?attr/selectedColorPrimary" />
+
         <androidx.core.widget.NestedScrollView
             android:id="@+id/main_layout"
             android:layout_width="match_parent"
@@ -25,41 +32,10 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <RadioGroup
-                    android:id="@+id/speed_test_mode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/speed_test_download"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="24dp"
-                        android:checked="true"
-                        android:text="@string/download"
-                        android:textSize="16sp" />
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/speed_test_upload"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/upload"
-                        android:textSize="16sp" />
-
-                </RadioGroup>
-
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginRight="16dp"
-                    android:clickable="true"
-                    android:focusable="true"
+                    android:layout_margin="16dp"
                     app:cardElevation="2dp">
 
                     <LinearLayout
@@ -67,6 +43,32 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+
+                        <RadioGroup
+                            android:id="@+id/speed_test_mode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginBottom="16dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/speed_test_download"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="24dp"
+                                android:checked="true"
+                                android:text="@string/download"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/speed_test_upload"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upload"
+                                android:textSize="16sp" />
+
+                        </RadioGroup>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
@@ -81,28 +83,10 @@
                                 android:text="http://speed.cloudflare.com/__down?bytes=20000000" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginRight="16dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
                             android:hint="@string/test_timeout">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -113,31 +97,13 @@
                                 android:text="20000" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/speed_test_upload_size_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginRight="16dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:visibility="gone"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/speed_test_upload_size_card"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/upload_size">
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/upload_size"
+                            android:visibility="gone">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/speed_test_upload_size"
@@ -154,7 +120,6 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:layout_marginRight="16dp"
                     android:gravity="end"
                     android:orientation="horizontal">

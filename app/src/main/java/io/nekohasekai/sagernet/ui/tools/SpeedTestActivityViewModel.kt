@@ -25,6 +25,7 @@ import libcore.HTTPResponse
 import libcore.Libcore
 
 internal data class SpeedTestActivityUiState(
+    val progress: Int? = null,
     val speed: Long = 0L,
     val canTest: Boolean = true,
     val mode: SpeedTestActivityViewModel.SpeedTestMode = SpeedTestActivityViewModel.SpeedTestMode.Download,
@@ -70,7 +71,7 @@ internal class SpeedTestActivityViewModel : ViewModel() {
             }
             _uiEvent.emit(SpeedTestActivityUiEvent.Snackbar(StringOrRes.Res(R.string.done)))
             _uiState.update {
-                it.copy(canTest = true)
+                it.copy(canTest = true, progress = null)
             }
         }
     }
@@ -112,11 +113,9 @@ internal class SpeedTestActivityViewModel : ViewModel() {
                 .also {
                     currentResponse = it
                 }
-                .writeTo(Libcore.DevNull, SpeedTestCopyCallback { speed ->
-                    viewModelScope.launch {
-                        _uiState.update { state ->
-                            state.copy(speed = speed)
-                        }
+                .writeTo(Libcore.DevNull, SpeedTestCopyCallback { speed, progress ->
+                    _uiState.update { state ->
+                        state.copy(speed = speed, progress = progress)
                     }
                 })
         } catch (_: CancellationException) {
@@ -145,11 +144,9 @@ internal class SpeedTestActivityViewModel : ViewModel() {
                     setURL(url)
                     setUserAgent(USER_AGENT)
                     setTimeout(timeout)
-                    setContentZero(length, SpeedTestCopyCallback { speed ->
-                        viewModelScope.launch {
-                            _uiState.update { state ->
-                                state.copy(speed = speed)
-                            }
+                    setContentZero(length, SpeedTestCopyCallback { speed, progress ->
+                        _uiState.update { state ->
+                            state.copy(speed = speed, progress = progress)
                         }
                     })
                 }
@@ -205,19 +202,26 @@ internal class SpeedTestActivityViewModel : ViewModel() {
         }
     }
 
-    private class SpeedTestCopyCallback(val updateSpeed: (Long) -> Unit) : CopyCallback {
+    private class SpeedTestCopyCallback(val onFrameUpdate: (speed: Long, progress: Int?) -> Unit) :
+        CopyCallback {
 
-        val start = System.nanoTime()
-
+        private val start = System.nanoTime()
+        private var total: Long? = null
         private var saved: Long = 0L
 
-        override fun setLength(length: Long) {}
+        override fun setLength(length: Long) {
+            total = length
+        }
 
         override fun update(n: Long) {
             saved += n
+            val savedDouble = saved.toDouble()
             val duration = (System.nanoTime() - start) / 1_000_000_000.0
-            val speed = (saved.toDouble() / duration).toLong()
-            updateSpeed(speed)
+            val speed = (savedDouble / duration).toLong()
+            val progress = total?.let {
+                (savedDouble / it * 100).toInt()
+            }
+            onFrameUpdate(speed, progress)
         }
 
     }
