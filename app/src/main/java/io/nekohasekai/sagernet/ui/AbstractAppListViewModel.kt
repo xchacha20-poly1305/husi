@@ -7,7 +7,6 @@ import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.recyclerview.widget.DiffUtil
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.mapX
@@ -43,26 +42,6 @@ internal data class ProxiedApp(
 
     fun loadIcon(pm: PackageManager): Drawable {
         return appInfo.loadIcon(pm)
-    }
-}
-
-internal object ProxiedAppDiffCallback : DiffUtil.ItemCallback<ProxiedApp>() {
-    const val PAYLOAD_CHECKED = "payload_checked"
-
-    override fun areItemsTheSame(old: ProxiedApp, new: ProxiedApp): Boolean {
-        return old.packageName == new.packageName
-    }
-
-    override fun areContentsTheSame(old: ProxiedApp, new: ProxiedApp): Boolean {
-        return old.isProxied == new.isProxied
-    }
-
-    override fun getChangePayload(old: ProxiedApp, new: ProxiedApp): Any? {
-        return if (old.isProxied != new.isProxied) {
-            PAYLOAD_CHECKED
-        } else {
-            super.getChangePayload(old, new)
-        }
     }
 }
 
@@ -140,7 +119,7 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
             )
             apps.add(proxiedApp)
         }
-        val comparator = compareBy<ProxiedApp>({ !it.isProxied }, { it.name.toString() })
+        val comparator = compareBy<ProxiedApp>({ !it.isProxied }, { it.name })
         apps.sortWith(comparator)
         emitBaseState(uiState.value.base.copy(apps = apps))
     }
@@ -148,10 +127,11 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
     private val ApplicationInfo.isSystemApp
         get() = flags and ApplicationInfo.FLAG_SYSTEM != 0
 
-    protected val cachedApps
-        get() = PackageCache.installedPackages.toMutableMap().apply {
+    protected val cachedApps by lazy {
+        PackageCache.installedPackages.toMutableMap().apply {
             remove(BuildConfig.APPLICATION_ID)
         }
+    }
 
     protected val proxiedUids = ArraySet<Int>()
 
@@ -181,19 +161,13 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
         proxiedUids.clear()
         proxiedUids.ensureCapacity(cachedApps.size - current.size)
         allUids.filter { it !in current }.forEach { proxiedUids.add(it) }
-        val apps = uiState.value.base.apps.mapX {
-            it.copy(isProxied = it.uid in proxiedUids)
-        }
-        emitBaseState(uiState.value.base.copy(apps = apps))
+        reload()
         writeToDataStore()
     }
 
     suspend fun clearSelections() {
         proxiedUids.clear()
-        val apps = uiState.value.base.apps.mapX { app ->
-            app.copy(isProxied = false)
-        }
-        emitBaseState(uiState.value.base.copy(apps = apps))
+        reload()
         writeToDataStore()
     }
 
@@ -228,10 +202,10 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
         )
     }
 
-    protected suspend fun writeToDataStore(apps: List<ProxiedApp> = uiState.value.base.apps) {
+    protected suspend fun writeToDataStore() {
         onIoDispatcher {
-            packages = apps.asSequence()
-                .filter { it.uid in proxiedUids }
+            packages = cachedApps.values.asSequence()
+                .filter { it.applicationInfo!!.uid in proxiedUids }
                 .map { it.packageName }
                 .toCollection(LinkedHashSet())
         }
