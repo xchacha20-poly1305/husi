@@ -620,6 +620,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     }
 
     private var testDialog: AlertDialog? = null
+    private var testDialogBinding: LayoutProgressListBinding? = null
 
     private fun handleTestState(state: UiTestState) {
         when (state) {
@@ -643,9 +644,17 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun createDialog() {
         if (testDialog != null || !isAdded) return
 
-        val binding = LayoutProgressListBinding.inflate(layoutInflater)
+        testDialogBinding = LayoutProgressListBinding.inflate(layoutInflater)
+        testDialogBinding!!.progressCircular.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
+            // Reset indeterminate mode to restore animation
+            // (fixes issue where animation stops after app switching / visiting recents tasks)
+            testDialogBinding?.progressCircular?.apply {
+                isIndeterminate = false
+                isIndeterminate = true
+            }
+        }
         testDialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(binding.root)
+            .setView(testDialogBinding!!.root)
             .setNegativeButton(android.R.string.cancel) { _, _ ->
                 viewModel.cancelTest()
             }
@@ -683,9 +692,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             append("\n")
         }
 
-        testDialog!!.findViewById<TextView>(R.id.now_testing)!!.text = spannableText
-        testDialog!!.findViewById<TextView>(R.id.progress)!!.text =
-            "${state.processedCount} / ${state.totalCount}"
+        testDialogBinding!!.nowTesting.text = spannableText
+        testDialogBinding!!.progress.text = "${state.processedCount} / ${state.totalCount}"
     }
 
     private fun getStatusTextAndColor(result: TestResult): Pair<String, Int> {
