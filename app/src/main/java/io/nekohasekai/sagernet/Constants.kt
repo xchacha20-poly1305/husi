@@ -2,7 +2,8 @@ package io.nekohasekai.sagernet
 
 const val CONNECTION_TEST_URL = "http://cp.cloudflare.com/"
 const val SPEED_TEST_URL = "http://speed.cloudflare.com/__down?bytes=20000000"
-const val SPEED_TEST_UPLOAD_URL = "http://speed.cloudflare.com/__up"
+const val SPEED_TEST_MULTIPLE_DOWNLOAD = "http://speed.cloudflare.com/__down?bytes=102400"
+const val SPEED_TEST_UPLOAD_URL = "https://speed.cloudflare.com/__up" // http will be redirected to https
 
 object Key {
 
@@ -104,9 +105,14 @@ object Key {
     const val TRAFFIC_CONNECTION_QUERY = "trafficConnectionQuery"
 
     const val SPEED_TEST_URL = "speedTestURL"
+    const val SPEED_TEST_MULTIPLE_DOWNLOAD_URL = "speedTestMultipleDownloadURL"
     const val SPEED_TEST_UPLOAD_URL = "speedTestUploadURL"
+    const val SPEED_TEST_MULTIPLE_UPLOAD_URL = "speedTestMultipleUploadURL"
     const val SPEED_TEST_UPLOAD_LENGTH = "speedTestUploadLength"
+    const val SPEED_TEST_MULTIPLE_UPLOAD_LENGTH = "speedTestMultipleUploadLength"
     const val SPEED_TEST_TIMEOUT = "speedTestTimeout"
+    const val SPEED_TEST_MULTIPLE_UPLOAD = "speedTestMultipleUpload"
+    const val SPEED_TEST_MULTIPLE_DOWNLOAD = "speedTestMultipleDownload"
 
     const val PROFILE_DIRTY = "profileDirty"
     const val PROFILE_ID = "profileId"

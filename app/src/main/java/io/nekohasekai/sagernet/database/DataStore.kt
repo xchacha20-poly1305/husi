@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
+import io.nekohasekai.sagernet.SPEED_TEST_MULTIPLE_DOWNLOAD
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.SPEED_TEST_UPLOAD_URL
 import io.nekohasekai.sagernet.TrafficSortMode
@@ -201,9 +202,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var trafficConnectionQuery by configurationStore.int(Key.TRAFFIC_CONNECTION_QUERY) { 1 shl 0 }
 
     var speedTestUrl by configurationStore.string(Key.SPEED_TEST_URL) { SPEED_TEST_URL }
+    var speedTestMultipleDownloadURL by configurationStore.string(Key.SPEED_TEST_MULTIPLE_DOWNLOAD_URL) { SPEED_TEST_MULTIPLE_DOWNLOAD }
     var speedTestUploadURL by configurationStore.string(Key.SPEED_TEST_UPLOAD_URL) { SPEED_TEST_UPLOAD_URL }
+    var speedTestMultipleUploadURL by configurationStore.string(Key.SPEED_TEST_MULTIPLE_UPLOAD_URL) { SPEED_TEST_UPLOAD_URL }
     var speedTestUploadLength by configurationStore.long(Key.SPEED_TEST_UPLOAD_LENGTH) { 10 * 1024 * 1024 }
+    var speedTestMultipleUploadLength by configurationStore.long(Key.SPEED_TEST_MULTIPLE_UPLOAD_LENGTH) { 10 * 1024 }
     var speedTestTimeout by configurationStore.int(Key.SPEED_TEST_TIMEOUT) { 20000 }
+    var speedTestMultipleUpload by configurationStore.boolean(Key.SPEED_TEST_MULTIPLE_UPLOAD) { false }
+    var speedTestMultipleDownload by configurationStore.boolean(Key.SPEED_TEST_MULTIPLE_DOWNLOAD) { false }
 
     // ntp
     var ntpEnable by configurationStore.boolean(Key.ENABLE_NTP) { false }

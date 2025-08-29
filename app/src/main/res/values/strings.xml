@@ -703,4 +703,5 @@
     <string name="connection_status_active">Active</string>
     <string name="connection_status_closed">Closed</string>
     <string name="upload_size">Upload Size</string>
+    <string name="multiple_small_packet">Multiple Small Packet</string>
 </resources>

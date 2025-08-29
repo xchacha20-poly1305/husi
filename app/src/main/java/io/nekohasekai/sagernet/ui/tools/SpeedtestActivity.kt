@@ -26,7 +26,7 @@ class SpeedtestActivity : ThemedActivity() {
     private val viewModel by viewModels<SpeedTestActivityViewModel>()
 
     /** Skip updating view model value for setting text from program */
-    private var setTextFromProgram = false
+    private var changeFromProgram = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,21 +67,26 @@ class SpeedtestActivity : ThemedActivity() {
         }
 
         binding.speedTestServer.addTextChangedListener {
-            if (!setTextFromProgram) {
+            if (!changeFromProgram) {
                 viewModel.setServer(it.toString())
             }
         }
         binding.speedTestTimeout.addTextChangedListener {
-            if (!setTextFromProgram) {
+            if (!changeFromProgram) {
                 viewModel.setTimeout(it.toString().toInt())
             }
         }
         binding.speedTestUploadSize.addTextChangedListener {
-            if (!setTextFromProgram) {
+            if (!changeFromProgram) {
                 viewModel.setUploadSize(it.toString().toLong())
             }
         }
 
+        binding.speedTestMultipleSmallPacket.setOnCheckedChangeListener { _, isChecked ->
+            if (!changeFromProgram) {
+                viewModel.setMultiple(isChecked)
+            }
+        }
         binding.speedTest.setOnClickListener {
             viewModel.doSpeedTest()
         }
@@ -104,13 +109,13 @@ class SpeedtestActivity : ThemedActivity() {
     }
 
     private fun handleState(state: SpeedTestActivityUiState) {
+        changeFromProgram = true
         if (state.progress == null) {
             binding.speedTestProgress.isVisible = false
         } else {
             binding.speedTestProgress.isVisible = true
             binding.speedTestProgress.setProgressCompat(state.progress, true)
         }
-        setTextFromProgram = true
         binding.speedTestResult.text = binding.speedTestResult.context.getString(
             R.string.speed,
             Formatter.formatFileSize(this, state.speed),
@@ -124,25 +129,41 @@ class SpeedtestActivity : ThemedActivity() {
         when (state.mode) {
             SpeedTestActivityViewModel.SpeedTestMode.Download -> {
                 binding.speedTestMode.check(R.id.speed_test_download)
-                if (state.downloadURL != binding.speedTestServer.text.toString()) {
+                val url = if (state.downloadMultiple) {
+                    state.multipleDownloadURL
+                } else {
+                    state.downloadURL
+                }
+                if (url != binding.speedTestServer.text.toString()) {
                     binding.speedTestServer.setText(state.downloadURL)
                 }
-                binding.speedTestUploadSizeCard.isVisible = false
+                binding.speedTestUploadSizeLayout.isVisible = false
+                binding.speedTestMultipleSmallPacket.isChecked = state.downloadMultiple
             }
 
             SpeedTestActivityViewModel.SpeedTestMode.Upload -> {
                 binding.speedTestMode.check(R.id.speed_test_upload)
-                if (state.uploadURL != binding.speedTestServer.text.toString()) {
+                val url = if (state.uploadMultiple) {
+                    state.multipleUploadURL
+                } else {
+                    state.uploadURL
+                }
+                if (url != binding.speedTestServer.text.toString()) {
                     binding.speedTestServer.setText(state.uploadURL)
                 }
-                binding.speedTestUploadSizeCard.isVisible = true
-                val uploadLength = state.uploadLength.toString()
+                binding.speedTestUploadSizeLayout.isVisible = true
+                val uploadLength = if (state.uploadMultiple) {
+                    state.multipleUploadLength.toString()
+                } else {
+                    state.uploadLength.toString()
+                }
                 if (uploadLength != binding.speedTestUploadSize.text.toString()) {
                     binding.speedTestUploadSize.setText(state.uploadLength.toString())
                 }
+                binding.speedTestMultipleSmallPacket.isChecked = state.uploadMultiple
             }
         }
-        setTextFromProgram = false
+        changeFromProgram = false
     }
 
     private fun handleUiEvent(event: SpeedTestActivityUiEvent) {

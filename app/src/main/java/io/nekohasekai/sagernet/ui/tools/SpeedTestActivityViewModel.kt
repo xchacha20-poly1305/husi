@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.tools
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SPEED_TEST_MULTIPLE_DOWNLOAD
 import io.nekohasekai.sagernet.SPEED_TEST_UPLOAD_URL
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.database.DataStore
@@ -29,10 +30,17 @@ internal data class SpeedTestActivityUiState(
     val speed: Long = 0L,
     val canTest: Boolean = true,
     val mode: SpeedTestActivityViewModel.SpeedTestMode = SpeedTestActivityViewModel.SpeedTestMode.Download,
+    val downloadMultiple: Boolean = DataStore.speedTestMultipleDownload,
     val downloadURL: String = DataStore.speedTestUrl.blankAsNull() ?: SPEED_TEST_URL,
+    val multipleDownloadURL: String = DataStore.speedTestMultipleDownloadURL.blankAsNull()
+        ?: SPEED_TEST_MULTIPLE_DOWNLOAD,
+    val uploadMultiple: Boolean = DataStore.speedTestMultipleUpload,
     val uploadURL: String = DataStore.speedTestUploadURL.blankAsNull() ?: SPEED_TEST_UPLOAD_URL,
+    val multipleUploadURL: String = DataStore.speedTestMultipleUploadURL.blankAsNull()
+        ?: SPEED_TEST_UPLOAD_URL,
     val timeout: Int = DataStore.speedTestTimeout,
     val uploadLength: Long = DataStore.speedTestUploadLength,
+    val multipleUploadLength: Long = DataStore.speedTestMultipleUploadLength,
 )
 
 internal sealed interface SpeedTestActivityUiEvent {
@@ -202,6 +210,19 @@ internal class SpeedTestActivityViewModel : ViewModel() {
         }
     }
 
+    fun setMultiple(multiple: Boolean) = viewModelScope.launch {
+        _uiState.update { state ->
+            when (state.mode) {
+                SpeedTestMode.Download -> {
+                    state.copy(downloadMultiple = multiple)
+                }
+                SpeedTestMode.Upload -> {
+                    state.copy(uploadMultiple = multiple)
+                }
+            }
+        }
+    }
+
     private class SpeedTestCopyCallback(val onFrameUpdate: (speed: Long, progress: Int?) -> Unit) :
         CopyCallback {
 
@@ -224,5 +245,12 @@ internal class SpeedTestActivityViewModel : ViewModel() {
             onFrameUpdate(speed, progress)
         }
 
+    }
+
+    private class SmallPacketCalculator {
+        private data class SingleTest(
+            val time: Long,
+            val size: Long,
+        )
     }
 }
