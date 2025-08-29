@@ -661,4 +661,10 @@
     <string name="initial_mtu">Начальный MTU</string>
     <string name="minimum_mtu">Минимальный MTU</string>
     <string name="expand">Развернуть</string>
+    <string name="bypass_icmp">Обход iCMP</string>
+    <string name="connection_status">Статус соединения</string>
+    <string name="connection_status_active">Активно</string>
+    <string name="connection_status_closed">Закрыто</string>
+    <string name="upload_size">Отправляемый размер (байт)</string>
+    <string name="can_not_be_empty">Не может быть пустым</string>
 </resources>
