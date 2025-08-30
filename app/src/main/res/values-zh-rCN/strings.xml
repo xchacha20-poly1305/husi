@@ -631,4 +631,5 @@
     <string name="connection_status_active">活跃中</string>
     <string name="connection_status_closed">已关闭</string>
     <string name="upload_size">上传大小</string>
+    <string name="can_not_be_empty">不能为空</string>
 </resources>

@@ -8,7 +8,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -16,17 +15,25 @@ import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutToolsSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.alert
+import io.nekohasekai.sagernet.ktx.textChanges
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.getStringOrRes
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 class SpeedtestActivity : ThemedActivity() {
+
+    companion object {
+        private const val DEBOUNCE_DURATION = 500L
+    }
 
     private lateinit var binding: LayoutToolsSpeedTestBinding
     private val viewModel by viewModels<SpeedTestActivityViewModel>()
-
-    /** Skip updating view model value for setting text from program */
-    private var setTextFromProgram = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,21 +73,40 @@ class SpeedtestActivity : ThemedActivity() {
             }
         }
 
-        binding.speedTestServer.addTextChangedListener {
-            if (!setTextFromProgram) {
-                viewModel.setServer(it.toString())
+        binding.speedTestServer
+            .textChanges()
+            .debounce(DEBOUNCE_DURATION)
+            .filter { editable ->
+                val currentServerUrl = when (viewModel.uiState.value.mode) {
+                    SpeedTestActivityViewModel.SpeedTestMode.Download -> viewModel.uiState.value.downloadURL
+                    SpeedTestActivityViewModel.SpeedTestMode.Upload -> viewModel.uiState.value.uploadURL
+                }
+                editable?.toString() != currentServerUrl
             }
-        }
-        binding.speedTestTimeout.addTextChangedListener {
-            if (!setTextFromProgram) {
-                viewModel.setTimeout(it.toString().toInt())
+            .onEach { editable ->
+                viewModel.setServer(editable?.toString())
             }
-        }
-        binding.speedTestUploadSize.addTextChangedListener {
-            if (!setTextFromProgram) {
-                viewModel.setUploadSize(it.toString().toLong())
+            .launchIn(lifecycleScope)
+        binding.speedTestTimeout
+            .textChanges()
+            .debounce(DEBOUNCE_DURATION)
+            .filter { editable ->
+                editable?.toString() != viewModel.uiState.value.timeout.toString()
             }
-        }
+            .onEach { editable ->
+                viewModel.setTimeout(editable?.toString())
+            }
+            .launchIn(lifecycleScope)
+        binding.speedTestUploadSize
+            .textChanges()
+            .debounce(DEBOUNCE_DURATION)
+            .filter { editable ->
+                editable?.toString() != viewModel.uiState.value.uploadLength.toString()
+            }
+            .onEach { editable ->
+                viewModel.setUploadSize(editable?.toString())
+            }
+            .launchIn(lifecycleScope)
 
         binding.speedTest.setOnClickListener {
             viewModel.doSpeedTest()
@@ -110,39 +136,68 @@ class SpeedtestActivity : ThemedActivity() {
             binding.speedTestProgress.isVisible = true
             binding.speedTestProgress.setProgressCompat(state.progress, true)
         }
-        setTextFromProgram = true
         binding.speedTestResult.text = binding.speedTestResult.context.getString(
             R.string.speed,
             Formatter.formatFileSize(this, state.speed),
         )
         binding.speedTest.isClickable = state.canTest
-        // If user is typing, this can prevent the focus backing to the head.
-        val timeout = state.timeout.toString()
-        if (timeout != binding.speedTestTimeout.text.toString()) {
-            binding.speedTestTimeout.setText(state.timeout.toString())
+        if (state.timeoutError == null) {
+            binding.speedTestTimeoutLayout.isErrorEnabled = false
+            // If user is typing, this can prevent the focus backing to the head.
+            val timeout = state.timeout.toString()
+            if (timeout != binding.speedTestTimeout.text.toString()) {
+                binding.speedTestTimeout.setText(state.timeout.toString())
+            }
+        } else {
+            binding.speedTestTimeoutLayout.apply {
+                isErrorEnabled = true
+                error = context.getStringOrRes(state.timeoutError)
+            }
         }
         when (state.mode) {
             SpeedTestActivityViewModel.SpeedTestMode.Download -> {
                 binding.speedTestMode.check(R.id.speed_test_download)
-                if (state.downloadURL != binding.speedTestServer.text.toString()) {
-                    binding.speedTestServer.setText(state.downloadURL)
+                if (state.urlError == null) {
+                    binding.speedTestServerLayout.isErrorEnabled = false
+                    if (state.downloadURL != binding.speedTestServer.text.toString()) {
+                        binding.speedTestServer.setText(state.downloadURL)
+                    }
+                } else {
+                    binding.speedTestServerLayout.apply {
+                        isErrorEnabled = true
+                        error = context.getStringOrRes(state.urlError)
+                    }
                 }
-                binding.speedTestUploadSizeCard.isVisible = false
+                binding.speedTestUploadSizeLayout.isVisible = false
             }
 
             SpeedTestActivityViewModel.SpeedTestMode.Upload -> {
                 binding.speedTestMode.check(R.id.speed_test_upload)
-                if (state.uploadURL != binding.speedTestServer.text.toString()) {
-                    binding.speedTestServer.setText(state.uploadURL)
+                if (state.urlError == null) {
+                    if (state.uploadURL != binding.speedTestServer.text.toString()) {
+                        binding.speedTestServer.setText(state.uploadURL)
+                    }
+                } else {
+                    binding.speedTestServerLayout.apply {
+                        isErrorEnabled = true
+                        error = context.getStringOrRes(state.urlError)
+                    }
                 }
-                binding.speedTestUploadSizeCard.isVisible = true
-                val uploadLength = state.uploadLength.toString()
-                if (uploadLength != binding.speedTestUploadSize.text.toString()) {
-                    binding.speedTestUploadSize.setText(state.uploadLength.toString())
+                binding.speedTestUploadSizeLayout.isVisible = true
+                if (state.uploadLengthError == null) {
+                    binding.speedTestUploadSizeLayout.isErrorEnabled = false
+                    val uploadLength = state.uploadLength.toString()
+                    if (uploadLength != binding.speedTestUploadSize.text.toString()) {
+                        binding.speedTestUploadSize.setText(state.uploadLength.toString())
+                    }
+                } else {
+                    binding.speedTestUploadSizeLayout.apply {
+                        isErrorEnabled = true
+                        error = context.getStringOrRes(state.uploadLengthError)
+                    }
                 }
             }
         }
-        setTextFromProgram = false
     }
 
     private fun handleUiEvent(event: SpeedTestActivityUiEvent) {

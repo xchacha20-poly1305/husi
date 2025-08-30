@@ -71,6 +71,7 @@
                         </RadioGroup>
 
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/speed_test_server_layout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/server_address">
@@ -84,6 +85,7 @@
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/speed_test_timeout_layout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -98,7 +100,7 @@
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/speed_test_upload_size_card"
+                            android:id="@+id/speed_test_upload_size_layout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"

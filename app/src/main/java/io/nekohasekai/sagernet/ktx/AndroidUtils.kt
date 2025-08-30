@@ -8,8 +8,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.View
+import android.widget.EditText
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
@@ -37,6 +40,9 @@ import androidx.core.view.isVisible
 import androidx.core.view.isGone
 import androidx.preference.ListPreference
 import androidx.preference.Preference
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 // Utils that require Android. Split it so that test can not include Android parts.
 
@@ -213,4 +219,19 @@ fun urlTestMessage(context: Context, error: String): String {
  */
 fun ListPreference.setSummaryUserInput(userInput: String) {
     summary = userInput.replace("%", "%%")
+}
+
+fun EditText.textChanges(): Flow<Editable?> {
+   return callbackFlow {
+       val watcher = object : TextWatcher {
+           override fun afterTextChanged(s: Editable?) {
+               trySend(s)
+           }
+
+           override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+           override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+       }
+       addTextChangedListener(watcher)
+       awaitClose { removeTextChangedListener(watcher) }
+   }
 }
