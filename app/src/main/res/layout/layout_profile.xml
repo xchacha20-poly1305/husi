@@ -130,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnTertiaryContainer" />
+                    android:textColor="?attr/colorOutline" />
 
                 <TextView
                     android:id="@+id/profile_status"
