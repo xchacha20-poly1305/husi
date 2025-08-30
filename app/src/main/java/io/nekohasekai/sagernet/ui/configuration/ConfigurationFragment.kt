@@ -648,7 +648,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         testDialogBinding!!.progressCircular.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
             // Reset indeterminate mode to restore animation
             // (fixes issue where animation stops after app switching / visiting recents tasks)
-            testDialogBinding?.progressCircular?.apply {
+            if (hasFocus) testDialogBinding?.progressCircular?.apply {
                 isIndeterminate = false
                 isIndeterminate = true
             }
