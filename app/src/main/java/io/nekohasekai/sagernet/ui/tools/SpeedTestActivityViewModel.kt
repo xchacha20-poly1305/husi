@@ -31,8 +31,11 @@ internal data class SpeedTestActivityUiState(
     val mode: SpeedTestActivityViewModel.SpeedTestMode = SpeedTestActivityViewModel.SpeedTestMode.Download,
     val downloadURL: String = DataStore.speedTestUrl.blankAsNull() ?: SPEED_TEST_URL,
     val uploadURL: String = DataStore.speedTestUploadURL.blankAsNull() ?: SPEED_TEST_UPLOAD_URL,
+    val urlError: StringOrRes? = null,
     val timeout: Int = DataStore.speedTestTimeout,
+    val timeoutError: StringOrRes? = null,
     val uploadLength: Long = DataStore.speedTestUploadLength,
+    val uploadLengthError: StringOrRes? = null,
 )
 
 internal sealed interface SpeedTestActivityUiEvent {
@@ -176,9 +179,11 @@ internal class SpeedTestActivityViewModel : ViewModel() {
         _uiState.emit(_uiState.value.copy(mode = mode))
     }
 
-    fun setServer(server: String) = viewModelScope.launch {
+    fun setServer(server: String?) = viewModelScope.launch {
         _uiState.update { state ->
-            when (state.mode) {
+            if (server?.blankAsNull() == null) {
+                state.copy(urlError = StringOrRes.Res(R.string.can_not_be_empty))
+            } else when (state.mode) {
                 SpeedTestMode.Download -> {
                     state.copy(downloadURL = server)
                 }
@@ -190,15 +195,25 @@ internal class SpeedTestActivityViewModel : ViewModel() {
         }
     }
 
-    fun setTimeout(timeout: Int) = viewModelScope.launch {
+    fun setTimeout(raw: String?) = viewModelScope.launch {
         _uiState.update { state ->
-            state.copy(timeout = timeout)
+            val timeout = raw?.blankAsNull()?.toIntOrNull()
+            if (timeout == null) {
+                state.copy(timeoutError = StringOrRes.Res(R.string.can_not_be_empty))
+            } else {
+                state.copy(timeout = timeout)
+            }
         }
     }
 
-    fun setUploadSize(size: Long) = viewModelScope.launch {
+    fun setUploadSize(raw: String?) = viewModelScope.launch {
         _uiState.update { state ->
-            state.copy(uploadLength = size)
+            val size = raw?.blankAsNull()?.toLongOrNull()
+            if (size == null) {
+                state.copy(uploadLengthError = StringOrRes.Res(R.string.can_not_be_empty))
+            } else {
+                state.copy(uploadLength = size)
+            }
         }
     }
 
