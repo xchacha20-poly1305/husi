@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -144,7 +143,7 @@ internal class RouteFragmentViewModel : ViewModel(),
     }
 
     override fun commit(actions: List<Pair<Int, RuleEntity>>) {
-        val rules = actions.mapX { it.second }
+        val rules = actions.map { it.second }
         runOnDefaultDispatcher {
             ProfileManager.deleteRules(rules)
         }

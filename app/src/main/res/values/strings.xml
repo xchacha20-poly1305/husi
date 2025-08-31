@@ -705,4 +705,8 @@
     <string name="upload_size">Upload Size</string>
     <string name="can_not_be_empty">Cann\'t be empty</string>
     <string name="juicity_provider">Juicity Provider</string>
+    <plurals name="delete_confirm_detail">
+        <item quantity="one">Are you sure you want to remove this profile?\n\n%s</item>
+        <item quantity="other">Are you sure you want to remove these profiles?\n\n%s</item>
+    </plurals>
 </resources>

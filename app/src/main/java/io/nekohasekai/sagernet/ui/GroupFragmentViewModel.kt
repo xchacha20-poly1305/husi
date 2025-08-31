@@ -7,7 +7,6 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.group.GroupUpdater
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
@@ -131,7 +130,7 @@ internal class GroupFragmentViewModel : ViewModel(),
 
     override suspend fun groupUpdated(group: ProxyGroup) {
         _uiState.update {
-            it.copy(groups = it.groups.mapX { item ->
+            it.copy(groups = it.groups.map { item ->
                 if (item.group.id == group.id) {
                     buildItem(group)
                 } else {
@@ -152,7 +151,7 @@ internal class GroupFragmentViewModel : ViewModel(),
     }
 
     override fun commit(actions: List<Pair<Int, ProxyGroup>>) {
-        val groups = actions.mapX { it.second }
+        val groups = actions.map { it.second }
         runOnDefaultDispatcher {
             GroupManager.deleteGroup(groups)
         }

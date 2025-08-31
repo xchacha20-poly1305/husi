@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.fmt.shadowquic
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.logLevelString
 import libcore.Libcore
 
@@ -23,7 +22,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
         sni.blankAsNull()?.let {
             append("    server-name: \"$it\"\n")
         }
-        alpn.blankAsNull()?.listByLineOrComma()?.mapX { "\"$it\"" }?.let { yamlAlpn ->
+        alpn.blankAsNull()?.listByLineOrComma()?.map { "\"$it\"" }?.let { yamlAlpn ->
             append("    alpn: [${yamlAlpn.joinToString(", ")}]\n")
         }
         initialMTU?.takeIf { it > 0 }?.let {

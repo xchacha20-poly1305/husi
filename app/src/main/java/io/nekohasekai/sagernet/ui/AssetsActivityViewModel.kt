@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.USER_AGENT
-import io.nekohasekai.sagernet.ktx.mapX
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -286,7 +285,7 @@ internal class CustomAssetUpdater(
     val links: List<String>,
 ) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
 
-    override suspend fun check(): List<UpdateInfo> = links.mapX { link ->
+    override suspend fun check(): List<UpdateInfo> = links.map { link ->
         UpdateInfo.Custom(link)
     }
 

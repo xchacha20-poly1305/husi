@@ -19,12 +19,9 @@ import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.getValue
 import io.nekohasekai.sagernet.ktx.isIpAddress
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.setValue
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -36,7 +33,6 @@ import kotlinx.coroutines.newFixedThreadPoolContext
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicInteger
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 abstract class GroupUpdater {
@@ -182,7 +178,7 @@ abstract class GroupUpdater {
                 }
             }
             uniqueProxies.retainAll(uniqueNames.keys)
-            newProxies = uniqueProxies.toList().mapX { it.bean }
+            newProxies = uniqueProxies.toList().map { it.bean }
         }
 
         Logs.d("New profiles: ${newProxies.size}")
@@ -208,7 +204,7 @@ abstract class GroupUpdater {
         val toUpdate = ArrayList<ProxyEntity>()
         val added = mutableListOf<String>()
         val updated = mutableMapOf<String, String>()
-        val deleted = toDelete.mapX { it.displayName() }
+        val deleted = toDelete.map { it.displayName() }
 
         var userOrder = 1L
         var changed = toDelete.size

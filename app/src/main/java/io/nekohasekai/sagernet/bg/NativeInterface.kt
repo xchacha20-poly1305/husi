@@ -9,7 +9,6 @@ import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.toPrefix
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -128,7 +127,7 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
             }.onFailure { e ->
                 Logs.e("failed to get mtu for interface ${boxInterface.name}", e)
             }
-            boxInterface.addresses = networkInterface.interfaceAddresses.mapX {
+            boxInterface.addresses = networkInterface.interfaceAddresses.map {
                 it.toPrefix()
             }.let {
                 it.toStringIterator(it.size)

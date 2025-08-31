@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">虎兕</string>
     <string name="app_name_long">匪兕匪虎 率彼旷野</string>
     <string name="app_desc">适用于 Android 的代理工具, 使用 Kotlin 编写。</string>
@@ -633,4 +633,7 @@
     <string name="upload_size">上传大小</string>
     <string name="can_not_be_empty">不能为空</string>
     <string name="juicity_provider">Juicity 提供者</string>
+    <plurals name="delete_confirm_detail">
+        <item quantity="other">您确定要移除以下配置吗？\n\n%s</item>
+    </plurals>
 </resources>

@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
@@ -140,7 +139,7 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
         if (newIsProxied) {
             proxiedUids.add(app.uid)
         }
-        val apps = uiState.value.base.apps.mapX {
+        val apps = uiState.value.base.apps.map {
             if (it.uid == app.uid)
                 it.copy(isProxied = newIsProxied)
             else {

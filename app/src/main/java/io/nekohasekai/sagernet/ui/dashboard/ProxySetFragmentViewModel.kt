@@ -6,7 +6,6 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ProxySet
 import io.nekohasekai.sagernet.aidl.URLTestResult
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -48,7 +47,7 @@ internal class ProxySetFragmentViewModel : ViewModel() {
 
     private suspend fun updateState() {
         val service = service ?: return
-        val newList = service.queryProxySet().mapX {
+        val newList = service.queryProxySet().map {
             val old = _uiState.value.proxySets[it.tag]
             ProxySetData(
                 it,

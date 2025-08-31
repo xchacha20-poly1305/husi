@@ -35,74 +35,73 @@ import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 
-interface ValidateResult
-object ResultSecure : ValidateResult
-object ResultLocal : ValidateResult
-class ResultDeprecated(@param:RawRes val textRes: Int) : ValidateResult
-class ResultInsecure(@param:RawRes val textRes: Int) : ValidateResult
+sealed interface ValidateResult {
+    object Secure : ValidateResult
+    class Deprecated(@param:RawRes val textRes: Int) : ValidateResult
+    class Insecure(@param:RawRes val textRes: Int) : ValidateResult
+}
 
 val ssSecureList = "(gcm|poly1305)".toRegex()
 
 fun AbstractBean.isInsecure(): ValidateResult {
     if (serverAddress.isIpAddress()) {
         if (serverAddress.startsWith("127.") || serverAddress.startsWith("::")) {
-            return ResultLocal
+            return ValidateResult.Secure
         }
     }
     when (this) {
         is ShadowsocksBean -> {
             if (plugin.isBlank() || plugin.startsWith("obfs-local;")) {
                 if (!method.contains(ssSecureList)) {
-                    return ResultInsecure(R.raw.shadowsocks_stream_cipher)
+                    return ValidateResult.Insecure(R.raw.shadowsocks_stream_cipher)
                 }
             }
         }
 
-        is HttpBean -> if (!isTLS()) return ResultInsecure(R.raw.not_encrypted)
+        is HttpBean -> if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
 
-        is SOCKSBean -> return ResultInsecure(R.raw.not_encrypted)
+        is SOCKSBean -> return ValidateResult.Insecure(R.raw.not_encrypted)
 
         is VMessBean -> {
-            if (alterId > 0) return ResultInsecure(R.raw.vmess_md5_auth)
+            if (alterId > 0) return ValidateResult.Insecure(R.raw.vmess_md5_auth)
             if (isVLESS || encryption in arrayOf("none", "zero")) {
-                if (!isTLS()) return ResultInsecure(R.raw.not_encrypted)
+                if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
             }
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
         }
 
         is TrojanBean -> {
-            if (!isTLS()) return ResultInsecure(R.raw.not_encrypted)
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
+            if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
         }
 
         is HysteriaBean -> {
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
-            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ResultDeprecated(R.raw.hysteria_legacy)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
+            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ValidateResult.Deprecated(R.raw.hysteria_legacy)
         }
 
         is TuicBean -> {
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
-            if (zeroRTT) return ResultInsecure(R.raw.quic_0_rtt)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
+            if (zeroRTT) return ValidateResult.Insecure(R.raw.quic_0_rtt)
         }
 
         is ShadowTLSBean -> {
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
-            if (protocolVersion < 3) return ResultDeprecated(R.raw.shadowtls_legacy)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
+            if (protocolVersion < 3) return ValidateResult.Deprecated(R.raw.shadowtls_legacy)
         }
 
         is JuicityBean -> {
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
         }
 
         is AnyTLSBean -> {
-            if (allowInsecure) return ResultInsecure(R.raw.insecure)
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
         }
 
         is ShadowQUICBean -> {
-            if (zeroRTT) return ResultInsecure(R.raw.quic_0_rtt)
+            if (zeroRTT) return ValidateResult.Insecure(R.raw.quic_0_rtt)
         }
     }
 
-    return ResultSecure
+    return ValidateResult.Secure
 }
-

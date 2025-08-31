@@ -1,30 +1,43 @@
 package io.nekohasekai.sagernet.ui.configuration
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.proto.TestInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.removeFirstMatched
+import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -33,30 +46,30 @@ import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
 
-sealed interface UiTestState {
-    object Idle : UiTestState
+internal data class ConfigurationFragmentUiState(
+    val groups: List<ProxyGroup> = emptyList(),
+    val selectedGroupIndex: Int = 0,
+    val testState: ConfigurationTestUiState? = null,
+)
 
-    object Start : UiTestState
+internal data class ConfigurationTestUiState(
+    val latestResult: ProfileTestResult? = null,
+    val processedCount: Int = 0,
+    val total: Int = 0,
+)
 
-    data class InProgress(
-        val latestResult: ProfileTestResult,
-        val processedCount: Int,
-        val totalCount: Int,
-    ) : UiTestState
-}
-
-data class ProfileTestResult(
+internal data class ProfileTestResult(
     val profile: ProxyEntity,
     val result: TestResult,
 )
 
-sealed interface TestResult {
+internal sealed interface TestResult {
     data class Success(val ping: Int) : TestResult
     data class Failure(val reason: FailureReason) : TestResult
 }
 
 /** Let UI map tp the R class resource. */
-sealed interface FailureReason {
+internal sealed interface FailureReason {
     object InvalidConfig : FailureReason
     object DomainNotFound : FailureReason
     object IcmpUnavailable : FailureReason
@@ -74,9 +87,38 @@ internal enum class TestType {
     URLTest,
 }
 
-internal class ConfigurationFragmentViewModel : ViewModel() {
-    private val _uiTestState = MutableLiveData<UiTestState>(UiTestState.Idle)
-    val uiTestState: LiveData<UiTestState> = _uiTestState
+internal sealed interface ConfigurationFragmentUiEvent {
+    class ProfileSelect(val new: Long) : ConfigurationFragmentUiEvent
+}
+
+internal class ConfigurationFragmentViewModel : ViewModel(),
+    ProfileManager.Listener, GroupManager.Listener,
+    OnPreferenceDataStoreChangeListener {
+
+    init {
+        ProfileManager.addListener(this)
+        GroupManager.addListener(this)
+        DataStore.profileCacheStore.registerChangeListener(this)
+    }
+
+    override fun onCleared() {
+        ProfileManager.removeListener(this)
+        GroupManager.removeListener(this)
+        DataStore.profileCacheStore.unregisterChangeListener(this)
+        super.onCleared()
+    }
+
+    private val _uiState = MutableStateFlow(ConfigurationFragmentUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEvent = MutableSharedFlow<ConfigurationFragmentUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    var forSelect: Boolean = false
+    var selectedItem: ProxyEntity? = null
+
+    @get:StringRes
+    var titleRes: Int = 0
 
     private var testJob: Job? = null
 
@@ -95,11 +137,17 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
             val concurrent = DataStore.connectionTestConcurrent
 
             if (proxies.isEmpty()) {
-                _uiTestState.value = UiTestState.Idle
+                _uiState.emit(_uiState.value.copy(testState = null))
                 return@launch
             }
 
-            _uiTestState.value = UiTestState.Start
+            _uiState.emit(
+                _uiState.value.copy(
+                    testState = ConfigurationTestUiState(
+                        total = proxies.size,
+                    )
+                )
+            )
             val results = Collections.synchronizedList(mutableListOf<ProfileTestResult>())
 
             try {
@@ -114,10 +162,14 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
                     .collect { profileResult ->
                         results.add(profileResult)
                         val count = processedCount.incrementAndFetch()
-                        _uiTestState.value = UiTestState.InProgress(
-                            latestResult = profileResult,
-                            processedCount = count,
-                            totalCount = totalCount
+                        _uiState.emit(
+                            _uiState.value.copy(
+                                testState = ConfigurationTestUiState(
+                                    latestResult = profileResult,
+                                    processedCount = count,
+                                    total = totalCount
+                                )
+                            )
                         )
                     }
             } finally {
@@ -158,8 +210,8 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
             }
             GroupManager.postReload(group)
 
-            onMainDispatcher {
-                _uiTestState.value = UiTestState.Idle
+            onDefaultDispatcher {
+                _uiState.emit(_uiState.value.copy(testState = null))
             }
         }
     }
@@ -244,6 +296,125 @@ internal class ConfigurationFragmentViewModel : ViewModel() {
             TestResult.Failure(FailureReason.PluginNotFound(e.readableMessage))
         } catch (e: Exception) {
             TestResult.Failure(FailureReason.Generic(e.readableMessage))
+        }
+    }
+
+    fun onSelect(id: Long) = runOnIoDispatcher {
+        DataStore.selectedGroup = id
+    }
+
+    private val profileAccess = Mutex()
+    private val reloadAccess = Mutex()
+
+    fun onProfileSelect(new: Long) = viewModelScope.launch {
+        var lastSelected: Long
+        var updated: Boolean
+        profileAccess.withLock {
+            lastSelected = DataStore.selectedProxy
+            updated = new != lastSelected
+            DataStore.selectedProxy = new
+        }
+        if (updated) {
+            ProfileManager.postUpdate(lastSelected)
+            if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
+                SagerNet.reloadService()
+                reloadAccess.unlock()
+            }
+        } else if (SagerNet.isTv) {
+            if (DataStore.serviceState.started) {
+                SagerNet.stopService()
+            } else {
+                SagerNet.startService()
+            }
+        }
+        _uiEvent.emit(ConfigurationFragmentUiEvent.ProfileSelect(new))
+    }
+
+    init {
+        viewModelScope.launch {
+            reloadGroups()
+        }
+    }
+
+    private suspend fun reloadGroups() {
+        var all = SagerDatabase.groupDao.allGroups().toMutableList()
+        if (all.isEmpty()) {
+            SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
+            all = SagerDatabase.groupDao.allGroups().toMutableList()
+        }
+        all.removeFirstMatched {
+            it.ungrouped && SagerDatabase.proxyDao.countByGroup(it.id) == 0L
+        }
+
+        val selectedId = DataStore.currentGroupId()
+        var selectIndex = all.indexOfFirst { it.id == selectedId }
+
+        if (selectIndex < 0) {
+            selectIndex = 0
+            DataStore.selectedGroup = all[0].id
+        }
+        _uiState.emit(
+            _uiState.value.copy(
+                groups = all,
+                selectedGroupIndex = selectIndex
+            )
+        )
+    }
+
+    override suspend fun onAdd(profile: ProxyEntity) {
+        if (!_uiState.value.groups.any { it.id == profile.groupId }) {
+            DataStore.selectedGroup = profile.groupId
+            reloadGroups()
+        }
+    }
+
+    override suspend fun onUpdated(data: TrafficData) {}
+
+    override suspend fun onUpdated(profile: ProxyEntity) {}
+
+    override suspend fun onRemoved(groupId: Long, profileId: Long) {
+        val group = _uiState.value.groups.find { it.id == groupId } ?: return
+        if (group.ungrouped && SagerDatabase.proxyDao.countByGroup(groupId) == 0L) {
+            reloadGroups()
+        }
+    }
+
+    override suspend fun groupAdd(group: ProxyGroup) {
+        DataStore.selectedGroup = group.id
+        _uiState.update { state ->
+            val groups = state.groups + group
+            state.copy(groups = groups, selectedGroupIndex = groups.lastIndex)
+        }
+    }
+
+    override suspend fun groupUpdated(group: ProxyGroup) {
+        _uiState.update { state ->
+            val groups = state.groups.toMutableList()
+            val index = groups.indexOfFirst { it.id == group.id }
+            groups[index] = group
+            state.copy(groups = groups)
+        }
+    }
+
+    override suspend fun groupRemoved(groupId: Long) {
+        _uiState.update { state ->
+            val groups = state.groups.toMutableList()
+            groups.removeFirstMatched { it.id == groupId }
+            state.copy(groups = groups)
+        }
+    }
+
+    override suspend fun groupUpdated(groupId: Long) {}
+
+    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
+        if (key != Key.PROFILE_GROUP) return
+        // editing group
+        viewModelScope.launch {
+            val targetID = DataStore.editingGroup
+            if (targetID > 0 && targetID != DataStore.selectedGroup) {
+                DataStore.selectedGroup = targetID
+                reloadGroups()
+            }
         }
     }
 }

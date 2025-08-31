@@ -33,7 +33,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.ktx.toConnectionList
 import io.nekohasekai.sagernet.ktx.toList
-import io.nekohasekai.sagernet.ktx.urlTestMessage
+import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.plugin.PluginManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -186,7 +186,11 @@ class BaseService {
                 )
             } catch (e: Exception) {
                 Logs.e(e)
-                error(urlTestMessage(data!!.service as Context, e.readableMessage))
+                val readableMessage = e.readableMessage
+                val errorMessage = readableUrlTestError(readableMessage)?.let {
+                    (data!!.service as Context).getString(it)
+                } ?: readableMessage
+                error(errorMessage)
             }
         }
 

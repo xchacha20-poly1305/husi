@@ -31,7 +31,6 @@ import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alertAndLog
 import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.startFilesForResult
@@ -403,7 +402,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
     override fun commit(actions: List<Pair<Int, File>>) {
         // Store file first to prevent list be cleared. FIXME this is the duty of undo manager.
-        val filesToDelete = actions.mapX { it.second }
+        val filesToDelete = actions.map { it.second }
         runOnDefaultDispatcher {
             viewModel.deleteAssets(filesToDelete)
         }

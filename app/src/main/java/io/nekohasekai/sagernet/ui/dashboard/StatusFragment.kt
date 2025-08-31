@@ -25,7 +25,6 @@ import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.databinding.ViewNetworkInterfaceBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
 import kotlinx.coroutines.launch
@@ -101,7 +100,7 @@ class StatusFragment : Fragment(R.layout.layout_dashboard_status) {
     }
 
     private suspend fun handleUiState(state: StatusFragmentUiState) {
-        val items = state.clashModes.mapX {
+        val items = state.clashModes.map {
             ClashModeItem(it, it == state.selectedClashMode)
         }
 

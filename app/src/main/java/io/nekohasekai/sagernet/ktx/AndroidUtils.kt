@@ -17,6 +17,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
+import androidx.annotation.StringRes
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
@@ -193,22 +194,23 @@ fun Resources.Theme.resolveResourceId(@AttrRes resId: Int): Int {
 fun Preference.remove() = parent!!.removePreference(this)
 
 /** Generate friendly and easy-understand message for failed URL test */
-fun urlTestMessage(context: Context, error: String): String {
-    val lowercase = error.lowercase()
+@StringRes
+fun readableUrlTestError(error: String?): Int? {
+    val lowercase = error?.lowercase() ?: return null
     return when {
         lowercase.contains("timeout") || lowercase.contains("deadline") -> {
-            context.getString(R.string.connection_test_timeout)
+            R.string.connection_test_timeout
         }
 
         lowercase.contains("refused") || lowercase.contains("closed pipe") || lowercase.contains("reset") -> {
-            context.getString(R.string.connection_test_refused)
+            R.string.connection_test_refused
         }
 
         lowercase.contains("via clientconn.close") -> {
-            context.getString(R.string.connection_test_mux)
+            R.string.connection_test_mux
         }
 
-        else -> error
+        else -> null
     }
 }
 

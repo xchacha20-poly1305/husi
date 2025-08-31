@@ -91,7 +91,7 @@ data class ProxyEntity(
     var rx: Long = 0L,
     var status: Int = STATUS_INITIAL,
     var ping: Int = 0,
-    var uuid: String = "",
+    var uuid: String = "", // TODO remove
     var error: String? = null,
     var socksBean: SOCKSBean? = null,
     var httpBean: HttpBean? = null,
