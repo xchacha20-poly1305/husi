@@ -18,7 +18,6 @@ import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import android.net.VpnService as BaseVpnService
@@ -185,7 +184,7 @@ class VpnService : BaseVpnService(),
                         "android" -> true
                         else -> it.requestedPermissions?.contains(Manifest.permission.INTERNET) == true
                     }
-                }.mapX { it.packageName }
+                }.map { it.packageName }
             }
             if (proxyApps) {
                 individual.addAll(DataStore.packages.filter { it.isNotBlank() })

@@ -71,7 +71,6 @@ import io.nekohasekai.sagernet.ktx.gson
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.mergeJson
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.ktx.reverse
@@ -604,7 +603,7 @@ fun buildConfig(
                 if (rule.port.isNotBlank()) {
                     port = mutableListOf()
                     port_range = mutableListOf()
-                    rule.port.listByLineOrComma().mapX {
+                    rule.port.listByLineOrComma().map {
                         if (it.contains(":")) {
                             port_range.add(it)
                         } else {
@@ -615,7 +614,7 @@ fun buildConfig(
                 if (rule.sourcePort.isNotBlank()) {
                     source_port = mutableListOf()
                     source_port_range = mutableListOf()
-                    rule.sourcePort.listByLineOrComma().mapX {
+                    rule.sourcePort.listByLineOrComma().map {
                         if (it.contains(":")) {
                             source_port_range.add(it)
                         } else {

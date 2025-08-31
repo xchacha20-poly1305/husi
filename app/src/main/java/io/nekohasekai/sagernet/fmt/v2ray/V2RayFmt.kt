@@ -38,7 +38,6 @@ import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.queryParameterUnescapeNotBlank
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -647,7 +646,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                         bean.host = transport.headers["host"]?.joinToString("\n")?.also {
                             transport.headers.remove("host")
                         } ?: ""
-                        bean.headers = transport.headers.mapX { entry ->
+                        bean.headers = transport.headers.map { entry ->
                             entry.key + ":" + entry.value.joinToString(",")
                         }.joinToString("\n")
                         bean.path = transport.path
@@ -659,7 +658,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                         bean.host = transport.host?.joinToString("\n")
                         bean.path = transport.path
                         bean.headers = transport.headers?.let {
-                            parseHeader(it).mapX { entry ->
+                            parseHeader(it).map { entry ->
                                 entry.key + ":" + entry.value.joinToString(",")
                             }.joinToString("\n")
                         }
@@ -675,7 +674,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                         bean.host = transport.host
                         bean.path = transport.path
                         bean.headers = transport.headers?.let {
-                            parseHeader(it).mapX { entry ->
+                            parseHeader(it).map { entry ->
                                 entry.key + ":" + entry.value.joinToString(",")
                             }.joinToString("\n")
                         }
@@ -760,7 +759,7 @@ fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
         val key = entry.key.toString().lowercase()
         val value = when (val entryValue = entry.value) {
             is List<*> -> {
-                entryValue.mapX { it.toString() }
+                entryValue.map { it.toString() }
             }
 
             is JSONArray -> {

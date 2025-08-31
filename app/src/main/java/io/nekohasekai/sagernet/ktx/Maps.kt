@@ -81,7 +81,7 @@ private fun mappedValue(value: Any?): Any? = when (value) {
     is List<*> -> if (value.isEmpty()) {
         null
     } else {
-        value.mapX {
+        value.map {
             if (shouldAsMap(it)) {
                 it?.asMap()
             } else {

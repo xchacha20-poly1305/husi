@@ -5,7 +5,6 @@ import android.content.pm.ProviderInfo
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
 import io.nekohasekai.sagernet.utils.PackageCache
 
@@ -83,7 +82,7 @@ object Plugins {
         val pkgs = PackageCache.installedPluginPackages
             .map { it.value }
             .filter { it.providers!![0].loadString(METADATA_KEY_ID) == pluginId }
-        return pkgs.mapX { it.providers!![0] }
+        return pkgs.map { it.providers!![0] }
     }
 
 }

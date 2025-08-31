@@ -28,8 +28,8 @@ class SwitchActivity : ThemedActivity(R.layout.layout_empty),
         val old = DataStore.selectedProxy
         DataStore.selectedProxy = profileId
         runOnMainDispatcher {
-            ProfileManager.postUpdate(old, true)
-            ProfileManager.postUpdate(profileId, true)
+            ProfileManager.postUpdate(old)
+            ProfileManager.postUpdate(profileId)
         }
         SagerNet.reloadService()
         finish()

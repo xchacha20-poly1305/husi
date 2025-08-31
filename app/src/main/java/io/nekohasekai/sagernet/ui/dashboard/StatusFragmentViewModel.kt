@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.toPrefix
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -132,7 +131,7 @@ internal class StatusFragmentViewModel : ViewModel() {
             interfaces.add(
                 NetworkInterfaceInfo(
                     name = name,
-                    addresses = networkInterface.interfaceAddresses.mapX {
+                    addresses = networkInterface.interfaceAddresses.map {
                         it.toPrefix()
                     },
                 )

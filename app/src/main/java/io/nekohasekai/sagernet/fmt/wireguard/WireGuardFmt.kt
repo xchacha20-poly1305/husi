@@ -5,7 +5,6 @@ import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.ktx.b64EncodeOneLine
 import org.json.JSONArray
@@ -79,9 +78,9 @@ fun parseWireGuardEndpoint(json: JSONMap): WireGuardBean? {
             "reserved" -> bean.reserved = when (value) {
                 is String -> value
 
-                is List<*> -> value.mapX {
+                is List<*> -> value.joinToString(",") {
                     it.toString().trim()
-                }.joinToString(",")
+                }
 
                 else -> null
             }

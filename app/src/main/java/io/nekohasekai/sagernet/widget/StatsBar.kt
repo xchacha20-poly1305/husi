@@ -17,7 +17,7 @@ import io.nekohasekai.sagernet.ktx.findActivity
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.ktx.urlTestMessage
+import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.ui.MainActivity
 
 class StatsBar @JvmOverloads constructor(
@@ -130,12 +130,11 @@ class StatsBar @JvmOverloads constructor(
                     isEnabled = true
                     setStatus(context.getText(R.string.connection_test_testing))
 
-                    val readable = urlTestMessage(context, e.readableMessage)
-                    activity.snackbar(
-                        context.getString(
-                            R.string.connection_test_error, readable
-                        )
-                    ).show()
+                    val readableError = e.readableMessage
+                    val displayError = readableUrlTestError(readableError)?.let {
+                        context.getString(it)
+                    } ?: readableError
+                    activity.snackbar(displayError).show()
                 }
             }
         }

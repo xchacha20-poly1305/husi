@@ -125,25 +125,6 @@ operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
 
 /**
- * Designed to replace map(), which only distribute 10 as initial length.
- */
-fun <T, R> Collection<T>.mapX(transform: (T) -> R): List<R> {
-    val list = ArrayList<R>(size)
-    for (item in this) {
-        list.add(transform(item))
-    }
-    return list
-}
-
-fun <K, V, T> Map<K, V>.mapX(transform: (Map.Entry<K, V>) -> T): List<T> {
-    val list = ArrayList<T>(size)
-    for (item in this) {
-        list.add(transform(item))
-    }
-    return list
-}
-
-/**
  * Returns the first non-default value from the provided getters.
  *
  * This function iterates over the provided getter functions and returns the first value
@@ -186,3 +167,12 @@ fun ByteArray.sha256Hex(): String = MessageDigest.getInstance("SHA-256")
     .joinToString("") {
         "%02x".format(it)
     }
+
+fun <E> MutableList<E>.removeFirstMatched(match: (E) -> Boolean): E? {
+    val index = indexOfFirst(match)
+    return if (index >= 0) {
+        removeAt(index)
+    } else {
+        null
+    }
+}

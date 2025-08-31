@@ -8,7 +8,6 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +49,7 @@ internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean
         type = DataStore.serverType
         groupId = DataStore.serverGroup
         groupFilterNotRegex = DataStore.serverFilterNotRegex
-        proxies = _uiState.value.profiles.mapX { it.id }
+        proxies = _uiState.value.profiles.map { it.id }
     }
 
     init {
@@ -63,7 +62,7 @@ internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean
         val idList = DataStore.serverProxies.split(",")
             .mapNotNull { it.blankAsNull()?.toLong() }
         val proxyList = ArrayList<ProxyEntity>(idList.size)
-        val profiles = ProfileManager.getProfiles(idList).mapX { it.id to it }.toMap()
+        val profiles = ProfileManager.getProfiles(idList).associateBy { it.id }
         for (id in idList) {
             proxyList.add(profiles[id] ?: continue)
             _uiState.emit(_uiState.value.copy(profiles = proxyList.toList()))

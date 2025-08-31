@@ -1,14 +1,13 @@
 package io.nekohasekai.sagernet.widget
 
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.mapX
 import rikka.preference.SimpleMenuPreference
 
 fun SimpleMenuPreference.setGroupBean() {
     val groups = SagerDatabase.groupDao.allGroups()
 
-    entries = groups.mapX { it.displayName() }.toTypedArray()
-    entryValues = groups.mapX { "${it.id}" }.toTypedArray()
+    entries = Array(groups.size) { groups[it].displayName() }
+    entryValues = Array(groups.size) { groups[it].id.toString() }
 
     // Instead of useSimpleSummaryProvider, this can show unset group name.
 

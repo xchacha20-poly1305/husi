@@ -21,7 +21,6 @@ import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
 import io.nekohasekai.sagernet.ktx.map
-import io.nekohasekai.sagernet.ktx.mapX
 import io.nekohasekai.sagernet.ktx.parseProxies
 import libcore.Libcore
 import org.ini4j.Ini
@@ -101,7 +100,7 @@ object RawUpdater : GroupUpdater() {
         if (text.contains("[Interface]")) {
             // wireguard
             try {
-                proxies.addAll(parseWireGuard(text).mapX {
+                proxies.addAll(parseWireGuard(text).map {
                     if (fileName.isNotBlank()) it.name = fileName.removeSuffix(".conf")
                     it
                 })
