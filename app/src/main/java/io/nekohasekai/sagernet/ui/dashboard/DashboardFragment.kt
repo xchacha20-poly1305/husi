@@ -273,9 +273,9 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
         }
     }
 
-    override fun onDestroy() {
-        toolbar.setOnLongClickListener(null)
-        super.onDestroy()
+    override fun onDestroyView() {
+        toolbar.setOnMenuItemClickListener(null)
+        super.onDestroyView()
     }
 
     private inline fun <reified T : Fragment> getFragment(position: Int): T? {
