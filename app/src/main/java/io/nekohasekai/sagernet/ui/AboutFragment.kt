@@ -30,10 +30,12 @@ import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
 import io.nekohasekai.sagernet.databinding.ViewAboutCardBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
+import io.nekohasekai.sagernet.ktx.snackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import libcore.Libcore
@@ -62,7 +64,9 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             insets
         }
 
-        binding.aboutRecycler.adapter = AboutAdapter().also {
+        binding.aboutRecycler.adapter = AboutAdapter { message ->
+            snackbar(message).show()
+        }.also {
             adapter = it
         }
 
@@ -135,7 +139,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         object Sponsor : AboutCard
     }
 
-    private class AboutAdapter :
+    private class AboutAdapter(val snackbar: (CharSequence) -> Unit) :
         ListAdapter<AboutCard, AboutPluginHolder>(AboutCardDiffCallback()) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AboutPluginHolder {
@@ -159,7 +163,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         holder.bindBatteryOptimization(item.launcher)
                     }
 
-                is AboutCard.Sponsor -> holder.bindSponsor()
+                is AboutCard.Sponsor -> holder.bindSponsor(snackbar)
             }
         }
 
@@ -204,6 +208,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                     }
                 )
             }
+            binding.root.setOnLongClickListener(null)
         }
 
         fun bindSingBoxVersion() {
@@ -217,6 +222,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             binding.root.setOnClickListener { view ->
                 view.context.launchCustomTab("https://github.com/SagerNet/sing-box")
             }
+            binding.root.setOnLongClickListener(null)
         }
 
         fun bindPlugin(plugin: AboutPlugin) {
@@ -253,14 +259,21 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                     data = "package:${view.context.packageName}".toUri()
                 })
             }
+            binding.root.setOnLongClickListener(null)
         }
 
-        fun bindSponsor() {
+        fun bindSponsor(snackbar: (CharSequence)->Unit) {
             binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_card_giftcard_24)
             binding.aboutCardTitle.setText(R.string.sekai)
             binding.aboutCardDescription.isVisible = false
             binding.root.setOnClickListener { view ->
                 view.context.launchCustomTab("https://sekai.icu/sponsor")
+            }
+            binding.root.setOnLongClickListener { view ->
+                val isExpert = !DataStore.isExpert
+                DataStore.isExpert = isExpert
+                snackbar("isExpert: $isExpert")
+                true
             }
         }
     }
