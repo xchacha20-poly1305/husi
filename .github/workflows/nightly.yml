@@ -39,7 +39,7 @@ jobs:
           echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
@@ -96,7 +96,7 @@ jobs:
           echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
