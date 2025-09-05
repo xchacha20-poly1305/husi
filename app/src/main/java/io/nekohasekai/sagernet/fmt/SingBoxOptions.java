@@ -822,6 +822,8 @@ public class SingBoxOptions {
 
         public List<String> default_interface_address;
 
+        public List<String> preferred_by;
+
         public List<String> rule_set;
 
         public Boolean rule_set_ip_cidr_match_source;
@@ -2248,6 +2250,63 @@ public class SingBoxOptions {
 
     }
 
+    public static class Outbound_JuicityOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String netns;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        public String networks;
+
+        public String uuid;
+
+        public String password;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+        public String pin_cert_sha256;
+
+    }
+
     public static class Endpoint_WireGuardOptions extends Endpoint {
 
         public Boolean system;
@@ -2317,6 +2376,7 @@ public class SingBoxOptions {
 
     public static class NewDNSServerOptions_LocalDNSServerOptions extends NewDNSServerOptions {
 
+        // Generate note: nested type RawLocalDNSServerOptions
         // Generate note: nested type DialerOptions
         public String detour;
 
@@ -2354,11 +2414,13 @@ public class SingBoxOptions {
 
         public String domain_strategy;
 
+        public Boolean prefer_go;
+
     }
 
     public static class NewDNSServerOptions_RemoteDNSServerOptions extends NewDNSServerOptions {
 
-        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type RawLocalDNSServerOptions
         // Generate note: nested type DialerOptions
         public String detour;
 
@@ -2406,7 +2468,7 @@ public class SingBoxOptions {
     public static class NewDNSServerOptions_RemoteTCPDNSServerOptions extends NewDNSServerOptions {
 
         // Generate note: nested type RemoteDNSServerOptions
-        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type RawLocalDNSServerOptions
         // Generate note: nested type DialerOptions
         public String detour;
 
@@ -2456,7 +2518,7 @@ public class SingBoxOptions {
     public static class NewDNSServerOptions_RemoteTLSDNSServerOptions extends NewDNSServerOptions {
 
         // Generate note: nested type RemoteDNSServerOptions
-        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type RawLocalDNSServerOptions
         // Generate note: nested type DialerOptions
         public String detour;
 
@@ -2508,7 +2570,7 @@ public class SingBoxOptions {
 
         // Generate note: nested type RemoteTLSDNSServerOptions
         // Generate note: nested type RemoteDNSServerOptions
-        // Generate note: nested type LocalDNSServerOptions
+        // Generate note: nested type RawLocalDNSServerOptions
         // Generate note: nested type DialerOptions
         public String detour;
 

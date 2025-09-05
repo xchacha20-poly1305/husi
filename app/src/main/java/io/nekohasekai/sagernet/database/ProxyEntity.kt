@@ -12,6 +12,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
+import io.nekohasekai.sagernet.ProtocolProvider
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -410,7 +411,10 @@ data class ProxyEntity(
             TYPE_MIERU -> true
             TYPE_NAIVE -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
-            TYPE_JUICITY -> true
+            TYPE_JUICITY -> {
+                // https://github.com/juicity/juicity/issues/140
+                !DataStore.enableFakeDns && DataStore.providerJuicity != ProtocolProvider.CORE
+            }
             TYPE_SHADOWQUIC -> true
             else -> false
         }

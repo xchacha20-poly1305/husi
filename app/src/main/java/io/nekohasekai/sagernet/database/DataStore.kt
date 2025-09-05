@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
+import io.nekohasekai.sagernet.ProtocolProvider
 import io.nekohasekai.sagernet.SPEED_TEST_URL
 import io.nekohasekai.sagernet.SPEED_TEST_UPLOAD_URL
 import io.nekohasekai.sagernet.TrafficSortMode
@@ -188,7 +189,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
     var blurredAddress by configurationStore.boolean(Key.BLURRED_ADDRESS)
 
-    var providerHysteria2 by configurationStore.stringToInt(Key.PROVIDER_HYSTERIA2) { 0 }
+    var providerHysteria2 by configurationStore.stringToInt(Key.PROVIDER_HYSTERIA2) { ProtocolProvider.CORE }
+    var providerJuicity by configurationStore.stringToInt(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
 
     var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }

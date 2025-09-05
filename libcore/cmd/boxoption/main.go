@@ -154,6 +154,7 @@ var outboundList = []any{
 	option.VLESSOutboundOptions{},
 	option.VMessOutboundOptions{},
 	option.AnyTLSOutboundOptions{},
+	pluginoption.JuicityOutboundOptions{},
 }
 
 var endpointList = []any{

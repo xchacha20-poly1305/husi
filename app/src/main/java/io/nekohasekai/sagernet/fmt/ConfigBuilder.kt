@@ -48,6 +48,7 @@ import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
 import io.nekohasekai.sagernet.fmt.internal.buildSingBoxOutboundProxySetBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
+import io.nekohasekai.sagernet.fmt.juicity.buildSingBoxOutboundJuicityBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
@@ -228,7 +229,6 @@ fun buildConfig(
     val networkStrategy = DataStore.networkStrategy
     val networkInterfaceStrategy = DataStore.networkInterfaceType
     val networkPreferredInterfaces = DataStore.networkPreferredInterfaces.toList()
-    var hasJuicity = false
     val defaultStrategy = DataStore.networkStrategy.blankAsNull()
     lateinit var mainTag: String
 
@@ -421,7 +421,6 @@ fun buildConfig(
                         server = LOCALHOST4
                         server_port = localPort
                     }.asMap()
-                    if (bean is JuicityBean) hasJuicity = true
                 } else { // internal outbound
                     currentOutbound = when (bean) {
                         is ConfigBean -> bean.config.toJsonMap()
@@ -447,6 +446,8 @@ fun buildConfig(
                         is DirectBean -> buildSingBoxOutboundDirectBean(bean).asMap()
 
                         is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean).asMap()
+
+                        is JuicityBean -> buildSingBoxOutboundJuicityBean(bean).asMap()
 
                         is ProxySetBean -> {
                             val tags = proxySetChildren!!.toList().filterNot { it == tagOut }
@@ -980,13 +981,6 @@ fun buildConfig(
                     server = TAG_DNS_DIRECT
                 })
             }
-
-            // https://github.com/juicity/juicity/issues/140
-            // FIXME: improve this workaround or remove it when juicity fix it.
-            if (hasJuicity && useFakeDns) route.rules.add(0, Rule_Default().apply {
-                action = SingBoxOptions.ACTION_RESOLVE
-                network = listOf(SingBoxOptions.NetworkUDP)
-            })
 
             route.final_ = mainTag
         }

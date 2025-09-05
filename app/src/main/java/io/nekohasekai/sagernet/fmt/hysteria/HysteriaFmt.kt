@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.fmt.hysteria
 
+import io.nekohasekai.sagernet.ProtocolProvider
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
@@ -325,7 +326,7 @@ fun getFirstPort(portStr: String): Int {
  */
 
 fun HysteriaBean.canUseSingBox(): Boolean {
-    if (DataStore.providerHysteria2 != 0) return false // Force plugin
+    if (DataStore.providerHysteria2 != ProtocolProvider.CORE) return false // Force plugin
     if (protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
         if (protocol != HysteriaBean.PROTOCOL_UDP) return false // special mode
     }

@@ -88,6 +88,7 @@ object Key {
     const val UPLOAD_SPEED = "uploadSpeed"
     const val DOWNLOAD_SPEED = "downloadSpeed"
     const val PROVIDER_HYSTERIA2 = "providerHysteria2"
+    const val PROVIDER_JUICITY = "providerJuicity"
     const val CUSTOM_PLUGIN_PREFIX = "customPluginPrefix"
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
@@ -378,6 +379,11 @@ object CertProvider {
     const val SYSTEM = 0
     const val MOZILLA = 1
     const val SYSTEM_AND_USER = 2 // Put it last because Go may fix the bug one day.
+}
+
+object ProtocolProvider {
+    const val CORE = 0
+    const val PLUGIN = 1
 }
 
 // https://github.com/chen08209/FlClash/blob/6c27f2e2f1ac033e62f09b7b30b2710dd0d13bb4/lib/models/config.dart#L110-L128

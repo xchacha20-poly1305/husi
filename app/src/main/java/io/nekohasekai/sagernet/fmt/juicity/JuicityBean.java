@@ -83,4 +83,9 @@ public class JuicityBean extends AbstractBean {
     public AbstractBean clone() {
         return KryoConverters.deserialize(new TuicBean(), KryoConverters.serialize(this));
     }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return "juicity";
+    }
 }
