@@ -704,4 +704,5 @@
     <string name="connection_status_closed">Closed</string>
     <string name="upload_size">Upload Size</string>
     <string name="can_not_be_empty">Cann\'t be empty</string>
+    <string name="juicity_provider">Juicity Provider</string>
 </resources>

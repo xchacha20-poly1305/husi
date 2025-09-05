@@ -2,6 +2,8 @@ package io.nekohasekai.sagernet.fmt.juicity
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.parseBoolean
 import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.toStringPretty
@@ -55,4 +57,20 @@ fun JuicityBean.buildJuicityConfig(port: Int, shouldProtect: Boolean): String {
             if (DataStore.logLevel > 0) "debug" else "error",
         )
     }.toStringPretty()
+}
+
+fun buildSingBoxOutboundJuicityBean(bean: JuicityBean): SingBoxOptions.Outbound_JuicityOptions {
+    return SingBoxOptions.Outbound_JuicityOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        uuid = bean.uuid
+        password = bean.password
+        pin_cert_sha256 = bean.pinSHA256.blankAsNull()
+        tls = SingBoxOptions.OutboundTLSOptions().apply {
+            enabled = true
+            server_name = bean.sni.blankAsNull()
+            insecure = bean.allowInsecure || pin_cert_sha256 != null
+        }
+    }
 }
