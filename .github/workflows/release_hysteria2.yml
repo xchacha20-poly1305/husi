@@ -33,7 +33,7 @@ jobs:
           source buildScript/init/version.sh
           echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
       - name: Install Golang
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           go-version: ${{ steps.version.outputs.go_version }}
