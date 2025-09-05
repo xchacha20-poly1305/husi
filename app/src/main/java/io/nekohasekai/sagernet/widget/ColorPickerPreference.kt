@@ -28,7 +28,7 @@ class ColorPickerPreference
     context: Context, attrs: AttributeSet? = null, defStyle: Int = TypedArrayUtils.getAttr(
         context,
         androidx.preference.R.attr.editTextPreferenceStyle,
-        android.R.attr.editTextPreferenceStyle
+        android.R.attr.editTextPreferenceStyle,
     )
 ) : Preference(
     context, attrs, defStyle
@@ -46,7 +46,7 @@ class ColorPickerPreference
 
             widgetFrame.addView(
                 createColorSwatchView(
-                    context.getColorAttr(com.google.android.material.R.attr.colorPrimary),
+                    context.getColorAttr(androidx.appcompat.R.attr.colorPrimary),
                     48,
                     8,
                 )
