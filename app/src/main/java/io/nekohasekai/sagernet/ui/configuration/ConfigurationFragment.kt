@@ -680,7 +680,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             append("\n")
             append(
                 profile.displayType(),
-                ForegroundColorSpan(requireContext().getColorAttr(com.google.android.material.R.attr.colorAccent)),
+                ForegroundColorSpan(requireContext().getColorAttr(androidx.appcompat.R.attr.colorAccent)),
                 SPAN_EXCLUSIVE_EXCLUSIVE,
             )
             append(" ")
