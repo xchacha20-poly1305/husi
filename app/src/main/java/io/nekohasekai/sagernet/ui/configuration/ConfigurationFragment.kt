@@ -262,14 +262,6 @@ class ConfigurationFragment : ToolbarFragment,
         } else {
             if (testDialog == null) {
                 testDialogBinding = LayoutProgressListBinding.inflate(layoutInflater)
-                testDialogBinding!!.progressCircular.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
-                    // Reset indeterminate mode to restore animation
-                    // (fixes issue where animation stops after app switching / visiting recents tasks)
-                    if (hasFocus) testDialogBinding?.progressCircular?.apply {
-                        isIndeterminate = false
-                        isIndeterminate = true
-                    }
-                }
                 testDialog = MaterialAlertDialogBuilder(requireContext())
                     .setView(testDialogBinding!!.root)
                     .setNegativeButton(android.R.string.cancel) { _, _ ->
