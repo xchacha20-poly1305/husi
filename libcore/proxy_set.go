@@ -2,9 +2,10 @@ package libcore
 
 import (
 	"github.com/sagernet/sing-box/adapter"
-	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
+
+	"libcore/plugin/pluginoption"
 )
 
 // SelectOutbound attempts to select a specific outbound tag within a given group.
@@ -118,7 +119,7 @@ func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapte
 	_, isSelector := outboundGroup.(*group.Selector)
 	return &ProxySet{
 		Tag:        outboundGroup.Tag(),
-		Type:       C.ProxyDisplayName(outboundGroup.Type()),
+		Type:       pluginoption.ProxyDisplayName(outboundGroup.Type()),
 		Selected:   outboundGroup.Now(),
 		Selectable: isSelector,
 		items: common.Map(outboundGroup.All(), func(it string) *GroupItem {
@@ -142,6 +143,6 @@ type GroupItemIterator interface {
 func buildGroupItem(outbound adapter.Outbound) *GroupItem {
 	return &GroupItem{
 		Tag:  outbound.Tag(),
-		Type: C.ProxyDisplayName(outbound.Type()),
+		Type: pluginoption.ProxyDisplayName(outbound.Type()),
 	}
 }
