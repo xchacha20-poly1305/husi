@@ -667,4 +667,13 @@
     <string name="connection_status_closed">Закрыто</string>
     <string name="upload_size">Отправляемый размер (байт)</string>
     <string name="can_not_be_empty">Не может быть пустым</string>
+    <plurals name="delete_confirm_detail">
+        <item quantity="one">Вы уверены, что хотите удалить этот профиль?\n\n%s</item>
+        <item quantity="few">Вы уверены, что хотите удалить эти профили?\n\n%s</item>
+        <item quantity="many">Вы уверены, что хотите удалить эти профили?\n\n%s</item>
+        <item quantity="other">Вы уверены, что хотите удалить эти профили?\n\n%s</item>
+    </plurals>
+    <string name="action_test_config">Тест конфигурации</string>
+    <string name="action_format">Формат</string>
+    <string name="juicity_provider">Провайдер Juicity</string>
 </resources>
