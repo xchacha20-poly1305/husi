@@ -2,10 +2,10 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":dependencyDashboard"
+    ":dependencyDashboard",
+    ":semanticCommitTypeAll(chore)"
   ],
   "semanticCommits": "enabled",
-  "semanticCommitType": "chore",
   "git-submodules": {
     "enabled": false
   },
@@ -26,6 +26,12 @@
     ]
   },
   "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "semanticCommitType": "ci"
+    },
     {
       "matchManagers": [
         "gomod"
