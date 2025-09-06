@@ -89,7 +89,7 @@ class ConfigEditActivity : ThemedActivity() {
             v.updatePadding(
                 left = bars.left,
                 right = bars.right,
-                bottom = max(bars.bottom, ime.bottom),
+                bottom = ime.bottom,
             )
             insets
         }

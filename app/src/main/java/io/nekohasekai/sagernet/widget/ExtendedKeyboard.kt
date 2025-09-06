@@ -28,7 +28,7 @@ import io.nekohasekai.sagernet.databinding.ItemKeyboardKeyBinding
 class ExtendedKeyboard @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : RecyclerView(context, attrs, defStyleAttr) {
 
     private lateinit var keyAdapter: KeyAdapter

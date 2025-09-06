@@ -37,34 +37,39 @@
 
         </FrameLayout>
 
-        <LinearLayout
-            android:id="@+id/keyboard_container"
+    </LinearLayout>
+
+    <com.google.android.material.dockedtoolbar.DockedToolbarLayout
+        android:id="@+id/keyboard_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:backgroundTint="?attr/colorPrimary"
+        android:elevation="2dp">
+
+        <com.google.android.material.overflow.OverflowLinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="2dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/action_tab"
+                style="?attr/materialIconButtonStyle"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:background="@null"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/transparent"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="7dp"
-                android:src="@drawable/baseline_keyboard_tab_24"
-                app:tint="?attr/colorOnSurface" />
+                app:icon="@drawable/baseline_keyboard_tab_24" />
 
             <io.nekohasekai.sagernet.widget.ExtendedKeyboard
                 android:id="@+id/extended_keyboard"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
-                android:layout_weight="1"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 android:paddingHorizontal="0dp"
@@ -72,60 +77,57 @@
                 tools:itemCount="6"
                 tools:listitem="@layout/item_keyboard_key" />
 
-            <ImageView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/action_undo"
+                style="?attr/materialIconButtonStyle"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginEnd="4dp"
-                android:background="@null"
+                android:background="@android:color/transparent"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="7dp"
-                android:src="@drawable/baseline_undo_24"
-                app:tint="?attr/colorOnSurface" />
+                app:icon="@drawable/baseline_undo_24" />
 
-            <ImageView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/action_redo"
+                style="?attr/materialIconButtonStyle"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginEnd="4dp"
-                android:background="@null"
+                android:background="@android:color/transparent"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="7dp"
-                android:src="@drawable/baseline_redo_24"
-                app:tint="?attr/colorOnSurface" />
+                app:icon="@drawable/baseline_redo_24" />
 
-            <ImageView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/action_format"
+                style="?attr/materialIconButtonStyle"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:contentDescription="@string/action_format"
+                android:focusable="true"
+                android:padding="7dp"
+                app:icon="@drawable/ic_baseline_format_align_left_24"
+                app:layout_overflowText="@string/action_format" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/action_config_test"
+                style="?attr/materialIconButtonStyle"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginEnd="4dp"
-                android:background="@null"
+                android:background="@android:color/transparent"
                 android:clickable="true"
+                android:contentDescription="@string/action_test_config"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="7dp"
-                android:src="@drawable/ic_baseline_format_align_left_24"
-                app:tint="?attr/colorOnSurface" />
+                app:icon="@drawable/ic_baseline_info_24"
+                app:layout_overflowText="@string/action_test_config" />
 
-            <ImageView
-                android:id="@+id/action_config_test"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="8dp"
-                android:background="@null"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="7dp"
-                android:src="@drawable/ic_baseline_info_24"
-                app:tint="?attr/colorOnSurface" />
+        </com.google.android.material.overflow.OverflowLinearLayout>
 
-        </LinearLayout>
-
-    </LinearLayout>
+    </com.google.android.material.dockedtoolbar.DockedToolbarLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

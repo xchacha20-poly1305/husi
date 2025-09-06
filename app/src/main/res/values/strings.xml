@@ -709,4 +709,6 @@
         <item quantity="one">Are you sure you want to remove this profile?\n\n%s</item>
         <item quantity="other">Are you sure you want to remove these profiles?\n\n%s</item>
     </plurals>
+    <string name="action_format">Format</string>
+    <string name="action_test_config">Test config</string>
 </resources>
