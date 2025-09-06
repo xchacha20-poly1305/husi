@@ -636,4 +636,6 @@
     <plurals name="delete_confirm_detail">
         <item quantity="other">您确定要移除以下配置吗？\n\n%s</item>
     </plurals>
+    <string name="action_format">格式化</string>
+    <string name="action_test_config">测试配置</string>
 </resources>
