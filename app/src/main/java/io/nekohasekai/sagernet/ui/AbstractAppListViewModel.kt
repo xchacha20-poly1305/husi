@@ -28,6 +28,7 @@ internal interface AbstractAppListUiState {
 }
 
 internal data class BaseAppListUiState(
+    val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted
 )
 
@@ -65,6 +66,8 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
         packageManager = pm
         if (!initialized) {
             viewModelScope.launch(Dispatchers.IO) {
+                val old = uiState.value.base
+                emitBaseState(old.copy(isLoading = true))
                 val routePackages = packages
                 val cachedApps = cachedApps
                 for ((packageName, packageInfo) in cachedApps) {
@@ -120,7 +123,7 @@ internal abstract class AbstractAppListViewModel : ViewModel() {
         }
         val comparator = compareBy<ProxiedApp>({ !it.isProxied }, { it.name })
         apps.sortWith(comparator)
-        emitBaseState(uiState.value.base.copy(apps = apps))
+        emitBaseState(uiState.value.base.copy(apps = apps, isLoading = false))
     }
 
     private val ApplicationInfo.isSystemApp

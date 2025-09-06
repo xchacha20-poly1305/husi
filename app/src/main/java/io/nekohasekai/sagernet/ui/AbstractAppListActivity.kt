@@ -112,9 +112,7 @@ abstract class AbstractAppListActivity : ThemedActivity() {
             }
         }
 
-        loading.crossFadeFrom(list)
         viewModel.initialize(packageManager)
-        list.crossFadeFrom(loading)
     }
 
      internal open fun handleUiEvent(event: AbstractAppListUiEvent) {
@@ -126,7 +124,13 @@ abstract class AbstractAppListActivity : ThemedActivity() {
     }
 
     internal open fun handleUiState(state: AbstractAppListUiState) {
-        appsAdapter.submitList(state.base.apps)
+        val base = state.base
+        if (base.isLoading) {
+            loading.crossFadeFrom(list)
+        } else {
+            list.crossFadeFrom(loading)
+        }
+        appsAdapter.submitList(base.apps)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?) = if (keyCode == KeyEvent.KEYCODE_MENU) {
