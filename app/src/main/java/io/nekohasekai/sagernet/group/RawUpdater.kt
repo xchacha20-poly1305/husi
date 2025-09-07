@@ -55,7 +55,11 @@ object RawUpdater : GroupUpdater() {
 
             val response = Libcore.newHttpClient().apply {
                 if (DataStore.serviceState.started) {
-                    useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+                    useSocks5(
+                        DataStore.mixedPort,
+                        DataStore.inboundUsername,
+                        DataStore.inboundPassword
+                    )
                 }
             }.newRequest().apply {
                 setURL(subscription.link)
@@ -71,13 +75,15 @@ object RawUpdater : GroupUpdater() {
                 var used = 0L
                 var total = 0L
                 var expired = 0L
-                for (info in userInfo.split("; ")) {
+                for (info in userInfo.split(";")) {
                     info.split("=", limit = 2).let {
                         if (it.size != 2) return@let
-                        when (it[0]) {
-                            "upload", "download" -> used += it[1].toLongOrNull() ?: 0
-                            "total" -> total = it[1].toLongOrNull() ?: 0
-                            "expire" -> expired = it[1].toLongOrNull() ?: 0
+                        val key = it[0].trim()
+                        val value = it[0].trim().toLongOrNull() ?: 0
+                        when (key) {
+                            "upload", "download" -> used += value
+                            "total" -> total = value
+                            "expire" -> expired = value
                         }
                     }
                 }
