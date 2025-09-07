@@ -7,6 +7,7 @@ import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_REJECT
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_SNIFF
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkICMP
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkUDP
@@ -224,18 +225,16 @@ object ProfileManager {
             createRule(
                 RuleEntity(
                     name = app.getStringCompat(R.string.route_opt_block_quic),
-                    action = ACTION_ROUTE,
+                    action = ACTION_REJECT,
                     protocol = setOf("quic"),
                     network = setOf(NetworkUDP),
-                    outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
             createRule(
                 RuleEntity(
                     name = app.getStringCompat(R.string.route_opt_block_ads),
-                    action = ACTION_ROUTE,
+                    action = ACTION_REJECT,
                     domains = "set+dns:geosite-category-ads-all",
-                    outbound = RuleEntity.OUTBOUND_BLOCK,
                 )
             )
             val walledCountry = mutableListOf("cn:中国")
@@ -251,7 +250,7 @@ object ProfileManager {
                         name = app.getStringCompat(R.string.route_play_store, displayCountry),
                         action = ACTION_ROUTE,
                         domains = "set+dns:geosite-google-play",
-                        outbound = RuleEntity.OUTBOUND_PROXY
+                        outbound = RuleEntity.OUTBOUND_PROXY,
                     ), false
                 )
                 createRule(

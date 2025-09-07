@@ -86,7 +86,7 @@ const val TAG_DNS_IN = "dns-in" // strategic
 
 // Outbound
 const val TAG_DIRECT = "direct"
-const val TAG_BLOCK = "block" // Build block outbound for custom json
+const val TAG_BLOCK = "block"
 
 // DNS
 const val TAG_DNS_REMOTE = "dns-remote"
@@ -694,7 +694,7 @@ fun buildConfig(
                                 userDNSRuleList.add(makeDnsRuleObj().apply {
                                     action = SingBoxOptions.ACTION_REJECT
                                 })
-                                action = SingBoxOptions.ACTION_REJECT
+                                outbound = TAG_BLOCK
                             }
 
                             else -> outbound = if (outID == proxy.id) {
@@ -739,6 +739,13 @@ fun buildConfig(
                     }
 
                     SingBoxOptions.ACTION_HIJACK_DNS -> {
+                        action = ruleAction
+                    }
+
+                    SingBoxOptions.ACTION_REJECT -> {
+                        userDNSRuleList.add(makeDnsRuleObj().apply {
+                            action = SingBoxOptions.ACTION_REJECT
+                        })
                         action = ruleAction
                     }
 
