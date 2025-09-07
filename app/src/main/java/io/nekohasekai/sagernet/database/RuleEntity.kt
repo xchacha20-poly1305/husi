@@ -31,7 +31,7 @@ data class RuleEntity(
     var network: Set<String> = emptySet(),
     var source: String = "",
     var protocol: Set<String> = emptySet(),
-    @ColumnInfo(defaultValue = "") var clientType: Set<String> = emptySet(),
+    @ColumnInfo(defaultValue = "") var clientType:String = "",
     var packages: Set<String> = emptySet(),
     var ssid: String = "",
     var bssid: String = "",

@@ -542,13 +542,6 @@
         <item>ntp</item>
     </string-array>
 
-    <string-array name="sniff_client">
-        <item>chromium</item>
-        <item>safari</item>
-        <item>firefox</item>
-        <item>quic-go</item>
-    </string-array>
-
     <string-array name="tasker_action_entry">
         <item>@string/tasker_action_start_service</item>
         <item>@string/tasker_action_stop_service</item>
