@@ -527,6 +527,7 @@
         <item>sniff</item>
         <item>resolve</item>
         <item>hijack-dns</item>
+        <item>reject</item>
     </string-array>
 
     <string-array name="sniff_protocol">
