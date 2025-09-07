@@ -58,7 +58,7 @@ object RawUpdater : GroupUpdater() {
                     useSocks5(
                         DataStore.mixedPort,
                         DataStore.inboundUsername,
-                        DataStore.inboundPassword
+                        DataStore.inboundPassword,
                     )
                 }
             }.newRequest().apply {
@@ -79,7 +79,7 @@ object RawUpdater : GroupUpdater() {
                     info.split("=", limit = 2).let {
                         if (it.size != 2) return@let
                         val key = it[0].trim()
-                        val value = it[0].trim().toLongOrNull() ?: 0
+                        val value = it[1].trim().toLongOrNull() ?: 0
                         when (key) {
                             "upload", "download" -> used += value
                             "total" -> total = value
