@@ -360,7 +360,7 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
             SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
             all = SagerDatabase.groupDao.allGroups().toMutableList()
         }
-        all.removeFirstMatched {
+        if (all.size > 1) all.removeFirstMatched {
             it.ungrouped && SagerDatabase.proxyDao.countByGroup(it.id) == 0L
         }
 
