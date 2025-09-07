@@ -186,6 +186,16 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
                 viewModel.uiEvent.collect(::handleUiEvent)
             }
         }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                parentViewModel.childEvent.collect(::handleChildEvent)
+            }
+        }
+
+        if (savedInstanceState != null) lifecycleScope.launch {
+            viewModel.onProfileSelect(DataStore.selectedProxy)
+        }
     }
 
     private fun handleUiState(state: GroupProfilesHolderUiState) {
@@ -212,6 +222,44 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
+        }
+    }
+
+    private fun handleChildEvent(event: ConfigurationChildEvent) {
+        if (event.group != viewModel.group.id) return
+        when (event) {
+            is ConfigurationChildEvent.UpdateQuery -> {
+                viewModel.query = event.query
+            }
+
+            is ConfigurationChildEvent.ScrollToProxy -> {
+                val index = adapter.currentList
+                    .indexOfFirst { it.profile.id == event.id }
+                    .takeIf { it >= 0 } ?: return
+
+                val layoutManager = binding.configurationList.layoutManager as LinearLayoutManager
+                val first = layoutManager.findFirstVisibleItemPosition()
+                val last = layoutManager.findLastVisibleItemPosition()
+                if (index !in first..last) {
+                    binding.configurationList.scrollTo(index)
+                }
+            }
+
+            is ConfigurationChildEvent.RequestFocusIfNotHave -> {
+                binding.configurationList.apply {
+                    if (!hasFocus()) requestFocus()
+                }
+            }
+
+            is ConfigurationChildEvent.ClearTrafficStatistic -> viewModel.clearTrafficStatistics()
+
+            is ConfigurationChildEvent.ClearResult -> viewModel.clearResults()
+
+            is ConfigurationChildEvent.DeleteUnavailable -> viewModel.deleteUnavailable()
+
+            is ConfigurationChildEvent.RemoveDuplicate -> viewModel.removeDuplicate()
+
+            is ConfigurationChildEvent.OnProfileSelect -> viewModel.onProfileSelect(event.new)
         }
     }
 
@@ -270,39 +318,6 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             true
         }
     }
-
-    fun updateQuery(query: String?) {
-        viewModel.query = query
-    }
-
-    fun scrollToProxy(id: Long) {
-        val index = adapter.currentList
-            .indexOfFirst { it.profile.id == id }
-            .takeIf { it >= 0 } ?: return
-
-        val layoutManager = binding.configurationList.layoutManager as LinearLayoutManager
-        val first = layoutManager.findFirstVisibleItemPosition()
-        val last = layoutManager.findLastVisibleItemPosition()
-        if (index !in first..last) {
-            binding.configurationList.scrollTo(index)
-        }
-    }
-
-    fun requestFocusIfNotHave() {
-        binding.configurationList.apply {
-            if (!hasFocus()) requestFocus()
-        }
-    }
-
-    fun clearTrafficStatistics() = viewModel.clearTrafficStatistics()
-
-    fun clearResults() = viewModel.clearResults()
-
-    fun deleteUnavailable() = viewModel.deleteUnavailable()
-
-    fun removeDuplicate() = viewModel.removeDuplicate()
-
-    fun newSelect(new: Long) = viewModel.onSelect(new)
 
     private inner class ConfigurationAdapter :
         ListAdapter<ProfileItem, ConfigurationHolder>(ProfileItemDiffCallback) {

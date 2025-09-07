@@ -87,9 +87,17 @@ internal enum class TestType {
     URLTest,
 }
 
-internal sealed interface ConfigurationFragmentUiEvent {
-    class ProfileSelect(val new: Long) : ConfigurationFragmentUiEvent
+internal sealed class ConfigurationChildEvent(open val group: Long) {
+    class UpdateQuery(override val group: Long, val query: String?) : ConfigurationChildEvent(group)
+    class ScrollToProxy(override val group: Long, val id: Long) : ConfigurationChildEvent(group)
+    class RequestFocusIfNotHave(override val group: Long) : ConfigurationChildEvent(group)
+    class ClearTrafficStatistic(override val group: Long) : ConfigurationChildEvent(group)
+    class ClearResult(override val group: Long) : ConfigurationChildEvent(group)
+    class DeleteUnavailable(override val group: Long) : ConfigurationChildEvent(group)
+    class RemoveDuplicate(override val group: Long) : ConfigurationChildEvent(group)
+    class OnProfileSelect(override val group: Long, val new: Long) : ConfigurationChildEvent(group)
 }
+
 
 internal class ConfigurationFragmentViewModel : ViewModel(),
     ProfileManager.Listener, GroupManager.Listener,
@@ -111,8 +119,12 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     private val _uiState = MutableStateFlow(ConfigurationFragmentUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _uiEvent = MutableSharedFlow<ConfigurationFragmentUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    private val _childEvent = MutableSharedFlow<ConfigurationChildEvent>()
+    val childEvent = _childEvent.asSharedFlow()
+
+    suspend fun emitChildEvent(event: ConfigurationChildEvent) {
+        _childEvent.emit(event)
+    }
 
     var forSelect: Boolean = false
     var selectedItem: ProxyEntity? = null
@@ -333,7 +345,7 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
                 SagerNet.startService()
             }
         }
-        _uiEvent.emit(ConfigurationFragmentUiEvent.ProfileSelect(new))
+        emitChildEvent(ConfigurationChildEvent.OnProfileSelect(DataStore.selectedGroup,new))
     }
 
     init {

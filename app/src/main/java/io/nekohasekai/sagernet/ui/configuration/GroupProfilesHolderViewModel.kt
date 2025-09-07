@@ -158,7 +158,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
 
-    fun onSelect(new: Long) = viewModelScope.launch {
+    fun onProfileSelect(new: Long) = viewModelScope.launch {
         _uiState.update { state ->
             val started = DataStore.serviceState.started
 

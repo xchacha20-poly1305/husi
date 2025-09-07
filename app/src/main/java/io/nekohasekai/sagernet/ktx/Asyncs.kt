@@ -2,19 +2,15 @@
 
 package io.nekohasekai.sagernet.ktx
 
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.*
-
-fun block(block: suspend CoroutineScope.() -> Unit): suspend CoroutineScope.() -> Unit {
-    return block
-}
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 fun runOnDefaultDispatcher(block: suspend CoroutineScope.() -> Unit) =
     GlobalScope.launch(Dispatchers.Default, block = block)
-
-fun Fragment.runOnLifecycleDispatcher(block: suspend CoroutineScope.() -> Unit) =
-    lifecycleScope.launch(Dispatchers.Default, block = block)
 
 suspend fun <T> onDefaultDispatcher(block: suspend CoroutineScope.() -> T) =
     withContext(Dispatchers.Default, block = block)
@@ -30,9 +26,3 @@ fun runOnMainDispatcher(block: suspend CoroutineScope.() -> Unit) =
 
 suspend fun <T> onMainDispatcher(block: suspend CoroutineScope.() -> T) =
     withContext(Dispatchers.Main.immediate, block = block)
-
-fun runBlockingOnMainDispatcher(block: suspend CoroutineScope.() -> Unit) {
-    runBlocking {
-        GlobalScope.launch(Dispatchers.Main.immediate, block = block)
-    }
-}
