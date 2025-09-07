@@ -639,8 +639,8 @@ fun buildConfig(
                 if (rule.protocol.isNotEmpty()) {
                     protocol = rule.protocol.toList()
                 }
-                if (rule.clientType.isNotEmpty()) {
-                    client = rule.clientType.toList()
+                if (rule.clientType.isNotBlank()) {
+                    client = rule.clientType.listByLineOrComma()
                 }
                 if (rule.ssid.isNotBlank()) {
                     wifi_ssid = rule.ssid.listByLineOrComma()

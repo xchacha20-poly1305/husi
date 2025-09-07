@@ -330,7 +330,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeNetwork by profileCacheStore.stringSet(Key.ROUTE_NETWORK)
     var routeSource by profileCacheStore.string(Key.ROUTE_SOURCE)
     var routeProtocol by profileCacheStore.stringSet(Key.ROUTE_PROTOCOL)
-    var routeClient by profileCacheStore.stringSet(Key.ROUTE_CLIENT)
+    var routeClient by profileCacheStore.string(Key.ROUTE_CLIENT)
     var routePackages by profileCacheStore.stringSet(Key.ROUTE_PACKAGES)
     var routeSSID by profileCacheStore.string(Key.ROUTE_SSID)
     var routeBSSID by profileCacheStore.string(Key.ROUTE_BSSID)

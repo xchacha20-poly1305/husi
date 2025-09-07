@@ -66,13 +66,11 @@
             app:icon="@drawable/ic_baseline_layers_24"
             app:key="routeProtocol"
             app:title="protocol" />
-        <io.nekohasekai.sagernet.widget.ValuesJointToSummaryMultiSelectListPreference
-            app:defaultValue="@array/empty"
-            app:entries="@array/sniff_client"
-            app:entryValues="@array/sniff_client"
+        <EditTextPreference
             app:icon="@drawable/ic_baseline_fingerprint_24"
             app:key="routeClient"
-            app:title="@string/client_type" />
+            app:title="@string/client_type"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:icon="@drawable/ic_baseline_wifi"
             app:key="routeSSID"
