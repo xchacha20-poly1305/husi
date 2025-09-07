@@ -287,31 +287,6 @@ data class ProxyEntity(
         } ?: error("Null ${displayType()} profile")
     }
 
-    fun setBean(bean: AbstractBean) {
-        when (type) {
-            TYPE_SOCKS -> socksBean = bean as SOCKSBean
-            TYPE_HTTP -> httpBean = bean as HttpBean
-            TYPE_SS -> ssBean = bean as ShadowsocksBean
-            TYPE_VMESS -> vmessBean = bean as VMessBean
-            TYPE_TROJAN -> trojanBean = bean as TrojanBean
-            TYPE_MIERU -> mieruBean = bean as MieruBean
-            TYPE_NAIVE -> naiveBean = bean as NaiveBean
-            TYPE_HYSTERIA -> hysteriaBean = bean as HysteriaBean
-            TYPE_SSH -> sshBean = bean as SSHBean
-            TYPE_WG -> wgBean = bean as WireGuardBean
-            TYPE_TUIC -> tuicBean = bean as TuicBean
-            TYPE_JUICITY -> juicityBean = bean as JuicityBean
-            TYPE_DIRECT -> directBean = bean as DirectBean
-            TYPE_ANYTLS -> anyTLSBean = bean as AnyTLSBean
-            TYPE_SHADOWQUIC -> shadowQUICBean = bean as ShadowQUICBean
-            TYPE_SHADOWTLS -> shadowTLSBean = bean as ShadowTLSBean
-            TYPE_PROXY_SET -> proxySetBean = bean as ProxySetBean
-            TYPE_CHAIN -> chainBean = bean as ChainBean
-            TYPE_CONFIG -> configBean = bean as ConfigBean
-            else -> error("Undefined type $type")
-        }
-    }
-
     /** Determines if has internal link. */
     fun haveLink(): Boolean = when (type) {
         TYPE_PROXY_SET -> false

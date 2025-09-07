@@ -42,11 +42,9 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
         DataStore.editingId = editingId
 
         bean = if (editingId == 0L) {
-            DataStore.editingGroup = DataStore.selectedGroupForImport()
             createBean().applyDefaultValues()
         } else {
             proxyEntity = SagerDatabase.proxyDao.getById(editingId)!!
-            DataStore.editingGroup = proxyEntity.groupId
             (proxyEntity.requireBean() as T)
         }
         bean.writeToTempDatabase()
@@ -60,20 +58,21 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     }
 
     suspend fun delete() {
-        ProfileManager.deleteProfile(DataStore.editingGroup, DataStore.editingId)
+        ProfileManager.deleteProfile(proxyEntity.groupId, DataStore.editingId)
     }
 
     suspend fun saveEntity() = onIoDispatcher {
-        val entity = if (DataStore.editingId == 0L) {
-            val editingGroup = DataStore.editingGroup
+        if (DataStore.editingId == 0L) {
+            val editingGroup = DataStore.selectedGroupForImport()
+            DataStore.editingGroup = editingGroup
             val bean = createBean()
+            bean.loadFromTempDatabase()
             ProfileManager.createProfile(editingGroup, bean)
-        } else {
-            proxyEntity
+            return@onIoDispatcher
         }
         bean.loadFromTempDatabase()
-        entity.setBean(bean)
-        ProfileManager.updateProfile(entity)
+        proxyEntity.putBean(bean)
+        ProfileManager.updateProfile(proxyEntity)
     }
 
     enum class CustomConfigType {

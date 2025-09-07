@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui.configuration
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -135,7 +134,6 @@ class ConfigurationFragment : ToolbarFragment,
 
     override fun onQueryTextSubmit(query: String?): Boolean = false
 
-    @SuppressLint("DetachAndAttachSameFragment")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -146,13 +144,6 @@ class ConfigurationFragment : ToolbarFragment,
                 ARG_SELECTED_ITEM, ProxyEntity::class.java,
             )
             viewModel.titleRes = it.getInt(ARG_TITLE_RES)
-        }
-        if (savedInstanceState != null) {
-            parentFragmentManager.beginTransaction()
-                .setReorderingAllowed(false)
-                .detach(this)
-                .attach(this)
-                .commit()
         }
     }
 
@@ -316,10 +307,8 @@ class ConfigurationFragment : ToolbarFragment,
     }
 
     private fun handleUiEvent(event: ConfigurationFragmentUiEvent) {
-        Logs.w("handle")
         when (event) {
             is ConfigurationFragmentUiEvent.ProfileSelect -> {
-                Logs.w("event")
                 for ((_, holder) in adapter.fragments) {
                     Logs.w(holder.javaClass.name)
                     holder.newSelect(event.new)
