@@ -128,7 +128,14 @@ class ConfigurationFragment : ToolbarFragment,
     }
 
     override fun onQueryTextChange(query: String?): Boolean {
-        getCurrentGroupFragment()?.updateQuery(query)
+        lifecycleScope.launch {
+            viewModel.emitChildEvent(
+                ConfigurationChildEvent.UpdateQuery(
+                    DataStore.selectedGroup,
+                    query,
+                )
+            )
+        }
         return false
     }
 
@@ -211,22 +218,34 @@ class ConfigurationFragment : ToolbarFragment,
         }.attach()
 
         toolbar.setOnClickListener {
-            getCurrentGroupFragment()?.scrollToProxy(
-                viewModel.selectedItem?.id ?: DataStore.selectedProxy
-            )
+            lifecycleScope.launch {
+                viewModel.emitChildEvent(
+                    ConfigurationChildEvent.ScrollToProxy(
+                        DataStore.selectedGroup,
+                        viewModel.selectedItem?.id ?: DataStore.selectedProxy,
+                    )
+                )
+            }
         }
 
         toolbar.setOnLongClickListener {
-            val selectedProxy = viewModel.selectedItem
-                ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                ?: return@setOnLongClickListener true
-            val groupIndex = adapter.currentList.indexOfFirst {
-                it.id == selectedProxy.groupId
+            lifecycleScope.launch {
+                val selectedProxy = viewModel.selectedItem
+                    ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                    ?: return@launch
+                val groupIndex = adapter.currentList.indexOfFirst {
+                    it.id == selectedProxy.groupId
+                }
+                if (groupIndex < 0) return@launch
+                DataStore.selectedGroup = selectedProxy.groupId
+                binding.groupPager.currentItem = groupIndex
+                viewModel.emitChildEvent(
+                    ConfigurationChildEvent.ScrollToProxy(
+                        selectedProxy.groupId,
+                        selectedProxy.id,
+                    )
+                )
             }
-            if (groupIndex < 0) return@setOnLongClickListener true
-            DataStore.selectedGroup = selectedProxy.groupId
-            binding.groupPager.currentItem = groupIndex
-            getCurrentGroupFragment()?.scrollToProxy(selectedProxy.id)
             true
         }
 
@@ -235,12 +254,6 @@ class ConfigurationFragment : ToolbarFragment,
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect(::handleUiState)
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
             }
         }
     }
@@ -306,19 +319,10 @@ class ConfigurationFragment : ToolbarFragment,
         }
     }
 
-    private fun handleUiEvent(event: ConfigurationFragmentUiEvent) {
-        when (event) {
-            is ConfigurationFragmentUiEvent.ProfileSelect -> {
-                for ((_, holder) in adapter.fragments) {
-                    Logs.w(holder.javaClass.name)
-                    holder.newSelect(event.new)
-                }
-            }
-        }
-    }
-
     override fun onKeyDown(ketCode: Int, event: KeyEvent): Boolean {
-        getCurrentGroupFragment()?.requestFocusIfNotHave()
+        lifecycleScope.launch {
+            viewModel.emitChildEvent(ConfigurationChildEvent.RequestFocusIfNotHave(DataStore.selectedGroup))
+        }
         return super.onKeyDown(ketCode, event)
     }
 
@@ -467,20 +471,20 @@ class ConfigurationFragment : ToolbarFragment,
                 startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java))
             }
 
-            R.id.action_clear_traffic_statistics -> {
-                getCurrentGroupFragment()?.clearTrafficStatistics()
+            R.id.action_clear_traffic_statistics -> lifecycleScope.launch {
+                viewModel.emitChildEvent(ConfigurationChildEvent.ClearTrafficStatistic(DataStore.selectedGroup))
             }
 
-            R.id.action_connection_test_clear_results -> {
-                getCurrentGroupFragment()?.clearResults()
+            R.id.action_connection_test_clear_results -> lifecycleScope.launch {
+                viewModel.emitChildEvent(ConfigurationChildEvent.ClearResult(DataStore.selectedGroup))
             }
 
-            R.id.action_connection_test_delete_unavailable -> {
-                getCurrentGroupFragment()?.deleteUnavailable()
+            R.id.action_connection_test_delete_unavailable -> lifecycleScope.launch {
+                viewModel.emitChildEvent(ConfigurationChildEvent.DeleteUnavailable(DataStore.selectedGroup))
             }
 
-            R.id.action_remove_duplicate -> {
-                getCurrentGroupFragment()?.removeDuplicate()
+            R.id.action_remove_duplicate -> lifecycleScope.launch {
+                viewModel.emitChildEvent(ConfigurationChildEvent.RemoveDuplicate(DataStore.selectedGroup))
             }
 
             R.id.action_connection_icmp_ping -> {
