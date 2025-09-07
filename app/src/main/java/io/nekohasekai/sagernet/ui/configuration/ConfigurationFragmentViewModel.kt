@@ -301,6 +301,12 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
 
     fun onSelect(id: Long) = runOnIoDispatcher {
         DataStore.selectedGroup = id
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                state.copy(selectedGroupIndex = state.groups.indexOfFirst { it.id == id })
+            }
+        }
     }
 
     private val profileAccess = Mutex()
