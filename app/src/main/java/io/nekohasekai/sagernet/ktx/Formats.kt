@@ -66,14 +66,13 @@ fun isJsonObjectValid(j: Any): Boolean {
     return true
 }
 
-// wtf hutool
+// Be careful with null value with String.
+// https://stackoverflow.com/questions/18226288/json-jsonobject-optstring-returns-string-null
+
 fun JSONObject.getStr(name: String): String? {
     val obj = this.opt(name) ?: return null
     if (obj is String) {
-        if (obj.isBlank()) {
-            return null
-        }
-        return obj
+        return obj.blankAsNull()
     } else {
         return null
     }
@@ -82,7 +81,7 @@ fun JSONObject.getStr(name: String): String? {
 fun JSONObject.getBool(name: String): Boolean? {
     return try {
         getBoolean(name)
-    } catch (ignored: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -91,7 +90,7 @@ fun JSONObject.getBool(name: String): Boolean? {
 fun JSONObject.getIntOrNull(name: String): Int? {
     return try {
         getInt(name)
-    } catch (ignored: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -99,6 +98,14 @@ fun JSONObject.getIntOrNull(name: String): Int? {
 fun JSONObject.getLongOrNull(name: String): Long? {
     return try {
         getLong(name)
+    } catch (_: Exception) {
+        null
+    }
+}
+
+fun JSONObject.getObject(key: String): JSONObject? {
+    return try {
+        getJSONObject(key)
     } catch (_: Exception) {
         null
     }
