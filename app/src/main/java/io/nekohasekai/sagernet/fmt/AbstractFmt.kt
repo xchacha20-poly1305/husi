@@ -52,6 +52,10 @@ import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.parseWireGuardEndpoint
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.forEach
+import io.nekohasekai.sagernet.ktx.getBool
+import io.nekohasekai.sagernet.ktx.getIntOrNull
+import io.nekohasekai.sagernet.ktx.getObject
+import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.gson
 import org.json.JSONArray
 import org.json.JSONObject
@@ -151,27 +155,29 @@ fun AbstractBean.parseBoxOutbound(json: JSONMap, unmatched: (key: String, value:
 
             "multiplex" -> {
                 val mux = (value as JSONObject)
-                if (mux.optBoolean("enabled") != true) continue
+                if (mux.getBool("enabled") != true) continue
 
                 serverMux = true
-                serverMuxPadding = mux.optBoolean("padding")
-                serverMuxType = when (mux.optString("protocol")) {
+                serverMuxPadding = mux.getBool("padding")
+                serverMuxType = when (mux.getStr("protocol")) {
                     "smux" -> MuxType.SMUX
                     "yamux" -> MuxType.YAMUX
                     else -> MuxType.H2MUX
                 }
 
-                serverBrutal = mux.optJSONObject("brutal")?.optBoolean("enabled")
+                serverBrutal = mux.getObject("brutal")?.getBool("enabled")
 
-                mux.optInt("max_connections").takeIf { it > 0 }?.let {
+                mux.getIntOrNull("max_connections")?.takeIf { it > 0 }?.let {
                     serverMuxStrategy = MuxStrategy.MAX_CONNECTIONS
                     serverMuxNumber = it
+                    continue
                 }
-                mux.optInt("min_streams").takeIf { it > 0 }?.let {
+                mux.getIntOrNull("min_streams")?.takeIf { it > 0 }?.let {
                     serverMuxStrategy = MuxStrategy.MIN_STREAMS
                     serverMuxNumber = it
+                    continue
                 }
-                mux.optInt("max_streams").takeIf { it > 0 }?.let {
+                mux.getIntOrNull("max_streams")?.takeIf { it > 0 }?.let {
                     serverMuxStrategy = MuxStrategy.MAX_STREAMS
                     serverMuxNumber = it
                 }
@@ -212,7 +218,7 @@ inline fun <reified T : Any> listable(value: Any?): MutableList<T>? = when (valu
 
 fun parseBoxUot(field: Any?): Boolean {
     if (field as? Boolean == true) return true
-    return (field as? JSONObject)?.optBoolean("enabled") == true
+    return (field as? JSONObject)?.getBool("enabled") == true
 }
 
 fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply {
@@ -236,15 +242,15 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
             "utls" -> {
                 val utlsField = value as JSONObject
                 utls = OutboundUTLSOptions().also {
-                    it.enabled = utlsField.optBoolean("enabled")
-                    it.fingerprint = utlsField.optString("fingerprint")
+                    it.enabled = utlsField.getBool("enabled")
+                    it.fingerprint = utlsField.getStr("fingerprint")
                 }
             }
 
             "ech" -> {
                 val echField = value as JSONObject
                 ech = OutboundECHOptions().also {
-                    it.enabled = echField.optBoolean("enabled")
+                    it.enabled = echField.getBool("enabled")
                     it.config = listable<String>(echField.opt("config"))
                 }
             }
@@ -252,9 +258,9 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
             "reality" -> {
                 val realityField = value as JSONObject
                 reality = OutboundRealityOptions().also {
-                    it.enabled = realityField.optBoolean("enabled")
-                    it.public_key = realityField.optString("public_key")
-                    it.short_id = realityField.optString("short_id")
+                    it.enabled = realityField.getBool("enabled")
+                    it.public_key = realityField.getStr("public_key")
+                    it.short_id = realityField.getStr("short_id")
                 }
             }
         }

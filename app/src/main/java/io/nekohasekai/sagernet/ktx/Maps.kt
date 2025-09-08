@@ -136,7 +136,7 @@ fun mergeJson(from: JSONMap, to: JSONMap) {
 
             else -> {
                 if (shouldAsMap(fromValue)) {
-                    val fromMap = fromValue!!.asMap()
+                    val fromMap = fromValue.asMap()
                     val toValue = to[realKey]
                     if (toValue is Map<*, *>) {
                         val toMap = toJSONMap(toValue)
@@ -188,7 +188,7 @@ fun <K, V> Map<K, V>.reverse(): Map<V, K> {
 }
 
 @Suppress("DEPRECATION")
-public val gson: Gson = GsonBuilder()
+val gson: Gson = GsonBuilder()
     .setPrettyPrinting()
     .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
     .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
