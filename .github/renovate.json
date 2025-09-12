@@ -44,7 +44,9 @@
       ],
       "matchPackageNames": [
         "github.com/sagernet/sing-box",
-        "github.com/sagernet/gomobile"
+        "github.com/sagernet/gomobile",
+        "github.com/dyhkwong/sing-juicity",
+        "github.com/xchacha20-poly1305/cazilla"
       ],
       "enabled": true
     }
