@@ -55,7 +55,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	if options.TLS.ALPN == nil { // not len(options.TLS.ALPN) > 0
 		options.TLS.ALPN = []string{"h3"}
 	}
-	tlsConfig, err := tls.NewSTDClient(ctx, options.Server, *options.TLS)
+	tlsConfig, err := tls.NewSTDClient(ctx, logger, options.Server, *options.TLS)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		if err != nil {
 			return nil, E.Cause(err, "decode pin cert sha256")
 		}
-		stdTLSConfig, _ := tlsConfig.Config()
+		stdTLSConfig, _ := tlsConfig.STDConfig()
 		stdTLSConfig.VerifyPeerCertificate = func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			peerHash := raybridge.CertChainHash(rawCerts)
 			if !bytes.Equal(pinCertSha256, peerHash) {
