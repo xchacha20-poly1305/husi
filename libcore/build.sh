@@ -47,7 +47,7 @@ export GO386=softfloat
 
 # -buildvcs require: https://github.com/SagerNet/gomobile/commit/6bc27c2027e816ac1779bf80058b1a7710dad260
 GOEXPERIMENT="synchashtriemap,greenteagc" gomobile bind -v -androidapi 21 -trimpath -buildvcs=false \
-    -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid=" \
+    -ldflags="-X github.com/sagernet/sing-box/constant.Version=${box_version} -s -w -buildid= -checklinkname=0" \
     -tags="$BUILD_TAGS" . || exit 1
 
 rm -r libcore-sources.jar

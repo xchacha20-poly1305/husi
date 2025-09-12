@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.2.10-2.0.2"
+    id("com.google.devtools.ksp") version "2.2.20-2.0.2"
 }
 
 setupApp()
@@ -58,19 +58,19 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.activity:activity-ktx:1.10.1")
+    implementation("androidx.activity:activity-ktx:1.11.0")
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("androidx.browser:browser:1.9.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.3")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.3")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.9.4")
+    implementation("androidx.navigation:navigation-ui-ktx:2.9.4")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.3")
-    implementation("androidx.work:work-multiprocess:2.10.3")
+    implementation("androidx.work:work-runtime-ktx:2.10.4")
+    implementation("androidx.work:work-multiprocess:2.10.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.3")
 
     implementation("com.google.android.material:material:1.14.0-alpha04")
-    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.code.gson:gson:2.13.2")
 
     implementation("com.blacksquircle.ui:editorkit:2.9.0")
     implementation("com.blacksquircle.ui:language-base:2.9.0")
@@ -78,7 +78,7 @@ dependencies {
 
     implementation("androidx.camera:camera-view:1.4.2")
     implementation("androidx.camera:camera-lifecycle:1.4.2")
-    implementation("androidx.camera:camera-camera2:1.4.2")
+    implementation("androidx.camera:camera-camera2:1.5.0")
     implementation("com.google.zxing:core:3.5.3")
 
     implementation("com.jakewharton:process-phoenix:3.0.0")
