@@ -42,7 +42,7 @@ test_gradle:
 	./gradlew testFossDebugUnitTest
 
 test_go:
-	cd libcore/ && go test -v -count=1 ./...
+	cd libcore/ && go test -v -count=1 -ldflags="-checklinkname=0" ./...
 
 plugin:
 	BUILD_PLUGIN=$(PLUGIN) ./gradlew :plugin:$(PLUGIN):assembleFossRelease --configuration-cache

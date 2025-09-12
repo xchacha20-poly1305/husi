@@ -3,14 +3,14 @@ module libcore
 go 1.24
 
 require (
-	github.com/dyhkwong/sing-juicity v0.0.1
+	github.com/dyhkwong/sing-juicity v0.0.3
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.67
 	github.com/sagernet/gomobile v0.1.8
-	github.com/sagernet/sing v0.7.6-0.20250826155514-8bdb5fee4568
-	github.com/sagernet/sing-box v1.13.0-alpha.8
-	github.com/sagernet/sing-tun v0.7.0-beta.1.0.20250827122908-b76e852f59b0
+	github.com/sagernet/sing v0.8.0-beta.1
+	github.com/sagernet/sing-box v1.13.0-alpha.14
+	github.com/sagernet/sing-tun v0.8.0-beta.8.0.20250911105100-0381a06643bc
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.0-1
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/cazilla v1.0.2
@@ -60,16 +60,16 @@ require (
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/fswatch v0.1.1 // indirect
-	github.com/sagernet/gvisor v0.0.0-20250822052253-5558536cf237 // indirect
+	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.52.0-beta.1 // indirect
 	github.com/sagernet/sing-mux v0.3.3 // indirect
-	github.com/sagernet/sing-quic v0.5.0 // indirect
+	github.com/sagernet/sing-quic v0.5.2-0.20250909100920-da23407a63d5 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
-	github.com/sagernet/sing-vmess v0.2.7 // indirect
+	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1 // indirect
 	github.com/sagernet/smux v1.5.34-mod.2 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect

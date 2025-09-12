@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sagernet/sing-box/experimental/clashapi/compatible"
+	"github.com/sagernet/sing-box/common/compatible"
 	"github.com/sagernet/sing/common/x/list"
 
 	"github.com/gofrs/uuid/v5"
