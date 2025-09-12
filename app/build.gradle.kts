@@ -62,7 +62,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("androidx.browser:browser:1.9.0")
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.4")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.9.4")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.work:work-runtime-ktx:2.10.3")
