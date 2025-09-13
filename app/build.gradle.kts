@@ -92,7 +92,7 @@ dependencies {
     }
     implementation("com.google.guava:guava:33.4.8-android")
 
-    implementation("androidx.room:room-runtime:2.7.2")
+    implementation("androidx.room:room-runtime:2.8.0")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
     ksp("androidx.room:room-compiler:2.7.2")
     implementation("androidx.room:room-ktx:2.7.2")
