@@ -97,8 +97,8 @@ github.com/sagernet/quic-go v0.52.0-beta.1/go.mod h1:OV+V5kEBb8kJS7k29MzDu6oj9Gy
 github.com/sagernet/sing v0.6.9/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.8.0-beta.1 h1:tBOdh/K/EBdXWuBxUJsZONyxDzyfzjdCF1Yq57QtpE4=
 github.com/sagernet/sing v0.8.0-beta.1/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.12.6-0.20250912110539-85ec13434c94 h1:QN/eVlCc2PAgu9Hq1ZpY7vMop93HDvqOjcfcf6fYNoQ=
-github.com/sagernet/sing-box v1.12.6-0.20250912110539-85ec13434c94/go.mod h1:+cdXV3ouTYYINfL2K9YmR5FVJM7/n+Onp/ca1LlF6WI=
+github.com/sagernet/sing-box v1.13.0-alpha.14 h1:LQWdpZcO7IdNMhSSr5JybnfjcdWr6xChNSdd6KsaeNQ=
+github.com/sagernet/sing-box v1.13.0-alpha.14/go.mod h1:+cdXV3ouTYYINfL2K9YmR5FVJM7/n+Onp/ca1LlF6WI=
 github.com/sagernet/sing-mux v0.3.3 h1:YFgt9plMWzH994BMZLmyKL37PdIVaIilwP0Jg+EcLfw=
 github.com/sagernet/sing-mux v0.3.3/go.mod h1:pht8iFY4c9Xltj7rhVd208npkNaeCxzyXCgulDPLUDA=
 github.com/sagernet/sing-quic v0.5.2-0.20250909100920-da23407a63d5 h1:vnRNLE0bBnz5NNbBoFH7NA7mlvNSa2Z4w+1Eb8pyX48=
