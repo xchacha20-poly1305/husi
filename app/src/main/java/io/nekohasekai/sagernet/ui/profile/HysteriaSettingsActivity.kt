@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.profile
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.preference.EditTextPreference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -17,9 +18,10 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
 
     override val viewModel by viewModels<HysteriaSettingsViewModel>()
 
-    lateinit var serverStreamReceiveWindow: EditTextPreference
-    lateinit var serverConnectionReceiveWindow: EditTextPreference
-    lateinit var serverDisableMTUDiscovery: MaterialSwitchPreference
+    private lateinit var serverStreamReceiveWindow: EditTextPreference
+    private lateinit var serverConnectionReceiveWindow: EditTextPreference
+    private lateinit var serverDisableMTUDiscovery: MaterialSwitchPreference
+    private lateinit var serverMTlsCategory: PreferenceCategory
 
     override fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -41,6 +43,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         serverStreamReceiveWindow = findPreference(Key.SERVER_STREAM_RECEIVE_WINDOW)!!
         serverConnectionReceiveWindow = findPreference(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!
         serverDisableMTUDiscovery = findPreference(Key.SERVER_DISABLE_MTU_DISCOVERY)!!
+        serverMTlsCategory = findPreference(Key.SERVER_M_TLS_CATEGORY)!!
         fun updateVersion(v: Int) {
             if (v == 2) {
                 authPayload.isVisible = true
@@ -52,6 +55,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 serverStreamReceiveWindow.isVisible = false
                 serverConnectionReceiveWindow.isVisible = false
                 serverDisableMTUDiscovery.isVisible = false
+                serverMTlsCategory.isVisible = true
 
                 authPayload.title = resources.getString(R.string.password)
             } else {
@@ -63,6 +67,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 serverStreamReceiveWindow.isVisible = true
                 serverConnectionReceiveWindow.isVisible = true
                 serverDisableMTUDiscovery.isVisible = true
+                serverMTlsCategory.isVisible = false
 
                 authPayload.title = resources.getString(R.string.hysteria_auth_payload)
             }

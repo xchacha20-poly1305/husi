@@ -58,6 +58,9 @@ public class HysteriaBean extends AbstractBean {
     public Integer authPayloadType;
     public Integer protocol;
 
+    public String mtlsCert;
+    public String mtlsKey;
+
     @Override
     public boolean canMapping() {
         return protocol != PROTOCOL_FAKETCP;
@@ -86,11 +89,14 @@ public class HysteriaBean extends AbstractBean {
 
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
+
+        if (mtlsCert == null) mtlsCert = "";
+        if (mtlsKey == null) mtlsKey = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(3);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -115,6 +121,9 @@ public class HysteriaBean extends AbstractBean {
         output.writeString(echConfig);
 
         output.writeBoolean(disableSNI);
+
+        output.writeString(mtlsCert);
+        output.writeString(mtlsKey);
     }
 
     @Override
@@ -147,6 +156,11 @@ public class HysteriaBean extends AbstractBean {
 
         if (version >= 2) {
             disableSNI = input.readBoolean();
+        }
+
+        if (version >= 3) {
+            mtlsCert = input.readString();
+            mtlsKey = input.readString();
         }
     }
 
