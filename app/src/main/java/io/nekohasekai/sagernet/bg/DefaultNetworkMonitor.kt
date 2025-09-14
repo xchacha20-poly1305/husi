@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
 import android.net.Network
-import android.os.Build
 import libcore.InterfaceUpdateListener
 import io.nekohasekai.sagernet.SagerNet
 import java.net.NetworkInterface
@@ -15,11 +14,7 @@ object DefaultNetworkMonitor {
             defaultNetwork = it
             checkDefaultInterfaceUpdate(it)
         }
-        defaultNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            SagerNet.connectivity.activeNetwork
-        } else {
-            DefaultNetworkListener.get()
-        }
+        defaultNetwork = SagerNet.connectivity.activeNetwork
     }
 
     suspend fun stop() {
