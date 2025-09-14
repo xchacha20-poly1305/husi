@@ -76,9 +76,10 @@ dependencies {
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
 
-    implementation("androidx.camera:camera-view:1.5.0")
-    implementation("androidx.camera:camera-lifecycle:1.5.0")
-    implementation("androidx.camera:camera-camera2:1.5.0")
+    // Since 1.5, camera requires API 23
+    implementation("androidx.camera:camera-view:1.4.2") // doNotUpdate
+    implementation("androidx.camera:camera-lifecycle:1.4.2") // doNotUpdate
+    implementation("androidx.camera:camera-camera2:1.4.2") // doNotUpdate
     implementation("com.google.zxing:core:3.5.3")
 
     implementation("com.jakewharton:process-phoenix:3.0.0")
@@ -91,10 +92,10 @@ dependencies {
     }
     implementation("com.google.guava:guava:33.4.8-android")
 
-    implementation("androidx.room:room-runtime:2.8.0")
+    implementation("androidx.room:room-runtime:2.7.2") // doNotUpdate
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
-    ksp("androidx.room:room-compiler:2.8.0")
-    implementation("androidx.room:room-ktx:2.8.0")
+    ksp("androidx.room:room-compiler:2.7.2") // doNotUpdate
+    implementation("androidx.room:room-ktx:2.7.2") // doNotUpdate
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
 

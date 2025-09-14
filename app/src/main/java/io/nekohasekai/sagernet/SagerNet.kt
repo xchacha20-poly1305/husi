@@ -174,7 +174,7 @@ class SagerNet : Application(),
                     Intent(
                         app, MainActivity::class.java
                     ).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
-                    PendingIntent.FLAG_IMMUTABLE,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
                 )
             }
         }

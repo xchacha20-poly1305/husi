@@ -49,6 +49,21 @@
         "github.com/xchacha20-poly1305/cazilla"
       ],
       "enabled": true
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "androidx.camera:camera-view",
+        "androidx.camera:camera-lifecycle",
+        "androidx.camera:camera-camera2"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "enabled": false
     }
   ]
 }

@@ -89,7 +89,7 @@ fun Project.setupCommon() {
         buildToolsVersion = "36.0.0"
         compileSdk = 36
         defaultConfig {
-            minSdk = 23
+            minSdk = 21
         }
         buildTypes {
             getByName("release") {
