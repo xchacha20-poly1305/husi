@@ -190,7 +190,7 @@ fun JSONObject.parseHysteria1Json(): HysteriaBean {
 fun HysteriaBean.buildHysteriaConfig(
     port: Int,
     shouldProtect: Boolean,
-    cacheFile: (() -> File)?,
+    cacheFile: ((type: String) -> File)?,
 ): String {
     val address = when (val hopPort = HopPort.from(serverPorts)) {
         is HopPort.Single -> serverAddress.wrapIPV6Host() + ":" + hopPort.port
@@ -226,8 +226,8 @@ fun HysteriaBean.buildHysteriaConfig(
                 put("server_name", sni)
             }
             if (alpn.isNotBlank()) put("alpn", alpn)
-            if (certificates.isNotBlank() && cacheFile != null) {
-                val caFile = cacheFile()
+            if (cacheFile != null) certificates.blankAsNull()?.let {
+                val caFile = cacheFile("ca")
                 caFile.writeText(certificates)
                 put("ca", caFile.absolutePath)
             }
@@ -283,10 +283,22 @@ fun HysteriaBean.buildHysteriaConfig(
                 put("sni", sni)
                 put("insecure", allowInsecure)
 
-                if (certificates.isNotBlank() && cacheFile != null) {
-                    val caFile = cacheFile()
-                    caFile.writeText(certificates)
-                    put("ca", caFile.absolutePath)
+                if (cacheFile != null) {
+                    certificates.blankAsNull()?.let {
+                        val caFile = cacheFile("ca")
+                        caFile.writeText(certificates)
+                        put("ca", caFile.absolutePath)
+                    }
+
+                    mtlsCert.blankAsNull()?.let {
+                        if (mtlsKey.isNotBlank()) error("empty mtls key")
+                        val certFile = cacheFile("mtls_cert")
+                        certFile.writeText(it)
+                        val keyFile = cacheFile("mtls_key")
+                        keyFile.writeText(mtlsKey)
+                        put("clientCertificate", certFile.absolutePath)
+                        put("clientKey", keyFile.absolutePath)
+                    }
                 }
             })
 
@@ -340,8 +352,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 is HopPort.Single -> server_port = hopPort.port
                 is HopPort.Ports -> server_ports = hopPort.singStyle()
             }
-            up_mbps = bean.generateUploadSpeed()
-            down_mbps = bean.generateDownloadSpeed()
+            up_mbps = generateUploadSpeed()
+            down_mbps = generateDownloadSpeed()
             obfs = bean.obfuscation
             disable_mtu_discovery = bean.disableMtuDiscovery
             when (bean.authPayloadType) {
@@ -404,6 +416,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
 //                recv_window_conn = bean.connectionReceiveWindow.toLong()
 //            }
             tls = SingBoxOptions.OutboundTLSOptions().apply {
+                enabled = true
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
@@ -411,17 +424,15 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 if (bean.certificates.isNotBlank()) {
                     certificate = listOf(bean.certificates)
                 }
-                if (bean.ech) {
-                    val echConfig =
-                        bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
-                    ech = SingBoxOptions.OutboundECHOptions().apply {
-                        enabled = true
-                        config = echConfig
-                    }
+                if (bean.ech) ech = SingBoxOptions.OutboundECHOptions().apply {
+                    enabled = true
+                    config = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                 }
                 if (bean.allowInsecure) insecure = true
                 if (bean.disableSNI) disable_sni = true
-                enabled = true
+
+                m_tls_cert = bean.mtlsCert.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
+                m_tls_key = bean.mtlsKey.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
             }
         }
 
@@ -471,7 +482,7 @@ const val DEFAULT_SPEED = 10
 
 // Just use for Hy1
 
-fun HysteriaBean.generateDownloadSpeed(): Int = DataStore.downloadSpeed.let {
+private fun generateDownloadSpeed(): Int = DataStore.downloadSpeed.let {
     if (it <= 0) {
         DEFAULT_SPEED
     } else {
@@ -479,7 +490,7 @@ fun HysteriaBean.generateDownloadSpeed(): Int = DataStore.downloadSpeed.let {
     }
 }
 
-fun HysteriaBean.generateUploadSpeed(): Int = DataStore.uploadSpeed.let {
+private fun generateUploadSpeed(): Int = DataStore.uploadSpeed.let {
     if (it <= 0) {
         DEFAULT_SPEED
     } else {

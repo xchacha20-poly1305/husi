@@ -1998,6 +1998,10 @@ public class SingBoxOptions {
 
         public Boolean brutal_debug;
 
+        public List<String> m_tls_cert;
+
+        public List<String> m_tls_key;
+
     }
 
     public static class Outbound_TUICOptions extends Outbound {

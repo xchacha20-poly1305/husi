@@ -711,4 +711,5 @@
     </plurals>
     <string name="action_format">Format</string>
     <string name="action_test_config">Test config</string>
+    <string name="mututal_tls">Mututal TLS</string>
 </resources>

@@ -5,6 +5,7 @@ import (
 	"github.com/sagernet/sing-box/dns"
 
 	"libcore/plugin/http"
+	"libcore/plugin/hysteria2"
 	"libcore/plugin/juicity"
 	"libcore/plugin/plugindns"
 )
@@ -12,6 +13,7 @@ import (
 func registerPluginsOutbound(registry *outbound.Registry) {
 	http.RegisterOutbound(registry)
 	juicity.RegisterOutbound(registry)
+	hysteria2.RegisterOutbound(registry)
 }
 
 func registerPluginsDNSTransport(registry *dns.TransportRegistry) {

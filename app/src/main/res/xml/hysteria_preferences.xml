@@ -99,6 +99,21 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="serverMTlsCategory"
+        app:title="@string/mututal_tls">
+        <EditTextPreference
+            app:icon="@drawable/ic_action_lock"
+            app:key="serverMTlsCert"
+            app:title="@string/certificates"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_vpn_key_24"
+            app:key="serverMTlsKey"
+            app:title="@string/ssh_private_key"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         app:key="serverEchCategory"
         app:title="@string/ech">
         <io.nekohasekai.sagernet.widget.MaterialSwitchPreference

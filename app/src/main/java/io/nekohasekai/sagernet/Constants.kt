@@ -142,6 +142,8 @@ object Key {
     const val SERVER_ENCRYPTION = "serverEncryption"
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
+    const val SERVER_M_TLS_CERT = "serverMTlsCert"
+    const val SERVER_M_TLS_KEY = "serverMTlsKey"
     const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"
     const val SERVER_UTLS_FINGERPRINT = "serverUtlsFingerprint"
     const val SERVER_REALITY_PUBLIC_KEY = "serverRealityPublicKey"
@@ -173,6 +175,7 @@ object Key {
 
     const val SERVER_SECURITY_CATEGORY = "serverSecurityCategory"
     const val SERVER_TLS_CAMOUFLAGE_CATEGORY = "serverTlsCamouflageCategory"
+    const val SERVER_M_TLS_CATEGORY = "serverMTlsCategory"
     const val SERVER_ECH_CATEGORY = "serverEchCategory"
     const val SERVER_WS_CATEGORY = "serverWsCategory"
     const val SERVER_MUX_CATEGORY = "serverMuxCategory"
