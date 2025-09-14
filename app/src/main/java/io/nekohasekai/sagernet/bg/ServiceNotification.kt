@@ -40,8 +40,7 @@ class ServiceNotification(
 ) : BroadcastReceiver() {
     companion object {
         const val notificationId = 1
-        val flags =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+        const val flags = PendingIntent.FLAG_IMMUTABLE
 
         fun genTitle(ent: ProxyEntity): String {
             val gn = if (DataStore.showGroupInNotification)

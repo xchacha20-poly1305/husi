@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
@@ -14,7 +13,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -89,9 +87,9 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
     private fun handleUiState(state: AboutFragmentUiState) {
         val context = requireContext()
-        val shouldRequestBatteryOptimizations = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && !(requireContext().getSystemService(Context.POWER_SERVICE) as PowerManager)
-            .isIgnoringBatteryOptimizations(context.packageName)
+        val shouldRequestBatteryOptimizations =
+            !(requireContext().getSystemService(Context.POWER_SERVICE) as PowerManager)
+                .isIgnoringBatteryOptimizations(context.packageName)
         val cards = ArrayList<AboutCard>(
             2 // App version and SingBox version
                     + state.plugins.size // Plugins
@@ -157,12 +155,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 is AboutCard.AppVersion -> holder.bindAppVersion()
                 is AboutCard.SingBoxVersion -> holder.bindSingBoxVersion()
                 is AboutCard.Plugin -> holder.bindPlugin(item.plugin)
-
-                is AboutCard.BatteryOptimization ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        holder.bindBatteryOptimization(item.launcher)
-                    }
-
+                is AboutCard.BatteryOptimization -> holder.bindBatteryOptimization(item.launcher)
                 is AboutCard.Sponsor -> holder.bindSponsor(snackbar)
             }
         }
@@ -247,7 +240,6 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             }
         }
 
-        @RequiresApi(Build.VERSION_CODES.M)
         fun bindBatteryOptimization(launcher: ActivityResultLauncher<Intent>) {
             binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_running_with_errors_24)
             binding.aboutCardTitle.setText(R.string.ignore_battery_optimizations)
@@ -262,7 +254,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             binding.root.setOnLongClickListener(null)
         }
 
-        fun bindSponsor(snackbar: (CharSequence)->Unit) {
+        fun bindSponsor(snackbar: (CharSequence) -> Unit) {
             binding.aboutCardIcon.setImageResource(R.drawable.ic_baseline_card_giftcard_24)
             binding.aboutCardTitle.setText(R.string.sekai)
             binding.aboutCardDescription.isVisible = false

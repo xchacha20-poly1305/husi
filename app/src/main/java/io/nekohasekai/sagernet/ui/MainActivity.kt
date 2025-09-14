@@ -65,7 +65,6 @@ import io.nekohasekai.sagernet.ktx.zlibDecompress
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.dashboard.DashboardFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
-import io.nekohasekai.sfa.utils.MIUIUtils
 import java.io.File
 
 class MainActivity : ThemedActivity(),
@@ -147,7 +146,7 @@ class MainActivity : ThemedActivity(),
 
         when (intent.action) {
             Intent.ACTION_VIEW -> onNewIntent(intent)
-            Intent.ACTION_PROCESS_TEXT -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // 23
+            Intent.ACTION_PROCESS_TEXT -> {
                 parseProxy(intent.getStringExtra(Intent.EXTRA_PROCESS_TEXT) ?: "")
             }
 
@@ -560,19 +559,11 @@ class MainActivity : ThemedActivity(),
             .setTitle(R.string.location_permission_title)
             .setMessage(R.string.location_permission_description)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                requestFineLocationPermission0()
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
             .setNegativeButton(R.string.no_thanks, null)
             .setCancelable(false)
             .show()
-    }
-
-    private fun requestFineLocationPermission0() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            openPermissionSettings()
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -588,25 +579,6 @@ class MainActivity : ThemedActivity(),
             .setNegativeButton(R.string.no_thanks, null)
             .setCancelable(false)
             .show()
-    }
-
-    private fun openPermissionSettings() {
-        if (MIUIUtils.isMIUI) {
-            try {
-                MIUIUtils.openPermissionSettings(this)
-                return
-            } catch (_: Exception) {
-            }
-        }
-
-        try {
-            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = "package:$packageName".toUri()
-            startActivity(intent)
-        } catch (e: Exception) {
-            Logs.e(e.readableMessage)
-            snackbarInternal(e.readableMessage)
-        }
     }
 
     fun parseProxy(text: String) {

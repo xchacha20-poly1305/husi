@@ -78,12 +78,10 @@ class BaseService {
             when (intent.action) {
                 Action.RELOAD -> service.reload()
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
-                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (SagerNet.power.isDeviceIdleMode) {
-                        if (!DataStore.ignoreDeviceIdle) proxy?.box?.pause()
-                    } else {
-                        proxy?.box?.wake()
-                    }
+                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> if (SagerNet.power.isDeviceIdleMode) {
+                    if (!DataStore.ignoreDeviceIdle) proxy?.box?.pause()
+                } else {
+                    proxy?.box?.wake()
                 }
 
                 Action.RESET_UPSTREAM_CONNECTIONS -> runOnDefaultDispatcher {
@@ -400,9 +398,7 @@ class BaseService {
                     addAction(Intent.ACTION_SHUTDOWN)
                     addAction(Action.CLOSE)
                     // addAction(Action.SWITCH_WAKE_LOCK)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
-                    }
+                    addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
                     addAction(Action.RESET_UPSTREAM_CONNECTIONS)
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
