@@ -84,10 +84,10 @@ abstract class BoxInstance(
                             HysteriaBean.PROTOCOL_VERSION_2 -> initPlugin("hysteria2-plugin")
                         }
                         pluginConfigs[port] =
-                            profile.type to bean.buildHysteriaConfig(port, isVPN) {
+                            profile.type to bean.buildHysteriaConfig(port, isVPN) { type ->
                                 File(
                                     app.cacheDir,
-                                    "hysteria_" + SystemClock.elapsedRealtime() + ".ca",
+                                    "hysteria_" + SystemClock.elapsedRealtime() + ".$type",
                                 ).apply {
                                     parentFile?.mkdirs()
                                     cacheFiles.add(this)

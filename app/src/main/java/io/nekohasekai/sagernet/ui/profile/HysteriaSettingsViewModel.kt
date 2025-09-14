@@ -25,6 +25,8 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
         DataStore.serverConnectionReceiveWindow = connectionReceiveWindow
         DataStore.serverDisableMtuDiscovery = disableMtuDiscovery
         DataStore.serverHopInterval = hopInterval
+        DataStore.serverMTlsCert = mtlsCert
+        DataStore.serverMTlsKey = mtlsKey
         DataStore.serverECH = ech
         DataStore.serverECHConfig = echConfig
     }
@@ -47,6 +49,8 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
         connectionReceiveWindow = DataStore.serverConnectionReceiveWindow
         disableMtuDiscovery = DataStore.serverDisableMtuDiscovery
         hopInterval = DataStore.serverHopInterval
+        mtlsCert = DataStore.serverMTlsCert
+        mtlsKey = DataStore.serverMTlsKey
         ech = DataStore.serverECH
         echConfig = DataStore.serverECHConfig
     }
