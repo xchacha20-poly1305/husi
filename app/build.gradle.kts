@@ -67,7 +67,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.work:work-runtime-ktx:2.10.4")
     implementation("androidx.work:work-multiprocess:2.10.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
 
     implementation("com.google.android.material:material:1.14.0-alpha04")
     implementation("com.google.code.gson:gson:2.13.2")
