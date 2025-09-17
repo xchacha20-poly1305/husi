@@ -3,36 +3,40 @@ package io.nekohasekai.sagernet.ui
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.LayoutRes
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.SubscriptionType
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
-import io.nekohasekai.sagernet.database.ProxyGroup
-import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.SubscriptionBean
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
@@ -40,12 +44,12 @@ import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.UserAgentPreference
 import io.nekohasekai.sagernet.widget.launchOnPosition
 import io.nekohasekai.sagernet.widget.setSummaryForOutbound
+import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 
 class GroupSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
-) : ThemedActivity(resId),
-    OnPreferenceDataStoreChangeListener {
+) : ThemedActivity(resId){
 
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
@@ -66,59 +70,6 @@ class GroupSettingsActivity(
 
     private lateinit var frontProxyPreference: SimpleMenuPreference
     private lateinit var landingProxyPreference: SimpleMenuPreference
-
-    fun ProxyGroup.init() {
-        DataStore.groupName = name ?: ""
-        DataStore.groupType = type
-        DataStore.groupOrder = order
-
-        DataStore.frontProxy = frontProxy
-        DataStore.landingProxy = landingProxy
-        DataStore.frontProxyTmp = if (frontProxy >= 0) OUTBOUND_POSITION else 0
-        DataStore.landingProxyTmp = if (landingProxy >= 0) OUTBOUND_POSITION else 0
-
-        val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
-        DataStore.subscriptionType = subscription.type
-        DataStore.subscriptionToken = subscription.token
-        DataStore.subscriptionLink = subscription.link
-        DataStore.subscriptionForceResolve = subscription.forceResolve
-        DataStore.subscriptionDeduplication = subscription.deduplication
-        DataStore.subscriptionFilterRegex = subscription.filterNotRegex
-        DataStore.subscriptionUpdateWhenConnectedOnly = subscription.updateWhenConnectedOnly
-        DataStore.subscriptionUserAgent = subscription.customUserAgent
-        DataStore.subscriptionAutoUpdate = subscription.autoUpdate
-        DataStore.subscriptionAutoUpdateDelay = subscription.autoUpdateDelay
-    }
-
-    fun ProxyGroup.serialize() {
-        name = DataStore.groupName.takeIf { it.isNotBlank() } ?: "My group"
-        type = DataStore.groupType
-        order = DataStore.groupOrder
-
-        frontProxy = if (DataStore.frontProxyTmp == OUTBOUND_POSITION) DataStore.frontProxy else -1
-        landingProxy =
-            if (DataStore.landingProxyTmp == OUTBOUND_POSITION) DataStore.landingProxy else -1
-
-        val isSubscription = type == GroupType.SUBSCRIPTION
-        if (isSubscription) {
-            subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
-                type = DataStore.subscriptionType
-                token = DataStore.subscriptionToken
-                link = DataStore.subscriptionLink
-                forceResolve = DataStore.subscriptionForceResolve
-                deduplication = DataStore.subscriptionDeduplication
-                filterNotRegex = DataStore.subscriptionFilterRegex
-                updateWhenConnectedOnly = DataStore.subscriptionUpdateWhenConnectedOnly
-                customUserAgent = DataStore.subscriptionUserAgent
-                autoUpdate = DataStore.subscriptionAutoUpdate
-                autoUpdateDelay = DataStore.subscriptionAutoUpdateDelay
-            }
-        }
-    }
-
-    private fun needSave(): Boolean {
-        return DataStore.dirty
-    }
 
     fun PreferenceFragmentCompat.createPreferences(
         savedInstanceState: Bundle?,
@@ -200,107 +151,70 @@ class GroupSettingsActivity(
         private const val OUTBOUND_POSITION = 1
     }
 
+    private val viewModel by viewModels<GroupSettingsActivityViewModel>()
+
     @SuppressLint("CommitTransaction")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.group_settings)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
+        val toolbar = findViewById<ComposeView>(R.id.toolbar)
+        toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.group_settings)) },
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Close,
+                        ) {
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete),
+                        ) {
+                            if (viewModel.isNew) {
+                                finish()
+                            } else MaterialAlertDialogBuilder(this@GroupSettingsActivity)
+                                .setTitle(R.string.delete_group_prompt)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    viewModel.delete()
+                                    finish()
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.apply),
+                            onClick = ::saveAndExit,
+                        )
+                    },
+                )
+            }
         }
 
         if (savedInstanceState == null) {
             val editingId = intent.getLongExtra(EXTRA_GROUP_ID, 0L)
-            DataStore.editingId = editingId
-            runOnDefaultDispatcher {
-                if (editingId == 0L) {
-                    ProxyGroup().init()
-                } else {
-                    val entity = SagerDatabase.groupDao.getById(editingId)
-                    if (entity == null) {
-                        onMainDispatcher {
-                            finish()
-                        }
-                        return@runOnDefaultDispatcher
-                    }
-                    entity.init()
-                }
-
-                onMainDispatcher {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.settings, MyPreferenceFragmentCompat())
-                        .commit()
-
-                    DataStore.dirty = false
-                    DataStore.profileCacheStore.registerChangeListener(this@GroupSettingsActivity)
-                }
-            }
-
+            viewModel.initialize(editingId)
+            DataStore.profileCacheStore.registerChangeListener(viewModel)
         }
 
+        onBackPressedCallback.isEnabled = viewModel.dirty.value
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.dirty.collect {
+                    onBackPressedCallback.isEnabled = it
+                }
+            }
+        }
     }
 
-    suspend fun saveAndExit() {
-
-        val editingId = DataStore.editingId
-        if (editingId == 0L) {
-            GroupManager.createGroup(ProxyGroup().apply { serialize() })
-        } else if (needSave()) {
-            val entity = SagerDatabase.groupDao.getById(DataStore.editingId)
-            if (entity == null) {
-                finish()
-                return
-            }
-            val keepUserInfo = (entity.type == GroupType.SUBSCRIPTION &&
-                    DataStore.groupType == GroupType.SUBSCRIPTION &&
-                    entity.subscription?.link == DataStore.subscriptionLink)
-            if (!keepUserInfo) {
-                entity.subscription?.apply {
-                    bytesUsed = -1L
-                    bytesRemaining = -1L
-                    expiryDate = -1L
-                }
-            }
-            GroupManager.updateGroup(entity.apply { serialize() })
-        }
-
+    private fun saveAndExit() {
+        setResult(RESULT_OK)
         finish()
-
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.profile_config_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_delete -> {
-            if (DataStore.editingId == 0L) {
-                finish()
-            } else MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.delete_group_prompt)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    runOnDefaultDispatcher {
-                        GroupManager.deleteGroup(DataStore.editingId)
-                    }
-                    finish()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-            true
-        }
-
-        R.id.action_apply -> {
-            runOnDefaultDispatcher {
-                saveAndExit()
-            }
-            true
-        }
-
-        else -> false
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -309,18 +223,11 @@ class GroupSettingsActivity(
     }
 
     override fun onDestroy() {
-        DataStore.profileCacheStore.unregisterChangeListener(this)
+        DataStore.profileCacheStore.unregisterChangeListener(viewModel)
         super.onDestroy()
     }
 
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        if (key != Key.PROFILE_DIRTY) {
-            DataStore.dirty = true
-            onBackPressedCallback.isEnabled = true
-        }
-    }
-
-    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
+    private class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
 
         val activity: GroupSettingsActivity
             get() = requireActivity() as GroupSettingsActivity
@@ -358,7 +265,7 @@ class GroupSettingsActivity(
         }
     }
 
-    val selectProfileForAddFront = registerForActivityResult(
+    private val selectProfileForAddFront = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == RESULT_OK) runOnDefaultDispatcher {
@@ -373,7 +280,7 @@ class GroupSettingsActivity(
         }
     }
 
-    val selectProfileForAddLanding = registerForActivityResult(
+    private val selectProfileForAddLanding = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == RESULT_OK) runOnDefaultDispatcher {

@@ -88,7 +88,6 @@ internal enum class TestType {
 }
 
 internal sealed class ConfigurationChildEvent(open val group: Long) {
-    class UpdateQuery(override val group: Long, val query: String?) : ConfigurationChildEvent(group)
     class ScrollToProxy(override val group: Long, val id: Long) : ConfigurationChildEvent(group)
     class RequestFocusIfNotHave(override val group: Long) : ConfigurationChildEvent(group)
     class ClearTrafficStatistic(override val group: Long) : ConfigurationChildEvent(group)
@@ -96,6 +95,7 @@ internal sealed class ConfigurationChildEvent(open val group: Long) {
     class DeleteUnavailable(override val group: Long) : ConfigurationChildEvent(group)
     class RemoveDuplicate(override val group: Long) : ConfigurationChildEvent(group)
     class OnProfileSelect(override val group: Long, val new: Long) : ConfigurationChildEvent(group)
+    class UpdateOrder(override val group: Long, val order: Int) : ConfigurationChildEvent(group)
 }
 
 
@@ -133,6 +133,13 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     var titleRes: Int = 0
 
     private var testJob: Job? = null
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    fun setSearchQuery(query: String) = viewModelScope.launch {
+        _searchQuery.value = query
+    }
 
     @OptIn(ExperimentalAtomicApi::class, ExperimentalCoroutinesApi::class)
     fun doTest(group: Long, type: TestType) {
@@ -227,7 +234,6 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
             }
         }
     }
-
 
     fun cancelTest() {
         testJob?.cancel()

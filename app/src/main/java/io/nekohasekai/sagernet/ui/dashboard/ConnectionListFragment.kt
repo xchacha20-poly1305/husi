@@ -33,7 +33,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
     private lateinit var binding: LayoutDashboardListBinding
     private val viewModel by viewModels<ConnectionListFragmentViewModel>()
-    private val dashboardViewModel by viewModels<DashboardFragmentViewModel>({ requireParentFragment() })
+    private val parentViewModel by viewModels<DashboardFragmentViewModel>({ requireParentFragment() })
     private lateinit var adapter: ConnectionAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -64,30 +64,7 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                dashboardViewModel.uiState.collect {
-                    if (it.isPausing) {
-                        viewModel.stop()
-                    } else {
-                        viewModel.initialize((requireActivity() as MainActivity).connection.service!!)
-                    }
-                }
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                dashboardViewModel.connectionState.collect { connectionState ->
-                    viewModel.setDescending(connectionState.isDescending)
-                    viewModel.updateSortMode(connectionState.sortMode)
-                    viewModel.setQueryOptions(connectionState.queryOptions)
-                }
-            }
-        }
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                dashboardViewModel.searchQuery.collect { query ->
-                    viewModel.query = query
-                }
+                parentViewModel.toolbarState.collect(::handleParentState)
             }
         }
     }
@@ -103,6 +80,19 @@ class ConnectionListFragment : Fragment(R.layout.layout_dashboard_list) {
         binding.connectionNotFound.isVisible = false
         binding.recycleView.isVisible = true
         adapter.submitList(state.connections)
+    }
+
+    private fun handleParentState(state: ToolbarState) {
+        if (state.isPause) {
+            viewModel.stop()
+        } else {
+            if (viewModel.isStop) {
+                viewModel.initialize((requireActivity() as MainActivity).connection.service!!)
+            }
+        }
+        viewModel.setDescending(state.isDescending)
+        viewModel.updateSortMode(state.sortMode)
+        viewModel.setQueryOptions(state.queryOptions)
     }
 
     override fun onPause() {

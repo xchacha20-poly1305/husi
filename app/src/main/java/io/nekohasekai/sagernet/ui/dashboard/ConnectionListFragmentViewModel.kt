@@ -69,6 +69,8 @@ internal class ConnectionListFragmentViewModel : ViewModel() {
         _uiState.emit(_uiState.value.copy(connections = connections.toList()))
     }
 
+    val isStop = job == null
+
     fun stop() {
         job?.cancel()
         job = null

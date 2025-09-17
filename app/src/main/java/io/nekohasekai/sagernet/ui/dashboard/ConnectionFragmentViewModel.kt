@@ -16,14 +16,14 @@ internal data class ConnectionFragmentState(
 )
 
 internal class ConnectionFragmentViewModel : ViewModel() {
-    private val _state = MutableStateFlow(ConnectionFragmentState(Connection()))
-    val state = _state.asStateFlow()
+    private val _uiState = MutableStateFlow(ConnectionFragmentState(Connection()))
+    val uiState = _uiState.asStateFlow()
 
     private var job: Job? = null
 
     fun initialize(conn: Connection?, queryConnections: () -> List<Connection>?) {
         conn?.let {
-            _state.value = ConnectionFragmentState(it)
+            _uiState.value = ConnectionFragmentState(it)
         }
 
         job = viewModelScope.launch {
@@ -47,8 +47,8 @@ internal class ConnectionFragmentViewModel : ViewModel() {
             return
         }
         for (connection in connections) {
-            if (connection.uuid == _state.value.connection.uuid) {
-                _state.emit(_state.value.copy(connection = connection))
+            if (connection.uuid == _uiState.value.connection.uuid) {
+                _uiState.emit(_uiState.value.copy(connection = connection))
                 break
             }
         }

@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -16,8 +18,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.databinding.LayoutToolsRuleSetMatchBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
 import io.nekohasekai.sagernet.ktx.alertAndLog
@@ -49,12 +53,16 @@ class RuleSetMatchActivity : ThemedActivity() {
             insets
         }
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.rule_set_match)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                SimpleTopAppBar(
+                    title = R.string.rule_set_match,
+                    navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                ) {
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
         }
 
         binding.startMatch.setOnClickListener {

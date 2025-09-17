@@ -10,7 +10,18 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.appcompat.widget.PopupMenu
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Update
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
@@ -26,6 +37,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
@@ -52,8 +64,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class GroupFragment : ToolbarFragment(R.layout.layout_group),
-    Toolbar.OnMenuItemClickListener {
+@OptIn(ExperimentalMaterial3Api::class)
+class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
 
     private lateinit var binding: LayoutGroupBinding
     private val viewModel: GroupFragmentViewModel by viewModels()
@@ -63,11 +75,51 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        toolbar.setTitle(R.string.menu_group)
-        toolbar.inflateMenu(R.menu.add_group_menu)
-        toolbar.setOnMenuItemClickListener(this)
-
         binding = LayoutGroupBinding.bind(view)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.menu_group)) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            (requireActivity() as MainActivity).binding
+                                .drawerLayout.openDrawer(GravityCompat.START)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = stringResource(R.string.menu),
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(R.string.confirm)
+                                .setMessage(R.string.update_all_subscription)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    viewModel.doUpdateAll()
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Update,
+                                contentDescription = stringResource(R.string.update_all_subscription),
+                            )
+                        }
+                        IconButton(onClick = {
+                            startActivity(Intent(context, GroupSettingsActivity::class.java))
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                                contentDescription = stringResource(R.string.group_create),
+                            )
+                        }
+                    },
+                )
+            }
+        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.groupList) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -153,26 +205,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         when (event) {
             GroupEvents.FlushUndoManager -> undoManager.flush()
         }
-    }
-
-    override fun onMenuItemClick(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_new_group -> {
-                startActivity(Intent(context, GroupSettingsActivity::class.java))
-            }
-
-            R.id.action_update_all -> {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.confirm)
-                    .setMessage(R.string.update_all_subscription)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        viewModel.doUpdateAll()
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-        }
-        return true
     }
 
     private val exportProfiles =

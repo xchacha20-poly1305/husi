@@ -5,33 +5,38 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Cached
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutToolsVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 class VPNScannerActivity : ThemedActivity() {
 
     private lateinit var binding: LayoutToolsVpnScannerBinding
-    private lateinit var toolbar: Toolbar
-    private var refresh: MenuItem? = null
     private val viewModel by viewModels<VPNScannerActivityViewModel>()
     private lateinit var adapter: VpnAppAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,12 +58,38 @@ class VPNScannerActivity : ThemedActivity() {
             insets
         }
 
-        toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.scan_vpn_app)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val isScanning = uiState.progress != null
+                TopAppBar(
+                    title = { Text(stringResource(R.string.scan_vpn_app)) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            onBackPressedDispatcher.onBackPressed()
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                viewModel.scanVPN()
+                            },
+                            enabled = !isScanning,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Cached,
+                                contentDescription = stringResource(R.string.refresh),
+                            )
+                        }
+                    },
+                )
+            }
         }
 
         binding.scanVPNResult.adapter = VpnAppAdapter().also {
@@ -72,51 +103,15 @@ class VPNScannerActivity : ThemedActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.refresh_menu, menu)
-        refresh = menu.findItem(R.id.action_refresh)
-        handleUIState(viewModel.uiState.value)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_refresh -> {
-            viewModel.scanVPN()
-            true
-        }
-
-        else -> super.onOptionsItemSelected(item)
-    }
-
     private fun handleUIState(state: VPNScannerUiState) {
-        when (state) {
-            VPNScannerUiState.Idle -> {
-                binding.scanVPNProgress.isVisible = false
-                refresh?.isVisible = false
-                viewModel.scanVPN()
-            }
-
-            is VPNScannerUiState.Doing -> {
-                binding.scanVPNProgress.isVisible = true
-                refresh?.isVisible = false
-
-                if (state.all > 0) {
-                    binding.scanVPNProgress.setProgressCompat(
-                        ((state.appInfos.size + 1).toDouble() / state.all.toDouble() * 100).roundToInt(),
-                        true,
-                    )
-                }
-                adapter.submitList(state.appInfos) {
-                    // submitList is not synchronous
-                    binding.scanVPNResult.scrollToPosition(state.appInfos.size - 1)
-                }
-            }
-
-            is VPNScannerUiState.Finished -> {
-                binding.scanVPNProgress.isVisible = false
-                refresh?.isVisible = true
-                adapter.submitList(state.appInfos)
-            }
+        if (state.progress == null) {
+            binding.scanVPNProgress.isVisible = false
+        } else {
+            binding.scanVPNProgress.isVisible = true
+            binding.scanVPNProgress.setProgressCompat(state.progress, true)
+        }
+        adapter.submitList(state.appInfos) {
+            binding.scanVPNResult.scrollToPosition(state.appInfos.size - 1)
         }
     }
 
@@ -126,7 +121,7 @@ class VPNScannerActivity : ThemedActivity() {
                 ViewVpnAppItemBinding.inflate(
                     LayoutInflater.from(parent.context),
                     parent,
-                    false
+                    false,
                 )
             )
         }
@@ -137,18 +132,16 @@ class VPNScannerActivity : ThemedActivity() {
     }
 
     private class AppInfoDiffCallback : DiffUtil.ItemCallback<AppInfo>() {
-        override fun areItemsTheSame(oldItem: AppInfo, newItem: AppInfo): Boolean {
-            return oldItem.packageInfo.packageName == newItem.packageInfo.packageName
+        override fun areItemsTheSame(old: AppInfo, new: AppInfo): Boolean {
+            return old.packageInfo.packageName == new.packageInfo.packageName
         }
 
-        override fun areContentsTheSame(oldItem: AppInfo, newItem: AppInfo): Boolean {
+        override fun areContentsTheSame(old: AppInfo, new: AppInfo): Boolean {
             return true
         }
     }
 
-    private class Holder(
-        private val binding: ViewVpnAppItemBinding
-    ) :
+    private class Holder(private val binding: ViewVpnAppItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(info: AppInfo) {

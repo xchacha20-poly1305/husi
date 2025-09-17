@@ -23,10 +23,10 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import kotlin.coroutines.cancellation.CancellationException
 
-internal sealed interface LogcatUpdateEvent {
-    data class Appended(val newLogs: List<String>) : LogcatUpdateEvent
-    object Cleared : LogcatUpdateEvent
-    data class Error(val message: String) : LogcatUpdateEvent
+internal sealed interface LogcatUiEvent {
+    data class Appended(val newLogs: List<String>) : LogcatUiEvent
+    object Cleared : LogcatUiEvent
+    data class Error(val message: String) : LogcatUiEvent
 }
 
 internal class LogcatFragmentViewModel : ViewModel() {
@@ -37,12 +37,12 @@ internal class LogcatFragmentViewModel : ViewModel() {
     private val logFile = SendLog.logFile
 
     private val logList = mutableListOf<String>()
-    private val _updateEvents = MutableSharedFlow<LogcatUpdateEvent>()
+    private val _uiEvent = MutableSharedFlow<LogcatUiEvent>()
     private val _pinLog = MutableStateFlow(false)
     private var lastPosition = 0L
 
     val currentLogs: List<String> get() = logList
-    val updateEvents = _updateEvents.asSharedFlow()
+    val uiEvent = _uiEvent.asSharedFlow()
     val pinLog = _pinLog.asStateFlow()
 
     private val fileChange = Channel<Unit>(Channel.CONFLATED)
@@ -78,10 +78,10 @@ internal class LogcatFragmentViewModel : ViewModel() {
                 Libcore.logClear()
                 Runtime.getRuntime().exec("/system/bin/logcat -c").waitFor()
 
-                _updateEvents.emit(LogcatUpdateEvent.Cleared)
+                _uiEvent.emit(LogcatUiEvent.Cleared)
             } catch (e: Exception) {
                 Logs.e(e)
-                _updateEvents.emit(LogcatUpdateEvent.Error(e.readableMessage))
+                _uiEvent.emit(LogcatUiEvent.Error(e.readableMessage))
             }
         }
     }
@@ -98,7 +98,7 @@ internal class LogcatFragmentViewModel : ViewModel() {
             }
             logList.addAll(initialLogs)
             lastPosition = logFile.length()
-            _updateEvents.emit(LogcatUpdateEvent.Appended(initialLogs))
+            _uiEvent.emit(LogcatUiEvent.Appended(initialLogs))
 
             fileObserver.startWatching()
             updateLogOnChange(RandomAccessFile(logFile, "r"))
@@ -132,7 +132,7 @@ internal class LogcatFragmentViewModel : ViewModel() {
 
                     if (lines.isNotEmpty()) {
                         logList.addAll(lines)
-                        _updateEvents.emit(LogcatUpdateEvent.Appended(lines))
+                        _uiEvent.emit(LogcatUiEvent.Appended(lines))
                     }
                 }
                 lastPosition = file.filePointer
@@ -143,7 +143,7 @@ internal class LogcatFragmentViewModel : ViewModel() {
             // Coroutine cancelled
         } catch (e: Exception) {
             Logs.w(e)
-            _updateEvents.emit(LogcatUpdateEvent.Error(e.readableMessage))
+            _uiEvent.emit(LogcatUiEvent.Error(e.readableMessage))
         } finally {
             file.closeQuietly()
         }
