@@ -631,7 +631,7 @@
     <string name="can_not_be_empty">不可為空</string>
     <string name="juicity_provider">Juicity 提供者</string>
     <plurals name="delete_confirm_detail">
-        <item quantity="other">您確定要移除此設定檔嗎？\n\n%s</item>
+        <item quantity="other">您確定要移除以下設定檔嗎？\n\n%s</item>
     </plurals>
     <string name="action_format">格式化</string>
     <string name="action_test_config">測試設定</string>
