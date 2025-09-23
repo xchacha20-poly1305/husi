@@ -823,7 +823,7 @@ class ConfigurationFragment : OnKeyDownFragment {
                                     lifecycleScope.launch {
                                         viewModel.emitChildEvent(
                                             ConfigurationChildEvent.RemoveDuplicate(
-                                                DataStore.selectedGroup
+                                                DataStore.selectedGroup,
                                             )
                                         )
                                     }

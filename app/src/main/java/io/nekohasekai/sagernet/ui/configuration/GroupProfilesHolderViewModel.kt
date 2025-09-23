@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.fmt.Deduplication
 import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
@@ -231,9 +232,11 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     fun removeDuplicate() = runOnDefaultDispatcher {
-        val uniqueProxies = hashSetOf<ProxyEntity>()
+        val uniqueProxies = LinkedHashSet<Deduplication>()
         val toClear = SagerDatabase.proxyDao.getByGroup(group.id).mapNotNull {
-            if (uniqueProxies.add(it)) {
+            val bean = it.requireBean()
+            val deduplication = Deduplication(bean, bean.javaClass.name)
+            if (uniqueProxies.add(deduplication)) {
                 null
             } else {
                 it
