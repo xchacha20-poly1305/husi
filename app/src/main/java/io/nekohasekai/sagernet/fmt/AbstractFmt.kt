@@ -206,7 +206,7 @@ inline fun <reified T : Any> listable(value: Any?): MutableList<T>? = when (valu
     is JSONArray -> {
         val length = value.length()
         val list = ArrayList<T>(length)
-        value.forEach { _, element ->
+        value.forEach { element ->
             (element as? T)?.let { list.add(it) }
         }
         list

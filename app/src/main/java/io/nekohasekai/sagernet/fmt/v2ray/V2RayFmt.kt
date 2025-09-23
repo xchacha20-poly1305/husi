@@ -764,8 +764,8 @@ fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
 
             is JSONArray -> {
                 val list = ArrayList<String>(entryValue.length())
-                entryValue.forEach { _, item ->
-                    list.add(item.toString())
+                entryValue.forEach {
+                    list.add(it.toString())
                 }
                 list
             }

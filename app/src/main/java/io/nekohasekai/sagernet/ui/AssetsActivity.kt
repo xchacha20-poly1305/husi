@@ -170,7 +170,6 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 undoManager.remove(index to file)
             }
 
-
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -391,7 +390,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 binding.edit.isVisible = true
                 binding.edit.setOnClickListener {
                     importUrl.launch(
-                        Intent(this@AssetsActivity, AssetEditActivity::class.java)
+                        Intent(binding.edit.context, AssetEditActivity::class.java)
                             .putExtra(AssetEditActivity.EXTRA_ASSET_NAME, file.name)
                     )
                 }
