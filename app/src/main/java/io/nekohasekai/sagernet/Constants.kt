@@ -40,6 +40,7 @@ object Key {
     const val PROXY_APPS = "proxyApps"
     const val UPDATE_PROXY_APPS_WHEN_INSTALL = "updateProxyAppsWhenInstall"
     const val BYPASS_MODE = "bypassMode"
+
     // const val INDIVIDUAL = "individual"
     const val PACKAGES = "packages"
     const val METERED_NETWORK = "meteredNetwork"
@@ -359,6 +360,17 @@ object TrafficSortMode {
     const val UPLOAD = 4
     const val DOWNLOAD = 5
     const val MATCHED_RULE = 6
+
+    val values
+        get() = listOf(
+            START,
+            INBOUND,
+            SRC,
+            DST,
+            UPLOAD,
+            DOWNLOAD,
+            MATCHED_RULE,
+        )
 }
 
 object RuleProvider {

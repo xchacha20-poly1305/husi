@@ -13,6 +13,7 @@ import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -34,6 +35,7 @@ import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout_chain_settings) {
 
     override val viewModel by viewModels<ChainSettingsViewModel>()
@@ -48,11 +50,12 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
     private val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
     private lateinit var configurationAdapter: ProxiesAdapter
 
+    override val title = R.string.chain_settings
+
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        supportActionBar!!.setTitle(R.string.chain_settings)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()

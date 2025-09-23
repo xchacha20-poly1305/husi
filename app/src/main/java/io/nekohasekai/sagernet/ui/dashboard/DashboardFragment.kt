@@ -1,36 +1,63 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CleaningServices
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.TrafficSortMode
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.databinding.LayoutDashboardBinding
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ToolbarFragment
-import io.nekohasekai.sagernet.ktx.setOnFocusCancel
+import io.nekohasekai.sagernet.ui.OnKeyDownFragment
 import kotlinx.coroutines.launch
-import libcore.Libcore
 
-class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
-    Toolbar.OnMenuItemClickListener,
-    SearchView.OnQueryTextListener {
+class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
 
     companion object {
         const val POSITION_STATUS = 0
@@ -42,37 +69,203 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
     private val viewModel by viewModels<DashboardFragmentViewModel>()
     private lateinit var adapter: TrafficAdapter
 
-    private val menuTrafficSearch get() = toolbar.menu.findItem(R.id.action_traffic_search)!!
-    private val menuTrafficPause get() = toolbar.menu.findItem(R.id.action_traffic_pause)!!
-
-    private val menuSort get() = toolbar.menu.findItem(R.id.action_sort)!!
-    private val menuSortMethod get() = toolbar.menu.findItem(R.id.action_sort_method)!!
-
-    private val menuSortAscending get() = toolbar.menu.findItem(R.id.action_sort_ascending)!!
-    private val menuSortDescending get() = toolbar.menu.findItem(R.id.action_sort_descending)!!
-
-    private val menuSortTime get() = toolbar.menu.findItem(R.id.action_sort_time)!!
-    private val menuSortInbound get() = toolbar.menu.findItem(R.id.action_sort_inbound)!!
-    private val menuSortSource get() = toolbar.menu.findItem(R.id.action_sort_source)!!
-    private val menuSortDestination get() = toolbar.menu.findItem(R.id.action_sort_destination)!!
-    private val menuSortUpload get() = toolbar.menu.findItem(R.id.action_sort_upload)!!
-    private val menuSortDownload get() = toolbar.menu.findItem(R.id.action_sort_download)!!
-    private val menuSortRule get() = toolbar.menu.findItem(R.id.action_sort_rule)!!
-
-    private val menuConnectionsStatusActive get() = toolbar.menu.findItem(R.id.action_connections_status_active)!!
-    private val menuConnectionsStatusClosed get() = toolbar.menu.findItem(R.id.action_connections_status_closed)!!
-
-    // private val menuResetNetwork get() = toolbar.menu.findItem(R.id.action_reset_network)!!
-
-    private val searchView get() = menuTrafficSearch.actionView as SearchView
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = LayoutDashboardBinding.bind(view)
-        toolbar.setTitle(R.string.menu_dashboard)
-        toolbar.inflateMenu(R.menu.dashboard_menu)
-        toolbar.setOnMenuItemClickListener(this)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                var isSearchActive by remember { mutableStateOf(false) }
+                val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
+                val focusManager = LocalFocusManager.current
+                var isOverflowMenuExpanded by remember { mutableStateOf(false) }
+                TopAppBar(
+                    title = {
+                        if (isSearchActive) {
+                            OutlinedTextField(
+                                value = toolbarState.searchQuery,
+                                onValueChange = { viewModel.setSearchQuery(it) },
+                                placeholder = { Text(stringResource(android.R.string.search_go)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                                colors = TextFieldDefaults.colors(
+                                    focusedIndicatorColor =
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    unfocusedIndicatorColor =
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                    unfocusedContainerColor =
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0f),
+                                    focusedContainerColor =
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0f),
+                                )
+                            )
+                        } else {
+                            Text(stringResource(R.string.menu_dashboard))
+                        }
+                    },
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.menu),
+                        ) {
+                            (requireActivity() as MainActivity).binding
+                                .drawerLayout.openDrawer(GravityCompat.START)
+                        }
+                    },
+                    actions = {
+                        if (isSearchActive) IconButton(onClick = {
+                            isSearchActive = false
+                            viewModel.setSearchQuery("")
+                        }) {
+                            Icon(Icons.Filled.Close, stringResource(R.string.close))
+                        } else {
+                            SimpleIconButton(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = stringResource(android.R.string.search_go),
+                            ) {
+                                isSearchActive = true
+                            }
+                            SimpleIconButton(
+                                imageVector = if (toolbarState.isPause) {
+                                    Icons.Filled.PlayArrow
+                                } else {
+                                    Icons.Filled.Pause
+                                },
+                                contentDescription = stringResource(R.string.pause),
+                            ) {
+                                viewModel.togglePausing()
+                            }
+                            SimpleIconButton(
+                                imageVector = Icons.Filled.CleaningServices,
+                                contentDescription = stringResource(R.string.reset_connections),
+                            ) {
+                                val size = getFragment<ConnectionListFragment>(POSITION_CONNECTIONS)
+                                    ?.connectionSize() ?: 0
+                                MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(R.string.reset_connections)
+                                    .setMessage(
+                                        getString(R.string.ensure_close_all, size.toString())
+                                    )
+                                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                                        lifecycleScope.launch {
+                                            (requireActivity() as? MainActivity)?.connection?.service?.resetNetwork()
+                                        }
+                                        snackbar(R.string.have_reset_network).show()
+                                    }
+                                    .setNegativeButton(R.string.no_thanks, null)
+                                    .show()
+                            }
+
+                            Box {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = null,
+                                ) {
+                                    isOverflowMenuExpanded = true
+                                }
+
+                                DropdownMenu(
+                                    expanded = isOverflowMenuExpanded,
+                                    onDismissRequest = { isOverflowMenuExpanded = false }
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.sort),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp,
+                                        ),
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.ascending)) },
+                                        onClick = {
+                                            viewModel.setSortDescending(false)
+                                            isOverflowMenuExpanded = false
+                                        },
+                                        leadingIcon = {
+                                            RadioButton(
+                                                selected = !toolbarState.isDescending,
+                                                onClick = null,
+                                            )
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.descending)) },
+                                        onClick = {
+                                            viewModel.setSortDescending(true)
+                                            isOverflowMenuExpanded = false
+                                        },
+                                        leadingIcon = {
+                                            RadioButton(
+                                                selected = toolbarState.isDescending,
+                                                onClick = null,
+                                            )
+                                        }
+                                    )
+
+                                    HorizontalDivider()
+
+                                    Text(
+                                        stringResource(R.string.sort_mode),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp,
+                                        ),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+
+                                    for (sortMode in TrafficSortMode.values) {
+                                        SortItem(
+                                            isSelected = toolbarState.sortMode == sortMode,
+                                            mode = sortMode,
+                                        ) {
+                                            viewModel.setSortMode(sortMode)
+                                        }
+                                    }
+
+                                    HorizontalDivider()
+
+                                    Text(
+                                        stringResource(R.string.connection_status),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp,
+                                        ),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_status_active)) },
+                                        onClick = {
+                                            viewModel.queryActivate = !toolbarState.showActivate
+                                        },
+                                        leadingIcon = {
+                                            Checkbox(
+                                                checked = toolbarState.showActivate,
+                                                onCheckedChange = null,
+                                            )
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_status_closed)) },
+                                        onClick = {
+                                            viewModel.queryClosed = !toolbarState.showClosed
+                                        },
+                                        leadingIcon = {
+                                            Checkbox(
+                                                checked = toolbarState.showClosed,
+                                                onCheckedChange = null,
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    },
+                )
+            }
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.dashboardTab) { v, insets ->
             val bars = insets.getInsets(
@@ -111,171 +304,35 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 true
             }
         }.attach()
-
-        searchView.apply {
-            setOnQueryTextListener(this@DashboardFragment)
-            maxWidth = Int.MAX_VALUE
-            setOnFocusCancel()
-            isVisible = true
-        }
-
-        fun updateMenu(isConnectionUI: Boolean) {
-            menuTrafficSearch.isVisible = isConnectionUI
-            menuTrafficPause.isVisible = isConnectionUI
-            menuSort.isVisible = isConnectionUI
-            menuSortMethod.isVisible = isConnectionUI
-        }
-
-        binding.dashboardTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                viewModel.onTabSelected(tab.position)
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab) {}
-            override fun onTabReselected(tab: TabLayout.Tab) {}
-        })
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect {
-                    if (it.isPausing) {
-                        menuTrafficPause.setIcon(R.drawable.baseline_play_24)
-                    } else {
-                        menuTrafficPause.setIcon(R.drawable.baseline_pause_24)
-                    }
-                    updateMenu(it.isConnectionUiVisible)
-                }
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.connectionState.collect(::handleConnectionState)
-            }
-        }
-
-        viewModel.onTabSelected(binding.dashboardTab.selectedTabPosition)
-    }
-
-    private fun handleConnectionState(state: ConnectionState) {
-        menuSortDescending.isChecked = state.isDescending
-        menuSortAscending.isChecked = !state.isDescending
-
-        menuSortTime.isChecked = state.sortMode == TrafficSortMode.START
-        menuSortInbound.isChecked = state.sortMode == TrafficSortMode.INBOUND
-        menuSortSource.isChecked = state.sortMode == TrafficSortMode.SRC
-        menuSortDestination.isChecked = state.sortMode == TrafficSortMode.DST
-        menuSortUpload.isChecked = state.sortMode == TrafficSortMode.UPLOAD
-        menuSortDownload.isChecked = state.sortMode == TrafficSortMode.DOWNLOAD
-        menuSortRule.isChecked = state.sortMode == TrafficSortMode.MATCHED_RULE
-
-        val queryOptions = state.queryOptions
-        menuConnectionsStatusActive.isChecked = queryOptions and Libcore.ShowTrackerActively != 0
-        menuConnectionsStatusClosed.isChecked = queryOptions and Libcore.ShowTrackerClosed != 0
-    }
-
-    override fun onMenuItemClick(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_reset_network -> {
-                val fragment = getFragment<ConnectionListFragment>(POSITION_CONNECTIONS) ?: return false
-                val size = fragment.connectionSize()
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.reset_connections)
-                    .setMessage(getString(R.string.ensure_close_all, size.toString()))
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        lifecycleScope.launch {
-                            (requireActivity() as? MainActivity)?.connection?.service?.resetNetwork()
-                        }
-                        snackbar(R.string.have_reset_network).show()
-                    }
-                    .setNegativeButton(R.string.no_thanks, null)
-                    .show()
-                true
-            }
-
-            R.id.action_traffic_pause -> {
-                viewModel.reversePausing()
-                true
-            }
-
-            // Sort
-
-            R.id.action_sort_ascending -> {
-                item.isChecked = true
-                viewModel.setSortDescending(false)
-                true
-            }
-
-            R.id.action_sort_descending -> {
-                item.isChecked = true
-                viewModel.setSortDescending(true)
-                true
-            }
-
-            R.id.action_sort_time -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.START)
-                true
-            }
-
-            R.id.action_sort_inbound -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.INBOUND)
-                true
-            }
-
-            R.id.action_sort_source -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.SRC)
-                true
-            }
-
-            R.id.action_sort_destination -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.DST)
-                true
-            }
-
-            R.id.action_sort_upload -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.UPLOAD)
-                true
-            }
-
-            R.id.action_sort_download -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.DOWNLOAD)
-                true
-            }
-
-            R.id.action_sort_rule -> {
-                item.isChecked = true
-                viewModel.setSortMode(TrafficSortMode.MATCHED_RULE)
-                true
-            }
-
-            // Connection status
-
-            R.id.action_connections_status_active -> {
-                val queryActivate = !item.isChecked
-                item.isChecked = queryActivate
-                viewModel.queryActivate = queryActivate
-                true
-            }
-
-            R.id.action_connections_status_closed -> {
-                val queryClosed = !item.isChecked
-                item.isChecked = queryClosed
-                viewModel.queryClosed = queryClosed
-                true
-            }
-
-            else -> false
-        }
     }
 
     override fun onDestroyView() {
-        toolbar.setOnMenuItemClickListener(null)
+        viewModel.setSearchQuery("")
         super.onDestroyView()
+    }
+
+    @Composable
+    private fun SortItem(isSelected: Boolean, mode: Int, onClick: () -> Unit) {
+        val text = when (mode) {
+            TrafficSortMode.START -> R.string.by_time
+            TrafficSortMode.INBOUND -> R.string.by_inbound
+            TrafficSortMode.UPLOAD -> R.string.by_upload
+            TrafficSortMode.DOWNLOAD -> R.string.by_download
+            TrafficSortMode.SRC -> R.string.by_source
+            TrafficSortMode.DST -> R.string.by_destination
+            TrafficSortMode.MATCHED_RULE -> R.string.by_matched_rule
+            else -> throw IllegalArgumentException("$mode impossible")
+        }
+        DropdownMenuItem(
+            text = { Text(stringResource(text)) },
+            onClick = onClick,
+            leadingIcon = {
+                RadioButton(
+                    selected = isSelected,
+                    onClick = null,
+                )
+            }
+        )
     }
 
     private inline fun <reified T : Fragment> getFragment(position: Int): T? {
@@ -295,15 +352,5 @@ class DashboardFragment : ToolbarFragment(R.layout.layout_dashboard),
                 else -> throw IllegalArgumentException()
             }
         }
-    }
-
-    override fun onQueryTextSubmit(query: String?): Boolean {
-        viewModel.setSearchQuery(query)
-        return false
-    }
-
-    override fun onQueryTextChange(query: String?): Boolean {
-        viewModel.setSearchQuery(query)
-        return false
     }
 }

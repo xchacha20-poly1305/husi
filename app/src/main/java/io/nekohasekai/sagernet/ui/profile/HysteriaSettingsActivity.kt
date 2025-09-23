@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
@@ -14,6 +15,7 @@ import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 import rikka.preference.SimpleMenuPreference
 
+@OptIn(ExperimentalMaterial3Api::class)
 class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
 
     override val viewModel by viewModels<HysteriaSettingsViewModel>()
