@@ -111,7 +111,9 @@ class VPNScannerActivity : ThemedActivity() {
             binding.scanVPNProgress.setProgressCompat(state.progress, true)
         }
         adapter.submitList(state.appInfos) {
-            binding.scanVPNResult.scrollToPosition(state.appInfos.size - 1)
+            if (state.appInfos.isNotEmpty()) {
+                binding.scanVPNResult.scrollToPosition(state.appInfos.size - 1)
+            }
         }
     }
 

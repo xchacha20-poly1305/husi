@@ -199,8 +199,8 @@ class GroupSettingsActivity(
         if (savedInstanceState == null) {
             val editingId = intent.getLongExtra(EXTRA_GROUP_ID, 0L)
             viewModel.initialize(editingId)
-            DataStore.profileCacheStore.registerChangeListener(viewModel)
         }
+        DataStore.profileCacheStore.registerChangeListener(viewModel)
 
         onBackPressedCallback.isEnabled = viewModel.dirty.value
         lifecycleScope.launch {
