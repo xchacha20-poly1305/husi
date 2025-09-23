@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
@@ -109,7 +108,12 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                             )
                         }
                         IconButton(onClick = {
-                            startActivity(Intent(context, GroupSettingsActivity::class.java))
+                            startActivity(
+                                Intent(
+                                    requireContext(),
+                                    GroupSettingsActivity::class.java,
+                                )
+                            )
                         }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,

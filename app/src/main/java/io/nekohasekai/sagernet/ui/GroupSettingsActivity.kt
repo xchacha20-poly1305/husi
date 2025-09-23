@@ -49,7 +49,7 @@ import rikka.preference.SimpleMenuPreference
 
 class GroupSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_config_settings,
-) : ThemedActivity(resId){
+) : ThemedActivity(resId) {
 
     override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
         override fun handleOnBackPressed() {
@@ -199,6 +199,9 @@ class GroupSettingsActivity(
         if (savedInstanceState == null) {
             val editingId = intent.getLongExtra(EXTRA_GROUP_ID, 0L)
             viewModel.initialize(editingId)
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.settings, MyPreferenceFragmentCompat())
+                .commit()
         }
         DataStore.profileCacheStore.registerChangeListener(viewModel)
 
@@ -213,6 +216,7 @@ class GroupSettingsActivity(
     }
 
     private fun saveAndExit() {
+        viewModel.save()
         setResult(RESULT_OK)
         finish()
     }
@@ -227,7 +231,7 @@ class GroupSettingsActivity(
         super.onDestroy()
     }
 
-    private class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
+    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
 
         val activity: GroupSettingsActivity
             get() = requireActivity() as GroupSettingsActivity
