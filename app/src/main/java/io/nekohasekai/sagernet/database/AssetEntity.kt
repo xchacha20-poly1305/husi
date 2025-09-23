@@ -13,7 +13,7 @@ import kotlinx.parcelize.Parcelize
 class AssetEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var url: String = "",
-    var name: String = ""
+    var name: String = "",
 ) : Parcelable {
 
     @androidx.room.Dao

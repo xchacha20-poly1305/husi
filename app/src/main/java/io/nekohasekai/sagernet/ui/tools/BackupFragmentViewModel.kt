@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
+import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +39,7 @@ internal sealed interface BackupFragmentEvent {
         val contentJson: String,
         val hasProfiles: Boolean,
         val hasRules: Boolean,
-        val hasSettings: Boolean
+        val hasSettings: Boolean,
     ) : BackupFragmentEvent
 
     data class ShowSnackbar(val message: String) : BackupFragmentEvent
@@ -178,8 +179,8 @@ internal class BackupViewModel : ViewModel() {
         if (profile && content.has("profiles")) {
             val profiles = mutableListOf<ProxyEntity>()
             val jsonProfiles = content.getJSONArray("profiles")
-            for (i in 0 until jsonProfiles.length()) {
-                val data = (jsonProfiles[i] as String).b64Decode()
+            jsonProfiles.forEach { profile ->
+                val data = (profile as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -191,8 +192,8 @@ internal class BackupViewModel : ViewModel() {
 
             val groups = mutableListOf<ProxyGroup>()
             val jsonGroups = content.getJSONArray("groups")
-            for (i in 0 until jsonGroups.length()) {
-                val data = (jsonGroups[i] as String).b64Decode()
+            jsonGroups.forEach { group ->
+                val data = (group as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -205,8 +206,8 @@ internal class BackupViewModel : ViewModel() {
         if (rule && content.has("rules")) {
             val rules = mutableListOf<RuleEntity>()
             val jsonRules = content.getJSONArray("rules")
-            for (i in 0 until jsonRules.length()) {
-                val data = (jsonRules[i] as String).b64Decode()
+            jsonRules.forEach { rule ->
+                val data = (rule as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -218,8 +219,8 @@ internal class BackupViewModel : ViewModel() {
 
             val assets = mutableListOf<AssetEntity>()
             val jsonAssets = content.getJSONArray("assets")
-            for (i in 0 until jsonAssets.length()) {
-                val data = (jsonRules[i] as String).b64Decode()
+            jsonAssets.forEach { asset ->
+                val data = (asset as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
@@ -232,8 +233,8 @@ internal class BackupViewModel : ViewModel() {
         if (setting && content.has("settings")) {
             val settings = mutableListOf<KeyValuePair>()
             val jsonSettings = content.getJSONArray("settings")
-            for (i in 0 until jsonSettings.length()) {
-                val data = (jsonSettings[i] as String).b64Decode()
+            jsonSettings.forEach { setting ->
+                val data = (setting as String).b64Decode()
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)

@@ -16,7 +16,6 @@ import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
-import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.isJsonObjectValid
@@ -31,6 +30,7 @@ import java.io.StringReader
 import androidx.core.net.toUri
 import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.b64DecodeToString
+import io.nekohasekai.sagernet.ktx.forEach
 
 @Suppress("EXPERIMENTAL_API_USAGE", "UNCHECKED_CAST")
 object RawUpdater : GroupUpdater() {
@@ -195,14 +195,14 @@ object RawUpdater : GroupUpdater() {
                             proxies.addAll(it)
                         }
                     }
-                    outbounds?.forEach { _, outbound ->
+                    outbounds?.forEach { outbound ->
                         try {
                             add(outbound)
                         } catch (e: Exception) {
                             Logs.w(e)
                         }
                     }
-                    endpoints?.forEach { _, endpoint ->
+                    endpoints?.forEach { endpoint ->
                         try {
                             add(endpoint)
                         } catch (e: Exception) {
@@ -234,7 +234,7 @@ object RawUpdater : GroupUpdater() {
 
                 json.has("version") && json.has("servers") -> {
                     // try to parse SIP008
-                    json.getJSONArray("servers").forEach { _, it ->
+                    json.getJSONArray("servers").forEach {
                         if (it is JSONObject) {
                             proxies.add(it.parseShadowsocks())
                         }
@@ -247,7 +247,7 @@ object RawUpdater : GroupUpdater() {
             }
         } else {
             json as JSONArray
-            json.forEach { _, it ->
+            json.forEach { it ->
                 if (isJsonObjectValid(it)) {
                     proxies.addAll(parseJSON(it))
                 }
