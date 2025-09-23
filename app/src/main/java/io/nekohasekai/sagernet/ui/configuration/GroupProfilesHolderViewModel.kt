@@ -333,12 +333,20 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
 
     override suspend fun onUpdated(data: TrafficData) {
         _uiState.update { state ->
-            val profiles = state.profiles.toList()
-            profiles.find { it.profile.id == data.id }?.let {
-                it.profile.tx = data.tx
-                it.profile.rx = data.rx
+            val profiles = state.profiles.toMutableList()
+            val index = profiles.indexOfFirst { it.profile.id == data.id }
+            if (index >= 0) {
+                val target = profiles[index]
+                profiles[index] = target.copy(
+                    profile = target.profile.copy(
+                        tx = data.tx,
+                        rx = data.rx,
+                    )
+                )
+                state.copy(profiles = profiles, scrollIndex = null)
+            } else {
+                state.copy(scrollIndex = null)
             }
-            state.copy(profiles = profiles, scrollIndex = null)
         }
     }
 
