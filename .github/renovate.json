@@ -6,6 +6,9 @@
     ":semanticCommitTypeAll(chore)"
   ],
   "semanticCommits": "enabled",
+  "labels": [
+    "dependencies"
+  ],
   "git-submodules": {
     "enabled": false
   },
@@ -30,7 +33,10 @@
       "matchManagers": [
         "github-actions"
       ],
-      "semanticCommitType": "ci"
+      "semanticCommitType": "ci",
+      "addLabels": [
+        "github_action"
+      ]
     },
     {
       "matchManagers": [
@@ -48,7 +54,24 @@
         "github.com/dyhkwong/sing-juicity",
         "github.com/xchacha20-poly1305/cazilla"
       ],
-      "enabled": true
+      "enabled": true,
+      "addLabels": [
+        "go"
+      ]
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "addLabels": [
+        "Java"
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "com.google.guava:guava"
+      ],
+      "allowedVersions": "/-android$/"
     }
   ]
 }
