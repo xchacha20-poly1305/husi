@@ -100,7 +100,7 @@
 
     <PreferenceCategory
         app:key="serverMTlsCategory"
-        app:title="@string/mututal_tls">
+        app:title="@string/mutual_tls">
         <EditTextPreference
             app:icon="@drawable/ic_action_lock"
             app:key="serverMTlsCert"

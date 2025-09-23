@@ -34,7 +34,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -62,7 +61,6 @@ import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment.SelectCallback
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
@@ -193,6 +191,14 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             }
         }
 
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                parentViewModel.searchQuery.collect {
+                    viewModel.query = it
+                }
+            }
+        }
+
         if (savedInstanceState != null) lifecycleScope.launch {
             viewModel.onProfileSelect(DataStore.selectedProxy)
         }
@@ -228,10 +234,6 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
     private fun handleChildEvent(event: ConfigurationChildEvent) {
         if (event.group != viewModel.group.id) return
         when (event) {
-            is ConfigurationChildEvent.UpdateQuery -> {
-                viewModel.query = event.query
-            }
-
             is ConfigurationChildEvent.ScrollToProxy -> {
                 val index = adapter.currentList
                     .indexOfFirst { it.profile.id == event.id }
@@ -260,6 +262,8 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             is ConfigurationChildEvent.RemoveDuplicate -> viewModel.removeDuplicate()
 
             is ConfigurationChildEvent.OnProfileSelect -> viewModel.onProfileSelect(event.new)
+
+            is ConfigurationChildEvent.UpdateOrder -> viewModel.updateOrder(event.order)
         }
     }
 
@@ -283,40 +287,8 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
     private fun checkOrderMenu() {
         if (viewModel.forSelect) return
 
-        val pf = requireParentFragment() as? ToolbarFragment ?: return
-        val menu = pf.toolbar.menu
-        val origin = menu.findItem(R.id.action_order_origin)
-        val byName = menu.findItem(R.id.action_order_by_name)
-        val byDelay = menu.findItem(R.id.action_order_by_delay)
-        when (viewModel.group.order) {
-            GroupOrder.ORIGIN -> {
-                origin.isChecked = true
-            }
-
-            GroupOrder.BY_NAME -> {
-                byName.isChecked = true
-            }
-
-            GroupOrder.BY_DELAY -> {
-                byDelay.isChecked = true
-            }
-        }
-
-        origin.setOnMenuItemClickListener {
-            it.isChecked = true
-            viewModel.updateOrder(GroupOrder.ORIGIN)
-            true
-        }
-        byName.setOnMenuItemClickListener {
-            it.isChecked = true
-            viewModel.updateOrder(GroupOrder.BY_NAME)
-            true
-        }
-        byDelay.setOnMenuItemClickListener {
-            it.isChecked = true
-            viewModel.updateOrder(GroupOrder.BY_DELAY)
-            true
-        }
+        val parentFragment = requireParentFragment() as ConfigurationFragment
+        parentFragment.composeToolbar(viewModel.query, viewModel.group.order)
     }
 
     private inner class ConfigurationAdapter :

@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -13,7 +14,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -25,6 +36,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
@@ -38,7 +50,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
-class AboutFragment : ToolbarFragment(R.layout.layout_about) {
+@OptIn(ExperimentalMaterial3Api::class)
+class AboutFragment : OnKeyDownFragment(R.layout.layout_about) {
 
     private lateinit var binding: LayoutAboutBinding
     private val viewModel by viewModels<AboutFragmentViewModel>()
@@ -48,8 +61,25 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = LayoutAboutBinding.bind(view)
-
-        toolbar.setTitle(R.string.menu_about)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.menu_about)) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            (requireActivity() as MainActivity).binding
+                                .drawerLayout.openDrawer(GravityCompat.START)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = stringResource(R.string.menu),
+                            )
+                        }
+                    },
+                )
+            }
+        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.layoutAbout) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -247,6 +277,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             binding.aboutCardDescription.setText(R.string.ignore_battery_optimizations_sum)
             binding.root.setOnClickListener { view ->
                 launcher.launch(Intent().apply {
+                    @SuppressLint("BatteryLife") // We don't care about Google Play Police
                     action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
                     data = "package:${view.context.packageName}".toUri()
                 })

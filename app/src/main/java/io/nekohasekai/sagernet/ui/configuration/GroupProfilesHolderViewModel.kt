@@ -97,9 +97,9 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
         }
     }
 
-    var query: String? = null
+    var query: String = ""
         set(value) {
-            val lowercase = value?.lowercase()
+            val lowercase = value.lowercase()
             if (lowercase != field) {
                 field = lowercase
                 loadJob?.cancel()
@@ -130,7 +130,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
         val profiles = SagerDatabase.proxyDao.getByGroup(group.id)
             .filter {
                 val query = query
-                if (query.isNullOrBlank()) {
+                if (query.isBlank()) {
                     true
                 } else {
                     it.displayName().lowercase().contains(query)

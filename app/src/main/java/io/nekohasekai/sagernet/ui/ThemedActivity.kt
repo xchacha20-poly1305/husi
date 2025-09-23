@@ -5,16 +5,12 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
@@ -34,6 +30,7 @@ abstract class ThemedActivity : AppCompatActivity {
         }
         Theme.applyNightTheme()
 
+        enableEdgeToEdge()
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
             // BAKLAVA and later VANILLA_ICE_CREAM have fixed this
@@ -43,9 +40,6 @@ abstract class ThemedActivity : AppCompatActivity {
 
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val insetController = WindowCompat.getInsetsController(window, window.decorView)
             val usingNightMode = Theme.usingNightMode()
@@ -62,30 +56,6 @@ abstract class ThemedActivity : AppCompatActivity {
 
         onBackPressedCallback?.let {
             onBackPressedDispatcher.addCallback(this, it)
-        }
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
-            // Baklava should have fixed this
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowCompat.getInsetsController(
-                window,
-                window.decorView
-            ).isAppearanceLightNavigationBars = !Theme.usingNightMode()
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            findViewById<AppBarLayout>(R.id.appbar)?.apply {
-                updatePadding(
-                    top = bars.top,
-                    left = bars.left,
-                    right = bars.right,
-                )
-            }
-            insets
         }
     }
 

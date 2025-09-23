@@ -2,23 +2,33 @@ package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
 import android.view.View
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.res.stringResource
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.databinding.LayoutToolsBinding
 import io.nekohasekai.sagernet.ktx.isExpert
-import io.nekohasekai.sagernet.ui.ToolbarFragment
+import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.OnKeyDownFragment
 
-class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
+@OptIn(ExperimentalMaterial3Api::class)
+class ToolsFragment : OnKeyDownFragment(R.layout.layout_tools) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        toolbar.setTitle(R.string.menu_tools)
 
         val tools = mutableListOf<NamedFragment>()
         tools.add(NetworkFragment())
@@ -26,6 +36,25 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
         if (isExpert) tools.add(DebugFragment())
 
         val binding = LayoutToolsBinding.bind(view)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.menu_tools)) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            (requireActivity() as MainActivity).binding
+                                .drawerLayout.openDrawer(GravityCompat.START)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = stringResource(R.string.menu),
+                            )
+                        }
+                    },
+                )
+            }
+        }
         binding.toolsPager.adapter = ToolsAdapter(tools)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.toolsTab) { v, insets ->

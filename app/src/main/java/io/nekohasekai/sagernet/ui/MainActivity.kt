@@ -380,7 +380,7 @@ class MainActivity : ThemedActivity(),
     }
 
     @SuppressLint("CommitTransaction")
-    fun displayFragment(fragment: ToolbarFragment) {
+    fun displayFragment(fragment: OnKeyDownFragment) {
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.fragment_holder, fragment)
@@ -530,7 +530,7 @@ class MainActivity : ThemedActivity(),
         if (binding.drawerLayout.isOpen) return false
 
         val fragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
+            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? OnKeyDownFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
 

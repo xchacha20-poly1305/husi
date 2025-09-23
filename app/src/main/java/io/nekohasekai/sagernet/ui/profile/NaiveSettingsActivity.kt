@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
@@ -10,6 +11,7 @@ import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
 
+@OptIn(ExperimentalMaterial3Api::class)
 class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
 
     override val viewModel by viewModels<NaiveSettingsViewModel>()

@@ -13,18 +13,16 @@ import io.nekohasekai.sagernet.ktx.toStringIterator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import libcore.Libcore
 import java.io.File
 import java.util.zip.ZipFile
 import kotlin.collections.iterator
 
-internal sealed interface VPNScannerUiState {
-    object Idle : VPNScannerUiState
-    data class Doing(val appInfos: List<AppInfo>, val all: Int) : VPNScannerUiState
-    data class Finished(val appInfos: List<AppInfo>) : VPNScannerUiState
-}
+internal data class VPNScannerUiState(
+    val appInfos: List<AppInfo> = emptyList(),
+    val progress: Int? = null,
+)
 
 internal data class AppInfo(
     val packageInfo: PackageInfo,
@@ -39,7 +37,7 @@ internal data class VPNType(
 internal data class VPNCoreType(
     val coreType: String,
     val corePath: String,
-    val goVersion: String
+    val goVersion: String,
 )
 
 internal class VPNScannerActivityViewModel : ViewModel() {
@@ -73,7 +71,7 @@ internal class VPNScannerActivityViewModel : ViewModel() {
         )
     }
 
-    private val _uiState = MutableStateFlow<VPNScannerUiState>(VPNScannerUiState.Idle)
+    private val _uiState = MutableStateFlow(VPNScannerUiState())
     val uiState = _uiState.asStateFlow()
 
     fun scanVPN() {
@@ -83,7 +81,7 @@ internal class VPNScannerActivityViewModel : ViewModel() {
     }
 
     private suspend fun scanVPN0() {
-        _uiState.update { VPNScannerUiState.Doing(emptyList(), 0) }
+        _uiState.emit(_uiState.value.copy(appInfos = emptyList(), progress = 0))
         val packageManager = app.packageManager
         val flag =
             PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -105,19 +103,18 @@ internal class VPNScannerActivityViewModel : ViewModel() {
             }
 
         val foundApps = mutableListOf<AppInfo>()
-        for (packageInfo in vpnAppList) {
+        for ((i, packageInfo) in vpnAppList.withIndex()) {
             val appType = runCatching { getVPNAppType(packageInfo) }.getOrNull()
             val coreType = runCatching { getVPNCoreType(packageInfo) }.getOrNull()
 
             foundApps.add(AppInfo(packageInfo, VPNType(appType, coreType)))
-            _uiState.update {
-                VPNScannerUiState.Doing(foundApps.toList(), vpnAppList.size)
-            }
+            val progress = ((i + 1).toDouble() / vpnAppList.size.toDouble() * 100).toInt()
+            _uiState.emit(_uiState.value.copy(appInfos = foundApps.toList(), progress = progress))
 
             System.gc()
         }
 
-        _uiState.update { VPNScannerUiState.Finished(foundApps) }
+        _uiState.emit(_uiState.value.copy(progress = null))
     }
 
     private fun getVPNAppType(packageInfo: PackageInfo): String? {

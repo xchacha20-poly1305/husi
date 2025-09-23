@@ -3,10 +3,25 @@ package io.nekohasekai.sagernet.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddRoad
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -18,6 +33,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -31,8 +47,9 @@ import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.launch
 
-class RouteFragment : ToolbarFragment(R.layout.layout_route),
-    Toolbar.OnMenuItemClickListener, ProfileManager.RuleListener {
+@OptIn(ExperimentalMaterial3Api::class)
+class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
+    ProfileManager.RuleListener {
 
     private lateinit var binding: LayoutRouteBinding
     private val viewModel by viewModels<RouteFragmentViewModel>()
@@ -42,11 +59,81 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        toolbar.setTitle(R.string.menu_route)
-        toolbar.inflateMenu(R.menu.add_route_menu)
-        toolbar.setOnMenuItemClickListener(this)
-
         binding = LayoutRouteBinding.bind(view)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                var menuExpanded by remember { mutableStateOf(false) }
+                TopAppBar(
+                    title = { Text(stringResource(R.string.menu_route)) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            (requireActivity() as MainActivity).binding
+                                .drawerLayout.openDrawer(GravityCompat.START)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = stringResource(R.string.menu),
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            startActivity(
+                                Intent(
+                                    requireContext(),
+                                    RouteSettingsActivity::class.java
+                                )
+                            )
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.AddRoad,
+                                contentDescription = stringResource(R.string.route_add),
+                            )
+                        }
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = null
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.route_reset)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                                        .setMessage(R.string.clear_profiles_message)
+                                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                                            lifecycleScope.launch {
+                                                viewModel.reset()
+                                            }
+                                        }
+                                        .setNegativeButton(android.R.string.cancel, null)
+                                        .show()
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.route_manage_assets)) },
+                                onClick = {
+                                    menuExpanded = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            AssetsActivity::class.java
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    },
+                )
+            }
+        }
         ViewCompat.setOnApplyWindowInsetsListener(binding.routeList) { v, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -65,7 +152,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route),
 
         ProfileManager.addListener(this)
         binding.routeList.adapter = RuleAdapter {
-          viewModel.updateRule(it)
+            viewModel.updateRule(it)
         }.also {
             ruleAdapter = it
         }
@@ -137,31 +224,6 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route),
         }
     }
 
-    override fun onMenuItemClick(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_new_route -> {
-                startActivity(Intent(requireContext(), RouteSettingsActivity::class.java))
-            }
-
-            R.id.action_reset_route -> {
-                MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
-                    .setMessage(R.string.clear_profiles_message)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        lifecycleScope.launch {
-                            viewModel.reset()
-                        }
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-
-            R.id.action_manage_assets -> {
-                startActivity(Intent(requireContext(), AssetsActivity::class.java))
-            }
-        }
-        return true
-    }
-
     override suspend fun onAdd(rule: RuleEntity) {
         viewModel.onAdd(rule)
     }
@@ -206,7 +268,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route),
         }
     }
 
-    private class RuleHolder(binding: ViewRouteItemBinding, val updateRule: (RuleEntity)->Unit) :
+    private class RuleHolder(binding: ViewRouteItemBinding, val updateRule: (RuleEntity) -> Unit) :
         RecyclerView.ViewHolder(binding.root) {
 
         lateinit var rule: RuleEntity

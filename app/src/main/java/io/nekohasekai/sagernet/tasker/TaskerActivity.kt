@@ -20,15 +20,21 @@ package io.nekohasekai.sagernet.tasker
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -36,6 +42,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceFragmentCompat
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
@@ -76,12 +83,37 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.tasker_settings)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
+
+        val toolbar = findViewById<ComposeView>(R.id.toolbar)
+        toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.tasker_settings)) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            onBackPressedDispatcher.onBackPressed()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            lifecycleScope.launch {
+                                saveAndExit()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = stringResource(R.string.apply),
+                            )
+                        }
+                    },
+                )
+            }
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
@@ -165,22 +197,6 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
     fun saveAndExit() {
         setResult(RESULT_OK, settings.toIntent())
         finish()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.profile_apply_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_apply -> {
-            lifecycleScope.launch {
-                saveAndExit()
-            }
-            true
-        }
-
-        else -> false
     }
 
     override fun onSupportNavigateUp(): Boolean {

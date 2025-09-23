@@ -2,7 +2,8 @@ package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -10,8 +11,10 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.databinding.LayoutToolsStunBinding
 import io.nekohasekai.sagernet.ktx.currentSocks5
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -40,12 +43,16 @@ class StunActivity : ThemedActivity() {
             insets
         }
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            title = getString(R.string.stun_test)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            Mdc3Theme {
+                SimpleTopAppBar(
+                    title = R.string.stun_test,
+                    navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                ) {
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
         }
 
         currentSocks5()?.string?.let {
