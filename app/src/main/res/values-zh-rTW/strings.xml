@@ -635,5 +635,5 @@
     </plurals>
     <string name="action_format">格式化</string>
     <string name="action_test_config">測試設定</string>
-    <string name="mututal_tls">雙向 TLS</string>
+    <string name="mutual_tls">雙向 TLS</string>
 </resources>
