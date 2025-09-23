@@ -320,6 +320,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     override suspend fun onAdd(profile: ProxyEntity) {
+        if (profile.groupId != group.id) return
         _uiState.update { state ->
             val selected = preSelected ?: DataStore.selectedProxy
             val isSelected = profile.id == selected
