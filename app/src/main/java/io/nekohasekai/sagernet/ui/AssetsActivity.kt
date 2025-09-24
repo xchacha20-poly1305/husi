@@ -15,8 +15,6 @@ import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
@@ -40,6 +38,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.databinding.LayoutAssetItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
 import io.nekohasekai.sagernet.ktx.Logs
@@ -75,30 +74,26 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 TopAppBar(
                     title = { Text(stringResource(R.string.route_assets)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                        ) {
                             onBackPressedDispatcher.onBackPressed()
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = null,
-                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Update,
+                            contentDescription = stringResource(R.string.assets_update),
+                        ) {
                             viewModel.updateAsset(destinationDir = geoDir, cacheDir = cacheDir)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Update,
-                                contentDescription = stringResource(R.string.assets_update),
-                            )
                         }
                         Box {
-                            IconButton(onClick = { showImportMenu = true }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.NoteAdd,
-                                    contentDescription = stringResource(R.string.import_asset),
-                                )
+                            SimpleIconButton(
+                                imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                                contentDescription = stringResource(R.string.import_asset),
+                            ) {
+                                showImportMenu = true
                             }
                             DropdownMenu(
                                 expanded = showImportMenu,

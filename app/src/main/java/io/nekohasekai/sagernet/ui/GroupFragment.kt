@@ -15,8 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.res.stringResource
@@ -41,6 +39,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -81,18 +80,19 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_group)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.menu),
+                        ) {
                             (requireActivity() as MainActivity).binding
                                 .drawerLayout.openDrawer(GravityCompat.START)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = stringResource(R.string.menu),
-                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Update,
+                            contentDescription = stringResource(R.string.update_all_subscription),
+                        ) {
                             MaterialAlertDialogBuilder(requireContext())
                                 .setTitle(R.string.confirm)
                                 .setMessage(R.string.update_all_subscription)
@@ -101,23 +101,16 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                                 }
                                 .setNegativeButton(android.R.string.cancel, null)
                                 .show()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Update,
-                                contentDescription = stringResource(R.string.update_all_subscription),
-                            )
                         }
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                            contentDescription = stringResource(R.string.group_create),
+                        ) {
                             startActivity(
                                 Intent(
                                     requireContext(),
                                     GroupSettingsActivity::class.java,
                                 )
-                            )
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
-                                contentDescription = stringResource(R.string.group_create),
                             )
                         }
                     },

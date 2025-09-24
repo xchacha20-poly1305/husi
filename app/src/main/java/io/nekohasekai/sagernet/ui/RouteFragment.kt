@@ -12,8 +12,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
@@ -36,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutRouteBinding
@@ -67,39 +66,33 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_route)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.menu),
+                        ) {
                             (requireActivity() as MainActivity).binding
                                 .drawerLayout.openDrawer(GravityCompat.START)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = stringResource(R.string.menu),
-                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.AddRoad,
+                            contentDescription = stringResource(R.string.route_add),
+                        ) {
                             startActivity(
                                 Intent(
                                     requireContext(),
                                     RouteSettingsActivity::class.java
                                 )
                             )
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.AddRoad,
-                                contentDescription = stringResource(R.string.route_add),
-                            )
                         }
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = null
-                            )
-                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.MoreVert,
+                            onClick = { menuExpanded = true },
+                        )
                         DropdownMenu(
                             expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
+                            onDismissRequest = { menuExpanded = false },
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.route_reset)) },

@@ -74,6 +74,8 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.compose.ExpandableDropdownMenuItem
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -471,45 +473,40 @@ class ConfigurationFragment : OnKeyDownFragment {
                 },
             ),
             navigationIcon = {
-                if (viewModel.forSelect) {
-                    IconButton(onClick = { requireActivity().finish() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.close),
-                        )
-                    }
-                } else {
-                    IconButton(onClick = {
-                        (requireActivity() as MainActivity).binding
-                            .drawerLayout.openDrawer(GravityCompat.START)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Menu,
-                            contentDescription = stringResource(R.string.menu),
-                        )
-                    }
+                if (viewModel.forSelect) SimpleIconButton(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.close),
+                ) {
+                    requireActivity().finish()
+                } else SimpleIconButton(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = stringResource(R.string.menu),
+                ) {
+                    (requireActivity() as MainActivity).binding
+                        .drawerLayout.openDrawer(GravityCompat.START)
                 }
             },
             actions = {
-                if (isSearchActive) IconButton(onClick = {
+                if (isSearchActive) SimpleIconButton(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.close),
+                ) {
                     isSearchActive = false
                     viewModel.setSearchQuery("")
-                }) {
-                    Icon(Icons.Default.Close, stringResource(R.string.close))
                 } else {
-                    IconButton(onClick = { isSearchActive = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = stringResource(android.R.string.search_go),
-                        )
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = stringResource(android.R.string.search_go),
+                    ) {
+                        isSearchActive = true
                     }
 
                     Box {
-                        IconButton(onClick = { showAddMenu = true }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.NoteAdd,
-                                contentDescription = stringResource(R.string.add_profile),
-                            )
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                            contentDescription = stringResource(R.string.add_profile),
+                        ) {
+                            showAddMenu = true
                         }
                         DropdownMenu(
                             expanded = showAddMenu,
@@ -537,13 +534,10 @@ class ConfigurationFragment : OnKeyDownFragment {
                                     startFilesForResult(importFile, "*/*")
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.add_profile_methods_manual_settings)) },
-                                onClick = {
-                                    showAddMenu = false
-                                    showAddManualMenu = true
-                                }
-                            )
+                            ExpandableDropdownMenuItem(stringResource(R.string.add_profile_methods_manual_settings)) {
+                                showAddMenu = false
+                                showAddManualMenu = true
+                            }
                         }
                         DropdownMenu(
                             expanded = showAddManualMenu,
@@ -793,11 +787,8 @@ class ConfigurationFragment : OnKeyDownFragment {
                     }
 
                     Box {
-                        IconButton(onClick = { showOverflowMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = null,
-                            )
+                        SimpleIconButton(Icons.Filled.MoreVert) {
+                            showOverflowMenu = true
                         }
                         DropdownMenu(
                             expanded = showOverflowMenu,
@@ -829,20 +820,14 @@ class ConfigurationFragment : OnKeyDownFragment {
                                     }
                                 },
                             )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.connection_test)) },
-                                onClick = {
-                                    showOverflowMenu = false
-                                    showConnectionTestMenu = true
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.sort_mode)) },
-                                onClick = {
-                                    showOverflowMenu = false
-                                    showOrderMenu = true
-                                },
-                            )
+                            ExpandableDropdownMenuItem(stringResource(R.string.connection_test)) {
+                                showOverflowMenu = false
+                                showConnectionTestMenu = true
+                            }
+                            ExpandableDropdownMenuItem(stringResource(R.string.sort_mode)) {
+                                showOverflowMenu = false
+                                showOrderMenu = true
+                            }
                         }
                         DropdownMenu(
                             expanded = showConnectionTestMenu,

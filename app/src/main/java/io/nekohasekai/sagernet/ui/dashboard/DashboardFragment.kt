@@ -5,6 +5,7 @@ import android.view.View
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CleaningServices
@@ -90,6 +91,9 @@ class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(onSend = {
+                                    focusManager.clearFocus()
+                                }),
                                 colors = TextFieldDefaults.colors(
                                     focusedIndicatorColor =
                                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
@@ -115,11 +119,12 @@ class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
                         }
                     },
                     actions = {
-                        if (isSearchActive) IconButton(onClick = {
+                        if (isSearchActive) SimpleIconButton(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.close),
+                        ) {
                             isSearchActive = false
                             viewModel.setSearchQuery("")
-                        }) {
-                            Icon(Icons.Filled.Close, stringResource(R.string.close))
                         } else {
                             SimpleIconButton(
                                 imageVector = Icons.Filled.Search,

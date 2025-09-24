@@ -50,6 +50,7 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -111,17 +112,15 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 TopAppBar(
                     title = { Text(stringResource(title)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(Icons.Filled.Close) {
                             onBackPressedDispatcher.onBackPressed()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = null,
-                            )
                         }
                     },
                     actions = {
-                        if (!isNew) IconButton(onClick = {
+                        if (!isNew) SimpleIconButton(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete),
+                        ) {
                             MaterialAlertDialogBuilder(this@ProfileSettingsActivity)
                                 .setTitle(R.string.delete_confirm_prompt)
                                 .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -132,30 +131,22 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                                 }
                                 .setNegativeButton(android.R.string.cancel, null)
                                 .show()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = stringResource(R.string.delete),
-                            )
                         }
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.apply),
+                        ) {
                             runOnDefaultDispatcher {
                                 saveAndExit()
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Done,
-                                contentDescription = stringResource(R.string.apply),
-                            )
                         }
+
                         Box {
-                            IconButton(onClick = {
+                            SimpleIconButton(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = null,
+                            ) {
                                 showExtendMenu = true
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = null,
-                                )
                             }
                             DropdownMenu(
                                 expanded = showExtendMenu,
