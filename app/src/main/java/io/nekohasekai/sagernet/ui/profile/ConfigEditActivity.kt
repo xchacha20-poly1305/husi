@@ -9,8 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.platform.ComposeView
@@ -30,10 +28,11 @@ import com.blacksquircle.ui.editorkit.plugin.base.PluginSupplier
 import com.blacksquircle.ui.editorkit.plugin.delimiters.highlightDelimiters
 import com.blacksquircle.ui.editorkit.plugin.linenumbers.lineNumbers
 import com.blacksquircle.ui.language.json.JsonLanguage
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
@@ -105,29 +104,22 @@ class ConfigEditActivity : ThemedActivity() {
         val toolbar = findViewById<ComposeView>(R.id.toolbar)
         toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 TopAppBar(
                     title = { Text(stringResource(R.string.config_settings)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(Icons.Filled.Close) {
                             onBackPressedDispatcher.onBackPressed()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = null,
-                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.apply),
+                        ) {
                             runOnDefaultDispatcher {
                                 saveAndExit()
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Done,
-                                contentDescription = stringResource(R.string.apply),
-                            )
                         }
                     },
                 )

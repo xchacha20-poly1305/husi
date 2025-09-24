@@ -27,8 +27,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutToolsVpnScannerBinding
 import io.nekohasekai.sagernet.databinding.ViewVpnAppItemBinding
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -60,7 +60,7 @@ class VPNScannerActivity : ThemedActivity() {
 
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 val isScanning = uiState.progress != null
                 TopAppBar(

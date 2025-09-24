@@ -34,12 +34,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -76,7 +76,7 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
         binding = LayoutGroupBinding.bind(view)
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_group)) },
                     navigationIcon = {

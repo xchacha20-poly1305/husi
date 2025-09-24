@@ -288,7 +288,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
         if (viewModel.forSelect) return
 
         val parentFragment = requireParentFragment() as ConfigurationFragment
-        parentFragment.composeToolbar(viewModel.query, viewModel.group.order)
+        parentFragment.composeToolbar()
     }
 
     private inner class ConfigurationAdapter :

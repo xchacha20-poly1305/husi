@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -18,10 +17,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutToolsRuleSetMatchBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
 import io.nekohasekai.sagernet.ktx.alertAndLog
@@ -55,7 +54,7 @@ class RuleSetMatchActivity : ThemedActivity() {
 
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 SimpleTopAppBar(
                     title = R.string.rule_set_match,
                     navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,

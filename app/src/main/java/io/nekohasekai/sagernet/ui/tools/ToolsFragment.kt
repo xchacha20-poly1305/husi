@@ -5,8 +5,6 @@ import android.view.View
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.res.stringResource
@@ -16,9 +14,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutToolsBinding
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ui.MainActivity
@@ -38,18 +37,16 @@ class ToolsFragment : OnKeyDownFragment(R.layout.layout_tools) {
         val binding = LayoutToolsBinding.bind(view)
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_tools)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.menu),
+                        ) {
                             (requireActivity() as MainActivity).binding
                                 .drawerLayout.openDrawer(GravityCompat.START)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = stringResource(R.string.menu),
-                            )
                         }
                     },
                 )

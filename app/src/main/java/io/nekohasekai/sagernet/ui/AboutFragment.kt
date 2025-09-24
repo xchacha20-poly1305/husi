@@ -36,10 +36,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
 import io.nekohasekai.sagernet.databinding.ViewAboutCardBinding
@@ -63,7 +63,7 @@ class AboutFragment : OnKeyDownFragment(R.layout.layout_about) {
         binding = LayoutAboutBinding.bind(view)
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_about)) },
                     navigationIcon = {

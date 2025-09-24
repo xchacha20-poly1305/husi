@@ -31,10 +31,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.databinding.LayoutRouteBinding
@@ -61,7 +61,7 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
         binding = LayoutRouteBinding.bind(view)
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 var menuExpanded by remember { mutableStateOf(false) }
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_route)) },

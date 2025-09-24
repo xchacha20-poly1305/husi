@@ -19,7 +19,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.databinding.LayoutDashboardConnectionBinding
@@ -31,6 +30,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import libcore.Libcore
 
 @ExperimentalMaterial3Api
@@ -68,7 +68,7 @@ class ConnectionFragment() :
         binding = LayoutDashboardConnectionBinding.bind(view)
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 TopAppBar(
                     title = { Text(viewModel.uiState.collectAsState().value.connection.uuid) },
                     navigationIcon = {

@@ -11,10 +11,10 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutToolsStunBinding
 import io.nekohasekai.sagernet.ktx.currentSocks5
 import io.nekohasekai.sagernet.ui.ThemedActivity
@@ -45,7 +45,7 @@ class StunActivity : ThemedActivity() {
 
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 SimpleTopAppBar(
                     title = R.string.stun_test,
                     navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
