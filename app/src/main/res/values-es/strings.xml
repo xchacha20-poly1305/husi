@@ -164,7 +164,6 @@
     <string name="invert_selections">Invertir selecciones</string>
     <string name="clear_selections">Borrar selecciones</string>
     <string name="bypass_apps">Omitir</string>
-    <string name="show_system_apps">Mostrar apps del sistema</string>
     <string name="auto_connect">Conexión automática</string>
     <string name="auto_connect_summary">Activa el proxy en el inicio/actualización de la aplicación
         si se estaba ejecutando antes

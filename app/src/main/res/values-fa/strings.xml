@@ -156,7 +156,6 @@
     <string name="invert_selections">معکوس کردن انتخاب ها</string>
     <string name="clear_selections">پاک کردن انتخاب ها</string>
     <string name="bypass_apps">بایپس</string>
-    <string name="show_system_apps">نمایش برنامه های سیستم</string>
     <string name="auto_connect">ارتباط خودکار</string>
     <string name="auto_connect_summary">فعال کردن پروکسی در هنگام راه‌اندازی/به‌روزرسانی برنامه اگر
         قبلاً اجرا می‌شد

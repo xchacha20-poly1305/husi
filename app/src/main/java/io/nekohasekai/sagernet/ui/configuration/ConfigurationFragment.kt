@@ -377,17 +377,17 @@ class ConfigurationFragment : OnKeyDownFragment {
         }
     }
 
-    fun composeToolbar(query: String = "", order: Int = 0) {
+    fun composeToolbar(order: Int = 0) {
         binding.toolbar.setContent {
             @Suppress("DEPRECATION")
             AppTheme {
-                MyTopAppBar(query, order)
+                MyTopAppBar(order)
             }
         }
     }
 
     @Composable
-    private fun MyTopAppBar(query: String, initialOrder: Int) {
+    private fun MyTopAppBar(initialOrder: Int) {
         // 说文小篆（虎兕）
         // Copyright: https://www.zdic.net/aboutus/copyright/ (A copy of CC0 1.0 was embed in the font file)
         val appNameFont by lazy { FontFamily(Font(R.font.shuowenxiaozhuan_husi)) }

@@ -93,7 +93,6 @@
     <string name="invert_selections">反向選取</string>
     <string name="clear_selections">清除選取</string>
     <string name="bypass_apps">略過</string>
-    <string name="show_system_apps">顯示系統應用</string>
     <string name="auto_connect">自動連線</string>
     <string name="auto_connect_summary">如果代理在開機或應用更新前正在運行則自動啓動</string>
     <string name="direct_boot_aware">允許與解鎖前啓動</string>

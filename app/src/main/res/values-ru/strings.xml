@@ -302,7 +302,6 @@
         был запущен до этого
     </string>
     <string name="auto_connect">Автоматическое подключение</string>
-    <string name="show_system_apps">Показать системные приложения</string>
     <string name="bypass_apps">Обход</string>
     <string name="clear_selections">Очистить выбор</string>
     <string name="invert_selections">Инвертировать выбор</string>
