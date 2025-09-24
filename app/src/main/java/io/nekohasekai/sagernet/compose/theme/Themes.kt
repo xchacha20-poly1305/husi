@@ -12,7 +12,7 @@ import io.nekohasekai.sagernet.utils.Theme
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     val isDarkMode = Theme.usingNightMode()
-    when (val theme = DataStore.appTheme) {
+    when (DataStore.appTheme) {
         Theme.RED -> Red.Theme(isDarkMode, content)
         Theme.PINK_SSR -> PinkSSR.Theme(isDarkMode, content)
         Theme.PINK -> Pink.Theme(isDarkMode, content)
@@ -48,6 +48,17 @@ fun AppTheme(content: @Composable () -> Unit) {
             Red.Theme(isDarkMode, content)
         }
 
-        else -> throw IllegalArgumentException("unknown theme: $theme")
+        else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MaterialTheme(
+                colorScheme = if (isDarkMode) {
+                    dynamicDarkColorScheme(LocalContext.current)
+                } else {
+                    dynamicLightColorScheme(LocalContext.current)
+                },
+                content = content,
+            )
+        } else {
+            Red.Theme(isDarkMode, content)
+        }
     }
 }
