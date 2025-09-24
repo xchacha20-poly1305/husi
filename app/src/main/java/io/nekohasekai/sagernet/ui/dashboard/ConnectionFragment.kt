@@ -7,8 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.core.os.BundleCompat
@@ -32,6 +30,7 @@ import io.nekohasekai.sagernet.ui.OnKeyDownFragment
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import libcore.Libcore
 
 @ExperimentalMaterial3Api
@@ -73,28 +72,23 @@ class ConnectionFragment() :
                 TopAppBar(
                     title = { Text(viewModel.uiState.collectAsState().value.connection.uuid) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                        ) {
+                            (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
                             parentFragmentManager.popBackStack()
-                            (requireActivity() as MainActivity).onBackPressedCallback.isEnabled =
-                                true
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = null,
-                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.DeleteForever,
+                            contentDescription = stringResource(R.string.close),
+                        ) {
                             val activity = requireActivity() as MainActivity
                             activity.connection.service?.closeConnection(viewModel.uiState.value.connection.uuid)
-                            activity.supportFragmentManager.popBackStack()
                             activity.onBackPressedCallback.isEnabled = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.DeleteForever,
-                                contentDescription = stringResource(R.string.close),
-                            )
+                            activity.supportFragmentManager.popBackStack()
                         }
                     },
                 )

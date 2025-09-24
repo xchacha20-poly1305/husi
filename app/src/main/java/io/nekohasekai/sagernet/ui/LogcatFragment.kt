@@ -14,8 +14,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Sailing
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
@@ -32,6 +30,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
 import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
 import io.nekohasekai.sagernet.ktx.Logs
@@ -60,30 +59,28 @@ class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_log)) },
                     navigationIcon = {
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.menu),
+                        ) {
                             (requireActivity() as MainActivity).binding
                                 .drawerLayout.openDrawer(GravityCompat.START)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = stringResource(R.string.menu),
-                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
-                            viewModel.togglePinLog()
-                        }) {
-                            Icon(
-                                imageVector = if (isPinned) {
-                                    Icons.Filled.Sailing
-                                } else {
-                                    Icons.Filled.PushPin
-                                },
-                                contentDescription = stringResource(R.string.pin_log),
-                            )
-                        }
-                        IconButton(onClick = {
+                        SimpleIconButton(
+                            imageVector = if (isPinned) {
+                                Icons.Filled.Sailing
+                            } else {
+                                Icons.Filled.PushPin
+                            },
+                            contentDescription = stringResource(R.string.pin_log),
+                            onClick = { viewModel.togglePinLog() },
+                        )
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = stringResource(R.string.logcat),
+                        ) {
                             try {
                                 SendLog.sendLog(requireContext(), "husi")
                             } catch (e: Exception) {
@@ -92,20 +89,12 @@ class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
                                 }
                                 snackbar(e.readableMessage).show()
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = stringResource(R.string.logcat),
-                            )
                         }
-                        IconButton(onClick = {
-                            viewModel.clearLog()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.DeleteSweep,
-                                contentDescription = stringResource(R.string.clear_logcat),
-                            )
-                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.DeleteSweep,
+                            contentDescription = stringResource(R.string.clear_logcat),
+                            onClick = { viewModel.clearLog() },
+                        )
                     },
                 )
             }
