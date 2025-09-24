@@ -32,6 +32,7 @@ public class AnyTLSBean extends AbstractBean {
     public String serverName;
     public String alpn;
     public String certificates;
+    public String certPublicKeySha256;
     public String utlsFingerprint;
     public Boolean allowInsecure;
     public Boolean disableSNI;
@@ -56,6 +57,7 @@ public class AnyTLSBean extends AbstractBean {
         if (serverName == null) serverName = "";
         if (alpn == null) alpn = "";
         if (certificates == null) certificates = "";
+        if (certPublicKeySha256 == null) certPublicKeySha256 = "";
         if (utlsFingerprint == null) utlsFingerprint = "";
         if (allowInsecure == null) allowInsecure = false;
         if (disableSNI == null) disableSNI = false;
@@ -68,7 +70,7 @@ public class AnyTLSBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(4);
+        output.writeInt(5);
 
         // version 0
         super.serialize(output);
@@ -95,6 +97,9 @@ public class AnyTLSBean extends AbstractBean {
 
         // version 4
         output.writeBoolean(disableSNI);
+
+        // version 5
+        output.writeString(certPublicKeySha256);
     }
 
     @Override
@@ -127,6 +132,10 @@ public class AnyTLSBean extends AbstractBean {
 
         if (version >= 4) {
             disableSNI = input.readBoolean();
+        }
+
+        if (version >= 5) {
+            certPublicKeySha256 = input.readString();
         }
     }
 

@@ -49,6 +49,11 @@
             app:key="serverCertificates"
             app:title="@string/certificates"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_wb_sunny_24"
+            app:key="serverCertPublicKeySha256"
+            app:title="@string/cert_public_key_sha256"
+            app:useSimpleSummaryProvider="true" />
         <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="serverAllowInsecure"

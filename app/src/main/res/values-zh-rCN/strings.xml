@@ -639,4 +639,5 @@
     <string name="action_test_config">测试配置</string>
     <string name="mutual_tls">双向 TLS</string>
     <string name="menu">菜单</string>
+    <string name="cert_public_key_sha256">证书公钥 sha256</string>
 </resources>

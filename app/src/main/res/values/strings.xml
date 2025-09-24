@@ -713,4 +713,5 @@
     <string name="action_test_config">Test config</string>
     <string name="mutual_tls">Mutual TLS</string>
     <string name="menu">Menu</string>
+    <string name="cert_public_key_sha256">Certificate Public Key Sha256</string>
 </resources>
