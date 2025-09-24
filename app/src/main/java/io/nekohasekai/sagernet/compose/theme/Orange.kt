@@ -1,0 +1,477 @@
+package io.nekohasekai.sagernet.compose.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+
+/** 旭日东升 */
+object Orange {
+    val primaryLight = Color(0xFF8B5000)
+    val onPrimaryLight = Color(0xFFFFFFFF)
+    val primaryContainerLight = Color(0xFFFF9800)
+    val onPrimaryContainerLight = Color(0xFF653900)
+    val secondaryLight = Color(0xFF875200)
+    val onSecondaryLight = Color(0xFFFFFFFF)
+    val secondaryContainerLight = Color(0xFFFFAB40)
+    val onSecondaryContainerLight = Color(0xFF6E4200)
+    val tertiaryLight = Color(0xFF785900)
+    val onTertiaryLight = Color(0xFFFFFFFF)
+    val tertiaryContainerLight = Color(0xFFFFC107)
+    val onTertiaryContainerLight = Color(0xFF6D5100)
+    val errorLight = Color(0xFFBA1A1A)
+    val onErrorLight = Color(0xFFFFFFFF)
+    val errorContainerLight = Color(0xFFFFDAD6)
+    val onErrorContainerLight = Color(0xFF93000A)
+    val backgroundLight = Color(0xFFFFF8F5)
+    val onBackgroundLight = Color(0xFF231A11)
+    val surfaceLight = Color(0xFFFFF8F5)
+    val onSurfaceLight = Color(0xFF231A11)
+    val surfaceVariantLight = Color(0xFFF8DEC8)
+    val onSurfaceVariantLight = Color(0xFF554434)
+    val outlineLight = Color(0xFF887361)
+    val outlineVariantLight = Color(0xFFDBC2AD)
+    val scrimLight = Color(0xFF000000)
+    val inverseSurfaceLight = Color(0xFF392E25)
+    val inverseOnSurfaceLight = Color(0xFFFFEEE1)
+    val inversePrimaryLight = Color(0xFFFFB870)
+    val surfaceDimLight = Color(0xFFE9D7C9)
+    val surfaceBrightLight = Color(0xFFFFF8F5)
+    val surfaceContainerLowestLight = Color(0xFFFFFFFF)
+    val surfaceContainerLowLight = Color(0xFFFFF1E7)
+    val surfaceContainerLight = Color(0xFFFDEBDC)
+    val surfaceContainerHighLight = Color(0xFFF7E5D7)
+    val surfaceContainerHighestLight = Color(0xFFF1DFD1)
+
+    val primaryLightMediumContrast = Color(0xFF522D00)
+    val onPrimaryLightMediumContrast = Color(0xFFFFFFFF)
+    val primaryContainerLightMediumContrast = Color(0xFF9F5D00)
+    val onPrimaryContainerLightMediumContrast = Color(0xFFFFFFFF)
+    val secondaryLightMediumContrast = Color(0xFF502F00)
+    val onSecondaryLightMediumContrast = Color(0xFFFFFFFF)
+    val secondaryContainerLightMediumContrast = Color(0xFF9C5F00)
+    val onSecondaryContainerLightMediumContrast = Color(0xFFFFFFFF)
+    val tertiaryLightMediumContrast = Color(0xFF473300)
+    val onTertiaryLightMediumContrast = Color(0xFFFFFFFF)
+    val tertiaryContainerLightMediumContrast = Color(0xFF8B6700)
+    val onTertiaryContainerLightMediumContrast = Color(0xFFFFFFFF)
+    val errorLightMediumContrast = Color(0xFF740006)
+    val onErrorLightMediumContrast = Color(0xFFFFFFFF)
+    val errorContainerLightMediumContrast = Color(0xFFCF2C27)
+    val onErrorContainerLightMediumContrast = Color(0xFFFFFFFF)
+    val backgroundLightMediumContrast = Color(0xFFFFF8F5)
+    val onBackgroundLightMediumContrast = Color(0xFF231A11)
+    val surfaceLightMediumContrast = Color(0xFFFFF8F5)
+    val onSurfaceLightMediumContrast = Color(0xFF181008)
+    val surfaceVariantLightMediumContrast = Color(0xFFF8DEC8)
+    val onSurfaceVariantLightMediumContrast = Color(0xFF433324)
+    val outlineLightMediumContrast = Color(0xFF614F3F)
+    val outlineVariantLightMediumContrast = Color(0xFF7D6958)
+    val scrimLightMediumContrast = Color(0xFF000000)
+    val inverseSurfaceLightMediumContrast = Color(0xFF392E25)
+    val inverseOnSurfaceLightMediumContrast = Color(0xFFFFEEE1)
+    val inversePrimaryLightMediumContrast = Color(0xFFFFB870)
+    val surfaceDimLightMediumContrast = Color(0xFFD5C3B6)
+    val surfaceBrightLightMediumContrast = Color(0xFFFFF8F5)
+    val surfaceContainerLowestLightMediumContrast = Color(0xFFFFFFFF)
+    val surfaceContainerLowLightMediumContrast = Color(0xFFFFF1E7)
+    val surfaceContainerLightMediumContrast = Color(0xFFF7E5D7)
+    val surfaceContainerHighLightMediumContrast = Color(0xFFECDACC)
+    val surfaceContainerHighestLightMediumContrast = Color(0xFFE0CEC1)
+
+    val primaryLightHighContrast = Color(0xFF442500)
+    val onPrimaryLightHighContrast = Color(0xFFFFFFFF)
+    val primaryContainerLightHighContrast = Color(0xFF6D3E00)
+    val onPrimaryContainerLightHighContrast = Color(0xFFFFFFFF)
+    val secondaryLightHighContrast = Color(0xFF422600)
+    val onSecondaryLightHighContrast = Color(0xFFFFFFFF)
+    val secondaryContainerLightHighContrast = Color(0xFF6A3F00)
+    val onSecondaryContainerLightHighContrast = Color(0xFFFFFFFF)
+    val tertiaryLightHighContrast = Color(0xFF3A2900)
+    val onTertiaryLightHighContrast = Color(0xFFFFFFFF)
+    val tertiaryContainerLightHighContrast = Color(0xFF5E4500)
+    val onTertiaryContainerLightHighContrast = Color(0xFFFFFFFF)
+    val errorLightHighContrast = Color(0xFF600004)
+    val onErrorLightHighContrast = Color(0xFFFFFFFF)
+    val errorContainerLightHighContrast = Color(0xFF98000A)
+    val onErrorContainerLightHighContrast = Color(0xFFFFFFFF)
+    val backgroundLightHighContrast = Color(0xFFFFF8F5)
+    val onBackgroundLightHighContrast = Color(0xFF231A11)
+    val surfaceLightHighContrast = Color(0xFFFFF8F5)
+    val onSurfaceLightHighContrast = Color(0xFF000000)
+    val surfaceVariantLightHighContrast = Color(0xFFF8DEC8)
+    val onSurfaceVariantLightHighContrast = Color(0xFF000000)
+    val outlineLightHighContrast = Color(0xFF38291B)
+    val outlineVariantLightHighContrast = Color(0xFF574636)
+    val scrimLightHighContrast = Color(0xFF000000)
+    val inverseSurfaceLightHighContrast = Color(0xFF392E25)
+    val inverseOnSurfaceLightHighContrast = Color(0xFFFFFFFF)
+    val inversePrimaryLightHighContrast = Color(0xFFFFB870)
+    val surfaceDimLightHighContrast = Color(0xFFC6B6A8)
+    val surfaceBrightLightHighContrast = Color(0xFFFFF8F5)
+    val surfaceContainerLowestLightHighContrast = Color(0xFFFFFFFF)
+    val surfaceContainerLowLightHighContrast = Color(0xFFFFEEE1)
+    val surfaceContainerLightHighContrast = Color(0xFFF1DFD1)
+    val surfaceContainerHighLightHighContrast = Color(0xFFE3D1C3)
+    val surfaceContainerHighestLightHighContrast = Color(0xFFD5C3B6)
+
+    val primaryDark = Color(0xFFFFC081)
+    val onPrimaryDark = Color(0xFF4A2800)
+    val primaryContainerDark = Color(0xFFFF9800)
+    val onPrimaryContainerDark = Color(0xFF653900)
+    val secondaryDark = Color(0xFFFFD09F)
+    val onSecondaryDark = Color(0xFF482900)
+    val secondaryContainerDark = Color(0xFFFFAB40)
+    val onSecondaryContainerDark = Color(0xFF6E4200)
+    val tertiaryDark = Color(0xFFFFE4AF)
+    val onTertiaryDark = Color(0xFF3F2E00)
+    val tertiaryContainerDark = Color(0xFFFFC107)
+    val onTertiaryContainerDark = Color(0xFF6D5100)
+    val errorDark = Color(0xFFFFB4AB)
+    val onErrorDark = Color(0xFF690005)
+    val errorContainerDark = Color(0xFF93000A)
+    val onErrorContainerDark = Color(0xFFFFDAD6)
+    val backgroundDark = Color(0xFF1A120A)
+    val onBackgroundDark = Color(0xFFF1DFD1)
+    val surfaceDark = Color(0xFF1A120A)
+    val onSurfaceDark = Color(0xFFF1DFD1)
+    val surfaceVariantDark = Color(0xFF554434)
+    val onSurfaceVariantDark = Color(0xFFDBC2AD)
+    val outlineDark = Color(0xFFA38D7A)
+    val outlineVariantDark = Color(0xFF554434)
+    val scrimDark = Color(0xFF000000)
+    val inverseSurfaceDark = Color(0xFFF1DFD1)
+    val inverseOnSurfaceDark = Color(0xFF392E25)
+    val inversePrimaryDark = Color(0xFF8B5000)
+    val surfaceDimDark = Color(0xFF1A120A)
+    val surfaceBrightDark = Color(0xFF42372D)
+    val surfaceContainerLowestDark = Color(0xFF150D06)
+    val surfaceContainerLowDark = Color(0xFF231A11)
+    val surfaceContainerDark = Color(0xFF271E15)
+    val surfaceContainerHighDark = Color(0xFF32281F)
+    val surfaceContainerHighestDark = Color(0xFF3E3329)
+
+    val primaryDarkMediumContrast = Color(0xFFFFD5AE)
+    val onPrimaryDarkMediumContrast = Color(0xFF3B1F00)
+    val primaryContainerDarkMediumContrast = Color(0xFFFF9800)
+    val onPrimaryContainerDarkMediumContrast = Color(0xFF3A1F00)
+    val secondaryDarkMediumContrast = Color(0xFFFFD5A9)
+    val onSecondaryDarkMediumContrast = Color(0xFF392000)
+    val secondaryContainerDarkMediumContrast = Color(0xFFFFAB40)
+    val onSecondaryContainerDarkMediumContrast = Color(0xFF462800)
+    val tertiaryDarkMediumContrast = Color(0xFFFFE4AF)
+    val onTertiaryDarkMediumContrast = Color(0xFF3B2A00)
+    val tertiaryContainerDarkMediumContrast = Color(0xFFFFC107)
+    val onTertiaryContainerDarkMediumContrast = Color(0xFF4A3600)
+    val errorDarkMediumContrast = Color(0xFFFFD2CC)
+    val onErrorDarkMediumContrast = Color(0xFF540003)
+    val errorContainerDarkMediumContrast = Color(0xFFFF5449)
+    val onErrorContainerDarkMediumContrast = Color(0xFF000000)
+    val backgroundDarkMediumContrast = Color(0xFF1A120A)
+    val onBackgroundDarkMediumContrast = Color(0xFFF1DFD1)
+    val surfaceDarkMediumContrast = Color(0xFF1A120A)
+    val onSurfaceDarkMediumContrast = Color(0xFFFFFFFF)
+    val surfaceVariantDarkMediumContrast = Color(0xFF554434)
+    val onSurfaceVariantDarkMediumContrast = Color(0xFFF2D8C2)
+    val outlineDarkMediumContrast = Color(0xFFC5AE99)
+    val outlineVariantDarkMediumContrast = Color(0xFFA28C79)
+    val scrimDarkMediumContrast = Color(0xFF000000)
+    val inverseSurfaceDarkMediumContrast = Color(0xFFF1DFD1)
+    val inverseOnSurfaceDarkMediumContrast = Color(0xFF32281F)
+    val inversePrimaryDarkMediumContrast = Color(0xFF6B3D00)
+    val surfaceDimDarkMediumContrast = Color(0xFF1A120A)
+    val surfaceBrightDarkMediumContrast = Color(0xFF4E4238)
+    val surfaceContainerLowestDarkMediumContrast = Color(0xFF0D0602)
+    val surfaceContainerLowDarkMediumContrast = Color(0xFF251C13)
+    val surfaceContainerDarkMediumContrast = Color(0xFF30261D)
+    val surfaceContainerHighDarkMediumContrast = Color(0xFF3B3127)
+    val surfaceContainerHighestDarkMediumContrast = Color(0xFF473C32)
+
+    val primaryDarkHighContrast = Color(0xFFFFEDDF)
+    val onPrimaryDarkHighContrast = Color(0xFF000000)
+    val primaryContainerDarkHighContrast = Color(0xFFFFB363)
+    val onPrimaryContainerDarkHighContrast = Color(0xFF150800)
+    val secondaryDarkHighContrast = Color(0xFFFFEDDD)
+    val onSecondaryDarkHighContrast = Color(0xFF000000)
+    val secondaryContainerDarkHighContrast = Color(0xFFFFB358)
+    val onSecondaryContainerDarkHighContrast = Color(0xFF150800)
+    val tertiaryDarkHighContrast = Color(0xFFFFEED1)
+    val onTertiaryDarkHighContrast = Color(0xFF000000)
+    val tertiaryContainerDarkHighContrast = Color(0xFFFFC107)
+    val onTertiaryContainerDarkHighContrast = Color(0xFF1F1500)
+    val errorDarkHighContrast = Color(0xFFFFECE9)
+    val onErrorDarkHighContrast = Color(0xFF000000)
+    val errorContainerDarkHighContrast = Color(0xFFFFAEA4)
+    val onErrorContainerDarkHighContrast = Color(0xFF220001)
+    val backgroundDarkHighContrast = Color(0xFF1A120A)
+    val onBackgroundDarkHighContrast = Color(0xFFF1DFD1)
+    val surfaceDarkHighContrast = Color(0xFF1A120A)
+    val onSurfaceDarkHighContrast = Color(0xFFFFFFFF)
+    val surfaceVariantDarkHighContrast = Color(0xFF554434)
+    val onSurfaceVariantDarkHighContrast = Color(0xFFFFFFFF)
+    val outlineDarkHighContrast = Color(0xFFFFEDDF)
+    val outlineVariantDarkHighContrast = Color(0xFFD7BEA9)
+    val scrimDarkHighContrast = Color(0xFF000000)
+    val inverseSurfaceDarkHighContrast = Color(0xFFF1DFD1)
+    val inverseOnSurfaceDarkHighContrast = Color(0xFF000000)
+    val inversePrimaryDarkHighContrast = Color(0xFF6B3D00)
+    val surfaceDimDarkHighContrast = Color(0xFF1A120A)
+    val surfaceBrightDarkHighContrast = Color(0xFF5A4E43)
+    val surfaceContainerLowestDarkHighContrast = Color(0xFF000000)
+    val surfaceContainerLowDarkHighContrast = Color(0xFF271E15)
+    val surfaceContainerDarkHighContrast = Color(0xFF392E25)
+    val surfaceContainerHighDarkHighContrast = Color(0xFF44392F)
+    val surfaceContainerHighestDarkHighContrast = Color(0xFF50453A)
+    private val lightScheme = lightColorScheme(
+        primary = primaryLight,
+        onPrimary = onPrimaryLight,
+        primaryContainer = primaryContainerLight,
+        onPrimaryContainer = onPrimaryContainerLight,
+        secondary = secondaryLight,
+        onSecondary = onSecondaryLight,
+        secondaryContainer = secondaryContainerLight,
+        onSecondaryContainer = onSecondaryContainerLight,
+        tertiary = tertiaryLight,
+        onTertiary = onTertiaryLight,
+        tertiaryContainer = tertiaryContainerLight,
+        onTertiaryContainer = onTertiaryContainerLight,
+        error = errorLight,
+        onError = onErrorLight,
+        errorContainer = errorContainerLight,
+        onErrorContainer = onErrorContainerLight,
+        background = backgroundLight,
+        onBackground = onBackgroundLight,
+        surface = surfaceLight,
+        onSurface = onSurfaceLight,
+        surfaceVariant = surfaceVariantLight,
+        onSurfaceVariant = onSurfaceVariantLight,
+        outline = outlineLight,
+        outlineVariant = outlineVariantLight,
+        scrim = scrimLight,
+        inverseSurface = inverseSurfaceLight,
+        inverseOnSurface = inverseOnSurfaceLight,
+        inversePrimary = inversePrimaryLight,
+        surfaceDim = surfaceDimLight,
+        surfaceBright = surfaceBrightLight,
+        surfaceContainerLowest = surfaceContainerLowestLight,
+        surfaceContainerLow = surfaceContainerLowLight,
+        surfaceContainer = surfaceContainerLight,
+        surfaceContainerHigh = surfaceContainerHighLight,
+        surfaceContainerHighest = surfaceContainerHighestLight,
+    )
+
+    private val darkScheme = darkColorScheme(
+        primary = primaryDark,
+        onPrimary = onPrimaryDark,
+        primaryContainer = primaryContainerDark,
+        onPrimaryContainer = onPrimaryContainerDark,
+        secondary = secondaryDark,
+        onSecondary = onSecondaryDark,
+        secondaryContainer = secondaryContainerDark,
+        onSecondaryContainer = onSecondaryContainerDark,
+        tertiary = tertiaryDark,
+        onTertiary = onTertiaryDark,
+        tertiaryContainer = tertiaryContainerDark,
+        onTertiaryContainer = onTertiaryContainerDark,
+        error = errorDark,
+        onError = onErrorDark,
+        errorContainer = errorContainerDark,
+        onErrorContainer = onErrorContainerDark,
+        background = backgroundDark,
+        onBackground = onBackgroundDark,
+        surface = surfaceDark,
+        onSurface = onSurfaceDark,
+        surfaceVariant = surfaceVariantDark,
+        onSurfaceVariant = onSurfaceVariantDark,
+        outline = outlineDark,
+        outlineVariant = outlineVariantDark,
+        scrim = scrimDark,
+        inverseSurface = inverseSurfaceDark,
+        inverseOnSurface = inverseOnSurfaceDark,
+        inversePrimary = inversePrimaryDark,
+        surfaceDim = surfaceDimDark,
+        surfaceBright = surfaceBrightDark,
+        surfaceContainerLowest = surfaceContainerLowestDark,
+        surfaceContainerLow = surfaceContainerLowDark,
+        surfaceContainer = surfaceContainerDark,
+        surfaceContainerHigh = surfaceContainerHighDark,
+        surfaceContainerHighest = surfaceContainerHighestDark,
+    )
+
+    private val mediumContrastLightColorScheme = lightColorScheme(
+        primary = primaryLightMediumContrast,
+        onPrimary = onPrimaryLightMediumContrast,
+        primaryContainer = primaryContainerLightMediumContrast,
+        onPrimaryContainer = onPrimaryContainerLightMediumContrast,
+        secondary = secondaryLightMediumContrast,
+        onSecondary = onSecondaryLightMediumContrast,
+        secondaryContainer = secondaryContainerLightMediumContrast,
+        onSecondaryContainer = onSecondaryContainerLightMediumContrast,
+        tertiary = tertiaryLightMediumContrast,
+        onTertiary = onTertiaryLightMediumContrast,
+        tertiaryContainer = tertiaryContainerLightMediumContrast,
+        onTertiaryContainer = onTertiaryContainerLightMediumContrast,
+        error = errorLightMediumContrast,
+        onError = onErrorLightMediumContrast,
+        errorContainer = errorContainerLightMediumContrast,
+        onErrorContainer = onErrorContainerLightMediumContrast,
+        background = backgroundLightMediumContrast,
+        onBackground = onBackgroundLightMediumContrast,
+        surface = surfaceLightMediumContrast,
+        onSurface = onSurfaceLightMediumContrast,
+        surfaceVariant = surfaceVariantLightMediumContrast,
+        onSurfaceVariant = onSurfaceVariantLightMediumContrast,
+        outline = outlineLightMediumContrast,
+        outlineVariant = outlineVariantLightMediumContrast,
+        scrim = scrimLightMediumContrast,
+        inverseSurface = inverseSurfaceLightMediumContrast,
+        inverseOnSurface = inverseOnSurfaceLightMediumContrast,
+        inversePrimary = inversePrimaryLightMediumContrast,
+        surfaceDim = surfaceDimLightMediumContrast,
+        surfaceBright = surfaceBrightLightMediumContrast,
+        surfaceContainerLowest = surfaceContainerLowestLightMediumContrast,
+        surfaceContainerLow = surfaceContainerLowLightMediumContrast,
+        surfaceContainer = surfaceContainerLightMediumContrast,
+        surfaceContainerHigh = surfaceContainerHighLightMediumContrast,
+        surfaceContainerHighest = surfaceContainerHighestLightMediumContrast,
+    )
+
+    private val highContrastLightColorScheme = lightColorScheme(
+        primary = primaryLightHighContrast,
+        onPrimary = onPrimaryLightHighContrast,
+        primaryContainer = primaryContainerLightHighContrast,
+        onPrimaryContainer = onPrimaryContainerLightHighContrast,
+        secondary = secondaryLightHighContrast,
+        onSecondary = onSecondaryLightHighContrast,
+        secondaryContainer = secondaryContainerLightHighContrast,
+        onSecondaryContainer = onSecondaryContainerLightHighContrast,
+        tertiary = tertiaryLightHighContrast,
+        onTertiary = onTertiaryLightHighContrast,
+        tertiaryContainer = tertiaryContainerLightHighContrast,
+        onTertiaryContainer = onTertiaryContainerLightHighContrast,
+        error = errorLightHighContrast,
+        onError = onErrorLightHighContrast,
+        errorContainer = errorContainerLightHighContrast,
+        onErrorContainer = onErrorContainerLightHighContrast,
+        background = backgroundLightHighContrast,
+        onBackground = onBackgroundLightHighContrast,
+        surface = surfaceLightHighContrast,
+        onSurface = onSurfaceLightHighContrast,
+        surfaceVariant = surfaceVariantLightHighContrast,
+        onSurfaceVariant = onSurfaceVariantLightHighContrast,
+        outline = outlineLightHighContrast,
+        outlineVariant = outlineVariantLightHighContrast,
+        scrim = scrimLightHighContrast,
+        inverseSurface = inverseSurfaceLightHighContrast,
+        inverseOnSurface = inverseOnSurfaceLightHighContrast,
+        inversePrimary = inversePrimaryLightHighContrast,
+        surfaceDim = surfaceDimLightHighContrast,
+        surfaceBright = surfaceBrightLightHighContrast,
+        surfaceContainerLowest = surfaceContainerLowestLightHighContrast,
+        surfaceContainerLow = surfaceContainerLowLightHighContrast,
+        surfaceContainer = surfaceContainerLightHighContrast,
+        surfaceContainerHigh = surfaceContainerHighLightHighContrast,
+        surfaceContainerHighest = surfaceContainerHighestLightHighContrast,
+    )
+
+    private val mediumContrastDarkColorScheme = darkColorScheme(
+        primary = primaryDarkMediumContrast,
+        onPrimary = onPrimaryDarkMediumContrast,
+        primaryContainer = primaryContainerDarkMediumContrast,
+        onPrimaryContainer = onPrimaryContainerDarkMediumContrast,
+        secondary = secondaryDarkMediumContrast,
+        onSecondary = onSecondaryDarkMediumContrast,
+        secondaryContainer = secondaryContainerDarkMediumContrast,
+        onSecondaryContainer = onSecondaryContainerDarkMediumContrast,
+        tertiary = tertiaryDarkMediumContrast,
+        onTertiary = onTertiaryDarkMediumContrast,
+        tertiaryContainer = tertiaryContainerDarkMediumContrast,
+        onTertiaryContainer = onTertiaryContainerDarkMediumContrast,
+        error = errorDarkMediumContrast,
+        onError = onErrorDarkMediumContrast,
+        errorContainer = errorContainerDarkMediumContrast,
+        onErrorContainer = onErrorContainerDarkMediumContrast,
+        background = backgroundDarkMediumContrast,
+        onBackground = onBackgroundDarkMediumContrast,
+        surface = surfaceDarkMediumContrast,
+        onSurface = onSurfaceDarkMediumContrast,
+        surfaceVariant = surfaceVariantDarkMediumContrast,
+        onSurfaceVariant = onSurfaceVariantDarkMediumContrast,
+        outline = outlineDarkMediumContrast,
+        outlineVariant = outlineVariantDarkMediumContrast,
+        scrim = scrimDarkMediumContrast,
+        inverseSurface = inverseSurfaceDarkMediumContrast,
+        inverseOnSurface = inverseOnSurfaceDarkMediumContrast,
+        inversePrimary = inversePrimaryDarkMediumContrast,
+        surfaceDim = surfaceDimDarkMediumContrast,
+        surfaceBright = surfaceBrightDarkMediumContrast,
+        surfaceContainerLowest = surfaceContainerLowestDarkMediumContrast,
+        surfaceContainerLow = surfaceContainerLowDarkMediumContrast,
+        surfaceContainer = surfaceContainerDarkMediumContrast,
+        surfaceContainerHigh = surfaceContainerHighDarkMediumContrast,
+        surfaceContainerHighest = surfaceContainerHighestDarkMediumContrast,
+    )
+
+    private val highContrastDarkColorScheme = darkColorScheme(
+        primary = primaryDarkHighContrast,
+        onPrimary = onPrimaryDarkHighContrast,
+        primaryContainer = primaryContainerDarkHighContrast,
+        onPrimaryContainer = onPrimaryContainerDarkHighContrast,
+        secondary = secondaryDarkHighContrast,
+        onSecondary = onSecondaryDarkHighContrast,
+        secondaryContainer = secondaryContainerDarkHighContrast,
+        onSecondaryContainer = onSecondaryContainerDarkHighContrast,
+        tertiary = tertiaryDarkHighContrast,
+        onTertiary = onTertiaryDarkHighContrast,
+        tertiaryContainer = tertiaryContainerDarkHighContrast,
+        onTertiaryContainer = onTertiaryContainerDarkHighContrast,
+        error = errorDarkHighContrast,
+        onError = onErrorDarkHighContrast,
+        errorContainer = errorContainerDarkHighContrast,
+        onErrorContainer = onErrorContainerDarkHighContrast,
+        background = backgroundDarkHighContrast,
+        onBackground = onBackgroundDarkHighContrast,
+        surface = surfaceDarkHighContrast,
+        onSurface = onSurfaceDarkHighContrast,
+        surfaceVariant = surfaceVariantDarkHighContrast,
+        onSurfaceVariant = onSurfaceVariantDarkHighContrast,
+        outline = outlineDarkHighContrast,
+        outlineVariant = outlineVariantDarkHighContrast,
+        scrim = scrimDarkHighContrast,
+        inverseSurface = inverseSurfaceDarkHighContrast,
+        inverseOnSurface = inverseOnSurfaceDarkHighContrast,
+        inversePrimary = inversePrimaryDarkHighContrast,
+        surfaceDim = surfaceDimDarkHighContrast,
+        surfaceBright = surfaceBrightDarkHighContrast,
+        surfaceContainerLowest = surfaceContainerLowestDarkHighContrast,
+        surfaceContainerLow = surfaceContainerLowDarkHighContrast,
+        surfaceContainer = surfaceContainerDarkHighContrast,
+        surfaceContainerHigh = surfaceContainerHighDarkHighContrast,
+        surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
+    )
+
+    val unspecified_scheme = ColorFamily(
+        Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
+    )
+
+    @Composable
+    fun Theme(
+        darkTheme: Boolean = isSystemInDarkTheme(),
+        content: @Composable() () -> Unit,
+    ) {
+        val colorScheme = if (darkTheme) {
+            darkScheme
+        } else {
+            lightScheme
+        }
+
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content,
+        )
+    }
+
+
+}

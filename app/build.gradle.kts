@@ -85,7 +85,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.ui:ui-viewbinding")
-    implementation("com.google.accompanist:accompanist-themeadapter-material3:0.36.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("com.google.android.material:material:1.14.0-alpha04")

@@ -52,10 +52,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.ktx.forEachTry
 import io.nekohasekai.sagernet.ktx.hasPermission
@@ -82,7 +82,7 @@ class ScannerActivity : ThemedActivity() {
         val toolbar = findViewById<ComposeView>(R.id.toolbar)
         toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 val flashOn by viewModel.isFlashlightOn.collectAsStateWithLifecycle()
                 TopAppBar(
                     title = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },

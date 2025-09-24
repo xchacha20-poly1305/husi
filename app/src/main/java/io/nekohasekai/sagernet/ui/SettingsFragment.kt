@@ -8,9 +8,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.GravityCompat
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 class SettingsFragment : OnKeyDownFragment(R.layout.layout_config_settings) {
@@ -21,7 +21,7 @@ class SettingsFragment : OnKeyDownFragment(R.layout.layout_config_settings) {
         val toolbar = view.findViewById<ComposeView>(R.id.toolbar)
         toolbar.setContent {
             @Suppress("DEPRECATION")
-            Mdc3Theme {
+            AppTheme {
                 SimpleTopAppBar(
                     title = R.string.settings,
                     navigationIcon = Icons.Filled.Menu,
