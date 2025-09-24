@@ -18,6 +18,7 @@ internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() 
         DataStore.serverSNI = serverName
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
+        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
         DataStore.serverUtlsFingerPrint = utlsFingerprint
         DataStore.serverAllowInsecure = allowInsecure
         DataStore.serverDisableSNI = disableSNI
@@ -39,6 +40,7 @@ internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() 
         serverName = DataStore.serverSNI
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
+        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
         utlsFingerprint = DataStore.serverUtlsFingerPrint
         allowInsecure = DataStore.serverAllowInsecure
         disableSNI = DataStore.serverDisableSNI

@@ -41,6 +41,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public Boolean recordFragment;
 
+    public String certificates;
+
+    public String certPublicKeySha256;
+
     // --------------------------------------- reality
 
 
@@ -59,8 +63,6 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public Integer wsMaxEarlyData;
     public String earlyDataHeaderName;
-
-    public String certificates;
 
     // --------------------------------------- //
 
@@ -86,6 +88,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (alpn == null) alpn = "";
 
         if (certificates == null) certificates = "";
+        if (certPublicKeySha256 == null) certPublicKeySha256 = "";
         if (earlyDataHeaderName == null) earlyDataHeaderName = "";
         if (utlsFingerprint == null) utlsFingerprint = "";
 
@@ -107,7 +110,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(7);
+        output.writeInt(8);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -161,6 +164,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
             output.writeString(fragmentFallbackDelay);
             output.writeBoolean(recordFragment);
             output.writeBoolean(disableSNI);
+
+            output.writeString(certPublicKeySha256);
         }
 
         output.writeInt(packetEncoding);
@@ -234,6 +239,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
             if (version >= 7) {
                 disableSNI = input.readBoolean();
+            }
+
+            if (version >= 8) {
+                certPublicKeySha256 = input.readString();
             }
         }
 

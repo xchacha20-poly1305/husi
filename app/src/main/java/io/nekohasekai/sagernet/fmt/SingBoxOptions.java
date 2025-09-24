@@ -625,15 +625,23 @@ public class SingBoxOptions {
 
         public List<String> cipher_suites;
 
+        public List<Integer> curve_preferences;
+
         public List<String> certificate;
 
         public String certificate_path;
+
+        public List<String> certificate_public_key_sha256;
 
         public Boolean fragment;
 
         public String fragment_fallback_delay;
 
         public Boolean record_fragment;
+
+        public Boolean kernel_tx;
+
+        public Boolean kernel_rx;
 
         public OutboundECHOptions ech;
 
@@ -691,15 +699,29 @@ public class SingBoxOptions {
 
         public List<String> cipher_suites;
 
+        public List<Integer> curve_preferences;
+
         public List<String> certificate;
 
         public String certificate_path;
+
+        public Integer client_authentication;
+
+        public List<String> client_certificate;
+
+        public List<String> client_certificate_path;
+
+        public List<String> client_certificate_public_key_sha256;
 
         public List<String> key;
 
         public String key_path;
 
-        // public InboundACMEOptions acme;
+        public Boolean kernel_tx;
+
+        public Boolean kernel_rx;
+
+        // public InboundECHOptions ech;
 
         // public InboundECHOptions ech;
 
@@ -2297,8 +2319,6 @@ public class SingBoxOptions {
         public String server;
 
         public Integer server_port;
-
-        public String networks;
 
         public String uuid;
 

@@ -79,6 +79,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             if (bean.certificates.isNotBlank()) {
                 certificate = listOf(bean.certificates)
             }
+            certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
             if (bean.ech) {
                 val echConfig =
                     bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
@@ -116,6 +117,7 @@ fun parseTuicOutbound(json: JSONMap): TuicBean = TuicBean().apply {
                 allowInsecure = tls.insecure
                 disableSNI = tls.disable_sni
                 certificates = tls.certificate?.joinToString("\n")
+                certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n")
                 alpn = tls.alpn?.joinToString("\n")
                 tls.ech?.let {
                     ech = it.enabled

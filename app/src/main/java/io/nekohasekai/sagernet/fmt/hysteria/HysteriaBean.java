@@ -45,6 +45,7 @@ public class HysteriaBean extends AbstractBean {
     public String obfuscation;
     public String sni;
     public String certificates;
+    public String certPublicKeySha256;
     public Boolean disableSNI;
 
     // HY1
@@ -78,6 +79,7 @@ public class HysteriaBean extends AbstractBean {
         if (sni == null) sni = "";
         if (alpn == null) alpn = "";
         if (certificates == null) certificates = "";
+        if (certPublicKeySha256 == null) certPublicKeySha256 = "";
         if (allowInsecure == null) allowInsecure = false;
         if (disableSNI == null) disableSNI = false;
 
@@ -96,7 +98,7 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(3);
+        output.writeInt(4);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -122,8 +124,12 @@ public class HysteriaBean extends AbstractBean {
 
         output.writeBoolean(disableSNI);
 
+        // version 3
         output.writeString(mtlsCert);
         output.writeString(mtlsKey);
+
+        // version 4
+        output.writeString(certPublicKeySha256);
     }
 
     @Override
@@ -161,6 +167,10 @@ public class HysteriaBean extends AbstractBean {
         if (version >= 3) {
             mtlsCert = input.readString();
             mtlsKey = input.readString();
+        }
+
+        if (version >= 4) {
+            certPublicKeySha256 = input.readString();
         }
     }
 

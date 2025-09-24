@@ -143,6 +143,7 @@ object Key {
     const val SERVER_ENCRYPTION = "serverEncryption"
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
+    const val SERVER_CERT_PUBLIC_KEY_SHA256 = "serverCertPublicKeySha256"
     const val SERVER_M_TLS_CERT = "serverMTlsCert"
     const val SERVER_M_TLS_KEY = "serverMTlsKey"
     const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"

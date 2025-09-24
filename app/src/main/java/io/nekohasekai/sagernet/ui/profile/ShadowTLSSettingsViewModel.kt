@@ -16,6 +16,7 @@ internal class ShadowTLSSettingsViewModel : ProfileSettingsViewModel<ShadowTLSBe
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
+        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
         DataStore.serverAllowInsecure = allowInsecure
         DataStore.serverUtlsFingerPrint = utlsFingerprint
     }
@@ -29,6 +30,7 @@ internal class ShadowTLSSettingsViewModel : ProfileSettingsViewModel<ShadowTLSBe
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
+        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
         allowInsecure = DataStore.serverAllowInsecure
         utlsFingerprint = DataStore.serverUtlsFingerPrint
     }
