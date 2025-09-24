@@ -98,7 +98,6 @@
     <string name="invert_selections">反选</string>
     <string name="clear_selections">清空</string>
     <string name="bypass_apps">绕过</string>
-    <string name="show_system_apps">显示系统应用</string>
     <string name="auto_connect">自动连接</string>
     <string name="auto_connect_summary">手机启动或更新后代理会自动重新连接</string>
     <string name="direct_boot_aware">允许在解锁前启动</string>
