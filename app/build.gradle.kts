@@ -87,7 +87,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-viewbinding")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    implementation("com.google.android.material:material:1.14.0-alpha04")
+    implementation("com.google.android.material:material:1.14.0-alpha05")
     implementation("com.google.code.gson:gson:2.13.2")
 
     implementation("com.blacksquircle.ui:editorkit:2.9.0")
