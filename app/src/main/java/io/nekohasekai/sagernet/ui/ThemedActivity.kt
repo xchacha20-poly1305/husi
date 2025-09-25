@@ -46,11 +46,7 @@ abstract class ThemedActivity : AppCompatActivity {
             val usingNightMode = Theme.usingNightMode()
             insetController.isAppearanceLightNavigationBars = !usingNightMode
             // https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1576
-            insetController.isAppearanceLightStatusBars = if (DataStore.appTheme == Theme.BLACK) {
-                !usingNightMode
-            } else {
-                false
-            }
+            insetController.isAppearanceLightStatusBars = !usingNightMode
         }
 
         uiMode = resources.configuration.uiMode
