@@ -88,7 +88,12 @@ internal enum class TestType {
 }
 
 internal sealed class ConfigurationChildEvent(open val group: Long) {
-    class ScrollToProxy(override val group: Long, val id: Long) : ConfigurationChildEvent(group)
+    class ScrollToProxy(
+        override val group: Long,
+        val id: Long,
+        val fallbackToTop: Boolean = false,
+    ) : ConfigurationChildEvent(group)
+
     class RequestFocusIfNotHave(override val group: Long) : ConfigurationChildEvent(group)
     class ClearTrafficStatistic(override val group: Long) : ConfigurationChildEvent(group)
     class ClearResult(override val group: Long) : ConfigurationChildEvent(group)
@@ -213,10 +218,12 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
 
                             it.profile.status = when (result.reason) {
                                 FailureReason.ConnectionRefused, FailureReason.IcmpUnavailable,
-                                FailureReason.NetworkUnreachable, FailureReason.Timeout -> ProxyEntity.STATUS_UNREACHABLE
+                                FailureReason.NetworkUnreachable, FailureReason.Timeout,
+                                    -> ProxyEntity.STATUS_UNREACHABLE
 
                                 is FailureReason.PluginNotFound, FailureReason.DomainNotFound,
-                                FailureReason.InvalidConfig -> ProxyEntity.STATUS_INVALID
+                                FailureReason.InvalidConfig,
+                                    -> ProxyEntity.STATUS_INVALID
 
                                 is FailureReason.Generic, FailureReason.TcpUnavailable -> ProxyEntity.STATUS_UNAVAILABLE
                             }
@@ -351,7 +358,7 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
                 SagerNet.startService()
             }
         }
-        emitChildEvent(ConfigurationChildEvent.OnProfileSelect(DataStore.selectedGroup,new))
+        emitChildEvent(ConfigurationChildEvent.OnProfileSelect(DataStore.selectedGroup, new))
     }
 
     init {
