@@ -237,7 +237,8 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             is ConfigurationChildEvent.ScrollToProxy -> {
                 val index = adapter.currentList
                     .indexOfFirst { it.profile.id == event.id }
-                    .takeIf { it >= 0 } ?: return
+                    .takeIf { it >= 0 }
+                    ?: if (event.fallbackToTop) 0 else return
 
                 val layoutManager = binding.configurationList.layoutManager as LinearLayoutManager
                 val first = layoutManager.findFirstVisibleItemPosition()
