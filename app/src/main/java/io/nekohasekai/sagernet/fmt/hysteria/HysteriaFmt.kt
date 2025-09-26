@@ -448,6 +448,7 @@ sealed class HopPort {
         const val HYSTERIA_RANGE = "-"
 
         fun from(ports: String): HopPort {
+            if (ports.isBlank()) return Single(443)
             val ranges = ports.split(SPLIT_FLAG)
             if (ranges.size == 1) {
                 val first = ranges.first()

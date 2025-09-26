@@ -107,7 +107,10 @@ class AppManagerActivity : ThemedActivity() {
                         if (searchActivate) SimpleIconButton(
                             imageVector = Icons.Filled.Close,
                             contentDescription = stringResource(R.string.close),
-                            onClick = { searchActivate = false },
+                            onClick = {
+                                viewModel.setSearchQuery("")
+                                searchActivate = false
+                            },
                         ) else {
                             SimpleIconButton(
                                 imageVector = Icons.Filled.Search,

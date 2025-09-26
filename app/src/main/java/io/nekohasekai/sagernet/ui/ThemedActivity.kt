@@ -30,7 +30,6 @@ abstract class ThemedActivity : AppCompatActivity {
         }
         Theme.applyNightTheme()
 
-        enableEdgeToEdge()
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
             // BAKLAVA and later VANILLA_ICE_CREAM have fixed this
@@ -40,16 +39,14 @@ abstract class ThemedActivity : AppCompatActivity {
 
         super.onCreate(savedInstanceState)
 
+        enableEdgeToEdge()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val insetController = WindowCompat.getInsetsController(window, window.decorView)
             val usingNightMode = Theme.usingNightMode()
             insetController.isAppearanceLightNavigationBars = !usingNightMode
             // https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1576
-            insetController.isAppearanceLightStatusBars = if (DataStore.appTheme == Theme.BLACK) {
-                !usingNightMode
-            } else {
-                false
-            }
+            insetController.isAppearanceLightStatusBars = !usingNightMode
         }
 
         uiMode = resources.configuration.uiMode
