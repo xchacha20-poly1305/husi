@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.fmt.Deduplication
 import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
@@ -97,9 +98,9 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
         }
     }
 
-    var query: String? = null
+    var query: String = ""
         set(value) {
-            val lowercase = value?.lowercase()
+            val lowercase = value.lowercase()
             if (lowercase != field) {
                 field = lowercase
                 loadJob?.cancel()
@@ -130,7 +131,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
         val profiles = SagerDatabase.proxyDao.getByGroup(group.id)
             .filter {
                 val query = query
-                if (query.isNullOrBlank()) {
+                if (query.isBlank()) {
                     true
                 } else {
                     it.displayName().lowercase().contains(query)
@@ -231,9 +232,11 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     fun removeDuplicate() = runOnDefaultDispatcher {
-        val uniqueProxies = hashSetOf<ProxyEntity>()
+        val uniqueProxies = LinkedHashSet<Deduplication>()
         val toClear = SagerDatabase.proxyDao.getByGroup(group.id).mapNotNull {
-            if (uniqueProxies.add(it)) {
+            val bean = it.requireBean()
+            val deduplication = Deduplication(bean, bean.javaClass.name)
+            if (uniqueProxies.add(deduplication)) {
                 null
             } else {
                 it
@@ -317,6 +320,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     override suspend fun onAdd(profile: ProxyEntity) {
+        if (profile.groupId != group.id) return
         _uiState.update { state ->
             val selected = preSelected ?: DataStore.selectedProxy
             val isSelected = profile.id == selected
@@ -333,12 +337,20 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
 
     override suspend fun onUpdated(data: TrafficData) {
         _uiState.update { state ->
-            val profiles = state.profiles.toList()
-            profiles.find { it.profile.id == data.id }?.let {
-                it.profile.tx = data.tx
-                it.profile.rx = data.rx
+            val profiles = state.profiles.toMutableList()
+            val index = profiles.indexOfFirst { it.profile.id == data.id }
+            if (index >= 0) {
+                val target = profiles[index]
+                profiles[index] = target.copy(
+                    profile = target.profile.copy(
+                        tx = data.tx,
+                        rx = data.rx,
+                    )
+                )
+                state.copy(profiles = profiles, scrollIndex = null)
+            } else {
+                state.copy(scrollIndex = null)
             }
-            state.copy(profiles = profiles, scrollIndex = null)
         }
     }
 

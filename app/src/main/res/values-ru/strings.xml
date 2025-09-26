@@ -302,7 +302,6 @@
         был запущен до этого
     </string>
     <string name="auto_connect">Автоматическое подключение</string>
-    <string name="show_system_apps">Показать системные приложения</string>
     <string name="bypass_apps">Обход</string>
     <string name="clear_selections">Очистить выбор</string>
     <string name="invert_selections">Инвертировать выбор</string>
@@ -549,8 +548,8 @@
     <string name="by_time">По времени</string>
     <string name="by_source">По адресу источника</string>
     <string name="by_destination">По адресу назначения</string>
-    <string name="by_upload">По загрузке</string>
-    <string name="by_download">По скачиванию</string>
+    <string name="by_upload">По отправке</string>
+    <string name="by_download">По получению</string>
     <string name="pinned_peer_certificate_chain_sha256">Хэш фиксированной цепочки сертификатов</string>
     <string name="speed_test">Тест скорости</string>
     <string name="have_reset_network">Все сети были сброшены</string>
@@ -676,4 +675,6 @@
     <string name="action_test_config">Тест конфигурации</string>
     <string name="action_format">Формат</string>
     <string name="juicity_provider">Провайдер Juicity</string>
+    <string name="menu">Меню</string>
+    <string name="mutual_tls">Взаимный TLS (mTLS)</string>
 </resources>

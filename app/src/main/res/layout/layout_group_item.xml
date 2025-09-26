@@ -56,27 +56,25 @@
                     tools:text="user name" />
             </LinearLayout>
 
-            <androidx.appcompat.widget.AppCompatImageView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/edit"
+                style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_gravity="center_vertical"
                 android:contentDescription="@string/edit"
-                android:focusable="true"
-                android:padding="12dp"
-                app:srcCompat="@drawable/ic_image_edit" />
+                app:icon="@drawable/ic_image_edit"
+                app:iconTint="?attr/colorOnSurface" />
 
-            <androidx.appcompat.widget.AppCompatImageView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/options"
+                style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:focusable="true"
+                android:layout_gravity="center_vertical"
                 android:nextFocusLeft="@+id/container"
-                android:padding="12dp"
-                app:srcCompat="@drawable/ic_baseline_more_vert_24" />
+                app:icon="@drawable/ic_baseline_more_vert_24"
+                app:iconTint="?attr/colorOnSurface" />
 
         </LinearLayout>
 

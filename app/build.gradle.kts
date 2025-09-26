@@ -5,6 +5,7 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20"
 }
 
 setupApp()
@@ -39,11 +40,19 @@ android {
         }
     }
     buildFeatures {
+        compose = true
         viewBinding = true
         aidl = true
         buildConfig = true
     }
     namespace = "io.nekohasekai.sagernet"
+
+    kotlin {
+        compilerOptions {
+            optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
+        }
+    }
+
 
     tasks.withType<Test> {
         useJUnitPlatform()
@@ -61,15 +70,24 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.11.0")
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("androidx.browser:browser:1.9.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.4")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.4")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
+    implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.4")
-    implementation("androidx.work:work-multiprocess:2.10.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.3")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
+    implementation("androidx.work:work-multiprocess:2.10.5")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
 
-    implementation("com.google.android.material:material:1.14.0-alpha04")
+    implementation(platform("androidx.compose:compose-bom:2025.07.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.activity:activity-compose:1.11.0")
+    implementation("androidx.compose.ui:ui-viewbinding")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
+    implementation("com.google.android.material:material:1.14.0-alpha05")
     implementation("com.google.code.gson:gson:2.13.2")
 
     implementation("com.blacksquircle.ui:editorkit:2.9.0")
@@ -90,7 +108,7 @@ dependencies {
     implementation("com.android.tools.smali:smali-dexlib2:3.0.9") {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation("com.google.guava:guava:33.4.8-android")
+    implementation("com.google.guava:guava:33.5.0-android")
 
     implementation("androidx.room:room-runtime:2.7.2") // doNotUpdate
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")

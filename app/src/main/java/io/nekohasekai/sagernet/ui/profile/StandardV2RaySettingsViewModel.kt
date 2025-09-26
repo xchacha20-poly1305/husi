@@ -26,6 +26,7 @@ internal abstract class StandardV2RaySettingsViewModel : ProfileSettingsViewMode
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
+        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
         DataStore.serverAllowInsecure = allowInsecure
         DataStore.serverDisableSNI = disableSNI
         DataStore.serverFragment = fragment
@@ -86,6 +87,7 @@ internal abstract class StandardV2RaySettingsViewModel : ProfileSettingsViewMode
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
+        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
         allowInsecure = DataStore.serverAllowInsecure
         disableSNI = DataStore.serverDisableSNI
         fragment = DataStore.serverFragment

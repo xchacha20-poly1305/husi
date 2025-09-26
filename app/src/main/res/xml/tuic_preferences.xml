@@ -38,6 +38,11 @@
             app:key="serverCertificates"
             app:title="@string/certificates"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_wb_sunny_24"
+            app:key="serverCertPublicKeySha256"
+            app:title="@string/cert_public_key_sha256"
+            app:useSimpleSummaryProvider="true" />
         <rikka.preference.SimpleMenuPreference
             app:defaultValue="https"
             app:entries="@array/tuic_udp_relay_mode_value"

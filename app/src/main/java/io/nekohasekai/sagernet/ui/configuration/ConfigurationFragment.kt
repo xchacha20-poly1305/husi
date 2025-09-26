@@ -7,16 +7,51 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.ForegroundColorSpan
 import android.view.KeyEvent
-import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.PopupMenu
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
@@ -24,6 +59,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
@@ -35,6 +71,9 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.compose.ExpandableDropdownMenuItem
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -53,12 +92,11 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.setOnFocusCancel
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.OnKeyDownFragment
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import io.nekohasekai.sagernet.ui.ToolbarFragment
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
@@ -81,9 +119,8 @@ import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import kotlinx.coroutines.launch
 import java.util.zip.ZipInputStream
 
-class ConfigurationFragment : ToolbarFragment,
-    PopupMenu.OnMenuItemClickListener,
-    Toolbar.OnMenuItemClickListener, SearchView.OnQueryTextListener {
+@OptIn(ExperimentalMaterial3Api::class)
+class ConfigurationFragment : OnKeyDownFragment {
 
     companion object {
         private const val PAYLOAD_NAME = 1 shl 0
@@ -120,27 +157,6 @@ class ConfigurationFragment : ToolbarFragment,
     private lateinit var adapter: GroupPagerAdapter
     private val viewModel: ConfigurationFragmentViewModel by viewModels()
 
-    private fun getCurrentGroupFragment(): GroupProfilesHolder? = try {
-        childFragmentManager.findFragmentByTag("f" + DataStore.selectedGroup) as GroupProfilesHolder?
-    } catch (e: Exception) {
-        Logs.e(e)
-        null
-    }
-
-    override fun onQueryTextChange(query: String?): Boolean {
-        lifecycleScope.launch {
-            viewModel.emitChildEvent(
-                ConfigurationChildEvent.UpdateQuery(
-                    DataStore.selectedGroup,
-                    query,
-                )
-            )
-        }
-        return false
-    }
-
-    override fun onQueryTextSubmit(query: String?): Boolean = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -157,28 +173,9 @@ class ConfigurationFragment : ToolbarFragment,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (!viewModel.forSelect) {
-            toolbar.inflateMenu(R.menu.add_profile_menu)
-            toolbar.setOnMenuItemClickListener(this)
-            toolbar.setTitleTextAppearance(context, R.style.AppNameAppearanceHusi)
-        } else {
-            toolbar.setTitle(viewModel.titleRes)
-            toolbar.setNavigationIcon(R.drawable.ic_navigation_close)
-            toolbar.setNavigationOnClickListener {
-                requireActivity().finish()
-            }
-        }
         val activity = requireActivity() as ThemedActivity
-        val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
-        if (searchView != null) {
-            searchView.setOnQueryTextListener(this)
-            searchView.maxWidth = Int.MAX_VALUE
-            searchView.setOnFocusCancel { hasFocus ->
-                activity.onBackPressedCallback?.isEnabled = hasFocus
-            }
-        }
-
         binding = LayoutGroupListBinding.bind(view)
+        composeToolbar()
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.groupTab) { v, insets ->
             val bars = insets.getInsets(
@@ -201,7 +198,7 @@ class ConfigurationFragment : ToolbarFragment,
             override fun onTabSelected(tab: TabLayout.Tab) {}
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
-                searchView?.setQuery(null, true)
+                viewModel.setSearchQuery("")
             }
 
             override fun onTabReselected(tab: TabLayout.Tab) {}
@@ -216,38 +213,6 @@ class ConfigurationFragment : ToolbarFragment,
                 true
             }
         }.attach()
-
-        toolbar.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.emitChildEvent(
-                    ConfigurationChildEvent.ScrollToProxy(
-                        DataStore.selectedGroup,
-                        viewModel.selectedItem?.id ?: DataStore.selectedProxy,
-                    )
-                )
-            }
-        }
-
-        toolbar.setOnLongClickListener {
-            lifecycleScope.launch {
-                val selectedProxy = viewModel.selectedItem
-                    ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                    ?: return@launch
-                val groupIndex = adapter.currentList.indexOfFirst {
-                    it.id == selectedProxy.groupId
-                }
-                if (groupIndex < 0) return@launch
-                DataStore.selectedGroup = selectedProxy.groupId
-                binding.groupPager.currentItem = groupIndex
-                viewModel.emitChildEvent(
-                    ConfigurationChildEvent.ScrollToProxy(
-                        selectedProxy.groupId,
-                        selectedProxy.id,
-                    )
-                )
-            }
-            true
-        }
 
         activity.onBackPressedCallback?.isEnabled = false
 
@@ -308,7 +273,7 @@ class ConfigurationFragment : ToolbarFragment,
         adapter.submitList(state.groups)
         val hideTab = state.groups.size < 2
         binding.groupTab.isGone = hideTab
-        toolbar.elevation = if (hideTab) {
+        binding.toolbar.elevation = if (hideTab) {
             0F
         } else {
             dp2pxf(4)
@@ -375,133 +340,6 @@ class ConfigurationFragment : ToolbarFragment,
             }
         }
 
-    override fun onMenuItemClick(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_scan_qr_code -> {
-                startActivity(Intent(context, ScannerActivity::class.java))
-            }
-
-            R.id.action_import_clipboard -> {
-                (requireActivity() as MainActivity).parseProxy(SagerNet.getClipboardText())
-            }
-
-            R.id.action_import_file -> {
-                startFilesForResult(importFile, "*/*")
-            }
-
-            R.id.action_new_socks -> {
-                startActivity(Intent(requireActivity(), SocksSettingsActivity::class.java))
-            }
-
-            R.id.action_new_http -> {
-                startActivity(Intent(requireActivity(), HttpSettingsActivity::class.java))
-            }
-
-            R.id.action_new_ss -> {
-                startActivity(Intent(requireActivity(), ShadowsocksSettingsActivity::class.java))
-            }
-
-            R.id.action_new_vmess -> {
-                startActivity(Intent(requireActivity(), VMessSettingsActivity::class.java))
-            }
-
-            R.id.action_new_vless -> {
-                startActivity(Intent(requireActivity(), VMessSettingsActivity::class.java).apply {
-                    putExtra(VMessSettingsActivity.EXTRA_VLESS, true)
-                })
-            }
-
-            R.id.action_new_trojan -> {
-                startActivity(Intent(requireActivity(), TrojanSettingsActivity::class.java))
-            }
-
-            R.id.action_new_mieru -> {
-                startActivity(Intent(requireActivity(), MieruSettingsActivity::class.java))
-            }
-
-            R.id.action_new_naive -> {
-                startActivity(Intent(requireActivity(), NaiveSettingsActivity::class.java))
-            }
-
-            R.id.action_new_hysteria -> {
-                startActivity(Intent(requireActivity(), HysteriaSettingsActivity::class.java))
-            }
-
-            R.id.action_new_tuic -> {
-                startActivity(Intent(requireActivity(), TuicSettingsActivity::class.java))
-            }
-
-            R.id.action_new_juicity -> {
-                startActivity(Intent(requireActivity(), JuicitySettingsActivity::class.java))
-            }
-
-            R.id.action_new_direct -> {
-                startActivity(Intent(requireActivity(), DirectSettingsActivity::class.java))
-            }
-
-            R.id.action_new_ssh -> {
-                startActivity(Intent(requireActivity(), SSHSettingsActivity::class.java))
-            }
-
-            R.id.action_new_wg -> {
-                startActivity(Intent(requireActivity(), WireGuardSettingsActivity::class.java))
-            }
-
-            R.id.action_new_shadowtls -> {
-                startActivity(Intent(requireActivity(), ShadowTLSSettingsActivity::class.java))
-            }
-
-            R.id.action_new_anytls -> {
-                startActivity(Intent(requireActivity(), AnyTLSSettingsActivity::class.java))
-            }
-
-            R.id.action_new_shadowquic -> {
-                startActivity(Intent(requireActivity(), ShadowQUICSettingsActivity::class.java))
-            }
-
-            R.id.action_new_proxy_set -> {
-                startActivity(Intent(requireActivity(), ProxySetSettingsActivity::class.java))
-            }
-
-            R.id.action_new_config -> {
-                startActivity(Intent(requireActivity(), ConfigSettingActivity::class.java))
-            }
-
-            R.id.action_new_chain -> {
-                startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java))
-            }
-
-            R.id.action_clear_traffic_statistics -> lifecycleScope.launch {
-                viewModel.emitChildEvent(ConfigurationChildEvent.ClearTrafficStatistic(DataStore.selectedGroup))
-            }
-
-            R.id.action_connection_test_clear_results -> lifecycleScope.launch {
-                viewModel.emitChildEvent(ConfigurationChildEvent.ClearResult(DataStore.selectedGroup))
-            }
-
-            R.id.action_connection_test_delete_unavailable -> lifecycleScope.launch {
-                viewModel.emitChildEvent(ConfigurationChildEvent.DeleteUnavailable(DataStore.selectedGroup))
-            }
-
-            R.id.action_remove_duplicate -> lifecycleScope.launch {
-                viewModel.emitChildEvent(ConfigurationChildEvent.RemoveDuplicate(DataStore.selectedGroup))
-            }
-
-            R.id.action_connection_icmp_ping -> {
-                viewModel.doTest(DataStore.currentGroupId(), TestType.ICMPPing)
-            }
-
-            R.id.action_connection_tcp_ping -> {
-                viewModel.doTest(DataStore.currentGroupId(), TestType.TCPPing)
-            }
-
-            R.id.action_connection_url_test -> {
-                viewModel.doTest(DataStore.currentGroupId(), TestType.URLTest)
-            }
-        }
-        return true
-    }
-
     private var testDialog: AlertDialog? = null
     private var testDialogBinding: LayoutProgressListBinding? = null
 
@@ -539,6 +377,552 @@ class ConfigurationFragment : ToolbarFragment,
         }
     }
 
+    fun composeToolbar(order: Int = 0) {
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                MyTopAppBar(order)
+            }
+        }
+    }
+
+    @Composable
+    private fun MyTopAppBar(initialOrder: Int) {
+        // 说文小篆（虎兕）
+        // Copyright: https://www.zdic.net/aboutus/copyright/ (A copy of CC0 1.0 was embed in the font file)
+        val appNameFont by lazy { FontFamily(Font(R.font.shuowenxiaozhuan_husi)) }
+        val isChinese = Locale.current.language == "zh"
+
+        var showAddMenu by remember { mutableStateOf(false) }
+        var showAddManualMenu by remember { mutableStateOf(false) }
+        var showOverflowMenu by remember { mutableStateOf(false) }
+        var showConnectionTestMenu by remember { mutableStateOf(false) }
+        var showOrderMenu by remember { mutableStateOf(false) }
+        var isSearchActive by remember { mutableStateOf(false) }
+        val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+        val focusManager = LocalFocusManager.current
+        var order by remember { mutableIntStateOf(initialOrder) }
+
+        TopAppBar(
+            title = {
+                val modifier = Modifier.combinedClickable(
+                    onClick = {
+                        lifecycleScope.launch {
+                            viewModel.emitChildEvent(
+                                ConfigurationChildEvent.ScrollToProxy(
+                                    DataStore.selectedGroup,
+                                    viewModel.selectedItem?.id ?: DataStore.selectedProxy,
+                                    true,
+                                )
+                            )
+                        }
+                    },
+                    onLongClick = {
+                        lifecycleScope.launch {
+                            val selectedProxy = viewModel.selectedItem
+                                ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                                ?: return@launch
+                            val groupIndex = adapter.currentList.indexOfFirst {
+                                it.id == selectedProxy.groupId
+                            }
+                            if (groupIndex < 0) return@launch
+                            DataStore.selectedGroup = selectedProxy.groupId
+                            binding.groupPager.currentItem = groupIndex
+                            viewModel.emitChildEvent(
+                                ConfigurationChildEvent.ScrollToProxy(
+                                    selectedProxy.groupId,
+                                    selectedProxy.id,
+                                )
+                            )
+                        }
+                    },
+                )
+                if (isSearchActive) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.setSearchQuery(it) },
+                        placeholder = { Text(stringResource(android.R.string.search_go)) },
+                        modifier = modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            focusManager.clearFocus()
+                            viewModel.setSearchQuery(searchQuery)
+                        }),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        )
+                    )
+                } else {
+                    Text(
+                        text = stringResource(
+                            if (viewModel.forSelect) {
+                                viewModel.titleRes
+                            } else {
+                                R.string.app_name
+                            }
+                        ),
+                        modifier = modifier,
+                        style = if (isChinese) {
+                            MaterialTheme.typography.titleLarge.copy(fontFamily = appNameFont)
+                        } else {
+                            MaterialTheme.typography.titleLarge
+                        },
+                    )
+                }
+            },
+            navigationIcon = {
+                if (viewModel.forSelect) SimpleIconButton(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.close),
+                ) {
+                    requireActivity().finish()
+                } else SimpleIconButton(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = stringResource(R.string.menu),
+                ) {
+                    (requireActivity() as MainActivity).binding
+                        .drawerLayout.openDrawer(GravityCompat.START)
+                }
+            },
+            actions = {
+                if (isSearchActive) SimpleIconButton(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.close),
+                ) {
+                    isSearchActive = false
+                    viewModel.setSearchQuery("")
+                } else {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = stringResource(android.R.string.search_go),
+                    ) {
+                        isSearchActive = true
+                    }
+
+                    Box {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                            contentDescription = stringResource(R.string.add_profile),
+                        ) {
+                            showAddMenu = true
+                        }
+                        DropdownMenu(
+                            expanded = showAddMenu,
+                            onDismissRequest = { showAddMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
+                                onClick = {
+                                    startActivity(Intent(context, ScannerActivity::class.java))
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_import)) },
+                                onClick = {
+                                    showAddMenu = false
+                                    runOnDefaultDispatcher {
+                                        (requireActivity() as MainActivity).parseProxy(SagerNet.getClipboardText())
+                                    }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_import_file)) },
+                                onClick = {
+                                    showAddMenu = false
+                                    startFilesForResult(importFile, "*/*")
+                                }
+                            )
+                            ExpandableDropdownMenuItem(stringResource(R.string.add_profile_methods_manual_settings)) {
+                                showAddMenu = false
+                                showAddManualMenu = true
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = showAddManualMenu,
+                            onDismissRequest = { showAddManualMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_socks)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            SocksSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_http)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            HttpSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_shadowsocks)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            ShadowsocksSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_vmess)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            VMessSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_vless)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            VMessSettingsActivity::class.java,
+                                        ).putExtra(VMessSettingsActivity.EXTRA_VLESS, true),
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_trojan)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            TrojanSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_mieru)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            MieruSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_naive)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            NaiveSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_hysteria)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            HysteriaSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_tuic)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            TuicSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_juicity)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            JuicitySettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_direct)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            DirectSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_ssh)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            SSHSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_wireguard)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            WireGuardSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_shadowtls)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            ShadowTLSSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_anytls)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            AnyTLSSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_shadowquic)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            ShadowQUICSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.proxy_set)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            ProxySetSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.custom_config)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            ConfigSettingActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.proxy_chain)) },
+                                onClick = {
+                                    showAddManualMenu = false
+                                    startActivity(
+                                        Intent(
+                                            requireContext(),
+                                            ChainSettingsActivity::class.java,
+                                        )
+                                    )
+                                },
+                            )
+                        }
+                    }
+
+                    Box {
+                        SimpleIconButton(Icons.Filled.MoreVert) {
+                            showOverflowMenu = true
+                        }
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clear_traffic_statistics)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    lifecycleScope.launch {
+                                        viewModel.emitChildEvent(
+                                            ConfigurationChildEvent.ClearTrafficStatistic(
+                                                DataStore.selectedGroup
+                                            )
+                                        )
+                                    }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.remove_duplicate)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    lifecycleScope.launch {
+                                        viewModel.emitChildEvent(
+                                            ConfigurationChildEvent.RemoveDuplicate(
+                                                DataStore.selectedGroup,
+                                            )
+                                        )
+                                    }
+                                },
+                            )
+                            ExpandableDropdownMenuItem(stringResource(R.string.connection_test)) {
+                                showOverflowMenu = false
+                                showConnectionTestMenu = true
+                            }
+                            ExpandableDropdownMenuItem(stringResource(R.string.sort_mode)) {
+                                showOverflowMenu = false
+                                showOrderMenu = true
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = showConnectionTestMenu,
+                            onDismissRequest = { showConnectionTestMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.connection_test_icmp_ping)) },
+                                onClick = {
+                                    showConnectionTestMenu = false
+                                    viewModel.doTest(DataStore.currentGroupId(), TestType.ICMPPing)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.connection_test_tcp_ping)) },
+                                onClick = {
+                                    showConnectionTestMenu = false
+                                    viewModel.doTest(DataStore.currentGroupId(), TestType.TCPPing)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.connection_test_url_test)) },
+                                onClick = {
+                                    showConnectionTestMenu = false
+                                    viewModel.doTest(DataStore.currentGroupId(), TestType.URLTest)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.connection_test_delete_unavailable)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    lifecycleScope.launch {
+                                        viewModel.emitChildEvent(
+                                            ConfigurationChildEvent.DeleteUnavailable(
+                                                DataStore.selectedGroup
+                                            )
+                                        )
+                                    }
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.connection_test_clear_results)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    lifecycleScope.launch {
+                                        viewModel.emitChildEvent(
+                                            ConfigurationChildEvent.ClearResult(
+                                                DataStore.selectedGroup
+                                            )
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showOrderMenu,
+                            onDismissRequest = { showOrderMenu = false },
+                        ) {
+                            val orders = listOf(
+                                stringResource(R.string.group_order_origin),
+                                stringResource(R.string.group_order_by_name),
+                                stringResource(R.string.group_order_by_delay),
+                            )
+                            orders.forEachIndexed { i, option ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            RadioButton(
+                                                selected = (order == i),
+                                                onClick = null
+                                            )
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(text = option)
+                                        }
+                                    },
+                                    onClick = {
+                                        order = i
+                                        showOrderMenu = false
+                                        lifecycleScope.launch {
+                                            viewModel.emitChildEvent(
+                                                ConfigurationChildEvent.UpdateOrder(
+                                                    DataStore.selectedGroup,
+                                                    i,
+                                                )
+                                            )
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
     private inner class GroupPagerAdapter : FragmentStateAdapter(this) {
 
         val currentList = mutableListOf<ProxyGroup>()
@@ -552,14 +936,14 @@ class ConfigurationFragment : ToolbarFragment,
 
                 override fun areItemsTheSame(
                     oldItemPosition: Int,
-                    newItemPosition: Int
+                    newItemPosition: Int,
                 ): Boolean {
                     return currentList[oldItemPosition].id == groups[newItemPosition].id
                 }
 
                 override fun areContentsTheSame(
                     oldItemPosition: Int,
-                    newItemPosition: Int
+                    newItemPosition: Int,
                 ): Boolean {
                     val old = currentList[oldItemPosition]
                     val new = groups[newItemPosition]
@@ -610,7 +994,7 @@ class ConfigurationFragment : ToolbarFragment,
         override fun onBindViewHolder(
             holder: FragmentViewHolder,
             position: Int,
-            payloads: List<Any?>
+            payloads: List<Any?>,
         ) {
             var mask = 0
             for (payload in payloads) {

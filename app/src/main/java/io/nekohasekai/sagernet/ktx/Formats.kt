@@ -39,13 +39,13 @@ inline fun <reified T : Any> JSONArray.filterIsInstance(): List<T> {
     return list
 }
 
-inline fun JSONArray.forEach(action: (Int, Any) -> Unit) {
-    for (i in 0 until this.length()) {
-        action(i, this[i])
+inline fun JSONArray.forEach(block: (Any) -> Unit) {
+    for (i in 0 until length()) {
+        block(this[i])
     }
 }
 
-inline fun JSONObject.forEach(action: (String, Any) -> Unit) {
+inline fun JSONObject.forEach(action: (key: String, value: Any) -> Unit) {
     for (k in this.keys()) {
         action(k, this.get(k))
     }

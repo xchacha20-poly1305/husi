@@ -4,12 +4,24 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.filled.Update
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
@@ -23,9 +35,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutAssetItemBinding
 import io.nekohasekai.sagernet.databinding.LayoutAssetsBinding
 import io.nekohasekai.sagernet.ktx.Logs
@@ -40,23 +53,79 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
+@ExperimentalMaterial3Api
 class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
     private val viewModel: AssetsActivityViewModel by viewModels()
+    private lateinit var binding: LayoutAssetsBinding
     private lateinit var adapter: AssetAdapter
-    private lateinit var layout: LayoutAssetsBinding
     private lateinit var undoManager: UndoSnackbarManager<File>
-    private lateinit var updating: LinearProgressIndicator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding = LayoutAssetsBinding.inflate(layoutInflater)
-        layout = binding
+        binding = LayoutAssetsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        updating = findViewById(R.id.action_updating)
-        updating.isGone = true
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                var showImportMenu by remember { mutableStateOf(false) }
+                TopAppBar(
+                    title = { Text(stringResource(R.string.route_assets)) },
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                        ) {
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Update,
+                            contentDescription = stringResource(R.string.assets_update),
+                        ) {
+                            viewModel.updateAsset(destinationDir = geoDir, cacheDir = cacheDir)
+                        }
+                        Box {
+                            SimpleIconButton(
+                                imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                                contentDescription = stringResource(R.string.import_asset),
+                            ) {
+                                showImportMenu = true
+                            }
+                            DropdownMenu(
+                                expanded = showImportMenu,
+                                onDismissRequest = { showImportMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.action_import_file)) },
+                                    onClick = {
+                                        showImportMenu = false
+                                        startFilesForResult(importFile, "*/*")
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.import_url)) },
+                                    onClick = {
+                                        showImportMenu = false
+                                        importUrl.launch(
+                                            Intent(
+                                                this@AssetsActivity,
+                                                AssetEditActivity::class.java,
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    },
+                )
+            }
+        }
+
+        binding.actionUpdating.isGone = true
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.recyclerView) { v, insets ->
             val bars = insets.getInsets(
@@ -70,14 +139,6 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
             insets
         }
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.route_assets)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
-        }
-
         adapter = AssetAdapter()
         binding.recyclerView.adapter = adapter
 
@@ -89,7 +150,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
 
             override fun getSwipeDirs(
                 recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder
+                viewHolder: RecyclerView.ViewHolder,
             ): Int {
                 val idx = viewHolder.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(idx)
@@ -103,7 +164,6 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 adapter.remove(index)
                 undoManager.remove(index to file)
             }
-
 
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -141,18 +201,18 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
     private fun handleUiState(state: AssetsUiState) {
         when (state) {
             AssetsUiState.Idle -> {
-                updating.setProgressCompat(0, true)
-                updating.isGone = true
+                binding.actionUpdating.setProgressCompat(0, true)
+                binding.actionUpdating.isGone = true
             }
 
             is AssetsUiState.Doing -> {
-                updating.isVisible = true
-                updating.setProgressCompat(state.progress, true)
+                binding.actionUpdating.isVisible = true
+                binding.actionUpdating.setProgressCompat(state.progress, true)
             }
 
             is AssetsUiState.Done -> {
-                updating.setProgressCompat(0, true)
-                updating.isGone = true
+                binding.actionUpdating.setProgressCompat(0, true)
+                binding.actionUpdating.isGone = true
 
                 when (state.e) {
                     null -> {
@@ -180,7 +240,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 if (index == -1) return
 
                 val holder =
-                    layout.recyclerView.findViewHolderForAdapterPosition(index) as? AssetHolder
+                    binding.recyclerView.findViewHolderForAdapterPosition(index) as? AssetHolder
 
                 holder?.updateUiState(event.state)
             }
@@ -188,12 +248,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(layout.coordinator, text, Snackbar.LENGTH_LONG)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.asset_menu, menu)
-        return true
+        return Snackbar.make(binding.coordinator, text, Snackbar.LENGTH_LONG)
     }
 
     private val importFile =
@@ -238,26 +293,6 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
         }
     }
 
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_import_file -> {
-            startFilesForResult(importFile, "*/*")
-            true
-        }
-
-        R.id.action_import_url -> {
-            importUrl.launch(Intent(this, AssetEditActivity::class.java))
-            true
-        }
-
-        R.id.action_update_all -> {
-            viewModel.updateAsset(destinationDir = geoDir, cacheDir = cacheDir)
-            true
-        }
-
-        else -> super.onOptionsItemSelected(item)
-    }
-
     private val assetsDir: File by lazy {
         val dir = getExternalFilesDir(null) ?: filesDir
         dir.mkdirs()
@@ -267,7 +302,6 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
     private val geoDir: File by lazy {
         File(assetsDir, "geo").also { it.mkdirs() }
     }
-
 
     private inner class AssetAdapter : ListAdapter<AssetListItem, AssetHolder>(AssetDiffCallback) {
 
@@ -351,7 +385,7 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                 binding.edit.isVisible = true
                 binding.edit.setOnClickListener {
                     importUrl.launch(
-                        Intent(this@AssetsActivity, AssetEditActivity::class.java)
+                        Intent(binding.edit.context, AssetEditActivity::class.java)
                             .putExtra(AssetEditActivity.EXTRA_ASSET_NAME, file.name)
                     )
                 }

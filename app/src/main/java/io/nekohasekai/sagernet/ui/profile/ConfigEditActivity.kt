@@ -3,11 +3,16 @@ package io.nekohasekai.sagernet.ui.profile
 import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.Menu
-import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,6 +31,8 @@ import com.blacksquircle.ui.language.json.JsonLanguage
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
@@ -35,8 +42,8 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.launch
-import kotlin.math.max
 
+@ExperimentalMaterial3Api
 class ConfigEditActivity : ThemedActivity() {
 
     companion object {
@@ -94,12 +101,29 @@ class ConfigEditActivity : ThemedActivity() {
             insets
         }
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.config_settings)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
+        val toolbar = findViewById<ComposeView>(R.id.toolbar)
+        toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.config_settings)) },
+                    navigationIcon = {
+                        SimpleIconButton(Icons.Filled.Close) {
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.apply),
+                        ) {
+                            runOnDefaultDispatcher {
+                                saveAndExit()
+                            }
+                        }
+                    },
+                )
+            }
         }
 
         binding.editor.apply {
@@ -199,23 +223,6 @@ class ConfigEditActivity : ThemedActivity() {
     override fun onSupportNavigateUp(): Boolean {
         if (!super.onSupportNavigateUp()) finish()
         return true
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.profile_apply_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_apply -> {
-                runOnDefaultDispatcher {
-                    saveAndExit()
-                }
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {

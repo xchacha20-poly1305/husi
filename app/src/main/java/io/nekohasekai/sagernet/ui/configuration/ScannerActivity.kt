@@ -26,23 +26,36 @@ import android.content.pm.ShortcutManager
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FlashlightOff
+import androidx.compose.material.icons.filled.FlashlightOn
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.ktx.forEachTry
 import io.nekohasekai.sagernet.ktx.hasPermission
@@ -52,6 +65,7 @@ import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.launch
 
+@ExperimentalMaterial3Api
 class ScannerActivity : ThemedActivity() {
 
     private lateinit var binding: LayoutScannerBinding
@@ -65,12 +79,52 @@ class ScannerActivity : ThemedActivity() {
         binding = LayoutScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.add_profile_methods_scan_qr_code)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
+        val toolbar = findViewById<ComposeView>(R.id.toolbar)
+        toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                val flashOn by viewModel.isFlashlightOn.collectAsStateWithLifecycle()
+                TopAppBar(
+                    title = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
+                    navigationIcon = {
+                        SimpleIconButton(Icons.Filled.Close, stringResource(R.string.close)) {
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Photo,
+                            contentDescription = stringResource(R.string.action_import_file),
+                        ) {
+                            startFilesForResult(importCodeFile, "image/*")
+                        }
+                        SimpleIconButton(
+                            imageVector = if (flashOn) {
+                                Icons.Filled.FlashlightOff
+                            } else {
+                                Icons.Filled.FlashlightOn
+                            },
+                            contentDescription = stringResource(
+                                if (flashOn) {
+                                    R.string.action_flash_off
+                                } else {
+                                    R.string.action_flash_on
+                                }
+                            ),
+                        ) {
+                            viewModel.toggleFlashlight()
+                        }
+                        SimpleIconButton(
+                            imageVector =  Icons.Filled.Cameraswitch,
+                            contentDescription =  stringResource(R.string.action_camera_switch),
+                        ) {
+                            viewModel.useFront = !viewModel.useFront
+                            viewModel.setFlashlight(false)
+                            loadCamara()
+                        }
+                    },
+                )
+            }
         }
 
         binding.previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
@@ -169,11 +223,6 @@ class ScannerActivity : ThemedActivity() {
         return binding.previewView.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.scanner_menu, menu)
-        return true
-    }
-
     private fun loadCamara() {
         val cameraSelector = if (viewModel.useFront) {
             CameraSelector.DEFAULT_FRONT_CAMERA
@@ -212,41 +261,6 @@ class ScannerActivity : ThemedActivity() {
             flash?.setIcon(R.drawable.ic_action_flight_on)
             flash?.setTitle(R.string.action_flash_on)
         }
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        flash = menu.findItem(R.id.action_flash)
-
-        val isBackCamera = !viewModel.useFront
-        flash?.isVisible = isBackCamera
-        if (isBackCamera) {
-            updateFlashIcon(viewModel.isFlashlightOn.value)
-        }
-
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_import_file -> {
-                startFilesForResult(importCodeFile, "image/*")
-            }
-
-            R.id.action_flash -> {
-                viewModel.toggleFlashlight()
-            }
-
-            // Switch front or back camera.
-            R.id.action_camera_switch -> {
-                viewModel.useFront = !viewModel.useFront
-                viewModel.setFlashlight(false)
-                loadCamara()
-            }
-
-            else -> return super.onOptionsItemSelected(item)
-        }
-
-        return true
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {

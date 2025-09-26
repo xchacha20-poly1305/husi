@@ -25,6 +25,7 @@ public class TuicBean extends AbstractBean {
     };
     public String token;
     public String certificates;
+    public String certPublicKeySha256;
     public String udpRelayMode;
     public String congestionController;
     public String alpn;
@@ -48,6 +49,7 @@ public class TuicBean extends AbstractBean {
         super.initializeDefaultValues();
         if (token == null) token = "";
         if (certificates == null) certificates = "";
+        if (certPublicKeySha256 == null) certPublicKeySha256 = "";
         if (udpRelayMode == null) udpRelayMode = "native";
         if (congestionController == null) congestionController = "cubic";
         if (alpn == null) alpn = "";
@@ -64,7 +66,9 @@ public class TuicBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
+
+        // version 0
         super.serialize(output);
         output.writeString(token);
         output.writeString(certificates);
@@ -80,6 +84,9 @@ public class TuicBean extends AbstractBean {
         output.writeString(uuid);
         output.writeBoolean(ech);
         output.writeString(echConfig);
+
+        // version 1
+        output.writeString(certPublicKeySha256);
     }
 
     @Override
@@ -101,6 +108,10 @@ public class TuicBean extends AbstractBean {
 
         ech = input.readBoolean();
         echConfig = input.readString();
+
+        if (version >= 1) {
+            certPublicKeySha256 = input.readString();
+        }
     }
 
     @Override

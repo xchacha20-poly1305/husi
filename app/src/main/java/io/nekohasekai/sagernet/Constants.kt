@@ -40,6 +40,7 @@ object Key {
     const val PROXY_APPS = "proxyApps"
     const val UPDATE_PROXY_APPS_WHEN_INSTALL = "updateProxyAppsWhenInstall"
     const val BYPASS_MODE = "bypassMode"
+
     // const val INDIVIDUAL = "individual"
     const val PACKAGES = "packages"
     const val METERED_NETWORK = "meteredNetwork"
@@ -142,6 +143,7 @@ object Key {
     const val SERVER_ENCRYPTION = "serverEncryption"
     const val SERVER_ALPN = "serverALPN"
     const val SERVER_CERTIFICATES = "serverCertificates"
+    const val SERVER_CERT_PUBLIC_KEY_SHA256 = "serverCertPublicKeySha256"
     const val SERVER_M_TLS_CERT = "serverMTlsCert"
     const val SERVER_M_TLS_KEY = "serverMTlsKey"
     const val SERVER_PINNED_CERTIFICATE_CHAIN = "serverPinnedCertificateChain"
@@ -359,6 +361,17 @@ object TrafficSortMode {
     const val UPLOAD = 4
     const val DOWNLOAD = 5
     const val MATCHED_RULE = 6
+
+    val values
+        get() = listOf(
+            START,
+            INBOUND,
+            SRC,
+            DST,
+            UPLOAD,
+            DOWNLOAD,
+            MATCHED_RULE,
+        )
 }
 
 object RuleProvider {

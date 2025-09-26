@@ -2,8 +2,6 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -12,6 +10,15 @@ import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.LayoutRes
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -25,6 +32,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet.Companion.app
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -40,6 +49,7 @@ import io.nekohasekai.sagernet.widget.setSummaryForOutbound
 import kotlinx.coroutines.launch
 import rikka.preference.SimpleMenuPreference
 
+@ExperimentalMaterial3Api
 class RouteSettingsActivity(
     @LayoutRes resId: Int = R.layout.layout_settings_activity,
 ) : ThemedActivity(resId) {
@@ -70,11 +80,47 @@ class RouteSettingsActivity(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.apply {
-            setTitle(R.string.menu_route)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
+
+        val toolbar = findViewById<ComposeView>(R.id.toolbar)
+        toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.menu_route)) },
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.close),
+                        ) {
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete)
+                        ) {
+                            MaterialAlertDialogBuilder(this@RouteSettingsActivity)
+                                .setTitle(R.string.delete_route_prompt)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    viewModel.deleteRule()
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.apply),
+                        ) {
+                            viewModel.saveAndExit {
+                                if (intent.hasExtra(EXTRA_PACKAGE_NAME)) {
+                                    setResult(RESULT_OK, Intent())
+                                }
+                            }
+                        }
+                    },
+                )
+            }
         }
 
         lifecycleScope.launch {
@@ -114,35 +160,6 @@ class RouteSettingsActivity(
                     .commit()
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.profile_config_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_delete -> {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.delete_route_prompt)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    viewModel.deleteRule()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-            true
-        }
-
-        R.id.action_apply -> {
-            viewModel.saveAndExit {
-                if (intent.hasExtra(EXTRA_PACKAGE_NAME)) {
-                    setResult(RESULT_OK, Intent())
-                }
-            }
-            true
-        }
-
-        else -> super.onOptionsItemSelected(item)
     }
 
     override fun onSupportNavigateUp(): Boolean {

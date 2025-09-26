@@ -501,8 +501,9 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         if (bean.allowInsecure) insecure = true
         if (bean.disableSNI) disable_sni = true
         if (bean.sni.isNotBlank()) server_name = bean.sni
-        if (bean.alpn.isNotBlank()) alpn = bean.alpn.listByLineOrComma()
-        if (bean.certificates.isNotBlank()) certificate = listOf(bean.certificates)
+        alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
+        certificate = bean.certificates.blankAsNull()?.split("\n")
+        certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
         if (bean.fragment) {
             fragment = true
             fragment_fallback_delay = bean.fragmentFallbackDelay.blankAsNull()
@@ -691,6 +692,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.disableSNI = tls.disable_sni
                 bean.alpn = tls.alpn?.joinToString(",")
                 bean.certificates = tls.certificate?.joinToString("\n")
+                bean.certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n")
                 bean.utlsFingerprint = tls.utls?.fingerprint
                 bean.fragment = tls.fragment
                 bean.fragmentFallbackDelay = tls.fragment_fallback_delay
@@ -764,8 +766,8 @@ fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
 
             is JSONArray -> {
                 val list = ArrayList<String>(entryValue.length())
-                entryValue.forEach { _, item ->
-                    list.add(item.toString())
+                entryValue.forEach {
+                    list.add(it.toString())
                 }
                 list
             }

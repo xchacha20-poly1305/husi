@@ -19,6 +19,7 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
         DataStore.serverSNI = sni
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
+        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
         DataStore.serverAllowInsecure = allowInsecure
         DataStore.serverDisableSNI = disableSNI
         DataStore.serverStreamReceiveWindow = streamReceiveWindow
@@ -43,6 +44,7 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
         sni = DataStore.serverSNI
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
+        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
         allowInsecure = DataStore.serverAllowInsecure
         disableSNI = DataStore.serverDisableSNI
         streamReceiveWindow = DataStore.serverStreamReceiveWindow

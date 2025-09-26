@@ -3,12 +3,17 @@ package io.nekohasekai.sagernet.ui
 import android.content.Intent
 import android.os.Bundle
 import android.support.annotation.LayoutRes
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -20,11 +25,14 @@ import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.launch
 
 class AssetEditActivity(
@@ -71,12 +79,47 @@ class AssetEditActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.assets_settings)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_navigation_close)
+        val toolbar = findViewById<ComposeView>(R.id.toolbar)
+        toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.assets_settings)) },
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Close,
+                        ) {
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete),
+                        ) {
+                            val editingAssetName = viewModel.editingAssetName
+                            if (editingAssetName.isEmpty()) {
+                                finish()
+                            } else MaterialAlertDialogBuilder(this@AssetEditActivity)
+                                .setTitle(R.string.delete_confirm_prompt)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    setResult(RESULT_DELETE)
+                                    finish()
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = stringResource(R.string.apply),
+                        ) {
+                            runOnDefaultDispatcher {
+                                saveAndExit()
+                            }
+                        }
+                    },
+                )
+            }
         }
 
         if (savedInstanceState == null) {
@@ -153,37 +196,6 @@ class AssetEditActivity(
             }, Intent().putExtra(EXTRA_ASSET_NAME, DataStore.assetName)
         )
         finish()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.profile_config_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_delete -> {
-            val editingAssetName = viewModel.editingAssetName
-            if (editingAssetName.isEmpty()) {
-                finish()
-            } else MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.delete_confirm_prompt)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    setResult(RESULT_DELETE)
-                    finish()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-            true
-        }
-
-        R.id.action_apply -> {
-            lifecycleScope.launch {
-                saveAndExit()
-            }
-            true
-        }
-
-        else -> false
     }
 
     override fun onSupportNavigateUp(): Boolean {

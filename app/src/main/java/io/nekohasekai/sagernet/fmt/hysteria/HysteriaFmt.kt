@@ -370,12 +370,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 if (bean.sni.isNotBlank()) {
                     server_name = bean.sni
                 }
-                if (bean.alpn.isNotBlank()) {
-                    alpn = bean.alpn.listByLineOrComma()
-                }
-                if (bean.certificates.isNotBlank()) {
-                    certificate = listOf(bean.certificates)
-                }
+                alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
+                certificate = bean.certificates.blankAsNull()?.split("\n")
+                certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
                 if (bean.disableSNI) disable_sni = true
                 if (bean.ech) {
                     val echConfig =
@@ -421,9 +418,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     server_name = bean.sni
                 }
                 alpn = listOf("h3")
-                if (bean.certificates.isNotBlank()) {
-                    certificate = listOf(bean.certificates)
-                }
+                certificate = bean.certificates.blankAsNull()?.split("\n")
+                certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
                 if (bean.ech) ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
                     config = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
@@ -452,6 +448,7 @@ sealed class HopPort {
         const val HYSTERIA_RANGE = "-"
 
         fun from(ports: String): HopPort {
+            if (ports.isBlank()) return Single(443)
             val ranges = ports.split(SPLIT_FLAG)
             if (ranges.size == 1) {
                 val first = ranges.first()
@@ -501,7 +498,7 @@ private fun generateUploadSpeed(): Int = DataStore.uploadSpeed.let {
 fun parseHysteria1Outbound(json: JSONMap): HysteriaBean = HysteriaBean().apply {
     protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
 
-    var tmpPorts = mutableListOf<String>()
+    val tmpPorts = mutableListOf<String>()
     for (entry in json) {
         val value = entry.value ?: continue
 
@@ -574,6 +571,7 @@ private fun HysteriaBean.loadTLS(tls: SingBoxOptions.OutboundTLSOptions) {
     sni = tls.server_name
     allowInsecure = tls.insecure
     certificates = tls.certificate?.joinToString("\n")
+    certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n")
     alpn = tls.alpn?.joinToString("\n")
     tls.ech?.let {
         ech = it.enabled

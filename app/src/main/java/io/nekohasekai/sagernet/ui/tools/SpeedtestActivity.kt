@@ -3,7 +3,8 @@ package io.nekohasekai.sagernet.ui.tools
 import android.os.Bundle
 import android.text.format.Formatter
 import androidx.activity.viewModels
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -13,6 +14,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutToolsSpeedTestBinding
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.textChanges
@@ -53,12 +56,16 @@ class SpeedtestActivity : ThemedActivity() {
             insets
         }
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setTitle(R.string.speed_test)
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.baseline_arrow_back_24)
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                SimpleTopAppBar(
+                    title = R.string.show_direct_speed_sum,
+                    navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                ) {
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
         }
 
         binding.speedTestMode.setOnCheckedChangeListener { _, checkedID ->

@@ -167,7 +167,6 @@
     <string name="invert_selections">Invert selections</string>
     <string name="clear_selections">Clear selections</string>
     <string name="bypass_apps">Bypass</string>
-    <string name="show_system_apps">Show system apps</string>
     <string name="auto_connect">Auto Connect</string>
     <string name="auto_connect_summary">Enable proxy on startup/app update if it was running
         before
@@ -203,6 +202,7 @@
     <string name="action_http" translatable="false">HTTP</string>
     <string name="action_shadowsocks" translatable="false">Shadowsocks</string>
     <string name="action_vmess" translatable="false">VMess</string>
+    <string name="action_vless" translatable="false">VLESS</string>
     <string name="action_trojan" translatable="false">Trojan</string>
     <string name="action_mieru" translatable="false">Mieru</string>
     <string name="action_naive" translatable="false">Naïve</string>
@@ -711,5 +711,7 @@
     </plurals>
     <string name="action_format">Format</string>
     <string name="action_test_config">Test config</string>
-    <string name="mututal_tls">Mututal TLS</string>
+    <string name="mutual_tls">Mutual TLS</string>
+    <string name="menu">Menu</string>
+    <string name="cert_public_key_sha256">Certificate Public Key Sha256</string>
 </resources>

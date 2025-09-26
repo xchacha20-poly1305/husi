@@ -280,7 +280,6 @@
     <string name="direct_boot_aware_summary">Обрана вами інформація профілю буде менш захищеною</string>
     <string name="service_vpn">VPN-сервіс</string>
     <string name="service_proxy">Проксі-сервіс</string>
-    <string name="show_system_apps">Показати системні застосунки</string>
     <string name="auto_connect_summary">Увімкнути проксі при запуску/оновленні застосунки, якщо він був запущений до цього</string>
     <string name="settings">Налаштування</string>
     <string name="edit">Редагувати</string>

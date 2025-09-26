@@ -15,6 +15,7 @@ internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
         DataStore.serverPassword = token
         DataStore.serverALPN = alpn
         DataStore.serverCertificates = certificates
+        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
         DataStore.serverUDPRelayMode = udpRelayMode
         DataStore.serverCongestionController = congestionController
         DataStore.serverDisableSNI = disableSNI
@@ -33,6 +34,7 @@ internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
         token = DataStore.serverPassword
         alpn = DataStore.serverALPN
         certificates = DataStore.serverCertificates
+        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
         udpRelayMode = DataStore.serverUDPRelayMode
         congestionController = DataStore.serverCongestionController
         disableSNI = DataStore.serverDisableSNI

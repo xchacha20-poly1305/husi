@@ -248,6 +248,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverEncryption by profileCacheStore.string(Key.SERVER_ENCRYPTION)
     var serverALPN by profileCacheStore.string(Key.SERVER_ALPN)
     var serverCertificates by profileCacheStore.string(Key.SERVER_CERTIFICATES)
+    var serverCertPublicKeySha256 by profileCacheStore.string(Key.SERVER_CERT_PUBLIC_KEY_SHA256)
     var serverMTlsCert by profileCacheStore.string(Key.SERVER_M_TLS_CERT)
     var serverMTlsKey by profileCacheStore.string(Key.SERVER_M_TLS_KEY)
     var serverPinnedCertificateChain by profileCacheStore.string(Key.SERVER_PINNED_CERTIFICATE_CHAIN)

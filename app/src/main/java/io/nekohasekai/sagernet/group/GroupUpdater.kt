@@ -12,6 +12,7 @@ import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.Deduplication
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -280,29 +281,6 @@ abstract class GroupUpdater {
             runOnDefaultDispatcher {
                 executeUpdate(proxyGroup, byUser)
             }
-        }
-
-        class Deduplication(
-            val bean: AbstractBean, val type: String
-        ) {
-
-            fun hash(): String {
-                return bean.serverAddress + bean.serverPort + type
-            }
-
-            override fun hashCode(): Int {
-                return hash().toByteArray().contentHashCode()
-            }
-
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
-
-                other as Deduplication
-
-                return hash() == other.hash()
-            }
-
         }
 
         suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {

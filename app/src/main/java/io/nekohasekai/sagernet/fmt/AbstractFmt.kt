@@ -206,7 +206,7 @@ inline fun <reified T : Any> listable(value: Any?): MutableList<T>? = when (valu
     is JSONArray -> {
         val length = value.length()
         val list = ArrayList<T>(length)
-        value.forEach { _, element ->
+        value.forEach { element ->
             (element as? T)?.let { list.add(it) }
         }
         list
@@ -234,6 +234,9 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
             "alpn" -> alpn = listable<String>(value)
 
             "certificate" -> certificate = listable<String>(value)
+            "certificate_public_key_sha256" -> {
+                certificate_public_key_sha256 = listable<String>(value)
+            }
 
             "fragment" -> fragment = value.toString().toBoolean()
             "fragment_fallback_delay" -> fragment_fallback_delay = value.toString()

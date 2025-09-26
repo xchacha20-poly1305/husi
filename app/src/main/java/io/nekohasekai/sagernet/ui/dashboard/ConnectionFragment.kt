@@ -2,9 +2,15 @@ package io.nekohasekai.sagernet.ui.dashboard
 
 import android.os.Bundle
 import android.text.format.Formatter
-import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.core.os.BundleCompat
+import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -19,43 +25,73 @@ import io.nekohasekai.sagernet.databinding.LayoutDashboardConnectionBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ToolbarFragment
+import io.nekohasekai.sagernet.ui.OnKeyDownFragment
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.res.stringResource
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.theme.AppTheme
+import libcore.Libcore
 
+@ExperimentalMaterial3Api
 class ConnectionFragment() :
-    ToolbarFragment(R.layout.layout_dashboard_connection),
-    Toolbar.OnMenuItemClickListener {
+    OnKeyDownFragment(R.layout.layout_dashboard_connection) {
 
-    constructor(conn: Connection) : this() {
-        initialConn = conn
+    companion object {
+        private const val ARG_CONN = "conn"
     }
 
-    private var initialConn: Connection? = null
-    private var uuid: String? = null
-        get() = field ?: initialConn?.uuid
-        set(value) {
-            field = value
-        }
+    constructor(conn: Connection) : this() {
+        arguments = bundleOf(
+            ARG_CONN to conn
+        )
+    }
 
     private lateinit var binding: LayoutDashboardConnectionBinding
     private val viewModel by viewModels<ConnectionFragmentViewModel>()
-    private val dashboardViewModel by viewModels<DashboardFragmentViewModel>({ requireParentFragment() })
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val conn =
+            BundleCompat.getParcelable(requireArguments(), ARG_CONN, Connection::class.java)!!
+        viewModel.initialize(conn) {
+            (requireActivity() as MainActivity).connection.service
+                ?.queryConnections(Libcore.ShowTrackerActively)
+                ?.connections
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = LayoutDashboardConnectionBinding.bind(view)
-        toolbar.apply {
-            uuid?.let {
-                title = it
-            }
-            inflateMenu(R.menu.connection_menu)
-            setOnMenuItemClickListener(this@ConnectionFragment)
-
-            setNavigationIcon(R.drawable.baseline_arrow_back_24)
-            setNavigationOnClickListener {
-                parentFragmentManager.popBackStack()
-                (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
+        binding.toolbar.setContent {
+            @Suppress("DEPRECATION")
+            AppTheme {
+                TopAppBar(
+                    title = { Text(viewModel.uiState.collectAsState().value.connection.uuid) },
+                    navigationIcon = {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                        ) {
+                            (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
+                            parentFragmentManager.popBackStack()
+                        }
+                    },
+                    actions = {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.DeleteForever,
+                            contentDescription = stringResource(R.string.close),
+                        ) {
+                            val activity = requireActivity() as MainActivity
+                            activity.connection.service?.closeConnection(viewModel.uiState.value.connection.uuid)
+                            activity.onBackPressedCallback.isEnabled = true
+                            activity.supportFragmentManager.popBackStack()
+                        }
+                    },
+                )
             }
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -70,29 +106,22 @@ class ConnectionFragment() :
             insets
         }
 
-        val activity = (requireActivity() as MainActivity)
-        activity.onBackPressedCallback.isEnabled = false
-        viewModel.initialize(initialConn) {
-            activity.connection.service?.queryConnections(dashboardViewModel.connectionState.value.queryOptions)?.connections
-        }
+        (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = false
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleUiState)
+                viewModel.uiState.collect(::handleUiState)
             }
         }
     }
 
     override fun onDestroy() {
-        toolbar.setOnLongClickListener(null)
         viewModel.stop()
         super.onDestroy()
     }
 
     private fun handleUiState(state: ConnectionFragmentState) {
         val conn = state.connection
-        uuid = conn.uuid
-        toolbar.title = conn.uuid
         if (conn.closed) {
             binding.connStatus.setText(R.string.connection_status_closed)
             binding.connStatus.setTextColor(binding.connStatus.context.getColour(R.color.material_red_900))
@@ -138,18 +167,4 @@ class ConnectionFragment() :
         }
     }
 
-    override fun onMenuItemClick(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_close_connection -> {
-            (requireActivity() as? MainActivity)?.apply {
-                uuid?.let {
-                    connection.service?.closeConnection(it)
-                }
-                supportFragmentManager.popBackStack()
-                onBackPressedCallback.isEnabled = true
-            }
-            true
-        }
-
-        else -> false
-    }
 }
