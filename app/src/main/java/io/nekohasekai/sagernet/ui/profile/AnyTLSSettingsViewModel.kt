@@ -1,54 +1,180 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+internal data class AnyTLSUiState(
+    override val customConfig: String = "",
+    override val customOutbound: String = "",
+    val name: String = "",
+    val address: String = "127.0.0.1",
+    val port: Int = 443,
+    val password: String = "",
+    val idleSessionCheckInterval: String = "30s",
+    val idleSessionTimeout: String = "30s",
+    val minIdleSession: Int = 0,
+    val sni: String = "",
+    val alpn: String = "",
+    val certificates: String = "",
+    val certPublicKeySha256: String = "",
+    val utlsFingerprint: String = "",
+    val allowInsecure: Boolean = false,
+    val disableSNI: Boolean = false,
+    val tlsFragment: Boolean = false,
+    val tlsFragmentFallbackDelay: String = "",
+    val tlsRecordFragment: Boolean = false,
+    val ech: Boolean = false,
+    val echConfig: String = "",
+) : ProfileSettingsUiState
 
 internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() {
     override fun createBean() = AnyTLSBean().applyDefaultValues()
 
-    override fun AnyTLSBean.writeToTempDatabase() {
-        DataStore.profileName = name
-        DataStore.serverAddress = serverAddress
-        DataStore.serverPort = serverPort
-        DataStore.serverPassword = password
-        DataStore.serverIdleSessionCheckInterval = idleSessionCheckInterval
-        DataStore.serverIdleSessionTimeout = idleSessionTimeout
-        DataStore.serverMinIdleSession = minIdleSession
-        DataStore.serverSNI = serverName
-        DataStore.serverALPN = alpn
-        DataStore.serverCertificates = certificates
-        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
-        DataStore.serverUtlsFingerPrint = utlsFingerprint
-        DataStore.serverAllowInsecure = allowInsecure
-        DataStore.serverDisableSNI = disableSNI
-        DataStore.serverFragment = fragment
-        DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
-        DataStore.serverRecordFragment = recordFragment
-        DataStore.serverECH = ech
-        DataStore.serverECHConfig = echConfig
+    private val _uiState = MutableStateFlow(AnyTLSUiState())
+    override val uiState = _uiState.asStateFlow()
+
+    override fun AnyTLSBean.writeToUiState() {
+        _uiState.update {
+            it.copy(
+                customConfig = customConfigJson,
+                customOutbound = customOutboundJson,
+                name = name,
+                address = serverAddress,
+                port = serverPort,
+                password = password,
+                idleSessionCheckInterval = idleSessionCheckInterval,
+                idleSessionTimeout = idleSessionTimeout,
+                minIdleSession = minIdleSession,
+                sni = serverName,
+                alpn = alpn,
+                certificates = certificates,
+                certPublicKeySha256 = certPublicKeySha256,
+                utlsFingerprint = utlsFingerprint,
+                allowInsecure = allowInsecure,
+                disableSNI = disableSNI,
+                tlsFragment = tlsFragment,
+                tlsFragmentFallbackDelay = tlsFragmentFallbackDelay,
+                tlsRecordFragment = tlsRecordFragment,
+                ech = ech,
+                echConfig = echConfig,
+            )
+        }
     }
 
-    override fun AnyTLSBean.loadFromTempDatabase() {
-        name = DataStore.profileName
-        serverAddress = DataStore.serverAddress
-        serverPort = DataStore.serverPort
-        password = DataStore.serverPassword
-        idleSessionCheckInterval = DataStore.serverIdleSessionCheckInterval
-        idleSessionTimeout = DataStore.serverIdleSessionTimeout
-        minIdleSession = DataStore.serverMinIdleSession
-        serverName = DataStore.serverSNI
-        alpn = DataStore.serverALPN
-        certificates = DataStore.serverCertificates
-        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
-        utlsFingerprint = DataStore.serverUtlsFingerPrint
-        allowInsecure = DataStore.serverAllowInsecure
-        disableSNI = DataStore.serverDisableSNI
-        fragment = DataStore.serverFragment
-        fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
-        recordFragment = DataStore.serverRecordFragment
-        ech = DataStore.serverECH
-        echConfig = DataStore.serverECHConfig
+    override fun AnyTLSBean.loadFromUiState() {
+        val state = _uiState.value
+        customConfigJson = state.customConfig
+        customOutboundJson = state.customOutbound
+        name = state.name
+        serverAddress = state.address
+        serverPort = state.port
+        password = state.password
+        idleSessionCheckInterval = state.idleSessionCheckInterval
+        idleSessionTimeout = state.idleSessionTimeout
+        minIdleSession = state.minIdleSession
+        serverName = state.sni
+        alpn = state.alpn
+        certificates = state.certificates
+        certPublicKeySha256 = state.certPublicKeySha256
+        utlsFingerprint = state.utlsFingerprint
+        allowInsecure = state.allowInsecure
+        disableSNI = state.disableSNI
+        tlsFragment = state.tlsFragment
+        tlsFragmentFallbackDelay = state.tlsFragmentFallbackDelay
+        tlsRecordFragment = state.tlsRecordFragment
+        ech = state.ech
+        echConfig = state.echConfig
+    }
+
+    override fun setCustomConfig(config: String) {
+        _uiState.update {
+            it.copy(customConfig = config)
+        }
+    }
+
+    override fun setCustomOutbound(outbound: String) {
+        _uiState.update {
+            it.copy(customOutbound = outbound)
+        }
+    }
+
+    fun setName(name: String) {
+        _uiState.update { it.copy(name = name) }
+    }
+
+    fun setAddress(address: String) {
+        _uiState.update { it.copy(address = address) }
+    }
+
+    fun setPort(port: Int) {
+        _uiState.update { it.copy(port = port) }
+    }
+
+    fun setPassword(password: String) {
+        _uiState.update { it.copy(password = password) }
+    }
+
+    fun setIdleSessionCheckInterval(interval: String) {
+        _uiState.update { it.copy(idleSessionCheckInterval = interval) }
+    }
+
+    fun setIdleSessionTimeout(timeout: String) {
+        _uiState.update { it.copy(idleSessionTimeout = timeout) }
+    }
+
+    fun setMinIdleSession(count: Int) {
+        _uiState.update { it.copy(minIdleSession = count) }
+    }
+
+    fun setSni(sni: String) {
+        _uiState.update { it.copy(sni = sni) }
+    }
+
+    fun setAlpn(alpn: String) {
+        _uiState.update { it.copy(alpn = alpn) }
+    }
+
+    fun setCertificates(certs: String) {
+        _uiState.update { it.copy(certificates = certs) }
+    }
+
+    fun setCertPublicKeySha256(sha: String) {
+        _uiState.update { it.copy(certPublicKeySha256 = sha) }
+    }
+
+    fun setUtlsFingerprint(fingerprint: String) {
+        _uiState.update { it.copy(utlsFingerprint = fingerprint) }
+    }
+
+    fun setAllowInsecure(allow: Boolean) {
+        _uiState.update { it.copy(allowInsecure = allow) }
+    }
+
+    fun setDisableSNI(disable: Boolean) {
+        _uiState.update { it.copy(disableSNI = disable) }
+    }
+
+    fun setTlsFragment(enabled: Boolean) {
+        _uiState.update { it.copy(tlsFragment = enabled) }
+    }
+
+    fun setTlsFragmentFallbackDelay(delay: String) {
+        _uiState.update { it.copy(tlsFragmentFallbackDelay = delay) }
+    }
+
+    fun setTlsRecordFragment(enabled: Boolean) {
+        _uiState.update { it.copy(tlsRecordFragment = enabled) }
+    }
+
+    fun setEch(enabled: Boolean) {
+        _uiState.update { it.copy(ech = enabled) }
+    }
+
+    fun setEchConfig(config: String) {
+        _uiState.update { it.copy(echConfig = config) }
     }
 
 }

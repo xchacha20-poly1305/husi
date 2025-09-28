@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.readableMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -23,14 +21,8 @@ internal class ConfigEditActivityViewModel : ViewModel() {
     private val _uiEvent = MutableSharedFlow<ConfigEditActivityUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    var key = Key.SERVER_CONFIG
     var content = ""
     var needSave = false
-
-    suspend fun saveToDataStore(text: String) {
-        val formated = formatJson(text) ?: return
-        DataStore.profileCacheStore.putString(key, formated)
-    }
 
     /**
      * @return Non-null if success.

@@ -1,310 +1,268 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Bundle
-import android.text.format.Formatter
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.activity.result.component1
-import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.preference.PreferenceFragmentCompat
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ListUpdateCallback
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
+import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProxyEntity
-import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
-import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
-import io.nekohasekai.sagernet.ktx.dp2px
+import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
-import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.delay
+import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
-class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout_chain_settings) {
+class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
 
     override val viewModel by viewModels<ChainSettingsViewModel>()
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.name_preferences)
-    }
-
-    private val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
-    private lateinit var configurationAdapter: ProxiesAdapter
-
     override val title = R.string.chain_settings
 
-    @SuppressLint("InlinedApi")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
+        state as ChainUiState
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        item("name", 0) {
+            TextFieldPreference(
+                value = state.name,
+                onValueChange = { viewModel.setName(it) },
+                title = { Text(stringResource(R.string.profile_name)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                valueToText = { it },
             )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(configurationList) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-                        or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left + dp2px(4),
-                right = bars.right + dp2px(4),
-                bottom = bars.bottom + dp2px(4),
-            )
-            insets
-        }
-        configurationList.adapter = ProxiesAdapter().also {
-            configurationAdapter = it
         }
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
-        ) {
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is ProfileHolder) {
-                super.getSwipeDirs(recyclerView, viewHolder)
-            } else 0
+        item("divider", 1) {
+            HorizontalDivider()
+        }
 
-            override fun getDragDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is ProfileHolder) {
-                super.getDragDirs(recyclerView, viewHolder)
-            } else 0
+        item("add_profile", 2) {
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .clickable {
+                        viewModel.replacing = 0
+                        selectProfileForAdd.launch(
+                            Intent(
+                                this@ChainSettingsActivity,
+                                ProfileSelectActivity::class.java,
+                            )
+                        )
+                    },
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.add_profile),
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                )
+            }
+        }
 
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder,
-            ): Boolean {
-                return if (target !is ProfileHolder) {
-                    false
-                } else {
-                    lifecycleScope.launch {
-                        val from = viewHolder.bindingAdapterPosition - 1
-                        val to = target.bindingAdapterPosition - 1
-                        viewModel.move(from, to)
+        item("list", 3) {
+            val density = LocalDensity.current
+            val windowInfo = LocalWindowInfo.current
+            val maxHeight =
+                with(density) { windowInfo.containerSize.height.toDp() }.takeIf { it > 0.dp }
+                    ?: 480.dp
+            DragDropSwipeLazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = maxHeight),
+                items = state.profiles.toImmutableList(),
+                key = { it.id },
+                contentType = { 0 },
+                userScrollEnabled = false,
+                onIndicesChangedViaDragAndDrop = { viewModel.submitList(it.map { it.value }) },
+            ) { i, profile ->
+                val swipeState = rememberSwipeToDismissBoxState()
+                var visible by remember { mutableStateOf(true) }
+                DraggableSwipeableItem(
+                    modifier = Modifier.animateDraggableSwipeableItem(),
+                    colors = DraggableSwipeableItemColors.createRemembered(
+                        containerBackgroundColor = Color.Transparent,
+                        containerBackgroundColorWhileDragged = Color.Transparent,
+                    ),
+                ) {
+                    AnimatedVisibility(
+                        visible = visible,
+                        exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
+                    ) {
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = true,
+                            enableDismissFromEndToStart = true,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(Icons.Default.Delete, null)
+                                }
+                            },
+                            onDismiss = { value ->
+                                when (value) {
+                                    SwipeToDismissBoxValue.StartToEnd,
+                                    SwipeToDismissBoxValue.EndToStart,
+                                        -> visible = false
+
+                                    else -> {}
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .dragDropModifier(),
+                        ) {
+                            ProfileCard(i, profile)
+                        }
                     }
-                    true
                 }
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                lifecycleScope.launch {
-                    val index = viewHolder.bindingAdapterPosition - 1
-                    viewModel.remove(index)
+                LaunchedEffect(visible) {
+                    if (!visible) {
+                        delay(220)
+                        viewModel.remove(i)
+                    }
                 }
-            }
-
-        }).attachToRecyclerView(configurationList)
-    }
-
-    override fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
-        // override the padding in ProfileSettingsActivity
-        ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
-
-        view.rootView.findViewById<RecyclerView>(R.id.recycler_view).apply {
-            (layoutParams ?: LinearLayout.LayoutParams(-1, -2)).apply {
-                height = -2
-                layoutParams = this
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::handleUiState)
             }
         }
     }
 
-    private fun handleUiState(state: ChainSettingsUiState) {
-        configurationAdapter.submitList(state.profiles)
-    }
+    @Composable
+    private fun ProfileCard(index: Int, profile: ProxyEntity) {
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = profile.displayName(),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        IconButton(onClick = {
+                            viewModel.replacing = index
+                            selectProfileForAdd.launch(
+                                Intent(
+                                    this@ChainSettingsActivity,
+                                    ProfileSelectActivity::class.java,
+                                ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
+                            )
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = stringResource(R.string.edit),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        IconButton(onClick = { viewModel.remove(index) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = stringResource(R.string.delete),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
 
-    private inner class ProxiesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                    Spacer(modifier = Modifier.height(4.dp))
 
-        init {
-            setHasStableIds(true)
-        }
+                    Text(
+                        text = profile.displayType(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
 
-        private val proxyList = mutableListOf<ProxyEntity>()
-
-        fun submitList(list: List<ProxyEntity>) {
-            val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                override fun getOldListSize() = proxyList.size
-                override fun getNewListSize() = list.size
-                override fun areItemsTheSame(o: Int, n: Int) =
-                    ProxyEntityDiffCallback.areItemsTheSame(proxyList[o], list[n])
-                override fun areContentsTheSame(o: Int, n: Int) =
-                    ProxyEntityDiffCallback.areContentsTheSame(proxyList[o], list[n])
-            })
-            proxyList.clear()
-            proxyList.addAll(list)
-            val headerOffset = 1
-            diff.dispatchUpdatesTo(object : ListUpdateCallback {
-                override fun onInserted(position: Int, count: Int) {
-                    notifyItemRangeInserted(position + headerOffset, count)
                 }
-                override fun onRemoved(position: Int, count: Int) {
-                    notifyItemRangeRemoved(position + headerOffset, count)
-                }
-                override fun onMoved(fromPosition: Int, toPosition: Int) {
-                    notifyItemMoved(fromPosition + headerOffset, toPosition + headerOffset)
-                }
-                override fun onChanged(position: Int, count: Int, payload: Any?) {
-                    notifyItemRangeChanged(position + headerOffset, count, payload)
-                }
-            })
-        }
-
-
-        override fun getItemId(position: Int): Long {
-            return if (position == 0) 0 else proxyList[position - 1].id
-        }
-
-        override fun getItemViewType(position: Int): Int {
-            return if (position == 0) 0 else 1
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return if (viewType == 0) AddHolder(
-                LayoutAddEntityBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false,
-                )
-            ) else ProfileHolder(
-                LayoutProfileBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false,
-                )
-            )
-        }
-
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            if (holder is AddHolder) {
-                holder.bind()
-            } else if (holder is ProfileHolder) {
-                holder.bind(proxyList[position - 1])
             }
         }
-
-        override fun getItemCount(): Int {
-            return proxyList.size + 1
-        }
-
-    }
-
-    private object ProxyEntityDiffCallback : DiffUtil.ItemCallback<ProxyEntity>() {
-        override fun areItemsTheSame(old: ProxyEntity, new: ProxyEntity): Boolean {
-            return old.id == new.id
-        }
-
-        override fun areContentsTheSame(old: ProxyEntity, new: ProxyEntity): Boolean {
-            return true
-        }
-
     }
 
     val selectProfileForAdd =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { (resultCode, data) ->
-            if (resultCode == RESULT_OK) lifecycleScope.launch {
-                val id = data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                val id = it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
                 viewModel.onSelectProfile(id)
             }
         }
-
-    private inner class AddHolder(val binding: LayoutAddEntityBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind() {
-            binding.root.setOnClickListener {
-                viewModel.replacing = 0
-                selectProfileForAdd.launch(
-                    Intent(
-                        this@ChainSettingsActivity, ProfileSelectActivity::class.java
-                    )
-                )
-            }
-        }
-    }
-
-    private inner class ProfileHolder(binding: LayoutProfileBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        val profileName = binding.profileName
-        val profileType = binding.profileType
-        val trafficText: TextView = binding.trafficText
-        val editButton = binding.edit
-        val shareLayout = binding.share
-
-        fun bind(proxyEntity: ProxyEntity) {
-
-            profileName.text = proxyEntity.displayName()
-            profileType.text = proxyEntity.displayType()
-
-            val rx = proxyEntity.rx
-            val tx = proxyEntity.tx
-
-            val showTraffic = rx + tx != 0L
-            trafficText.isVisible = showTraffic
-            if (showTraffic) {
-                trafficText.text = itemView.context.getString(
-                    R.string.traffic,
-                    Formatter.formatFileSize(itemView.context, tx),
-                    Formatter.formatFileSize(itemView.context, rx)
-                )
-            }
-
-            editButton.setOnClickListener {
-                viewModel.replacing = bindingAdapterPosition
-                selectProfileForAdd.launch(
-                    Intent(
-                        this@ChainSettingsActivity, ProfileSelectActivity::class.java
-                    ).apply {
-                        putExtra(ProfileSelectActivity.EXTRA_SELECTED, proxyEntity)
-                    })
-            }
-
-            shareLayout.isVisible = false
-        }
-
-    }
 
 }

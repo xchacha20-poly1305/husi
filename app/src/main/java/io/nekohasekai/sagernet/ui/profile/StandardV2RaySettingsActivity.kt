@@ -1,301 +1,467 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.material.icons.automirrored.filled.Toc
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Copyright
+import androidx.compose.material.icons.filled.EnhancedEncryption
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Stream
+import androidx.compose.material.icons.filled.Texture
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceCategory
-import androidx.preference.PreferenceFragmentCompat
-import io.nekohasekai.sagernet.Key
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
-import io.nekohasekai.sagernet.fmt.http.HttpBean
-import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
+import io.nekohasekai.sagernet.compose.PreferenceCategory
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
-import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
-import io.nekohasekai.sagernet.widget.DurationPreference
-import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
-import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
-import rikka.preference.SimpleMenuPreference
+import io.nekohasekai.sagernet.ktx.contentOrUnset
+import io.nekohasekai.sagernet.ktx.intListN
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.SwitchPreference
+import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
-abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV2RayBean>() {
+abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSettingsActivity<T>() {
 
-    override val viewModel by viewModels<StandardV2RaySettingsViewModel>()
+    override val viewModel by viewModels<StandardV2RaySettingsViewModel<T>>()
 
-    private lateinit var securityCategory: PreferenceCategory
-    private lateinit var tlsCamouflageCategory: PreferenceCategory
-    private lateinit var echCategory: PreferenceCategory
-    private lateinit var wsCategory: PreferenceCategory
-    private lateinit var muxCategory: PreferenceCategory
-
-    private lateinit var serverV2rayTransport: SimpleMenuPreference
-    private lateinit var serverHost: EditTextPreference
-    private lateinit var serverPath: EditTextPreference
-    private lateinit var serverHeaders: EditTextPreference
-    private lateinit var serverSecurity: SimpleMenuPreference
-    private lateinit var serverEncryption: SimpleMenuPreference // VLESS: flow
-
-    private lateinit var serverMux: MaterialSwitchPreference
-    private lateinit var serverBrutal: MaterialSwitchPreference
-    private lateinit var serverMuxType: SimpleMenuPreference
-    private lateinit var serverMuxNumber: EditTextPreference
-    private lateinit var serverMuxStrategy: SimpleMenuPreference
-    private lateinit var serverMuxPadding: MaterialSwitchPreference
-
-    private lateinit var realityPublicKey: EditTextPreference
-    private lateinit var disableSNI: MaterialSwitchPreference
-    private lateinit var fragment: MaterialSwitchPreference
-    private lateinit var fragmentFallbackDelay: DurationPreference
-
-    private lateinit var experimentsCategory: PreferenceCategory
-    private lateinit var authenticatedLength: MaterialSwitchPreference
-    private lateinit var udpOverTcp: MaterialSwitchPreference
-
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.standard_v2ray_preferences)
-
-        bindPreferences()
-        setupInitialState()
-        setupListeners()
+    internal fun LazyListScope.basicSettings(state: StandardV2RayUiState) {
+        item("address") {
+            TextFieldPreference(
+                value = state.address,
+                onValueChange = { viewModel.setAddress(it) },
+                title = { Text(stringResource(R.string.server_address)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Router, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                valueToText = { it },
+            )
+        }
+        item("port") {
+            TextFieldPreference(
+                value = state.port,
+                onValueChange = { viewModel.setPort(it) },
+                title = { Text(stringResource(R.string.server_port)) },
+                textToValue = { it.toIntOrNull() ?: 443 },
+                icon = { Icon(Icons.Filled.Settings, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+            )
+        }
     }
 
-    /** Binds all preference views from the XML to their corresponding variables. */
-    private fun PreferenceFragmentCompat.bindPreferences() {
-        securityCategory = findPreference(Key.SERVER_SECURITY_CATEGORY)!!
-        tlsCamouflageCategory = findPreference(Key.SERVER_TLS_CAMOUFLAGE_CATEGORY)!!
-        echCategory = findPreference(Key.SERVER_ECH_CATEGORY)!!
-        wsCategory = findPreference(Key.SERVER_WS_CATEGORY)!!
-        muxCategory = findPreference(Key.SERVER_MUX_CATEGORY)!!
+    internal fun LazyListScope.tlsSettings(state: StandardV2RayUiState) {
+        val isTls = state.security == "tls"
+        val isReality = state.realityPublicKey.isNotBlank()
 
-        serverHost = findPreference(Key.SERVER_HOST)!!
-        serverPath = findPreference(Key.SERVER_PATH)!!
-        serverHeaders = findPreference(Key.SERVER_HEADERS)!!
-        serverSecurity = findPreference(Key.SERVER_SECURITY)!!
-        serverV2rayTransport = findPreference(Key.SERVER_V2RAY_TRANSPORT)!!
-        serverEncryption = findPreference(Key.SERVER_ENCRYPTION)!!
-
-        serverMux = findPreference(Key.SERVER_MUX)!!
-        serverBrutal = findPreference(Key.SERVER_BRUTAL)!!
-        serverMuxType = findPreference(Key.SERVER_MUX_TYPE)!!
-        serverMuxStrategy = findPreference(Key.SERVER_MUX_STRATEGY)!!
-        serverMuxPadding = findPreference(Key.SERVER_MUX_PADDING)!!
-        serverMuxNumber = findPreference(Key.SERVER_MUX_NUMBER)!!
-
-        realityPublicKey = findPreference(Key.SERVER_REALITY_PUBLIC_KEY)!!
-        disableSNI = findPreference(Key.SERVER_DISABLE_SNI)!!
-        fragment = findPreference(Key.SERVER_FRAGMENT)!!
-        fragmentFallbackDelay = findPreference(Key.SERVER_FRAGMENT_FALLBACK_DELAY)!!
-
-        experimentsCategory = findPreference(Key.SERVER_VMESS_EXPERIMENTS_CATEGORY)!!
-        authenticatedLength = findPreference(Key.SERVER_AUTHENTICATED_LENGTH)!!
-        udpOverTcp = findPreference(Key.UDP_OVER_TCP)!!
-    }
-
-    /** Sets up the initial state of preferences based on the profile bean. */
-    private fun PreferenceFragmentCompat.setupInitialState() {
-        val bean = viewModel.bean
-        val isHttp = bean is HttpBean
-        val isVmess = bean is VMessBean && !bean.isVLESS
-        val isVless = bean.isVLESS
-        val isTrojan = bean is TrojanBean
-
-        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.setOnBindEditTextListener(
-            EditTextPreferenceModifiers.Port
-        )
-        findPreference<EditTextPreference>(Key.SERVER_ALTER_ID)!!.apply {
-            isVisible = isVmess
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
+        item("category_security") {
+            PreferenceCategory(text = { Text(stringResource(R.string.security_settings)) })
         }
-        findPreference<EditTextPreference>(Key.SERVER_USER_ID)!!.apply {
-            isVisible = isVmess || isVless
-            summaryProvider = PasswordSummaryProvider
+        item("security") {
+            ListPreference(
+                value = state.security,
+                values = listOf("", "tls"),
+                onValueChange = { viewModel.setSecurity(it) },
+                title = { Text(stringResource(R.string.security)) },
+                icon = { Icon(Icons.Filled.Layers, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.utlsFingerprint)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(it) },
+            )
         }
-        findPreference<SimpleMenuPreference>(Key.SERVER_PACKET_ENCODING)!!
-            .isVisible = isVmess || isVless
-        findPreference<SimpleMenuPreference>(Key.SERVER_ENCRYPTION)!!.apply {
-            isVisible = isVmess || isVless
-            if (isVless) {
-                title = getString(R.string.xtls_flow)
-                setIcon(R.drawable.ic_baseline_stream_24)
-                setEntries(R.array.xtls_flow_value)
-                setEntryValues(R.array.xtls_flow_value)
 
-                setOnPreferenceChangeListener { _, newValue ->
-                    muxCategory.isVisible = newValue.toString().isBlank()
-                    true
+        item("security_fields") {
+            AnimatedVisibility(visible = isTls) {
+                TextFieldPreference(
+                    value = state.sni,
+                    onValueChange = { viewModel.setSni(it) },
+                    title = { Text(stringResource(R.string.sni)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.Copyright, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                    valueToText = { it },
+                )
+                TextFieldPreference(
+                    value = state.alpn,
+                    onValueChange = { viewModel.setAlpn(it) },
+                    title = { Text(stringResource(R.string.alpn)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
+                    valueToText = { it },
+                )
+                TextFieldPreference(
+                    value = state.certificate,
+                    onValueChange = { viewModel.setCertificate(it) },
+                    title = { Text(stringResource(R.string.certificates)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.VpnKey, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.certificate)) },
+                    valueToText = { it },
+                )
+                TextFieldPreference(
+                    value = state.certPublicKeySha256,
+                    onValueChange = { viewModel.setCertPublicKeySha256(it) },
+                    title = { Text(stringResource(R.string.cert_public_key_sha256)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.WbSunny, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
+                    valueToText = { it },
+                )
+                SwitchPreference(
+                    value = state.allowInsecure,
+                    onValueChange = { viewModel.setAllowInsecure(it) },
+                    title = { Text(stringResource(R.string.allow_insecure)) },
+                    summary = { Text(stringResource(R.string.allow_insecure_sum)) },
+                    icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+                )
+                if (!isReality) {
+                    SwitchPreference(
+                        value = state.disableSNI,
+                        onValueChange = { viewModel.setDisableSNI(it) },
+                        title = { Text(stringResource(R.string.tuic_disable_sni)) },
+                        icon = { Icon(Icons.Filled.Lock, null) },
+                    )
                 }
-            } else {
-                setEntries(R.array.vmess_encryption_value)
-                setEntryValues(R.array.vmess_encryption_value)
+                SwitchPreference(
+                    value = state.tlsFragment,
+                    onValueChange = { viewModel.setTlsFragment(it) },
+                    title = { Text(stringResource(R.string.tls_fragment)) },
+                    enabled = !state.tlsRecordFragment,
+                    icon = { Icon(Icons.Filled.Texture, null) },
+                )
+                TextFieldPreference(
+                    value = state.tlsFragmentFallbackDelay,
+                    onValueChange = { viewModel.setTlsFragmentFallbackDelay(it) },
+                    title = { Text(stringResource(R.string.tls_fragment_fallback_delay)) },
+                    textToValue = { it },
+                    enabled = state.tlsFragment,
+                    icon = { Icon(Icons.Filled.Timer, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.tlsFragmentFallbackDelay)) },
+                    valueToText = { it },
+                )
+                SwitchPreference(
+                    value = state.tlsRecordFragment,
+                    onValueChange = { viewModel.setTlsRecordFragment(it) },
+                    title = { Text(stringResource(R.string.tls_record_fragment)) },
+                    enabled = !state.tlsFragment,
+                    icon = { Icon(Icons.Filled.WbSunny, null) },
+                )
+
+                PreferenceCategory(text = { Text(stringResource(R.string.tls_camouflage_settings)) })
+                ListPreference(
+                    value = state.utlsFingerprint,
+                    values = fingerprints,
+                    onValueChange = { viewModel.setUtlsFingerprint(it) },
+                    title = { Text(stringResource(R.string.utls_fingerprint)) },
+                    icon = { Icon(Icons.Filled.Security, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.utlsFingerprint)) },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    valueToText = { AnnotatedString(it) },
+                )
+                TextFieldPreference(
+                    value = state.realityPublicKey,
+                    onValueChange = { viewModel.setRealityPublicKey(it) },
+                    title = { Text(stringResource(R.string.reality_public_key)) },
+                    textToValue = { it },
+                    enabled = state.utlsFingerprint.isNotBlank(),
+                    icon = { Icon(Icons.Filled.VpnKey, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.realityPublicKey)) },
+                    valueToText = { it },
+                )
+                TextFieldPreference(
+                    value = state.realityShortID,
+                    onValueChange = { viewModel.setRealityShortID(it) },
+                    title = { Text(stringResource(R.string.reality_public_key)) },
+                    textToValue = { it },
+                    enabled = isReality,
+                    icon = { Icon(Icons.Filled.Texture, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.realityShortID)) },
+                    valueToText = { it },
+                )
+
+                PreferenceCategory(text = { Text(stringResource(R.string.ech)) })
+                SwitchPreference(
+                    value = state.ech,
+                    onValueChange = { viewModel.setEch(it) },
+                    title = { Text(stringResource(R.string.enable)) },
+                    icon = { Icon(Icons.Filled.Security, null) },
+                )
+                TextFieldPreference(
+                    value = state.echConfig,
+                    onValueChange = { viewModel.setEchConfig(it) },
+                    title = { Text(stringResource(R.string.ech_config)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.Nfc, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
+                    valueToText = { it },
+                )
             }
         }
-        findPreference<EditTextPreference>(Key.SERVER_USERNAME)!!.isVisible = isHttp
-        findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
-            isVisible = isHttp || isTrojan
-            summaryProvider = PasswordSummaryProvider
+    }
 
-            if (isTrojan) {
-                setDialogTitle(R.string.password)
-                setTitle(R.string.password)
+    internal fun LazyListScope.muxSettings(state: StandardV2RayUiState) {
+        item("category_mux") {
+            PreferenceCategory(text = { Text(stringResource(R.string.mux_preference)) })
+        }
+        item("enable_mux") {
+            SwitchPreference(
+                value = state.enableMux,
+                onValueChange = { viewModel.setEnableMux(it) },
+                title = { Text(stringResource(R.string.enable)) },
+                icon = { Icon(Icons.Filled.Security, null) },
+            )
+        }
+        if (state.enableMux) {
+            item("brutal") {
+                SwitchPreference(
+                    value = state.brutal,
+                    onValueChange = { viewModel.setBrutal(it) },
+                    title = { Text(stringResource(R.string.enable_brutal)) },
+                    icon = { Icon(Icons.Filled.Security, null) },
+                )
+            }
+            item("mux_type") {
+                ListPreference(
+                    value = state.muxType,
+                    values = intListN(muxTypes.size),
+                    onValueChange = { viewModel.setMuxType(it) },
+                    title = { Text(stringResource(R.string.mux_type)) },
+                    icon = { Icon(Icons.Filled.Security, null) },
+                    summary = { Text(muxTypes[state.muxType]) },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    valueToText = { AnnotatedString(muxTypes[it]) },
+                )
+            }
+            item("mux_strategy") {
+                ListPreference(
+                    value = state.muxStrategy,
+                    values = intListN(muxStrategies.size),
+                    onValueChange = { viewModel.setMuxStrategy(it) },
+                    title = { Text(stringResource(R.string.mux_strategy)) },
+                    icon = { Icon(Icons.Filled.Security, null) },
+                    summary = { Text(stringResource(muxStrategies[state.muxStrategy])) },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    valueToText = { AnnotatedString(getString(muxStrategies[it])) },
+                    enabled = !state.brutal,
+                )
+            }
+            item("mux_number") {
+                TextFieldPreference(
+                    value = state.muxNumber,
+                    onValueChange = { viewModel.setMuxNumber(it) },
+                    title = { Text(stringResource(R.string.mux_number)) },
+                    textToValue = { it.toIntOrNull() ?: 0 },
+                    icon = { Icon(Icons.Filled.Settings, null) },
+                    summary = { Text(state.muxNumber.toString()) },
+                    valueToText = { it.toString() },
+                    enabled = !state.brutal,
+                )
+            }
+            item("mux_padding") {
+                SwitchPreference(
+                    value = state.muxPadding,
+                    onValueChange = { viewModel.setMuxPadding(it) },
+                    title = { Text(stringResource(R.string.padding)) },
+                    icon = { Icon(Icons.Filled.Security, null) },
+                )
             }
         }
-        experimentsCategory.isVisible = isVmess || isHttp
-        authenticatedLength.isVisible = isVmess
-        udpOverTcp.isVisible = isHttp
-        serverV2rayTransport.isVisible = !isHttp
-        serverMuxNumber.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
-
-        updateUiState(serverV2rayTransport.value, serverSecurity.value, getFlow())
     }
 
-    /** Sets up listeners for preferences that change the UI dynamically. */
-    private fun setupListeners() {
-        serverV2rayTransport.setOnPreferenceChangeListener { _, newValue ->
-            updateUiState(newValue as String, serverSecurity.value, getFlow())
-            true
+    internal fun LazyListScope.transportSettings(state: StandardV2RayUiState) {
+        item("category_transport") {
+            PreferenceCategory(text = { Text(stringResource(R.string.v2ray_transport)) })
+        }
+        item("v2ray_transport") {
+            ListPreference(
+                value = state.v2rayTransport,
+                values = listOf(
+                    "",
+                    SingBoxOptions.TRANSPORT_WS,
+                    SingBoxOptions.TRANSPORT_HTTP,
+                    SingBoxOptions.TRANSPORT_GRPC,
+                    SingBoxOptions.TRANSPORT_HTTPUPGRADE,
+                    SingBoxOptions.TRANSPORT_QUIC,
+                ),
+                onValueChange = { viewModel.setTransport(it) },
+                title = { Text(stringResource(R.string.v2ray_transport)) },
+                icon = { Icon(Icons.Filled.Route, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.v2rayTransport)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(contentOrUnset(it)) },
+            )
         }
 
-        serverSecurity.setOnPreferenceChangeListener { _, newValue ->
-            updateUiState(serverV2rayTransport.value, newValue as String, getFlow())
-            true
-        }
-
-        serverMux.setOnPreferenceChangeListener { _, newValue ->
-            updateMuxControlsVisibility(newValue as Boolean)
-            true
-        }
-
-        serverBrutal.setOnPreferenceChangeListener { _, newValue ->
-            updateBrutalState(newValue as Boolean)
-            true
-        }
-
-        realityPublicKey.setOnPreferenceChangeListener { _, newValue ->
-            val isRealityEnabled = newValue.toString().isNotBlank()
-            updateTlsCategoriesVisibility(isTLS(serverSecurity.value), isRealityEnabled)
-            true
-        }
-        fragment.setOnPreferenceChangeListener { _, newValue ->
-            fragmentFallbackDelay.isEnabled = newValue as Boolean
-            true
-        }
-    }
-
-    /**
-     * The single source of truth for updating the UI based on transport and security settings.
-     * Call this whenever a setting that affects layout visibility changes.
-     */
-    private fun updateUiState(network: String, security: String, flow: String?) {
-        val isTls = isTLS(security)
-        val isHttp = viewModel.bean is HttpBean
-
-        updateTlsCategoriesVisibility(isTls, realityPublicKey.text?.isNotBlank() == true)
-
-        updateTransportViews(network, isHttp)
-
-        muxCategory.isVisible = shouldShowMuxCategory(network, isTls, isHttp, flow)
-        updateMuxControlsVisibility(serverMux.isChecked)
-        updateBrutalState(serverBrutal.isChecked)
-        fragmentFallbackDelay.isEnabled = fragment.isChecked
-    }
-
-    private fun updateTransportViews(network: String, isHttp: Boolean) {
-        serverHost.isVisible = false
-        serverPath.isVisible = false
-        serverHeaders.isVisible = false
-        wsCategory.isVisible = false
-
-        if (isHttp) {
-            serverHost.isVisible = true
-            serverPath.isVisible = true
-            serverHeaders.isVisible = true
-            serverHost.setTitle(R.string.http_host)
-            serverPath.setTitle(R.string.http_path)
-            return
-        }
-
-        when (network) {
+        when (state.v2rayTransport) {
             "", "tcp" -> {}
 
-            "http" -> {
-                // V2Ray's tcp + http or so-called "http" (h2)
-                serverHost.isVisible = true
-                serverPath.isVisible = true
-                serverHeaders.isVisible = true
-                serverHost.setTitle(R.string.http_host)
-                serverPath.setTitle(R.string.http_path)
+            SingBoxOptions.TRANSPORT_HTTP -> {
+                item("host") {
+                    TextFieldPreference(
+                        value = state.host,
+                        onValueChange = { viewModel.setHost(it) },
+                        title = { Text(stringResource(R.string.http_host)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Language, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
+                        valueToText = { it },
+                    )
+                }
+                item("path") {
+                    TextFieldPreference(
+                        value = state.path,
+                        onValueChange = { viewModel.setPath(it) },
+                        title = { Text(stringResource(R.string.http_path)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Route, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
+                        valueToText = { it },
+                    )
+                }
+                item("headers") {
+                    TextFieldPreference(
+                        value = state.headers,
+                        onValueChange = { viewModel.setHeaders(it) },
+                        title = { Text(stringResource(R.string.http_headers)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Code, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
+                        valueToText = { it },
+                    )
+                }
             }
 
-            "ws" -> {
-                serverHost.isVisible = true
-                serverPath.isVisible = true
-                serverHeaders.isVisible = true
-                wsCategory.isVisible = true
-                serverHost.setTitle(R.string.ws_host)
-                serverPath.setTitle(R.string.ws_path)
+            SingBoxOptions.TRANSPORT_WS -> {
+                item("host") {
+                    TextFieldPreference(
+                        value = state.host,
+                        onValueChange = { viewModel.setHost(it) },
+                        title = { Text(stringResource(R.string.ws_host)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Language, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
+                        valueToText = { it },
+                    )
+                }
+                item("path") {
+                    TextFieldPreference(
+                        value = state.path,
+                        onValueChange = { viewModel.setPath(it) },
+                        title = { Text(stringResource(R.string.ws_path)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Route, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
+                        valueToText = { it },
+                    )
+                }
+                item("headers") {
+                    TextFieldPreference(
+                        value = state.headers,
+                        onValueChange = { viewModel.setHeaders(it) },
+                        title = { Text(stringResource(R.string.http_headers)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Code, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
+                        valueToText = { it },
+                    )
+                }
+
+                item("category_transport") {
+                    PreferenceCategory(text = { Text(stringResource(R.string.cag_ws)) })
+                }
+                item("ws_max_early_data") {
+                    TextFieldPreference(
+                        value = state.wsMaxEarlyData,
+                        onValueChange = { viewModel.setWsMaxEarlyData(it) },
+                        title = { Text(stringResource(R.string.ws_max_early_data)) },
+                        textToValue = { it.toIntOrNull() ?: 0 },
+                        icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.wsMaxEarlyData)) },
+                    )
+                }
+                item("ws_early_data_name") {
+                    TextFieldPreference(
+                        value = state.wsEarlyDataHeaderName,
+                        onValueChange = { viewModel.setWsEarlyDataHeaderName(it) },
+                        title = { Text(stringResource(R.string.early_data_header_name)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Stream, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.wsEarlyDataHeaderName)) },
+                        valueToText = { it },
+                    )
+                }
             }
 
-            "grpc" -> {
-                serverPath.isVisible = true
-                serverPath.setTitle(R.string.grpc_service_name)
+            SingBoxOptions.TRANSPORT_GRPC -> {
+                item("path") {
+                    TextFieldPreference(
+                        value = state.path,
+                        onValueChange = { viewModel.setPath(it) },
+                        title = { Text(stringResource(R.string.grpc_service_name)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Route, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
+                        valueToText = { it },
+                    )
+                }
             }
 
-            "httpupgrade" -> {
-                serverHost.isVisible = true
-                serverPath.isVisible = true
-                serverHeaders.isVisible = true
-                serverHost.setTitle(R.string.http_upgrade_host)
-                serverPath.setTitle(R.string.http_upgrade_path)
+            SingBoxOptions.TRANSPORT_HTTPUPGRADE -> {
+                item("host") {
+                    TextFieldPreference(
+                        value = state.host,
+                        onValueChange = { viewModel.setHost(it) },
+                        title = { Text(stringResource(R.string.http_upgrade_host)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Language, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
+                        valueToText = { it },
+                    )
+                }
+                item("path") {
+                    TextFieldPreference(
+                        value = state.path,
+                        onValueChange = { viewModel.setPath(it) },
+                        title = { Text(stringResource(R.string.http_upgrade_path)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Route, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
+                        valueToText = { it },
+                    )
+                }
+                item("headers") {
+                    TextFieldPreference(
+                        value = state.headers,
+                        onValueChange = { viewModel.setHeaders(it) },
+                        title = { Text(stringResource(R.string.http_headers)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Code, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
+                        valueToText = { it },
+                    )
+                }
             }
 
-            "quic" -> {}
+            SingBoxOptions.TRANSPORT_QUIC -> {}
         }
-    }
-
-    private fun updateTlsCategoriesVisibility(isTls: Boolean, isReality: Boolean) {
-        securityCategory.isVisible = isTls
-        tlsCamouflageCategory.isVisible = isTls
-        disableSNI.isVisible = !isReality
-        echCategory.isVisible = isTls
-    }
-
-    private fun updateMuxControlsVisibility(enabled: Boolean) {
-        serverBrutal.isVisible = enabled
-        serverMuxType.isVisible = enabled
-        serverMuxStrategy.isVisible = enabled
-        serverMuxNumber.isVisible = enabled
-        serverMuxPadding.isVisible = enabled
-    }
-
-    private fun updateBrutalState(isBrutalEnabled: Boolean) {
-        serverMuxStrategy.isEnabled = !isBrutalEnabled
-        serverMuxNumber.isEnabled = !isBrutalEnabled
-    }
-
-    private fun shouldShowMuxCategory(
-        network: String,
-        isTls: Boolean,
-        isHttp: Boolean,
-        flow: String?,
-    ): Boolean {
-        if (flow?.isNotBlank() == true) return false
-        if (isHttp) return false
-        return when (network) {
-            "quic", "grpc" -> false
-            "http" -> !isTls // h2 when TLS is enabled
-            else -> true // tcp, ws, httpupgrade
-        }
-    }
-
-    private fun isTLS(security: String): Boolean = security == "tls"
-
-    private fun getFlow(): String? = if (viewModel.bean.isVLESS) {
-        serverEncryption.value
-    } else {
-        null
     }
 }
