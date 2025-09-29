@@ -656,7 +656,7 @@
     <string name="tls_fragment">Фрагментация TLS</string>
     <string name="tls_fragment_fallback_delay">Фрагментация TLS - Резервное время ожидания</string>
     <string name="tls_record_fragment">Фрагментация TLS с упаковкой в TLS-записи</string>
-    <string name="reality_public_key">REALITY - Публичный ключ</string>
+    <string name="reality_public_key">REALITY - Открытый ключ</string>
     <string name="initial_mtu">Начальный MTU</string>
     <string name="minimum_mtu">Минимальный MTU</string>
     <string name="expand">Развернуть</string>
@@ -677,4 +677,5 @@
     <string name="juicity_provider">Провайдер Juicity</string>
     <string name="menu">Меню</string>
     <string name="mutual_tls">Взаимный TLS (mTLS)</string>
+    <string name="cert_public_key_sha256">SHA-256 хеш открытого ключа сертификата</string>
 </resources>
