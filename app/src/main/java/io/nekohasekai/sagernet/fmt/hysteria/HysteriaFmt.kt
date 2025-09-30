@@ -291,7 +291,7 @@ fun HysteriaBean.buildHysteriaConfig(
                     }
 
                     mtlsCert.blankAsNull()?.let {
-                        if (mtlsKey.isNotBlank()) error("empty mtls key")
+                        if (mtlsKey.isBlank()) error("empty mtls key")
                         val certFile = cacheFile("mtls_cert")
                         certFile.writeText(it)
                         val keyFile = cacheFile("mtls_key")
@@ -323,18 +323,6 @@ fun HysteriaBean.buildHysteriaConfig(
         else -> throw unknownVersion()
     }
 }
-
-/*
-fun isMultiPort(hyAddr: String): Boolean {
-    if (!hyAddr.contains(":")) return false
-    val p = hyAddr.substringAfterLast(":")
-    return p.contains("-") || p.contains(",")
-}
-
-fun getFirstPort(portStr: String): Int {
-    return portStr.substringBefore(":").substringBefore(",").toIntOrNull() ?: 443
-}
- */
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (DataStore.providerHysteria2 != ProtocolProvider.CORE) return false // Force plugin
