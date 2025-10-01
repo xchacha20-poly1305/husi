@@ -74,7 +74,7 @@ jobs:
           path: |
             plugin/naive/src/main/jniLibs/x86_64
           key: naive-x86_64-${{ hashFiles('bin/plugin/naive/*', 'naive_status') }}
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Release Build
         env:
           SKIP_BUILD: on

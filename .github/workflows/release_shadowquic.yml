@@ -65,7 +65,7 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Release Build
         env:
           SKIP_BUILD: on
