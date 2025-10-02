@@ -3,92 +3,69 @@ package io.nekohasekai.sagernet.ui.profile
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.GroupManager
-import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
-import io.nekohasekai.sagernet.ui.ThemedActivity
-import io.nekohasekai.sagernet.ui.getStringOrRes
-import kotlinx.coroutines.launch
+import io.nekohasekai.sagernet.ui.ComposeActivity
+import io.nekohasekai.sagernet.ui.stringResource
+import me.zhanghai.compose.preference.ProvidePreferenceLocals
 
 @ExperimentalMaterial3Api
 @Suppress("UNCHECKED_CAST")
-abstract class ProfileSettingsActivity<T : AbstractBean>(
-    @LayoutRes resId: Int = R.layout.layout_config_settings,
-) : ThemedActivity(resId) {
-
-    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
-        override fun handleOnBackPressed() {
-            MaterialAlertDialogBuilder(this@ProfileSettingsActivity)
-                .setTitle(R.string.unsaved_changes_prompt)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    lifecycleScope.launch {
-                        saveAndExit()
-                    }
-                }
-                .setNegativeButton(R.string.no) { _, _ ->
-                    finish()
-                }
-                .setNeutralButton(android.R.string.cancel, null)
-                .show()
-        }
-    }
+abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
 
     companion object {
-        const val EXTRA_PROFILE_ID = "id"
-        const val EXTRA_IS_SUBSCRIPTION = "sub"
+        const val EXTRA_PROFILE_ID = "profile_id"
+        const val EXTRA_IS_SUBSCRIPTION = "is_subscription"
     }
 
 
@@ -100,293 +77,268 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val toolbar = findViewById<ComposeView>(R.id.toolbar)
-        toolbar.setContent {
-            @Suppress("DEPRECATION")
-            AppTheme {
-                val isNew = DataStore.editingId == 0L
+        val editingId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
+        val isSubscription = intent.getBooleanExtra(EXTRA_IS_SUBSCRIPTION, false)
+        viewModel.initialize(editingId, isSubscription)
 
+        setContent {
+            val isDirty by viewModel.isDirty.collectAsState()
+            var showBackAlert by remember { mutableStateOf(false) }
+            var showGenericAlert by remember { mutableStateOf<ProfileSettingsUiEvent.Alert?>(null) }
+            var showMoveDialog by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                viewModel.uiEvent.collect { event ->
+                    when (event) {
+                        is ProfileSettingsUiEvent.Alert -> showGenericAlert = event
+                    }
+                }
+            }
+
+            BackHandler(enabled = isDirty) {
+                showBackAlert = true
+            }
+
+            AppTheme {
+                var showDeleteAlert by remember { mutableStateOf(false) }
                 var showExtendMenu by remember { mutableStateOf(false) }
-                TopAppBar(
-                    title = { Text(stringResource(title)) },
-                    navigationIcon = {
-                        SimpleIconButton(Icons.Filled.Close) {
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                    },
-                    actions = {
-                        if (!isNew) SimpleIconButton(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                        ) {
-                            MaterialAlertDialogBuilder(this@ProfileSettingsActivity)
-                                .setTitle(R.string.delete_confirm_prompt)
-                                .setPositiveButton(android.R.string.ok) { _, _ ->
-                                    runOnDefaultDispatcher {
-                                        viewModel.delete()
-                                        finish()
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(stringResource(title)) },
+                            navigationIcon = {
+                                SimpleIconButton(Icons.Filled.Close) {
+                                    onBackPressedDispatcher.onBackPressed()
+                                }
+                            },
+                            actions = {
+                                if (!viewModel.isNew) SimpleIconButton(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = stringResource(R.string.delete),
+                                    onClick = { showDeleteAlert = true },
+                                )
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = stringResource(R.string.apply),
+                                    onClick = ::saveAndExit,
+                                )
+
+                                Box {
+                                    SimpleIconButton(Icons.Filled.MoreVert) {
+                                        showExtendMenu = true
+                                    }
+                                    DropdownMenu(
+                                        expanded = showExtendMenu,
+                                        onDismissRequest = { showExtendMenu = false },
+                                    ) {
+                                        if (!viewModel.isNew
+                                            && !viewModel.isSubscription
+                                            && SagerDatabase.groupDao.allGroups()
+                                                .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
+                                        ) DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.create_shortcut)) },
+                                            onClick = ::buildShortCut,
+                                        )
+                                        if (!viewModel.isNew && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.move)) },
+                                            onClick = { showMoveDialog = true },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.custom_outbound_json)) },
+                                            onClick = {
+                                                resultCallbackCustomOutbound.launch(
+                                                    Intent(
+                                                        baseContext,
+                                                        ConfigEditActivity::class.java,
+                                                    ).putExtra(
+                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                        viewModel.uiState.value.customOutbound,
+                                                    )
+                                                )
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.custom_config_json)) },
+                                            onClick = {
+                                                resultCallbackCustomConfig.launch(
+                                                    Intent(
+                                                        baseContext,
+                                                        ConfigEditActivity::class.java,
+                                                    ).putExtra(
+                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                        viewModel.uiState.value.customConfig,
+                                                    )
+                                                )
+                                            },
+                                        )
                                     }
                                 }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
-                        }
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = stringResource(R.string.apply),
-                        ) {
-                            runOnDefaultDispatcher {
-                                saveAndExit()
-                            }
-                        }
+                            },
+                        )
+                    },
+                ) { innerPadding ->
+                    MainColumn(Modifier.padding(innerPadding))
+                }
 
-                        Box {
-                            SimpleIconButton(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = null,
-                            ) {
-                                showExtendMenu = true
-                            }
-                            DropdownMenu(
-                                expanded = showExtendMenu,
-                                onDismissRequest = { showExtendMenu = false },
-                            ) {
-                                if (!isNew
-                                    && !viewModel.isSubscription
-                                    && SagerDatabase.groupDao.allGroups()
-                                        .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
-                                ) DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.create_shortcut)) },
-                                    onClick = {
-                                        val entity = viewModel.proxyEntity
-                                        val name = entity.displayName()
-                                        val shortcut = ShortcutInfoCompat.Builder(
-                                            this@ProfileSettingsActivity,
-                                            "shortcut-profile-${entity.id}",
-                                        ).setShortLabel(name)
-                                            .setLongLabel(name)
-                                            .setIcon(
-                                                IconCompat.createWithResource(
-                                                    this@ProfileSettingsActivity,
-                                                    R.drawable.ic_qu_shadowsocks_launcher,
-                                                )
-                                            ).setIntent(
-                                                Intent(
-                                                    baseContext, QuickToggleShortcut::class.java
-                                                ).setAction(Intent.ACTION_MAIN)
-                                                    .putExtra("profile", entity.id)
-                                            ).build()
-                                        ShortcutManagerCompat.requestPinShortcut(
-                                            this@ProfileSettingsActivity,
-                                            shortcut,
-                                            null,
-                                        )
-                                    },
-                                )
-                                if (!isNew && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.move)) },
-                                    onClick = {
-                                        val entity = viewModel.proxyEntity
-                                        val view = LinearLayout(baseContext).apply {
-                                            orientation = LinearLayout.VERTICAL
-
-                                            SagerDatabase.groupDao.allGroups()
-                                                .filter { it.type == GroupType.BASIC && it.id != entity.groupId }
-                                                .forEach { group ->
-                                                    LayoutGroupItemBinding.inflate(
-                                                        layoutInflater,
-                                                        this,
-                                                        true
-                                                    ).apply {
-                                                        edit.isVisible = false
-                                                        options.isVisible = false
-                                                        groupName.text = group.displayName()
-                                                        groupUpdate.text =
-                                                            getString(R.string.move)
-                                                        groupUpdate.setOnClickListener {
-                                                            lifecycleScope.launch {
-                                                                val oldGroupId = entity.groupId
-                                                                val newGroupId = group.id
-                                                                entity.groupId = newGroupId
-                                                                ProfileManager.updateProfile(
-                                                                    entity
-                                                                )
-                                                                // reload
-                                                                GroupManager.postUpdate(
-                                                                    oldGroupId
-                                                                )
-                                                                GroupManager.postUpdate(
-                                                                    newGroupId
-                                                                )
-                                                                DataStore.editingGroup =
-                                                                    newGroupId // post switch animation
-                                                                onMainDispatcher {
-                                                                    finish()
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                        }
-                                        val scrollView = ScrollView(baseContext).apply {
-                                            addView(view)
-                                        }
-                                        MaterialAlertDialogBuilder(this@ProfileSettingsActivity)
-                                            .setView(scrollView)
-                                            .show()
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.custom_outbound_json)) },
-                                    onClick = {
-                                        viewModel.prepareForEditCustomConfig(
-                                            ProfileSettingsViewModel.CustomConfigType.Outbound
-                                        )
-                                        resultCallbackCustomConfig.launch(
-                                            Intent(baseContext, ConfigEditActivity::class.java)
-                                                .putExtra(
-                                                    ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
-                                                    Key.SERVER_CUSTOM_OUTBOUND,
-                                                )
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.custom_config_json)) },
-                                    onClick = {
-                                        viewModel.prepareForEditCustomConfig(
-                                            ProfileSettingsViewModel.CustomConfigType.Fall
-                                        )
-                                        resultCallbackCustomConfig.launch(
-                                            Intent(baseContext, ConfigEditActivity::class.java)
-                                                .putExtra(
-                                                    ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
-                                                    Key.SERVER_CUSTOM,
-                                                )
-                                        )
-                                    },
-                                )
-                            }
+                if (showBackAlert) AlertDialog(
+                    onDismissRequest = { showBackAlert = false },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            showBackAlert = false
                         }
                     },
+                    dismissButton = {
+                        TextButton(stringResource(R.string.no)) {
+                            finish()
+                        }
+                    },
+                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
+
+                if (showDeleteAlert) AlertDialog(
+                    onDismissRequest = { showDeleteAlert = false },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            showDeleteAlert = false
+                            viewModel.delete()
+                            finish()
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(stringResource(android.R.string.cancel)) {
+                            showDeleteAlert = false
+                        }
+                    },
+                    icon = { Icon(Icons.Filled.Warning, null) },
+                    title = { Text(stringResource(R.string.delete_confirm_prompt)) },
+                )
+
+                if (showMoveDialog) {
+                    MoveProfileDialog {
+                        showMoveDialog = false
+                    }
+                }
+
+                showGenericAlert?.let { alert ->
+                    AlertDialog(
+                        onDismissRequest = { showGenericAlert = null },
+                        confirmButton = {
+                            TextButton(stringResource(android.R.string.ok)) {
+                                showGenericAlert = null
+                            }
+                        },
+                        icon = { Icon(Icons.Filled.Warning, null) },
+                        title = { Text(stringResource(alert.title)) },
+                        text = { Text(stringResource(alert.message)) }
+                    )
+                }
             }
         }
 
-        if (savedInstanceState == null) lifecycleScope.launch {
-            val editingId = intent.getLongExtra(EXTRA_PROFILE_ID, 0L)
-            val isSubscription = intent.getBooleanExtra(EXTRA_IS_SUBSCRIPTION, false)
-            viewModel.initialize(editingId, isSubscription)
-
-            onMainDispatcher {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.settings, MyPreferenceFragmentCompat())
-                    .commit()
-            }
-        }
-
-        onBackPressedCallback.isEnabled = viewModel.dirty
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
-        }
     }
 
-    private fun handleUiEvent(event: ProfileSettingsUiEvent) {
-        when (event) {
-            ProfileSettingsUiEvent.EnableBackPressCallback -> {
-                onBackPressedCallback.isEnabled = true
-            }
-
-            is ProfileSettingsUiEvent.Alert -> {
-                MaterialAlertDialogBuilder(this)
-                    .setTitle(getStringOrRes(event.title))
-                    .setMessage(getStringOrRes(event.message))
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show()
-            }
-        }
-    }
-
-    open suspend fun saveAndExit() {
-        viewModel.saveEntity()
+    protected fun saveAndExit() {
+        viewModel.save()
         setResult(RESULT_OK)
         finish()
     }
 
     private val resultCallbackCustomConfig = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        viewModel.onEditedCustomConfig(result.resultCode == RESULT_OK)
+    ) {
+        if (it.resultCode == RESULT_OK) {
+            viewModel.setCustomConfig(it.data!!.getStringExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG)!!)
+        }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
-        return true
+    private val resultCallbackCustomOutbound = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == RESULT_OK) {
+            viewModel.setCustomOutbound(it.data!!.getStringExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG)!!)
+        }
     }
 
-    abstract fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    )
-
-    open fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
+    @Composable
+    private fun MainColumn(modifier: Modifier) {
+        ProvidePreferenceLocals {
+            val uiState by viewModel.uiState.collectAsState()
+            LazyColumn(modifier = modifier) {
+                settings(uiState)
+            }
+        }
     }
 
-    open fun PreferenceFragmentCompat.displayPreferenceDialog(preference: Preference): Boolean {
-        return false
+    internal abstract fun LazyListScope.settings(state: ProfileSettingsUiState)
+
+    private fun buildShortCut() {
+        val entity = viewModel.proxyEntity
+        val name = entity.displayName()
+        val shortcut = ShortcutInfoCompat
+            .Builder(this, "shortcut-profile-${entity.id}")
+            .setShortLabel(name)
+            .setLongLabel(name)
+            .setIcon(
+                IconCompat.createWithResource(this, R.drawable.ic_qu_shadowsocks_launcher)
+            )
+            .setIntent(
+                Intent(baseContext, QuickToggleShortcut::class.java)
+                    .setAction(Intent.ACTION_MAIN)
+                    .putExtra(QuickToggleShortcut.EXTRA_PROFILE_ID, entity.id)
+            )
+            .build()
+        ShortcutManagerCompat.requestPinShortcut(this, shortcut, null)
     }
 
-    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
+    @Composable
+    private fun MoveProfileDialog(onDismiss: () -> Unit) {
+        val groups by produceState(
+            initialValue = emptyList(),
+            key1 = viewModel.proxyEntity.groupId,
+        ) {
+            value = viewModel.groupsForMove()
+        }
 
-        val activity: ProfileSettingsActivity<*>
-            get() = requireActivity() as ProfileSettingsActivity<*>
-
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            preferenceManager.preferenceDataStore = DataStore.profileCacheStore
-            try {
-                activity.apply {
-                    createPreferences(savedInstanceState, rootKey)
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(R.string.move)) },
+            text = {
+                if (groups.isEmpty()) {
+                    Text(text = stringResource(R.string.group_status_empty))
+                } else {
+                    LazyColumn {
+                        items(groups, key = { it.id }) { group ->
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            viewModel.move(group.id)
+                                            finish()
+                                        }
+                                        .padding(16.dp),
+                                ) {
+                                    Text(
+                                        text = group.displayName(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    app,
-                    "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                Logs.e(e)
+            },
+            confirmButton = {
+                TextButton(stringResource(android.R.string.cancel)) {
+                    onDismiss()
+                }
             }
-        }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-
-            ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
-                val bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-                            or WindowInsetsCompat.Type.displayCutout()
-                )
-                v.updatePadding(
-                    left = bars.left,
-                    right = bars.right,
-                    bottom = bars.bottom,
-                )
-                insets
-            }
-
-            activity.apply {
-                viewCreated(view, savedInstanceState)
-            }
-        }
-
-        override fun onDisplayPreferenceDialog(preference: Preference) {
-            activity.apply {
-                if (displayPreferenceDialog(preference)) return
-            }
-            super.onDisplayPreferenceDialog(preference)
-        }
-
+        )
     }
 
 }

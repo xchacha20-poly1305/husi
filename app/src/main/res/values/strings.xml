@@ -348,6 +348,8 @@
     </string>
     <string name="deduplication_sum">Remove duplicate configurations when updating</string>
     <string name="raw">Raw</string>
+    <string name="oocv1" translatable="false">OOCv1</string>
+    <string name="sip008" translatable="false">SIP008</string>
     <string name="update_settings">Update Settings</string>
     <string name="auto_update">Auto Update</string>
     <string name="auto_update_delay">Auto Update Delay (In minutes)</string>

@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
@@ -33,12 +34,9 @@ import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.ktx.onIoDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.launch
@@ -55,9 +53,7 @@ class ConfigEditActivity : ThemedActivity() {
             MaterialAlertDialogBuilder(this@ConfigEditActivity)
                 .setTitle(R.string.unsaved_changes_prompt)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    runOnDefaultDispatcher {
                         saveAndExit()
-                    }
                 }
                 .setNegativeButton(R.string.no) { _, _ ->
                     finish()
@@ -73,9 +69,7 @@ class ConfigEditActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intent?.extras?.getString(EXTRA_CUSTOM_CONFIG)?.let {
-            viewModel.key = it
-        }
+        val content = intent?.extras?.getString(EXTRA_CUSTOM_CONFIG) ?: ""
 
         binding = LayoutEditConfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -116,11 +110,8 @@ class ConfigEditActivity : ThemedActivity() {
                         SimpleIconButton(
                             imageVector = Icons.Filled.Done,
                             contentDescription = stringResource(R.string.apply),
-                        ) {
-                            runOnDefaultDispatcher {
-                                saveAndExit()
-                            }
-                        }
+                            onClick = ::saveAndExit,
+                        )
                     },
                 )
             }
@@ -132,7 +123,7 @@ class ConfigEditActivity : ThemedActivity() {
             tabWidth = 2
             language = JsonLanguage()
             setHorizontallyScrolling(true)
-            viewModel.content = DataStore.profileCacheStore.getString(viewModel.key)!!
+            viewModel.content = content
             setTextContent(viewModel.content)
             colorScheme = editorScheme
             plugins(PluginSupplier.create {
@@ -229,11 +220,8 @@ class ConfigEditActivity : ThemedActivity() {
         return Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT)
     }
 
-    private suspend fun saveAndExit() {
-        onIoDispatcher {
-            viewModel.saveToDataStore(binding.editor.text.toString())
-        }
-        setResult(RESULT_OK)
+    private fun saveAndExit() {
+        setResult(RESULT_OK, Intent().putExtra(EXTRA_CUSTOM_CONFIG, binding.editor.text.toString()))
         finish()
     }
 

@@ -103,7 +103,7 @@ fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackba
 fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)
 
 fun ThemedActivity.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
+    launcher: ActivityResultLauncher<String>, input: String,
 ) {
     try {
         return launcher.launch(input)
@@ -114,7 +114,7 @@ fun ThemedActivity.startFilesForResult(
 }
 
 fun Fragment.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
+    launcher: ActivityResultLauncher<String>, input: String,
 ) {
     try {
         return launcher.launch(input)
@@ -224,16 +224,28 @@ fun ListPreference.setSummaryUserInput(userInput: String) {
 }
 
 fun EditText.textChanges(): Flow<Editable?> {
-   return callbackFlow {
-       val watcher = object : TextWatcher {
-           override fun afterTextChanged(s: Editable?) {
-               trySend(s)
-           }
+    return callbackFlow {
+        val watcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                trySend(s)
+            }
 
-           override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-           override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-       }
-       addTextChangedListener(watcher)
-       awaitClose { removeTextChangedListener(watcher) }
-   }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+        addTextChangedListener(watcher)
+        awaitClose { removeTextChangedListener(watcher) }
+    }
+}
+
+fun Context.contentOrUnset(content: String): String {
+    return content.blankAsNull() ?: getString(androidx.preference.R.string.not_set)
+}
+
+fun Context.contentOrUnset(content: Int): String {
+    return if (content <= 0) {
+        getString(androidx.preference.R.string.not_set)
+    } else {
+        content.toString()
+    }
 }

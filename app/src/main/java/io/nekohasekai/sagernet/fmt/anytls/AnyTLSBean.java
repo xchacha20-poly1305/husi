@@ -36,9 +36,9 @@ public class AnyTLSBean extends AbstractBean {
     public String utlsFingerprint;
     public Boolean allowInsecure;
     public Boolean disableSNI;
-    public Boolean fragment;
-    public String fragmentFallbackDelay;
-    public Boolean recordFragment;
+    public Boolean tlsFragment;
+    public String tlsFragmentFallbackDelay;
+    public Boolean tlsRecordFragment;
     // In sing-box, this seemed can be used with REALITY.
     // But even mihomo appended many options, it still not provide REALITY.
     // Their developer said that unless the original author allow, they will never add it. We follow it.
@@ -61,9 +61,9 @@ public class AnyTLSBean extends AbstractBean {
         if (utlsFingerprint == null) utlsFingerprint = "";
         if (allowInsecure == null) allowInsecure = false;
         if (disableSNI == null) disableSNI = false;
-        if (fragment == null) fragment = false;
-        if (fragmentFallbackDelay == null) fragmentFallbackDelay = "500ms";
-        if (recordFragment == null) recordFragment = false;
+        if (tlsFragment == null) tlsFragment = false;
+        if (tlsFragmentFallbackDelay == null) tlsFragmentFallbackDelay = "500ms";
+        if (tlsRecordFragment == null) tlsRecordFragment = false;
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
     }
@@ -91,9 +91,9 @@ public class AnyTLSBean extends AbstractBean {
         output.writeBoolean(ech);
 
         // version 3
-        output.writeBoolean(fragment);
-        output.writeString(fragmentFallbackDelay);
-        output.writeBoolean(recordFragment);
+        output.writeBoolean(tlsFragment);
+        output.writeString(tlsFragmentFallbackDelay);
+        output.writeBoolean(tlsRecordFragment);
 
         // version 4
         output.writeBoolean(disableSNI);
@@ -125,9 +125,9 @@ public class AnyTLSBean extends AbstractBean {
         }
 
         if (version >= 3) {
-            fragment = input.readBoolean();
-            fragmentFallbackDelay = input.readString();
-            recordFragment = input.readBoolean();
+            tlsFragment = input.readBoolean();
+            tlsFragmentFallbackDelay = input.readString();
+            tlsRecordFragment = input.readBoolean();
         }
 
         if (version >= 4) {

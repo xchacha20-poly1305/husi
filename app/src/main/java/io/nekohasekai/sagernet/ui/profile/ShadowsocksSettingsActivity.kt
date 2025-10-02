@@ -1,79 +1,232 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.material.icons.filled.DeveloperBoard
+import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material.icons.filled.EnhancedEncryption
+import androidx.compose.material.icons.filled.LowPriority
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Grid3x3
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceFragmentCompat
-import io.nekohasekai.sagernet.Key
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
+import io.nekohasekai.sagernet.compose.PasswordPreference
+import io.nekohasekai.sagernet.compose.PreferenceCategory
+import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
-import io.nekohasekai.sagernet.widget.MaterialSwitchPreference
-import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
-import rikka.preference.SimpleMenuPreference
+import io.nekohasekai.sagernet.ktx.contentOrUnset
+import io.nekohasekai.sagernet.ktx.intListN
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.SwitchPreference
+import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
     override val viewModel by viewModels<ShadowsocksSettingsViewModel>()
 
-    private lateinit var serverBrutal: MaterialSwitchPreference
-    private lateinit var serverMuxType: SimpleMenuPreference
-    private lateinit var serverMuxNumber: EditTextPreference
-    private lateinit var serverMuxStrategy: SimpleMenuPreference
-    private lateinit var serverMuxPadding: MaterialSwitchPreference
-    private lateinit var udpOverTcp: MaterialSwitchPreference
+    private val encryptionMethods = listOf(
+        "2022-blake3-aes-128-gcm",
+        "2022-blake3-aes-256-gcm",
+        "2022-blake3-chacha20-poly1305",
+        "none",
+        "aes-128-gcm",
+        "aes-192-gcm",
+        "aes-256-gcm",
+        "chacha20-ietf-poly1305",
+        "xchacha20-ietf-poly1305",
+        "aes-128-ctr",
+        "aes-192-ctr",
+        "aes-256-ctr",
+        "aes-128-cfb",
+        "aes-192-cfb",
+        "aes-256-cfb",
+        "rc4-md5",
+        "chacha20-ietf",
+        "xchacha20",
+    )
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.shadowsocks_preferences)
+    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
+        state as ShadowsocksUiState
 
-        serverMuxType = findPreference(Key.SERVER_MUX_TYPE)!!
-        serverMuxStrategy = findPreference(Key.SERVER_MUX_STRATEGY)!!
-        serverMuxPadding = findPreference(Key.SERVER_MUX_PADDING)!!
-        serverMuxNumber = findPreference<EditTextPreference>(Key.SERVER_MUX_NUMBER)!!.also {
-            it.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
-        }
-        fun onBrutalChange(brutal: Boolean) {
-            serverMuxStrategy.isEnabled = !brutal
-            serverMuxNumber.isEnabled = !brutal
-        }
-        serverBrutal = findPreference(Key.SERVER_BRUTAL)!!
-        onBrutalChange(serverBrutal.isChecked)
-        serverBrutal.setOnPreferenceChangeListener { _, newValue ->
-            onBrutalChange(newValue as Boolean)
-            true
-        }
-        udpOverTcp = findPreference(Key.UDP_OVER_TCP)!!
-        updateMuxState(DataStore.serverMux)
-
-        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
-        }
-        findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
-            summaryProvider = PasswordSummaryProvider
+        item("name") {
+            TextFieldPreference(
+                value = state.name,
+                onValueChange = { viewModel.setName(it) },
+                title = { Text(stringResource(R.string.profile_name)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                valueToText = { it },
+            )
         }
 
-        findPreference<MaterialSwitchPreference>(Key.SERVER_MUX)!!.apply {
-            setOnPreferenceChangeListener { _, newValue ->
-                updateMuxState(newValue as Boolean)
-                true
+        item("category_proxy") {
+            PreferenceCategory(text = { Text(stringResource(R.string.proxy_cat)) })
+        }
+        item("address") {
+            TextFieldPreference(
+                value = state.address,
+                onValueChange = { viewModel.setAddress(it) },
+                title = { Text(stringResource(R.string.server_address)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Router, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                valueToText = { it },
+            )
+        }
+        item("port") {
+            TextFieldPreference(
+                value = state.port,
+                onValueChange = { viewModel.setPort(it) },
+                title = { Text(stringResource(R.string.server_port)) },
+                textToValue = { it.toIntOrNull() ?: 8388 },
+                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                valueToText = { it.toString() },
+                textField = { value, onValueChange, onOk ->
+                    UIntegerTextField(value, onValueChange, onOk)
+                }
+            )
+        }
+        item("method") {
+            ListPreference(
+                value = state.method,
+                values = encryptionMethods,
+                onValueChange = { viewModel.setMethod(it) },
+                title = { Text(stringResource(R.string.enc_method)) },
+                icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.method)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(it) },
+            )
+        }
+        item("password") {
+            PasswordPreference(
+                value = state.password,
+                onValueChange = { viewModel.setPassword(it) },
+            )
+        }
+
+        item("category_mux") {
+            PreferenceCategory(text = { Text(stringResource(R.string.mux_preference)) })
+        }
+        item("enable_mux") {
+            SwitchPreference(
+                value = state.enableMux,
+                onValueChange = { viewModel.setEnableMux(it) },
+                title = { Text(stringResource(R.string.enable_mux)) },
+                summary = { Text(stringResource(R.string.mux_sum)) },
+                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+            )
+        }
+        item("mux") {
+            AnimatedVisibility(visible = state.enableMux) {
+                SwitchPreference(
+                    value = state.brutal,
+                    onValueChange = { viewModel.setBrutal(it) },
+                    title = { Text(stringResource(R.string.enable_brutal)) },
+                    icon = { Icon(Icons.Filled.Bolt, null) },
+                    enabled = state.enableMux,
+                )
+                ListPreference(
+                    value = state.muxType,
+                    values = intListN(3),
+                    onValueChange = { viewModel.setMuxType(it) },
+                    title = { Text(stringResource(R.string.mux_type)) },
+                    icon = { Icon(Icons.Filled.Settings, null) },
+                    summary = { Text(muxTypes[state.muxType]) },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    valueToText = { AnnotatedString(muxTypes[it]) },
+                )
+                ListPreference(
+                    value = state.muxStrategy,
+                    values = intListN(3),
+                    onValueChange = { viewModel.setMuxStrategy(it) },
+                    title = { Text(stringResource(R.string.mux_strategy)) },
+                    icon = { Icon(Icons.Filled.Settings, null) },
+                    summary = { Text(LocalContext.current.getString(muxStrategies[state.muxStrategy])) },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    valueToText = { AnnotatedString(getString(muxStrategies[it])) },
+                    enabled = !state.brutal,
+                )
+                TextFieldPreference(
+                    value = state.muxNumber,
+                    onValueChange = { viewModel.setMuxNumber(it) },
+                    title = { Text(stringResource(R.string.mux_number)) },
+                    textToValue = { it.toIntOrNull() ?: 8 },
+                    icon = { Icon(Icons.Filled.LowPriority, null) },
+                    summary = { Text(state.muxNumber.toString()) },
+                    valueToText = { it.toString() },
+                    textField = { value, onValueChange, onOk ->
+                        UIntegerTextField(value, onValueChange, onOk)
+                    },
+                    enabled = !state.brutal,
+                )
+                SwitchPreference(
+                    value = state.muxPadding,
+                    onValueChange = { viewModel.setMuxPadding(it) },
+                    title = { Text(stringResource(R.string.padding)) },
+                    icon = { Icon(Icons.Filled.DeveloperBoard, null) },
+                )
             }
         }
+
+        item("category_plugin") {
+            PreferenceCategory(text = { Text(stringResource(R.string.plugin)) })
+        }
+        item("plugin_name") {
+            ListPreference(
+                value = state.pluginName,
+                values = listOf("", "obfs-local", "v2ray-plugin"),
+                onValueChange = { viewModel.setPluginName(it) },
+                title = { Text(stringResource(R.string.plugin)) },
+                icon = { Icon(Icons.Filled.Build, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.pluginName)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(it) },
+            )
+        }
+        item("plugin_config") {
+            TextFieldPreference(
+                value = state.pluginConfig,
+                onValueChange = { viewModel.setPluginConfig(it) },
+                title = { Text(stringResource(R.string.plugin_configure)) },
+                textToValue = { it },
+                enabled = state.pluginName.isNotBlank(),
+                icon = { Icon(Icons.Filled.Settings, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.pluginConfig)) },
+                valueToText = { it },
+            )
+        }
+
+        item("category_experimental") {
+            PreferenceCategory(
+                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                text = { Text(stringResource(R.string.experimental_settings)) },
+            )
+        }
+        item("udp_over_tcp") {
+            SwitchPreference(
+                value = state.udpOverTcp,
+                onValueChange = { viewModel.setUdpOverTcp(it) },
+                title = { Text(stringResource(R.string.udp_over_tcp)) },
+                enabled = !state.enableMux,
+            )
+        }
     }
-
-    private fun updateMuxState(enabled: Boolean) {
-        serverBrutal.isVisible = enabled
-        serverMuxType.isVisible = enabled
-        serverMuxStrategy.isVisible = enabled
-        serverMuxNumber.isVisible = enabled
-        serverMuxPadding.isVisible = enabled
-
-        udpOverTcp.isEnabled = !enabled
-    }
-
 }
+

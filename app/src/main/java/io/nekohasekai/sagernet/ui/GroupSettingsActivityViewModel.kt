@@ -1,92 +1,91 @@
 package io.nekohasekai.sagernet.ui
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceDataStore
+import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.GroupType
-import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.SubscriptionBean
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal class GroupSettingsActivityViewModel : ViewModel(),
-OnPreferenceDataStoreChangeListener{
+internal data class GroupSettingsUiState(
+    val name: String = "",
+    val type: Int = GroupType.BASIC,
+    val order: Int = GroupOrder.ORIGIN,
+    val frontProxy: Long = -1,
+    val landingProxy: Long = -1,
 
-    companion object {
-        const val OUTBOUND_POSITION = 1
-    }
+    val subscriptionType: Int = SubscriptionType.RAW,
+    val subscriptionToken: String = "",
+    val subscriptionLink: String = "",
+    val subscriptionForceResolve: Boolean = false,
+    val subscriptionDeduplication: Boolean = false,
+    val subscriptionFilterNotRegex: String = "",
+    val subscriptionUpdateWhenConnectedOnly: Boolean = false,
+    val subscriptionUserAgent: String = "",
+    val subscriptionAutoUpdate: Boolean = false,
+    val subscriptionUpdateDelay: Int = 1440,
+)
 
-    suspend fun ProxyGroup.writeToTmpDataStore() {
-        DataStore.groupName = name ?: ""
-        DataStore.groupType = type
-        DataStore.groupOrder = order
+internal class GroupSettingsActivityViewModel : ViewModel() {
 
-        DataStore.frontProxy = frontProxy
-        DataStore.landingProxy = landingProxy
-        DataStore.frontProxyTmp = if (frontProxy >= 0) OUTBOUND_POSITION else 0
-        DataStore.landingProxyTmp = if (landingProxy >= 0) OUTBOUND_POSITION else 0
-
-        val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
-        DataStore.subscriptionType = subscription.type
-        DataStore.subscriptionToken = subscription.token
-        DataStore.subscriptionLink = subscription.link
-        DataStore.subscriptionForceResolve = subscription.forceResolve
-        DataStore.subscriptionDeduplication = subscription.deduplication
-        DataStore.subscriptionFilterRegex = subscription.filterNotRegex
-        DataStore.subscriptionUpdateWhenConnectedOnly = subscription.updateWhenConnectedOnly
-        DataStore.subscriptionUserAgent = subscription.customUserAgent
-        DataStore.subscriptionAutoUpdate = subscription.autoUpdate
-        DataStore.subscriptionAutoUpdateDelay = subscription.autoUpdateDelay
-    }
-
-    fun ProxyGroup.loadFromTmpDataStore() {
-        name = DataStore.groupName.takeIf { it.isNotBlank() } ?: "My group"
-        type = DataStore.groupType
-        order = DataStore.groupOrder
-
-        frontProxy = if (DataStore.frontProxyTmp == OUTBOUND_POSITION) DataStore.frontProxy else -1
-        landingProxy =
-            if (DataStore.landingProxyTmp == OUTBOUND_POSITION) DataStore.landingProxy else -1
-
-        val isSubscription = type == GroupType.SUBSCRIPTION
-        if (isSubscription) {
-            subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
-                type = DataStore.subscriptionType
-                token = DataStore.subscriptionToken
-                link = DataStore.subscriptionLink
-                forceResolve = DataStore.subscriptionForceResolve
-                deduplication = DataStore.subscriptionDeduplication
-                filterNotRegex = DataStore.subscriptionFilterRegex
-                updateWhenConnectedOnly = DataStore.subscriptionUpdateWhenConnectedOnly
-                customUserAgent = DataStore.subscriptionUserAgent
-                autoUpdate = DataStore.subscriptionAutoUpdate
-                autoUpdateDelay = DataStore.subscriptionAutoUpdateDelay
-            }
-        }
-    }
+    private val _uiState = MutableStateFlow(GroupSettingsUiState())
+    val uiState = _uiState.asStateFlow()
 
     private var editingID: Long = 0L
     val isNew get() = editingID == 0L
 
-    private val _dirty = MutableStateFlow(false)
-    val dirty = _dirty.asStateFlow()
+    private lateinit var initialState: GroupSettingsUiState
 
-    fun initialize(id: Long) = viewModelScope.launch {
+    val isDirty = uiState.map { currentState ->
+        initialState != currentState
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false,
+    )
+
+    fun initialize(id: Long) {
         editingID = id
-        DataStore.editingId = id
-        if (isNew) {
-            ProxyGroup().writeToTmpDataStore()
+        val group = if (isNew) {
+            ProxyGroup()
         } else {
-            SagerDatabase.groupDao.getById(id)!!.writeToTmpDataStore()
+            SagerDatabase.groupDao.getById(id)!!
+        }
+        _uiState.update {
+            val subscription = group.subscription ?: SubscriptionBean().applyDefaultValues()
+            it.copy(
+                name = group.name ?: "",
+                type = group.type,
+                order = group.order,
+                frontProxy = group.frontProxy,
+                landingProxy = group.landingProxy,
+
+                subscriptionType = subscription.type,
+                subscriptionToken = subscription.token,
+                subscriptionLink = subscription.link,
+                subscriptionForceResolve = subscription.forceResolve,
+                subscriptionDeduplication = subscription.deduplication,
+                subscriptionFilterNotRegex = subscription.filterNotRegex,
+                subscriptionUpdateWhenConnectedOnly = subscription.updateWhenConnectedOnly,
+                subscriptionUserAgent = subscription.customUserAgent,
+                subscriptionAutoUpdate = subscription.autoUpdate,
+                subscriptionUpdateDelay = subscription.autoUpdateDelay,
+            ).also {
+                initialState = it
+            }
         }
     }
 
@@ -96,27 +95,136 @@ OnPreferenceDataStoreChangeListener{
 
     fun save() = runOnIoDispatcher {
         if (isNew) {
-            GroupManager.createGroup(ProxyGroup().apply { loadFromTmpDataStore() })
+            GroupManager.createGroup(ProxyGroup().apply { loadFromUiState(uiState.value) })
             return@runOnIoDispatcher
         }
-        if (!_dirty.value) return@runOnIoDispatcher
+        if (!isDirty.value) return@runOnIoDispatcher
         val entity = SagerDatabase.groupDao.getById(editingID) ?: return@runOnIoDispatcher
+        val state = _uiState.value
         val keepUserInfo = entity.type == GroupType.SUBSCRIPTION
-                && DataStore.groupType == GroupType.SUBSCRIPTION
-                && entity.subscription?.link == DataStore.subscriptionLink
+                && initialState.type == GroupType.SUBSCRIPTION
+                && entity.subscription?.link == state.subscriptionLink
         if (!keepUserInfo) entity.subscription?.apply {
             bytesUsed = -1L
             bytesRemaining = -1L
             expiryDate = -1L
         }
-        entity.loadFromTmpDataStore()
+        entity.loadFromUiState(state)
         GroupManager.updateGroup(entity)
     }
 
-    override fun onPreferenceDataStoreChanged(
-        store: PreferenceDataStore,
-        key: String,
-    ) {
-        _dirty.update { true }
+    private fun ProxyGroup.loadFromUiState(state: GroupSettingsUiState) {
+        name = state.name.blankAsNull() ?: "My Group"
+        type = state.type
+        order = state.order
+        frontProxy = state.frontProxy
+        landingProxy = state.landingProxy
+
+        if (type == GroupType.SUBSCRIPTION) {
+            subscription = (subscription ?: SubscriptionBean().applyDefaultValues()).apply {
+                type = state.subscriptionType
+                token = state.subscriptionToken
+                link = state.subscriptionLink
+                forceResolve = state.subscriptionForceResolve
+                deduplication = state.subscriptionDeduplication
+                filterNotRegex = state.subscriptionFilterNotRegex
+                updateWhenConnectedOnly = state.subscriptionUpdateWhenConnectedOnly
+                customUserAgent = state.subscriptionUserAgent
+                autoUpdate = state.subscriptionAutoUpdate
+                autoUpdateDelay = state.subscriptionUpdateDelay
+            }
+        }
     }
+
+    fun setName(name: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(name = name)
+        }
+    }
+
+    fun setType(type: Int) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(type = type)
+        }
+    }
+
+    fun setOrder(order: Int) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(order = order)
+        }
+    }
+
+    fun setFrontProxy(frontProxy: Long) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(frontProxy = frontProxy)
+        }
+    }
+
+    fun setLandingProxy(landingProxy: Long) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(landingProxy = landingProxy)
+        }
+    }
+
+    fun setSubscriptionType(subscriptionType: Int) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionType = subscriptionType)
+        }
+    }
+
+    fun setSubscriptionToken(subscriptionToken: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionToken = subscriptionToken)
+        }
+    }
+
+    fun setSubscriptionLink(subscriptionLink: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionLink = subscriptionLink)
+        }
+    }
+
+    fun setSubscriptionForceResolve(subscriptionForceResolve: Boolean) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionForceResolve = subscriptionForceResolve)
+        }
+    }
+
+    fun setSubscriptionDeduplication(subscriptionDeduplication: Boolean) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionDeduplication = subscriptionDeduplication)
+        }
+    }
+
+    fun setSubscriptionFilterNotRegex(subscriptionFilterNotRegex: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionFilterNotRegex = subscriptionFilterNotRegex)
+        }
+    }
+
+    fun setSubscriptionUpdateWhenConnectedOnly(subscriptionUpdateWhenConnectedOnly: Boolean) =
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(subscriptionUpdateWhenConnectedOnly = subscriptionUpdateWhenConnectedOnly)
+            }
+        }
+
+    fun setSubscriptionUserAgent(subscriptionUserAgent: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionUserAgent = subscriptionUserAgent)
+        }
+    }
+
+    fun setSubscriptionAutoUpdate(subscriptionAutoUpdate: Boolean) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionAutoUpdate = subscriptionAutoUpdate)
+        }
+    }
+
+    fun setSubscriptionUpdateDelay(subscriptionUpdateDelay: Int) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionUpdateDelay = subscriptionUpdateDelay)
+        }
+    }
+
 }

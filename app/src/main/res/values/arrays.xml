@@ -156,100 +156,14 @@
         <item>208.0.0.0/4</item>
     </string-array>
 
-    <string-array name="ss_enc_method_value">
-        <item>2022-blake3-aes-128-gcm</item>
-        <item>2022-blake3-aes-256-gcm</item>
-        <item>2022-blake3-chacha20-poly1305</item>
-        <item>none</item>
-        <item>aes-128-gcm</item>
-        <item>aes-192-gcm</item>
-        <item>aes-256-gcm</item>
-        <item>chacha20-ietf-poly1305</item>
-        <item>xchacha20-ietf-poly1305</item>
-        <item>aes-128-ctr</item>
-        <item>aes-192-ctr</item>
-        <item>aes-256-ctr</item>
-        <item>aes-128-cfb</item>
-        <item>aes-192-cfb</item>
-        <item>aes-256-cfb</item>
-        <item>rc4-md5</item>
-        <item>chacha20-ietf</item>
-        <item>xchacha20</item>
-    </string-array>
-
     <string-array name="service_modes">
         <item>@string/service_mode_vpn</item>
         <item>@string/service_mode_proxy</item>
     </string-array>
+
     <string-array name="service_mode_values">
         <item>vpn</item>
         <item>proxy</item>
-    </string-array>
-
-    <string-array name="route_protocol_value">
-        <item>tcp</item>
-        <item>udp</item>
-        <item>icmp</item>
-    </string-array>
-
-    <string-array name="outbound_entry">
-        <item>@string/route_proxy</item>
-        <item>@string/route_bypass</item>
-        <item>@string/route_block</item>
-        <item>@string/route_profile</item>
-    </string-array>
-
-    <string-array name="extra_proxy_entry">
-        <item>@string/ssh_auth_type_none</item>
-        <item>@string/route_profile</item>
-    </string-array>
-
-    <string-array name="networks_value">
-        <item>tcp</item>
-        <item>ws</item>
-        <item>http</item>
-        <item>quic</item>
-        <item>grpc</item>
-        <item>httpupgrade</item>
-    </string-array>
-
-    <string-array name="trojan_go_networks_entry">
-        <item>NONE</item>
-        <item>WEBSOCKET</item>
-    </string-array>
-
-    <string-array name="trojan_go_networks_value">
-        <item>none</item>
-        <item>ws</item>
-    </string-array>
-
-    <string-array name="trojan_go_security_entry">
-        <item>NONE</item>
-        <item>SHADOWSOCKS</item>
-    </string-array>
-
-    <string-array name="trojan_go_security_value">
-        <item>none</item>
-        <item>ss</item>
-    </string-array>
-
-    <string-array name="trojan_go_methods">
-        <item>AES-128-GCM</item>
-        <item>AES-256-GCM</item>
-        <item>CHACHA20-IETF-POLY1305</item>
-    </string-array>
-
-    <string-array name="vmess_encryption_value">
-        <item>chacha20-poly1305</item>
-        <item>aes-128-gcm</item>
-        <item>auto</item>
-        <item>none</item>
-        <item>zero</item>
-    </string-array>
-
-    <string-array name="transport_layer_encryption_value">
-        <item>none</item>
-        <item>tls</item>
     </string-array>
 
     <string-array name="notification_entry">
@@ -268,21 +182,6 @@
         <item>10000</item>
     </string-array>
 
-    <string-array name="mieru_protocol">
-        <item>TCP</item>
-        <item>UDP</item>
-    </string-array>
-
-    <string-array name="naive_proto_entry">
-        <item>HTTPS</item>
-        <item>QUIC</item>
-    </string-array>
-
-    <string-array name="naive_proto_value">
-        <item>https</item>
-        <item>quic</item>
-    </string-array>
-
     <string-array name="night_mode">
         <item>@string/follow_system</item>
         <item>@string/enable</item>
@@ -297,83 +196,10 @@
         <item>@string/custom_rule_provider</item>
     </string-array>
 
-    <string-array name="proxy_set_management">
-        <item>@string/action_selector</item>
-        <item>@string/action_urltest</item>
-    </string-array>
-
-    <string-array name="proxy_set_type">
-        <item>@string/list</item>
-        <item>@string/menu_group</item>
-    </string-array>
-
-    <string-array name="group_types">
-        <item>@string/group_basic</item>
-        <item>@string/subscription</item>
-    </string-array>
-
-    <string-array name="hysteria_auth_type">
-        <item>@string/plugin_disabled</item>
-        <item>STRING</item>
-        <item>BASE64</item>
-    </string-array>
-
-    <string-array name="hysteria_version">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
-    <string-array name="socks_versions">
-        <item>SOCKS4</item>
-        <item>SOCKS4A</item>
-        <item>SOCKS5</item>
-    </string-array>
-
-    <string-array name="simple_obfs">
-        <item>http</item>
-        <item>tls</item>
-    </string-array>
-
-    <string-array name="group_orders">
-        <item>@string/group_order_origin</item>
-        <item>@string/group_order_by_name</item>
-        <item>@string/group_order_by_delay</item>
-    </string-array>
-
-    <string-array name="ssh_auth_type">
-        <item>@string/ssh_auth_type_none</item>
-        <item>@string/password</item>
-        <item>@string/ssh_public_key</item>
-    </string-array>
-
     <string-array name="tun_implementation">
         <item>gVisor</item>
         <item>System</item>
         <item>Mixed</item>
-    </string-array>
-
-    <string-array name="hysteria_protocol">
-        <item>UDP</item>
-        <item>FakeTCP (Root Required)</item>
-        <item>WeChat Video</item>
-    </string-array>
-
-    <string-array name="packet_encoding_entry">
-        <item>none</item>
-        <item>packetaddr</item>
-        <item>xudp</item>
-    </string-array>
-
-    <string-array name="mux_types">
-        <item>h2mux</item>
-        <item>smux</item>
-        <item>yamux</item>
-    </string-array>
-
-    <string-array name="mux_strategies">
-        <item>@string/mux_max_connections</item>
-        <item>@string/mux_min_streams</item>
-        <item>@string/mux_max_streams</item>
     </string-array>
 
     <string-array name="network_strategies">
@@ -392,48 +218,6 @@
         <item>ipv6_only</item>
     </string-array>
 
-    <string-array name="app_tls_version">
-        <item>1.2</item>
-        <item>1.3</item>
-    </string-array>
-
-    <string-array name="utls_fingerprint_entry">
-        <item></item>
-        <item>chrome</item>
-        <item>firefox</item>
-        <item>edge</item>
-        <item>safari</item>
-        <item>360</item>
-        <item>qq</item>
-        <item>ios</item>
-        <item>android</item>
-        <item>random</item>
-        <item>randomized</item>
-    </string-array>
-
-    <string-array name="tuic_udp_relay_mode_value">
-        <item>native</item>
-        <item>quic</item>
-        <item>UDP over Stream</item>
-    </string-array>
-
-    <string-array name="tuic_congestion_controller_value">
-        <item>cubic</item>
-        <item>new_reno</item>
-        <item>bbr</item>
-    </string-array>
-
-    <string-array name="xtls_flow_value" translatable="false">
-        <item></item>
-        <item>xtls-rprx-vision</item>
-    </string-array>
-
-    <string-array name="box_shadowsocks_plugins" translatable="false">
-        <item></item>
-        <item>obfs-local</item>
-        <item>v2ray-plugin</item>
-    </string-array>
-
     <string-array name="log_level" translatable="false">
         <item>panic</item>
         <item>fatal</item>
@@ -444,20 +228,9 @@
         <item>trace</item>
     </string-array>
 
-    <string-array name="shadowtls_version_value">
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
     <string-array name="plugin_providers">
         <item>sing-box</item>
         <item>@string/plugin</item>
-    </string-array>
-
-    <string-array name="subscription_types">
-        <item>@string/raw</item>
-        <item>OOCv1</item>
-        <item>SIP008</item>
     </string-array>
 
     <string-array name="network_type_entry">
@@ -474,13 +247,6 @@
         <item>other</item>
     </string-array>
 
-    <string-array name="mieru_mux_level_value">
-        <item>@string/off</item>
-        <item>@string/low</item>
-        <item>@string/middle</item>
-        <item>@string/high</item>
-    </string-array>
-
     <!-- For MultiSelectListPreference initialization -->
     <string-array name="empty" />
 
@@ -495,7 +261,6 @@
         <item>@string/mozilla</item>
         <item>@string/system_and_user</item>
     </string-array>
-
 
     <string-array name="language_entry">
         <item>@string/language_system_default</item>
@@ -519,38 +284,6 @@
         <item>zh-Hans-CN</item>
         <item>zh-Hant-TW</item>
         <item>zh-Hant-HK</item>
-    </string-array>
-
-    <string-array name="route_action_value">
-        <item>route</item>
-        <item>route-options</item>
-        <item>sniff</item>
-        <item>resolve</item>
-        <item>hijack-dns</item>
-        <item>reject</item>
-    </string-array>
-
-    <string-array name="sniff_protocol">
-        <item>http</item>
-        <item>tls</item>
-        <item>quic</item>
-        <item>stun</item>
-        <item>dns</item>
-        <item>bittorrent</item>
-        <item>dtls</item>
-        <item>ssh</item>
-        <item>rdp</item>
-        <item>ntp</item>
-    </string-array>
-
-    <string-array name="tasker_action_entry">
-        <item>@string/tasker_action_start_service</item>
-        <item>@string/tasker_action_stop_service</item>
-    </string-array>
-
-    <string-array name="tasker_outbound_entry">
-        <item>@string/tasker_start_current_profile</item>
-        <item>@string/route_profile</item>
     </string-array>
 
 </resources>

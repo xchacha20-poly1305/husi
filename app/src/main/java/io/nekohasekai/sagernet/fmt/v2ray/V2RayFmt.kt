@@ -113,7 +113,6 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     }
 
     v2rayTransport = url.queryParameter("type")
-    if (v2rayTransport.isNullOrBlank()) v2rayTransport = "tcp"
     if (v2rayTransport == "h2" || url.queryParameter("headerType") == "http") {
         v2rayTransport = "http"
     }
@@ -155,7 +154,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
     }
 
     when (v2rayTransport) {
-        "tcp" -> {}
+        "", "tcp" -> {}
 
         "http" -> {
             host = url.queryParameterNotBlank("host")
@@ -240,7 +239,7 @@ fun parseV2RayN(link: String): VMessBean {
     }
 
     when (bean.v2rayTransport) {
-        "tcp" -> {
+        "", "tcp" -> {
             if (headerType == "http") {
                 bean.v2rayTransport = "http"
             }
@@ -334,7 +333,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
     }
 
     when (v2rayTransport) {
-        "tcp" -> {}
+        "", "tcp" -> {}
         "ws", "http", "httpupgrade" -> {
             if (host.isNotBlank()) {
                 builder.addQueryParameter("host", host)
@@ -405,7 +404,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
 
 fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportOptions? {
     when (bean.v2rayTransport) {
-        "tcp" -> {
+        "", "tcp" -> {
             return null
         }
 

@@ -54,7 +54,16 @@ public class SingBoxOptions {
     public static final String LOGICAL_OR = "or";
     public static final String LOGICAL_AND = "and";
 
+    public static final String SNIFF_HTTP = "http";
+    public static final String SNIFF_TLS = "tls";
+    public static final String SNIFF_QUIC = "quic";
+    public static final String SNIFF_STUN = "stun";
     public static final String SNIFF_DNS = "dns";
+    public static final String SNIFF_BITTORRENT = "bittorrent";
+    public static final String SNIFF_DTLS = "dtls";
+    public static final String SNIFF_SSH = "ssh";
+    public static final String SNIFF_RDP = "rdp";
+    public static final String SNIFF_NTP = "ntp";
 
     public static final String STRATEGY_PREFER_IPV6 = "prefer_ipv6";
     public static final String STRATEGY_PREFER_IPV4 = "prefer_ipv4";
@@ -77,6 +86,22 @@ public class SingBoxOptions {
     public static final String DNS_TYPE_RCODE = "rcode";
     public static final String DNS_TYPE_FAKEIP = "fakeip";
     public static final String DNS_TYPE_HOSTS = "hosts";
+
+    public static final String NETWORK_TYPE_WIFI = "wifi";
+    public static final String NETWORK_TYPE_CELLULAR = "cellular";
+    public static final String NETWORK_TYPE_ETHERNET = "ethernet";
+    public static final String NETWORK_TYPE_OTHER = "other";
+
+    public static final String FINGERPRINT_CHROME = "chrome";
+    public static final String FINGERPRINT_FIREFOX = "firefox";
+    public static final String FINGERPRINT_EDGE = "edge";
+    public static final String FINGERPRINT_SAFARI = "safari";
+    public static final String FINGERPRINT_360 = "360";
+    public static final String FINGERPRINT_QQ = "qq";
+    public static final String FINGERPRINT_IOS = "ios";
+    public static final String FINGERPRINT_ANDROID = "android";
+    public static final String FINGERPRINT_RANDOM = "random";
+    public static final String FINGERPRINT_RANDOMIZED = "randomized";
 
     // base
 
