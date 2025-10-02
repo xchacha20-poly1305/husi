@@ -72,6 +72,18 @@
         "com.google.guava:guava"
       ],
       "allowedVersions": "/-android$/"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "org.junit:junit-bom"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
     }
   ]
 }
