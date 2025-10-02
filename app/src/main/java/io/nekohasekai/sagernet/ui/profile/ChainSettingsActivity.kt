@@ -93,7 +93,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                     .fillMaxWidth()
                     .padding(4.dp)
                     .clickable {
-                        viewModel.replacing = 0
+                        viewModel.replacing = -1
                         selectProfileForAdd.launch(
                             Intent(
                                 this@ChainSettingsActivity,

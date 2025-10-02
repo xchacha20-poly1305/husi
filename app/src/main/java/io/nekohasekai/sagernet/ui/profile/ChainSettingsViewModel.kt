@@ -76,7 +76,7 @@ internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
     }
 
     /** The profile index that is being replacing */
-    var replacing = 0
+    var replacing = -1
 
     fun onSelectProfile(id: Long) = viewModelScope.launch {
         val profile = ProfileManager.getProfile(id)!!
@@ -88,7 +88,7 @@ internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
             return@launch
         }
         val profiles = _uiState.value.profiles.toMutableList()
-        if (replacing == 0) {
+        if (replacing < 0) {
             if (profiles.any { it.id == profile.id }) {
                 emitAlert(
                     title = StringOrRes.Res(R.string.duplicate_name),
@@ -103,11 +103,11 @@ internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
                     title = StringOrRes.Res(R.string.duplicate_name),
                     message = StringOrRes.Direct(profile.displayName()),
                 )
-                replacing = 0
+                replacing = -1
                 return@launch
             }
             profiles[replacing] = profile
-            replacing = 0
+            replacing = -1
         }
         _uiState.update {
             it.copy(profiles = profiles)

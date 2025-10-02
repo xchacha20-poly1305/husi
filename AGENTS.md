@@ -1,6 +1,6 @@
 # Code Style
 
-See [CONTRIBUTIONG](./CONTRIBUTING.md)
+See [CONTRIBUTION](./CONTRIBUTING.md)
 
 # Build
 

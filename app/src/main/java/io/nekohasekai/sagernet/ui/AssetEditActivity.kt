@@ -152,7 +152,11 @@ class AssetEditActivity : ComposeActivity() {
                 illegalNameMessage.takeIf { it > 0 }?.let { id ->
                     AlertDialog(
                         onDismissRequest = { illegalNameMessage = 0 },
-                        confirmButton = { illegalNameMessage = 0 },
+                        confirmButton = {
+                            TextButton(stringResource(android.R.string.ok)) {
+                                illegalNameMessage = 0
+                            }
+                        },
                         icon = { Icon(Icons.Filled.WarningAmber, null) },
                         title = { Text(stringResource(R.string.error_title)) },
                         text = { Text(stringResource(id)) },

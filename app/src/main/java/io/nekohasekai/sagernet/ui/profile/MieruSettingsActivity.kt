@@ -105,7 +105,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
-        if (state.protocol == "UDP") {
+        if (state.protocol == "udp") {
             item("mtu") {
                 TextFieldPreference(
                     value = state.mtu,

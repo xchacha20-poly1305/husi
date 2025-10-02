@@ -74,9 +74,9 @@ class TaskerActivity : ComposeActivity() {
         reloadIntent(intent)
 
         setContent {
-            val enableBackHandler by viewModel.dirty.collectAsState()
+            val isDirty by viewModel.isDirty.collectAsState()
             var showBackAlert by remember { mutableStateOf(false) }
-            BackHandler(enabled = enableBackHandler) {
+            BackHandler(enabled = isDirty) {
                 showBackAlert = true
             }
 

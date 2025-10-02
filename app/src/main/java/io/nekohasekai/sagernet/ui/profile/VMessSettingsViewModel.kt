@@ -171,7 +171,7 @@ internal class VMessSettingsViewModel(val isVLESS: Boolean) :
         } else {
             state.encryption
         }
-        packetEncoding = packetEncoding
+        packetEncoding = state.packetEncoding
         authenticatedLength = state.authenticatedLength
     }
 

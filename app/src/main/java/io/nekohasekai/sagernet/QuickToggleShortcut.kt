@@ -38,7 +38,7 @@ import io.nekohasekai.sagernet.database.DataStore
 class QuickToggleShortcut : Activity(), SagerConnection.Callback {
 
     companion object {
-        const val EXTRA_PROFILED_ID = "profile_id"
+        const val EXTRA_PROFILE_ID = "profile_id"
     }
 
     private val connection = SagerConnection(SagerConnection.CONNECTION_ID_SHORTCUT)
@@ -69,7 +69,7 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
             )
             finish()
         } else {
-            profileId = intent.getLongExtra(EXTRA_PROFILED_ID, -1L)
+            profileId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
             connection.connect(this, this)
             if (Build.VERSION.SDK_INT >= 25) {
                 getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")

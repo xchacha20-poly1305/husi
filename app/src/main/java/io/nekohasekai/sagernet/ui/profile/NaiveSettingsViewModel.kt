@@ -42,6 +42,9 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
                 insecureConcurrency = insecureConcurrency,
                 udpOverTcp = udpOverTcp,
                 noPostQuantum = noPostQuantum,
+
+                customConfig = customConfigJson,
+                customOutbound = customOutboundJson,
             )
         }
     }
@@ -60,6 +63,9 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
         insecureConcurrency = state.insecureConcurrency
         udpOverTcp = state.udpOverTcp
         noPostQuantum = state.noPostQuantum
+
+        customConfigJson = state.customConfig
+        customOutboundJson = state.customOutbound
     }
 
     override fun setCustomConfig(config: String) {

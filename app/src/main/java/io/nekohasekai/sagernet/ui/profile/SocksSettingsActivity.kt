@@ -60,7 +60,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                     SOCKSBean.PROTOCOL_SOCKS5,
                 ),
                 onValueChange = { viewModel.setProtocol(it) },
-                title = { Text(stringResource(R.string.app_version)) },
+                title = { Text(stringResource(R.string.protocol_version)) },
                 icon = { Icon(Icons.Filled.Nfc, null) },
                 summary = {
                     val text = when (state.protocol) {

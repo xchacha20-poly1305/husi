@@ -207,12 +207,12 @@ class GroupSettingsActivity : ComposeActivity() {
                 value = uiState.frontProxy,
                 onValueChange = {
                     if (it == -1L) {
+                        viewModel.setFrontProxy(it)
+                    } else {
                         selectProfileForAddFront.launch(
                             Intent(this, ProfileSelectActivity::class.java)
                                 .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.frontProxy)
                         )
-                    } else {
-                        viewModel.setFrontProxy(it)
                     }
                 },
                 values = listOf(-1L, 0L),
@@ -237,15 +237,15 @@ class GroupSettingsActivity : ComposeActivity() {
                 value = uiState.landingProxy,
                 onValueChange = {
                     if (it == -1L) {
+                        viewModel.setLandingProxy(it)
+                    } else {
                         selectProfileForAddLanding.launch(
                             Intent(this, ProfileSelectActivity::class.java)
                                 .putExtra(
                                     ProfileSelectActivity.EXTRA_SELECTED,
-                                    uiState.landingProxy
+                                    uiState.landingProxy,
                                 )
                         )
-                    } else {
-                        viewModel.setLandingProxy(it)
                     }
                 },
                 values = listOf(-1L, 0L),

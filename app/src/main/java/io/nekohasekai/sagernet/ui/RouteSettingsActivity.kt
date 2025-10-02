@@ -128,9 +128,9 @@ class RouteSettingsActivity : ComposeActivity() {
                                     contentDescription = stringResource(R.string.apply),
                                 ) {
                                     if (isDirty) {
-                                        showUnchangedAlert = true
-                                    } else {
                                         saveAndExit()
+                                    } else {
+                                        showUnchangedAlert = true
                                     }
                                 }
                             },
@@ -445,6 +445,9 @@ class RouteSettingsActivity : ComposeActivity() {
                                             Intent(
                                                 this@RouteSettingsActivity,
                                                 ProfileSelectActivity::class.java,
+                                            ).putExtra(
+                                                ProfileSelectActivity.EXTRA_SELECTED,
+                                                uiState.outbound,
                                             )
                                         )
                                     }
@@ -565,11 +568,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                     Text(text)
                                 },
                                 type = ListPreferenceType.DROPDOWN_MENU,
-                                valueToText = {
-                                    val text = uiState.resolveStrategy.blankAsNull()
-                                        ?: getString(R.string.auto)
-                                    AnnotatedString(text)
-                                },
+                                valueToText = { AnnotatedString(it) },
                             )
                         }
                         item("disable_cache") {
