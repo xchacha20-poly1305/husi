@@ -63,7 +63,7 @@ class GetCertActivity : ThemedActivity() {
             binding.proxyServer.setText(it)
         }
 
-        val protocols = resources.getStringArray(R.array.naive_proto_entry)
+        val protocols = listOf("https", "quic")
         binding.pinCertProtocol.setAdapter(
             ArrayAdapter(
                 binding.pinCertProtocol.context,

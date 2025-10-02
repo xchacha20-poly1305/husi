@@ -1,131 +1,74 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.fmt.http.HttpBean
-import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
-import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 
-internal abstract class StandardV2RaySettingsViewModel : ProfileSettingsViewModel<StandardV2RayBean>() {
+internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
+    val name: String
+    val address: String
+    val port: Int
 
-    override fun StandardV2RayBean.writeToTempDatabase() {
-        DataStore.profileName = name
-        DataStore.serverAddress = serverAddress
-        DataStore.serverPort = serverPort
+    val v2rayTransport: String
+    val host: String
+    val path: String
+    val headers: String
+    val wsMaxEarlyData: Int
+    val wsEarlyDataHeaderName: String
 
-        // V2Ray Transport
-        DataStore.serverNetwork = v2rayTransport
-        DataStore.serverHost = host
-        DataStore.serverPath = path
-        DataStore.serverHeaders = headers
-        DataStore.serverWsMaxEarlyData = wsMaxEarlyData
-        DataStore.serverWsEarlyDataHeaderName = earlyDataHeaderName
+    val security: String
+    val sni: String
+    val alpn: String
+    val certificate: String
+    val certPublicKeySha256: String
+    val allowInsecure: Boolean
+    val disableSNI: Boolean
+    val tlsFragment: Boolean
+    val tlsFragmentFallbackDelay: String
+    val tlsRecordFragment: Boolean
+    val utlsFingerprint: String
+    val realityPublicKey: String
+    val realityShortID: String
+    val ech: Boolean
+    val echConfig: String
 
-        // Security
-        DataStore.serverSecurity = security
-        DataStore.serverSNI = sni
-        DataStore.serverALPN = alpn
-        DataStore.serverCertificates = certificates
-        DataStore.serverCertPublicKeySha256 = certPublicKeySha256
-        DataStore.serverAllowInsecure = allowInsecure
-        DataStore.serverDisableSNI = disableSNI
-        DataStore.serverFragment = fragment
-        DataStore.serverFragmentFallbackDelay = fragmentFallbackDelay
-        DataStore.serverRecordFragment = recordFragment
-        DataStore.serverUtlsFingerPrint = utlsFingerprint
-        DataStore.serverRealityPublicKey = realityPublicKey
-        DataStore.serverRealityShortID = realityShortID
-        DataStore.serverECH = ech
-        DataStore.serverECHConfig = echConfig
+    val enableMux: Boolean
+    val brutal: Boolean
+    val muxType: Int
+    val muxStrategy: Int
+    val muxNumber: Int
+    val muxPadding: Boolean
+}
 
-        // Mux
-        DataStore.serverMux = serverMux
-        DataStore.serverBrutal = serverBrutal
-        DataStore.serverMuxType = serverMuxType
-        DataStore.serverMuxStrategy = serverMuxStrategy
-        DataStore.serverMuxNumber = serverMuxNumber
-        DataStore.serverMuxPadding = serverMuxPadding
+internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
+    ProfileSettingsViewModel<T>() {
 
-        // Protocol Specific
-        when (this) {
-            is HttpBean -> {
-                DataStore.serverUsername = username
-                DataStore.serverPassword = password
-                DataStore.udpOverTcp = udpOverTcp
-            }
-
-            is TrojanBean -> {
-                DataStore.serverPassword = password
-            }
-
-            is VMessBean -> {
-                DataStore.serverUserID = uuid
-                DataStore.serverAlterID = alterId
-                DataStore.serverEncryption = encryption
-                DataStore.serverPacketEncoding = packetEncoding
-                DataStore.serverAuthenticatedLength = authenticatedLength
-            }
-        }
-    }
-
-    override fun StandardV2RayBean.loadFromTempDatabase() {
-        // Basic
-        name = DataStore.profileName
-        serverAddress = DataStore.serverAddress
-        serverPort = DataStore.serverPort
-
-        // V2Ray Transport
-        v2rayTransport = DataStore.serverNetwork
-        host = DataStore.serverHost
-        path = DataStore.serverPath
-        headers = DataStore.serverHeaders
-        wsMaxEarlyData = DataStore.serverWsMaxEarlyData
-        earlyDataHeaderName = DataStore.serverWsEarlyDataHeaderName
-
-        // Security
-        security = DataStore.serverSecurity
-        sni = DataStore.serverSNI
-        alpn = DataStore.serverALPN
-        certificates = DataStore.serverCertificates
-        certPublicKeySha256 = DataStore.serverCertPublicKeySha256
-        allowInsecure = DataStore.serverAllowInsecure
-        disableSNI = DataStore.serverDisableSNI
-        fragment = DataStore.serverFragment
-        fragmentFallbackDelay = DataStore.serverFragmentFallbackDelay
-        recordFragment = DataStore.serverRecordFragment
-        utlsFingerprint = DataStore.serverUtlsFingerPrint
-        realityPublicKey = DataStore.serverRealityPublicKey
-        realityShortID = DataStore.serverRealityShortID
-        ech = DataStore.serverECH
-        echConfig = DataStore.serverECHConfig
-
-        // Mux
-        serverMux = DataStore.serverMux
-        serverBrutal = DataStore.serverBrutal
-        serverMuxType = DataStore.serverMuxType
-        serverMuxStrategy = DataStore.serverMuxStrategy
-        serverMuxNumber = DataStore.serverMuxNumber
-        serverMuxPadding = DataStore.serverMuxPadding
-
-        // Protocol Specific
-        when (this) {
-            is HttpBean -> {
-                username = DataStore.serverUsername
-                password = DataStore.serverPassword
-                udpOverTcp = DataStore.udpOverTcp
-            }
-
-            is TrojanBean -> {
-                password = DataStore.serverPassword
-            }
-
-            is VMessBean -> {
-                uuid = DataStore.serverUserID
-                alterId = DataStore.serverAlterID
-                encryption = DataStore.serverEncryption
-                packetEncoding = DataStore.serverPacketEncoding
-                authenticatedLength = DataStore.serverAuthenticatedLength
-            }
-        }
-    }
+    abstract fun setName(name: String)
+    abstract fun setAddress(address: String)
+    abstract fun setPort(port: Int)
+    abstract fun setTransport(transport: String)
+    abstract fun setHost(host: String)
+    abstract fun setPath(path: String)
+    abstract fun setHeaders(headers: String)
+    abstract fun setWsMaxEarlyData(maxEarlyData: Int)
+    abstract fun setWsEarlyDataHeaderName(headerName: String)
+    abstract fun setSecurity(security: String)
+    abstract fun setSni(sni: String)
+    abstract fun setAlpn(alpn: String)
+    abstract fun setCertificate(certificate: String)
+    abstract fun setCertPublicKeySha256(sha256: String)
+    abstract fun setAllowInsecure(allow: Boolean)
+    abstract fun setDisableSNI(disable: Boolean)
+    abstract fun setTlsFragment(enable: Boolean)
+    abstract fun setTlsFragmentFallbackDelay(delay: String)
+    abstract fun setTlsRecordFragment(enable: Boolean)
+    abstract fun setUtlsFingerprint(fingerprint: String)
+    abstract fun setRealityPublicKey(publicKey: String)
+    abstract fun setRealityShortID(shortID: String)
+    abstract fun setEch(enable: Boolean)
+    abstract fun setEchConfig(config: String)
+    abstract fun setEnableMux(enable: Boolean)
+    abstract fun setBrutal(enable: Boolean)
+    abstract fun setMuxType(type: Int)
+    abstract fun setMuxStrategy(strategy: Int)
+    abstract fun setMuxNumber(number: Int)
+    abstract fun setMuxPadding(enable: Boolean)
 }

@@ -402,6 +402,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             bindBase(entity)
 
             binding.edit.setOnClickListener {
+                viewModel.editingID = entity.id
                 editProfileLauncher.launch(
                     entity.settingIntent(
                         it.context,
@@ -675,7 +676,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
 
                 R.id.action_config_export_file -> {
                     val cfg = entity.exportConfig()
-                    DataStore.serverConfig = cfg.first
+                    viewModel.exportConfig = cfg.first
                     startFilesForResult(
                         exportConfig, cfg.second
                     )
@@ -699,9 +700,10 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
     private val editProfileLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                if (DataStore.currentProfile == DataStore.editingId) {
+                if (DataStore.currentProfile == viewModel.editingID) {
                     needReload()
                 }
+                viewModel.editingID = null
             }
         }
 
@@ -712,7 +714,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
                     try {
                         requireActivity().contentResolver.openOutputStream(data)!!
                             .bufferedWriter().use {
-                                it.write(DataStore.serverConfig)
+                                it.write(viewModel.exportConfig)
                             }
                         onMainDispatcher {
                             snackbar(getString(R.string.action_export_msg)).show()

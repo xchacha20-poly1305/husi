@@ -7,9 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,7 +23,7 @@ import kotlin.coroutines.coroutineContext
 
 internal data class AppListActivityUiState(
     val isLoading: Boolean = false,
-    val apps: List<ProxiedApp> = emptyList(), // sorted
+    val apps: List<ProxiedApp> = emptyList(), // sorted, for show
 )
 
 internal data class AppListActivityToolbarState(
@@ -55,23 +53,20 @@ internal class AppListActivityViewModel : ViewModel() {
         }
     }
 
-    fun initialize(pm: PackageManager) {
-        val initialized = ::packageManager.isInitialized
+    fun initialize(pm: PackageManager, packages: Set<String>) {
         packageManager = pm
-        if (!initialized) {
-            viewModelScope.launch(Dispatchers.IO) {
-                _uiState.update {
-                    it.copy(isLoading = true, apps = emptyList())
-                }
-                val routePackages = DataStore.routePackages
-                val cachedApps = cachedApps
-                for ((packageName, packageInfo) in cachedApps) {
-                    if (routePackages.contains(packageName)) {
-                        proxiedUids.add(packageInfo.applicationInfo!!.uid)
-                    }
-                }
-                reload(cachedApps)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update {
+                it.copy(isLoading = true, apps = emptyList())
             }
+            val cachedApps = cachedApps
+            for ((packageName, packageInfo) in cachedApps) {
+                if (packages.contains(packageName)) {
+                    proxiedUids.add(packageInfo.applicationInfo!!.uid)
+                }
+            }
+            reload(cachedApps)
         }
     }
 
@@ -127,17 +122,26 @@ internal class AppListActivityViewModel : ViewModel() {
         proxiedUids.ensureCapacity(cachedApps.size - current.size)
         allUids.filter { it !in current }.forEach { proxiedUids.add(it) }
         reload()
-        writeToDataStore()
     }
 
     fun clearSections() = viewModelScope.launch {
         proxiedUids.clear()
         reload()
-        writeToDataStore()
+    }
+
+    fun allPackages(): ArrayList<String> {
+        return cachedApps.mapNotNullTo(ArrayList()) { (packageName, packageInfo) ->
+            val uid = packageInfo.applicationInfo!!.uid
+            if (uid in proxiedUids) {
+                packageName
+            } else {
+                null
+            }
+        }
     }
 
     fun export(): String {
-        val body = DataStore.routePackages.joinToString("\n")
+        val body = allPackages().joinToString("\n")
         val full = "false\n$body"
         return full
     }
@@ -199,15 +203,6 @@ internal class AppListActivityViewModel : ViewModel() {
                 }
             })
         }
-        writeToDataStore()
     }
 
-    private suspend fun writeToDataStore() {
-        onIoDispatcher {
-            DataStore.routePackages = cachedApps.values.asSequence()
-                .filter { it.applicationInfo!!.uid in proxiedUids }
-                .map { it.packageName }
-                .toCollection(LinkedHashSet())
-        }
-    }
 }

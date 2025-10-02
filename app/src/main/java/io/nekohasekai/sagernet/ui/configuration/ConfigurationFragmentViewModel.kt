@@ -111,13 +111,13 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     init {
         ProfileManager.addListener(this)
         GroupManager.addListener(this)
-        DataStore.profileCacheStore.registerChangeListener(this)
+        DataStore.configurationStore.registerChangeListener(this)
     }
 
     override fun onCleared() {
         ProfileManager.removeListener(this)
         GroupManager.removeListener(this)
-        DataStore.profileCacheStore.unregisterChangeListener(this)
+        DataStore.configurationStore.unregisterChangeListener(this)
         super.onCleared()
     }
 
@@ -421,8 +421,8 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     override suspend fun groupUpdated(group: ProxyGroup) {
         _uiState.update { state ->
             val groups = state.groups.toMutableList()
-            val index = groups.indexOfFirst { it.id == group.id }
-            groups[index] = group
+            val index = groups.indexOfFirst { it.id == group.id }.takeIf { it >= 0 }
+            if (index != null) groups[index] = group
             state.copy(groups = groups)
         }
     }
@@ -439,13 +439,10 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
         if (key != Key.PROFILE_GROUP) return
-        // editing group
-        viewModelScope.launch {
-            val targetID = DataStore.editingGroup
-            if (targetID > 0 && targetID != DataStore.selectedGroup) {
-                DataStore.selectedGroup = targetID
-                reloadGroups()
-            }
+
+        _uiState.update { state ->
+            state.copy(selectedGroupIndex = state.groups.indexOfFirst { it.id == DataStore.selectedGroup })
         }
     }
+
 }

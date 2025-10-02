@@ -20,163 +20,124 @@ package io.nekohasekai.sagernet.tasker
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
+import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.preference.PreferenceFragmentCompat
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ui.MaterialPreferenceFragment
-import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.ktx.intListN
+import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
-import io.nekohasekai.sagernet.widget.launchOnPosition
-import io.nekohasekai.sagernet.widget.setSummaryForOutbound
 import kotlinx.coroutines.launch
-import rikka.preference.SimpleMenuPreference
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.ProvidePreferenceLocals
+import com.twofortyfouram.locale.api.Intent as ApiIntent
 
-class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
-
-    companion object {
-        private const val OUTBOUND_POSITION = "1"
-    }
-
-    override val onBackPressedCallback: OnBackPressedCallback =
-        object : OnBackPressedCallback(enabled = false) {
-            override fun handleOnBackPressed() {
-                MaterialAlertDialogBuilder(this@TaskerActivity)
-                    .setTitle(R.string.unsaved_changes_prompt)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        saveAndExit()
-                    }
-                    .setNegativeButton(R.string.no) { _, _ ->
-                        finish()
-                    }
-                    .setNeutralButton(android.R.string.cancel, null)
-                    .show()
-            }
-        }
+class TaskerActivity : ComposeActivity() {
 
     private val viewModel by viewModels<TaskerActivityViewModel>()
-    private val settings by lazy { TaskerBundle.fromIntent(intent) }
+    private lateinit var settings: TaskerBundle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val toolbar = findViewById<ComposeView>(R.id.toolbar)
-        toolbar.setContent {
-            @Suppress("DEPRECATION")
+        reloadIntent(intent)
+
+        setContent {
+            val isDirty by viewModel.isDirty.collectAsState()
+            var showBackAlert by remember { mutableStateOf(false) }
+            BackHandler(enabled = isDirty) {
+                showBackAlert = true
+            }
+
             AppTheme {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.tasker_settings)) },
-                    navigationIcon = {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = null,
-                        ) {
-                            onBackPressedDispatcher.onBackPressed()
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(stringResource(R.string.tasker_settings)) },
+                            navigationIcon = {
+                                SimpleIconButton(Icons.Filled.Close) {
+                                    onBackPressedDispatcher.onBackPressed()
+                                }
+                            },
+                            actions = {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = stringResource(R.string.apply),
+                                ) {
+                                    lifecycleScope.launch {
+                                        saveAndExit()
+                                    }
+                                }
+                            },
+                        )
+                    }
+                ) { innerPadding ->
+                    Column(modifier = Modifier.padding(innerPadding)) {
+                        TaskerPreference()
+                    }
+                }
+
+                if (showBackAlert) AlertDialog(
+                    onDismissRequest = { showBackAlert = false },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            saveAndExit()
                         }
                     },
-                    actions = {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = stringResource(R.string.apply),
-                        ) {
-                            lifecycleScope.launch {
-                                saveAndExit()
-                            }
+                    dismissButton = {
+                        TextButton(stringResource(R.string.no)) {
+                            finish()
                         }
                     },
+                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
             }
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-                bottom = bars.bottom,
-            )
-            insets
-        }
-
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.settings, MyPreferenceFragmentCompat())
-                .commit()
-        }
-        onBackPressedCallback.isEnabled = viewModel.dirty
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
-        }
-
-        DataStore.profileCacheStore.registerChangeListener(viewModel)
     }
 
-    private suspend fun handleUiEvent(event: TaskerActivityUiEvent) {
-        when (event) {
-            TaskerActivityUiEvent.EnableBackPressCallback -> if (!onBackPressedCallback.isEnabled) {
-                onBackPressedCallback.isEnabled = true
-            }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
 
-            is TaskerActivityUiEvent.SetAction -> {
-                settings.action = event.action
-                profile.isEnabled = event.action == TaskerBundle.ACTION_START
-            }
-
-            is TaskerActivityUiEvent.SetProfileID -> {
-                settings.profileId = event.id
-                profile.setSummaryForOutbound()
-            }
-        }
+        setIntent(intent)
+        reloadIntent(intent)
     }
 
-    private lateinit var profile: SimpleMenuPreference
-    private lateinit var action: SimpleMenuPreference
-
-    fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.tasker_preferences)
-        profile = findPreference(Key.TASKER_PROFILE)!!
-        profile.setSummaryForOutbound()
-        profile.launchOnPosition(OUTBOUND_POSITION) {
-            selectProfileForTasker.launch(
-                Intent(
-                    this@TaskerActivity, ProfileSelectActivity::class.java
-                ).apply {
-                    putExtra(ProfileSelectActivity.EXTRA_SELECTED, settings.profileId)
-                })
-        }
-        action = findPreference(Key.TASKER_ACTION)!!
-        profile.isEnabled = action.value == TaskerBundle.ACTION_START.toString()
+    private fun reloadIntent(intent: Intent) {
+        settings = TaskerBundle.fromIntent(intent)
+        viewModel.loadFromSetting(settings.action, settings.profileId)
     }
 
     private val selectProfileForTasker = registerForActivityResult(
@@ -184,58 +145,98 @@ class TaskerActivity : ThemedActivity(R.layout.layout_config_settings) {
     ) { (resultCode, data) ->
         if (resultCode == RESULT_OK) {
             val id = data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
-            viewModel.onSelectProfile(id)
-            profile.value = OUTBOUND_POSITION
+            viewModel.setProfileID(id)
         }
     }
 
     fun saveAndExit() {
-        setResult(RESULT_OK, settings.toIntent())
+        setResult(RESULT_OK, buildIntent())
         finish()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
-        return true
-    }
-
-    override fun onDestroy() {
-        DataStore.profileCacheStore.unregisterChangeListener(viewModel)
-        super.onDestroy()
-    }
-
-    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
-
-        val activity: TaskerActivity
-            get() = requireActivity() as TaskerActivity
-
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            preferenceManager.preferenceDataStore = DataStore.profileCacheStore
-            try {
-                activity.apply {
-                    createPreferences(savedInstanceState, rootKey)
+    private fun buildIntent(): Intent {
+        val uiState = viewModel.uiState.value
+        val action = uiState.action
+        val profileId = uiState.profileID
+        var blurb = ""
+        when (action) {
+            TaskerBundle.ACTION_START -> {
+                if (profileId > 0) {
+                    val entity = ProfileManager.getProfile(profileId)
+                    if (entity != null) {
+                        blurb = getString(
+                            R.string.tasker_blurb_start_profile, entity.displayName()
+                        )
+                    }
                 }
-            } catch (e: Exception) {
-                Logs.e(e)
+                if (blurb.isBlank()) {
+                    blurb = getString(R.string.tasker_action_start_service)
+                }
+            }
+
+            TaskerBundle.ACTION_STOP -> {
+                blurb = getString(R.string.tasker_action_stop_service)
             }
         }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-
-            ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
-                val bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-                )
-                v.updatePadding(
-                    left = bars.left,
-                    right = bars.right,
-                    bottom = bars.bottom,
-                )
-                insets
-            }
+        return Intent().apply {
+            putExtra(ApiIntent.EXTRA_BUNDLE, settings.bundle)
+            putExtra(ApiIntent.EXTRA_STRING_BLURB, blurb)
         }
+    }
 
+    @Composable
+    private fun TaskerPreference() {
+        ProvidePreferenceLocals {
+            val uiState by viewModel.uiState.collectAsState()
+
+            fun actionText(action: Int) = when (action) {
+                TaskerBundle.ACTION_START -> R.string.tasker_action_start_service
+                TaskerBundle.ACTION_STOP -> R.string.tasker_action_stop_service
+                else -> error("impossible")
+            }
+            ListPreference(
+                value = uiState.action,
+                onValueChange = { viewModel.setAction(it) },
+                values = intListN(2),
+                title = { Text(stringResource(R.string.tasker_action)) },
+                icon = { Icon(Icons.Filled.Layers, null) },
+                summary = { Text(stringResource(actionText(uiState.action))) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(getString(actionText(it))) },
+            )
+
+            ListPreference(
+                value = uiState.profileID,
+                onValueChange = {
+                    if (it == -1L) {
+                        viewModel.setProfileID(it)
+                    } else {
+                        selectProfileForTasker.launch(
+                            Intent(this@TaskerActivity, ProfileSelectActivity::class.java)
+                                .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.profileID)
+                        )
+                    }
+                },
+                values = listOf(-1L, 0L),
+                title = { Text(stringResource(R.string.menu_configuration)) },
+                enabled = uiState.action == TaskerBundle.ACTION_START,
+                icon = { Icon(Icons.Filled.Router, null) },
+                summary = {
+                    val summary = ProfileManager.getProfile(uiState.profileID)?.displayName()
+                        ?: stringResource(androidx.preference.R.string.not_set)
+                    Text(summary)
+                },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = {
+                    val id = if (it == -1L) {
+                        R.string.tasker_start_current_profile
+                    } else {
+                        R.string.route_profile
+                    }
+                    AnnotatedString(getString(id))
+                },
+            )
+        }
     }
 
 }

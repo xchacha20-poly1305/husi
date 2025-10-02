@@ -65,11 +65,11 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
                     fingerprint = it
                 }
             }
-            if (bean.fragment) {
+            if (bean.tlsFragment) {
                 fragment = true
-                fragment_fallback_delay = bean.fragmentFallbackDelay.blankAsNull()
+                fragment_fallback_delay = bean.tlsFragmentFallbackDelay.blankAsNull()
             }
-            if (bean.recordFragment) record_fragment = true
+            if (bean.tlsRecordFragment) record_fragment = true
             if (bean.ech) {
                 val echConfig =
                     bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
@@ -101,9 +101,9 @@ fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
                 certificates = tls.certificate?.joinToString("\n")
                 certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n")
                 utlsFingerprint = tls.utls?.fingerprint
-                fragment = tls.fragment
-                fragmentFallbackDelay = tls.fragment_fallback_delay
-                recordFragment = tls.record_fragment
+                tlsFragment = tls.fragment
+                tlsFragmentFallbackDelay = tls.fragment_fallback_delay
+                tlsRecordFragment = tls.record_fragment
                 tls.ech?.let {
                     // ech = it.enabled
                     echConfig = it.config.joinToString("\n")

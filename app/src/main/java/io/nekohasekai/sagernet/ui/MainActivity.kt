@@ -642,7 +642,7 @@ class MainActivity : ThemedActivity(),
         for (proxy in proxies) {
             ProfileManager.createProfile(targetId, proxy)
         }
-        DataStore.editingGroup = targetId
+        DataStore.selectedGroup = targetId
         onMainDispatcher {
             snackbar(
                 resources.getQuantityString(R.plurals.added, proxies.size, proxies.size)

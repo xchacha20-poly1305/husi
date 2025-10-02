@@ -2,212 +2,273 @@ package io.nekohasekai.sagernet.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceDataStore
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
+import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal sealed interface RouteSettingsActivityUiEvent {
-    object Finish : RouteSettingsActivityUiEvent
-    object EmptyRouteDialog : RouteSettingsActivityUiEvent
-    class RuleLoaded(val name: String, val packageName: String?) : RouteSettingsActivityUiEvent
-}
+internal data class RouteSettingsActivityUiState(
+    val name: String = "",
+    val action: String = "",
+    val domains: String = "",
+    val ip: String = "",
+    val port: String = "",
+    val sourcePort: String = "",
+    val network: Set<String> = emptySet(),
+    val source: String = "",
+    val protocol: Set<String> = emptySet(),
+    val ssid: String = "",
+    val bssid: String = "",
+    val client: String = "",
+    val clashMode: String = "",
+    val networkType: Set<String> = emptySet(),
+    val networkIsExpensive: Boolean = false,
+    val overrideAddress: String = "",
+    val overridePort: Int = 0,
+    val tlsFragment: Boolean = false,
+    val tlsRecordFragment: Boolean = false,
+    val tlsFragmentFallbackDelay: String = "",
+    val resolveStrategy: String = "",
+    val resolveDisableCache: Boolean = false,
+    val resolveRewriteTTL: Int = 0,
+    val resolveClientSubnet: String = "",
+    val sniffTimeout: String = "",
+    val sniffers: Set<String> = emptySet(),
+    val outbound: Long = RuleEntity.OUTBOUND_PROXY,
+    val packages: Set<String> = emptySet(),
+)
 
-internal class RouteSettingsActivityViewModel : ViewModel(),
-    OnPreferenceDataStoreChangeListener {
-    private var editingId = 0L
+internal class RouteSettingsActivityViewModel : ViewModel() {
 
-    private val _dirty = MutableStateFlow(false)
-    val dirty = _dirty.asStateFlow()
+    private val _uiState = MutableStateFlow(RouteSettingsActivityUiState())
+    val uiState = _uiState.asStateFlow()
 
-    private val _uiEvent = MutableSharedFlow<RouteSettingsActivityUiEvent>(1)
-    val uiEvent = _uiEvent.asSharedFlow()
+    private var editingId = -1L
+    val isNew get() = editingId < 0L
 
-    fun loadRule(id: Long, packageName: String?) {
+    val isDirty = uiState.map { currentState ->
+        initialState != currentState
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false,
+    )
+
+    fun loadRule(id: Long) {
         editingId = id
-        DataStore.editingId = id
-        viewModelScope.launch {
-            val entity = if (id == 0L) {
-                RuleEntity().apply {
-                    if (!packageName.isNullOrBlank()) {
-                        packages = setOf(packageName)
-                    }
-                }
-            } else {
-                SagerDatabase.rulesDao.getById(id)
+        val entity = if (isNew) {
+            RuleEntity()
+        } else {
+            SagerDatabase.rulesDao.getById(id)!!
+        }
+        _uiState.update {
+            it.copy(
+                name = entity.name,
+                action = entity.action,
+                domains = entity.domains,
+                ip = entity.ip,
+                port = entity.port,
+                sourcePort = entity.sourcePort,
+                network = entity.network,
+                source = entity.source,
+                protocol = entity.protocol,
+                ssid = entity.ssid,
+                bssid = entity.bssid,
+                client = entity.clientType,
+                clashMode = entity.clashMode,
+                networkType = entity.networkType,
+                networkIsExpensive = entity.networkIsExpensive,
+                outbound = entity.outbound,
+                packages = entity.packages,
+                overrideAddress = entity.overrideAddress,
+                overridePort = entity.overridePort,
+                tlsFragment = entity.tlsFragment,
+                tlsRecordFragment = entity.tlsRecordFragment,
+                tlsFragmentFallbackDelay = entity.tlsFragmentFallbackDelay,
+                resolveStrategy = entity.resolveStrategy,
+                resolveDisableCache = entity.resolveDisableCache,
+                resolveRewriteTTL = entity.resolveRewriteTTL,
+                resolveClientSubnet = entity.resolveClientSubnet,
+                sniffTimeout = entity.sniffTimeout,
+                sniffers = entity.sniffers,
+            ).also {
+                initialState = it
             }
+        }
+    }
 
+    private lateinit var initialState: RouteSettingsActivityUiState
+
+    private fun RuleEntity.loadFromUiState(state: RouteSettingsActivityUiState) {
+        name = state.name
+        action = state.action
+        domains = state.domains
+        ip = state.ip
+        port = state.port
+        sourcePort = state.sourcePort
+        network = state.network
+        source = state.source
+        protocol = state.protocol
+        ssid = state.ssid
+        bssid = state.bssid
+        clientType = state.client
+        clashMode = state.clashMode
+        networkType = state.networkType
+        networkIsExpensive = state.networkIsExpensive
+        outbound = state.outbound
+        packages = state.packages
+        overrideAddress = state.overrideAddress
+        overridePort = state.overridePort
+        tlsFragment = state.tlsFragment
+        tlsRecordFragment = state.tlsRecordFragment
+        tlsFragmentFallbackDelay = state.tlsFragmentFallbackDelay
+        resolveStrategy = state.resolveStrategy
+        resolveDisableCache = state.resolveDisableCache
+        resolveRewriteTTL = state.resolveRewriteTTL
+        resolveClientSubnet = state.resolveClientSubnet
+        sniffTimeout = state.sniffTimeout
+        sniffers = state.sniffers
+    }
+
+    fun save() = runOnIoDispatcher {
+        if (isNew) {
+            ProfileManager.createRule(RuleEntity().apply {
+                loadFromUiState(_uiState.value)
+            })
+        } else {
+            val entity = SagerDatabase.rulesDao.getById(editingId)
             if (entity == null) {
-                _uiEvent.emit(RouteSettingsActivityUiEvent.Finish)
-                return@launch
+                return@runOnIoDispatcher
             }
-
-            loadEntityIntoDataStore(entity)
-            DataStore.profileCacheStore.registerChangeListener(this@RouteSettingsActivityViewModel)
-            _uiEvent.emit(RouteSettingsActivityUiEvent.RuleLoaded(entity.name, packageName))
+            ProfileManager.updateRule(entity.apply {
+                loadFromUiState(_uiState.value)
+            })
         }
     }
 
-    private fun loadEntityIntoDataStore(entity: RuleEntity) {
-        DataStore.routeName = entity.name
-        DataStore.routeAction = entity.action
-        DataStore.routeDomain = entity.domains
-        DataStore.routeIP = entity.ip
-        DataStore.routePort = entity.port
-        DataStore.routeSourcePort = entity.sourcePort
-        DataStore.routeNetwork = entity.network
-        DataStore.routeSource = entity.source
-        DataStore.routeProtocol = entity.protocol
-        DataStore.routeOutboundRule = entity.outbound
-        DataStore.routeSSID = entity.ssid
-        DataStore.routeBSSID = entity.bssid
-        DataStore.routeClient = entity.clientType
-        DataStore.routeClashMode = entity.clashMode
-        DataStore.routeNetworkType = entity.networkType
-        DataStore.routeNetworkIsExpensive = entity.networkIsExpensive
-        DataStore.routeOverrideAddress = entity.overrideAddress
-        DataStore.routeOverridePort = entity.overridePort
-        DataStore.routeTlsFragment = entity.tlsFragment
-        DataStore.routeTlsRecordFragment = entity.tlsRecordFragment
-        DataStore.routeTlsFragmentFallbackDelay = entity.tlsFragmentFallbackDelay
-        DataStore.routeResolveStrategy = entity.resolveStrategy
-        DataStore.routeResolveDisableCache = entity.resolveDisableCache
-        DataStore.routeResolveRewriteTTL = entity.resolveRewriteTTL
-        DataStore.routeResolveClientSubnet = entity.resolveClientSubnet
-        DataStore.routeSniffTimeout = entity.sniffTimeout
-        DataStore.routeSniffers = entity.sniffers
-        DataStore.routeOutbound = when (entity.outbound) {
-            RuleEntity.OUTBOUND_PROXY -> 0
-            RuleEntity.OUTBOUND_DIRECT -> 1
-            RuleEntity.OUTBOUND_BLOCK -> 2
-            else -> 3
-        }
-        DataStore.routePackages = entity.packages
-    }
-
-    private fun storeEntityFromDataStore(entity: RuleEntity) {
-        entity.name = DataStore.routeName
-        entity.action = DataStore.routeAction
-        entity.domains = DataStore.routeDomain
-        entity.ip = DataStore.routeIP
-        entity.port = DataStore.routePort
-        entity.sourcePort = DataStore.routeSourcePort
-        entity.network = DataStore.routeNetwork
-        entity.source = DataStore.routeSource
-        entity.protocol = DataStore.routeProtocol
-        entity.clientType = DataStore.routeClient
-        entity.ssid = DataStore.routeSSID
-        entity.bssid = DataStore.routeBSSID
-        entity.clashMode = DataStore.routeClashMode
-        entity.networkType = DataStore.routeNetworkType
-        entity.networkIsExpensive = DataStore.routeNetworkIsExpensive
-        entity.overrideAddress = DataStore.routeOverrideAddress
-        entity.overridePort = DataStore.routeOverridePort
-        entity.tlsFragment = DataStore.routeTlsFragment
-        entity.tlsRecordFragment = DataStore.routeTlsRecordFragment
-        entity.tlsFragmentFallbackDelay = DataStore.routeTlsFragmentFallbackDelay
-        entity.resolveStrategy = DataStore.routeResolveStrategy
-        entity.resolveDisableCache = DataStore.routeResolveDisableCache
-        entity.resolveRewriteTTL = DataStore.routeResolveRewriteTTL
-        entity.resolveClientSubnet = DataStore.routeResolveClientSubnet
-        entity.sniffTimeout = DataStore.routeSniffTimeout
-        entity.sniffers = DataStore.routeSniffers
-        entity.outbound = when (DataStore.routeOutbound) {
-            0 -> RuleEntity.OUTBOUND_PROXY
-            1 -> RuleEntity.OUTBOUND_DIRECT
-            2 -> RuleEntity.OUTBOUND_BLOCK
-            else -> DataStore.routeOutboundRule
-        }
-        entity.packages = DataStore.routePackages.filterTo(hashSetOf()) { it.isNotBlank() }
-
-        if (editingId == 0L) {
-            entity.enabled = true
-        }
-    }
-
-    private fun needSave(): Boolean {
-        if (!_dirty.value) return false
-        if (DataStore.routePackages.isEmpty() &&
-            DataStore.routeDomain.isBlank() &&
-            DataStore.routeIP.isBlank() &&
-            DataStore.routePort.isBlank() &&
-            DataStore.routeSourcePort.isBlank() &&
-            DataStore.routeNetwork.isEmpty() &&
-            DataStore.routeSource.isBlank() &&
-            DataStore.routeProtocol.isEmpty() &&
-            DataStore.routeClient.isEmpty() &&
-            DataStore.routeSSID.isBlank() &&
-            DataStore.routeBSSID.isBlank() &&
-            DataStore.routeClashMode.isBlank() &&
-            DataStore.routeNetworkType.isEmpty() &&
-            DataStore.routeNetworkIsExpensive &&
-            DataStore.routeOutbound == 0 &&
-            DataStore.routeOverrideAddress.isBlank() &&
-            DataStore.routeOverridePort == 0 &&
-            !DataStore.routeTlsFragment &&
-            !DataStore.routeTlsRecordFragment &&
-            DataStore.routeTlsFragmentFallbackDelay.isBlank() &&
-            DataStore.routeResolveStrategy.isBlank() &&
-            !DataStore.routeResolveDisableCache &&
-            DataStore.routeResolveRewriteTTL >= 0 &&
-            DataStore.routeResolveClientSubnet.isBlank() &&
-            DataStore.routeSniffTimeout.isBlank() &&
-            DataStore.routeSniffers.isEmpty()
-        ) {
-            return false
-        }
-        return true
-    }
-
-    fun saveAndExit(setResult: () -> Unit = {}) {
-        viewModelScope.launch {
-            if (!needSave()) {
-                _uiEvent.emit(RouteSettingsActivityUiEvent.EmptyRouteDialog)
-                return@launch
-            }
-
-            if (editingId == 0L) {
-                setResult()
-                ProfileManager.createRule(RuleEntity().apply {
-                    storeEntityFromDataStore(this)
-                })
-            } else {
-                val entity = SagerDatabase.rulesDao.getById(editingId)
-                if (entity == null) {
-                    _uiEvent.emit(RouteSettingsActivityUiEvent.Finish)
-                    return@launch
-                }
-                ProfileManager.updateRule(entity.apply {
-                    storeEntityFromDataStore(this)
-                })
-            }
-            _uiEvent.emit(RouteSettingsActivityUiEvent.Finish)
-        }
-    }
-
-    fun deleteRule() = runOnDefaultDispatcher {
-        _uiEvent.emit(RouteSettingsActivityUiEvent.Finish)
-        if (editingId != 0L) {
+    fun deleteRule() = runOnIoDispatcher {
+        if (!isNew) {
             ProfileManager.deleteRule(editingId)
         }
     }
 
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        if (!_dirty.value) viewModelScope.launch {
-            _dirty.emit(true)
-        }
+    fun setName(name: String) = viewModelScope.launch {
+        _uiState.update { it.copy(name = name) }
     }
 
-    override fun onCleared() {
-        DataStore.profileCacheStore.unregisterChangeListener(this)
-        super.onCleared()
+    fun setAction(action: String) = viewModelScope.launch {
+        _uiState.update { it.copy(action = action) }
     }
+
+    fun setDomains(domains: String) = viewModelScope.launch {
+        _uiState.update { it.copy(domains = domains) }
+    }
+
+    fun setIp(ip: String) = viewModelScope.launch {
+        _uiState.update { it.copy(ip = ip) }
+    }
+
+    fun setPort(port: String) = viewModelScope.launch {
+        _uiState.update { it.copy(port = port) }
+    }
+
+    fun setSourcePort(sourcePort: String) = viewModelScope.launch {
+        _uiState.update { it.copy(sourcePort = sourcePort) }
+    }
+
+    fun setNetwork(network: Set<String>) = viewModelScope.launch {
+        _uiState.update { it.copy(network = network) }
+    }
+
+    fun setSource(source: String) = viewModelScope.launch {
+        _uiState.update { it.copy(source = source) }
+    }
+
+    fun setProtocol(protocol: Set<String>) = viewModelScope.launch {
+        _uiState.update { it.copy(protocol = protocol) }
+    }
+
+    fun setSsid(ssid: String) = viewModelScope.launch {
+        _uiState.update { it.copy(ssid = ssid) }
+    }
+
+    fun setBssid(bssid: String) = viewModelScope.launch {
+        _uiState.update { it.copy(bssid = bssid) }
+    }
+
+    fun setClient(client: String) = viewModelScope.launch {
+        _uiState.update { it.copy(client = client) }
+    }
+
+    fun setClashMode(clashMode: String) = viewModelScope.launch {
+        _uiState.update { it.copy(clashMode = clashMode) }
+    }
+
+    fun setNetworkType(networkType: Set<String>) = viewModelScope.launch {
+        _uiState.update { it.copy(networkType = networkType) }
+    }
+
+    fun setNetworkIsExpensive(networkIsExpensive: Boolean) = viewModelScope.launch {
+        _uiState.update { it.copy(networkIsExpensive = networkIsExpensive) }
+    }
+
+    fun setOverrideAddress(overrideAddress: String) = viewModelScope.launch {
+        _uiState.update { it.copy(overrideAddress = overrideAddress) }
+    }
+
+    fun setOverridePort(overridePort: Int) = viewModelScope.launch {
+        _uiState.update { it.copy(overridePort = overridePort) }
+    }
+
+    fun setTlsFragment(tlsFragment: Boolean) = viewModelScope.launch {
+        _uiState.update { it.copy(tlsFragment = tlsFragment) }
+    }
+
+    fun setTlsRecordFragment(tlsRecordFragment: Boolean) = viewModelScope.launch {
+        _uiState.update { it.copy(tlsRecordFragment = tlsRecordFragment) }
+    }
+
+    fun setTlsFragmentFallbackDelay(tlsFragmentFallbackDelay: String) = viewModelScope.launch {
+        _uiState.update { it.copy(tlsFragmentFallbackDelay = tlsFragmentFallbackDelay) }
+    }
+
+    fun setResolveStrategy(resolveStrategy: String) = viewModelScope.launch {
+        _uiState.update { it.copy(resolveStrategy = resolveStrategy) }
+    }
+
+    fun setResolveDisableCache(resolveDisableCache: Boolean) = viewModelScope.launch {
+        _uiState.update { it.copy(resolveDisableCache = resolveDisableCache) }
+    }
+
+    fun setResolveRewriteTTL(resolveRewriteTTL: Int) = viewModelScope.launch {
+        _uiState.update { it.copy(resolveRewriteTTL = resolveRewriteTTL) }
+    }
+
+    fun setResolveClientSubnet(resolveClientSubnet: String) = viewModelScope.launch {
+        _uiState.update { it.copy(resolveClientSubnet = resolveClientSubnet) }
+    }
+
+    fun setSniffTimeout(sniffTimeout: String) = viewModelScope.launch {
+        _uiState.update { it.copy(sniffTimeout = sniffTimeout) }
+    }
+
+    fun setSniffers(sniffers: Set<String>) = viewModelScope.launch {
+        _uiState.update { it.copy(sniffers = sniffers) }
+    }
+
+    fun setOutbound(outbound: Long) = viewModelScope.launch {
+        _uiState.update { it.copy(outbound = outbound) }
+    }
+
+    fun setPackages(packages: Set<String>) = viewModelScope.launch {
+        _uiState.update { it.copy(packages = packages) }
+    }
+
 }

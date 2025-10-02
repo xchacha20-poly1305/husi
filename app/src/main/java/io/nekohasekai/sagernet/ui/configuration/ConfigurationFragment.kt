@@ -405,44 +405,12 @@ class ConfigurationFragment : OnKeyDownFragment {
 
         TopAppBar(
             title = {
-                val modifier = Modifier.combinedClickable(
-                    onClick = {
-                        lifecycleScope.launch {
-                            viewModel.emitChildEvent(
-                                ConfigurationChildEvent.ScrollToProxy(
-                                    DataStore.selectedGroup,
-                                    viewModel.selectedItem?.id ?: DataStore.selectedProxy,
-                                    true,
-                                )
-                            )
-                        }
-                    },
-                    onLongClick = {
-                        lifecycleScope.launch {
-                            val selectedProxy = viewModel.selectedItem
-                                ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                                ?: return@launch
-                            val groupIndex = adapter.currentList.indexOfFirst {
-                                it.id == selectedProxy.groupId
-                            }
-                            if (groupIndex < 0) return@launch
-                            DataStore.selectedGroup = selectedProxy.groupId
-                            binding.groupPager.currentItem = groupIndex
-                            viewModel.emitChildEvent(
-                                ConfigurationChildEvent.ScrollToProxy(
-                                    selectedProxy.groupId,
-                                    selectedProxy.id,
-                                )
-                            )
-                        }
-                    },
-                )
                 if (isSearchActive) {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { viewModel.setSearchQuery(it) },
                         placeholder = { Text(stringResource(android.R.string.search_go)) },
-                        modifier = modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = {
@@ -463,7 +431,38 @@ class ConfigurationFragment : OnKeyDownFragment {
                                 R.string.app_name
                             }
                         ),
-                        modifier = modifier,
+                        modifier = Modifier.combinedClickable(
+                            onClick = {
+                                lifecycleScope.launch {
+                                    viewModel.emitChildEvent(
+                                        ConfigurationChildEvent.ScrollToProxy(
+                                            DataStore.selectedGroup,
+                                            viewModel.selectedItem?.id ?: DataStore.selectedProxy,
+                                            true,
+                                        )
+                                    )
+                                }
+                            },
+                            onLongClick = {
+                                lifecycleScope.launch {
+                                    val selectedProxy = viewModel.selectedItem
+                                        ?: SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                                        ?: return@launch
+                                    val groupIndex = adapter.currentList.indexOfFirst {
+                                        it.id == selectedProxy.groupId
+                                    }
+                                    if (groupIndex < 0) return@launch
+                                    DataStore.selectedGroup = selectedProxy.groupId
+                                    binding.groupPager.currentItem = groupIndex
+                                    viewModel.emitChildEvent(
+                                        ConfigurationChildEvent.ScrollToProxy(
+                                            selectedProxy.groupId,
+                                            selectedProxy.id,
+                                        )
+                                    )
+                                }
+                            },
+                        ),
                         style = if (isChinese) {
                             MaterialTheme.typography.titleLarge.copy(fontFamily = appNameFont)
                         } else {
@@ -487,6 +486,7 @@ class ConfigurationFragment : OnKeyDownFragment {
                 }
             },
             actions = {
+                if (viewModel.forSelect) return@TopAppBar
                 if (isSearchActive) SimpleIconButton(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.close),

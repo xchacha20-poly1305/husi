@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import com.google.android.material.snackbar.Snackbar
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
 abstract class ThemedActivity : AppCompatActivity {
@@ -37,9 +36,8 @@ abstract class ThemedActivity : AppCompatActivity {
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
-        super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val insetController = WindowCompat.getInsetsController(window, window.decorView)

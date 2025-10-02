@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +47,16 @@ import io.nekohasekai.sagernet.ktx.crossFadeFrom
 import kotlinx.coroutines.launch
 
 class AppListActivity : ThemedActivity() {
+
+    companion object {
+        const val EXTRA_APP_LIST = "app_list"
+    }
+
+    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = true) {
+        override fun handleOnBackPressed() {
+            saveAndExit()
+        }
+    }
 
     private val viewModel by viewModels<AppListActivityViewModel>()
     private lateinit var binding: LayoutAppListBinding
@@ -192,7 +204,8 @@ class AppListActivity : ThemedActivity() {
             }
         }
 
-        viewModel.initialize(packageManager)
+        val packages = intent.getStringArrayExtra(EXTRA_APP_LIST)?.toSet() ?: emptySet()
+        viewModel.initialize(packageManager, packages)
     }
 
     private fun handleUiState(state: AppListActivityUiState) {
@@ -212,12 +225,21 @@ class AppListActivity : ThemedActivity() {
         }
     }
 
+    private fun saveAndExit() {
+        setResult(
+            RESULT_OK,
+            Intent()
+                .putStringArrayListExtra(EXTRA_APP_LIST, viewModel.allPackages()),
+        )
+        finish()
+    }
+
     override fun snackbarInternal(text: CharSequence): Snackbar {
         return Snackbar.make(binding.list, text, Snackbar.LENGTH_LONG)
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 }

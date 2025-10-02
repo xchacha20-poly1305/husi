@@ -20,9 +20,6 @@ package io.nekohasekai.sagernet.tasker
 
 import android.content.Intent
 import android.os.Bundle
-import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
-import io.nekohasekai.sagernet.database.ProfileManager
 import com.twofortyfouram.locale.api.Intent as ApiIntent
 
 class TaskerBundle(val bundle: Bundle) {
@@ -49,32 +46,5 @@ class TaskerBundle(val bundle: Bundle) {
         set(value) {
             bundle.putLong(KEY_PROFILE_ID, value)
         }
-
-
-    fun toIntent(): Intent {
-        var blurb = ""
-        when (action) {
-            ACTION_START -> {
-                if (profileId > 0) {
-                    val entity = ProfileManager.getProfile(profileId)
-                    if (entity != null) {
-                        blurb = app.getStringCompat(
-                            R.string.tasker_blurb_start_profile, entity.displayName()
-                        )
-                    }
-                }
-                if (blurb.isBlank()) {
-                    blurb = app.getStringCompat(R.string.tasker_action_start_service)
-                }
-            }
-            ACTION_STOP -> {
-                blurb = app.getStringCompat(R.string.tasker_action_stop_service)
-            }
-        }
-        return Intent().apply {
-            putExtra(ApiIntent.EXTRA_BUNDLE, bundle)
-            putExtra(ApiIntent.EXTRA_STRING_BLURB, blurb)
-        }
-    }
 
 }

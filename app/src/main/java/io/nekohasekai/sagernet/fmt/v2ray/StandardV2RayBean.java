@@ -74,7 +74,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (uuid == null) uuid = "";
 
-        if (v2rayTransport == null) v2rayTransport = "tcp";
+        if (v2rayTransport == null) v2rayTransport = "";
+        else if ("tcp".equals(v2rayTransport)) v2rayTransport = "";
         else if ("h2".equals(v2rayTransport)) v2rayTransport = "http";
 
         v2rayTransport = v2rayTransport.toLowerCase();
@@ -121,7 +122,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         output.writeString(v2rayTransport);
         switch (v2rayTransport) {
-            case "tcp":
+            case "", "tcp":
             case "quic": {
                 break;
             }
@@ -187,7 +188,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         v2rayTransport = input.readString();
         switch (v2rayTransport) {
+            case "":
             case "tcp":
+                v2rayTransport = "";
             case "quic": {
                 break;
             }

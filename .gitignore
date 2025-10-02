@@ -23,5 +23,9 @@ go.work*
 *.tar
 *.swp
 
+# Vibe coding
+.claude
+.gemini
+
 # submodules
 /external

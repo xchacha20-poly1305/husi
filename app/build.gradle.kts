@@ -77,6 +77,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.5")
     implementation("androidx.work:work-multiprocess:2.10.5")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0")
 
     implementation(platform("androidx.compose:compose-bom:2025.09.01"))
     implementation("androidx.compose.ui:ui")
@@ -85,6 +86,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.ui:ui-viewbinding")
+    implementation("androidx.compose.ui:ui:1.9.2")
+    implementation("me.zhanghai.compose.preference:preference:2.1.0")
+    implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("com.google.android.material:material:1.14.0-alpha05")

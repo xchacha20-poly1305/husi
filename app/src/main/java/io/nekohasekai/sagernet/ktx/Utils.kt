@@ -104,7 +104,7 @@ fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
 
 operator fun <F> KProperty0<F>.getValue(thisRef: Any?, property: KProperty<*>): F = get()
 operator fun <F> KMutableProperty0<F>.setValue(
-    thisRef: Any?, property: KProperty<*>, value: F
+    thisRef: Any?, property: KProperty<*>, value: F,
 ) = set(value)
 
 operator fun AtomicBoolean.getValue(thisRef: Any?, property: KProperty<*>): Boolean = get()
@@ -176,3 +176,5 @@ fun <E> MutableList<E>.removeFirstMatched(match: (E) -> Boolean): E? {
         null
     }
 }
+
+fun intListN(length: Int) = List(length) { it }
