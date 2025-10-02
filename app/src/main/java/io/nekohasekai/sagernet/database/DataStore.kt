@@ -33,7 +33,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serviceState = BaseService.State.Idle
 
     val configurationStore = RoomPreferenceDataStore(PublicDatabase.kvPairDao)
-    val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
 
     init {
         // Migration
@@ -215,10 +214,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
-    var editingId by profileCacheStore.long(Key.PROFILE_ID)
-    var editingGroup by profileCacheStore.long(Key.PROFILE_GROUP)
-
-    var rulesFirstCreate by profileCacheStore.boolean(Key.RULES_FIRST_CREATE)
+    var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
     }

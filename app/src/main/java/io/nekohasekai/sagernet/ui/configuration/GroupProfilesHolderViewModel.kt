@@ -320,6 +320,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     var exportConfig: String? = null
+    var editingID: Long? = null
 
     override suspend fun onAdd(profile: ProxyEntity) {
         if (profile.groupId != group.id) return

@@ -402,6 +402,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             bindBase(entity)
 
             binding.edit.setOnClickListener {
+                viewModel.editingID = entity.id
                 editProfileLauncher.launch(
                     entity.settingIntent(
                         it.context,
@@ -699,9 +700,10 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
     private val editProfileLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                if (DataStore.currentProfile == DataStore.editingId) {
+                if (DataStore.currentProfile == viewModel.editingID) {
                     needReload()
                 }
+                viewModel.editingID = null
             }
         }
 

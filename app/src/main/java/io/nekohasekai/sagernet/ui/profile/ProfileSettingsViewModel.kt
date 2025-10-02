@@ -83,7 +83,7 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     fun save() = runOnIoDispatcher {
         if (isNew) {
             val editingGroup = DataStore.selectedGroupForImport()
-            DataStore.editingGroup = editingGroup
+            DataStore.selectedGroup = editingGroup
             val bean = createBean()
             bean.loadFromUiState()
             ProfileManager.createProfile(editingGroup, bean)

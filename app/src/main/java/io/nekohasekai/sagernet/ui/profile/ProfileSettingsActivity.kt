@@ -178,7 +178,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                                                         GroupManager.postUpdate(
                                                                             newGroupId
                                                                         )
-                                                                        DataStore.editingGroup =
+                                                                        DataStore.selectedGroup =
                                                                             newGroupId // post switch animation
                                                                         onMainDispatcher {
                                                                             finish()
