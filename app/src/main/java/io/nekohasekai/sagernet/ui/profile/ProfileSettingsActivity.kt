@@ -3,17 +3,19 @@ package io.nekohasekai.sagernet.ui.profile
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.LinearLayout
-import android.widget.ScrollView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -24,8 +26,10 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,32 +38,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.GroupManager
-import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.stringResource
-import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 
 @ExperimentalMaterial3Api
@@ -88,6 +85,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
             val isDirty by viewModel.isDirty.collectAsState()
             var showBackAlert by remember { mutableStateOf(false) }
             var showGenericAlert by remember { mutableStateOf<ProfileSettingsUiEvent.Alert?>(null) }
+            var showMoveDialog by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
                 viewModel.uiEvent.collect { event ->
@@ -141,60 +139,9 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                             text = { Text(stringResource(R.string.create_shortcut)) },
                                             onClick = ::buildShortCut,
                                         )
-                                        // TODO this is not compose!
                                         if (!viewModel.isNew && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) DropdownMenuItem(
                                             text = { Text(stringResource(R.string.move)) },
-                                            onClick = {
-                                                val entity = viewModel.proxyEntity
-                                                val view = LinearLayout(baseContext).apply {
-                                                    orientation = LinearLayout.VERTICAL
-
-                                                    SagerDatabase.groupDao.allGroups()
-                                                        .filter { it.type == GroupType.BASIC && it.id != entity.groupId }
-                                                        .forEach { group ->
-                                                            LayoutGroupItemBinding.inflate(
-                                                                layoutInflater,
-                                                                this,
-                                                                true
-                                                            ).apply {
-                                                                edit.isVisible = false
-                                                                options.isVisible = false
-                                                                groupName.text = group.displayName()
-                                                                groupUpdate.text =
-                                                                    getString(R.string.move)
-                                                                groupUpdate.setOnClickListener {
-                                                                    lifecycleScope.launch {
-                                                                        val oldGroupId =
-                                                                            entity.groupId
-                                                                        val newGroupId = group.id
-                                                                        entity.groupId = newGroupId
-                                                                        ProfileManager.updateProfile(
-                                                                            entity
-                                                                        )
-                                                                        // reload
-                                                                        GroupManager.postUpdate(
-                                                                            oldGroupId
-                                                                        )
-                                                                        GroupManager.postUpdate(
-                                                                            newGroupId
-                                                                        )
-                                                                        DataStore.selectedGroup =
-                                                                            newGroupId // post switch animation
-                                                                        onMainDispatcher {
-                                                                            finish()
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                }
-                                                val scrollView = ScrollView(baseContext).apply {
-                                                    addView(view)
-                                                }
-                                                MaterialAlertDialogBuilder(this@ProfileSettingsActivity)
-                                                    .setView(scrollView)
-                                                    .show()
-                                            },
+                                            onClick = { showMoveDialog = true },
                                         )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.custom_outbound_json)) },
@@ -267,6 +214,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                     title = { Text(stringResource(R.string.delete_confirm_prompt)) },
                 )
 
+                if (showMoveDialog) {
+                    MoveProfileDialog {
+                        showMoveDialog = false
+                    }
+                }
+
                 showGenericAlert?.let { alert ->
                     AlertDialog(
                         onDismissRequest = { showGenericAlert = null },
@@ -336,6 +289,56 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
             )
             .build()
         ShortcutManagerCompat.requestPinShortcut(this, shortcut, null)
+    }
+
+    @Composable
+    private fun MoveProfileDialog(onDismiss: () -> Unit) {
+        val groups by produceState(
+            initialValue = emptyList(),
+            key1 = viewModel.proxyEntity.groupId,
+        ) {
+            value = viewModel.groupsForMove()
+        }
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(R.string.move)) },
+            text = {
+                if (groups.isEmpty()) {
+                    Text(text = stringResource(R.string.group_status_empty))
+                } else {
+                    LazyColumn {
+                        items(groups, key = { it.id }) { group ->
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            viewModel.move(group.id)
+                                            finish()
+                                        }
+                                        .padding(16.dp),
+                                ) {
+                                    Text(
+                                        text = group.displayName(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(stringResource(android.R.string.cancel)) {
+                    onDismiss()
+                }
+            }
+        )
     }
 
 }
