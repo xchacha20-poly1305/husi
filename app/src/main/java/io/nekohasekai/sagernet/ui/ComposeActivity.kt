@@ -1,13 +1,20 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import io.nekohasekai.sagernet.utils.Theme
 
 open class ComposeActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val languageContext = ContextCompat.getContextForLanguage(newBase)
+        super.attachBaseContext(languageContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
