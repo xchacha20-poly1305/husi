@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.profile
 
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBoat
@@ -111,20 +112,22 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         val showAuth = state.protocol == SOCKSBean.PROTOCOL_SOCKS5
         item("auth") {
             AnimatedVisibility(visible = showAuth) {
-                TextFieldPreference(
-                    value = state.username,
-                    onValueChange = { viewModel.setUsername(it) },
-                    title = { Text(stringResource(R.string.username_opt)) },
-                    textToValue = { it },
-                    icon = { Icon(Icons.Filled.Person, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
-                    valueToText = { it },
-                )
-                PasswordPreference(
-                    value = state.password,
-                    onValueChange = { viewModel.setPassword(it) },
-                    title = { Text(stringResource(R.string.password_opt)) },
-                )
+                Column {
+                    TextFieldPreference(
+                        value = state.username,
+                        onValueChange = { viewModel.setUsername(it) },
+                        title = { Text(stringResource(R.string.username_opt)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Person, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                        valueToText = { it },
+                    )
+                    PasswordPreference(
+                        value = state.password,
+                        onValueChange = { viewModel.setPassword(it) },
+                        title = { Text(stringResource(R.string.password_opt)) },
+                    )
+                }
             }
         }
 

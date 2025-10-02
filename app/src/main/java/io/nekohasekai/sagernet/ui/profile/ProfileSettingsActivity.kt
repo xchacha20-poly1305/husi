@@ -184,7 +184,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                     onDismissRequest = { showBackAlert = false },
                     confirmButton = {
                         TextButton(stringResource(android.R.string.ok)) {
-                            showBackAlert = false
+                            saveAndExit()
                         }
                     },
                     dismissButton = {

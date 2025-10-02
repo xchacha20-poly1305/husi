@@ -2,21 +2,22 @@ package io.nekohasekai.sagernet.ui.profile
 
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Copyright
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Grid3x3
 import androidx.compose.material.icons.filled.Https
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -182,7 +183,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 value = state.udpOverTcp,
                 onValueChange = { viewModel.setUdpOverTcp(it) },
                 title = { Text(stringResource(R.string.udp_over_tcp)) },
-                icon = { Icon(Icons.Filled.SwapHoriz, null) },
+                icon = { Spacer(Modifier.size(24.dp)) },
             )
         }
         item("no_post_quantum") {
@@ -190,7 +191,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 value = state.noPostQuantum,
                 onValueChange = { viewModel.setNoPostQuantum(it) },
                 title = { Text(stringResource(R.string.disable_post_quantum)) },
-                icon = { Icon(Icons.Filled.VerifiedUser, null) },
+                icon = { Icon(Icons.Filled.Grain, null) },
             )
         }
     }

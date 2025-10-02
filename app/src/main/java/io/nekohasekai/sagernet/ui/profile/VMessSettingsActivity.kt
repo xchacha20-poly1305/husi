@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Grid3x3
+import androidx.compose.material.icons.filled.Outbox
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Stream
 import androidx.compose.material3.Icon
@@ -52,7 +53,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
     override fun LazyListScope.settings(state: ProfileSettingsUiState) {
         state as VMessUiState
 
-        basicSettings(state)
+        headSettings(state)
         item("uuid") {
             TextFieldPreference(
                 value = state.uuid,
@@ -117,7 +118,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 onValueChange = { viewModel.setPacketEncoding(it) },
                 values = intListN(3),
                 title = { Text(stringResource(R.string.packet_encoding)) },
-                icon = { Icon(Icons.Filled.Stream, null) },
+                icon = { Icon(Icons.Filled.Outbox, null) },
                 summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(state.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getStringOrRes(packetEncodingName(it))) },

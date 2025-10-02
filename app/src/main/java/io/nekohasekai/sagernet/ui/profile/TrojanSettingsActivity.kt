@@ -12,7 +12,7 @@ class TrojanSettingsActivity : StandardV2RaySettingsActivity<TrojanBean>() {
     override fun LazyListScope.settings(state: ProfileSettingsUiState) {
         state as TrojanUiState
 
-        basicSettings(state)
+        headSettings(state)
         item("password") {
             PasswordPreference(
                 value = state.password,

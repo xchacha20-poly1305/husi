@@ -28,7 +28,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
     override fun LazyListScope.settings(state: ProfileSettingsUiState) {
         state as HttpUiState
 
-        basicSettings(state)
+        headSettings(state)
         item("username") {
             TextFieldPreference(
                 value = state.username,
