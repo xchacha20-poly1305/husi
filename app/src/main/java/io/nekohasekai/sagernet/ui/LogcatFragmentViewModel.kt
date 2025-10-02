@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.utils.SendLog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,11 +38,13 @@ internal class LogcatFragmentViewModel : ViewModel() {
     private val logFile = SendLog.logFile
 
     private val logList = mutableListOf<String>()
-    private val _uiEvent = MutableSharedFlow<LogcatUiEvent>()
+    private val _uiEvent = MutableSharedFlow<LogcatUiEvent>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     private val _pinLog = MutableStateFlow(false)
     private var lastPosition = 0L
 
-    val currentLogs: List<String> get() = logList
     val uiEvent = _uiEvent.asSharedFlow()
     val pinLog = _pinLog.asStateFlow()
 
@@ -61,7 +64,7 @@ internal class LogcatFragmentViewModel : ViewModel() {
         }
     }
 
-    init {
+    fun initialize() {
         loadAndObserveLog()
     }
 

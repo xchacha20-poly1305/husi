@@ -111,13 +111,17 @@ class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
             insets
         }
 
-        logAdapter = LogAdapter(viewModel.currentLogs.toMutableList())
+        logAdapter = LogAdapter(ArrayList(128))
         binding.logView.adapter = logAdapter
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiEvent.collect(::handleEvents)
             }
+        }
+
+        if (savedInstanceState == null) {
+            viewModel.initialize()
         }
     }
 
