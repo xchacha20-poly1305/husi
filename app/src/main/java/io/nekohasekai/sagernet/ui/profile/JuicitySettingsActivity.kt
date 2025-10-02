@@ -7,7 +7,7 @@ import androidx.compose.material.icons.filled.Copyright
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,7 +78,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setUuid(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Password, null) },
+                icon = { Icon(Icons.Filled.Person, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.uuid)) },
                 valueToText = { it },
             )

@@ -134,6 +134,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                     }
                     Text(text)
                 },
+                textField = { value, onValueChange, onOk ->
+                    UIntegerTextField(value, onValueChange, onOk)
+                },
             )
         }
 
@@ -147,6 +150,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
+                enabled = !state.disableSNI,
                 summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
                 valueToText = { it },
             )
@@ -217,6 +221,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 value = state.tlsFragment,
                 onValueChange = { viewModel.setTlsFragment(it) },
                 title = { Text(stringResource(R.string.tls_fragment)) },
+                enabled = !state.tlsRecordFragment,
                 icon = { Icon(Icons.Filled.Texture, null) },
             )
         }
@@ -227,6 +232,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 title = { Text(stringResource(R.string.tls_fragment_fallback_delay)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Timelapse, null) },
+                enabled = state.tlsFragment,
                 summary = { Text(LocalContext.current.contentOrUnset(state.tlsFragmentFallbackDelay)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -239,6 +245,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 value = state.tlsRecordFragment,
                 onValueChange = { viewModel.setTlsRecordFragment(it) },
                 title = { Text(stringResource(R.string.tls_record_fragment)) },
+                enabled = !state.tlsFragment,
                 icon = { Icon(Icons.Filled.WbSunny, null) },
             )
         }
@@ -257,6 +264,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Nfc, null) },
+                enabled = state.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
                 valueToText = { it },
             )

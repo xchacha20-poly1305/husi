@@ -1,12 +1,12 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.automirrored.filled.Toc
 import androidx.compose.material.icons.filled.AddRoad
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Copyright
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.EmojiSymbols
@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.SwapCalls
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -163,21 +162,20 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 value = state.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
-                icon = { Icon(Icons.Filled.SwapCalls, null) },
+                icon = { Icon(Icons.Filled.Block, null) },
             )
         }
         item("sni") {
-            AnimatedVisibility(visible = !state.disableSNI) {
-                TextFieldPreference(
-                    value = state.sni,
-                    onValueChange = { viewModel.setSni(it) },
-                    title = { Text(stringResource(R.string.sni)) },
-                    textToValue = { it },
-                    icon = { Icon(Icons.Filled.Copyright, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
-                    valueToText = { it },
-                )
-            }
+            TextFieldPreference(
+                value = state.sni,
+                onValueChange = { viewModel.setSni(it) },
+                title = { Text(stringResource(R.string.sni)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Copyright, null) },
+                enabled = !state.disableSNI,
+                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                valueToText = { it },
+            )
         }
         item("zero_rtt") {
             SwitchPreference(
@@ -214,6 +212,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Nfc, null) },
+                enabled = state.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
                 valueToText = { it },
             )

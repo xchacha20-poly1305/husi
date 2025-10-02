@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.profile
 
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
@@ -122,20 +123,22 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 )
             }
             AnimatedVisibility(visible = state.authType == SSHBean.AUTH_TYPE_PRIVATE_KEY) {
-                TextFieldPreference(
-                    value = state.privateKey,
-                    onValueChange = { viewModel.setPrivateKey(it) },
-                    title = { Text(stringResource(R.string.ssh_private_key)) },
-                    textToValue = { it },
-                    icon = { Icon(Icons.Filled.VpnKey, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.privateKey)) },
-                    valueToText = { it },
-                )
-                PasswordPreference(
-                    value = state.privateKeyPassphrase,
-                    onValueChange = { viewModel.setPrivateKeyPassphrase(it) },
-                    title = { Text(stringResource(R.string.ssh_private_key_passphrase)) },
-                )
+                Column {
+                    TextFieldPreference(
+                        value = state.privateKey,
+                        onValueChange = { viewModel.setPrivateKey(it) },
+                        title = { Text(stringResource(R.string.ssh_private_key)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.privateKey)) },
+                        valueToText = { it },
+                    )
+                    PasswordPreference(
+                        value = state.privateKeyPassphrase,
+                        onValueChange = { viewModel.setPrivateKeyPassphrase(it) },
+                        title = { Text(stringResource(R.string.ssh_private_key_passphrase)) },
+                    )
+                }
             }
         }
 

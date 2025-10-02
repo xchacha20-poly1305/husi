@@ -83,7 +83,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 onValueChange = { viewModel.setProtocol(it) },
                 title = { Text(stringResource(R.string.protocol)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.protocol)) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.protocol.uppercase())) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )

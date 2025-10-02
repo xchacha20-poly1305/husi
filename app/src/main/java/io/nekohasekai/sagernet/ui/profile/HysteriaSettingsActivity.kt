@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.automirrored.filled.Toc
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Copyright
+import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Layers
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.filled.MultipleStop
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Texture
 import androidx.compose.material.icons.filled.Timelapse
 import androidx.compose.material.icons.filled.Transform
@@ -103,7 +103,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setPorts(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Settings, null) },
+                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.ports)) },
                 valueToText = { it },
             )
@@ -187,6 +187,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
+                enabled = !state.disableSNI,
                 summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
                 valueToText = { it },
             )
@@ -344,6 +345,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Nfc, null) },
+                enabled = state.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
                 valueToText = { it },
             )
