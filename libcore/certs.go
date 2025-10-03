@@ -1,22 +1,27 @@
 package libcore
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"net"
 	"os"
 	"path/filepath"
-	"strings"
 	_ "unsafe" // for go:linkname
 
 	_ "github.com/sagernet/sing-box/common/certificate"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing/common/buf"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
+
+	"libcore/plugin/raybridge"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 	"github.com/xchacha20-poly1305/cazilla"
@@ -99,7 +104,7 @@ func tryAddCert(pool *x509.CertPool, raw []byte) bool {
 // GetCert try to get cert from create a connection to address with serverName as SNI.
 // mode can choose TLS or QUIC.
 // proxy is a socks5 URL for dialer.
-func GetCert(address, serverName, mode string, proxy string) (cert string, err error) {
+func GetCert(address, serverName, mode, format, proxy string) (string, error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443
@@ -109,6 +114,7 @@ func GetCert(address, serverName, mode string, proxy string) (cert string, err e
 	}
 	var dialer N.Dialer = new(N.DefaultDialer)
 	if proxy != "" {
+		var err error
 		dialer, err = socks.NewClientFromURL(dialer, proxy)
 		if err != nil {
 			return "", E.Cause(err, "create proxy dialer")
@@ -124,7 +130,10 @@ func GetCert(address, serverName, mode string, proxy string) (cert string, err e
 	ctx, cancel := context.WithTimeout(context.Background(), C.ProtocolTimeouts[C.ProtocolQUIC])
 	defer cancel()
 
-	var certs []*x509.Certificate
+	var (
+		certs []*x509.Certificate
+		err   error
+	)
 	switch mode {
 	case "https":
 		certs, err = scribe.GetCert(ctx, options)
@@ -149,13 +158,39 @@ func GetCert(address, serverName, mode string, proxy string) (cert string, err e
 		return "", err
 	}
 
-	var builder strings.Builder
-	for _, cert := range certs {
-		_ = pem.Encode(&builder, &pem.Block{
-			Type:  "CERTIFICATE",
+	const typeCert = "CERTIFICATE"
+	certBuffer := func() *bytes.Buffer {
+		buffer := bytes.NewBuffer(buf.Get(buf.BufferSize)[:0])
+		for _, cert := range certs {
+			_ = pem.Encode(buffer, &pem.Block{
+				Type:  typeCert,
+				Bytes: cert.Raw,
+			})
+		}
+		return buffer
+	}
+	switch format {
+	case "v2ray":
+		buffer := certBuffer()
+		defer buf.Put(buffer.Bytes())
+		base64Hash := raybridge.CalculatePEMCertHash(buffer.Bytes())
+		return string(base64Hash), nil
+	case "hysteria":
+		cert := certs[0]
+		buffer := bytes.NewBuffer(buf.Get(buf.BufferSize)[:0])
+		defer buf.Put(buffer.Bytes())
+		_ = pem.Encode(buffer, &pem.Block{
+			Type:  typeCert,
 			Bytes: cert.Raw,
 		})
+		hash := sha256.Sum256(buffer.Bytes())
+		hashHex := hex.EncodeToString(hash[:])
+		return hashHex, nil
+	case "raw":
+		fallthrough
+	default:
+		buffer := certBuffer()
+		defer buf.Put(buffer.Bytes())
+		return buffer.String(), nil
 	}
-
-	return builder.String(), nil
 }

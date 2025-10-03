@@ -486,8 +486,6 @@
     <string name="get_cert">Получение сертификатов</string>
     <string name="dns_mode">Режим DNS</string>
     <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
-    <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена.</string>
-    <string name="get_cert_fail">Не удалось получить сертификаты!</string>
     <string name="scan_vpn_app_introduce">Показать установленные на устройстве VPN-приложения и их тип.</string>
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
     <string name="enable_brutal">Включить контроллер перегрузки TCP Brutal</string>
