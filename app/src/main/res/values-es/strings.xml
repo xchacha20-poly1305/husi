@@ -466,7 +466,6 @@
     <string name="get_cert_server_hint">Servidor de destino</string>
     <string name="get_cert">Obtener certificados</string>
     <string name="get_cert_summary">Obtiene los certificados TLS del servidor de destino. Admite HTTPS y QUIC.</string>
-    <string name="get_cert_fail">¡No se pudieron obtener los certificados!</string>
     <string name="ech_config">Configuración ECH</string>
     <string name="inbound_username">Nombre de usuario entrante</string>
     <string name="http_upgrade_host">Host HTTPUpgrade</string>
@@ -486,7 +485,6 @@
     <string name="share_subscription">Compartir suscripción</string>
     <string name="tls_camouflage_settings">Ajustes de camuflaje TLS</string>
     <string name="resolve_server">Resolver dirección del servidor según política IPv6</string>
-    <string name="get_cert_success">¡Obtenido correctamente! Certificados copiados en el portapapeles.</string>
     <string name="inbound_password">Contraseña entrante</string>
     <string name="vpn_core_type">Tipo de núcleo</string>
     <string name="vpn_golang_version">Versión Go</string>

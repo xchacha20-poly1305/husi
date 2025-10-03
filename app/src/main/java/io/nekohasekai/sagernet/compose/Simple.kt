@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.compose
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -9,6 +10,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -42,6 +45,8 @@ fun SimpleTopAppBar(
     @StringRes title: Int,
     navigationIcon: ImageVector,
     navigationDescription: String? = null,
+    windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
     onNavigationClick: () -> Unit,
 ) {
     TopAppBar(
@@ -50,10 +55,11 @@ fun SimpleTopAppBar(
             SimpleIconButton(
                 imageVector = navigationIcon,
                 contentDescription = navigationDescription,
-            ) {
-                onNavigationClick()
-            }
+                onClick = onNavigationClick,
+            )
         },
+        windowInsets = windowInsets,
+        scrollBehavior = scrollBehavior,
     )
 }
 

@@ -444,10 +444,8 @@
     <string name="reset_connections">重置連接</string>
     <string name="remove_duplicate">刪除重複的伺服器</string>
     <string name="get_cert_summary">取得目標伺服器的TLS憑證。支援https和QUIC。</string>
-    <string name="get_cert_success">獲取成功！證書已複製到剪貼簿。</string>
     <string name="get_cert_server_hint">目標伺服器</string>
     <string name="get_cert">獲得證書</string>
-    <string name="get_cert_fail">拿不到證書！</string>
     <string name="http_upgrade_host">HTTPUpgrade 主機</string>
     <string name="ech_config">ECH 配置</string>
     <string name="inbound_username">入站用戶名</string>
