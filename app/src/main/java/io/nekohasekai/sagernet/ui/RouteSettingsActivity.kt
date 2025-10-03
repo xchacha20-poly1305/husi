@@ -6,7 +6,12 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
@@ -48,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,6 +61,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -102,10 +109,16 @@ class RouteSettingsActivity : ComposeActivity() {
             BackHandler(enabled = isDirty) { showBackAlert = true }
 
             AppTheme {
+                val windowInsets = WindowInsets.safeDrawing
+                val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
                 var showDeleteConfirm by remember { mutableStateOf(false) }
                 var showUnchangedAlert by remember { mutableStateOf(false) }
 
                 Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
                         TopAppBar(
                             title = { Text(stringResource(R.string.menu_route)) },
@@ -134,6 +147,8 @@ class RouteSettingsActivity : ComposeActivity() {
                                     }
                                 }
                             },
+                            windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                            scrollBehavior = scrollBehavior,
                         )
                     },
                 ) { innerPadding ->
