@@ -6,7 +6,12 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.nekohasekai.sagernet.R
@@ -67,12 +74,17 @@ class AssetEditActivity : ComposeActivity() {
                     showBackAlert = true
                 }
 
+                val windowInsets = WindowInsets.safeDrawing
+                val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
                 val scrollState = rememberScrollState()
 
                 var showDeleteConfirm by remember { mutableStateOf(false) }
                 var illegalNameMessage by remember { mutableIntStateOf(0) }
 
                 Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
                         TopAppBar(
                             title = { Text(stringResource(R.string.assets_settings)) },
@@ -99,6 +111,8 @@ class AssetEditActivity : ComposeActivity() {
                                     onClick = ::saveAndExit,
                                 )
                             },
+                            windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                            scrollBehavior = scrollBehavior,
                         )
                     },
                 ) { innerPadding ->
