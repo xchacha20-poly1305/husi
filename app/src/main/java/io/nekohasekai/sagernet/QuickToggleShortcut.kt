@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.repository.repo
 
 @Suppress("DEPRECATION")
 class QuickToggleShortcut : Activity(), SagerConnection.Callback {
@@ -82,16 +83,16 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
         when {
             state.canStop -> {
                 if (profileId == DataStore.selectedProxy || profileId == -1L) {
-                    SagerNet.stopService()
+                    repo.stopService()
                 } else {
                     DataStore.selectedProxy = profileId
-                    SagerNet.reloadService()
+                    repo.reloadService()
                 }
             }
 
             state == BaseService.State.Stopped -> {
                 if (profileId >= 0L) DataStore.selectedProxy = profileId
-                SagerNet.startService()
+                repo.startService()
             }
         }
         finish()

@@ -10,12 +10,14 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.fmt.Deduplication
 import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -135,7 +137,7 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
                     true
                 } else {
                     it.displayName().lowercase().contains(query)
-                            || it.displayType().lowercase().contains(query)
+                            || it.displayType(repo.context).lowercase().contains(query)
                             || it.displayAddress().lowercase().contains(query)
                 }
             }

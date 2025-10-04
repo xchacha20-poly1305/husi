@@ -54,6 +54,7 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
@@ -244,7 +245,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = profile.displayType(),
+                        text = profile.displayType(LocalContext.current),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),

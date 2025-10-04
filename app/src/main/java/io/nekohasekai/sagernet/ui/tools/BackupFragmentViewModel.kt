@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.ParcelizeBridge
 import io.nekohasekai.sagernet.database.ProxyEntity
@@ -19,6 +18,7 @@ import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -119,7 +119,7 @@ internal class BackupViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.Default) {
             _isImporting.value = true
             try {
-                SagerNet.stopService()
+                repo.stopService()
                 val content = JSONObject(contentJson)
                 finishImport(content, profile, rule, setting)
                 _uiEvent.emit(BackupFragmentEvent.RestartApp)

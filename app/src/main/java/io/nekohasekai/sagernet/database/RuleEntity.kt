@@ -10,8 +10,8 @@ import androidx.room.Query
 import androidx.room.TypeConverters
 import androidx.room.Update
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
@@ -94,7 +94,7 @@ data class RuleEntity(
         if (network.isNotEmpty()) summary += "network: $network\n"
         if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
         if (clientType.isNotEmpty()) summary += "client: $clientType\n"
-        if (packages.isNotEmpty()) summary += app.getStringCompat(
+        if (packages.isNotEmpty()) summary += repo.getString(
             R.string.apps_message, packages.size
         ) + "\n"
         if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
@@ -134,11 +134,11 @@ data class RuleEntity(
 
     fun displayOutbound(): String {
         return when (outbound) {
-            OUTBOUND_PROXY -> app.getStringCompat(R.string.route_proxy)
-            OUTBOUND_DIRECT -> app.getStringCompat(R.string.route_bypass)
-            OUTBOUND_BLOCK -> app.getStringCompat(R.string.route_block)
+            OUTBOUND_PROXY -> repo.getString(R.string.route_proxy)
+            OUTBOUND_DIRECT -> repo.getString(R.string.route_bypass)
+            OUTBOUND_BLOCK -> repo.getString(R.string.route_block)
             else -> ProfileManager.getProfile(outbound)?.displayName()
-                ?: app.getStringCompat(R.string.error_title)
+                ?: repo.getString(R.string.error_title)
         }
     }
 

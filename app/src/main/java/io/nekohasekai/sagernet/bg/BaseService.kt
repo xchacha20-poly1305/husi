@@ -11,10 +11,10 @@ import android.os.PowerManager
 import android.os.RemoteCallbackList
 import android.os.RemoteException
 import android.widget.Toast
+import androidx.core.content.getSystemService
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.Connections
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
@@ -78,10 +78,13 @@ class BaseService {
             when (intent.action) {
                 Action.RELOAD -> service.reload()
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
-                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> if (SagerNet.power.isDeviceIdleMode) {
-                    if (!DataStore.ignoreDeviceIdle) proxy?.box?.pause()
-                } else {
-                    proxy?.box?.wake()
+                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
+                    val powerManager = (service as Context).getSystemService<PowerManager>()!!
+                    if (powerManager.isDeviceIdleMode) {
+                        if (!DataStore.ignoreDeviceIdle) proxy?.box?.pause()
+                    } else {
+                        proxy?.box?.wake()
+                    }
                 }
 
                 Action.RESET_UPSTREAM_CONNECTIONS -> runOnDefaultDispatcher {

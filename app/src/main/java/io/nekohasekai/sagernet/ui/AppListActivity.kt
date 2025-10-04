@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -39,11 +41,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutAppListBinding
 import io.nekohasekai.sagernet.ktx.crossFadeFrom
+import io.nekohasekai.sagernet.ktx.first
+import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import kotlinx.coroutines.launch
 
 class AppListActivity : ThemedActivity() {
@@ -61,6 +64,8 @@ class AppListActivity : ThemedActivity() {
     private val viewModel by viewModels<AppListActivityViewModel>()
     private lateinit var binding: LayoutAppListBinding
     private lateinit var adapter: AppsAdapter
+
+    private val clipboard by lazy { getSystemService<ClipboardManager>()!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,7 +132,7 @@ class AppListActivity : ThemedActivity() {
                                 contentDescription = stringResource(R.string.action_copy),
                             ) {
                                 val toExport = viewModel.export()
-                                val success = SagerNet.trySetPrimaryClip(toExport)
+                                val success = clipboard.trySetPrimaryClip(toExport)
                                 snackbar(
                                     if (success) {
                                         R.string.copy_success
@@ -140,7 +145,7 @@ class AppListActivity : ThemedActivity() {
                                 imageVector = Icons.Filled.ContentPaste,
                                 contentDescription = stringResource(R.string.action_import),
                             ) {
-                                viewModel.import(SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+                                viewModel.import(clipboard.first())
                             }
 
                             Box {

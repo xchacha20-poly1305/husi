@@ -2,7 +2,7 @@ package io.nekohasekai.sagernet.bg
 
 import android.net.Network
 import libcore.InterfaceUpdateListener
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.repository.repo
 import java.net.NetworkInterface
 
 object DefaultNetworkMonitor {
@@ -14,7 +14,7 @@ object DefaultNetworkMonitor {
             defaultNetwork = it
             checkDefaultInterfaceUpdate(it)
         }
-        defaultNetwork = SagerNet.connectivity.activeNetwork
+        defaultNetwork = repo.connectivity.activeNetwork
     }
 
     suspend fun stop() {
@@ -38,7 +38,7 @@ object DefaultNetworkMonitor {
         val listener = listener ?: return
         if (newNetwork != null) {
             val interfaceName =
-                (SagerNet.connectivity.getLinkProperties(newNetwork) ?: return).interfaceName
+                repo.connectivity.getLinkProperties(newNetwork)?.interfaceName
             for (times in 0 until 10) {
                 var interfaceIndex: Int
                 try {

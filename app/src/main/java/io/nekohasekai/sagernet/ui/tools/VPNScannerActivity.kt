@@ -101,6 +101,10 @@ class VPNScannerActivity : ThemedActivity() {
                 viewModel.uiState.collect(::handleUIState)
             }
         }
+
+        if (savedInstanceState == null) {
+            viewModel.scanVPN()
+        }
     }
 
     private fun handleUIState(state: VPNScannerUiState) {

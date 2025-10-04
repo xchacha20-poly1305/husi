@@ -4,9 +4,9 @@ import android.graphics.drawable.Icon
 import android.service.quicksettings.Tile
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.repository.repo
 import android.service.quicksettings.TileService as BaseTileService
 
 @RequiresApi(24)
@@ -85,8 +85,8 @@ class TileService : BaseTileService(), SagerConnection.Callback {
         if (service == null) tapPending =
             true else BaseService.State.entries[service.state].let { state ->
             when {
-                state.canStop -> SagerNet.stopService()
-                state == BaseService.State.Stopped -> SagerNet.startService()
+                state.canStop -> repo.stopService()
+                state == BaseService.State.Stopped -> repo.startService()
             }
         }
     }

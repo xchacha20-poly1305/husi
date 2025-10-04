@@ -28,9 +28,9 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.StringReader
 import androidx.core.net.toUri
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.b64DecodeToString
 import io.nekohasekai.sagernet.ktx.forEach
+import io.nekohasekai.sagernet.repository.repo
 
 @Suppress("EXPERIMENTAL_API_USAGE", "UNCHECKED_CAST")
 object RawUpdater : GroupUpdater() {
@@ -45,9 +45,10 @@ object RawUpdater : GroupUpdater() {
 
         var proxies: List<AbstractBean>
         if (subscription.link.startsWith("content://")) {
-            val contentText = app.contentResolver.openInputStream(subscription.link.toUri())
-                ?.bufferedReader()
-                ?.readText()
+            val contentText =
+                repo.context.contentResolver.openInputStream(subscription.link.toUri())
+                    ?.bufferedReader()
+                    ?.readText()
 
             proxies = contentText?.let { parseRaw(contentText) }
                 ?: errNotFound()
@@ -266,7 +267,7 @@ object RawUpdater : GroupUpdater() {
         return proxies
     }
 
-    private fun <T> errNotFound(): T {
-        error(app.getStringCompat(R.string.no_proxies_found))
+    private inline fun <reified T> errNotFound(): T {
+        error(repo.getString(R.string.no_proxies_found))
     }
 }

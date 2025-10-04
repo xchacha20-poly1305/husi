@@ -14,10 +14,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.broadcastReceiver
+import io.nekohasekai.sagernet.repository.repo
 
 class VpnRequestActivity : AppCompatActivity() {
     private var receiver: BroadcastReceiver? = null
@@ -59,7 +59,7 @@ class VpnRequestActivity : AppCompatActivity() {
                 cachedIntent = intent
                 return null
             }
-            SagerNet.startService()
+            repo.startService()
             return SynchronousResult(false)
         }
 
@@ -68,7 +68,7 @@ class VpnRequestActivity : AppCompatActivity() {
 
         override fun parseResult(resultCode: Int, intent: Intent?) =
             if (resultCode == RESULT_OK) {
-                SagerNet.startService()
+                repo.startService()
                 false
             } else {
                 Logs.e("Failed to start VpnService: $intent")

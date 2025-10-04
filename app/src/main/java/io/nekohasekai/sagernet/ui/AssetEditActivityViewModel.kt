@@ -4,11 +4,11 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -100,7 +100,7 @@ internal class AssetEditActivityViewModel : ViewModel() {
             return R.string.invalid_filename
         }
         if (
-            app.externalAssets.resolve("geo").resolve(text)
+            repo.externalAssetsDir.resolve("geo").resolve(text)
                 .canonicalPath.substringAfterLast('/') != text
         ) {
             return R.string.invalid_filename

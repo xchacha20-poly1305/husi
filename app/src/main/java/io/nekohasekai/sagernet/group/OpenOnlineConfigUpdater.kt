@@ -20,7 +20,6 @@
 package io.nekohasekai.sagernet.group
 
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
@@ -36,6 +35,7 @@ import io.nekohasekai.sagernet.ktx.generateUserAgent
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getLongOrNull
 import io.nekohasekai.sagernet.ktx.getStr
+import io.nekohasekai.sagernet.repository.repo
 import libcore.Libcore
 import libcore.URL
 import org.json.JSONObject
@@ -92,7 +92,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             certSha256 = apiToken.getStr("certSha256")
         } catch (e: Exception) {
             Logs.e("OOC token check failed, token = ${subscription.token}", e)
-            error(app.getStringCompat(R.string.ooc_subscription_token_invalid))
+            error(repo.getString(R.string.ooc_subscription_token_invalid))
         }
 
         val response = Libcore.newHttpClient().apply {
@@ -113,7 +113,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         for (protocol in protocols) {
             if (protocol !in OOC_PROTOCOLS) {
                 userInterface?.alert(
-                    app.getStringCompat(R.string.ooc_missing_protocol, protocol)
+                    repo.getString(R.string.ooc_missing_protocol, protocol)
                 )
             }
         }
