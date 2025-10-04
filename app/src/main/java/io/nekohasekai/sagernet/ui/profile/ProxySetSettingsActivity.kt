@@ -296,8 +296,19 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 userScrollEnabled = false,
                 onIndicesChangedViaDragAndDrop = { viewModel.submitList(it.map { it.value }) },
             ) { i, profile ->
-                val swipeState = rememberSwipeToDismissBoxState()
                 var visible by remember { mutableStateOf(true) }
+                val swipeState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { value: SwipeToDismissBoxValue ->
+                        when (value) {
+                            SwipeToDismissBoxValue.StartToEnd,
+                            SwipeToDismissBoxValue.EndToStart -> {
+                                visible.value = false
+                            }
+                            else -> {}
+                        }
+                        true
+                    },
+                )
                 DraggableSwipeableItem(
                     modifier = Modifier.animateDraggableSwipeableItem(),
                     colors = DraggableSwipeableItemColors.createRemembered(
@@ -313,7 +324,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                             state = swipeState,
                             enableDismissFromStartToEnd = true,
                             enableDismissFromEndToStart = true,
-                            backgroundContent = {
+                            backgroundContent = { state: SwipeToDismissBoxState ->
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
