@@ -7,9 +7,9 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import dev.matrix.roomigrant.GenerateRoomMigrations
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.gson.GsonConverters
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -41,8 +41,9 @@ abstract class SagerDatabase : RoomDatabase() {
         @OptIn(DelicateCoroutinesApi::class)
         @Suppress("EXPERIMENTAL_API_USAGE")
         val instance by lazy {
-            app.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
-            Room.databaseBuilder(app, SagerDatabase::class.java, Key.DB_PROFILE)
+            val dbFile = repo.getDatabasePath(Key.DB_PROFILE)
+            dbFile.parentFile?.mkdirs()
+            Room.databaseBuilder(repo.context, SagerDatabase::class.java, dbFile.absolutePath)
                 .addMigrations(
                     SagerDatabase_Migration_3_4,
                     SagerDatabase_Migration_4_5,

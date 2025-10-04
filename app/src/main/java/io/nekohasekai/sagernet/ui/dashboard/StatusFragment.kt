@@ -1,12 +1,14 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import android.annotation.SuppressLint
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -19,13 +21,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.databinding.LayoutDashboardStatusBinding
 import io.nekohasekai.sagernet.databinding.ViewClashModeBinding
 import io.nekohasekai.sagernet.databinding.ViewNetworkInterfaceBinding
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.snackbar
+import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.ui.MainActivity
 import kotlinx.coroutines.launch
 
@@ -35,6 +37,8 @@ class StatusFragment : Fragment(R.layout.layout_dashboard_status) {
     private lateinit var clashModeAdapter: ClashModeAdapter
     private lateinit var networkInterfaceAdapter: NetworkInterfaceAdapter
     private val viewModel by viewModels<StatusFragmentViewModel>()
+
+    private val clipboard by lazy { requireContext().getSystemService<ClipboardManager>()!! }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -53,8 +57,9 @@ class StatusFragment : Fragment(R.layout.layout_dashboard_status) {
         }
 
         binding.ipv4AddressText.setOnClickListener { view ->
+            view as TextView
             snackbar(
-                if (SagerNet.trySetPrimaryClip((view as TextView).text.toString())) {
+                if (clipboard.trySetPrimaryClip(view.text.toString())) {
                     R.string.copy_success
                 } else {
                     R.string.copy_failed
@@ -66,8 +71,9 @@ class StatusFragment : Fragment(R.layout.layout_dashboard_status) {
         }
 
         binding.ipv6AddressText.setOnClickListener { view ->
+            view as TextView
             snackbar(
-                if (SagerNet.trySetPrimaryClip((view as TextView).text.toString())) {
+                if (clipboard.trySetPrimaryClip(view.text.toString())) {
                     R.string.copy_success
                 } else {
                     R.string.copy_failed

@@ -56,14 +56,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.DropDownSelector
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.repository.TempRepository
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.ComposeActivity
 import kotlinx.coroutines.launch
 
@@ -75,13 +80,15 @@ class GetCertActivity : ComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (savedInstanceState == null) {
+            viewModel.initialize()
+        }
+
         setContent {
             AppTheme {
                 GetCertScreen(
                     viewModel = viewModel,
                     onBack = { onBackPressedDispatcher.onBackPressed() },
-                    getStringResource = this::getString,
-                    copyToClipboard = { cert -> SagerNet.trySetPrimaryClip(cert) },
                 )
             }
         }
@@ -95,13 +102,14 @@ class GetCertActivity : ComposeActivity() {
 private fun GetCertScreen(
     viewModel: GetCertActivityViewModel,
     onBack: () -> Unit,
-    getStringResource: (Int) -> String,
-    copyToClipboard: (String) -> Boolean,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
 
     Scaffold(
         modifier = Modifier
@@ -121,21 +129,15 @@ private fun GetCertScreen(
         GetCertContent(
             modifier = Modifier.padding(innerPadding),
             viewModel = viewModel,
-            launchSnackBar = { success ->
+            copyToClipboard = {
                 scope.launch {
+                    clipboard.setPlainText(it)
                     snackbarHostState.showSnackbar(
-                        message = getStringResource(
-                            if (success) {
-                                R.string.copy_success
-                            } else {
-                                R.string.copy_failed
-                            }
-                        ),
+                        message = context.getString(R.string.copy_success),
                         duration = SnackbarDuration.Short,
                     )
                 }
             },
-            copyToClipboard = copyToClipboard
         )
     }
 }
@@ -145,8 +147,7 @@ private fun GetCertScreen(
 private fun GetCertContent(
     modifier: Modifier,
     viewModel: GetCertActivityViewModel,
-    launchSnackBar: (success: Boolean) -> Unit,
-    copyToClipboard: (String) -> Boolean,
+    copyToClipboard: (String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
     var alert by remember { mutableStateOf<String?>(null) }
@@ -268,8 +269,7 @@ private fun GetCertContent(
                             ) {
                                 IconButton(
                                     onClick = {
-                                        val success = copyToClipboard(state.cert)
-                                        launchSnackBar(success)
+                                        copyToClipboard(state.cert)
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
@@ -303,5 +303,17 @@ private fun GetCertContent(
         icon = { Icon(Icons.Filled.Error, null) },
         title = { Text(stringResource(R.string.error_title)) },
         text = { Text(alert!!) },
+    )
+}
+
+@Preview
+@Composable
+private fun PreviewGetCert() {
+    val context = LocalContext.current
+    repo = TempRepository(context, true, false)
+
+    GetCertScreen(
+        viewModel = GetCertActivityViewModel(),
+        onBack = {},
     )
 }

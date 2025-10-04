@@ -6,9 +6,9 @@ import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.repository.repo
 
 @Entity(tableName = "proxy_groups")
 data class ProxyGroup(
@@ -84,7 +84,7 @@ data class ProxyGroup(
     }
 
     fun displayName(): String {
-        return name.takeIf { !it.isNullOrBlank() } ?: app.getStringCompat(R.string.group_default)
+        return name.takeIf { !it.isNullOrBlank() } ?: repo.getString(R.string.group_default)
     }
 
     @androidx.room.Dao

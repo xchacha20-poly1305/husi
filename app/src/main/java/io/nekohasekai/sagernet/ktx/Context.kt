@@ -10,7 +10,7 @@ fun Context.hasPermission(permission: String): Boolean {
     return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 }
 
-inline fun <reified T: Activity> Context.findActivity(): T? {
+inline fun <reified T : Activity> Context.findActivity(): T? {
     var ctx = this
     while (ctx is ContextWrapper) {
         if (ctx is T) return ctx

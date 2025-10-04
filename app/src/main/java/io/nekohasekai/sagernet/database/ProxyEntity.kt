@@ -13,8 +13,6 @@ import androidx.room.Update
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.ProtocolProvider
-import io.nekohasekai.sagernet.SagerNet.Companion.app
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.Serializable
@@ -53,10 +51,8 @@ import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.tuic.toUri
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
-import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.toUriVMessVLESSTrojan
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
-import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.DirectSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity
@@ -148,10 +144,6 @@ data class ProxyEntity(
         /** Has obvious error */
         const val STATUS_UNAVAILABLE = 3
 
-        val chainName by lazy { app.getStringCompat(R.string.proxy_chain) }
-
-        private val placeHolderBean = SOCKSBean().applyDefaultValues()
-
         @JvmField
         val CREATOR = object : Serializable.CREATOR<ProxyEntity>() {
 
@@ -236,29 +228,6 @@ data class ProxyEntity(
         }
     }
 
-    fun displayType(): String = when (type) {
-        TYPE_SOCKS -> socksBean!!.protocolName()
-        TYPE_HTTP -> if (httpBean!!.isTLS()) "HTTPS" else "HTTP"
-        TYPE_SS -> "Shadowsocks"
-        TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
-        TYPE_TROJAN -> "Trojan"
-        TYPE_MIERU -> "Mieru"
-        TYPE_NAIVE -> "Naïve"
-        TYPE_HYSTERIA -> "Hysteria" + hysteriaBean!!.protocolVersion
-        TYPE_SSH -> "SSH"
-        TYPE_WG -> "WireGuard"
-        TYPE_TUIC -> "TUIC"
-        TYPE_JUICITY -> "Juicity"
-        TYPE_SHADOWTLS -> "ShadowTLS"
-        TYPE_DIRECT -> "Direct"
-        TYPE_ANYTLS -> "AnyTLS"
-        TYPE_SHADOWQUIC -> "Shadow QUIC"
-        TYPE_PROXY_SET -> proxySetBean!!.displayType()
-        TYPE_CHAIN -> chainName
-        TYPE_CONFIG -> configBean!!.displayType()
-        else -> "Undefined type $type"
-    }
-
     fun displayName() = requireBean().displayName()
     fun displayAddress() = requireBean().displayAddress()
 
@@ -284,7 +253,7 @@ data class ProxyEntity(
             TYPE_CHAIN -> chainBean
             TYPE_CONFIG -> configBean
             else -> error("Undefined type $type")
-        } ?: error("Null ${displayType()} profile")
+        } ?: error("Null $type profile")
     }
 
     /** Determines if has internal link. */

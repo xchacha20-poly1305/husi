@@ -1,8 +1,8 @@
 package io.nekohasekai.sagernet.ui
 
 import androidx.lifecycle.ViewModel
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.runBlocking
@@ -16,13 +16,13 @@ class SettingsPreferenceFragmentViewModel : ViewModel() {
     /** Reload service if started. */
     fun tryReloadService() {
         if (DataStore.serviceState.started) {
-            SagerNet.reloadService()
+            repo.reloadService()
         }
     }
 
     fun tryStopService() {
         if (DataStore.serviceState.started) {
-            SagerNet.stopService()
+            repo.stopService()
         }
     }
 

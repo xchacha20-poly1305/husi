@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
+import io.nekohasekai.sagernet.repository.repo
 
 enum class PluginEntry(
     val pluginId: String,
@@ -11,7 +11,7 @@ enum class PluginEntry(
 ) {
     MieruProxy(
         "mieru-plugin",
-        app.getStringCompat(R.string.action_mieru),
+        repo.getString(R.string.action_mieru),
         "fr.husi.plugin.mieru",
         DownloadSource(
             fdroid = false,
@@ -20,7 +20,7 @@ enum class PluginEntry(
     ),
     NaiveProxy(
         "naive-plugin",
-        app.getStringCompat(R.string.action_naive),
+        repo.getString(R.string.action_naive),
         "fr.husi.plugin.naive",
         DownloadSource(
             fdroid = false,
@@ -29,7 +29,7 @@ enum class PluginEntry(
     ),
     Hysteria(
         "hysteria-plugin",
-        app.getStringCompat(R.string.action_hysteria),
+        repo.getString(R.string.action_hysteria),
         "moe.matsuri.exe.hysteria",
         DownloadSource(
             fdroid = false,
@@ -38,7 +38,7 @@ enum class PluginEntry(
     ),
     Hysteria2(
         "hysteria2-plugin",
-        app.getStringCompat(R.string.action_hysteria) + "2",
+        repo.getString(R.string.action_hysteria) + "2",
         "fr.husi.plugin.hysteria2",
         DownloadSource(
             fdroid = false,
@@ -47,7 +47,7 @@ enum class PluginEntry(
     ),
     Juicity(
         "juicity-plugin",
-        app.getStringCompat(R.string.action_juicity),
+        repo.getString(R.string.action_juicity),
         "fr.husi.plugin.juicity",
         DownloadSource(
             fdroid = false,
@@ -56,7 +56,7 @@ enum class PluginEntry(
     ),
     ShadowQuic(
         "shadowquic-plugin",
-        app.getStringCompat(R.string.action_shadowquic),
+        repo.getString(R.string.action_shadowquic),
         "fr.husi.plugin.shadowquic",
         DownloadSource(
             fdroid = false,

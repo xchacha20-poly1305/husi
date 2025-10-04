@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
 import androidx.core.content.ContextCompat
-import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.repository.repo
 
 class ProxyService : Service(), BaseService.Interface {
     override fun attachBaseContext(newBase: Context) {
@@ -24,7 +24,7 @@ class ProxyService : Service(), BaseService.Interface {
 
     @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
-        wakeLock = SagerNet.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:proxy")
+        wakeLock = repo.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:proxy")
             .apply { acquire() }
     }
 

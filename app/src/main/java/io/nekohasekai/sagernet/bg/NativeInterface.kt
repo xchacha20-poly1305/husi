@@ -6,11 +6,11 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Process
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.toPrefix
 import io.nekohasekai.sagernet.ktx.toStringIterator
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.InterfaceUpdateListener
 import libcore.Libcore
@@ -61,7 +61,7 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
         destinationPort: Int,
     ): Int {
         try {
-            val uid = SagerNet.connectivity.getConnectionOwnerUid(
+            val uid = repo.connectivity.getConnectionOwnerUid(
                 ipProtocol,
                 InetSocketAddress(sourceAddress, sourcePort),
                 InetSocketAddress(destinationAddress, destinationPort),
@@ -91,7 +91,7 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
     override fun readWIFIState(): WIFIState? {
         // TODO API 34
-        @Suppress("DEPRECATION") val wifiInfo = SagerNet.wifi.connectionInfo ?: return null
+        @Suppress("DEPRECATION") val wifiInfo = repo.wifi.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
         if (ssid == "<unknown ssid>") return WifiState("", "")
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
@@ -101,14 +101,13 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
     }
 
     override fun getInterfaces(): NetworkInterfaceIterator {
-        @Suppress("DEPRECATION") val networks = SagerNet.connectivity.allNetworks
+        @Suppress("DEPRECATION") val networks = repo.connectivity.allNetworks
         val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
         val interfaces = mutableListOf<LibcoreNetworkInterface>()
         for (network in networks) {
             val boxInterface = LibcoreNetworkInterface()
-            val linkProperties = SagerNet.connectivity.getLinkProperties(network) ?: continue
-            val networkCapabilities =
-                SagerNet.connectivity.getNetworkCapabilities(network) ?: continue
+            val linkProperties = repo.connectivity.getLinkProperties(network) ?: continue
+            val networkCapabilities = repo.connectivity.getNetworkCapabilities(network) ?: continue
             boxInterface.name = linkProperties.interfaceName
             val networkInterface =
                 networkInterfaces.find { it.name == boxInterface.name } ?: continue

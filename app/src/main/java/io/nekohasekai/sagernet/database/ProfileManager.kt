@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.database
 
 import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
@@ -13,6 +12,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkICMP
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkUDP
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.repository.repo
 import java.io.IOException
 import java.sql.SQLException
 import java.util.Locale
@@ -201,14 +201,14 @@ object ProfileManager {
             createRule(
                 RuleEntity(
                     enabled = true,
-                    name = app.getStringCompat(R.string.sniff),
+                    name = repo.getString(R.string.sniff),
                     action = ACTION_SNIFF,
                 )
             )
             createRule(
                 RuleEntity(
                     enabled = true,
-                    name = app.getStringCompat(R.string.hijack_dns),
+                    name = repo.getString(R.string.hijack_dns),
                     protocol = setOf("dns"),
                     action = ACTION_HIJACK_DNS,
                 )
@@ -217,14 +217,14 @@ object ProfileManager {
                 RuleEntity(
                     enabled = true,
                     action = ACTION_ROUTE,
-                    name = app.getStringCompat(R.string.bypass_icmp),
+                    name = repo.getString(R.string.bypass_icmp),
                     network = setOf(NetworkICMP),
                     outbound = RuleEntity.OUTBOUND_DIRECT,
                 )
             )
             createRule(
                 RuleEntity(
-                    name = app.getStringCompat(R.string.route_opt_block_quic),
+                    name = repo.getString(R.string.route_opt_block_quic),
                     action = ACTION_REJECT,
                     protocol = setOf("quic"),
                     network = setOf(NetworkUDP),
@@ -232,7 +232,7 @@ object ProfileManager {
             )
             createRule(
                 RuleEntity(
-                    name = app.getStringCompat(R.string.route_opt_block_ads),
+                    name = repo.getString(R.string.route_opt_block_ads),
                     action = ACTION_REJECT,
                     domains = "set+dns:geosite-category-ads-all",
                 )
@@ -247,7 +247,7 @@ object ProfileManager {
                 val displayCountry = c.substringAfter(":")
                 if (country == "cn") createRule(
                     RuleEntity(
-                        name = app.getStringCompat(R.string.route_play_store, displayCountry),
+                        name = repo.getString(R.string.route_play_store, displayCountry),
                         action = ACTION_ROUTE,
                         domains = "set+dns:geosite-google-play",
                         outbound = RuleEntity.OUTBOUND_PROXY,
@@ -255,7 +255,7 @@ object ProfileManager {
                 )
                 createRule(
                     RuleEntity(
-                        name = app.getStringCompat(R.string.route_bypass_domain, displayCountry),
+                        name = repo.getString(R.string.route_bypass_domain, displayCountry),
                         action = ACTION_ROUTE,
                         domains = "set+dns:geosite-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,
@@ -263,7 +263,7 @@ object ProfileManager {
                 )
                 createRule(
                     RuleEntity(
-                        name = app.getStringCompat(R.string.route_bypass_ip, displayCountry),
+                        name = repo.getString(R.string.route_bypass_ip, displayCountry),
                         action = ACTION_ROUTE,
                         ip = "set-dns:geoip-$country",
                         outbound = RuleEntity.OUTBOUND_DIRECT,

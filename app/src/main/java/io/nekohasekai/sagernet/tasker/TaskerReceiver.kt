@@ -21,9 +21,9 @@ package io.nekohasekai.sagernet.tasker
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.repository.repo
 
 class TaskerReceiver : BroadcastReceiver() {
 
@@ -38,10 +38,10 @@ class TaskerReceiver : BroadcastReceiver() {
                         reload = DataStore.currentProfile != 0L
                     }
                 }
-                if (reload) SagerNet.reloadService() else SagerNet.startService()
+                if (reload) repo.reloadService() else repo.startService()
             }
             TaskerBundle.ACTION_STOP -> {
-                SagerNet.stopService()
+                repo.stopService()
             }
         }
     }

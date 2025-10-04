@@ -1,9 +1,11 @@
 package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.viewModels
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -12,7 +14,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutToolsStunBinding
@@ -24,6 +25,8 @@ class StunActivity : ThemedActivity() {
 
     private lateinit var binding: LayoutToolsStunBinding
     private val viewModel by viewModels<StunActivityViewModel>()
+
+    private val ime by lazy { getSystemService<InputMethodManager>()!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +63,7 @@ class StunActivity : ThemedActivity() {
         }
 
         binding.stunTest.setOnClickListener {
-            SagerNet.inputMethod.hideSoftInputFromWindow(binding.root.windowToken, 0)
+            ime.hideSoftInputFromWindow(binding.root.windowToken, 0)
             viewModel.doTest(
                 binding.natStunServer.text.toString(),
                 binding.proxyServer.text.toString(),

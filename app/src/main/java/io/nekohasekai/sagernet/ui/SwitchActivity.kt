@@ -2,10 +2,10 @@ package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 
 class SwitchActivity : ThemedActivity(R.layout.layout_empty),
@@ -31,7 +31,7 @@ class SwitchActivity : ThemedActivity(R.layout.layout_empty),
             ProfileManager.postUpdate(old)
             ProfileManager.postUpdate(profileId)
         }
-        SagerNet.reloadService()
+        repo.reloadService()
         finish()
     }
 }

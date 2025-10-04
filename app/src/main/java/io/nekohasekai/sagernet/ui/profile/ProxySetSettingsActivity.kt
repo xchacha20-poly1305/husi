@@ -85,6 +85,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
 import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.database.ProxyEntity
+import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -406,7 +407,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = profile.displayType(),
+                        text = profile.displayType(LocalContext.current),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),

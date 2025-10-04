@@ -3,9 +3,9 @@ package io.nekohasekai.sagernet.plugin
 import android.content.pm.PackageInfo
 import android.content.pm.ProviderInfo
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.plugin.PluginManager.loadString
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.PackageCache
 
 object Plugins {
@@ -47,7 +47,7 @@ object Plugins {
     fun displayExeProvider(pkgName: String): String {
         return when {
             pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> {
-                app.getStringCompat(R.string.app_name)
+                repo.getString(R.string.app_name)
             }
 
             pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"

@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.configuration
 
+import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
 import androidx.core.os.bundleOf
@@ -70,7 +72,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.ExpandableDropdownMenuItem
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
@@ -78,6 +79,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.databinding.LayoutGroupListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -86,6 +88,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.dp2pxf
+import io.nekohasekai.sagernet.ktx.first
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -156,6 +159,8 @@ class ConfigurationFragment : OnKeyDownFragment {
     private lateinit var binding: LayoutGroupListBinding
     private lateinit var adapter: GroupPagerAdapter
     private val viewModel: ConfigurationFragmentViewModel by viewModels()
+
+    private val clipboard by lazy { requireContext().getSystemService<ClipboardManager>()!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -253,7 +258,7 @@ class ConfigurationFragment : OnKeyDownFragment {
                     append("\n" + lastResult.profile.displayName())
                     append("\n")
                     append(
-                        lastResult.profile.displayType(),
+                        lastResult.profile.displayType(requireContext()),
                         ForegroundColorSpan(requireContext().getColorAttr(androidx.appcompat.R.attr.colorAccent)),
                         SPAN_EXCLUSIVE_EXCLUSIVE,
                     )
@@ -523,7 +528,7 @@ class ConfigurationFragment : OnKeyDownFragment {
                                 onClick = {
                                     showAddMenu = false
                                     runOnDefaultDispatcher {
-                                        (requireActivity() as MainActivity).parseProxy(SagerNet.getClipboardText())
+                                        (requireActivity() as MainActivity).parseProxy(clipboard.first() ?: "")
                                     }
                                 },
                             )

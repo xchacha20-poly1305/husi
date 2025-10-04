@@ -33,11 +33,15 @@ internal sealed interface GetCertUiEvent {
 
 @Stable
 internal class GetCertActivityViewModel() : ViewModel() {
-    private val _uiState = MutableStateFlow(GetCertUiState(proxy = currentSocks5()?.string ?: ""))
+    private val _uiState = MutableStateFlow(GetCertUiState())
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<GetCertUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    fun initialize() {
+        _uiState.update { it.copy(proxy = currentSocks5()?.string ?: "") }
+    }
 
     fun launch() {
         viewModelScope.launch(Dispatchers.IO) {

@@ -23,7 +23,6 @@ import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -31,6 +30,7 @@ import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.ColorPickerPreference
 import io.nekohasekai.sagernet.widget.DurationPreference
@@ -116,7 +116,7 @@ class SettingsPreferenceFragment : MaterialPreferenceFragment() {
                             preference.setOnPreferenceChangeListener { _, newTheme ->
                                 viewModel.tryReloadService()
                                 val theme = Theme.getTheme(newTheme as Int)
-                                app.setTheme(theme)
+                                repo.setTheme(theme)
                                 ActivityCompat.recreate(requireActivity())
                                 true
                             }

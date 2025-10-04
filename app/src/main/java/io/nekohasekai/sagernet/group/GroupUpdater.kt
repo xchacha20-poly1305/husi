@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.group
 
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.bg.DefaultNetworkMonitor
 import io.nekohasekai.sagernet.database.DataStore
@@ -23,6 +22,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -293,7 +293,7 @@ abstract class GroupUpdater {
                 val userInterface = GroupManager.userInterface
 
                 if (byUser && (subscription.link?.startsWith("http://") == true || subscription.updateWhenConnectedOnly) && !connected) {
-                    if (userInterface == null || !userInterface.confirm(app.getStringCompat(R.string.update_subscription_warning))) {
+                    if (userInterface == null || !userInterface.confirm(repo.getString(R.string.update_subscription_warning))) {
                         finishUpdate(proxyGroup)
                         cancel()
                         return@coroutineScope true

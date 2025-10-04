@@ -5,12 +5,12 @@ import android.annotation.SuppressLint
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.listenForPackageChanges
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import io.nekohasekai.sagernet.plugin.Plugins
+import io.nekohasekai.sagernet.repository.repo
 import java.util.concurrent.atomic.AtomicBoolean
 
 object PackageCache {
@@ -27,7 +27,7 @@ object PackageCache {
     fun register() {
         if (registerd.getAndSet(true)) return
         reload()
-        app.listenForPackageChanges(false) {
+        repo.context.listenForPackageChanges(false) {
             reload()
             labelMap.clear()
         }
@@ -36,7 +36,7 @@ object PackageCache {
 
     @SuppressLint("InlinedApi")
     fun reload() {
-        val rawPackageInfo = app.packageManager.getInstalledPackages(
+        val rawPackageInfo = repo.packageManager.getInstalledPackages(
             PackageManager.MATCH_UNINSTALLED_PACKAGES
                     or PackageManager.GET_PERMISSIONS
                     or PackageManager.GET_PROVIDERS
@@ -54,7 +54,7 @@ object PackageCache {
             Plugins.isPlugin(it)
         }.associateBy { it.packageName }
 
-        val installed = app.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        val installed = repo.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
         installedApps = installed.associateBy { it.packageName }
         packageMap = installed.associate { it.packageName to it.uid }
         uidMap.clear()
@@ -96,7 +96,7 @@ object PackageCache {
         var label = labelMap[packageName]
         if (label != null) return label
         val info = installedApps[packageName] ?: return packageName
-        label = info.loadLabel(app.packageManager).toString()
+        label = info.loadLabel(repo.packageManager).toString()
         labelMap[packageName] = label
         return label
     }

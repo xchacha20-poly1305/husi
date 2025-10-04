@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
+import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
@@ -18,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.getSystemService
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -37,7 +39,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.GroupManager
@@ -56,6 +57,7 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
+import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.launch
@@ -69,6 +71,8 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
     private val viewModel: GroupFragmentViewModel by viewModels()
     private lateinit var groupAdapter: GroupAdapter
     private lateinit var undoManager: UndoSnackbarManager<ProxyGroup>
+
+    private val clipboard by lazy { requireContext().getSystemService<ClipboardManager>()!! }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -292,7 +296,7 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
         override fun onMenuItemClick(item: MenuItem): Boolean {
 
             fun export(link: String) {
-                val success = SagerNet.trySetPrimaryClip(link)
+                val success = clipboard.trySetPrimaryClip(link)
                 snackbar(
                     if (success) {
                         R.string.action_export_msg
@@ -325,7 +329,7 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                     val profiles = SagerDatabase.proxyDao.getByGroup(group.id)
                     val links = profiles.joinToString("\n") { it.toStdLink() }
                     onMainDispatcher {
-                        SagerNet.trySetPrimaryClip(links)
+                        clipboard.trySetPrimaryClip(links)
                         snackbar(getString(androidx.browser.R.string.copy_toast_msg)).show()
                     }
                 }

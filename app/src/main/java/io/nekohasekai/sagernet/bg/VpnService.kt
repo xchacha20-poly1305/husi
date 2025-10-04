@@ -12,12 +12,12 @@ import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import android.net.VpnService as BaseVpnService
@@ -56,7 +56,7 @@ class VpnService : BaseVpnService(),
 
     @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
-        wakeLock = SagerNet.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:vpn")
+        wakeLock = repo.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:vpn")
             .apply { acquire() }
     }
 
@@ -97,7 +97,7 @@ class VpnService : BaseVpnService(),
 
     fun startVpn(): Int {
         // address & route & MTU ...... use GUI config
-        val builder = Builder().setConfigureIntent(SagerNet.configureIntent(this))
+        val builder = Builder().setConfigureIntent(repo.configureIntent(this))
             .setSession(getString(R.string.app_name))
             .setMtu(DataStore.mtu)
         val networkStrategy = DataStore.networkStrategy
