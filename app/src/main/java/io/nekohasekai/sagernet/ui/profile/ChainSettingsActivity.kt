@@ -134,8 +134,19 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                 userScrollEnabled = false,
                 onIndicesChangedViaDragAndDrop = { viewModel.submitList(it.map { it.value }) },
             ) { i, profile ->
-                val swipeState = rememberSwipeToDismissBoxState()
                 var visible by remember { mutableStateOf(true) }
+                val swipeState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { value: SwipeToDismissBoxValue ->
+                        when (value) {
+                            SwipeToDismissBoxValue.StartToEnd,
+                            SwipeToDismissBoxValue.EndToStart -> {
+                                visible.value = false
+                            }
+                            else -> {}
+                        }
+	                true
+                    },
+                )
                 DraggableSwipeableItem(
                     modifier = Modifier.animateDraggableSwipeableItem(),
                     colors = DraggableSwipeableItemColors.createRemembered(
@@ -151,7 +162,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                             state = swipeState,
                             enableDismissFromStartToEnd = true,
                             enableDismissFromEndToStart = true,
-                            backgroundContent = {
+                            backgroundContent = { state: SwipeToDismissBoxState ->
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
