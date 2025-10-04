@@ -11,13 +11,16 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -59,6 +62,7 @@ import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -191,7 +195,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                         )
                     },
                 ) { innerPadding ->
-                    MainColumn(Modifier.padding(innerPadding))
+                    MainColumn(Modifier.paddingExceptBottom(innerPadding))
                 }
 
                 if (showBackAlert) AlertDialog(
@@ -280,6 +284,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
             val uiState by viewModel.uiState.collectAsState()
             LazyColumn(modifier = modifier) {
                 settings(uiState)
+
+                item("bottom_padding") {
+                    Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                }
             }
         }
     }
