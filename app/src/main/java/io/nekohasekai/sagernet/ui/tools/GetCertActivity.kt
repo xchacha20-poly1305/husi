@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -64,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DropDownSelector
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -127,7 +130,7 @@ private fun GetCertScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         GetCertContent(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.paddingExceptBottom(innerPadding),
             viewModel = viewModel,
             copyToClipboard = {
                 scope.launch {
@@ -291,6 +294,8 @@ private fun GetCertContent(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
     }
 
     if (alert != null) AlertDialog(
