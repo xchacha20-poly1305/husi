@@ -6,9 +6,9 @@ import android.os.Build
 import android.util.Log
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.BlankActivity
 import java.io.BufferedReader
 import java.io.IOException
@@ -31,9 +31,11 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
             Logs.e(throwable.stackTraceToString())
         }
 
-        ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
-            putExtra("sendLog", "husi Crash")
-        })
+        ProcessPhoenix.triggerRebirth(
+            repo.context,
+            Intent(repo.context, BlankActivity::class.java)
+                .putExtra("sendLog", "husi Crash"),
+        )
     }
 
     fun formatThrowable(throwable: Throwable): String {

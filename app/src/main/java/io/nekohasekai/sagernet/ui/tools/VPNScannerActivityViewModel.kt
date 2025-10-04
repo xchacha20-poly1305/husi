@@ -7,9 +7,9 @@ import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.toStringIterator
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -82,7 +82,7 @@ internal class VPNScannerActivityViewModel : ViewModel() {
 
     private suspend fun scanVPN0() {
         _uiState.emit(_uiState.value.copy(appInfos = emptyList(), progress = 0))
-        val packageManager = app.packageManager
+        val packageManager = repo.packageManager
         val flag =
             PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 PackageManager.MATCH_UNINSTALLED_PACKAGES

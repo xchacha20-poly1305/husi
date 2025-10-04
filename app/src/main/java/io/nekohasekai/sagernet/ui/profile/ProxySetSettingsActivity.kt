@@ -19,407 +19,413 @@
 
 package io.nekohasekai.sagernet.ui.profile
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Bundle
-import android.text.format.Formatter
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.activity.result.component1
-import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.CastConnected
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material.icons.filled.FlipCameraAndroid
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceFragmentCompat
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ListUpdateCallback
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.nekohasekai.sagernet.Key
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
+import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.DurationTextField
+import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.database.ProxyEntity
-import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
-import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
-import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
+import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
-import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.contentOrUnset
+import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
-import io.nekohasekai.sagernet.widget.DurationPreference
-import io.nekohasekai.sagernet.widget.setGroupBean
-import kotlinx.coroutines.launch
-import rikka.preference.SimpleMenuPreference
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.delay
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.SwitchPreference
+import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
-class ProxySetSettingsActivity :
-    ProfileSettingsActivity<ProxySetBean>(R.layout.layout_chain_settings) {
-
-    private lateinit var groupType: SimpleMenuPreference
-    private lateinit var groupPreference: SimpleMenuPreference
-    private lateinit var groupFilterNotPreference: EditTextPreference
-    private lateinit var serverManagement: SimpleMenuPreference
-    private lateinit var testURL: EditTextPreference
-    private lateinit var testInterval: DurationPreference
-    private lateinit var idleTimeout: DurationPreference
-    private lateinit var tolerance: EditTextPreference
-
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.proxy_set_preferences)
-
-        groupType = findPreference(Key.SERVER_TYPE)!!
-        groupPreference = findPreference<SimpleMenuPreference>(Key.SERVER_GROUP)!!.apply {
-            setGroupBean()
-        }
-        groupFilterNotPreference = findPreference(Key.SERVER_FILTER_NOT_REGEX)!!
-        serverManagement = findPreference(Key.SERVER_MANAGEMENT)!!
-        testURL = findPreference(Key.SERVER_TEST_URL)!!
-        testInterval = findPreference(Key.SERVER_TEST_INTERVAL)!!
-        idleTimeout = findPreference(Key.SERVER_IDLE_TIMEOUT)!!
-        tolerance = findPreference<EditTextPreference>(Key.SERVER_TOLERANCE)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
-        }
-
-        fun updateType(type: Int = groupType.value.toInt()) {
-            when (type) {
-                ProxySetBean.TYPE_LIST -> {
-                    groupPreference.isVisible = false
-                    groupFilterNotPreference.isVisible = false
-                    configurationList.isVisible = true
-                    itemView.isVisible = true
-                }
-
-                ProxySetBean.TYPE_GROUP -> {
-                    groupPreference.isVisible = true
-                    groupFilterNotPreference.isVisible = true
-                    configurationList.isVisible = false
-                    itemView.isVisible = false
-                }
-            }
-        }
-        updateType()
-        groupType.setOnPreferenceChangeListener { _, newValue ->
-            updateType(newValue.toString().toInt())
-            true
-        }
-
-        fun updateManagement(management: Int = serverManagement.value.toInt()) {
-            when (management) {
-                ProxySetBean.MANAGEMENT_SELECTOR -> {
-                    testURL.isVisible = false
-                    testInterval.isVisible = false
-                    idleTimeout.isVisible = false
-                    tolerance.isVisible = false
-                }
-
-                ProxySetBean.MANAGEMENT_URLTEST -> {
-                    testURL.isVisible = true
-                    testInterval.isVisible = true
-                    idleTimeout.isVisible = true
-                    tolerance.isVisible = true
-                }
-            }
-        }
-        updateManagement()
-        findPreference<SimpleMenuPreference>(Key.SERVER_MANAGEMENT)!!.apply {
-            setOnPreferenceChangeListener { _, newValue ->
-                updateManagement(newValue.toString().toInt())
-                true
-            }
-        }
-    }
+class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
 
     override val viewModel by viewModels<ProxySetSettingsViewModel>()
-    private val itemView: LinearLayout by lazy { findViewById(R.id.list_cell) }
-    private val configurationList: RecyclerView by lazy { findViewById(R.id.configuration_list) }
-    private lateinit var configurationAdapter: ProxiesAdapter
 
     override val title = R.string.group_settings
 
-    @SuppressLint("InlinedApi")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
+        state as ProxySetUiState
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings)) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        item("name") {
+            TextFieldPreference(
+                value = state.name,
+                onValueChange = { viewModel.setName(it) },
+                title = { Text(stringResource(R.string.profile_name)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                valueToText = { it },
             )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
         }
-        ViewCompat.setOnApplyWindowInsetsListener(configurationList) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        item("management") {
+            fun managementName(management: Int) = when (management) {
+                ProxySetBean.MANAGEMENT_SELECTOR -> R.string.action_selector
+                ProxySetBean.MANAGEMENT_URLTEST -> R.string.action_urltest
+                else -> error("impossible")
+            }
+            ListPreference(
+                value = state.management,
+                onValueChange = { viewModel.setManagement(it) },
+                values = intListN(2),
+                title = { Text(stringResource(R.string.management)) },
+                icon = { Icon(Icons.Filled.Widgets, null) },
+                summary = { Text(stringResource(managementName(state.management))) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(getString(managementName(it))) },
             )
-            v.updatePadding(
-                left = bars.left + dp2px(4),
-                right = bars.right + dp2px(4),
-                bottom = bars.bottom + dp2px(4),
-            )
-            insets
         }
-        configurationList.adapter = ProxiesAdapter().also {
-            configurationAdapter = it
+        item("interrupt_exist_connections") {
+            SwitchPreference(
+                value = state.interruptExistConnections,
+                onValueChange = { viewModel.setInterruptExistConnections(it) },
+                title = { Text(stringResource(R.string.interrupt_exist_connections)) },
+                icon = { Icon(Icons.Filled.Stop, null) },
+            )
+        }
+        item("test_url") {
+            TextFieldPreference(
+                value = state.testURL,
+                onValueChange = { viewModel.setTestURL(it) },
+                title = { Text(stringResource(R.string.connection_test_url)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.CastConnected, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.testURL)) },
+                valueToText = { it },
+            )
+        }
+        item("test_interval") {
+            TextFieldPreference(
+                value = state.testInterval,
+                onValueChange = { viewModel.setTestInterval(it) },
+                title = { Text(stringResource(R.string.urltest_interval)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.FlipCameraAndroid, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.testInterval)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    DurationTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("idle_timeout") {
+            TextFieldPreference(
+                value = state.testIdleTimeout,
+                onValueChange = { viewModel.setTestIdleTimeout(it) },
+                title = { Text(stringResource(R.string.idle_timeout)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.PhotoCamera, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.testIdleTimeout)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    DurationTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("tolerance") {
+            TextFieldPreference(
+                value = state.testTolerance,
+                onValueChange = { viewModel.setTestTolerance(it) },
+                title = { Text(stringResource(R.string.urltest_tolerance)) },
+                textToValue = { it.toIntOrNull() ?: 50 },
+                icon = { Icon(Icons.Filled.EmojiEmotions, null) },
+                summary = { Text(state.testTolerance.toString()) },
+                valueToText = { it.toString() },
+                textField = { value, onValueChange, onOk ->
+                    UIntegerTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("type") {
+            fun typeName(type: Int) = when (type) {
+                ProxySetBean.TYPE_LIST -> R.string.list
+                ProxySetBean.TYPE_GROUP -> R.string.menu_group
+                else -> error("impossible")
+            }
+            ListPreference(
+                value = state.collectType,
+                onValueChange = { viewModel.setCollectType(it) },
+                values = intListN(2),
+                title = { Text(stringResource(R.string.group_type)) },
+                icon = { Icon(Icons.Filled.Nfc, null) },
+                summary = { Text(stringResource(typeName(state.collectType))) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(getString(typeName(it))) },
+            )
+        }
+        item("group") {
+            ListPreference(
+                value = state.groupID,
+                onValueChange = { viewModel.setGroupID(it) },
+                values = state.groups.keys.toList(),
+                title = { Text(stringResource(R.string.menu_group)) },
+                icon = { Icon(Icons.AutoMirrored.Filled.ViewList, null) },
+                summary = {
+                    val text = state.groups[state.groupID]?.displayName()
+                        ?: stringResource(androidx.preference.R.string.not_set)
+                    Text(text)
+                },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { id ->
+                    val text =
+                        state.groups[id]?.displayName()
+                            ?: getString(androidx.preference.R.string.not_set)
+                    AnnotatedString(text)
+                },
+            )
+        }
+        item("filter_not_regex") {
+            TextFieldPreference(
+                value = state.filterNotRegex,
+                onValueChange = { viewModel.setFilterNotRegex(it) },
+                title = { Text(stringResource(R.string.filter_regex)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.DeleteSweep, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.filterNotRegex)) },
+                valueToText = { it },
+            )
         }
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-            ItemTouchHelper.START,
+        item("divider", 1) {
+            HorizontalDivider()
+        }
+
+        item("add_profile", 2) {
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .clickable {
+                        viewModel.replacing = -1
+                        selectProfileForAdd.launch(
+                            Intent(
+                                this@ProxySetSettingsActivity,
+                                ProfileSelectActivity::class.java,
+                            )
+                        )
+                    },
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.add_profile),
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                )
+            }
+        }
+
+        item("list", 3) {
+            val density = LocalDensity.current
+            val windowInfo = LocalWindowInfo.current
+            val maxHeight =
+                with(density) { windowInfo.containerSize.height.toDp() }.takeIf { it > 0.dp }
+                    ?: 480.dp
+            DragDropSwipeLazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = maxHeight),
+                items = state.profiles.toImmutableList(),
+                key = { it.id },
+                contentType = { 0 },
+                userScrollEnabled = false,
+                onIndicesChangedViaDragAndDrop = { viewModel.submitList(it.map { it.value }) },
+            ) { i, profile ->
+                val swipeState = rememberSwipeToDismissBoxState()
+                var visible by remember { mutableStateOf(true) }
+                DraggableSwipeableItem(
+                    modifier = Modifier.animateDraggableSwipeableItem(),
+                    colors = DraggableSwipeableItemColors.createRemembered(
+                        containerBackgroundColor = Color.Transparent,
+                        containerBackgroundColorWhileDragged = Color.Transparent,
+                    ),
+                ) {
+                    AnimatedVisibility(
+                        visible = visible,
+                        exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
+                    ) {
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = true,
+                            enableDismissFromEndToStart = true,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(Icons.Default.Delete, null)
+                                }
+                            },
+                            onDismiss = { value ->
+                                when (value) {
+                                    SwipeToDismissBoxValue.StartToEnd,
+                                    SwipeToDismissBoxValue.EndToStart,
+                                        -> visible = false
+
+                                    else -> {}
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .dragDropModifier(),
+                        ) {
+                            ProfileCard(i, profile)
+                        }
+                    }
+                }
+                LaunchedEffect(visible) {
+                    if (!visible) {
+                        delay(220)
+                        viewModel.remove(i)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ProfileCard(index: Int, profile: ProxyEntity) {
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         ) {
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ): Int = if (viewHolder is ProfileHolder) {
-                super.getSwipeDirs(recyclerView, viewHolder)
-            } else {
-                0
-            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = profile.displayName(),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        IconButton(onClick = {
+                            viewModel.replacing = index
+                            selectProfileForAdd.launch(
+                                Intent(
+                                    this@ProxySetSettingsActivity,
+                                    ProfileSelectActivity::class.java,
+                                ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
+                            )
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = stringResource(R.string.edit),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        IconButton(onClick = { viewModel.remove(index) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = stringResource(R.string.delete),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
 
-            override fun getDragDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is ProfileHolder) {
-                super.getDragDirs(recyclerView, viewHolder)
-            } else {
-                0
-            }
+                    Spacer(modifier = Modifier.height(4.dp))
 
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder,
-            ): Boolean = if (target !is ProfileHolder) {
-                false
-            } else {
-                lifecycleScope.launch {
-                    val from = viewHolder.absoluteAdapterPosition - 1
-                    val to = target.absoluteAdapterPosition - 1
-                    viewModel.move(from, to)
+                    Text(
+                        text = profile.displayType(LocalContext.current),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+
                 }
-                true
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                lifecycleScope.launch {
-                    val index = viewHolder.absoluteAdapterPosition - 1
-                    viewModel.remove(index)
-                }
-            }
-
-        }).attachToRecyclerView(configurationList)
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::handleUiState)
             }
         }
-    }
-
-    private fun handleUiState(state: ProxySetSettingsUiState) {
-        configurationAdapter.submitList(state.profiles)
-    }
-
-    override fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
-        // override the padding in ProfileSettingsActivity
-        ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
-
-        view.rootView.findViewById<RecyclerView>(R.id.recycler_view).apply {
-            (layoutParams ?: LinearLayout.LayoutParams(-1, -2)).apply {
-                height = -2
-                layoutParams = this
-            }
-        }
-
-    }
-
-    private inner class ProxiesAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-        init {
-            setHasStableIds(true)
-        }
-
-        private val proxyList = mutableListOf<ProxyEntity>()
-
-        fun submitList(list: List<ProxyEntity>) {
-            val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                override fun getOldListSize() = proxyList.size
-                override fun getNewListSize() = list.size
-                override fun areItemsTheSame(o: Int, n: Int) =
-                    ProxyEntityDiffCallback.areItemsTheSame(proxyList[o], list[n])
-                override fun areContentsTheSame(o: Int, n: Int) =
-                    ProxyEntityDiffCallback.areContentsTheSame(proxyList[o], list[n])
-            })
-            proxyList.clear()
-            proxyList.addAll(list)
-            val headerOffset = 1
-            diff.dispatchUpdatesTo(object : ListUpdateCallback {
-                override fun onInserted(position: Int, count: Int) {
-                    notifyItemRangeInserted(position + headerOffset, count)
-                }
-                override fun onRemoved(position: Int, count: Int) {
-                    notifyItemRangeRemoved(position + headerOffset, count)
-                }
-                override fun onMoved(fromPosition: Int, toPosition: Int) {
-                    notifyItemMoved(fromPosition + headerOffset, toPosition + headerOffset)
-                }
-                override fun onChanged(position: Int, count: Int, payload: Any?) {
-                    notifyItemRangeChanged(position + headerOffset, count, payload)
-                }
-            })
-        }
-
-
-        override fun getItemId(position: Int): Long {
-            return if (position == 0) 0 else proxyList[position - 1].id
-        }
-
-        override fun getItemViewType(position: Int): Int {
-            return if (position == 0) 0 else 1
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return if (viewType == 0) AddHolder(
-                LayoutAddEntityBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false,
-                )
-            ) else ProfileHolder(
-                LayoutProfileBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false,
-                )
-            )
-        }
-
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            if (holder is AddHolder) {
-                holder.bind()
-            } else if (holder is ProfileHolder) {
-                holder.bind(proxyList[position - 1])
-            }
-        }
-
-        override fun getItemCount(): Int {
-            return proxyList.size + 1
-        }
-
-    }
-
-    private object ProxyEntityDiffCallback : DiffUtil.ItemCallback<ProxyEntity>() {
-        override fun areItemsTheSame(old: ProxyEntity, new: ProxyEntity): Boolean {
-            return old.id == new.id
-        }
-
-        override fun areContentsTheSame(old: ProxyEntity, new: ProxyEntity): Boolean {
-            return true
-        }
-
     }
 
     val selectProfileForAdd =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { (resultCode, data) ->
-            if (resultCode == RESULT_OK) runOnDefaultDispatcher {
-                val id = data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                val id = it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
                 viewModel.onSelectProfile(id)
             }
         }
-
-    private inner class AddHolder(val binding: LayoutAddEntityBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind() {
-            binding.root.setOnClickListener {
-                viewModel.replacing = 0
-                selectProfileForAdd.launch(
-                    Intent(
-                        this@ProxySetSettingsActivity, ProfileSelectActivity::class.java
-                    )
-                )
-            }
-        }
-    }
-
-    private inner class ProfileHolder(binding: LayoutProfileBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        val profileName = binding.profileName
-        val profileType = binding.profileType
-        val trafficText: TextView = binding.trafficText
-        val editButton = binding.edit
-        val deleteButton = binding.remove
-        val shareLayout = binding.share
-
-        fun bind(proxyEntity: ProxyEntity) {
-
-            profileName.text = proxyEntity.displayName()
-            profileType.text = proxyEntity.displayType()
-
-            val rx = proxyEntity.rx
-            val tx = proxyEntity.tx
-
-            val showTraffic = rx + tx != 0L
-            trafficText.isVisible = showTraffic
-            if (showTraffic) {
-                trafficText.text = itemView.context.getString(
-                    R.string.traffic,
-                    Formatter.formatFileSize(itemView.context, tx),
-                    Formatter.formatFileSize(itemView.context, rx)
-                )
-            }
-
-            editButton.setOnClickListener {
-                viewModel.replacing = absoluteAdapterPosition
-                selectProfileForAdd.launch(
-                    Intent(
-                        this@ProxySetSettingsActivity, ProfileSelectActivity::class.java
-                    ).apply {
-                        putExtra(ProfileSelectActivity.EXTRA_SELECTED, proxyEntity)
-                    })
-            }
-
-            deleteButton.setOnClickListener {
-                MaterialAlertDialogBuilder(this@ProxySetSettingsActivity)
-                    .setTitle(getString(R.string.delete_confirm_prompt))
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        lifecycleScope.launch {
-                            val index = absoluteAdapterPosition - 1
-                            viewModel.remove(index)
-                        }
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-            shareLayout.isVisible = false
-
-        }
-
-    }
 
 }

@@ -3,9 +3,9 @@ package io.nekohasekai.sagernet.ui.dashboard
 import android.net.NetworkCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.ktx.toPrefix
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,7 +80,7 @@ internal class StatusFragmentViewModel : ViewModel() {
      * @see <a href="https://github.com/chen08209/FlClash/blob/adb890d7637c2d6d10e7034b3599be7eacbfee99/lib/common/utils.dart#L304-L328">FlClash</a>
      * */
     private fun getLocalAddresses(): Pair<String?, String?> {
-        val connectivityManager = SagerNet.connectivity
+        val connectivityManager = repo.connectivity
 
         var wifiIPv4: String? = null
         var wifiIPv6: String? = null
@@ -120,11 +120,11 @@ internal class StatusFragmentViewModel : ViewModel() {
     }
 
     private fun getInterfaces(): List<NetworkInterfaceInfo> {
-        @Suppress("DEPRECATION") val networks = SagerNet.connectivity.allNetworks
+        @Suppress("DEPRECATION") val networks = repo.connectivity.allNetworks
         val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
         val interfaces = mutableListOf<NetworkInterfaceInfo>()
         for (network in networks) {
-            val name = SagerNet.connectivity.getLinkProperties(network)?.interfaceName ?: continue
+            val name = repo.connectivity.getLinkProperties(network)?.interfaceName ?: continue
             val networkInterface = networkInterfaces.find {
                 it.name == name
             } ?: continue

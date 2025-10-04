@@ -9,11 +9,11 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkerParameters
 import androidx.work.multiprocess.RemoteWorkManager
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.repository.repo
 import java.util.concurrent.TimeUnit
 
 object SubscriptionUpdater {
@@ -21,7 +21,7 @@ object SubscriptionUpdater {
     private const val WORK_NAME = "SubscriptionUpdater"
 
     suspend fun reconfigureUpdater() {
-        RemoteWorkManager.getInstance(app).cancelUniqueWork(WORK_NAME)
+        RemoteWorkManager.getInstance(repo.context).cancelUniqueWork(WORK_NAME)
 
         val subscriptions = SagerDatabase.groupDao.subscriptions()
             .filter { it.subscription!!.autoUpdate }
@@ -37,7 +37,7 @@ object SubscriptionUpdater {
         if (minInitDelay > 60) minInitDelay = 60
 
         // main process
-        RemoteWorkManager.getInstance(app).enqueueUniquePeriodicWork(
+        RemoteWorkManager.getInstance(repo.context).enqueueUniquePeriodicWork(
             WORK_NAME,
             UPDATE,
             PeriodicWorkRequest.Builder(UpdateTask::class.java, minDelay, TimeUnit.MINUTES)

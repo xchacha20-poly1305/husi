@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.bg
 
-import android.annotation.TargetApi
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -8,7 +7,8 @@ import android.net.NetworkRequest
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import io.nekohasekai.sagernet.SagerNet
+import androidx.annotation.RequiresApi
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -84,8 +84,8 @@ object DefaultNetworkListener {
         )
     )
 
-    suspend fun get() = if (fallback) @TargetApi(23) {
-        SagerNet.connectivity.activeNetwork
+    suspend fun get() = if (fallback)  {
+        repo.connectivity.activeNetwork
             ?: error("missing default network") // failed to listen, return current if available
     } else NetworkMessage.Get().run {
         networkActor.send(this)
@@ -140,29 +140,29 @@ object DefaultNetworkListener {
      */
     private fun register() {
         when (Build.VERSION.SDK_INT) {
-            in 31..Int.MAX_VALUE -> @TargetApi(31) {
-                SagerNet.connectivity.registerBestMatchingNetworkCallback(
+            in 31..Int.MAX_VALUE -> @RequiresApi(31) {
+                repo.connectivity.registerBestMatchingNetworkCallback(
                     request,
                     Callback,
                     mainHandler,
                 )
             }
 
-            in 28 until 31 -> @TargetApi(28) {  // we want REQUEST here instead of LISTEN
-                SagerNet.connectivity.requestNetwork(request, Callback, mainHandler)
+            in 28 until 31 -> @RequiresApi(28) {  // we want REQUEST here instead of LISTEN
+                repo.connectivity.requestNetwork(request, Callback, mainHandler)
             }
 
-            in 26 until 28 -> @TargetApi(26) {
-                SagerNet.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
+            in 26 until 28 -> @RequiresApi(26) {
+                repo.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
             }
 
-            in 24 until 26 -> @TargetApi(24) {
-                SagerNet.connectivity.registerDefaultNetworkCallback(Callback)
+            in 24 until 26 -> @RequiresApi(24) {
+                repo.connectivity.registerDefaultNetworkCallback(Callback)
             }
 
             else -> try {
                 fallback = false
-                SagerNet.connectivity.requestNetwork(request, Callback)
+                repo.connectivity.requestNetwork(request, Callback)
             } catch (_: RuntimeException) {
                 // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
                 fallback = true
@@ -172,7 +172,7 @@ object DefaultNetworkListener {
 
     private fun unregister() {
         runCatching {
-            SagerNet.connectivity.unregisterNetworkCallback(Callback)
+            repo.connectivity.unregisterNetworkCallback(Callback)
         }
     }
 }

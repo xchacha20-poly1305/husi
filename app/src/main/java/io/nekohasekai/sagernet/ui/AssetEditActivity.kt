@@ -2,65 +2,59 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.LayoutRes
-import android.view.View
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceFragmentCompat
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.LinkOrContentTextField
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.AssetEntity
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import kotlinx.coroutines.launch
+import io.nekohasekai.sagernet.ktx.contentOrUnset
+import me.zhanghai.compose.preference.ProvidePreferenceLocals
+import me.zhanghai.compose.preference.TextFieldPreference
 
-class AssetEditActivity(
-    @LayoutRes resId: Int = R.layout.layout_config_settings,
-) : ThemedActivity(resId) {
-
-    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
-        override fun handleOnBackPressed() {
-            MaterialAlertDialogBuilder(this@AssetEditActivity)
-                .setTitle(R.string.unsaved_changes_prompt)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    lifecycleScope.launch {
-                        saveAndExit()
-                    }
-                }
-                .setNegativeButton(R.string.no) { _, _ ->
-                    finish()
-                }
-                .show()
-        }
-    }
-
-    fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.asset_preferences)
-    }
+class AssetEditActivity : ComposeActivity() {
 
     companion object {
         const val EXTRA_ASSET_NAME = "name"
@@ -69,181 +63,169 @@ class AssetEditActivity(
         const val RESULT_DELETE = 2
     }
 
-    override fun onStart() {
-        super.onStart()
-        DataStore.profileCacheStore.registerChangeListener(viewModel)
-    }
-
     private val viewModel: AssetEditActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val toolbar = findViewById<ComposeView>(R.id.toolbar)
-        toolbar.setContent {
-            @Suppress("DEPRECATION")
-            AppTheme {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.assets_settings)) },
-                    navigationIcon = {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Close,
-                        ) {
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                    },
-                    actions = {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                        ) {
-                            val editingAssetName = viewModel.editingAssetName
-                            if (editingAssetName.isEmpty()) {
-                                finish()
-                            } else MaterialAlertDialogBuilder(this@AssetEditActivity)
-                                .setTitle(R.string.delete_confirm_prompt)
-                                .setPositiveButton(android.R.string.ok) { _, _ ->
-                                    setResult(RESULT_DELETE)
-                                    finish()
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
-                        }
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = stringResource(R.string.apply),
-                        ) {
-                            runOnDefaultDispatcher {
-                                saveAndExit()
-                            }
-                        }
-                    },
-                )
-            }
-        }
+        val editingAssetName = intent.getStringExtra(EXTRA_ASSET_NAME) ?: ""
+        viewModel.initialize(editingAssetName)
 
-        if (savedInstanceState == null) {
-            val editingAssetName = intent.getStringExtra(EXTRA_ASSET_NAME) ?: ""
-            viewModel.editingAssetName = editingAssetName
-            lifecycleScope.launch {
-                if (editingAssetName.isEmpty()) {
-                    // Create at first time
-                    viewModel.shouldUpdateFromInternet = true
-                    viewModel.loadAssetEntity(AssetEntity())
-                } else {
-                    val entity = SagerDatabase.assetDao.get(editingAssetName)
-                    if (entity == null) {
-                        onMainDispatcher {
+        setContent {
+            AppTheme {
+                val isDirty by viewModel.isDirty.collectAsState()
+                var showBackAlert by remember { mutableStateOf(false) }
+                BackHandler(enabled = isDirty) {
+                    showBackAlert = true
+                }
+
+                val windowInsets = WindowInsets.safeDrawing
+                val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+                val scrollState = rememberScrollState()
+
+                var showDeleteConfirm by remember { mutableStateOf(false) }
+                var illegalNameMessage by remember { mutableIntStateOf(0) }
+
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(stringResource(R.string.assets_settings)) },
+                            navigationIcon = {
+                                SimpleIconButton(Icons.Filled.Close) {
+                                    onBackPressedDispatcher.onBackPressed()
+                                }
+                            },
+                            actions = {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = stringResource(R.string.delete),
+                                ) {
+                                    val editingAssetName = viewModel.editingName
+                                    if (editingAssetName.isEmpty()) {
+                                        finish()
+                                    } else {
+                                        showDeleteConfirm = true
+                                    }
+                                }
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = stringResource(R.string.apply),
+                                    onClick = ::saveAndExit,
+                                )
+                            },
+                            windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                            scrollBehavior = scrollBehavior,
+                        )
+                    },
+                ) { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .paddingExceptBottom(innerPadding)
+                            .verticalScroll(scrollState)
+                    ) {
+                        AssetEditSettings()
+
+                        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    }
+                }
+
+                if (showBackAlert) AlertDialog(
+                    onDismissRequest = { showBackAlert = false },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            viewModel.validate(viewModel.uiState.value.name)?.let {
+                                illegalNameMessage = it
+                                showBackAlert = false
+                                return@TextButton
+                            }
+                            saveAndExit()
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(stringResource(R.string.no)) {
+                            showBackAlert = false
+                        }
+                    },
+                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
+                )
+
+                if (showDeleteConfirm) AlertDialog(
+                    onDismissRequest = { showDeleteConfirm = false },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            setResult(RESULT_DELETE)
                             finish()
                         }
-                        return@launch
-                    }
-                    viewModel.loadAssetEntity(entity)
-                }
+                    },
+                    dismissButton = {
+                        TextButton(stringResource(android.R.string.cancel)) {
+                            showDeleteConfirm = false
+                        }
+                    },
+                    icon = { Icon(Icons.Filled.Warning, null) },
+                    title = { Text(stringResource(R.string.delete_confirm_prompt)) },
+                )
 
-                onMainDispatcher {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.settings, MyPreferenceFragmentCompat())
-                        .commit()
+                illegalNameMessage.takeIf { it > 0 }?.let { id ->
+                    AlertDialog(
+                        onDismissRequest = { illegalNameMessage = 0 },
+                        confirmButton = {
+                            TextButton(stringResource(android.R.string.ok)) {
+                                illegalNameMessage = 0
+                            }
+                        },
+                        icon = { Icon(Icons.Filled.WarningAmber, null) },
+                        title = { Text(stringResource(R.string.error_title)) },
+                        text = { Text(stringResource(id)) },
+                    )
                 }
             }
-
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.dirty.collect {
-                    onBackPressedCallback.isEnabled = it
-                }
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleEvent)
-            }
-        }
     }
 
-    private fun handleEvent(event: AssetEditEvents) {
-        when (event) {
-            is AssetEditEvents.UpdateName -> {
-                val fragment =
-                    supportFragmentManager.findFragmentById(R.id.settings) as? MyPreferenceFragmentCompat
-                fragment?.updateAssetNamePreference(event.name)
-            }
-        }
-    }
-
-    private suspend fun saveAndExit() {
-        viewModel.validate()?.let {
-            onMainDispatcher {
-                MaterialAlertDialogBuilder(this@AssetEditActivity)
-                    .setTitle(R.string.error_title)
-                    .setMessage(it)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show()
-            }
-            return
-        }
-
+    private fun saveAndExit() {
         viewModel.save()
         setResult(
             if (viewModel.shouldUpdateFromInternet) {
                 RESULT_SHOULD_UPDATE
             } else {
                 RESULT_OK
-            }, Intent().putExtra(EXTRA_ASSET_NAME, DataStore.assetName)
+            },
+            Intent().putExtra(EXTRA_ASSET_NAME, viewModel.editingName),
         )
         finish()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
-        return true
-    }
-
-    override fun onStop() {
-        DataStore.profileCacheStore.unregisterChangeListener(viewModel)
-        super.onStop()
-    }
-
-    class MyPreferenceFragmentCompat : MaterialPreferenceFragment() {
-
-        val activity: AssetEditActivity
-            get() = requireActivity() as AssetEditActivity
-
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            preferenceManager.preferenceDataStore = DataStore.profileCacheStore
-            try {
-                activity.apply {
-                    createPreferences(savedInstanceState, rootKey)
-                }
-            } catch (e: Exception) {
-                Logs.w(e)
-            }
-        }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-
-            ViewCompat.setOnApplyWindowInsetsListener(listView) { v, insets ->
-                val bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-                )
-                v.updatePadding(
-                    left = bars.left,
-                    right = bars.right,
-                    bottom = bars.bottom,
-                )
-                insets
-            }
-        }
-
-        fun updateAssetNamePreference(newName: String) {
-            val assetName = findPreference<EditTextPreference>(Key.ASSET_NAME)
-            assetName?.text = newName
+    @Composable
+    private fun AssetEditSettings() {
+        ProvidePreferenceLocals {
+            val uiState by viewModel.uiState.collectAsState()
+            TextFieldPreference(
+                value = uiState.name,
+                onValueChange = { viewModel.setName(it) },
+                title = { Text(stringResource(R.string.route_asset_name)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
+                valueToText = { it },
+            )
+            TextFieldPreference(
+                value = uiState.link,
+                onValueChange = { viewModel.setLink(it) },
+                title = { Text(stringResource(R.string.url)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Link, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.link)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    LinkOrContentTextField(value, onValueChange, onOk)
+                },
+            )
         }
     }
-
 }

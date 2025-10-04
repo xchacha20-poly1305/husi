@@ -3,105 +3,117 @@ package io.nekohasekai.sagernet.ui
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceDataStore
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.AssetEntity
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
-import kotlinx.coroutines.flow.MutableSharedFlow
+import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal sealed interface AssetEditEvents {
-    class UpdateName(val name: String) : AssetEditEvents
-}
+internal data class AssetEditActivityUiState(
+    val name: String = "",
+    val link: String = "",
+)
 
-internal class AssetEditActivityViewModel : ViewModel(), OnPreferenceDataStoreChangeListener {
-    private val _dirty = MutableStateFlow(false)
-    val dirty = _dirty.asStateFlow()
+internal class AssetEditActivityViewModel : ViewModel() {
 
-    private val _uiEvent = MutableSharedFlow<AssetEditEvents>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    private val _uiState = MutableStateFlow(AssetEditActivityUiState())
+    val uiState = _uiState.asStateFlow()
 
-    var editingAssetName = ""
+    private lateinit var initialState: AssetEditActivityUiState
+
+    val isDirty = uiState.map { currentState ->
+        initialState != currentState
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false,
+    )
+
+    lateinit var editingName: String
+    var isNew = false
+
+    fun initialize(name: String) {
+        val asset = SagerDatabase.assetDao.get(name) ?: AssetEntity().also {
+            isNew = true
+        }
+        editingName = name
+        _uiState.update {
+            it.copy(
+                name = asset.name,
+                link = asset.url,
+            ).also {
+                initialState = it
+            }
+        }
+    }
+
     var shouldUpdateFromInternet = false
 
-    fun loadAssetEntity(entity: AssetEntity) {
-        DataStore.assetName = entity.name
-        DataStore.assetUrl = entity.url
-    }
-
-    fun serializeAssetEntity(entity: AssetEntity) {
-        entity.name = DataStore.assetName
-        entity.url = DataStore.assetUrl
-    }
-
-    /** @return Error string res */
-    @StringRes
-    fun validate(): Int? {
-        val assetName = DataStore.assetName
-        if (assetName.length > 255 || assetName.contains('/')) {
-            return R.string.invalid_filename
-        }
-        if (
-            app.externalAssets.resolve("geo").resolve(assetName)
-                .canonicalPath.substringAfterLast('/') != assetName
-        ) {
-            return R.string.invalid_filename
-        }
-        if (assetName != editingAssetName && SagerDatabase.assetDao.get(assetName) != null) {
-            return R.string.duplicate_name
-        }
-        if (!assetName.endsWith(".srs")) {
-            return R.string.expect_srs
-        }
-        if (assetName == ".srs") {
-            return R.string.invalid_filename
-        }
-        if (assetName.startsWith("geoip-") || assetName.startsWith("geosite-")) {
-            return R.string.warn_starte_with_geo
-        }
-        // Not check if duplicate with build-in srs so that user can override it.
-        return null
-    }
-
-    suspend fun save() {
-        if (editingAssetName.isEmpty()) {
+    fun save() = runOnIoDispatcher {
+        if (isNew) {
             val entity = AssetEntity()
-            serializeAssetEntity(entity)
+            entity.loadFromUiState(_uiState.value)
             SagerDatabase.assetDao.create(entity)
-        } else if (_dirty.value) {
-            val entity = SagerDatabase.assetDao.get(editingAssetName)
+        } else if (isDirty.value) {
+            val entity = SagerDatabase.assetDao.get(editingName)
             if (entity == null) {
-                return
+                return@runOnIoDispatcher
             }
-            serializeAssetEntity(entity)
+            entity.loadFromUiState(_uiState.value)
             SagerDatabase.assetDao.update(entity)
         }
     }
 
-    override fun onPreferenceDataStoreChanged(
-        store: PreferenceDataStore,
-        key: String,
-    ) {
-        viewModelScope.launch {
-            when (key) {
-                Key.ASSET_URL -> {
-                    shouldUpdateFromInternet = true
-                    if (DataStore.assetName.isEmpty()) {
-                        _uiEvent.emit(
-                            AssetEditEvents.UpdateName(DataStore.assetUrl.substringAfterLast("/"))
-                        )
-                    }
-                }
-            }
+    private fun AssetEntity.loadFromUiState(state: AssetEditActivityUiState) {
+        name = state.name
+        url = state.link
+    }
 
-            _dirty.emit(true)
+    fun setName(name: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(name = name)
         }
+    }
+
+    fun setLink(link: String) = viewModelScope.launch {
+        _uiState.update {
+            val name = it.name.blankAsNull() ?: link.substringAfterLast("/")
+            it.copy(
+                name = name,
+                link = link,
+            )
+        }
+        shouldUpdateFromInternet = true
+    }
+
+    @StringRes
+    fun validate(text: String): Int? {
+        if (text.length > 255 || text.contains('/')) {
+            return R.string.invalid_filename
+        }
+        if (
+            repo.externalAssetsDir.resolve("geo").resolve(text)
+                .canonicalPath.substringAfterLast('/') != text
+        ) {
+            return R.string.invalid_filename
+        }
+        if (isNew && SagerDatabase.assetDao.get(text) != null) {
+            return R.string.duplicate_name
+        }
+        if (!text.endsWith(".srs")) {
+            return R.string.expect_srs
+        }
+        if (text.startsWith("geosite-") || text.startsWith("geoip-")) {
+            return R.string.warn_starte_with_geo
+        }
+        return null
     }
 }

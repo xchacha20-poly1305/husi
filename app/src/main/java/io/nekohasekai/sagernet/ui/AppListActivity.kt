@@ -1,6 +1,9 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.ClipboardManager
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -37,18 +41,31 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.databinding.LayoutAppListBinding
 import io.nekohasekai.sagernet.ktx.crossFadeFrom
+import io.nekohasekai.sagernet.ktx.first
+import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import kotlinx.coroutines.launch
 
 class AppListActivity : ThemedActivity() {
 
+    companion object {
+        const val EXTRA_APP_LIST = "app_list"
+    }
+
+    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = true) {
+        override fun handleOnBackPressed() {
+            saveAndExit()
+        }
+    }
+
     private val viewModel by viewModels<AppListActivityViewModel>()
     private lateinit var binding: LayoutAppListBinding
     private lateinit var adapter: AppsAdapter
+
+    private val clipboard by lazy { getSystemService<ClipboardManager>()!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,7 +132,7 @@ class AppListActivity : ThemedActivity() {
                                 contentDescription = stringResource(R.string.action_copy),
                             ) {
                                 val toExport = viewModel.export()
-                                val success = SagerNet.trySetPrimaryClip(toExport)
+                                val success = clipboard.trySetPrimaryClip(toExport)
                                 snackbar(
                                     if (success) {
                                         R.string.copy_success
@@ -128,7 +145,7 @@ class AppListActivity : ThemedActivity() {
                                 imageVector = Icons.Filled.ContentPaste,
                                 contentDescription = stringResource(R.string.action_import),
                             ) {
-                                viewModel.import(SagerNet.clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+                                viewModel.import(clipboard.first())
                             }
 
                             Box {
@@ -192,7 +209,8 @@ class AppListActivity : ThemedActivity() {
             }
         }
 
-        viewModel.initialize(packageManager)
+        val packages = intent.getStringArrayExtra(EXTRA_APP_LIST)?.toSet() ?: emptySet()
+        viewModel.initialize(packageManager, packages)
     }
 
     private fun handleUiState(state: AppListActivityUiState) {
@@ -212,12 +230,21 @@ class AppListActivity : ThemedActivity() {
         }
     }
 
+    private fun saveAndExit() {
+        setResult(
+            RESULT_OK,
+            Intent()
+                .putStringArrayListExtra(EXTRA_APP_LIST, viewModel.allPackages()),
+        )
+        finish()
+    }
+
     override fun snackbarInternal(text: CharSequence): Snackbar {
         return Snackbar.make(binding.list, text, Snackbar.LENGTH_LONG)
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 }

@@ -33,9 +33,15 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.repository.repo
 
 @Suppress("DEPRECATION")
 class QuickToggleShortcut : Activity(), SagerConnection.Callback {
+
+    companion object {
+        const val EXTRA_PROFILE_ID = "profile_id"
+    }
+
     private val connection = SagerConnection(SagerConnection.CONNECTION_ID_SHORTCUT)
     private var profileId = -1L
 
@@ -64,7 +70,7 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
             )
             finish()
         } else {
-            profileId = intent.getLongExtra("profile", -1L)
+            profileId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
             connection.connect(this, this)
             if (Build.VERSION.SDK_INT >= 25) {
                 getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
@@ -73,20 +79,20 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
     }
 
     override fun onServiceConnected(service: ISagerNetService) {
-        val state = BaseService.State.values()[service.state]
+        val state = BaseService.State.entries[service.state]
         when {
             state.canStop -> {
                 if (profileId == DataStore.selectedProxy || profileId == -1L) {
-                    SagerNet.stopService()
+                    repo.stopService()
                 } else {
                     DataStore.selectedProxy = profileId
-                    SagerNet.reloadService()
+                    repo.reloadService()
                 }
             }
 
             state == BaseService.State.Stopped -> {
                 if (profileId >= 0L) DataStore.selectedProxy = profileId
-                SagerNet.startService()
+                repo.startService()
             }
         }
         finish()

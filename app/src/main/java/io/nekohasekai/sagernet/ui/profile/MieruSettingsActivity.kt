@@ -1,64 +1,157 @@
-/******************************************************************************
- *                                                                            *
- * Copyright (C) 2021 by nekohasekai <contact-sagernet@sekai.icu>             *
- *                                                                            *
- * This program is free software: you can redistribute it and/or modify       *
- * it under the terms of the GNU General Public License as published by       *
- * the Free Software Foundation, either version 3 of the License, or          *
- *  (at your option) any later version.                                       *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
- *                                                                            *
- ******************************************************************************/
-
 package io.nekohasekai.sagernet.ui.profile
 
-import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceFragmentCompat
-import io.nekohasekai.sagernet.Key
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
+import io.nekohasekai.sagernet.compose.PasswordPreference
+import io.nekohasekai.sagernet.compose.PreferenceCategory
+import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
-import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
-import rikka.preference.SimpleMenuPreference
+import io.nekohasekai.sagernet.ktx.contentOrUnset
+import io.nekohasekai.sagernet.ktx.intListN
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
 
     override val viewModel by viewModels<MieruSettingsViewModel>()
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.mieru_preferences)
-        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
+    private val protocols = listOf("tcp", "udp")
+
+    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
+        state as MieruUiState
+
+        item("name") {
+            TextFieldPreference(
+                value = state.name,
+                onValueChange = { viewModel.setName(it) },
+                title = { Text(stringResource(R.string.profile_name)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                valueToText = { it },
+            )
         }
-        findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
-            summaryProvider = PasswordSummaryProvider
+
+        item("category_proxy") {
+            PreferenceCategory(text = { Text(stringResource(R.string.proxy_cat)) })
         }
-        val protocol = findPreference<SimpleMenuPreference>(Key.SERVER_PROTOCOL)!!
-        val mtu = findPreference<EditTextPreference>(Key.SERVER_MTU)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        item("address") {
+            TextFieldPreference(
+                value = state.address,
+                onValueChange = { viewModel.setAddress(it) },
+                title = { Text(stringResource(R.string.server_address)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Router, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                valueToText = { it },
+            )
         }
-        fun updateMtuVisibility(newValue: String = protocol.value) {
-            mtu.isVisible = newValue == "UDP"
+        item("port") {
+            TextFieldPreference(
+                value = state.port,
+                onValueChange = { viewModel.setPort(it) },
+                title = { Text(stringResource(R.string.server_port)) },
+                textToValue = { it.toIntOrNull() ?: 443 },
+                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                valueToText = { it.toString() },
+                textField = { value, onValueChange, onOk ->
+                    UIntegerTextField(value, onValueChange, onOk)
+                }
+            )
         }
-        updateMtuVisibility()
-        protocol.setOnPreferenceChangeListener { _, newValue ->
-            updateMtuVisibility(newValue.toString())
-            true
+        item("protocol") {
+            ListPreference(
+                value = state.protocol,
+                values = protocols,
+                onValueChange = { viewModel.setProtocol(it) },
+                title = { Text(stringResource(R.string.protocol)) },
+                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.protocol.uppercase())) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(it) },
+            )
+        }
+        item("username") {
+            TextFieldPreference(
+                value = state.username,
+                onValueChange = { viewModel.setUsername(it) },
+                title = { Text(stringResource(R.string.username)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Person, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                valueToText = { it },
+            )
+        }
+        item("password") {
+            PasswordPreference(
+                value = state.password,
+                onValueChange = { viewModel.setPassword(it) },
+            )
+        }
+        if (state.protocol == "udp") {
+            item("mtu") {
+                TextFieldPreference(
+                    value = state.mtu,
+                    onValueChange = { viewModel.setMtu(it) },
+                    title = { Text(stringResource(R.string.mtu)) },
+                    textToValue = { it.toIntOrNull() ?: 1400 },
+                    icon = { Icon(Icons.Filled.Public, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.mtu)) },
+                    valueToText = { it.toString() },
+                    textField = { value, onValueChange, onOk ->
+                        UIntegerTextField(value, onValueChange, onOk)
+                    }
+                )
+            }
+        }
+        item("mux_number") {
+            ListPreference(
+                value = state.muxNumber,
+                values = intListN(4),
+                onValueChange = { viewModel.setMuxNumber(it) },
+                title = { Text(stringResource(R.string.mux_preference)) },
+                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                summary = {
+                    val text = when (state.muxNumber) {
+                        0 -> stringResource(R.string.off)
+                        1 -> stringResource(R.string.low)
+                        2 -> stringResource(R.string.middle)
+                        3 -> stringResource(R.string.high)
+                        else -> stringResource(androidx.preference.R.string.not_set)
+                    }
+                    Text(text)
+                },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = {
+                    AnnotatedString(
+                        when (it) {
+                            0 -> getString(R.string.off)
+                            1 -> getString(R.string.low)
+                            2 -> getString(R.string.middle)
+                            3 -> getString(R.string.high)
+                            else -> ""
+                        }
+                    )
+                },
+            )
         }
     }
-
 }
+

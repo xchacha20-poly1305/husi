@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.proto.TestInstance
 import io.nekohasekai.sagernet.database.DataStore
@@ -23,6 +22,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -111,13 +111,13 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     init {
         ProfileManager.addListener(this)
         GroupManager.addListener(this)
-        DataStore.profileCacheStore.registerChangeListener(this)
+        DataStore.configurationStore.registerChangeListener(this)
     }
 
     override fun onCleared() {
         ProfileManager.removeListener(this)
         GroupManager.removeListener(this)
-        DataStore.profileCacheStore.unregisterChangeListener(this)
+        DataStore.configurationStore.unregisterChangeListener(this)
         super.onCleared()
     }
 
@@ -348,14 +348,14 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
         if (updated) {
             ProfileManager.postUpdate(lastSelected)
             if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                SagerNet.reloadService()
+                repo.reloadService()
                 reloadAccess.unlock()
             }
-        } else if (SagerNet.isTv) {
+        } else if (repo.isTv) {
             if (DataStore.serviceState.started) {
-                SagerNet.stopService()
+                repo.stopService()
             } else {
-                SagerNet.startService()
+                repo.startService()
             }
         }
         emitChildEvent(ConfigurationChildEvent.OnProfileSelect(DataStore.selectedGroup, new))
@@ -421,8 +421,8 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     override suspend fun groupUpdated(group: ProxyGroup) {
         _uiState.update { state ->
             val groups = state.groups.toMutableList()
-            val index = groups.indexOfFirst { it.id == group.id }
-            groups[index] = group
+            val index = groups.indexOfFirst { it.id == group.id }.takeIf { it >= 0 }
+            if (index != null) groups[index] = group
             state.copy(groups = groups)
         }
     }
@@ -439,13 +439,10 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
 
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
         if (key != Key.PROFILE_GROUP) return
-        // editing group
-        viewModelScope.launch {
-            val targetID = DataStore.editingGroup
-            if (targetID > 0 && targetID != DataStore.selectedGroup) {
-                DataStore.selectedGroup = targetID
-                reloadGroups()
-            }
+
+        _uiState.update { state ->
+            state.copy(selectedGroupIndex = state.groups.indexOfFirst { it.id == DataStore.selectedGroup })
         }
     }
+
 }

@@ -1,41 +1,72 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
-internal sealed interface RuleSetMatchUiState {
-    object Idle : RuleSetMatchUiState
-    class Doing(val matched: List<String> = emptyList()) : RuleSetMatchUiState
-    class Done(val matched: List<String>, val exception: Exception? = null) : RuleSetMatchUiState
+@Stable
+internal data class RuleSetMatchUiState(
+    val keyword: String = "google.com",
+    val matched: List<String> = emptyList(),
+    val isDoing: Boolean = false,
+)
+
+@Stable
+internal sealed interface RuleSetMatchUiEvent {
+    class Alert(val message: StringOrRes) : RuleSetMatchUiEvent
 }
 
+@Stable
 internal class RuleSetMatchActivityViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow<RuleSetMatchUiState>(RuleSetMatchUiState.Idle)
+    private val _uiState = MutableStateFlow(RuleSetMatchUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun scan(keyword: String) {
+    private val _uiEvent = MutableSharedFlow<RuleSetMatchUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    fun scan() {
         viewModelScope.launch(Dispatchers.IO) {
-            scan0(keyword)
+            val state = _uiState.value
+            scan0(state.keyword)
         }
     }
 
+    private val matched = mutableListOf<String>() // reuse
+
     private suspend fun scan0(keyword: String) {
-        _uiState.update { RuleSetMatchUiState.Doing() }
-        val matched = mutableListOf<String>()
+        _uiState.update { it.copy(isDoing = true) }
+        matched.clear()
         try {
             Libcore.scanRuleSet(keyword) {
                 matched.add(it)
-                _uiState.update { RuleSetMatchUiState.Doing(matched.toList()) }
+                _uiState.update { state ->
+                    state.copy(matched = matched)
+                }
             }
-            _uiState.update { RuleSetMatchUiState.Done(matched) }
+            if (matched.isEmpty()) {
+                _uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Res(R.string.not_found)))
+            }
         } catch (e: Exception) {
-            _uiState.update { RuleSetMatchUiState.Done(matched,e) }
+            Logs.e(e)
+            _uiEvent.emit(RuleSetMatchUiEvent.Alert(StringOrRes.Direct(e.readableMessage)))
+        } finally {
+            _uiState.update { it.copy(isDoing = false) }
         }
+    }
+
+    fun setKeyword(keyword: String) {
+        _uiState.update { it.copy(keyword = keyword) }
     }
 }

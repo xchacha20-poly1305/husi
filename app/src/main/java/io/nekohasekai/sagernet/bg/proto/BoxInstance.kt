@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.bg.proto
 
 import android.os.SystemClock
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.bg.AbstractInstance
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
 import io.nekohasekai.sagernet.bg.NativeInterface
@@ -22,6 +21,7 @@ import io.nekohasekai.sagernet.fmt.shadowquic.buildShadowQUICConfig
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -86,7 +86,7 @@ abstract class BoxInstance(
                         pluginConfigs[port] =
                             profile.type to bean.buildHysteriaConfig(port, isVPN) { type ->
                                 File(
-                                    app.cacheDir,
+                                    repo.cacheDir,
                                     "hysteria_" + SystemClock.elapsedRealtime() + ".$type",
                                 ).apply {
                                     parentFile?.mkdirs()
@@ -113,7 +113,7 @@ abstract class BoxInstance(
 
     override fun launch() {
         // TODO move, this is not box
-        val cacheDir = File(app.cacheDir, "tmpcfg")
+        val cacheDir = File(repo.cacheDir, "tmpcfg")
         cacheDir.mkdirs()
 
         for ((chain) in config.externalIndex) {
@@ -267,7 +267,7 @@ abstract class BoxInstance(
                 Logs.w(e)
                 // Kill the process if it is not closed properly to clean exist inbound listeners.
                 // Do not kill in main process, whose test not starts any listener.
-                if (!app.isMainProcess) runOnDefaultDispatcher {
+                if (!repo.isMainProcess) runOnDefaultDispatcher {
                     delay(500) // Wait for error handling
                     exitProcess(0)
                 }

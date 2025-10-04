@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.use
+import io.nekohasekai.sagernet.repository.repo
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -18,7 +18,7 @@ object SendLog {
         val logFile = File.createTempFile(
             "$title ",
             ".log",
-            File(app.cacheDir, "log").also { it.mkdirs() },
+            File(repo.cacheDir, "log").also { it.mkdirs() },
         )
 
         var report = CrashHandler.buildReportHeader()
@@ -54,7 +54,7 @@ object SendLog {
         )
     }
 
-    val logFile get() = File(app.externalAssets, "stderr.log")
+    val logFile get() = File(repo.externalAssetsDir, "stderr.log")
 
     // Get log bytes from stderr.log
     fun getCoreLog(max: Long): ByteArray {

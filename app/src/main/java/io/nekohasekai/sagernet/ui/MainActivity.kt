@@ -30,7 +30,6 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
@@ -62,6 +61,7 @@ import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.zlibDecompress
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.dashboard.DashboardFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
@@ -133,7 +133,7 @@ class MainActivity : ThemedActivity(),
         }
 
         binding.fab.setOnClickListener {
-            if (DataStore.serviceState.canStop) SagerNet.stopService() else connect.launch(
+            if (DataStore.serviceState.canStop) repo.stopService() else connect.launch(
                 null
             )
         }
@@ -487,7 +487,7 @@ class MainActivity : ThemedActivity(),
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.PACKAGES -> {
                 if (DataStore.serviceState.canStop) {
                     snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-                        SagerNet.reloadService()
+                        repo.reloadService()
                     }.show()
                 }
             }
@@ -670,7 +670,7 @@ class MainActivity : ThemedActivity(),
         for (proxy in proxies) {
             ProfileManager.createProfile(targetId, proxy)
         }
-        DataStore.editingGroup = targetId
+        DataStore.selectedGroup = targetId
         onMainDispatcher {
             snackbar(
                 resources.getQuantityString(R.plurals.added, proxies.size, proxies.size)

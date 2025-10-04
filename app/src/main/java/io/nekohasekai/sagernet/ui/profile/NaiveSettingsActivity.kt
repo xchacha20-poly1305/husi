@@ -1,38 +1,198 @@
 package io.nekohasekai.sagernet.ui.profile
 
-import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Copyright
+import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.EmojiSymbols
+import androidx.compose.material.icons.filled.Grain
+import androidx.compose.material.icons.filled.Grid3x3
+import androidx.compose.material.icons.filled.Https
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceFragmentCompat
-import io.nekohasekai.sagernet.Key
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
+import io.nekohasekai.sagernet.compose.PasswordPreference
+import io.nekohasekai.sagernet.compose.HostTextField
+import io.nekohasekai.sagernet.compose.PreferenceCategory
+import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
-import io.nekohasekai.sagernet.widget.PasswordSummaryProvider
+import io.nekohasekai.sagernet.ktx.contentOrUnset
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.SwitchPreference
+import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
 
     override val viewModel by viewModels<NaiveSettingsViewModel>()
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
-        addPreferencesFromResource(R.xml.naive_preferences)
-        findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
+    private val protos = listOf("https", "quic")
+
+    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
+        state as NaiveUiState
+
+        item("name") {
+            TextFieldPreference(
+                value = state.name,
+                onValueChange = { viewModel.setName(it) },
+                title = { Text(stringResource(R.string.profile_name)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                valueToText = { it },
+            )
         }
-        findPreference<EditTextPreference>(Key.SERVER_PASSWORD)!!.apply {
-            summaryProvider = PasswordSummaryProvider
+
+        item("category_proxy") {
+            PreferenceCategory(text = { Text(stringResource(R.string.proxy_cat)) })
         }
-        findPreference<EditTextPreference>(Key.SERVER_HEADERS)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
+        item("address") {
+            TextFieldPreference(
+                value = state.address,
+                onValueChange = { viewModel.setAddress(it) },
+                title = { Text(stringResource(R.string.server_address)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Router, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                valueToText = { it },
+            )
         }
-        findPreference<EditTextPreference>(Key.SERVER_INSECURE_CONCURRENCY)!!.apply {
-            setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        item("port") {
+            TextFieldPreference(
+                value = state.port,
+                onValueChange = { viewModel.setPort(it) },
+                title = { Text(stringResource(R.string.server_port)) },
+                textToValue = { it.toIntOrNull() ?: 443 },
+                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                valueToText = { it.toString() },
+                textField = { value, onValueChange, onOk ->
+                    UIntegerTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("username") {
+            TextFieldPreference(
+                value = state.username,
+                onValueChange = { viewModel.setUsername(it) },
+                title = { Text(stringResource(R.string.username_opt)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Person, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                valueToText = { it },
+            )
+        }
+        item("password") {
+            PasswordPreference(
+                value = state.password,
+                onValueChange = { viewModel.setPassword(it) },
+                title = { Text(stringResource(R.string.password_opt)) },
+                icon = { Icon(Icons.Filled.Password, null) },
+            )
+        }
+        item("proto") {
+            ListPreference(
+                value = state.proto,
+                values = protos,
+                onValueChange = { viewModel.setProto(it) },
+                title = { Text(stringResource(R.string.protocol)) },
+                icon = { Icon(Icons.Filled.Https, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.proto)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(it) },
+            )
+        }
+        item("sni") {
+            TextFieldPreference(
+                value = state.sni,
+                onValueChange = { viewModel.setSni(it) },
+                title = { Text(stringResource(R.string.sni)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Copyright, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                valueToText = { it },
+            )
+        }
+        item("extra_headers") {
+            TextFieldPreference(
+                value = state.extraHeaders,
+                onValueChange = { viewModel.setExtraHeaders(it) },
+                title = { Text(stringResource(R.string.extra_headers)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Code, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(state.extraHeaders)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    HostTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("insecure_concurrency") {
+            TextFieldPreference(
+                value = state.insecureConcurrency,
+                onValueChange = { viewModel.setInsecureConcurrency(it) },
+                title = { Text(stringResource(R.string.naive_insecure_concurrency)) },
+                textToValue = { it.toIntOrNull() ?: 0 },
+                icon = { Icon(Icons.Filled.Speed, null) },
+                summary = {
+                    val text = if (state.insecureConcurrency == 0) {
+                        stringResource(androidx.preference.R.string.not_set)
+                    } else {
+                        state.insecureConcurrency.toString()
+                    }
+                    Text(text)
+                },
+                textField = { value, onValueChange, onOk ->
+                    Column {
+                        Text(
+                            text = stringResource(R.string.naive_insecure_concurrency_summary),
+                            modifier = Modifier.padding(16.dp)
+                        )
+
+                        UIntegerTextField(value, onValueChange, onOk)
+                    }
+                },
+            )
+        }
+
+        item("category_experimental") {
+            PreferenceCategory(
+                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                text = { Text(stringResource(R.string.experimental_settings)) },
+            )
+        }
+        item("udp_over_tcp") {
+            SwitchPreference(
+                value = state.udpOverTcp,
+                onValueChange = { viewModel.setUdpOverTcp(it) },
+                title = { Text(stringResource(R.string.udp_over_tcp)) },
+                icon = { Spacer(Modifier.size(24.dp)) },
+            )
+        }
+        item("no_post_quantum") {
+            SwitchPreference(
+                value = state.noPostQuantum,
+                onValueChange = { viewModel.setNoPostQuantum(it) },
+                title = { Text(stringResource(R.string.disable_post_quantum)) },
+                icon = { Icon(Icons.Filled.Grain, null) },
+            )
         }
     }
-
 }

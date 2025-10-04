@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.app.Activity
+import android.content.ClipboardManager
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
@@ -15,6 +16,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.getSystemService
 import androidx.core.os.BundleCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
@@ -36,11 +38,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
@@ -60,6 +62,7 @@ import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.readableUrlTestError
+import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment.SelectCallback
 import io.nekohasekai.sagernet.widget.QRCodeDialog
@@ -91,6 +94,8 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
     private lateinit var binding: LayoutProfileListBinding
     private lateinit var undoManager: UndoSnackbarManager<ProfileItem>
     private lateinit var adapter: ConfigurationAdapter
+
+    private val clipboard by lazy { requireContext().getSystemService<ClipboardManager>()!! }
 
     private val isEnabled: Boolean
         get() = DataStore.serviceState.let { it.canStop || it == BaseService.State.Stopped }
@@ -402,6 +407,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             bindBase(entity)
 
             binding.edit.setOnClickListener {
+                viewModel.editingID = entity.id
                 editProfileLauncher.launch(
                     entity.settingIntent(
                         it.context,
@@ -429,7 +435,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
             this.entity = entity
             val bean = entity.requireBean()
 
-            binding.profileType.text = entity.displayType()
+            binding.profileType.text = entity.displayType(binding.profileType.context)
 
             val tx = entity.tx
             val rx = entity.rx
@@ -636,7 +642,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
         }
 
         private fun export(link: String) {
-            val success = SagerNet.trySetPrimaryClip(link)
+            val success = clipboard.trySetPrimaryClip(link)
             snackbar(
                 if (success) {
                     R.string.action_export_msg
@@ -675,7 +681,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
 
                 R.id.action_config_export_file -> {
                     val cfg = entity.exportConfig()
-                    DataStore.serverConfig = cfg.first
+                    viewModel.exportConfig = cfg.first
                     startFilesForResult(
                         exportConfig, cfg.second
                     )
@@ -699,9 +705,10 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
     private val editProfileLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                if (DataStore.currentProfile == DataStore.editingId) {
+                if (DataStore.currentProfile == viewModel.editingID) {
                     needReload()
                 }
+                viewModel.editingID = null
             }
         }
 
@@ -712,7 +719,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
                     try {
                         requireActivity().contentResolver.openOutputStream(data)!!
                             .bufferedWriter().use {
-                                it.write(DataStore.serverConfig)
+                                it.write(viewModel.exportConfig)
                             }
                         onMainDispatcher {
                             snackbar(getString(R.string.action_export_msg)).show()

@@ -17,5 +17,6 @@ when {
 }
 
 include(":app")
+include(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn")
 
 rootProject.name = "husi"

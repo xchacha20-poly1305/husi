@@ -3,10 +3,10 @@ package io.nekohasekai.sagernet.bg
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.AppScanner
 
 class AppChangeReceiver : BroadcastReceiver() {
@@ -35,7 +35,7 @@ class AppChangeReceiver : BroadcastReceiver() {
             Logs.d("missing package name in intent")
             return
         }
-        val isChinaApp = AppScanner.isChinaApp(packageName, app.packageManager)
+        val isChinaApp = AppScanner.isChinaApp(packageName, repo.packageManager)
         Logs.d("scan china app result for $packageName: $isChinaApp")
         if (isChinaApp && DataStore.bypassMode) {
             DataStore.packages += packageName

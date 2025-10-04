@@ -486,8 +486,6 @@
     <string name="get_cert">Получение сертификатов</string>
     <string name="dns_mode">Режим DNS</string>
     <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
-    <string name="get_cert_success">Сертификат получен и скопирован в буфер обмена.</string>
-    <string name="get_cert_fail">Не удалось получить сертификаты!</string>
     <string name="scan_vpn_app_introduce">Показать установленные на устройстве VPN-приложения и их тип.</string>
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
     <string name="enable_brutal">Включить контроллер перегрузки TCP Brutal</string>
@@ -656,7 +654,7 @@
     <string name="tls_fragment">Фрагментация TLS</string>
     <string name="tls_fragment_fallback_delay">Фрагментация TLS - Резервное время ожидания</string>
     <string name="tls_record_fragment">Фрагментация TLS с упаковкой в TLS-записи</string>
-    <string name="reality_public_key">REALITY - Публичный ключ</string>
+    <string name="reality_public_key">REALITY - Открытый ключ</string>
     <string name="initial_mtu">Начальный MTU</string>
     <string name="minimum_mtu">Минимальный MTU</string>
     <string name="expand">Развернуть</string>
@@ -677,4 +675,5 @@
     <string name="juicity_provider">Провайдер Juicity</string>
     <string name="menu">Меню</string>
     <string name="mutual_tls">Взаимный TLS (mTLS)</string>
+    <string name="cert_public_key_sha256">SHA-256 хеш открытого ключа сертификата</string>
 </resources>

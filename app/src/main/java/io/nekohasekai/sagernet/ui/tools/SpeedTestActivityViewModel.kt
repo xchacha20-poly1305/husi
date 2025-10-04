@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.R
@@ -24,31 +25,45 @@ import libcore.CopyCallback
 import libcore.HTTPResponse
 import libcore.Libcore
 
+@Stable
 internal data class SpeedTestActivityUiState(
-    val progress: Int? = null,
+    val progress: Float? = null,
     val speed: Long = 0L,
     val canTest: Boolean = true,
     val mode: SpeedTestActivityViewModel.SpeedTestMode = SpeedTestActivityViewModel.SpeedTestMode.Download,
-    val downloadURL: String = DataStore.speedTestUrl.blankAsNull() ?: SPEED_TEST_URL,
-    val uploadURL: String = DataStore.speedTestUploadURL.blankAsNull() ?: SPEED_TEST_UPLOAD_URL,
+    val downloadURL: String = SPEED_TEST_URL,
+    val uploadURL: String = SPEED_TEST_UPLOAD_URL,
     val urlError: StringOrRes? = null,
-    val timeout: Int = DataStore.speedTestTimeout,
+    val timeout: Int = 20000,
     val timeoutError: StringOrRes? = null,
-    val uploadLength: Long = DataStore.speedTestUploadLength,
+    val uploadLength: Long = 10 * 1024 * 1024,
     val uploadLengthError: StringOrRes? = null,
 )
 
+@Stable
 internal sealed interface SpeedTestActivityUiEvent {
     class Snackbar(val message: StringOrRes) : SpeedTestActivityUiEvent
     class ErrorAlert(val message: StringOrRes) : SpeedTestActivityUiEvent
 }
 
+@Stable
 internal class SpeedTestActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(SpeedTestActivityUiState())
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<SpeedTestActivityUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    fun initialize() {
+        _uiState.update {
+            it.copy(
+                downloadURL = DataStore.speedTestUrl.blankAsNull() ?: SPEED_TEST_URL,
+                uploadURL = DataStore.speedTestUploadURL.blankAsNull() ?: SPEED_TEST_UPLOAD_URL,
+                timeout = DataStore.speedTestTimeout,
+                uploadLength = DataStore.speedTestUploadLength,
+            )
+        }
+    }
 
     private var job: Job? = null
     private var currentResponse: HTTPResponse? = null
@@ -217,7 +232,7 @@ internal class SpeedTestActivityViewModel : ViewModel() {
         }
     }
 
-    private class SpeedTestCopyCallback(val onFrameUpdate: (speed: Long, progress: Int?) -> Unit) :
+    private class SpeedTestCopyCallback(val onFrameUpdate: (speed: Long, progress: Float?) -> Unit) :
         CopyCallback {
 
         private val start = System.nanoTime()
@@ -234,7 +249,7 @@ internal class SpeedTestActivityViewModel : ViewModel() {
             val duration = (System.nanoTime() - start) / 1_000_000_000.0
             val speed = (savedDouble / duration).toLong()
             val progress = total?.let {
-                (savedDouble / it * 100).toInt()
+                (savedDouble / it).toFloat()
             }
             onFrameUpdate(speed, progress)
         }

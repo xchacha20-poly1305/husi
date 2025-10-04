@@ -449,7 +449,6 @@
     <string name="resolve_server">یافتن آدرس سرور مطابق خط مشی IPv6</string>
     <string name="get_cert_server_hint">سرور هدف</string>
     <string name="get_cert">دریافت گواهی ها</string>
-    <string name="get_cert_fail">دریافت گواهی ها انجام نشد!</string>
     <string name="ech_config">پیکربندی ECH</string>
     <string name="inbound_username">نام کاربری ورودی</string>
     <string name="inbound_password">رمز عبور ورودی</string>
@@ -476,7 +475,6 @@
     <string name="vpn_golang_version">نسخه زبان Go</string>
     <string name="tls_camouflage_settings">تنظیمات استتار TLS</string>
     <string name="get_cert_summary">گرفتن گواهی TLS سرور هدف.از https و QUIC پشتیبانی می شود.</string>
-    <string name="get_cert_success">با موفقیت انجام شد! گواهی ها در کلیپ بورد کپی شدند.</string>
     <string name="blurred_address">آدرس سرور را تار کن</string>
     <string name="action_flash_off">خاموش کردن فلاش</string>
     <string name="action_flash_on">روشن کردن فلاش</string>

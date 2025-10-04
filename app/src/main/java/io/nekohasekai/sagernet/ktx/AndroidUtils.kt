@@ -4,6 +4,8 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -18,7 +20,6 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
-import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -28,8 +29,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -41,6 +40,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.isGone
 import androidx.preference.ListPreference
 import androidx.preference.Preference
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -49,16 +49,6 @@ import kotlinx.coroutines.flow.callbackFlow
 
 val isExpert: Boolean
     get() = BuildConfig.DEBUG || DataStore.isExpert
-
-fun SearchView.setOnFocusCancel(callback: ((hasFocus: Boolean) -> Unit)? = null) {
-    setOnQueryTextFocusChangeListener { _, hasFocus ->
-        if (!hasFocus) {
-            onActionViewCollapsed()
-            clearFocus()
-        }
-        callback?.invoke(hasFocus)
-    }
-}
 
 fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
     if (force) post {
@@ -80,9 +70,8 @@ fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
     }, 300L)
 }
 
-val shortAnimTime by lazy {
-    app.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-}
+val Context.shortAnimTime
+    get() = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
 
 fun View.crossFadeFrom(other: View) {
     clearAnimation()
@@ -90,12 +79,12 @@ fun View.crossFadeFrom(other: View) {
     if (isVisible && other.isGone) return
     alpha = 0F
     visibility = View.VISIBLE
-    animate().alpha(1F).duration = shortAnimTime
+    animate().alpha(1F).duration = context.shortAnimTime
     other.animate().alpha(0F).setListener(object : AnimatorListenerAdapter() {
         override fun onAnimationEnd(animation: Animator) {
             other.visibility = View.GONE
         }
-    }).duration = shortAnimTime
+    }).duration = context.shortAnimTime
 }
 
 
@@ -103,7 +92,7 @@ fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackba
 fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)
 
 fun ThemedActivity.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
+    launcher: ActivityResultLauncher<String>, input: String,
 ) {
     try {
         return launcher.launch(input)
@@ -114,7 +103,7 @@ fun ThemedActivity.startFilesForResult(
 }
 
 fun Fragment.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
+    launcher: ActivityResultLauncher<String>, input: String,
 ) {
     try {
         return launcher.launch(input)
@@ -127,14 +116,14 @@ fun Fragment.startFilesForResult(
 fun Fragment.needReload() {
     if (DataStore.serviceState.started) {
         snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-            SagerNet.reloadService()
+            repo.reloadService()
         }.show()
     }
 }
 
 fun Fragment.needRestart() {
     snackbar(R.string.need_restart).setAction(R.string.apply) {
-        SagerNet.stopService()
+        repo.stopService()
         val ctx = requireContext()
         runOnDefaultDispatcher {
             delay(500)
@@ -224,16 +213,42 @@ fun ListPreference.setSummaryUserInput(userInput: String) {
 }
 
 fun EditText.textChanges(): Flow<Editable?> {
-   return callbackFlow {
-       val watcher = object : TextWatcher {
-           override fun afterTextChanged(s: Editable?) {
-               trySend(s)
-           }
+    return callbackFlow {
+        val watcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                trySend(s)
+            }
 
-           override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-           override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-       }
-       addTextChangedListener(watcher)
-       awaitClose { removeTextChangedListener(watcher) }
-   }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+        addTextChangedListener(watcher)
+        awaitClose { removeTextChangedListener(watcher) }
+    }
+}
+
+fun Context.contentOrUnset(content: String): String {
+    return content.blankAsNull() ?: getString(androidx.preference.R.string.not_set)
+}
+
+fun Context.contentOrUnset(content: Int): String {
+    return if (content <= 0) {
+        getString(androidx.preference.R.string.not_set)
+    } else {
+        content.toString()
+    }
+}
+
+fun ClipboardManager.trySetPrimaryClip(clip: String): Boolean {
+    return try {
+        setPrimaryClip(ClipData.newPlainText(null, clip))
+        true
+    } catch (error: RuntimeException) {
+        Logs.w(error)
+        false
+    }
+}
+
+fun ClipboardManager.first(): String? {
+    return primaryClip?.getItemAt(0)?.text?.toString()
 }

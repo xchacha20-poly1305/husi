@@ -411,7 +411,6 @@
     <string name="resolve_server">Вирішувати адресу сервера відповідно до політики IPv6</string>
     <string name="get_cert_server_hint">Цільовий сервер</string>
     <string name="get_cert">Отримання сертифікатів</string>
-    <string name="get_cert_success">Сертифікат отримано та скопійовано до буферу обміну.</string>
     <string name="ech_config">Конфігурація ECH</string>
     <string name="get_cert_summary">Отримати TLS сертифікати цільового сервера. Підтримка https та QUIC.</string>
     <string name="inbound_username">Ім\'я користувача SOCKS5</string>
@@ -475,7 +474,6 @@
     <string name="show_group_in_notification">Показувати назву групи у сповіщенні</string>
     <string name="save">Зберегти</string>
     <string name="log_level">Тип журналу</string>
-    <string name="get_cert_fail">Не вдалося отримати сертифікати!</string>
     <string name="experimental_authenticated_length">Зробити довжину кожного сегменту корисного навантаження незмінною. Цей експеримент потребує, аби клієнт та сервер обидва використовували однакову версію v2ray-core. Більше оновлень з часом.</string>
     <string name="select_apps">Оберіть застосунки</string>
     <string name="location_permission_background_description">На Android 10 та вище потрібно надати дозвіл на визначення місцерозташування у фоновому режимі. Оберіть Дозволити постійно, аби надати дозвіл.</string>

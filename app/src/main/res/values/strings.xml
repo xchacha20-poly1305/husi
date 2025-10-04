@@ -348,6 +348,8 @@
     </string>
     <string name="deduplication_sum">Remove duplicate configurations when updating</string>
     <string name="raw">Raw</string>
+    <string name="oocv1" translatable="false">OOCv1</string>
+    <string name="sip008" translatable="false">SIP008</string>
     <string name="update_settings">Update Settings</string>
     <string name="auto_update">Auto Update</string>
     <string name="auto_update_delay">Auto Update Delay (In minutes)</string>
@@ -519,9 +521,6 @@
     <string name="get_cert_summary">Get the TLS certificates of target server.Support https and
         QUIC.
     </string>
-    <string name="get_cert_success">Obtained successfully! Certificates copied to clipboard.
-    </string>
-    <string name="get_cert_fail">Failed to get certificates!</string>
     <string name="ech_config">ECH configuration</string>
     <string name="inbound_username">Inbound username</string>
     <string name="inbound_password">Inbound password</string>
@@ -714,4 +713,6 @@
     <string name="mutual_tls">Mutual TLS</string>
     <string name="menu">Menu</string>
     <string name="cert_public_key_sha256">Certificate Public Key Sha256</string>
+    <string name="format">Format</string>
+    <string name="not_found">Not found</string>
 </resources>

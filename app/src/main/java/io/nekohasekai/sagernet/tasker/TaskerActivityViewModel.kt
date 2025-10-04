@@ -2,50 +2,53 @@ package io.nekohasekai.sagernet.tasker
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceDataStore
-import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal sealed interface TaskerActivityUiEvent {
-    object EnableBackPressCallback : TaskerActivityUiEvent
-    class SetAction(val action: Int) : TaskerActivityUiEvent
-    class SetProfileID(val id: Long): TaskerActivityUiEvent
-}
+internal data class TaskerActivityUiState(
+    val action: Int = 0,
+    val profileID: Long = -1,
+)
 
-internal class TaskerActivityViewModel : ViewModel(), OnPreferenceDataStoreChangeListener {
-    private val _uiEvent = MutableSharedFlow<TaskerActivityUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+internal class TaskerActivityViewModel : ViewModel() {
 
-    var dirty = false
+    private val _uiState = MutableStateFlow(TaskerActivityUiState())
+    val uiState = _uiState.asStateFlow()
 
-    fun onSelectProfile(id: Long) = runOnDefaultDispatcher {
-        DataStore.taskerProfileId = id
+    private lateinit var initialState: TaskerActivityUiState
+    val isDirty = uiState.map { currentState ->
+        initialState != currentState
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false,
+    )
+
+    fun loadFromSetting(action: Int, profileID: Long) {
+        _uiState.update {
+            it.copy(
+                action = action,
+                profileID = profileID,
+            ).also {
+                initialState = it
+            }
+        }
     }
 
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        dirty = true
+    fun setAction(action: Int) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(action = action)
+        }
+    }
 
-        viewModelScope.launch {
-            _uiEvent.emit(TaskerActivityUiEvent.EnableBackPressCallback)
-
-            when (key) {
-                Key.TASKER_ACTION -> {
-                    _uiEvent.emit(TaskerActivityUiEvent.SetAction(DataStore.taskerAction))
-                }
-
-                Key.TASKER_PROFILE -> if (DataStore.taskerProfile == 0) {
-                    DataStore.taskerProfileId = -1L
-                }
-
-                Key.TASKER_PROFILE_ID -> {
-                    _uiEvent.emit(TaskerActivityUiEvent.SetProfileID(DataStore.taskerProfileId))
-                }
-            }
+    fun setProfileID(profileID: Long) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(profileID = profileID)
         }
     }
 }

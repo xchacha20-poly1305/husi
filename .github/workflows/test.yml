@@ -77,7 +77,7 @@ jobs:
         run: |
           ./run lib core
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Gradle Test
         run: |
           make test_gradle

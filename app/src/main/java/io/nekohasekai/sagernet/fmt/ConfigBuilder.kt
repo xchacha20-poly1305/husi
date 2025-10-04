@@ -5,7 +5,6 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.NetworkInterfaceStrategy
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
-import io.nekohasekai.sagernet.SagerNet.Companion.app
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN4_ROUTER
@@ -76,6 +75,7 @@ import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.ktx.reverse
 import io.nekohasekai.sagernet.ktx.toJsonMap
 import io.nekohasekai.sagernet.logLevelString
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.PackageCache
 import libcore.Libcore
 
@@ -572,8 +572,8 @@ fun buildConfig(
             val uidList = rule.packages.mapNotNullTo(LinkedHashSet()) {
                 if (!isVPN) {
                     Toast.makeText(
-                        app,
-                        app.getStringCompat(R.string.route_need_vpn, rule.displayName()),
+                        repo.context,
+                        repo.getString(R.string.route_need_vpn, rule.displayName()),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -762,7 +762,7 @@ fun buildConfig(
                 }
                 if (needOutbound && ruleObj.outbound.isNullOrBlank()) {
                     Toast.makeText(
-                        app,
+                        repo.context,
                         "Warning: " + rule.displayName() + ": A non-existent outbound was specified.",
                         Toast.LENGTH_LONG,
                     ).show()
@@ -988,8 +988,8 @@ fun buildConfig(
                 })
             }
 
-            route.final_ = mainTag
         }
+        route.final_ = mainTag
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
 
         // mapping for plugin
@@ -1038,7 +1038,7 @@ fun buildConfig(
             }
         }
         if (geositeLink == null) {
-            ruleSetResource = app.externalAssets.absolutePath + "/geo"
+            ruleSetResource = repo.externalAssetsDir.absolutePath + "/geo"
         }
         buildRuleSets(geoipLink, geositeLink, ruleSetResource)
         partitionEndpoints()

@@ -460,8 +460,6 @@
     <string name="get_cert_server_hint">目标服务器</string>
     <string name="get_cert">获取证书</string>
     <string name="get_cert_summary">获取目标网站的 TLS 证书。支持 https 和 QUIC。</string>
-    <string name="get_cert_success">获取成功！证书已复制到剪贴板.</string>
-    <string name="get_cert_fail">获取证书失败！</string>
     <string name="ech_config">ECH 配置</string>
     <string name="inbound_username">入站用户名</string>
     <string name="inbound_password">入站密码</string>
@@ -640,4 +638,6 @@
     <string name="mutual_tls">双向 TLS</string>
     <string name="menu">菜单</string>
     <string name="cert_public_key_sha256">证书公钥 sha256</string>
+    <string name="format">格式</string>
+    <string name="not_found">未找到</string>
 </resources>
