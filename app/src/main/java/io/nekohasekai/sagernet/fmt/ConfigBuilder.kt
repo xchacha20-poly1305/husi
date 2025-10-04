@@ -988,8 +988,8 @@ fun buildConfig(
                 })
             }
 
-            route.final_ = mainTag
         }
+        route.final_ = mainTag
         if (!forTest) dns.final_ = TAG_DNS_REMOTE
 
         // mapping for plugin
