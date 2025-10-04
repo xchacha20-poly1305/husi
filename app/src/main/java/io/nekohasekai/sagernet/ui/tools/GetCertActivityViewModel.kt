@@ -63,14 +63,13 @@ internal class GetCertActivityViewModel() : ViewModel() {
         try {
             val cert = Libcore.getCert(server, serverName, protocol, format, proxy)
             _uiState.update {
-                it.copy(isDoing = false, cert = cert)
+                it.copy(cert = cert)
             }
         } catch (e: Exception) {
             Logs.e(e)
-            _uiState.update {
-                it.copy(isDoing = false)
-            }
             _uiEvent.emit(GetCertUiEvent.Alert(e))
+        } finally {
+            _uiState.update { it.copy(isDoing = false) }
         }
     }
 
