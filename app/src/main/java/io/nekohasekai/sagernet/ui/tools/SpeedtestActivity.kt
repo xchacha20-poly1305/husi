@@ -2,221 +2,340 @@ package io.nekohasekai.sagernet.ui.tools
 
 import android.os.Bundle
 import android.text.format.Formatter
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.snackbar.Snackbar
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.databinding.LayoutToolsSpeedTestBinding
-import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.textChanges
+import io.nekohasekai.sagernet.repository.TempRepository
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.getStringOrRes
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
 class SpeedtestActivity : ThemedActivity() {
 
-    companion object {
-        private const val DEBOUNCE_DURATION = 500L
-    }
-
-    private lateinit var binding: LayoutToolsSpeedTestBinding
     private val viewModel by viewModels<SpeedTestActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutToolsSpeedTestBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding.mainLayout) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-                bottom = bars.bottom,
-            )
-            insets
+        if (savedInstanceState == null) {
+            viewModel.initialize()
         }
 
-        binding.toolbar.setContent {
-            @Suppress("DEPRECATION")
+        setContent {
             AppTheme {
+                SpeedtestScreen(
+                    viewModel = viewModel,
+                    onBackPress = {
+                        onBackPressedDispatcher.onBackPressed()
+                    },
+                )
+            }
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun SpeedtestScreen(
+    modifier: Modifier = Modifier,
+    viewModel: SpeedTestActivityViewModel,
+    onBackPress: () -> Unit,
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val windowInsets = WindowInsets.safeDrawing
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    val context = LocalContext.current
+    var alert by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is SpeedTestActivityUiEvent.Snackbar -> scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+
+                is SpeedTestActivityUiEvent.ErrorAlert -> {
+                    alert = context.getStringOrRes(event.message)
+                }
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
                 SimpleTopAppBar(
-                    title = R.string.show_direct_speed_sum,
+                    title = R.string.speed_test,
                     navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                    windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                    scrollBehavior = scrollBehavior,
+                    onNavigationClick = onBackPress,
+                )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .paddingExceptBottom(innerPadding),
+        ) {
+            Card(modifier = Modifier.padding(16.dp)) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 64.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .selectable(
+                                    selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Download,
+                                    enabled = uiState.progress == null,
+                                    onClick = { viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Download) },
+                                    role = Role.RadioButton,
+                                ),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            RadioButton(
+                                selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Download,
+                                onClick = null,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.download))
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .selectable(
+                                    selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Upload,
+                                    enabled = uiState.progress == null,
+                                    onClick = { viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Upload) },
+                                    role = Role.RadioButton,
+                                ),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            RadioButton(
+                                selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Upload,
+                                onClick = null,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.upload))
+                        }
+                    }
+                    Spacer(Modifier.padding(vertical = 16.dp))
+
+                    OutlinedTextField(
+                        value = when (uiState.mode) {
+                            SpeedTestActivityViewModel.SpeedTestMode.Download -> uiState.downloadURL
+                            SpeedTestActivityViewModel.SpeedTestMode.Upload -> uiState.uploadURL
+                        },
+                        onValueChange = { viewModel.setServer(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        label = { Text(stringResource(R.string.server_address)) },
+                        singleLine = false,
+                        isError = uiState.urlError != null,
+                        supportingText = uiState.urlError?.let {
+                            {
+                                Text(
+                                    text = LocalContext.current.getStringOrRes(it),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(start = 16.dp),
+                                )
+                            }
+                        },
+                    )
+                    Spacer(Modifier.padding(vertical = 8.dp))
+
+                    OutlinedTextField(
+                        value = uiState.timeout.toString(),
+                        onValueChange = { viewModel.setTimeout(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        label = { Text(stringResource(R.string.test_timeout)) },
+                        isError = uiState.timeoutError != null,
+                        supportingText = uiState.timeoutError?.let {
+                            {
+                                Text(
+                                    text = LocalContext.current.getStringOrRes(it),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(start = 16.dp),
+                                )
+                            }
+                        },
+                    )
+                    Spacer(Modifier.padding(vertical = 8.dp))
+
+                    if (uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Upload) {
+                        OutlinedTextField(
+                            value = uiState.uploadLength.toString(),
+                            onValueChange = { viewModel.setUploadSize(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            label = { Text(stringResource(R.string.upload_size)) },
+                            isError = uiState.uploadLengthError != null,
+                            supportingText = uiState.timeoutError?.let {
+                                {
+                                    Text(
+                                        text = LocalContext.current.getStringOrRes(it),
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(start = 16.dp),
+                                    )
+                                }
+                            },
+                        )
+                        Spacer(Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Button(
+                    onClick = { viewModel.doSpeedTest() },
+                    enabled = uiState.progress == null,
                 ) {
-                    onBackPressedDispatcher.onBackPressed()
+                    Text(stringResource(R.string.start))
                 }
             }
-        }
 
-        binding.speedTestMode.setOnCheckedChangeListener { _, checkedID ->
-            when (checkedID) {
-                R.id.speed_test_download -> {
-                    viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Download)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+                    .size(64.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                val speed = Formatter.formatFileSize(LocalContext.current, uiState.speed)
+                SelectionContainer {
+                    Text(
+                        text = stringResource(R.string.speed, speed),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
+            }
 
-                R.id.speed_test_upload -> {
-                    viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Upload)
-                }
+            uiState.progress?.let {
+                LinearWavyProgressIndicator(
+                    progress = { it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-        }
 
-        binding.speedTestServer
-            .textChanges()
-            .debounce(DEBOUNCE_DURATION)
-            .filter { editable ->
-                val currentServerUrl = when (viewModel.uiState.value.mode) {
-                    SpeedTestActivityViewModel.SpeedTestMode.Download -> viewModel.uiState.value.downloadURL
-                    SpeedTestActivityViewModel.SpeedTestMode.Upload -> viewModel.uiState.value.uploadURL
-                }
-                editable?.toString() != currentServerUrl
-            }
-            .onEach { editable ->
-                viewModel.setServer(editable?.toString())
-            }
-            .launchIn(lifecycleScope)
-        binding.speedTestTimeout
-            .textChanges()
-            .debounce(DEBOUNCE_DURATION)
-            .filter { editable ->
-                editable?.toString() != viewModel.uiState.value.timeout.toString()
-            }
-            .onEach { editable ->
-                viewModel.setTimeout(editable?.toString())
-            }
-            .launchIn(lifecycleScope)
-        binding.speedTestUploadSize
-            .textChanges()
-            .debounce(DEBOUNCE_DURATION)
-            .filter { editable ->
-                editable?.toString() != viewModel.uiState.value.uploadLength.toString()
-            }
-            .onEach { editable ->
-                viewModel.setUploadSize(editable?.toString())
-            }
-            .launchIn(lifecycleScope)
-
-        binding.speedTest.setOnClickListener {
-            viewModel.doSpeedTest()
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::handleState)
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
+            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }
 
-    override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(binding.mainLayout, text, Snackbar.LENGTH_LONG)
-    }
+    if (alert != null) AlertDialog(
+        onDismissRequest = { alert = null },
+        confirmButton = {
+            TextButton(stringResource(android.R.string.ok)) {
+                alert = null
+            }
+        },
+        icon = { Icon(Icons.Filled.Error, null) },
+        title = { Text(stringResource(R.string.error_title)) },
+        text = { Text(alert!!) },
+    )
+}
 
-    private fun handleState(state: SpeedTestActivityUiState) {
-        if (state.progress == null) {
-            binding.speedTestProgress.isVisible = false
-        } else {
-            binding.speedTestProgress.isVisible = true
-            binding.speedTestProgress.setProgressCompat(state.progress, true)
-        }
-        binding.speedTestResult.text = binding.speedTestResult.context.getString(
-            R.string.speed,
-            Formatter.formatFileSize(this, state.speed),
-        )
-        binding.speedTest.isClickable = state.canTest
-        if (state.timeoutError == null) {
-            binding.speedTestTimeoutLayout.isErrorEnabled = false
-            // If user is typing, this can prevent the focus backing to the head.
-            val timeout = state.timeout.toString()
-            if (timeout != binding.speedTestTimeout.text.toString()) {
-                binding.speedTestTimeout.setText(state.timeout.toString())
-            }
-        } else {
-            binding.speedTestTimeoutLayout.apply {
-                isErrorEnabled = true
-                error = context.getStringOrRes(state.timeoutError)
-            }
-        }
-        when (state.mode) {
-            SpeedTestActivityViewModel.SpeedTestMode.Download -> {
-                binding.speedTestMode.check(R.id.speed_test_download)
-                if (state.urlError == null) {
-                    binding.speedTestServerLayout.isErrorEnabled = false
-                    if (state.downloadURL != binding.speedTestServer.text.toString()) {
-                        binding.speedTestServer.setText(state.downloadURL)
-                    }
-                } else {
-                    binding.speedTestServerLayout.apply {
-                        isErrorEnabled = true
-                        error = context.getStringOrRes(state.urlError)
-                    }
-                }
-                binding.speedTestUploadSizeLayout.isVisible = false
-            }
+@Preview
+@Composable
+private fun PreviewSpeedtest() {
+    val context = LocalContext.current
+    repo = TempRepository(context)
 
-            SpeedTestActivityViewModel.SpeedTestMode.Upload -> {
-                binding.speedTestMode.check(R.id.speed_test_upload)
-                if (state.urlError == null) {
-                    if (state.uploadURL != binding.speedTestServer.text.toString()) {
-                        binding.speedTestServer.setText(state.uploadURL)
-                    }
-                } else {
-                    binding.speedTestServerLayout.apply {
-                        isErrorEnabled = true
-                        error = context.getStringOrRes(state.urlError)
-                    }
-                }
-                binding.speedTestUploadSizeLayout.isVisible = true
-                if (state.uploadLengthError == null) {
-                    binding.speedTestUploadSizeLayout.isErrorEnabled = false
-                    val uploadLength = state.uploadLength.toString()
-                    if (uploadLength != binding.speedTestUploadSize.text.toString()) {
-                        binding.speedTestUploadSize.setText(state.uploadLength.toString())
-                    }
-                } else {
-                    binding.speedTestUploadSizeLayout.apply {
-                        isErrorEnabled = true
-                        error = context.getStringOrRes(state.uploadLengthError)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun handleUiEvent(event: SpeedTestActivityUiEvent) {
-        when (event) {
-            is SpeedTestActivityUiEvent.ErrorAlert -> {
-                alert(getStringOrRes(event.message))
-            }
-
-            is SpeedTestActivityUiEvent.Snackbar -> {
-                snackbar(getStringOrRes(event.message)).show()
-            }
-        }
-    }
-
+    SpeedtestScreen(
+        viewModel = SpeedTestActivityViewModel(),
+        onBackPress = {},
+    )
 }
