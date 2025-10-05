@@ -20,6 +20,7 @@ import io.nekohasekai.sagernet.fmt.socks.SOCKSBean;
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean;
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean;
+import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean;
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean;
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean;
 import io.nekohasekai.sagernet.ktx.KryosKt;
@@ -90,6 +91,12 @@ public class KryoConverters {
     public static VMessBean vmessDeserialize(byte[] bytes) {
         if (isEmpty(bytes)) return null;
         return deserialize(new VMessBean(), bytes);
+    }
+
+    @TypeConverter
+    public static VLESSBean vlessDeserialize(byte[] bytes) {
+        if (isEmpty(bytes)) return null;
+        return deserialize(new VLESSBean(), bytes);
     }
 
     @TypeConverter
