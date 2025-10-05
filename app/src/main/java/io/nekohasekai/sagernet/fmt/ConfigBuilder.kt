@@ -16,7 +16,6 @@ import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.CacheFileOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ExperimentalOptions
@@ -24,7 +23,9 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_DirectOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_HTTPMixedOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Inbound_TunOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.LogOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyDNSOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyRouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NTPOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_HostsDNSServerOptions
@@ -32,7 +33,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSSe
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_DirectOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound_SOCKSOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.User
@@ -198,7 +198,7 @@ fun buildConfig(
         if (forTest) mapOf() else SagerDatabase.proxyDao.getEntities(extraRules.mapNotNull { rule ->
             rule.outbound.takeIf { it > 0 && it != proxy.id }
         }.toHashSet().toList()).associateBy { it.id }
-    val userDNSRuleList = mutableListOf<DNSRule_Default>()
+    val userDNSRuleList = mutableListOf<JSONMap>()
     val domainListDNSDirectForce = mutableListOf<String>()
     val bypassDNSBeans = hashSetOf<AbstractBean>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
@@ -269,7 +269,7 @@ fun buildConfig(
             }
         }
 
-        dns = DNSOptions().apply {
+        dns = MyDNSOptions().apply {
             servers = mutableListOf()
             rules = mutableListOf()
             independent_cache = true
@@ -323,7 +323,7 @@ fun buildConfig(
         outbounds = mutableListOf()
 
         // init routing object
-        route = RouteOptions().apply {
+        route = MyRouteOptions().apply {
             auto_detect_interface = true
             rules = mutableListOf()
             rule_set = mutableListOf()
@@ -398,7 +398,7 @@ fun buildConfig(
                             route.rules.add(Rule_Default().apply {
                                 inbound = listOf(pastInboundTag)
                                 outbound = tagOut
-                            })
+                            }.asMap())
                         } else {
                             pastOutbound["detour"] = tagOut
                         }
@@ -533,7 +533,7 @@ fun buildConfig(
                             route.rules.add(Rule_Default().apply {
                                 inbound = listOf(tag)
                                 outbound = TAG_DIRECT
-                            })
+                            }.asMap())
                         }
                     })
                 }
@@ -657,6 +657,12 @@ fun buildConfig(
                 if (rule.networkIsExpensive) {
                     network_is_expensive = true
                 }
+                if (rule.networkInterfaceAddress.isNotEmpty()) {
+                    network_interface_address = rule.networkInterfaceAddress
+                        .mapValues { (_, addresses) ->
+                            addresses.listByLineOrComma()
+                        }
+                }
 
                 fun makeDnsRuleObj(): DNSRule_Default {
                     return DNSRule_Default().apply {
@@ -666,34 +672,51 @@ fun buildConfig(
                     }
                 }
 
+                var dnsRuleJson: JSONMap? = null
                 when (val ruleAction = rule.action) {
                     "", SingBoxOptions.ACTION_ROUTE -> {
                         action = SingBoxOptions.ACTION_ROUTE
 
                         when (val outID = rule.outbound) {
                             RuleEntity.OUTBOUND_DIRECT -> {
-                                userDNSRuleList.add(makeDnsRuleObj().apply {
-                                    server = TAG_DNS_DIRECT
-                                })
+                                if (dnsRuleJson == null) {
+                                    val dnsRule = makeDnsRuleObj().apply {
+                                        server = TAG_DNS_DIRECT
+                                    }
+                                    if (!dnsRule.checkEmpty()) {
+                                        dnsRuleJson = dnsRule.asMap()
+                                    }
+                                }
                                 outbound = TAG_DIRECT
                             }
 
                             RuleEntity.OUTBOUND_PROXY -> {
-                                if (useFakeDns) userDNSRuleList.add(makeDnsRuleObj().apply {
-                                    server = TAG_DNS_FAKE
-                                    inbound = listOf(TAG_TUN)
-                                    query_type = FAKE_DNS_QUERY_TYPE
-                                })
-                                userDNSRuleList.add(makeDnsRuleObj().apply {
-                                    server = TAG_DNS_REMOTE
-                                })
+                                if (dnsRuleJson == null) {
+                                    val dnsRule = makeDnsRuleObj().apply {
+                                        if (useFakeDns) {
+                                            server = TAG_DNS_FAKE
+                                            inbound = listOf(TAG_TUN)
+                                            query_type = FAKE_DNS_QUERY_TYPE
+                                        } else {
+                                            server = TAG_DNS_REMOTE
+                                        }
+                                    }
+                                    if (!dnsRule.checkEmpty()) {
+                                        dnsRuleJson = dnsRule.asMap()
+                                    }
+                                }
                                 outbound = mainTag
                             }
 
                             RuleEntity.OUTBOUND_BLOCK -> {
-                                userDNSRuleList.add(makeDnsRuleObj().apply {
-                                    action = SingBoxOptions.ACTION_REJECT
-                                })
+                                if (dnsRuleJson == null) {
+                                    val dnsRule = makeDnsRuleObj().apply {
+                                        action = SingBoxOptions.ACTION_REJECT
+                                    }
+                                    if (!dnsRule.checkEmpty()) {
+                                        dnsRuleJson = dnsRule.asMap()
+                                    }
+                                }
                                 outbound = TAG_BLOCK
                             }
 
@@ -743,17 +766,38 @@ fun buildConfig(
                     }
 
                     SingBoxOptions.ACTION_REJECT -> {
-                        userDNSRuleList.add(makeDnsRuleObj().apply {
+                        val dnsRule = makeDnsRuleObj().apply {
                             action = SingBoxOptions.ACTION_REJECT
-                        })
+                        }
+                        if (!dnsRule.checkEmpty()) {
+                            dnsRuleJson = dnsRule.asMap()
+                        }
                         action = ruleAction
                     }
 
                     else -> error("unsupported action: $ruleAction")
                 }
 
+                rule.customDnsConfig.blankAsNull()?.toJsonMap()?.let {
+                    if (dnsRuleJson == null) {
+                        dnsRuleJson = it
+                    } else {
+                        mergeJson(it, dnsRuleJson)
+                    }
+                }
+                dnsRuleJson?.let {
+                    userDNSRuleList.add(it)
+                }
+
             }
 
+            fun addRule() {
+                val ruleMap = ruleObj.asMap()
+                rule.customConfig.blankAsNull()?.let {
+                    mergeJson(it.toJsonMap(), ruleMap)
+                }
+                route.rules.add(ruleMap)
+            }
             if (!ruleObj.checkEmpty()) {
                 // Empty or "route"
                 val needOutbound = when (ruleObj.action) {
@@ -767,12 +811,12 @@ fun buildConfig(
                         Toast.LENGTH_LONG,
                     ).show()
                 } else {
-                    route.rules.add(ruleObj)
+                    addRule()
                 }
             } else if (ruleObj.action != SingBoxOptions.ACTION_ROUTE) {
-                route.rules.add(ruleObj)
+                addRule()
             } else if (rule.domains.isBlank() && rule.ip.isBlank()) {
-                route.rules.add(ruleObj)
+                addRule()
             }
         }
 
@@ -879,9 +923,7 @@ fun buildConfig(
         })
 
         // dns object user rules
-        userDNSRuleList.forEach {
-            if (!it.checkEmpty()) dns.rules.add(it)
-        }
+        dns.rules.addAll(userDNSRuleList)
 
         if (forTest) {
             // Always use system DNS for urlTest
@@ -895,15 +937,15 @@ fun buildConfig(
             route.rules.add(0, Rule_Default().apply {
                 clash_mode = RuleEntity.MODE_GLOBAL
                 outbound = mainTag
-            })
+            }.asMap())
             route.rules.add(0, Rule_Default().apply {
                 clash_mode = RuleEntity.MODE_DIRECT
                 outbound = TAG_DIRECT
-            })
+            }.asMap())
             route.rules.add(0, Rule_Default().apply {
                 clash_mode = RuleEntity.MODE_BLOCK
                 action = SingBoxOptions.ACTION_REJECT
-            })
+            }.asMap())
 
             // built-in DNS rules
             val builtInDNSRule = localDNSPort?.let {
@@ -924,20 +966,20 @@ fun buildConfig(
                 ip_cidr = listOf(PRIVATE_VLAN4_ROUTER, PRIVATE_VLAN6_ROUTER)
                 action = SingBoxOptions.ACTION_HIJACK_DNS
             }
-            route.rules.add(0, builtInDNSRule)
+            route.rules.add(0, builtInDNSRule.asMap())
 
             if (DataStore.bypassLanInCore) {
                 route.rules.add(Rule_Default().apply {
                     outbound = TAG_DIRECT
                     ip_is_private = true
-                })
+                }.asMap())
             }
             // block mcast
             route.rules.add(Rule_Default().apply {
                 ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 action = SingBoxOptions.ACTION_REJECT
-            })
+            }.asMap())
 
             // FakeDNS obj
             if (useFakeDns) {
@@ -952,7 +994,7 @@ fun buildConfig(
                     server = TAG_DNS_FAKE
                     disable_cache = true
                     query_type = FAKE_DNS_QUERY_TYPE
-                })
+                }.asMap())
             }
 
             dnsHosts?.let {
@@ -964,28 +1006,28 @@ fun buildConfig(
                 dns.rules.add(0, DNSRule_Default().apply {
                     server = TAG_DNS_HOSTS
                     ip_accept_any = true
-                })
+                }.asMap())
             }
 
             // clash mode
             dns.rules.add(0, DNSRule_Default().apply {
                 clash_mode = RuleEntity.MODE_GLOBAL
                 server = TAG_DNS_REMOTE
-            })
+            }.asMap())
             dns.rules.add(0, DNSRule_Default().apply {
                 clash_mode = RuleEntity.MODE_DIRECT
                 server = TAG_DNS_DIRECT
-            })
+            }.asMap())
             dns.rules.add(0, DNSRule_Default().apply {
                 clash_mode = RuleEntity.MODE_BLOCK
                 action = SingBoxOptions.ACTION_REJECT
-            })
+            }.asMap())
 
             if (domainListDNSDirectForce.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_Default().apply {
                     domain = domainListDNSDirectForce.distinct()
                     server = TAG_DNS_DIRECT
-                })
+                }.asMap())
             }
 
         }
@@ -999,7 +1041,7 @@ fun buildConfig(
                 inbound = inboundTags
                 override_address = serverInfo.first
                 override_port = serverInfo.second
-            })
+            }.asMap())
         }
 
         var ruleSetResource: String? = null

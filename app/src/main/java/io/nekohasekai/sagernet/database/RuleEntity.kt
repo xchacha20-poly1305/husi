@@ -31,13 +31,14 @@ data class RuleEntity(
     var network: Set<String> = emptySet(),
     var source: String = "",
     var protocol: Set<String> = emptySet(),
-    @ColumnInfo(defaultValue = "") var clientType:String = "",
+    @ColumnInfo(defaultValue = "") var clientType: String = "",
     var packages: Set<String> = emptySet(),
     var ssid: String = "",
     var bssid: String = "",
     @ColumnInfo(defaultValue = "") var clashMode: String = "",
     @ColumnInfo(defaultValue = "") var networkType: Set<String> = emptySet(),
     @ColumnInfo(defaultValue = "0") var networkIsExpensive: Boolean = false,
+    @ColumnInfo(defaultValue = "") var networkInterfaceAddress: LinkedHashMap<String, String> = LinkedHashMap(),
 
     // Rule action
 
@@ -63,8 +64,8 @@ data class RuleEntity(
     @ColumnInfo(defaultValue = "") var sniffTimeout: String = "",
     @ColumnInfo(defaultValue = "") var sniffers: Set<String> = emptySet(),
 
-    // TODO add this
     @ColumnInfo(defaultValue = "") var customConfig: String = "",
+    @ColumnInfo(defaultValue = "") var customDnsConfig: String = "",
 ) : Parcelable {
 
     companion object {
@@ -102,6 +103,7 @@ data class RuleEntity(
         if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
         if (networkType.isNotEmpty()) summary += "networkType: $networkType\n"
         if (networkIsExpensive) summary += "networkIsExpensive\n"
+        if (networkInterfaceAddress.isNotEmpty()) summary += "networkInterfaceAddress: $networkInterfaceAddress\n"
 
         if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress\n"
         if (overridePort > 0) summary += "overridePort: $overridePort\n"
@@ -122,6 +124,9 @@ data class RuleEntity(
 
         if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
         if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
+
+        if (customConfig.isNotBlank()) summary += "with custom config\n"
+        if (customDnsConfig.isNotBlank()) summary += "with custom DNS config\n"
 
         // Even has "\n" suffix, TextView's "..." will be added and remove the last "\n".
         val lines = summary.trim().split("\n")

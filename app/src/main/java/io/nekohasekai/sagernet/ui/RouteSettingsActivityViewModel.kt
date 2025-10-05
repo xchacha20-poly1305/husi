@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -14,9 +15,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Stable
 internal data class RouteSettingsActivityUiState(
     val name: String = "",
     val action: String = "",
+
     val domains: String = "",
     val ip: String = "",
     val port: String = "",
@@ -30,21 +33,30 @@ internal data class RouteSettingsActivityUiState(
     val clashMode: String = "",
     val networkType: Set<String> = emptySet(),
     val networkIsExpensive: Boolean = false,
+    val networkInterfaceAddress: LinkedHashMap<String, String> = LinkedHashMap(),
+
     val overrideAddress: String = "",
     val overridePort: Int = 0,
     val tlsFragment: Boolean = false,
     val tlsRecordFragment: Boolean = false,
     val tlsFragmentFallbackDelay: String = "",
+
     val resolveStrategy: String = "",
     val resolveDisableCache: Boolean = false,
     val resolveRewriteTTL: Int = 0,
     val resolveClientSubnet: String = "",
+
     val sniffTimeout: String = "",
     val sniffers: Set<String> = emptySet(),
+
     val outbound: Long = RuleEntity.OUTBOUND_PROXY,
     val packages: Set<String> = emptySet(),
+
+    val customConfig: String = "",
+    val customDnsConfig: String = "",
 )
 
+@Stable
 internal class RouteSettingsActivityViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(RouteSettingsActivityUiState())
@@ -72,6 +84,7 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
             it.copy(
                 name = entity.name,
                 action = entity.action,
+
                 domains = entity.domains,
                 ip = entity.ip,
                 port = entity.port,
@@ -85,19 +98,26 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
                 clashMode = entity.clashMode,
                 networkType = entity.networkType,
                 networkIsExpensive = entity.networkIsExpensive,
+
                 outbound = entity.outbound,
                 packages = entity.packages,
+
                 overrideAddress = entity.overrideAddress,
                 overridePort = entity.overridePort,
                 tlsFragment = entity.tlsFragment,
                 tlsRecordFragment = entity.tlsRecordFragment,
                 tlsFragmentFallbackDelay = entity.tlsFragmentFallbackDelay,
+
                 resolveStrategy = entity.resolveStrategy,
                 resolveDisableCache = entity.resolveDisableCache,
                 resolveRewriteTTL = entity.resolveRewriteTTL,
                 resolveClientSubnet = entity.resolveClientSubnet,
+
                 sniffTimeout = entity.sniffTimeout,
                 sniffers = entity.sniffers,
+
+                customConfig = entity.customConfig,
+                customDnsConfig = entity.customDnsConfig,
             ).also {
                 initialState = it
             }
@@ -109,6 +129,7 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
     private fun RuleEntity.loadFromUiState(state: RouteSettingsActivityUiState) {
         name = state.name
         action = state.action
+
         domains = state.domains
         ip = state.ip
         port = state.port
@@ -122,19 +143,26 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         clashMode = state.clashMode
         networkType = state.networkType
         networkIsExpensive = state.networkIsExpensive
+
         outbound = state.outbound
         packages = state.packages
+
         overrideAddress = state.overrideAddress
         overridePort = state.overridePort
         tlsFragment = state.tlsFragment
         tlsRecordFragment = state.tlsRecordFragment
         tlsFragmentFallbackDelay = state.tlsFragmentFallbackDelay
+
         resolveStrategy = state.resolveStrategy
         resolveDisableCache = state.resolveDisableCache
         resolveRewriteTTL = state.resolveRewriteTTL
         resolveClientSubnet = state.resolveClientSubnet
+
         sniffTimeout = state.sniffTimeout
         sniffers = state.sniffers
+
+        customConfig = state.customConfig
+        customDnsConfig = state.customDnsConfig
     }
 
     fun save() = runOnIoDispatcher {
@@ -219,6 +247,12 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         _uiState.update { it.copy(networkIsExpensive = networkIsExpensive) }
     }
 
+    fun setNetworkInterfaceAddress(networkInterfaceAddress: LinkedHashMap<String, String>) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(networkInterfaceAddress = networkInterfaceAddress) }
+        }
+    }
+
     fun setOverrideAddress(overrideAddress: String) = viewModelScope.launch {
         _uiState.update { it.copy(overrideAddress = overrideAddress) }
     }
@@ -271,4 +305,11 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         _uiState.update { it.copy(packages = packages) }
     }
 
+    fun setCustomConfig(config: String) = viewModelScope.launch {
+        _uiState.update { it.copy(customConfig = config) }
+    }
+
+    fun setCustomDnsConfig(dnsConfig: String) = viewModelScope.launch {
+        _uiState.update { it.copy(customDnsConfig = dnsConfig) }
+    }
 }

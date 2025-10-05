@@ -1,21 +1,20 @@
 package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyRouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteHTTPSDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteTLSDNSServerOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundTLSOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
+import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.parseBoolean
 import libcore.Libcore
 
@@ -180,7 +179,7 @@ fun MyOptions.buildRuleSets(
 
     if (names.isEmpty()) return
 
-    if (route == null) route = RouteOptions()
+    if (route == null) route = MyRouteOptions()
     if (route.rule_set == null) route.rule_set = emptyList()
     for (set in route.rule_set) names.add(set.tag)
     val list = ArrayList<RuleSet>(names.size)
@@ -210,18 +209,14 @@ fun MyOptions.buildRuleSets(
  * Collects all rule-set in rules.
  * @param rules item should be DNSRule or Rule.
  */
-private fun collectSet(set: HashSet<String>, rules: List<SingBoxOptions.SingBoxOption>?) {
+@Suppress("UNCHECKED_CAST")
+private fun collectSet(set: HashSet<String>, rules: List<JSONMap>?) {
     if (rules == null) return
 
-    for (rule in rules) when (rule) {
-        is DNSRule_Logical -> collectSet(set, rule.rules)
-        is Rule_Logical -> collectSet(set, rule.rules)
-
-        is DNSRule_Default -> rule.rule_set?.let {
-            set.addAll(it)
-        }
-
-        is Rule_Default -> rule.rule_set?.let {
+    for (rule in rules) when (rule["type"]) {
+        "logical" -> collectSet(set, rule["rules"] as? List<JSONMap>)
+        // null, "" ->
+        else -> (rule["rule_set"] as? List<String>)?.let {
             set.addAll(it)
         }
     }

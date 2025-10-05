@@ -640,4 +640,5 @@
     <string name="cert_public_key_sha256">证书公钥 sha256</string>
     <string name="format">格式</string>
     <string name="not_found">未找到</string>
+    <string name="custom_dns_json">自定义 DNS JSON</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -34,9 +35,11 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LegendToggle
+import androidx.compose.material.icons.filled.LocalAirport
 import androidx.compose.material.icons.filled.LocalBar
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.PushPin
@@ -50,6 +53,8 @@ import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiFind
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -67,8 +72,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.work.impl.model.Preference
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
+import io.nekohasekai.sagernet.compose.MapPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
@@ -82,6 +89,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
+import io.nekohasekai.sagernet.ui.profile.ConfigEditActivity
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.MultiSelectListPreference
@@ -115,8 +123,11 @@ class RouteSettingsActivity : ComposeActivity() {
                 val windowInsets = WindowInsets.safeDrawing
                 val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+                var showExpandedMenu by remember { mutableStateOf(false) }
                 var showDeleteConfirm by remember { mutableStateOf(false) }
                 var showUnchangedAlert by remember { mutableStateOf(false) }
+
+                val uiState by viewModel.uiState.collectAsState()
 
                 Scaffold(
                     modifier = Modifier
@@ -149,13 +160,52 @@ class RouteSettingsActivity : ComposeActivity() {
                                         showUnchangedAlert = true
                                     }
                                 }
+
+                                Box {
+                                    SimpleIconButton(Icons.Filled.MoreVert) {
+                                        showExpandedMenu = true
+                                    }
+                                    DropdownMenu(
+                                        expanded = showExpandedMenu,
+                                        onDismissRequest = { showExpandedMenu = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.custom_config_json)) },
+                                            onClick = {
+                                                editCustomConfig.launch(
+                                                    Intent(
+                                                        this@RouteSettingsActivity,
+                                                        ConfigEditActivity::class.java,
+                                                    ).putExtra(
+                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                        uiState.customConfig,
+                                                    )
+                                                )
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.custom_dns_json)) },
+                                            onClick = {
+                                                editCustomDnsConfig.launch(
+                                                    Intent(
+                                                        this@RouteSettingsActivity,
+                                                        ConfigEditActivity::class.java,
+                                                    ).putExtra(
+                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                        uiState.customDnsConfig,
+                                                    )
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
                             },
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,
                         )
                     },
                 ) { innerPadding ->
-                    RouteSettings(Modifier.paddingExceptBottom(innerPadding))
+                    RouteSettings(Modifier.paddingExceptBottom(innerPadding), uiState)
 
                     Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
@@ -208,8 +258,10 @@ class RouteSettingsActivity : ComposeActivity() {
     }
 
     @Composable
-    private fun RouteSettings(modifier: Modifier) {
-        val uiState by viewModel.uiState.collectAsState()
+    private fun RouteSettings(
+        modifier: Modifier,
+        uiState: RouteSettingsActivityUiState,
+    ) {
         ProvidePreferenceLocals {
             LazyColumn(modifier = modifier) {
                 item("name") {
@@ -250,12 +302,7 @@ class RouteSettingsActivity : ComposeActivity() {
                     MultiSelectListPreference(
                         value = uiState.networkType,
                         onValueChange = { viewModel.setNetworkType(it) },
-                        values = listOf(
-                            SingBoxOptions.NETWORK_TYPE_WIFI,
-                            SingBoxOptions.NETWORK_TYPE_CELLULAR,
-                            SingBoxOptions.NETWORK_TYPE_ETHERNET,
-                            SingBoxOptions.NETWORK_TYPE_OTHER,
-                        ),
+                        values = networkTypes,
                         title = { Text(stringResource(R.string.network_type)) },
                         icon = { Icon(Icons.Filled.Public, null) },
                         summary = {
@@ -443,6 +490,19 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setNetworkIsExpensive(it) },
                         title = { Text(stringResource(R.string.network_expensive)) },
                         icon = { Icon(Icons.Filled.MonetizationOn, null) },
+                    )
+                }
+                item("network_interface_address") {
+                    MapPreference(
+                        value = uiState.networkInterfaceAddress,
+                        keys = LinkedHashSet(networkTypes),
+                        onValueChange = { viewModel.setNetworkInterfaceAddress(it) },
+                        displayKey = { it },
+                        valueToText = { it },
+                        textToValue = { it },
+                        title = { Text("networkInterfaceAddress") },
+                        icon = { Icon(Icons.Filled.LocalAirport, null) },
+                        summary = { Text(uiState.networkInterfaceAddress.toString()) },
                     )
                 }
 
@@ -700,18 +760,40 @@ class RouteSettingsActivity : ComposeActivity() {
         }
     }
 
-    private val sniffers
-        get() = listOf(
-            SingBoxOptions.SNIFF_HTTP,
-            SingBoxOptions.SNIFF_TLS,
-            SingBoxOptions.SNIFF_QUIC,
-            SingBoxOptions.SNIFF_STUN,
-            SingBoxOptions.SNIFF_DNS,
-            SingBoxOptions.SNIFF_BITTORRENT,
-            SingBoxOptions.SNIFF_DTLS,
-            SingBoxOptions.SNIFF_SSH,
-            SingBoxOptions.SNIFF_RDP,
-            SingBoxOptions.SNIFF_NTP,
-        )
+    private val editCustomConfig = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == RESULT_OK) {
+            viewModel.setCustomConfig(it.data!!.getStringExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG)!!)
+        }
+    }
+
+    private val editCustomDnsConfig = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == RESULT_OK) {
+            viewModel.setCustomDnsConfig(it.data!!.getStringExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG)!!)
+        }
+    }
+
+    private val networkTypes = listOf(
+        SingBoxOptions.NETWORK_TYPE_WIFI,
+        SingBoxOptions.NETWORK_TYPE_CELLULAR,
+        SingBoxOptions.NETWORK_TYPE_ETHERNET,
+        SingBoxOptions.NETWORK_TYPE_OTHER,
+    )
+
+    private val sniffers = listOf(
+        SingBoxOptions.SNIFF_HTTP,
+        SingBoxOptions.SNIFF_TLS,
+        SingBoxOptions.SNIFF_QUIC,
+        SingBoxOptions.SNIFF_STUN,
+        SingBoxOptions.SNIFF_DNS,
+        SingBoxOptions.SNIFF_BITTORRENT,
+        SingBoxOptions.SNIFF_DTLS,
+        SingBoxOptions.SNIFF_SSH,
+        SingBoxOptions.SNIFF_RDP,
+        SingBoxOptions.SNIFF_NTP,
+    )
 
 }

@@ -118,7 +118,7 @@ public class SingBoxOptions {
     public static class MyOptions extends SingBoxOption {
         public LogOptions log;
 
-        public DNSOptions dns;
+        public MyDNSOptions dns;
 
         public NTPOptions ntp;
 
@@ -128,13 +128,71 @@ public class SingBoxOptions {
 
         public List<Map<String, Object>> endpoints;
 
-        public RouteOptions route;
+        public MyRouteOptions route;
 
         public ExperimentalOptions experimental;
 
         // public MITMOptions mitm;
 
         // public List<Script> scripts;
+    }
+
+    public static class MyDNSOptions extends SingBoxOption {
+
+        // Generate note: nested type RawDNSOptions
+        public List<NewDNSServerOptions> servers;
+
+        public List<Map<String, Object>> rules;
+
+        @SerializedName("final")
+        public String final_;
+
+        public Boolean reverse_mapping;
+
+        // Generate note: nested type DNSClientOptions
+        public String strategy;
+
+        public Boolean disable_cache;
+
+        public Boolean disable_expire;
+
+        public Boolean independent_cache;
+
+        public Integer cache_capacity;
+
+        public String client_subnet;
+
+    }
+
+    public static class MyRouteOptions extends SingBoxOption {
+
+        public List<Map<String, Object>> rules;
+
+        public List<RuleSet> rule_set;
+
+        @SerializedName("final")
+        public String final_;
+
+        public Boolean find_process;
+
+        public Boolean auto_detect_interface;
+
+        public Boolean override_android_vpn;
+
+        public String default_interface;
+
+        public Integer default_mark;
+
+        public DomainResolveOptions default_domain_resolver;
+
+        public String default_network_strategy;
+
+        public List<String> default_network_type;
+
+        public List<String> default_fallback_network_type;
+
+        public String default_fallback_delay;
+
     }
 
     // Classes have optional field
