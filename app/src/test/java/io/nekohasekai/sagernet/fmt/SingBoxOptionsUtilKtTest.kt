@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSOptions
-import io.nekohasekai.sagernet.fmt.SingBoxOptions.RouteOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyDNSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyRouteOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RULE_SET_TYPE_REMOTE
@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Logical
+import io.nekohasekai.sagernet.ktx.asMap
 
 class SingBoxOptionsUtilKtTest {
 
@@ -39,7 +40,7 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 1: No rules in DNS or Route, and `route` is initially null.
     @Test
     fun `buildRuleSets should do nothing if no rules are found and route is null`() {
-        myOptions.dns = DNSOptions().apply { rules = emptyList() }
+        myOptions.dns = MyDNSOptions().apply { rules = emptyList() }
         myOptions.route = null
 
         myOptions.buildRuleSets(
@@ -54,8 +55,8 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 2: No rules, but `route` is not null initially (e.g., has an empty rule_set).
     @Test
     fun `buildRuleSets should keep route rule_set empty if no rules are found and route already exists`() {
-        myOptions.dns = DNSOptions().apply { rules = emptyList() }
-        myOptions.route = RouteOptions().apply { rule_set = emptyList() }
+        myOptions.dns = MyDNSOptions().apply { rules = emptyList() }
+        myOptions.route = MyRouteOptions().apply { rule_set = emptyList() }
 
         myOptions.buildRuleSets(
             ipURL = "http://ip.example.com",
@@ -70,12 +71,12 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 3: `route` is null initially, and rules are present (remote configuration).
     @Test
     fun `buildRuleSets should create RouteOptions and build remote rule sets if route is null and rules exist`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(listOf("geoip-cn", "geosite-youtube")),
+                buildRule<DNSRule_Default>(listOf("geoip-cn", "geosite-youtube")).asMap(),
                 DNSRule_Logical().apply {
                     rules = listOf(buildRule<DNSRule_Default>(listOf("geosite-google")))
-                }
+                }.asMap(),
             )
         }
         myOptions.route = null // Route is initially null
@@ -118,9 +119,9 @@ class SingBoxOptionsUtilKtTest {
     @Test
     fun `buildRuleSets should create RouteOptions and build local rule sets if route is null and rules exist`() {
         myOptions.route = null
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(listOf("geoip-us", "geosite-facebook"))
+                buildRule<DNSRule_Default>(listOf("geoip-us", "geosite-facebook")).asMap(),
             )
         }
         val localPath = "/data/local_rules"
@@ -153,12 +154,12 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 5: `route` is not null, has existing `rule_set`, and new rules are found (remote).
     @Test
     fun `buildRuleSets should combine existing and new rule sets and refresh route rule_set (remote)`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(listOf("geoip-jp", "twitter"))
+                buildRule<DNSRule_Default>(listOf("geoip-jp", "twitter")).asMap(),
             )
         }
-        myOptions.route = RouteOptions().apply {
+        myOptions.route = MyRouteOptions().apply {
             // Existing rule_set, their tags should be preserved and re-added
             rule_set = listOf(
                 RuleSet_Remote().apply { tag = "existing-rule"; type = RULE_SET_TYPE_REMOTE },
@@ -201,24 +202,24 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 6: `rules` from both `dns` and `route` contain rule sets.
     @Test
     fun `buildRuleSets should collect rules from both dns and route options`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(listOf("dns-set-1", "geoip-dns-set-2")),
+                buildRule<DNSRule_Default>(listOf("dns-set-1", "geoip-dns-set-2")).asMap(),
                 DNSRule_Logical().apply {
                     rules = listOf(
                         buildRule<DNSRule_Default>(listOf("dns-set-3"))
                     )
-                }
+                }.asMap(),
             )
         }
-        myOptions.route = RouteOptions().apply {
+        myOptions.route = MyRouteOptions().apply {
             rules = listOf(
-                buildRule<Rule_Default>(listOf("route-set-A", "geoip-route-set-B")),
+                buildRule<Rule_Default>(listOf("route-set-A", "geoip-route-set-B")).asMap(),
                 Rule_Logical().apply {
                     rules = listOf(
                         buildRule<Rule_Default>(listOf("route-set-C"))
                     )
-                }
+                }.asMap(),
             )
         }
 
@@ -255,29 +256,29 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 7: Duplicate rule sets should only be added once.
     @Test
     fun `buildRuleSets should handle duplicate rule sets correctly`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(listOf("common-set", "geoip-common-set")),
+                buildRule<DNSRule_Default>(listOf("common-set", "geoip-common-set")).asMap(),
                 DNSRule_Logical().apply {
                     rules = listOf(
                         buildRule<DNSRule_Default>(listOf("common-set"))
                     )
-                }
+                }.asMap(),
             )
         }
-        myOptions.route = RouteOptions().apply {
+        myOptions.route = MyRouteOptions().apply {
             rules = listOf(
                 buildRule<Rule_Default>(
                     listOf(
                         "common-set",
                         "another-set"
                     )
-                ), // Duplicate 'common-set'
+                ).asMap(), // Duplicate 'common-set'
                 Rule_Logical().apply {
                     rules = listOf(
                         buildRule<Rule_Default>(listOf("geoip-common-set")) // Duplicate
                     )
-                }
+                }.asMap(),
             )
         }
 
@@ -298,10 +299,10 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 8: `rule_set` property being null in default rules.
     @Test
     fun `buildRuleSets should handle null rule_set in default rules gracefully`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                DNSRule_Default(), // Null rule_set
-                buildRule<DNSRule_Default>(listOf("good-set"))
+                DNSRule_Default().asMap(), // Null rule_set
+                buildRule<DNSRule_Default>(listOf("good-set")).asMap(),
             )
         }
         myOptions.route = null
@@ -319,10 +320,10 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 9: Empty `rule_set` property in default rules.
     @Test
     fun `buildRuleSets should handle empty rule_set in default rules gracefully`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(emptyList()), // Empty rule_set
-                buildRule<DNSRule_Default>(listOf("another-good-set"))
+                buildRule<DNSRule_Default>(emptyList()).asMap(), // Empty rule_set
+                buildRule<DNSRule_Default>(listOf("another-good-set")).asMap(),
             )
         }
         myOptions.route = null
@@ -340,14 +341,14 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 10: `rules` list being null in logical rules.
     @Test
     fun `buildRuleSets should handle null rules list in logical rules gracefully`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                DNSRule_Logical(), // Null rules list
+                DNSRule_Logical().asMap(), // Null rules list
                 DNSRule_Logical().apply {
                     rules = listOf(
                         buildRule<DNSRule_Default>(listOf("nested-set"))
                     )
-                }
+                }.asMap(),
             )
         }
         myOptions.route = null
@@ -365,14 +366,14 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 11: `rules` list being empty in logical rules.
     @Test
     fun `buildRuleSets should handle empty rules list in logical rules gracefully`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                DNSRule_Logical(), // Empty rules list
+                DNSRule_Logical().asMap(), // Empty rules list
                 DNSRule_Logical().apply {
                     rules = listOf(
                         buildRule<DNSRule_Default>(listOf("another-nested-set"))
                     )
-                }
+                }.asMap(),
             )
         }
         myOptions.route = null
@@ -390,12 +391,12 @@ class SingBoxOptionsUtilKtTest {
     // Test Case 12: Ensure rule_set tags are collected from an existing `route.rule_set` before building new ones.
     @Test
     fun `buildRuleSets should collect tags from existing route rule_set and combine with new ones`() {
-        myOptions.dns = DNSOptions().apply {
+        myOptions.dns = MyDNSOptions().apply {
             rules = listOf(
-                buildRule<DNSRule_Default>(listOf("new-set"))
+                buildRule<DNSRule_Default>(listOf("new-set")).asMap(),
             )
         }
-        myOptions.route = RouteOptions().apply {
+        myOptions.route = MyRouteOptions().apply {
             rule_set = listOf(
                 RuleSet_Local().apply { tag = "existing-local"; type = RULE_SET_TYPE_LOCAL },
                 RuleSet_Remote().apply { tag = "existing-remote"; type = RULE_SET_TYPE_REMOTE }
@@ -438,9 +439,9 @@ class SingBoxOptionsUtilKtTest {
     @Test
     fun `buildRuleSets should collect rules from route rules if dns rules are null or empty`() {
         myOptions.dns = null // DNS rules are null
-        myOptions.route = RouteOptions().apply {
+        myOptions.route = MyRouteOptions().apply {
             rules = listOf(
-                buildRule<Rule_Default>(listOf("route-only-set-1", "geoip-route-only-set-2"))
+                buildRule<Rule_Default>(listOf("route-only-set-1", "geoip-route-only-set-2")).asMap(),
             )
         }
 
