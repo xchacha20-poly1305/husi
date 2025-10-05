@@ -14,7 +14,6 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
-import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.parseBoolean
 import libcore.Libcore
 
@@ -210,18 +209,26 @@ fun MyOptions.buildRuleSets(
  * @param rules item should be DNSRule or Rule.
  */
 @Suppress("UNCHECKED_CAST")
-private fun collectSet(set: HashSet<String>, rules: List<JSONMap>?) {
-    if (rules == null) return
+private fun collectSet(set: MutableSet<String>, rules: List<*>?) {
+    if (rules.isNullOrEmpty()) return
 
-    for (rule in rules) when (rule["type"]) {
-        "logical" -> collectSet(set, rule["rules"] as? List<JSONMap>)
-        // null, "" ->
-        else -> (rule["rule_set"] as? List<String>)?.let {
-            set.addAll(it)
+    for (rawRule in rules) {
+        val rule = rawRule as? Map<*, *> ?: continue
+        val nestedRules = rule["rules"] as? List<*>
+        val type = (rule["type"] as? String)?.lowercase()
+        if (type == "logical" || (type == null && !nestedRules.isNullOrEmpty())) {
+            collectSet(set, nestedRules)
+            continue
+        }
+
+        val ruleSet = rule["rule_set"] as? List<*>
+        if (ruleSet.isNullOrEmpty()) continue
+
+        for (name in ruleSet) {
+            val tag = (name as? String)?.takeIf { it.isNotBlank() } ?: continue
+            set.add(tag)
         }
     }
-
-    return
 }
 
 fun isEndpoint(type: String): Boolean = when (type) {

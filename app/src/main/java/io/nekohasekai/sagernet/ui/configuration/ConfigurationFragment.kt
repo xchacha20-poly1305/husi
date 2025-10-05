@@ -118,6 +118,7 @@ import io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.VLESSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import kotlinx.coroutines.launch
@@ -604,7 +605,7 @@ class ConfigurationFragment : OnKeyDownFragment {
                                     startActivity(
                                         Intent(
                                             requireContext(),
-                                            VLESSBean::class.java,
+                                            VLESSSettingsActivity::class.java,
                                         ),
                                     )
                                 },
