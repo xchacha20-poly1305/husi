@@ -22,16 +22,16 @@ public class VMessBean extends StandardV2RayBean {
             return new VMessBean[size];
         }
     };
-    public Integer alterId; // alterID == -1 --> VLESS
-    public Boolean authenticatedLength; // Just VMess
+    public Integer alterId;
+    public Boolean authenticatedLength;
 
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
 
-        alterId = alterId != null ? alterId : 0;
-        if (encryption == null) {
-            encryption = isVLESS() ? "" : "auto";
+        if (alterId == null) alterId = 0;
+        if (encryption == null || encryption.contains("xtls")) {
+            encryption = "auto";
         }
         if (authenticatedLength == null) authenticatedLength = false;
     }
@@ -53,10 +53,6 @@ public class VMessBean extends StandardV2RayBean {
 
     @Override
     public @NotNull String outboundType() throws Throwable {
-        if (isVLESS()) {
-            return SingBoxOptions.TYPE_VLESS;
-        } else {
-            return SingBoxOptions.TYPE_VMESS;
-        }
+        return SingBoxOptions.TYPE_VMESS;
     }
 }

@@ -8,7 +8,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean;
 public abstract class StandardV2RayBean extends AbstractBean {
 
     public String uuid;
-    public String encryption; // or VLESS flow
+    public String encryption;
 
     /// ///// End of VMess & VLESS ////////
 
@@ -111,13 +111,15 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(8);
+        output.writeInt(9);
         super.serialize(output);
 
         output.writeString(uuid);
         output.writeString(encryption);
-        if (this instanceof VMessBean) {
-            output.writeInt(((VMessBean) this).alterId);
+        switch (this) {
+            case VMessBean ignored -> output.writeInt(((VMessBean) this).alterId);
+            case VLESSBean ignored -> output.writeString(((VLESSBean) this).flow);
+            default -> {}
         }
 
         output.writeString(v2rayTransport);
@@ -184,6 +186,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
         encryption = input.readString();
         if (this instanceof VMessBean) {
             ((VMessBean) this).alterId = input.readInt();
+        }
+        if (version >= 9 && this instanceof VLESSBean) {
+            ((VLESSBean) this).flow = input.readString();
         }
 
         v2rayTransport = input.readString();
@@ -274,14 +279,6 @@ public abstract class StandardV2RayBean extends AbstractBean {
         bean.fragment = fragment;
         bean.fragmentFallbackDelay = fragmentFallbackDelay;
         bean.recordFragment = recordFragment;
-    }
-
-    public boolean isVLESS() {
-        if (this instanceof VMessBean) {
-            Integer aid = ((VMessBean) this).alterId;
-            return aid != null && aid == -1;
-        }
-        return false;
     }
 
     @Override

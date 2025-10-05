@@ -2,13 +2,13 @@ package io.nekohasekai.sagernet.ui.profile
 
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
-import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
+import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal data class VMessUiState(
+internal data class VLESSUiState(
     override val name: String = "",
     override val address: String = "127.0.0.1",
     override val port: Int = 443,
@@ -47,20 +47,20 @@ internal data class VMessUiState(
     override val customOutbound: String = "",
 
     val uuid: String = "",
-    val alterID: Int = 0,
-    val encryption: String = "",
+    val flow: String = "",
+    // val encryption: String = "",
     val packetEncoding: Int = 0,
     val authenticatedLength: Boolean = false,
 ) : StandardV2RayUiState
 
-internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean>() {
+internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean>() {
 
-    override fun createBean() = VMessBean().applyDefaultValues()
+    override fun createBean() = VLESSBean().applyDefaultValues()
 
-    private val _uiState = MutableStateFlow(VMessUiState())
+    private val _uiState = MutableStateFlow(VLESSUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun VMessBean.writeToUiState() {
+    override fun VLESSBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,
@@ -101,15 +101,13 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
                 customOutbound = customOutboundJson,
 
                 uuid = uuid,
-                alterID = alterId,
-                encryption = encryption,
+                flow = flow,
                 packetEncoding = packetEncoding,
-                authenticatedLength = authenticatedLength,
             )
         }
     }
 
-    override fun VMessBean.loadFromUiState() {
+    override fun VLESSBean.loadFromUiState() {
         val state = _uiState.value
 
         name = state.name
@@ -150,10 +148,8 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
         customOutboundJson = state.customOutbound
 
         uuid = state.uuid
-        alterId = state.alterID
-        encryption = state.encryption
+        flow = state.flow
         packetEncoding = state.packetEncoding
-        authenticatedLength = state.authenticatedLength
     }
 
     override fun setCustomConfig(config: String) {
@@ -288,12 +284,8 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
         _uiState.update { it.copy(uuid = uuid) }
     }
 
-    fun setAlterID(alertID: Int) {
-        _uiState.update { it.copy(alterID = alertID) }
-    }
-
-    fun setEncryption(encryption: String) {
-        _uiState.update { it.copy(encryption = encryption) }
+    fun setFlow(flow: String) {
+        _uiState.update { it.copy(flow = flow) }
     }
 
     fun setPacketEncoding(packetEncoding: Int) {

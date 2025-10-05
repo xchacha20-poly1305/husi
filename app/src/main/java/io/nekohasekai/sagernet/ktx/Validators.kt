@@ -34,6 +34,7 @@ import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean
 
 sealed interface ValidateResult {
     object Secure : ValidateResult
@@ -64,9 +65,14 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is VMessBean -> {
             if (alterId > 0) return ValidateResult.Insecure(R.raw.vmess_md5_auth)
-            if (isVLESS || encryption in arrayOf("none", "zero")) {
+            if (encryption in arrayOf("none", "zero")) {
                 if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
             }
+            if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
+        }
+
+        is VLESSBean -> {
+            if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
             if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
         }
 
@@ -77,7 +83,9 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is HysteriaBean -> {
             if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
-            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ValidateResult.Deprecated(R.raw.hysteria_legacy)
+            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ValidateResult.Deprecated(
+                R.raw.hysteria_legacy
+            )
         }
 
         is TuicBean -> {

@@ -70,10 +70,12 @@ import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.VLESSSettingsActivity
 
 @Entity(
     tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
@@ -87,12 +89,12 @@ data class ProxyEntity(
     var rx: Long = 0L,
     var status: Int = STATUS_INITIAL,
     var ping: Int = 0,
-    var uuid: String = "", // TODO remove
     var error: String? = null,
     var socksBean: SOCKSBean? = null,
     var httpBean: HttpBean? = null,
     var ssBean: ShadowsocksBean? = null,
     var vmessBean: VMessBean? = null,
+    var vlessBean: VLESSBean? = null,
     var trojanBean: TrojanBean? = null,
     var mieruBean: MieruBean? = null,
     var naiveBean: NaiveBean? = null,
@@ -114,7 +116,8 @@ data class ProxyEntity(
         const val TYPE_SOCKS = 0
         const val TYPE_HTTP = 1
         const val TYPE_SS = 2
-        const val TYPE_VMESS = 4 // And VLESS
+        const val TYPE_VMESS = 4
+        const val TYPE_VLESS = 5
         const val TYPE_TROJAN = 6
         const val TYPE_TROJAN_GO = 7 // Deleted
         const val TYPE_CHAIN = 8
@@ -165,7 +168,7 @@ data class ProxyEntity(
     }
 
     override fun serializeToBuffer(output: ByteBufferOutput) {
-        output.writeInt(0)
+        output.writeInt(1)
 
         output.writeLong(id)
         output.writeLong(groupId)
@@ -175,7 +178,6 @@ data class ProxyEntity(
         output.writeLong(rx)
         output.writeInt(status)
         output.writeInt(ping)
-        output.writeString(uuid)
         output.writeString(error)
 
         val data = KryoConverters.serialize(requireBean())
@@ -196,7 +198,10 @@ data class ProxyEntity(
         rx = input.readLong()
         status = input.readInt()
         ping = input.readInt()
-        uuid = input.readString()
+        if (version >= 1) {
+            // useless uuid
+            input.readString()
+        }
         error = input.readString()
         putByteArray(input.readBytes(input.readVarInt(true)))
 
@@ -210,6 +215,7 @@ data class ProxyEntity(
             TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
             TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
             TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
+            TYPE_VLESS -> vlessBean = KryoConverters.vlessDeserialize(byteArray)
             TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
             TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
             TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
@@ -237,6 +243,7 @@ data class ProxyEntity(
             TYPE_HTTP -> httpBean
             TYPE_SS -> ssBean
             TYPE_VMESS -> vmessBean
+            TYPE_VLESS -> vlessBean
             TYPE_TROJAN -> trojanBean
             TYPE_MIERU -> mieruBean
             TYPE_NAIVE -> naiveBean
@@ -282,6 +289,7 @@ data class ProxyEntity(
             is HttpBean -> toUri()
             is ShadowsocksBean -> toUri()
             is VMessBean -> toUriVMessVLESSTrojan()
+            is VLESSBean -> toUriVMessVLESSTrojan()
             is TrojanBean -> toUriVMessVLESSTrojan()
             is NaiveBean -> toUri()
             is HysteriaBean -> toUri()
@@ -369,6 +377,7 @@ data class ProxyEntity(
         httpBean = null
         ssBean = null
         vmessBean = null
+        vlessBean = null
         trojanBean = null
         mieruBean = null
         naiveBean = null
@@ -404,6 +413,11 @@ data class ProxyEntity(
             is VMessBean -> {
                 type = TYPE_VMESS
                 vmessBean = bean
+            }
+
+            is VLESSBean -> {
+                type = TYPE_VLESS
+                vlessBean = bean
             }
 
             is TrojanBean -> {
@@ -493,6 +507,7 @@ data class ProxyEntity(
                 TYPE_HTTP -> HttpSettingsActivity::class.java
                 TYPE_SS -> ShadowsocksSettingsActivity::class.java
                 TYPE_VMESS -> VMessSettingsActivity::class.java
+                TYPE_VLESS -> VLESSSettingsActivity::class.java
                 TYPE_TROJAN -> TrojanSettingsActivity::class.java
                 TYPE_MIERU -> MieruSettingsActivity::class.java
                 TYPE_NAIVE -> NaiveSettingsActivity::class.java

@@ -90,8 +90,12 @@ fun parseV2Ray(rawUrl: String): StandardV2RayBean {
         }
     }
 
-    val bean = VMessBean().apply { if (rawUrl.startsWith("vless://")) alterId = -1 }
     val url = Libcore.parseURL(rawUrl)
+    val bean = if (url.scheme == "vmess") {
+        VMessBean()
+    } else {
+        VLESSBean()
+    }
     bean.parseDuckSoft(url)
 
     return bean
@@ -180,17 +184,25 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
         }
     }
 
-    if (this is VMessBean) {
-        // maybe from Matsuri vmess export
-        when (url.queryParameter("packetEncoding")) {
-            "packetaddr" -> packetEncoding = 1
-            "xudp" -> packetEncoding = 2
+    when (this) {
+        is VMessBean -> {
+            // maybe from Matsuri vmess export
+            when (url.queryParameter("packetEncoding")) {
+                "packetaddr" -> packetEncoding = 1
+                "xudp" -> packetEncoding = 2
+            }
+            encryption = url.queryParameterNotBlank("encryption")
         }
 
-        encryption = if (isVLESS) {
-            url.queryParameterNotBlank("flow")?.removeSuffix("-udp443")
-        } else {
-            url.queryParameterNotBlank("encryption")
+        is VLESSBean -> {
+            // maybe from Matsuri vmess export
+            when (url.queryParameter("packetEncoding")) {
+                "packetaddr" -> packetEncoding = 1
+                "xudp" -> packetEncoding = 2
+            }
+            // TODO
+            // encryption = url.queryParameterNotBlank("encryption")
+            flow = url.queryParameterNotBlank("flow")?.removeSuffix("-udp443")
         }
     }
 
@@ -296,11 +308,25 @@ private fun parseCsvVMess(csv: String): VMessBean {
 fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
 
     var isTrojan = false
-    val protocol = if (this is VMessBean) {
-        if (isVLESS) "vless" else "vmess"
-    } else {
-        isTrojan = true
-        "trojan"
+    var isVMess = false
+    var isVLESS = false
+    val protocol = when (this) {
+        is TrojanBean -> {
+            isTrojan = true
+            "trojan"
+        }
+
+        is VMessBean -> {
+            isVMess = true
+            "vmess"
+        }
+
+        is VLESSBean -> {
+            isVLESS = true
+            "vless"
+        }
+
+        else -> error("impossible")
     }
 
     // ducksoft fmt
@@ -317,8 +343,11 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
 
     if (!isTrojan) {
         if (isVLESS) {
-            builder.addQueryParameter("flow", encryption)
+            this as VLESSBean
+            builder.addQueryParameter("flow", flow)
+            // builder.addQueryParameter("encryption", encryption)
         } else {
+            this as VMessBean
             builder.addQueryParameter("encryption", encryption)
         }
         when (packetEncoding) {
@@ -552,21 +581,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         }
     }
 
-    is VMessBean -> if (bean.isVLESS) Outbound_VLESSOptions().apply {
-        type = bean.outboundType()
-        server = bean.serverAddress
-        server_port = bean.serverPort
-        uuid = bean.uuid
-        flow = bean.encryption.replace("auto", "").blankAsNull()
-        packet_encoding = when (bean.packetEncoding) {
-            1 -> "packetaddr"
-            2 -> "xudp"
-            else -> null
-        }
-        tls = buildSingBoxOutboundTLS(bean)
-        transport = buildSingBoxOutboundStreamSettings(bean)
-        if (flow == null && bean.shouldMux()) multiplex = buildSingBoxMux(bean)
-    } else Outbound_VMessOptions().apply {
+    is VMessBean -> Outbound_VMessOptions().apply {
         type = bean.outboundType()
         server = bean.serverAddress
         server_port = bean.serverPort
@@ -586,6 +601,23 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         authenticated_length = bean.authenticatedLength
     }
 
+    is VLESSBean -> Outbound_VLESSOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        uuid = bean.uuid
+        flow = bean.flow.blankAsNull()
+        // encryption = bean.encryption.blankAsNull()
+        packet_encoding = when (bean.packetEncoding) {
+            1 -> "packetaddr"
+            2 -> "xudp"
+            else -> null
+        }
+        tls = buildSingBoxOutboundTLS(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)
+        if (flow == null && bean.shouldMux()) multiplex = buildSingBoxMux(bean)
+    }
+
     is TrojanBean -> Outbound_TrojanOptions().apply {
         type = bean.outboundType()
         server = bean.serverAddress
@@ -600,9 +632,9 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
 }
 
 fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
-    var v2ray: VMessBean? = null
+    var v2ray: StandardV2RayBean? = null
     var vmess: VMessBean? = null
-    var vless: VMessBean? = null
+    var vless: VLESSBean? = null
     var trojan: TrojanBean? = null
     val bean = when (json["type"]!!.toString()) {
         TYPE_VMESS -> VMessBean().also {
@@ -610,10 +642,9 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
             vmess = it
         }
 
-        TYPE_VLESS -> VMessBean().also {
+        TYPE_VLESS -> VLESSBean().also {
             v2ray = it
             vless = it
-            it.alterId = -1
         }
 
         TYPE_TROJAN -> TrojanBean().also {

@@ -182,6 +182,7 @@
         <activity android:name="io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity" />
+        <activity android:name="io.nekohasekai.sagernet.ui.profile.VLESSSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity" />
         <activity android:name="io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity" />

@@ -19,6 +19,7 @@ import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_SS
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_SSH
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_TROJAN
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_TUIC
+import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_VLESS
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_VMESS
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_WG
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
@@ -27,7 +28,8 @@ fun ProxyEntity.displayType(context: Context): String = when (type) {
     TYPE_SOCKS -> socksBean!!.protocolName()
     TYPE_HTTP -> if (httpBean!!.isTLS()) "HTTPS" else "HTTP"
     TYPE_SS -> "Shadowsocks"
-    TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
+    TYPE_VMESS -> "VMess"
+    TYPE_VLESS -> "VLESS"
     TYPE_TROJAN -> "Trojan"
     TYPE_MIERU -> "Mieru"
     TYPE_NAIVE -> "Naïve"
