@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.database
 
 import androidx.room.TypeConverter
+import com.google.gson.reflect.TypeToken
+import io.nekohasekai.sagernet.ktx.gson
 
 class StringCollectionConverter {
     companion object {
@@ -39,6 +41,24 @@ class StringCollectionConverter {
             emptySet()
         } else {
             str.split(",").toSet()
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun fromLinkedHashMap(map: LinkedHashMap<String, String>): String = if (map.isEmpty()) {
+            ""
+        } else {
+            gson.toJson(map)
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun toLinkedHashMap(str: String): LinkedHashMap<String, String> = if (str.isBlank()) {
+            LinkedHashMap()
+        } else {
+            // Prevent type-erasure
+            val type = object : TypeToken<LinkedHashMap<String, String>>() {}.type
+            gson.fromJson(str, type)
         }
     }
 }

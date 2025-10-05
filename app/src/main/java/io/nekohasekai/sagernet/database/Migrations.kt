@@ -53,3 +53,11 @@ object SagerDatabase_Migration_6_7 : Migration(6, 7) {
     ),
 )
 class SagerDatabase_Migration_12_13 : AutoMigrationSpec
+
+@DeleteColumn.Entries(
+    DeleteColumn(
+        tableName = "proxy_entities",
+        columnName = "uuid",
+    ),
+)
+class SagerDatabase_Migration_14_15 : AutoMigrationSpec
