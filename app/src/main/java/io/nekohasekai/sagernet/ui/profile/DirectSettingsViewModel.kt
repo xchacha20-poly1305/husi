@@ -21,6 +21,8 @@ internal class DirectSettingsViewModel : ProfileSettingsViewModel<DirectBean>() 
     override fun DirectBean.writeToUiState() {
         _uiState.update {
             it.copy(
+                customConfig = customConfigJson,
+                customOutbound = customOutboundJson,
                 name = name,
             )
         }
@@ -29,6 +31,8 @@ internal class DirectSettingsViewModel : ProfileSettingsViewModel<DirectBean>() 
     override fun DirectBean.loadFromUiState() {
         val state = _uiState.value
 
+        customConfigJson = state.customConfig
+        customOutboundJson = state.customOutbound
         name = state.name
     }
 
