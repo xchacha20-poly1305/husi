@@ -434,8 +434,6 @@
     <string name="hop_interval">連接埠跳頻間隔（秒）</string>
     <string name="domain_strategy_for_direct">域名策略（直連）</string>
     <string name="domain_strategy_for_server">網域名稱策略（伺服器位址）</string>
-    <string name="custom_outbound_json">自訂出站 JSON</string>
-    <string name="custom_config_json">自訂配置 JSON</string>
     <string name="utls_fingerprint">uTLS 指紋</string>
     <string name="log_level">日誌等級</string>
     <string name="xtls_flow">Flow</string>
@@ -472,7 +470,6 @@
     <string name="vpn_core_type">核心類型</string>
     <string name="vpn_core_path">偵測到的路徑</string>
     <string name="assets_update">更新地理資產</string>
-    <string name="dns_mode">DNS 模式</string>
     <string name="test_timeout">測試逾時 (毫秒)</string>
     <string name="blurred_address">讓伺服器位址變得模糊</string>
     <string name="action_camera_switch">切換相機</string>

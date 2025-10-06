@@ -9,9 +9,7 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.TypeConverters
 import androidx.room.Update
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
-import io.nekohasekai.sagernet.repository.repo
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
@@ -83,68 +81,6 @@ data class RuleEntity(
 
     fun displayName(): String {
         return name.takeIf { it.isNotBlank() } ?: "Rule $id"
-    }
-
-    fun mkSummary(): String {
-        var summary = ""
-        if (domains.isNotBlank()) summary += "$domains\n"
-        if (ip.isNotBlank()) summary += "$ip\n"
-        if (source.isNotBlank()) summary += "source: $source\n"
-        if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort\n"
-        if (port.isNotBlank()) summary += "port: $port\n"
-        if (network.isNotEmpty()) summary += "network: $network\n"
-        if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
-        if (clientType.isNotEmpty()) summary += "client: $clientType\n"
-        if (packages.isNotEmpty()) summary += repo.getString(
-            R.string.apps_message, packages.size
-        ) + "\n"
-        if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
-        if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
-        if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
-        if (networkType.isNotEmpty()) summary += "networkType: $networkType\n"
-        if (networkIsExpensive) summary += "networkIsExpensive\n"
-        if (networkInterfaceAddress.isNotEmpty()) summary += "networkInterfaceAddress: $networkInterfaceAddress\n"
-
-        if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress\n"
-        if (overridePort > 0) summary += "overridePort: $overridePort\n"
-        if (tlsFragment) {
-            summary += "TLS fragment\n"
-            if (tlsFragmentFallbackDelay.isNotBlank()) {
-                summary += "tlsFragmentFallbackDelay: $tlsFragmentFallbackDelay\n"
-            }
-        }
-        if (tlsRecordFragment) {
-            summary += "TLS record fragment\n"
-        }
-
-        if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy\n"
-        if (resolveDisableCache) summary += "resolveDisableCache\n"
-        if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL\n"
-        if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet\n"
-
-        if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
-        if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
-
-        if (customConfig.isNotBlank()) summary += "with custom config\n"
-        if (customDnsConfig.isNotBlank()) summary += "with custom DNS config\n"
-
-        // Even has "\n" suffix, TextView's "..." will be added and remove the last "\n".
-        val lines = summary.trim().split("\n")
-        return if (lines.size > 5) {
-            lines.subList(0, 5).joinToString("\n", postfix = "\n...")
-        } else {
-            summary.trim()
-        }
-    }
-
-    fun displayOutbound(): String {
-        return when (outbound) {
-            OUTBOUND_PROXY -> repo.getString(R.string.route_proxy)
-            OUTBOUND_DIRECT -> repo.getString(R.string.route_bypass)
-            OUTBOUND_BLOCK -> repo.getString(R.string.route_block)
-            else -> ProfileManager.getProfile(outbound)?.displayName()
-                ?: repo.getString(R.string.error_title)
-        }
     }
 
     @androidx.room.Dao

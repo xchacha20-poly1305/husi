@@ -436,10 +436,7 @@
     <string name="menu_dashboard">داشبورد </string>
     <string name="mux_sum">مالتی‌پلکسر (Mux) برای کاهش تأخیر دست‌تکانی (هندشیک) اتصال طراحی شده است، نه برای افزایش توان عملیاتی اتصال. استفاده از مالتی‌پلکسر برای تماشای ویدیو، دانلود یا تست سرعت معمولاً نتیجه معکوس می‌دهد. اگر سرور از آن پشتیبانی نکند، قادر به دسترسی به اینترنت نخواهید بود.</string>
     <string name="bypass_lan_in_core">دور زدن LAN در هسته</string>
-    <string name="dns_mode">حالت DNS</string>
     <string name="mux_type">پروتکل Mux</string>
-    <string name="custom_outbound_json">خروجی سفارشی JSON</string>
-    <string name="custom_config_json">پیکربندی سفارشی JSON</string>
     <string name="need_restart">راه اندازی مجدد برنامه برای اعمال تغییرات</string>
     <string name="protocol_version">نسخه پروتکل</string>
     <string name="show_group_in_notification">نمایش اسم گروه در اعلان</string>

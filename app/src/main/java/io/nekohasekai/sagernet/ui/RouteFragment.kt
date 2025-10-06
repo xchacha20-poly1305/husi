@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -37,6 +38,9 @@ import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
+import io.nekohasekai.sagernet.database.RuleEntity.Companion.OUTBOUND_BLOCK
+import io.nekohasekai.sagernet.database.RuleEntity.Companion.OUTBOUND_DIRECT
+import io.nekohasekai.sagernet.database.RuleEntity.Companion.OUTBOUND_PROXY
 import io.nekohasekai.sagernet.databinding.LayoutRouteBinding
 import io.nekohasekai.sagernet.databinding.ViewRouteItemBinding
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
@@ -274,9 +278,9 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
         fun bind(ruleEntity: RuleEntity) {
             rule = ruleEntity
             routeName.text = rule.displayName()
-            ruleSummary.text = rule.mkSummary()
+            ruleSummary.text = rule.summary(ruleSummary.context)
             routeAction.text = when (rule.action) {
-                "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound()
+                "", SingBoxOptions.ACTION_ROUTE -> rule.displayOutbound(routeAction.context)
                 else -> "action: ${rule.action}"
             }
             itemView.setOnClickListener {
@@ -294,6 +298,68 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
                         RouteSettingsActivity::class.java,
                     ).putExtra(RouteSettingsActivity.EXTRA_ROUTE_ID, rule.id)
                 )
+            }
+        }
+
+        private fun RuleEntity.summary(context: Context): String  {
+            var summary = ""
+            if (domains.isNotBlank()) summary += "$domains\n"
+            if (ip.isNotBlank()) summary += "$ip\n"
+            if (source.isNotBlank()) summary += "source: $source\n"
+            if (sourcePort.isNotBlank()) summary += "sourcePort: $sourcePort\n"
+            if (port.isNotBlank()) summary += "port: $port\n"
+            if (network.isNotEmpty()) summary += "network: $network\n"
+            if (protocol.isNotEmpty()) summary += "protocol: $protocol\n"
+            if (clientType.isNotEmpty()) summary += "client: $clientType\n"
+            if (packages.isNotEmpty()) summary += context.getString(
+                R.string.apps_message, packages.size
+            ) + "\n"
+            if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
+            if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
+            if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"
+            if (networkType.isNotEmpty()) summary += "networkType: $networkType\n"
+            if (networkIsExpensive) summary += "networkIsExpensive\n"
+            if (networkInterfaceAddress.isNotEmpty()) summary += "networkInterfaceAddress: $networkInterfaceAddress\n"
+
+            if (overrideAddress.isNotBlank()) summary += "overrideAddress: $overrideAddress\n"
+            if (overridePort > 0) summary += "overridePort: $overridePort\n"
+            if (tlsFragment) {
+                summary += "TLS fragment\n"
+                if (tlsFragmentFallbackDelay.isNotBlank()) {
+                    summary += "tlsFragmentFallbackDelay: $tlsFragmentFallbackDelay\n"
+                }
+            }
+            if (tlsRecordFragment) {
+                summary += "TLS record fragment\n"
+            }
+
+            if (resolveStrategy.isNotBlank()) summary += "resolveStrategy: $resolveStrategy\n"
+            if (resolveDisableCache) summary += "resolveDisableCache\n"
+            if (resolveRewriteTTL >= 0) summary += "resolveRewriteTTL: $resolveRewriteTTL\n"
+            if (resolveClientSubnet.isNotBlank()) summary += "resolveClientSubnet: $resolveClientSubnet\n"
+
+            if (sniffTimeout.isNotBlank()) summary += "sniffTimeout: $sniffTimeout\n"
+            if (sniffers.isNotEmpty()) summary += "sniffers: $sniffers\n"
+
+            if (customConfig.isNotBlank()) summary += context.getString(R.string.menu_route) + "\n"
+            if (customDnsConfig.isNotBlank()) summary += context.getString(R.string.cag_dns) + "\n"
+
+            // Even has "\n" suffix, TextView's "..." will be added and remove the last "\n".
+            val lines = summary.trim().split("\n")
+            return if (lines.size > 5) {
+                lines.subList(0, 5).joinToString("\n", postfix = "\n...")
+            } else {
+                summary.trim()
+            }
+        }
+
+        private fun RuleEntity.displayOutbound(context: Context): String {
+            return when (outbound) {
+                OUTBOUND_PROXY -> context.getString(R.string.route_proxy)
+                OUTBOUND_DIRECT -> context.getString(R.string.route_bypass)
+                OUTBOUND_BLOCK -> context.getString(R.string.route_block)
+                else -> ProfileManager.getProfile(outbound)?.displayName()
+                    ?: context.getString(R.string.error_title)
             }
         }
     }
