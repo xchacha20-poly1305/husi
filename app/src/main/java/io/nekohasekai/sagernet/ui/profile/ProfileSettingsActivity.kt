@@ -36,6 +36,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -159,8 +160,11 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                             text = { Text(stringResource(R.string.move)) },
                                             onClick = { showMoveDialog = true },
                                         )
+
+                                        HorizontalDivider()
+                                        Text(stringResource(R.string.custom_config))
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.custom_outbound_json)) },
+                                            text = { Text(stringResource(R.string.outbound)) },
                                             onClick = {
                                                 resultCallbackCustomOutbound.launch(
                                                     Intent(
@@ -174,7 +178,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                             },
                                         )
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.custom_config_json)) },
+                                            text = { Text(stringResource(R.string.full)) },
                                             onClick = {
                                                 resultCallbackCustomConfig.launch(
                                                     Intent(

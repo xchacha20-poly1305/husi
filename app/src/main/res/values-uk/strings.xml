@@ -137,7 +137,6 @@
     <string name="menu_log">Логи</string>
     <string name="nat_stun_server_hint">STUN сервер</string>
     <string name="share_subscription">Поділитися підпискою</string>
-    <string name="dns_mode">Режим DNS</string>
     <string name="insecure_warn">Порадни з безпеки</string>
     <string name="app_name">husi</string>
     <string name="app_name_long">husi для Android</string>
@@ -401,8 +400,6 @@
     <string name="acquire_wake_lock_summary">Підтримувати CPU увімкненим</string>
     <string name="connection_test_delete_unavailable">Видалити недоступні</string>
     <string name="utls_fingerprint">Відбиток uTLS</string>
-    <string name="custom_outbound_json">Користувацький вихідний JSON</string>
-    <string name="custom_config_json">Користувацька конфігурація JSON</string>
     <string name="xtls_flow">Flow (підпротокол VLESS)</string>
     <string name="bypass_lan_in_core">Обхід LAN у ядрі</string>
     <string name="reset_connections">Скинути з\'єднання</string>

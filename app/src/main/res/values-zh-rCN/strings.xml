@@ -439,8 +439,6 @@
     <string name="tuic_congestion_controller">拥塞控制</string>
     <string name="tuic_udp_relay_mode">UDP 转发模式</string>
     <string name="menu_dashboard">仪表</string>
-    <string name="custom_outbound_json">自定义出站 JSON</string>
-    <string name="custom_config_json">自定义配置 JSON</string>
     <string name="is_outbound_only">设置的 JSON 是出站</string>
     <string name="save">保存</string>
     <string name="xtls_flow">流控</string>
@@ -478,7 +476,6 @@
     <string name="test_timeout">测试超时 (ms)</string>
     <string name="mux_preference">多路复用设置</string>
     <string name="enable_brutal">启用 TCP Brutal 拥塞控制算法</string>
-    <string name="dns_mode">DNS 模式</string>
     <string name="blurred_address">使服务器地址模糊</string>
     <string name="action_flash_on">开启闪光灯</string>
     <string name="action_camera_switch">切换摄像头</string>
@@ -640,5 +637,5 @@
     <string name="cert_public_key_sha256">证书公钥 sha256</string>
     <string name="format">格式</string>
     <string name="not_found">未找到</string>
-    <string name="custom_dns_json">自定义 DNS JSON</string>
+    <string name="full">完整</string>
 </resources>

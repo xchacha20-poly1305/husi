@@ -448,7 +448,6 @@
     <string name="action_open">Открыть</string>
     <string name="update_all_subscription">Обновить все подписки</string>
     <string name="connection_test_delete_unavailable">Удалить недоступные</string>
-    <string name="custom_outbound_json">Правка исходящего JSON</string>
     <string name="move">Переместить</string>
     <string name="app_name_long">husi для Андроид</string>
     <string name="assets_update">Обновить геоданные</string>
@@ -484,7 +483,6 @@
     <string name="inbound_username">Имя пользователя SOCKS5</string>
     <string name="route_opt_block_quic">Блокировать QUIC</string>
     <string name="get_cert">Получение сертификатов</string>
-    <string name="dns_mode">Режим DNS</string>
     <string name="get_cert_summary">Получить TLS сертификаты целевого сервера. Поддержка https и QUIC.</string>
     <string name="scan_vpn_app_introduce">Показать установленные на устройстве VPN-приложения и их тип.</string>
     <string name="scan_vpn_app">Поиск VPN-приложений</string>
@@ -497,7 +495,6 @@
     <string name="resolve_server">Разрешить адрес сервера в соответствии с политикой IPv6</string>
     <string name="app_name">husi</string>
     <string name="tuic_congestion_controller">Контроллер перегруженности</string>
-    <string name="custom_config_json">Правка всего конфига JSON</string>
     <string name="save">Сохранить</string>
     <string name="ech_config">Конфигурация ECH</string>
     <string name="http_upgrade_host">HTTPUpgrade - Хост</string>

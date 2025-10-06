@@ -72,7 +72,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.work.impl.model.Preference
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
 import io.nekohasekai.sagernet.compose.MapPreference
@@ -169,8 +168,9 @@ class RouteSettingsActivity : ComposeActivity() {
                                         expanded = showExpandedMenu,
                                         onDismissRequest = { showExpandedMenu = false },
                                     ) {
+                                        Text(stringResource(R.string.custom_config))
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.custom_config_json)) },
+                                            text = { Text(stringResource(R.string.menu_route)) },
                                             onClick = {
                                                 editCustomConfig.launch(
                                                     Intent(
@@ -184,7 +184,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                             },
                                         )
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.custom_dns_json)) },
+                                            text = { Text(stringResource(R.string.cag_dns)) },
                                             onClick = {
                                                 editCustomDnsConfig.launch(
                                                     Intent(

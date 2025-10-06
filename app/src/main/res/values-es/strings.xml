@@ -448,8 +448,6 @@
     <string name="hop_interval">Intervalo de salto de puerto (segundos)</string>
     <string name="app_name">husi</string>
     <string name="menu_dashboard">Panel</string>
-    <string name="custom_outbound_json">JSON saliente personalizado</string>
-    <string name="custom_config_json">JSON de config. personalizada</string>
     <string name="is_outbound_only">El conjunto JSON es saliente</string>
     <string name="save">Guardar</string>
     <string name="log_level">Nivel de registro</string>
@@ -474,7 +472,6 @@
     <string name="vpn_app_type">Tipo de app</string>
     <string name="vpn_core_path">Ruta detectada</string>
     <string name="vpn_core_type_unknown">Desconocido</string>
-    <string name="dns_mode">Modo DNS</string>
     <string name="landing_proxy">Proxy de aterrizaje</string>
     <string name="show_group_in_notification">Mostrar nombre del grupo en notificación</string>
     <string name="mux_type">Protocolo Mux</string>
