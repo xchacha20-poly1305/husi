@@ -92,11 +92,11 @@ object PackageCache {
     }
 
     private val labelMap = mutableMapOf<String, String>()
-    fun loadLabel(packageName: String): String {
+    fun loadLabel(packageManager: PackageManager, packageName: String): String {
         var label = labelMap[packageName]
         if (label != null) return label
         val info = installedApps[packageName] ?: return packageName
-        label = info.loadLabel(repo.packageManager).toString()
+        label = info.loadLabel(packageManager).toString()
         labelMap[packageName] = label
         return label
     }

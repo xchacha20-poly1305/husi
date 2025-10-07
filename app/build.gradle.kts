@@ -86,6 +86,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.ui:ui-viewbinding")
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
     implementation("me.zhanghai.compose.preference:preference:2.1.0")
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
     debugImplementation("androidx.compose.ui:ui-tooling")
