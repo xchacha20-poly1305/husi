@@ -659,7 +659,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
             "alter_id" -> vmess?.alterId = value.toString().toIntOrNull()
             "authenticated_length" -> vmess?.authenticatedLength = value.toString().toBoolean()
             "uuid" -> v2ray?.uuid = value.toString()
-            "flow" -> vless?.encryption = value.toString().removeSuffix("-udp443")
+            "flow" -> vless?.flow = value.toString().removeSuffix("-udp443")
             "password" -> trojan?.password = value.toString()
             "security" -> vmess?.security = value.toString()
             "packet_encoding" -> v2ray?.packetEncoding = when (value.toString()) {
