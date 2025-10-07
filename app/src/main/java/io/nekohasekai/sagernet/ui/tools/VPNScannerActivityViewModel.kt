@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.tools
 import android.Manifest
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,7 @@ import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.repository.repo
+import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,11 +23,13 @@ import kotlin.collections.iterator
 
 internal data class VPNScannerUiState(
     val appInfos: List<AppInfo> = emptyList(),
-    val progress: Int? = null,
+    val progress: Float? = null,
 )
 
 internal data class AppInfo(
     val packageInfo: PackageInfo,
+    val label: String,
+    val icon: Drawable,
     val vpnType: VPNType,
 )
 
@@ -80,8 +84,18 @@ internal class VPNScannerActivityViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Scroll in the LazyColumn will load icons frequently, so we cache them here.
+     */
+    private val iconCache = mutableMapOf<String, Drawable>()
+    private fun loadIcon(packageManager: PackageManager, packageInfo: PackageInfo): Drawable {
+        return iconCache.getOrPut(packageInfo.packageName) {
+            packageInfo.applicationInfo!!.loadIcon(packageManager)
+        }
+    }
+
     private suspend fun scanVPN0() {
-        _uiState.emit(_uiState.value.copy(appInfos = emptyList(), progress = 0))
+        _uiState.emit(_uiState.value.copy(appInfos = emptyList(), progress = 0f))
         val packageManager = repo.packageManager
         val flag =
             PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -107,8 +121,17 @@ internal class VPNScannerActivityViewModel : ViewModel() {
             val appType = runCatching { getVPNAppType(packageInfo) }.getOrNull()
             val coreType = runCatching { getVPNCoreType(packageInfo) }.getOrNull()
 
-            foundApps.add(AppInfo(packageInfo, VPNType(appType, coreType)))
-            val progress = ((i + 1).toDouble() / vpnAppList.size.toDouble() * 100).toInt()
+            val appInfo = AppInfo(
+                packageInfo = packageInfo,
+                label = PackageCache.loadLabel(packageManager, packageInfo.packageName),
+                icon = loadIcon(packageManager, packageInfo),
+                vpnType = VPNType(
+                    appType = appType,
+                    coreType = coreType,
+                ),
+            )
+            foundApps.add(appInfo)
+            val progress = ((i + 1).toDouble() / vpnAppList.size.toDouble()).toFloat()
             _uiState.emit(_uiState.value.copy(appInfos = foundApps.toList(), progress = progress))
 
             System.gc()
