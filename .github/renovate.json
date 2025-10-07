@@ -55,6 +55,7 @@
         "github.com/xchacha20-poly1305/cazilla"
       ],
       "enabled": true,
+      "postUpdateOptions": ["gomodTidy"],
       "addLabels": [
         "go"
       ]
