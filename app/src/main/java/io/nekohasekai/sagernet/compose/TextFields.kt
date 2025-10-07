@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.compose
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,7 +10,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -172,5 +176,33 @@ fun HostTextField(
             .horizontalScroll(scrollState),
         keyboardActions = KeyboardActions { onOk() },
         singleLine = false,
+    )
+}
+
+@Composable
+fun MultilineTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+    modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        keyboardActions = KeyboardActions { onOk() },
+        singleLine = false,
+        maxLines = maxLines,
+        label = label,
+        placeholder = placeholder,
+        visualTransformation = visualTransformation,
+        colors = colors,
+        interactionSource = interactionSource,
     )
 }

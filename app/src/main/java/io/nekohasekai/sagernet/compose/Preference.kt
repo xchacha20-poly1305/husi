@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -183,7 +182,7 @@ fun <K, V> MapPreference(
                             .fillMaxWidth()
                             .padding(top = if (isFirst) 0.dp else 12.dp)
                             .then(if (key == firstKey) Modifier.focusRequester(focusRequester) else Modifier),
-                        singleLine = true,
+                        singleLine = false,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { onOk() }),
                     )

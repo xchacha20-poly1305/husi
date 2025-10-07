@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.fmt.http.HttpBean
@@ -76,6 +77,9 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
                 icon = { Icon(Icons.Filled.Code, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
 
