@@ -209,7 +209,7 @@ class AppListActivity : ThemedActivity() {
             }
         }
 
-        val packages = intent.getStringArrayExtra(EXTRA_APP_LIST)?.toSet() ?: emptySet()
+        val packages = intent.getStringArrayListExtra(EXTRA_APP_LIST)?.toSet() ?: emptySet()
         viewModel.initialize(packageManager, packages)
     }
 
