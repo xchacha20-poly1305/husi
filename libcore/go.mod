@@ -9,7 +9,7 @@ require (
 	github.com/miekg/dns v1.1.68
 	github.com/sagernet/gomobile v0.1.8
 	github.com/sagernet/sing v0.8.0-beta.5
-	github.com/sagernet/sing-box v1.13.0-alpha.19
+	github.com/sagernet/sing-box v1.13.0-alpha.20
 	github.com/sagernet/sing-quic v0.6.0-beta.3
 	github.com/sagernet/sing-tun v0.8.0-beta.10
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -26,8 +26,8 @@ require (
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.39.0
-	google.golang.org/protobuf v1.36.9
+	github.com/v2fly/v2ray-core/v5 v5.40.0
+	google.golang.org/protobuf v1.36.10
 )
 
 require (
