@@ -99,8 +99,8 @@ github.com/sagernet/quic-go v0.54.0-sing-box-mod.3/go.mod h1:OV+V5kEBb8kJS7k29Mz
 github.com/sagernet/sing v0.6.9/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.8.0-beta.5 h1:Cm4CnLQGNyG5Jl1U9pKWAjFUcbjchGGqn1xeXzfI5kw=
 github.com/sagernet/sing v0.8.0-beta.5/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.13.0-alpha.19 h1:l9z9qCNrHrbNgQhZKp44B9FCVXpbvpmjyPdujM9o9qw=
-github.com/sagernet/sing-box v1.13.0-alpha.19/go.mod h1:Bq7S1/yvvQUlfeWiv6jAjHFPp9MV91l2ncqkr+WBtR4=
+github.com/sagernet/sing-box v1.13.0-alpha.20 h1:ir0977Sowjbp9+0lDEZxNNLnSYQxri9X+aHlWaFRbSM=
+github.com/sagernet/sing-box v1.13.0-alpha.20/go.mod h1:Bq7S1/yvvQUlfeWiv6jAjHFPp9MV91l2ncqkr+WBtR4=
 github.com/sagernet/sing-mux v0.3.3 h1:YFgt9plMWzH994BMZLmyKL37PdIVaIilwP0Jg+EcLfw=
 github.com/sagernet/sing-mux v0.3.3/go.mod h1:pht8iFY4c9Xltj7rhVd208npkNaeCxzyXCgulDPLUDA=
 github.com/sagernet/sing-quic v0.6.0-beta.3 h1:Z2vt49f9vNtHc9BbF9foI859n4+NAOV3gBeB1LuzL1Q=
@@ -133,8 +133,8 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 h1:pyC9PaHYZFgEKFdlp3G8RaCKgVpHZnecvArXvPXcFkM=
 github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701/go.mod h1:P3a5rG4X7tI17Nn3aOIAYr5HbIMukwXG0urG0WuL8OA=
-github.com/v2fly/v2ray-core/v5 v5.39.0 h1:RGgQVI4xjWtRQqRCtfMIqUKMF+cvvkoHDfNFlG04Kus=
-github.com/v2fly/v2ray-core/v5 v5.39.0/go.mod h1:UxXCBle7saJ+HZll59paTxIEahdcDNxpncshfejBjGc=
+github.com/v2fly/v2ray-core/v5 v5.40.0 h1:vp/j8efJpiCoh1XCTIXVV/dKJEDOwxICktbCrkRHe3Q=
+github.com/v2fly/v2ray-core/v5 v5.40.0/go.mod h1:OGJleds9kRSXu5dGd4URPaNqZZk48huGTrE5tiIR7cg=
 github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zdEY=
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xchacha20-poly1305/TLS-scribe v0.12.1 h1:9KHvZ/ie7gHl787L2S/s0RzqvAPAvyZc0f+UUcnwMeE=
@@ -205,8 +205,8 @@ google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 h1:
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/grpc v1.75.1 h1:/ODCNEuf9VghjgO3rqLcfg8fiOP0nSluljWFlDxELLI=
 google.golang.org/grpc v1.75.1/go.mod h1:JtPAzKiq4v1xcAB2hydNlWI2RnF85XXcV0mhKXr2ecQ=
-google.golang.org/protobuf v1.36.9 h1:w2gp2mA27hUeUzj9Ex9FBjsBm40zfaDtEWow293U7Iw=
-google.golang.org/protobuf v1.36.9/go.mod h1:fuxRtAxBytpl4zzqUh6/eyUujkJdNiuEkXntxiD/uRU=
+google.golang.org/protobuf v1.36.10 h1:AYd7cD/uASjIL6Q9LiTjz8JLcrh/88q5UObnmY3aOOE=
+google.golang.org/protobuf v1.36.10/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
