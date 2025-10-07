@@ -57,6 +57,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.compose.TextButton
@@ -107,7 +108,7 @@ private fun SpeedtestScreen(
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     var alert by remember { mutableStateOf<String?>(null) }

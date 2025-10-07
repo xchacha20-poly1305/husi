@@ -52,6 +52,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.GroupType
@@ -92,7 +93,7 @@ class GroupSettingsActivity : ComposeActivity() {
         viewModel.initialize(editingId)
 
         setContent {
-            val isDirty by viewModel.isDirty.collectAsState()
+            val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
             var showBackAlert by remember { mutableStateOf(false) }
             BackHandler(enabled = isDirty) {
                 showBackAlert = true

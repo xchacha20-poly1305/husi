@@ -49,7 +49,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +62,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DropDownSelector
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
@@ -152,7 +152,7 @@ private fun GetCertContent(
     viewModel: GetCertActivityViewModel,
     copyToClipboard: (String) -> Unit,
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     var alert by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
