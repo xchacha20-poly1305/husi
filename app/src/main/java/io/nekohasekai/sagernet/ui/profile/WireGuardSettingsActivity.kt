@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
@@ -134,6 +135,9 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 icon = { Icon(Icons.Filled.Fingerprint, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.reserved)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("listen_port") {

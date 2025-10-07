@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
@@ -132,6 +133,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                     TextFieldPreference(
                         value = state.certificate,
@@ -141,6 +145,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.VpnKey, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.certificate)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                     TextFieldPreference(
                         value = state.certPublicKeySha256,
@@ -239,6 +246,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         enabled = state.ech,
                         summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
             }
@@ -368,6 +378,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Code, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
             }
@@ -404,6 +417,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Code, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
 
@@ -479,6 +495,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Code, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
             }

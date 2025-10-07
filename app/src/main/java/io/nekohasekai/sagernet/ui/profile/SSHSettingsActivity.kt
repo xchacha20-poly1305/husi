@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
@@ -132,6 +133,9 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                         icon = { Icon(Icons.Filled.VpnKey, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.privateKey)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                     PasswordPreference(
                         value = state.privateKeyPassphrase,
@@ -151,6 +155,9 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 icon = { Icon(Icons.Filled.Copyright, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.publicKey)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
     }

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
@@ -172,6 +173,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("certificates") {
@@ -183,6 +187,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 icon = { Icon(Icons.Filled.VpnKey, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.certificates)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("cert_public_key_sha256") {
@@ -267,6 +274,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 enabled = state.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
     }

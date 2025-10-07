@@ -75,6 +75,7 @@ import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
 import io.nekohasekai.sagernet.compose.MapPreference
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
@@ -348,6 +349,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.Domain, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.domains)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("ip") {
@@ -359,6 +363,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.AddRoad, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.ip)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("port") {
@@ -370,6 +377,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.DirectionsBoat, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("source_port") {
@@ -381,6 +391,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.Home, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.sourcePort)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("network") {
@@ -414,6 +427,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.LocalBar, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.source)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("sniff_protocol") {
@@ -443,6 +459,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.Fingerprint, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.client)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
 
@@ -458,6 +477,9 @@ class RouteSettingsActivity : ComposeActivity() {
                             icon = { Icon(Icons.Filled.Wifi, null) },
                             summary = { Text(LocalContext.current.contentOrUnset(uiState.ssid)) },
                             valueToText = { it },
+                            textField = { value, onValueChange, onOk ->
+                                MultilineTextField(value, onValueChange, onOk)
+                            },
                         )
                     }
                     item("bssid") {
@@ -469,6 +491,9 @@ class RouteSettingsActivity : ComposeActivity() {
                             icon = { Icon(Icons.Filled.WifiFind, null) },
                             summary = { Text(LocalContext.current.contentOrUnset(uiState.bssid)) },
                             valueToText = { it },
+                            textField = { value, onValueChange, onOk ->
+                                MultilineTextField(value, onValueChange, onOk)
+                            },
                         )
                     }
                 }
@@ -482,6 +507,9 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.Category, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.clashMode)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("network_is_expensive") {
