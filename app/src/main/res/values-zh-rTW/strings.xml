@@ -630,4 +630,9 @@
     <string name="action_format">格式化</string>
     <string name="action_test_config">測試設定</string>
     <string name="mutual_tls">雙向 TLS</string>
+    <string name="menu">選單</string>
+    <string name="cert_public_key_sha256">憑證公鑰Sha256</string>
+    <string name="format">格式</string>
+    <string name="not_found">未找到</string>
+    <string name="full">完整</string>
 </resources>
