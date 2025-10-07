@@ -72,6 +72,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
 import io.nekohasekai.sagernet.compose.MapPreference
@@ -127,7 +128,7 @@ class RouteSettingsActivity : ComposeActivity() {
                 var showDeleteConfirm by remember { mutableStateOf(false) }
                 var showUnchangedAlert by remember { mutableStateOf(false) }
 
-                val uiState by viewModel.uiState.collectAsState()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                 Scaffold(
                     modifier = Modifier

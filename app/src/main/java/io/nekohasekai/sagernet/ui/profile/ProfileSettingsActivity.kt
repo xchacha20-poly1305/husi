@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.QuickToggleShortcut
 import io.nekohasekai.sagernet.R
@@ -285,7 +286,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
     @Composable
     private fun MainColumn(modifier: Modifier) {
         ProvidePreferenceLocals {
-            val uiState by viewModel.uiState.collectAsState()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             LazyColumn(modifier = modifier) {
                 settings(uiState)
 
