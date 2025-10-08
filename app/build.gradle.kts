@@ -89,6 +89,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
     implementation("me.zhanghai.compose.preference:preference:2.1.0")
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
+    implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-core:0.3.2")
+    implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-material3:0.3.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("com.google.android.material:material:1.14.0-alpha05")

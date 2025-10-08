@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,18 +30,23 @@ import kotlin.collections.iterator
 import kotlin.coroutines.coroutineContext
 
 internal data class AppManagerUiState(
+    val searchQuery: String = "",
+    val mode: ProxyMode = ProxyMode.DISABLED,
     val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted
     val scanned: List<String>? = null,
     val scanProcess: Int? = null,
 )
 
-internal data class AppManagerToolbarState(
-    val searchQuery: String = "",
-)
-
 internal sealed interface AppManagerUiEvent {
     class Snackbar(val message: StringOrRes) : AppManagerUiEvent
+    object Finish : AppManagerUiEvent
+}
+
+internal enum class ProxyMode {
+    DISABLED,
+    BYPASS,
+    PROXY,
 }
 
 internal class AppManagerActivityViewModel : ViewModel() {
@@ -49,9 +55,6 @@ internal class AppManagerActivityViewModel : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<AppManagerUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
-
-    private val _toolbarState = MutableStateFlow(AppManagerToolbarState())
-    val toolbarState = _toolbarState.asStateFlow()
 
     private var scanJob: Job? = null
 
@@ -124,30 +127,35 @@ internal class AppManagerActivityViewModel : ViewModel() {
         }
     }
 
-    fun initialize(pm: PackageManager) {
-        val initialized = ::packageManager.isInitialized
+    fun initialize(pm: PackageManager) = viewModelScope.launch(Dispatchers.IO) {
+        if (!DataStore.proxyApps) {
+            DataStore.proxyApps = true
+        }
+        _uiState.update { it.copy(mode = currentProxyMode()) }
         packageManager = pm
-        if (!initialized) {
-            viewModelScope.launch(Dispatchers.IO) {
-                _uiState.update {
-                    it.copy(isLoading = true, apps = emptyList())
-                }
-                val packages = DataStore.packages
-                val cachedApps = cachedApps
-                for ((packageName, packageInfo) in cachedApps) {
-                    if (packages.contains(packageName)) {
-                        proxiedUids.add(packageInfo.applicationInfo!!.uid)
-                    }
-                }
-                reload(cachedApps)
+        _uiState.update {
+            it.copy(isLoading = true, apps = emptyList())
+        }
+        val packages = DataStore.packages
+        val cachedApps = cachedApps
+        for ((packageName, packageInfo) in cachedApps) {
+            if (packages.contains(packageName)) {
+                proxiedUids.add(packageInfo.applicationInfo!!.uid)
             }
+        }
+        reload(cachedApps)
+    }
+
+    private val iconCache = mutableMapOf<String, Drawable>()
+    private fun loadIcon(packageManager: PackageManager, packageInfo: PackageInfo): Drawable {
+        return iconCache.getOrPut(packageInfo.packageName) {
+            packageInfo.applicationInfo!!.loadIcon(packageManager)
         }
     }
 
     suspend fun reload(cachedApps: Map<String, PackageInfo> = this.cachedApps) {
         val apps = mutableListOf<ProxiedApp>()
-        val toolbarState = toolbarState.value
-        val query = toolbarState.searchQuery
+        val query = _uiState.value.searchQuery
         for ((packageName, packageInfo) in cachedApps) {
             coroutineContext[Job]!!.ensureActive()
 
@@ -161,10 +169,11 @@ internal class AppManagerActivityViewModel : ViewModel() {
             }
 
             val proxiedApp = ProxiedApp(
-                applicationInfo,
-                packageName,
-                proxiedUids.contains(applicationInfo.uid),
-                name,
+                appInfo = applicationInfo,
+                packageName = packageName,
+                isProxied = proxiedUids.contains(applicationInfo.uid),
+                icon = loadIcon(packageManager, packageInfo),
+                name = name,
             )
             apps.add(proxiedApp)
         }
@@ -179,9 +188,7 @@ internal class AppManagerActivityViewModel : ViewModel() {
     }
 
     fun setSearchQuery(query: String) = viewModelScope.launch {
-        _toolbarState.update {
-            it.copy(searchQuery = query)
-        }
+        _uiState.update { it.copy(searchQuery = query) }
         reload()
     }
 
@@ -268,5 +275,35 @@ internal class AppManagerActivityViewModel : ViewModel() {
                 .map { it.packageName }
                 .toCollection(LinkedHashSet())
         }
+    }
+
+    private fun currentProxyMode(): ProxyMode {
+        return if (!DataStore.proxyApps) {
+            ProxyMode.DISABLED
+        } else if (DataStore.bypassMode) {
+            ProxyMode.BYPASS
+        } else {
+            ProxyMode.PROXY
+        }
+    }
+
+    fun setProxyMode(mode: ProxyMode) = viewModelScope.launch {
+        when (mode) {
+            ProxyMode.DISABLED -> {
+                DataStore.proxyApps = false
+                _uiEvent.emit(AppManagerUiEvent.Finish)
+            }
+
+            ProxyMode.BYPASS -> {
+                DataStore.proxyApps = true
+                DataStore.bypassMode = true
+            }
+
+            ProxyMode.PROXY -> {
+                DataStore.proxyApps = true
+                DataStore.bypassMode = false
+            }
+        }
+        _uiState.update { it.copy(mode = mode) }
     }
 }
