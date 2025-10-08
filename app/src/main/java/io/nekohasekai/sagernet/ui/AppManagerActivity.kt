@@ -2,13 +2,33 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.ClipboardManager
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.TextView
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -17,317 +37,458 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.databinding.LayoutAppsBinding
-import io.nekohasekai.sagernet.databinding.LayoutLoadingBinding
-import io.nekohasekai.sagernet.ktx.crossFadeFrom
 import io.nekohasekai.sagernet.ktx.first
 import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
-import io.nekohasekai.sagernet.utils.SimpleDiffCallback
+import io.nekohasekai.sagernet.repository.TempRepository
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.launch
 
-class AppManagerActivity : ThemedActivity() {
+class AppManagerActivity : ComposeActivity() {
 
     private val viewModel by viewModels<AppManagerActivityViewModel>()
-    private lateinit var binding: LayoutAppsBinding
-    private lateinit var adapter: AppsAdapter
-
-    private val clipboard by lazy { getSystemService<ClipboardManager>()!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = LayoutAppsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        binding.toolbar.setContent {
+        setContent {
             AppTheme {
-                val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
-                var searchActivate by remember { mutableStateOf(false) }
-                val focusManager = LocalFocusManager.current
-                var showOverflowMenu by remember { mutableStateOf(false) }
-                TopAppBar(
-                    title = {
-                        if (searchActivate) {
-                            OutlinedTextField(
-                                value = toolbarState.searchQuery,
-                                onValueChange = { viewModel.setSearchQuery(it) },
-                                placeholder = { Text(stringResource(android.R.string.search_go)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                                keyboardActions = KeyboardActions(onSearch = {
-                                    focusManager.clearFocus()
-                                }),
-                                colors = TextFieldDefaults.colors(
-                                    focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                        alpha = 0.5f
-                                    ),
-                                    unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                        alpha = 0.2f
-                                    ),
-                                ),
-                            )
-                        } else {
-                            Text(stringResource(R.string.proxied_apps))
-                        }
-                    },
-                    navigationIcon = {
-                        SimpleIconButton(Icons.Filled.Close) {
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                    },
-                    actions = {
-                        if (searchActivate) SimpleIconButton(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.close),
-                            onClick = {
-                                viewModel.setSearchQuery("")
-                                searchActivate = false
-                            },
-                        ) else {
-                            SimpleIconButton(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = stringResource(android.R.string.search_go),
-                                onClick = { searchActivate = true },
-                            )
-
-                            SimpleIconButton(
-                                imageVector = Icons.Filled.CopyAll,
-                                contentDescription = stringResource(R.string.action_copy),
-                            ) {
-                                val toExport = viewModel.export()
-                                val success = clipboard.trySetPrimaryClip(toExport)
-                                snackbar(
-                                    if (success) {
-                                        R.string.copy_success
-                                    } else {
-                                        R.string.copy_failed
-                                    }
-                                ).show()
-                            }
-                            SimpleIconButton(
-                                imageVector = Icons.Filled.ContentPaste,
-                                contentDescription = stringResource(R.string.action_import)
-                            ) {
-                                viewModel.import(clipboard.first())
-                            }
-
-                            Box {
-                                SimpleIconButton(Icons.Filled.MoreVert) {
-                                    showOverflowMenu = true
-                                }
-                                DropdownMenu(
-                                    expanded = showOverflowMenu,
-                                    onDismissRequest = { showOverflowMenu = false },
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.action_scan_china_apps)) },
-                                        onClick = {
-                                            showOverflowMenu = false
-                                            viewModel.scanChinaApps()
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.invert_selections)) },
-                                        onClick = {
-                                            viewModel.invertSections()
-                                            showOverflowMenu = false
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.clear_selections)) },
-                                        onClick = {
-                                            viewModel.clearSections()
-                                            showOverflowMenu = false
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    },
+                AppManagerScreen(
+                    viewModel = viewModel,
+                    onBackPress = { onBackPressedDispatcher.onBackPressed() },
+                    finish = ::finish,
                 )
             }
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.list) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-                bottom = bars.bottom,
-            )
-            insets
+        if (savedInstanceState == null) {
+            viewModel.initialize(packageManager)
         }
+    }
+}
 
-        if (!DataStore.proxyApps) {
-            DataStore.proxyApps = true
-        }
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AppManagerScreen(
+    modifier: Modifier = Modifier,
+    viewModel: AppManagerActivityViewModel,
+    onBackPress: () -> Unit,
+    finish: () -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-        binding.bypassGroup.check(
-            if (DataStore.bypassMode) {
-                R.id.appProxyModeBypass
-            } else {
-                R.id.appProxyModeOn
-            }
-        )
-        binding.bypassGroup.setOnCheckedStateChangeListener { _, checkedIds ->
-            when (checkedIds.firstOrNull()) {
-                R.id.appProxyModeDisable -> {
-                    DataStore.proxyApps = false
-                    finish()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AppManagerUiEvent.Snackbar -> {
+                    val message = context.getStringOrRes(event.message)
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
+                    )
                 }
 
-                R.id.appProxyModeOn -> DataStore.bypassMode = false
-                R.id.appProxyModeBypass -> DataStore.bypassMode = true
+                AppManagerUiEvent.Finish -> finish()
             }
         }
-
-        binding.list.itemAnimator = DefaultItemAnimator()
-        binding.list.adapter = AppsAdapter(packageManager) { app ->
-            viewModel.onItemClick(app)
-        }.also {
-            adapter = it
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::handleUiState)
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
-        }
-
-        viewModel.initialize(packageManager)
     }
 
-    private var scanDialog: AlertDialog? = null
-    private var scanBinding: LayoutLoadingBinding? = null
-    private var scanText: TextViewAdapter? = null
+    var searchActivate by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    var showOverflowMenu by remember { mutableStateOf(false) }
+    val clipboardManager = remember(context) { context.getSystemService<ClipboardManager>() }
 
-    private fun handleUiState(state: AppManagerUiState) {
-        if (state.scanned == null) {
-            scanDialog?.dismiss()
-            scanText?.submitList(null) {
-                scanDialog = null
-                scanBinding = null
-                scanText = null
-            }
-        } else {
-            if (scanDialog == null) {
-                scanBinding = LayoutLoadingBinding.inflate(layoutInflater)
-                scanBinding!!.recyclerView.adapter = TextViewAdapter().also {
-                    scanText = it
-                }
-                scanDialog = MaterialAlertDialogBuilder(this)
-                    .setView(scanBinding!!.root)
-                    .setNegativeButton(android.R.string.cancel) { _, _ ->
-                        viewModel.cancelScan()
+    val windowInsets = WindowInsets.safeDrawing
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = {
+                    if (searchActivate) {
+                        OutlinedTextField(
+                            value = uiState.searchQuery,
+                            onValueChange = { viewModel.setSearchQuery(it) },
+                            placeholder = { Text(stringResource(android.R.string.search_go)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                            colors = TextFieldDefaults.colors(
+                                focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.5f
+                                ),
+                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.2f
+                                ),
+                            ),
+                        )
+                    } else {
+                        Text(stringResource(R.string.proxied_apps))
                     }
-                    .setCancelable(false)
-                    .show()
-            }
-            scanText!!.submitList(state.scanned) {
-                scanBinding?.process?.setProgressCompat(state.scanProcess!!, true)
-                val scrollTo = if (state.scanned.isEmpty()) {
-                    0
+                },
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Close,
+                        onClick = onBackPress,
+                    )
+                },
+                actions = {
+                    if (searchActivate) {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.SearchOff,
+                            contentDescription = stringResource(R.string.close),
+                        ) {
+                            searchActivate = false
+                            viewModel.setSearchQuery("")
+                        }
+                    } else {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = stringResource(android.R.string.search_go),
+                            onClick = { searchActivate = true },
+                        )
+
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.CopyAll,
+                            contentDescription = stringResource(R.string.action_copy),
+                        ) {
+                            val toExport = viewModel.export()
+                            val success = clipboardManager?.trySetPrimaryClip(toExport) ?: false
+                            scope.launch {
+                                val message = if (success) {
+                                    context.getString(R.string.copy_success)
+                                } else {
+                                    context.getString(R.string.copy_failed)
+                                }
+                                snackbarHostState.showSnackbar(
+                                    message = message,
+                                    actionLabel = context.getString(android.R.string.ok),
+                                    duration = SnackbarDuration.Short,
+                                )
+                            }
+                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.ContentPaste,
+                            contentDescription = stringResource(R.string.action_import),
+                        ) {
+                            val text = clipboardManager?.first()
+                            viewModel.import(text)
+                        }
+
+                        Box {
+                            SimpleIconButton(Icons.Filled.MoreVert) {
+                                showOverflowMenu = true
+                            }
+                            DropdownMenu(
+                                expanded = showOverflowMenu,
+                                onDismissRequest = { showOverflowMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.action_scan_china_apps)) },
+                                    onClick = {
+                                        showOverflowMenu = false
+                                        viewModel.scanChinaApps()
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.invert_selections)) },
+                                    onClick = {
+                                        viewModel.invertSections()
+                                        showOverflowMenu = false
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.clear_selections)) },
+                                    onClick = {
+                                        viewModel.clearSections()
+                                        showOverflowMenu = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .paddingExceptBottom(innerPadding),
+        ) {
+            ProxyModeSelector(
+                selectedMode = uiState.mode,
+                onSelect = { mode ->
+                    viewModel.setProxyMode(mode)
+                    DataStore.proxyApps = true
+                    DataStore.bypassMode = mode == ProxyMode.BYPASS
+                },
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Crossfade(
+                targetState = uiState.isLoading,
+                animationSpec = tween(durationMillis = 300),
+            ) { isLoading ->
+                if (isLoading) {
+                    Box(Modifier.fillMaxSize()) {
+                        LoadingIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    }
                 } else {
-                    state.scanned.size - 1
+                    AppList(
+                        uiState = uiState,
+                        onClick = { viewModel.onItemClick(it) },
+                    )
                 }
-                scanBinding?.recyclerView?.scrollToPosition(scrollTo)
+            }
+
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+        }
+    }
+
+    val scanned = uiState.scanned
+    if (scanned != null) {
+        ScanDialog(
+            scanned = scanned,
+            progress = uiState.scanProcess,
+            onCancel = { viewModel.cancelScan() },
+        )
+    }
+}
+
+@Composable
+private fun ProxyModeSelector(
+    selectedMode: ProxyMode,
+    onSelect: (ProxyMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        FilterChip(
+            selected = selectedMode == ProxyMode.DISABLED,
+            onClick = { onSelect(ProxyMode.DISABLED) },
+            label = { Text(stringResource(R.string.off)) },
+        )
+        FilterChip(
+            selected = selectedMode == ProxyMode.PROXY,
+            onClick = { onSelect(ProxyMode.PROXY) },
+            label = { Text(stringResource(R.string.route_proxy)) },
+        )
+        FilterChip(
+            selected = selectedMode == ProxyMode.BYPASS,
+            onClick = { onSelect(ProxyMode.BYPASS) },
+            label = { Text(stringResource(R.string.bypass_apps)) },
+        )
+    }
+}
+
+@Composable
+private fun AppList(
+    uiState: AppManagerUiState,
+    onClick: (ProxiedApp) -> Unit,
+) {
+    val scrollState = rememberLazyListState()
+    Box {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = scrollState,
+        ) {
+            items(
+                items = uiState.apps,
+                key = { it.packageName },
+                contentType = { 0 },
+            ) { app ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            painter = rememberDrawablePainter(app.icon),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(end = 12.dp),
+                        )
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .width(0.dp), // Make sure it works in Row with weight
+                        ) {
+                            Text(
+                                text = app.name,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                text = "${app.packageName} (${app.uid})",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        Switch(
+                            checked = app.isProxied,
+                            onCheckedChange = { onClick(app) },
+                        )
+                    }
+                }
             }
         }
 
-        if (state.isLoading) {
-            binding.loading.crossFadeFrom(binding.list)
-        } else {
-            binding.list.crossFadeFrom(binding.loading)
+        VerticalScrollbar(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 16.dp,
+            ),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ScanDialog(
+    scanned: List<String>,
+    progress: Int?,
+    onCancel: () -> Unit,
+) {
+    val listState = rememberLazyListState()
+    var previousCount by remember { mutableIntStateOf(scanned.size) }
+
+    LaunchedEffect(scanned.size) {
+        if (scanned.isNotEmpty() && scanned.size >= previousCount) {
+            listState.scrollToItem(scanned.size - 1)
         }
-        adapter.submitList(state.apps)
+        previousCount = scanned.size
     }
 
-    private fun handleUiEvent(event: AppManagerUiEvent) {
-        when (event) {
-            is AppManagerUiEvent.Snackbar -> {
-                snackbar(getStringOrRes(event.message)).show()
+    AlertDialog(
+        onDismissRequest = {},
+        confirmButton = {
+            TextButton(onClick = onCancel) {
+                Text(stringResource(android.R.string.cancel))
             }
-        }
-    }
+        },
+        title = { Text(stringResource(R.string.action_scan_china_apps)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+            ) {
+                if (progress != null) {
+                    LoadingIndicator()
+                } else {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .sizeIn(maxHeight = 240.dp),
+                    state = listState,
+                ) {
+                    items(
+                        items = scanned,
+                        key = { it },
+                        contentType = { 0 },
+                    ) { item ->
+                        Text(
+                            text = item,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 4.dp),
+                        )
+                    }
+                }
+            }
+        },
+    )
+}
 
-    override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(binding.list, text, Snackbar.LENGTH_LONG)
-    }
+@Preview
+@Composable
+private fun PreviewAppManagerScreen() {
+    val context = LocalContext.current
+    repo = TempRepository(context)
 
-    override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
-        return true
-    }
-
-    private class TextViewAdapter : ListAdapter<String, TextViewHolder>(SimpleDiffCallback()) {
-
-        init {
-            setHasStableIds(true)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TextViewHolder {
-            val textView = LayoutInflater.from(parent.context).inflate(
-                android.R.layout.simple_list_item_1,
-                parent,
-                false,
-            ) as TextView
-            return TextViewHolder(textView)
-        }
-
-        override fun onBindViewHolder(holder: TextViewHolder, position: Int) {
-            holder.bind(getItem(position))
-        }
-
-        override fun getItemId(position: Int): Long {
-            return getItem(position).hashCode().toLong()
-        }
-
-    }
-
-    private class TextViewHolder(val view: TextView) : RecyclerView.ViewHolder(view) {
-        fun bind(text: String) {
-            view.text = text
-        }
-    }
+    AppManagerScreen(
+        viewModel = AppManagerActivityViewModel(),
+        onBackPress = {},
+        finish = {},
+    )
 }

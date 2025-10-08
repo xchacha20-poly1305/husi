@@ -1,7 +1,5 @@
 package io.nekohasekai.sagernet.ktx
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.ClipData
@@ -13,7 +11,6 @@ import android.content.res.Resources
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.TypedValue
-import android.view.View
 import android.widget.EditText
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
@@ -36,8 +33,6 @@ import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.delay
-import androidx.core.view.isVisible
-import androidx.core.view.isGone
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import io.nekohasekai.sagernet.repository.repo
@@ -72,21 +67,6 @@ fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
 
 val Context.shortAnimTime
     get() = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-
-fun View.crossFadeFrom(other: View) {
-    clearAnimation()
-    other.clearAnimation()
-    if (isVisible && other.isGone) return
-    alpha = 0F
-    visibility = View.VISIBLE
-    animate().alpha(1F).duration = context.shortAnimTime
-    other.animate().alpha(0F).setListener(object : AnimatorListenerAdapter() {
-        override fun onAnimationEnd(animation: Animator) {
-            other.visibility = View.GONE
-        }
-    }).duration = context.shortAnimTime
-}
-
 
 fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackbar(textId)
 fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)

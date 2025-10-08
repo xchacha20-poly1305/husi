@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,12 +23,9 @@ import kotlin.collections.iterator
 import kotlin.coroutines.coroutineContext
 
 internal data class AppListActivityUiState(
+    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted, for show
-)
-
-internal data class AppListActivityToolbarState(
-    val searchQuery: String = "",
 )
 
 internal sealed interface AppListActivityUIEvent {
@@ -37,9 +35,6 @@ internal sealed interface AppListActivityUIEvent {
 internal class AppListActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppListActivityUiState())
     val uiState = _uiState.asStateFlow()
-
-    private val _toolbarState = MutableStateFlow(AppListActivityToolbarState())
-    val toolbarState = _toolbarState.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<AppListActivityUIEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
@@ -70,10 +65,16 @@ internal class AppListActivityViewModel : ViewModel() {
         }
     }
 
+    private val iconCache = mutableMapOf<String, Drawable>()
+    private fun loadIcon(packageManager: PackageManager, packageInfo: PackageInfo): Drawable {
+        return iconCache.getOrPut(packageInfo.packageName) {
+            packageInfo.applicationInfo!!.loadIcon(packageManager)
+        }
+    }
+
     suspend fun reload(cachedApps: Map<String, PackageInfo> = this.cachedApps) {
         val apps = mutableListOf<ProxiedApp>()
-        val toolbarState = toolbarState.value
-        val query = toolbarState.searchQuery
+        val query = _uiState.value.searchQuery
         for ((packageName, packageInfo) in cachedApps) {
             coroutineContext[Job]!!.ensureActive()
 
@@ -87,10 +88,11 @@ internal class AppListActivityViewModel : ViewModel() {
             }
 
             val proxiedApp = ProxiedApp(
-                applicationInfo,
-                packageName,
-                proxiedUids.contains(applicationInfo.uid),
-                name,
+                appInfo = applicationInfo,
+                packageName = packageName,
+                isProxied = proxiedUids.contains(applicationInfo.uid),
+                icon = loadIcon(packageManager,packageInfo),
+                name = name,
             )
             apps.add(proxiedApp)
         }
@@ -105,9 +107,7 @@ internal class AppListActivityViewModel : ViewModel() {
     }
 
     fun setSearchQuery(query: String) = viewModelScope.launch {
-        _toolbarState.update {
-            it.copy(searchQuery = query)
-        }
+        _uiState.update { it.copy(searchQuery = query) }
         reload()
     }
 
