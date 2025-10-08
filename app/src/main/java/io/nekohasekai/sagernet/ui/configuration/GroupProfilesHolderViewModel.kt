@@ -220,9 +220,8 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
         if (toClear.isEmpty()) return@launch
 
         fun confirmDelete() = runOnIoDispatcher {
-            for (profile in toClear) {
-                ProfileManager.deleteProfile(group.id, profile.id)
-            }
+            val ids = toClear.map { it.id }
+            ProfileManager.deleteProfiles(group.id, ids)
         }
         _uiEvent.emit(
             GroupProfilesHolderUiEvent.AlertForDelete(
@@ -247,9 +246,8 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
         if (toClear.isEmpty()) return@runOnDefaultDispatcher
 
         fun confirmDelete() = runOnIoDispatcher {
-            for (profile in toClear) {
-                ProfileManager.deleteProfile(group.id, profile.id)
-            }
+            val ids = toClear.map { it.id }
+            ProfileManager.deleteProfiles(group.id, ids)
         }
 
         _uiEvent.emit(
@@ -282,11 +280,9 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     override fun commit(actions: List<Pair<Int, ProfileItem>>) {
-        val profiles = actions.map { it.second }
+        val ids = actions.map { it.second.profile.id }
         runOnIoDispatcher {
-            for (profile in profiles) {
-                ProfileManager.deleteProfile(profile.profile.groupId, profile.profile.id)
-            }
+            ProfileManager.deleteProfiles(group.id, ids)
         }
     }
 

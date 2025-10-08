@@ -107,19 +107,28 @@ object ProfileManager {
         iterator { onUpdated(profile) }
     }
 
-    suspend fun deleteProfile2(groupId: Long, profileId: Long) {
-        if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
-        if (DataStore.selectedProxy == profileId) {
-            DataStore.selectedProxy = 0L
-        }
-    }
-
     suspend fun deleteProfile(groupId: Long, profileId: Long) {
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
         }
         iterator { onRemoved(groupId, profileId) }
+        if (SagerDatabase.proxyDao.countByGroup(groupId) > 1) {
+            GroupManager.rearrange(groupId)
+        }
+    }
+
+    suspend fun deleteProfiles(groupId: Long, profileIDs: List<Long>) {
+        if (profileIDs.isEmpty()) return
+        SagerDatabase.proxyDao.deleteProxies(profileIDs)
+        if (profileIDs.contains(DataStore.selectedProxy)) {
+            DataStore.selectedProxy = 0L
+        }
+        iterator {
+            profileIDs.forEach { profileId ->
+                onRemoved(groupId, profileId)
+            }
+        }
         if (SagerDatabase.proxyDao.countByGroup(groupId) > 1) {
             GroupManager.rearrange(groupId)
         }
