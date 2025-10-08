@@ -569,6 +569,9 @@ data class ProxyEntity(
         @Delete
         fun deleteProxy(proxies: List<ProxyEntity>): Int
 
+        @Query("DELETE FROM proxy_entities WHERE id IN (:proxyIds)")
+        fun deleteProxies(proxyIds: List<Long>): Int
+
         @Update
         fun updateProxy(proxy: ProxyEntity): Int
 
