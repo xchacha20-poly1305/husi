@@ -113,8 +113,8 @@ Replace all version-about escapes in userAent
  */
 fun generateUserAgent(userAgent: String): String {
     if (userAgent.isBlank()) return USER_AGENT
-    return userAgent.replace("\$version", BuildConfig.VERSION_NAME)
-        .replace("\$version_code", BuildConfig.VERSION_CODE.toString())
+    return userAgent.replace("\$version_code", BuildConfig.VERSION_CODE.toString())
+        .replace("\$version", BuildConfig.VERSION_NAME)
         .replace("\$box_version", Libcore.versionBox())
 }
 
