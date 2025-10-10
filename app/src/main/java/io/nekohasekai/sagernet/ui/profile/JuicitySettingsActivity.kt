@@ -29,17 +29,20 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
 
     override val viewModel by viewModels<JuicitySettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as JuicityUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as JuicityUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -49,23 +52,23 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -74,18 +77,18 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
         }
         item("uuid") {
             TextFieldPreference(
-                value = state.uuid,
+                value = uiState.uuid,
                 onValueChange = { viewModel.setUuid(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.uuid)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
         }
         item("password") {
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
@@ -95,18 +98,18 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
         }
         item("server_name") {
             TextFieldPreference(
-                value = state.sni,
+                value = uiState.sni,
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
         }
         item("allow_insecure") {
             SwitchPreference(
-                value = state.allowInsecure,
+                value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
                 icon = { Icon(Icons.Filled.LockOpen, null) },
@@ -114,12 +117,12 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
         }
         item("pin_cert_hash") {
             TextFieldPreference(
-                value = state.pinSha256,
+                value = uiState.pinSha256,
                 onValueChange = { viewModel.setPinSha256(it) },
                 title = { Text(stringResource(R.string.pinned_peer_certificate_chain_sha256)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.PushPin, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.pinSha256)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.pinSha256)) },
                 valueToText = { it },
             )
         }

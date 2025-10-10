@@ -25,29 +25,32 @@ class ConfigSettingActivity : ProfileSettingsActivity<ConfigBean>() {
 
     override val viewModel by viewModels<ConfigSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as ConfigUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as ConfigUiState
 
-        val config = when (state.type) {
-            ConfigBean.TYPE_CONFIG -> state.customConfig
-            ConfigBean.TYPE_OUTBOUND -> state.customOutbound
+        val config = when (uiState.type) {
+            ConfigBean.TYPE_CONFIG -> uiState.customConfig
+            ConfigBean.TYPE_OUTBOUND -> uiState.customOutbound
             else -> error("impossible")
         }
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
         item("outbound_only") {
             SwitchPreference(
-                value = state.type == ConfigBean.TYPE_OUTBOUND,
+                value = uiState.type == ConfigBean.TYPE_OUTBOUND,
                 onValueChange = {
                     viewModel.setType(
                         if (it) {

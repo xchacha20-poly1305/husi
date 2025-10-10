@@ -43,17 +43,20 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
 
     override val viewModel by viewModels<AnyTLSSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as AnyTLSUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as AnyTLSUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -63,23 +66,23 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -88,18 +91,18 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("password") {
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
         item("idle_session_check_interval") {
             TextFieldPreference(
-                value = state.idleSessionCheckInterval,
+                value = uiState.idleSessionCheckInterval,
                 onValueChange = { viewModel.setIdleSessionCheckInterval(it) },
                 title = { Text(stringResource(R.string.idle_session_check_interval)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Timelapse, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.idleSessionCheckInterval)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.idleSessionCheckInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     DurationTextField(value, onValueChange, onOk)
@@ -108,12 +111,12 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("idle_session_timeout") {
             TextFieldPreference(
-                value = state.idleSessionTimeout,
+                value = uiState.idleSessionTimeout,
                 onValueChange = { viewModel.setIdleSessionTimeout(it) },
                 title = { Text(stringResource(R.string.idle_session_timeout)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Timer, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.idleSessionTimeout)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.idleSessionTimeout)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     DurationTextField(value, onValueChange, onOk)
@@ -122,16 +125,16 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("min_idle_session") {
             TextFieldPreference(
-                value = state.minIdleSession,
+                value = uiState.minIdleSession,
                 onValueChange = { viewModel.setMinIdleSession(it) },
                 title = { Text(stringResource(R.string.min_idle_session)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
                 icon = { Icon(Icons.Filled.Gesture, null) },
                 summary = {
-                    val text = if (state.minIdleSession == 0) {
+                    val text = if (uiState.minIdleSession == 0) {
                         stringResource(androidx.preference.R.string.not_set)
                     } else {
-                        state.minIdleSession.toString()
+                        uiState.minIdleSession.toString()
                     }
                     Text(text)
                 },
@@ -146,19 +149,19 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("server_name") {
             TextFieldPreference(
-                value = state.sni,
+                value = uiState.sni,
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                enabled = !state.disableSNI,
-                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                enabled = !uiState.disableSNI,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
         }
         item("allow_insecure") {
             SwitchPreference(
-                value = state.allowInsecure,
+                value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
                 icon = { Icon(Icons.Filled.LockOpen, null) },
@@ -166,12 +169,12 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("alpn") {
             TextFieldPreference(
-                value = state.alpn,
+                value = uiState.alpn,
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
                 icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -180,12 +183,12 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("certificates") {
             TextFieldPreference(
-                value = state.certificates,
+                value = uiState.certificates,
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.VpnKey, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certificates)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -194,30 +197,30 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("cert_public_key_sha256") {
             TextFieldPreference(
-                value = state.certPublicKeySha256,
+                value = uiState.certPublicKeySha256,
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.WbSunny, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
             )
         }
         item("utls_fingerprint") {
             ListPreference(
-                value = state.utlsFingerprint,
+                value = uiState.utlsFingerprint,
                 values = fingerprints,
                 onValueChange = { viewModel.setUtlsFingerprint(it) },
                 title = { Text(stringResource(R.string.utls_fingerprint)) },
                 icon = { Icon(Icons.Filled.Fingerprint, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.utlsFingerprint)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.utlsFingerprint)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
         }
         item("disable_sni") {
             SwitchPreference(
-                value = state.disableSNI,
+                value = uiState.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
                 icon = { Icon(Icons.Filled.Block, null) },
@@ -225,22 +228,22 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("tls_fragment") {
             SwitchPreference(
-                value = state.tlsFragment,
+                value = uiState.tlsFragment,
                 onValueChange = { viewModel.setTlsFragment(it) },
                 title = { Text(stringResource(R.string.tls_fragment)) },
-                enabled = !state.tlsRecordFragment,
+                enabled = !uiState.tlsRecordFragment,
                 icon = { Icon(Icons.Filled.Texture, null) },
             )
         }
         item("tls_fragment_fallback_delay") {
             TextFieldPreference(
-                value = state.tlsFragmentFallbackDelay,
+                value = uiState.tlsFragmentFallbackDelay,
                 onValueChange = { viewModel.setTlsFragmentFallbackDelay(it) },
                 title = { Text(stringResource(R.string.tls_fragment_fallback_delay)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Timelapse, null) },
-                enabled = state.tlsFragment,
-                summary = { Text(LocalContext.current.contentOrUnset(state.tlsFragmentFallbackDelay)) },
+                enabled = uiState.tlsFragment,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     DurationTextField(value, onValueChange, onOk)
@@ -249,16 +252,16 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("tls_record_fragment") {
             SwitchPreference(
-                value = state.tlsRecordFragment,
+                value = uiState.tlsRecordFragment,
                 onValueChange = { viewModel.setTlsRecordFragment(it) },
                 title = { Text(stringResource(R.string.tls_record_fragment)) },
-                enabled = !state.tlsFragment,
+                enabled = !uiState.tlsFragment,
                 icon = { Icon(Icons.Filled.WbSunny, null) },
             )
         }
         item("ech") {
             SwitchPreference(
-                value = state.ech,
+                value = uiState.ech,
                 onValueChange = { viewModel.setEch(it) },
                 title = { Text(stringResource(R.string.ech)) },
                 icon = { Icon(Icons.Filled.Security, null) },
@@ -266,13 +269,13 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
         }
         item("ech_config") {
             TextFieldPreference(
-                value = state.echConfig,
+                value = uiState.echConfig,
                 onValueChange = { viewModel.setEchConfig(it) },
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Nfc, null) },
-                enabled = state.ech,
-                summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
+                enabled = uiState.ech,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)

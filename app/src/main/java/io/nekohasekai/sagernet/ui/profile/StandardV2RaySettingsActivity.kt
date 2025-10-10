@@ -52,6 +52,10 @@ import me.zhanghai.compose.preference.TextFieldPreference
 @OptIn(ExperimentalMaterial3Api::class)
 abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSettingsActivity<T>() {
 
+    companion object {
+        private const val KEY_SECURITY = "security"
+    }
+
     override val viewModel by viewModels<StandardV2RaySettingsViewModel<T>>()
 
     internal fun LazyListScope.headSettings(state: StandardV2RayUiState) {
@@ -92,18 +96,26 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
         }
     }
 
-    internal fun LazyListScope.tlsSettings(state: StandardV2RayUiState) {
+    internal fun LazyListScope.tlsSettings(
+        state: StandardV2RayUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
         val isTls = state.security == "tls"
         val isReality = state.realityPublicKey.isNotBlank()
 
         item("category_security") {
             PreferenceCategory(text = { Text(stringResource(R.string.security_settings)) })
         }
-        item("security") {
+        item(KEY_SECURITY) {
             ListPreference(
                 value = state.security,
                 values = listOf("", "tls"),
-                onValueChange = { viewModel.setSecurity(it) },
+                onValueChange = {
+                    viewModel.setSecurity(it)
+                    if (it == "tls") {
+                        scrollTo(KEY_SECURITY)
+                    }
+                },
                 title = { Text(stringResource(R.string.security)) },
                 icon = { Icon(Icons.Filled.Layers, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.security)) },

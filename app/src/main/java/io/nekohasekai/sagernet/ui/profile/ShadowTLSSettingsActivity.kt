@@ -36,17 +36,20 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
 
     override val viewModel by viewModels<ShadowTLSSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as ShadowTLSUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as ShadowTLSUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -56,23 +59,23 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -81,19 +84,19 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
         }
         item("protocol_version") {
             ListPreference(
-                value = state.protocolVersion,
+                value = uiState.protocolVersion,
                 values = listOf(2, 3),
                 onValueChange = { viewModel.setProtocolVersion(it) },
                 title = { Text(stringResource(R.string.protocol_version)) },
                 icon = { Icon(Icons.Filled.Update, null) },
-                summary = { Text(state.protocolVersion.toString()) },
+                summary = { Text(uiState.protocolVersion.toString()) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.toString()) },
             )
         }
         item("password") {
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
@@ -103,23 +106,23 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
         }
         item("server_name") {
             TextFieldPreference(
-                value = state.sni,
+                value = uiState.sni,
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
         }
         item("alpn") {
             TextFieldPreference(
-                value = state.alpn,
+                value = uiState.alpn,
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
                 icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -128,12 +131,12 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
         }
         item("certificates") {
             TextFieldPreference(
-                value = state.certificates,
+                value = uiState.certificates,
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.VpnKey, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certificates)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -142,18 +145,18 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
         }
         item("cert_public_key_sha256") {
             TextFieldPreference(
-                value = state.certPublicKeySha256,
+                value = uiState.certPublicKeySha256,
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.WbSunny, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
             )
         }
         item("allow_insecure") {
             SwitchPreference(
-                value = state.allowInsecure,
+                value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
                 icon = { Icon(Icons.Filled.LockOpen, null) },
@@ -161,12 +164,12 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
         }
         item("utls_fingerprint") {
             ListPreference(
-                value = state.utlsFingerprint,
+                value = uiState.utlsFingerprint,
                 values = fingerprints,
                 onValueChange = { viewModel.setUtlsFingerprint(it) },
                 title = { Text(stringResource(R.string.utls_fingerprint)) },
                 icon = { Icon(Icons.Filled.Fingerprint, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.utlsFingerprint)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.utlsFingerprint)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )

@@ -41,17 +41,20 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
 
     override val viewModel by viewModels<TuicSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as TuicUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as TuicUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -61,23 +64,23 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -86,29 +89,29 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("uuid") {
             TextFieldPreference(
-                value = state.uuid,
+                value = uiState.uuid,
                 onValueChange = { viewModel.setUuid(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.uuid)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
         }
         item("token") {
             PasswordPreference(
-                value = state.token,
+                value = uiState.token,
                 onValueChange = { viewModel.setToken(it) },
             )
         }
         item("alpn") {
             TextFieldPreference(
-                value = state.alpn,
+                value = uiState.alpn,
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
                 icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -117,12 +120,12 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("certificates") {
             TextFieldPreference(
-                value = state.certificates,
+                value = uiState.certificates,
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.VpnKey, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certificates)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -131,42 +134,42 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("cert_public_key_sha256") {
             TextFieldPreference(
-                value = state.certPublicKeySha256,
+                value = uiState.certPublicKeySha256,
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.WbSunny, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
             )
         }
         item("udp_relay_mode") {
             ListPreference(
-                value = state.udpRelayMode,
+                value = uiState.udpRelayMode,
                 values = listOf("native", "quic", "UDP over Stream"),
                 onValueChange = { viewModel.setUdpRelayMode(it) },
                 title = { Text(stringResource(R.string.tuic_udp_relay_mode)) },
                 icon = { Icon(Icons.Filled.AddRoad, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.udpRelayMode)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.udpRelayMode)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
         }
         item("congestion_controller") {
             ListPreference(
-                value = state.congestionController,
+                value = uiState.congestionController,
                 values = congestionControls,
                 onValueChange = { viewModel.setCongestionController(it) },
                 title = { Text(stringResource(R.string.tuic_congestion_controller)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.congestionController)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.congestionController)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
         }
         item("disable_sni") {
             SwitchPreference(
-                value = state.disableSNI,
+                value = uiState.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
                 icon = { Icon(Icons.Filled.Block, null) },
@@ -174,19 +177,19 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("sni") {
             TextFieldPreference(
-                value = state.sni,
+                value = uiState.sni,
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                enabled = !state.disableSNI,
-                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                enabled = !uiState.disableSNI,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
         }
         item("zero_rtt") {
             SwitchPreference(
-                value = state.zeroRTT,
+                value = uiState.zeroRTT,
                 onValueChange = { viewModel.setZeroRTT(it) },
                 title = { Text(stringResource(R.string.tuic_reduce_rtt)) },
                 icon = { Icon(Icons.Filled.FlightTakeoff, null) },
@@ -194,7 +197,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("allow_insecure") {
             SwitchPreference(
-                value = state.allowInsecure,
+                value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
                 icon = { Icon(Icons.Filled.LockOpen, null) },
@@ -206,7 +209,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("ech") {
             SwitchPreference(
-                value = state.ech,
+                value = uiState.ech,
                 onValueChange = { viewModel.setEch(it) },
                 title = { Text(stringResource(R.string.enable)) },
                 icon = { Icon(Icons.Filled.Security, null) },
@@ -214,13 +217,13 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         }
         item("ech_config") {
             TextFieldPreference(
-                value = state.echConfig,
+                value = uiState.echConfig,
                 onValueChange = { viewModel.setEchConfig(it) },
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Nfc, null) },
-                enabled = state.ech,
-                summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
+                enabled = uiState.ech,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
