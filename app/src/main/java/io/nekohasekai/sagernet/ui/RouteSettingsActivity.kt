@@ -208,8 +208,6 @@ class RouteSettingsActivity : ComposeActivity() {
                     },
                 ) { innerPadding ->
                     RouteSettings(Modifier.paddingExceptBottom(innerPadding), uiState)
-
-                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
 
                 if (showBackAlert) AlertDialog(
@@ -755,6 +753,10 @@ class RouteSettingsActivity : ComposeActivity() {
                             )
                         }
                     }
+                }
+
+                item("bottom_padding") {
+                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
             }
         }
