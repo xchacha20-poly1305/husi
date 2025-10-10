@@ -149,15 +149,17 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                         expanded = showExtendMenu,
                                         onDismissRequest = { showExtendMenu = false },
                                     ) {
-                                        if (!viewModel.isNew
-                                            && !viewModel.isSubscription
-                                            && SagerDatabase.groupDao.allGroups()
-                                                .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
+                                        if (!viewModel.isNew // May cancel crating
+                                            && !viewModel.isSubscription // Updating may make profile lost
                                         ) DropdownMenuItem(
                                             text = { Text(stringResource(R.string.create_shortcut)) },
                                             onClick = ::buildShortCut,
                                         )
-                                        if (!viewModel.isNew && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) DropdownMenuItem(
+                                        if (!viewModel.isNew // Uncreated
+                                            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                                            && SagerDatabase.groupDao.allGroups()
+                                                .filter { it.type == GroupType.BASIC }.size > 1 // Movable
+                                        ) DropdownMenuItem(
                                             text = { Text(stringResource(R.string.move)) },
                                             onClick = { showMoveDialog = true },
                                         )
