@@ -9,19 +9,22 @@ class TrojanSettingsActivity : StandardV2RaySettingsActivity<TrojanBean>() {
 
     override val viewModel by viewModels<TrojanSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as TrojanUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as TrojanUiState
 
-        headSettings(state)
+        headSettings(uiState)
         item("password") {
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
-        transportSettings(state)
-        muxSettings(state)
-        tlsSettings(state)
+        transportSettings(uiState)
+        muxSettings(uiState)
+        tlsSettings(uiState, scrollTo)
     }
 
 }

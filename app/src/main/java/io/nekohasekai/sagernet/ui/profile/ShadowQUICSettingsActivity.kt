@@ -36,17 +36,20 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
 
     override val viewModel by viewModels<ShadowQUICSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as ShadowQUICUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as ShadowQUICUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -56,23 +59,23 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -81,58 +84,58 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         }
         item("username") {
             TextFieldPreference(
-                value = state.username,
+                value = uiState.username,
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Texture, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
         }
         item("password") {
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
         item("alpn") {
             TextFieldPreference(
-                value = state.alpn,
+                value = uiState.alpn,
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
                 icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
             )
         }
         item("congestion_control") {
             ListPreference(
-                value = state.congestionControl,
+                value = uiState.congestionControl,
                 values = congestionControls,
                 onValueChange = { viewModel.setCongestionControl(it) },
                 title = { Text(stringResource(R.string.tuic_congestion_controller)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
-                summary = { Text(state.congestionControl) },
+                summary = { Text(uiState.congestionControl) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
         }
         item("sni") {
             TextFieldPreference(
-                value = state.sni,
+                value = uiState.sni,
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
         }
         item("zero_rtt") {
             SwitchPreference(
-                value = state.zeroRTT,
+                value = uiState.zeroRTT,
                 onValueChange = { viewModel.setZeroRTT(it) },
                 title = { Text(stringResource(R.string.tuic_reduce_rtt)) },
                 icon = { Icon(Icons.Filled.FlightTakeoff, null) },
@@ -140,12 +143,12 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         }
         item("initial_mtu") {
             TextFieldPreference(
-                value = state.initialMtu,
+                value = uiState.initialMtu,
                 onValueChange = { viewModel.setInitialMtu(it) },
                 title = { Text(stringResource(R.string.initial_mtu)) },
                 textToValue = { it.toIntOrNull() ?: 1300 },
                 icon = { Icon(Icons.Filled.Public, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.initialMtu)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.initialMtu)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -154,12 +157,12 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         }
         item("minimum_mtu") {
             TextFieldPreference(
-                value = state.minMtu,
+                value = uiState.minMtu,
                 onValueChange = { viewModel.setMinMtu(it) },
                 title = { Text(stringResource(R.string.minimum_mtu)) },
                 textToValue = { it.toIntOrNull() ?: 1290 },
                 icon = { Icon(Icons.Filled.DeveloperBoard, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.minMtu)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.minMtu)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -168,7 +171,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
         }
         item("udp_over_stream") {
             SwitchPreference(
-                value = state.udpOverStream,
+                value = uiState.udpOverStream,
                 onValueChange = { viewModel.setUdpOverStream(it) },
                 title = { Text(stringResource(R.string.udp_over_stream)) },
                 icon = { Icon(Icons.Filled.Nat, null) },

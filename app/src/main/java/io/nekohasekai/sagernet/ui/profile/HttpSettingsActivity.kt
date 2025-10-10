@@ -26,56 +26,59 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
 
     override val viewModel by viewModels<HttpSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as HttpUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as HttpUiState
 
-        headSettings(state)
+        headSettings(uiState)
         item("username") {
             TextFieldPreference(
-                value = state.username,
+                value = uiState.username,
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username_opt)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
                 title = { Text(stringResource(R.string.password_opt)) },
             )
         }
         item("host") {
             TextFieldPreference(
-                value = state.host,
+                value = uiState.host,
                 onValueChange = { viewModel.setHost(it) },
                 title = { Text(stringResource(R.string.http_host)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Language, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.host)) },
                 valueToText = { it },
             )
         }
         item("path") {
             TextFieldPreference(
-                value = state.path,
+                value = uiState.path,
                 onValueChange = { viewModel.setPath(it) },
                 title = { Text(stringResource(R.string.http_path)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Route, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.path)) },
                 valueToText = { it },
             )
         }
         item("headers") {
             TextFieldPreference(
-                value = state.headers,
+                value = uiState.headers,
                 onValueChange = { viewModel.setHeaders(it) },
                 title = { Text(stringResource(R.string.http_headers)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Code, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.headers)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -83,7 +86,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
             )
         }
 
-        tlsSettings(state)
+        tlsSettings(uiState, scrollTo)
 
         item("category_experimental") {
             PreferenceCategory(
@@ -93,7 +96,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
         }
         item("udp_over_tcp") {
             SwitchPreference(
-                value = state.udpOverTcp,
+                value = uiState.udpOverTcp,
                 onValueChange = { viewModel.setUdpOverTcp(it) },
                 title = { Text(stringResource(R.string.udp_over_tcp)) },
                 icon = { Icon(Icons.Filled.GridOn, null) },

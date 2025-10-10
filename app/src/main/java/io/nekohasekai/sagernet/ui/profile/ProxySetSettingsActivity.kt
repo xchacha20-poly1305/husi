@@ -104,17 +104,20 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
 
     override val title = R.string.group_settings
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as ProxySetUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as ProxySetUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -125,44 +128,44 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 else -> error("impossible")
             }
             ListPreference(
-                value = state.management,
+                value = uiState.management,
                 onValueChange = { viewModel.setManagement(it) },
                 values = intListN(2),
                 title = { Text(stringResource(R.string.management)) },
                 icon = { Icon(Icons.Filled.Widgets, null) },
-                summary = { Text(stringResource(managementName(state.management))) },
+                summary = { Text(stringResource(managementName(uiState.management))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(managementName(it))) },
             )
         }
         item("interrupt_exist_connections") {
             SwitchPreference(
-                value = state.interruptExistConnections,
+                value = uiState.interruptExistConnections,
                 onValueChange = { viewModel.setInterruptExistConnections(it) },
                 title = { Text(stringResource(R.string.interrupt_exist_connections)) },
                 icon = { Icon(Icons.Filled.Stop, null) },
             )
         }
-        if (state.management == ProxySetBean.MANAGEMENT_URLTEST) {
+        if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
             item("test_url") {
                 TextFieldPreference(
-                    value = state.testURL,
+                    value = uiState.testURL,
                     onValueChange = { viewModel.setTestURL(it) },
                     title = { Text(stringResource(R.string.connection_test_url)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.CastConnected, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.testURL)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.testURL)) },
                     valueToText = { it },
                 )
             }
             item("test_interval") {
                 TextFieldPreference(
-                    value = state.testInterval,
+                    value = uiState.testInterval,
                     onValueChange = { viewModel.setTestInterval(it) },
                     title = { Text(stringResource(R.string.urltest_interval)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.FlipCameraAndroid, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.testInterval)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.testInterval)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         DurationTextField(value, onValueChange, onOk)
@@ -171,12 +174,12 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
             }
             item("idle_timeout") {
                 TextFieldPreference(
-                    value = state.testIdleTimeout,
+                    value = uiState.testIdleTimeout,
                     onValueChange = { viewModel.setTestIdleTimeout(it) },
                     title = { Text(stringResource(R.string.idle_timeout)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.PhotoCamera, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.testIdleTimeout)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.testIdleTimeout)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         DurationTextField(value, onValueChange, onOk)
@@ -185,12 +188,12 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
             }
             item("tolerance") {
                 TextFieldPreference(
-                    value = state.testTolerance,
+                    value = uiState.testTolerance,
                     onValueChange = { viewModel.setTestTolerance(it) },
                     title = { Text(stringResource(R.string.urltest_tolerance)) },
                     textToValue = { it.toIntOrNull() ?: 50 },
                     icon = { Icon(Icons.Filled.EmojiEmotions, null) },
-                    summary = { Text(state.testTolerance.toString()) },
+                    summary = { Text(uiState.testTolerance.toString()) },
                     valueToText = { it.toString() },
                     textField = { value, onValueChange, onOk ->
                         UIntegerTextField(value, onValueChange, onOk)
@@ -205,46 +208,46 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 else -> error("impossible")
             }
             ListPreference(
-                value = state.collectType,
+                value = uiState.collectType,
                 onValueChange = { viewModel.setCollectType(it) },
                 values = intListN(2),
                 title = { Text(stringResource(R.string.group_type)) },
                 icon = { Icon(Icons.Filled.Nfc, null) },
-                summary = { Text(stringResource(typeName(state.collectType))) },
+                summary = { Text(stringResource(typeName(uiState.collectType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(typeName(it))) },
             )
         }
         item("group") {
             ListPreference(
-                value = state.groupID,
+                value = uiState.groupID,
                 onValueChange = { viewModel.setGroupID(it) },
-                values = state.groups.keys.toList(),
+                values = uiState.groups.keys.toList(),
                 title = { Text(stringResource(R.string.menu_group)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.ViewList, null) },
                 summary = {
-                    val text = state.groups[state.groupID]?.displayName()
+                    val text = uiState.groups[uiState.groupID]?.displayName()
                         ?: stringResource(androidx.preference.R.string.not_set)
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { id ->
                     val text =
-                        state.groups[id]?.displayName()
+                        uiState.groups[id]?.displayName()
                             ?: getString(androidx.preference.R.string.not_set)
                     AnnotatedString(text)
                 },
             )
         }
-        if (state.collectType == ProxySetBean.TYPE_GROUP) {
+        if (uiState.collectType == ProxySetBean.TYPE_GROUP) {
             item("filter_not_regex") {
                 TextFieldPreference(
-                    value = state.filterNotRegex,
+                    value = uiState.filterNotRegex,
                     onValueChange = { viewModel.setFilterNotRegex(it) },
                     title = { Text(stringResource(R.string.filter_regex)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.DeleteSweep, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.filterNotRegex)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.filterNotRegex)) },
                     valueToText = { it },
                 )
             }
@@ -294,7 +297,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxHeight),
-                items = state.profiles.toImmutableList(),
+                items = uiState.profiles.toImmutableList(),
                 key = { it.id },
                 contentType = { 0 },
                 userScrollEnabled = false,

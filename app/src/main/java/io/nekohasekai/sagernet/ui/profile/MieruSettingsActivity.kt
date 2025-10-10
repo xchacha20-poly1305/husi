@@ -33,17 +33,20 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
 
     private val protocols = listOf("tcp", "udp")
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as MieruUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as MieruUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -53,23 +56,23 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -78,42 +81,42 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
         }
         item("protocol") {
             ListPreference(
-                value = state.protocol,
+                value = uiState.protocol,
                 values = protocols,
                 onValueChange = { viewModel.setProtocol(it) },
                 title = { Text(stringResource(R.string.protocol)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.protocol.uppercase())) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.protocol.uppercase())) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
         }
         item("username") {
             TextFieldPreference(
-                value = state.username,
+                value = uiState.username,
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
         }
         item("password") {
             PasswordPreference(
-                value = state.password,
+                value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
             )
         }
-        if (state.protocol == "udp") {
+        if (uiState.protocol == "udp") {
             item("mtu") {
                 TextFieldPreference(
-                    value = state.mtu,
+                    value = uiState.mtu,
                     onValueChange = { viewModel.setMtu(it) },
                     title = { Text(stringResource(R.string.mtu)) },
                     textToValue = { it.toIntOrNull() ?: 1400 },
                     icon = { Icon(Icons.Filled.Public, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.mtu)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.mtu)) },
                     valueToText = { it.toString() },
                     textField = { value, onValueChange, onOk ->
                         UIntegerTextField(value, onValueChange, onOk)
@@ -123,13 +126,13 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
         }
         item("mux_number") {
             ListPreference(
-                value = state.muxNumber,
+                value = uiState.muxNumber,
                 values = intListN(4),
                 onValueChange = { viewModel.setMuxNumber(it) },
                 title = { Text(stringResource(R.string.mux_preference)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
                 summary = {
-                    val text = when (state.muxNumber) {
+                    val text = when (uiState.muxNumber) {
                         0 -> stringResource(R.string.off)
                         1 -> stringResource(R.string.low)
                         2 -> stringResource(R.string.middle)

@@ -56,29 +56,32 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         "WeChat Video",
     )
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as HysteriaUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as HysteriaUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
 
         item("protocol_version") {
             ListPreference(
-                value = state.protocolVersion,
+                value = uiState.protocolVersion,
                 values = listOf(HysteriaBean.PROTOCOL_VERSION_1, HysteriaBean.PROTOCOL_VERSION_2),
                 onValueChange = { viewModel.setProtocolVersion(it) },
                 title = { Text(stringResource(R.string.protocol_version)) },
                 icon = { Icon(Icons.Filled.Update, null) },
-                summary = { Text(state.protocolVersion.toString()) },
+                summary = { Text(uiState.protocolVersion.toString()) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.toString()) },
             )
@@ -89,34 +92,34 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("ports") {
             TextFieldPreference(
-                value = state.ports,
+                value = uiState.ports,
                 onValueChange = { viewModel.setPorts(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.ports)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.ports)) },
                 valueToText = { it },
             )
         }
         item("hop_interval") {
             TextFieldPreference(
-                value = state.hopInterval,
+                value = uiState.hopInterval,
                 onValueChange = { viewModel.setHopInterval(it) },
                 title = { Text(stringResource(R.string.hop_interval)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Timelapse, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.hopInterval)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.hopInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     DurationTextField(value, onValueChange, onOk)
@@ -125,13 +128,13 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("obfuscation") {
             PasswordPreference(
-                value = state.obfuscation,
+                value = uiState.obfuscation,
                 onValueChange = { viewModel.setObfuscation(it) },
                 title = { Text(stringResource(R.string.hysteria_obfs)) },
                 icon = { Icon(Icons.Filled.Texture, null) },
             )
         }
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
             item("auth_type") {
                 fun authTypeName(type: Int) = when (type) {
                     HysteriaBean.TYPE_NONE -> StringOrRes.Res(R.string.plugin_disabled)
@@ -140,42 +143,42 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     else -> error("impossible")
                 }
                 ListPreference(
-                    value = state.authType,
+                    value = uiState.authType,
                     values = intListN(3),
                     onValueChange = { viewModel.setAuthType(it) },
                     title = { Text(stringResource(R.string.hysteria_auth_type)) },
                     icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
-                    summary = { Text(stringResource(authTypeName(state.authType))) },
+                    summary = { Text(stringResource(authTypeName(uiState.authType))) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(getStringOrRes(authTypeName(it))) },
                 )
             }
         }
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1 && state.authType != HysteriaBean.TYPE_NONE ||
-            state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1 && uiState.authType != HysteriaBean.TYPE_NONE ||
+            uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2
         ) {
             item("auth_payload") {
-                val titleRes = if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
+                val titleRes = if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
                     R.string.password
                 } else {
                     R.string.hysteria_auth_payload
                 }
                 PasswordPreference(
-                    value = state.authPayload,
+                    value = uiState.authPayload,
                     onValueChange = { viewModel.setAuthPayload(it) },
                     title = { Text(stringResource(titleRes)) },
                 )
             }
         }
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
             item("protocol") {
                 ListPreference(
-                    value = state.protocol,
+                    value = uiState.protocol,
                     values = intListN(3),
                     onValueChange = { viewModel.setProtocol(it) },
                     title = { Text(stringResource(R.string.protocol)) },
                     icon = { Icon(Icons.Filled.Layers, null) },
-                    summary = { Text(protocolNames[state.protocol]) },
+                    summary = { Text(protocolNames[uiState.protocol]) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(protocolNames[it]) },
                 )
@@ -183,25 +186,25 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("sni") {
             TextFieldPreference(
-                value = state.sni,
+                value = uiState.sni,
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                enabled = !state.disableSNI,
-                summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
+                enabled = !uiState.disableSNI,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
         }
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
             item("alpn") {
                 TextFieldPreference(
-                    value = state.alpn,
+                    value = uiState.alpn,
                     onValueChange = { viewModel.setAlpn(it) },
                     title = { Text(stringResource(R.string.alpn)) },
                     textToValue = { it },
                     icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
@@ -211,12 +214,12 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("certificates") {
             TextFieldPreference(
-                value = state.certificates,
+                value = uiState.certificates,
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.VpnKey, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certificates)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
@@ -225,18 +228,18 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("cert_public_key_sha256") {
             TextFieldPreference(
-                value = state.certPublicKeySha256,
+                value = uiState.certPublicKeySha256,
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.WbSunny, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
             )
         }
         item("allow_insecure") {
             SwitchPreference(
-                value = state.allowInsecure,
+                value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
                 summary = { Text(stringResource(R.string.allow_insecure_sum)) },
@@ -245,25 +248,25 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("disable_sni") {
             SwitchPreference(
-                value = state.disableSNI,
+                value = uiState.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
                 icon = { Icon(Icons.Filled.Block, null) },
             )
         }
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
             item("stream_receive_window") {
                 TextFieldPreference(
-                    value = state.streamReceiveWindow,
+                    value = uiState.streamReceiveWindow,
                     onValueChange = { viewModel.setStreamReceiveWindow(it) },
                     title = { Text(stringResource(R.string.hysteria_stream_receive_window)) },
                     textToValue = { it.toIntOrNull() ?: 0 },
                     icon = { Icon(Icons.Filled.Texture, null) },
                     summary = {
-                        val text = if (state.streamReceiveWindow == 0) {
+                        val text = if (uiState.streamReceiveWindow == 0) {
                             stringResource(androidx.preference.R.string.not_set)
                         } else {
-                            state.streamReceiveWindow.toString()
+                            uiState.streamReceiveWindow.toString()
                         }
                         Text(text)
                     },
@@ -275,16 +278,16 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             }
             item("connection_receive_window") {
                 TextFieldPreference(
-                    value = state.connectionReceiveWindow,
+                    value = uiState.connectionReceiveWindow,
                     onValueChange = { viewModel.setConnectionReceiveWindow(it) },
                     title = { Text(stringResource(R.string.hysteria_connection_receive_window)) },
                     textToValue = { it.toIntOrNull() ?: 0 },
                     icon = { Icon(Icons.Filled.Transform, null) },
                     summary = {
-                        val text = if (state.connectionReceiveWindow == 0) {
+                        val text = if (uiState.connectionReceiveWindow == 0) {
                             stringResource(androidx.preference.R.string.not_set)
                         } else {
-                            state.connectionReceiveWindow.toString()
+                            uiState.connectionReceiveWindow.toString()
                         }
                         Text(text)
                     },
@@ -296,7 +299,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             }
             item("disable_mtu_discovery") {
                 SwitchPreference(
-                    value = state.disableMtuDiscovery,
+                    value = uiState.disableMtuDiscovery,
                     onValueChange = { viewModel.setDisableMtuDiscovery(it) },
                     title = { Text(stringResource(R.string.hysteria_disable_mtu_discovery)) },
                     icon = { Icon(Icons.Filled.MultipleStop, null) },
@@ -304,18 +307,18 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             }
         }
 
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
+        if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {
             item("category_mtls") {
                 PreferenceCategory(text = { Text(stringResource(R.string.mutual_tls)) })
             }
             item("mtls_cert") {
                 TextFieldPreference(
-                    value = state.mtlsCert,
+                    value = uiState.mtlsCert,
                     onValueChange = { viewModel.setMtlsCert(it) },
                     title = { Text(stringResource(R.string.certificates)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.Lock, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.mtlsCert)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.mtlsCert)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
@@ -324,12 +327,12 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             }
             item("mtls_key") {
                 TextFieldPreference(
-                    value = state.mtlsKey,
+                    value = uiState.mtlsKey,
                     onValueChange = { viewModel.setMtlsKey(it) },
                     title = { Text(stringResource(R.string.ssh_private_key)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.VpnKey, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(state.mtlsKey)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.mtlsKey)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
@@ -343,7 +346,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("ech") {
             SwitchPreference(
-                value = state.ech,
+                value = uiState.ech,
                 onValueChange = { viewModel.setEch(it) },
                 title = { Text(stringResource(R.string.enable)) },
                 icon = { Icon(Icons.Filled.Security, null) },
@@ -351,13 +354,13 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         }
         item("ech_config") {
             TextFieldPreference(
-                value = state.echConfig,
+                value = uiState.echConfig,
                 onValueChange = { viewModel.setEchConfig(it) },
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Nfc, null) },
-                enabled = state.ech,
-                summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
+                enabled = uiState.ech,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
