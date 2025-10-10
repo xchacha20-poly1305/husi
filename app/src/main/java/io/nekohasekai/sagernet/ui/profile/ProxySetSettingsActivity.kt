@@ -143,58 +143,60 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(Icons.Filled.Stop, null) },
             )
         }
-        item("test_url") {
-            TextFieldPreference(
-                value = state.testURL,
-                onValueChange = { viewModel.setTestURL(it) },
-                title = { Text(stringResource(R.string.connection_test_url)) },
-                textToValue = { it },
-                icon = { Icon(Icons.Filled.CastConnected, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.testURL)) },
-                valueToText = { it },
-            )
-        }
-        item("test_interval") {
-            TextFieldPreference(
-                value = state.testInterval,
-                onValueChange = { viewModel.setTestInterval(it) },
-                title = { Text(stringResource(R.string.urltest_interval)) },
-                textToValue = { it },
-                icon = { Icon(Icons.Filled.FlipCameraAndroid, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.testInterval)) },
-                valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    DurationTextField(value, onValueChange, onOk)
-                },
-            )
-        }
-        item("idle_timeout") {
-            TextFieldPreference(
-                value = state.testIdleTimeout,
-                onValueChange = { viewModel.setTestIdleTimeout(it) },
-                title = { Text(stringResource(R.string.idle_timeout)) },
-                textToValue = { it },
-                icon = { Icon(Icons.Filled.PhotoCamera, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.testIdleTimeout)) },
-                valueToText = { it },
-                textField = { value, onValueChange, onOk ->
-                    DurationTextField(value, onValueChange, onOk)
-                },
-            )
-        }
-        item("tolerance") {
-            TextFieldPreference(
-                value = state.testTolerance,
-                onValueChange = { viewModel.setTestTolerance(it) },
-                title = { Text(stringResource(R.string.urltest_tolerance)) },
-                textToValue = { it.toIntOrNull() ?: 50 },
-                icon = { Icon(Icons.Filled.EmojiEmotions, null) },
-                summary = { Text(state.testTolerance.toString()) },
-                valueToText = { it.toString() },
-                textField = { value, onValueChange, onOk ->
-                    UIntegerTextField(value, onValueChange, onOk)
-                },
-            )
+        if (state.management == ProxySetBean.MANAGEMENT_URLTEST) {
+            item("test_url") {
+                TextFieldPreference(
+                    value = state.testURL,
+                    onValueChange = { viewModel.setTestURL(it) },
+                    title = { Text(stringResource(R.string.connection_test_url)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.CastConnected, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.testURL)) },
+                    valueToText = { it },
+                )
+            }
+            item("test_interval") {
+                TextFieldPreference(
+                    value = state.testInterval,
+                    onValueChange = { viewModel.setTestInterval(it) },
+                    title = { Text(stringResource(R.string.urltest_interval)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.FlipCameraAndroid, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.testInterval)) },
+                    valueToText = { it },
+                    textField = { value, onValueChange, onOk ->
+                        DurationTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
+            item("idle_timeout") {
+                TextFieldPreference(
+                    value = state.testIdleTimeout,
+                    onValueChange = { viewModel.setTestIdleTimeout(it) },
+                    title = { Text(stringResource(R.string.idle_timeout)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.PhotoCamera, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.testIdleTimeout)) },
+                    valueToText = { it },
+                    textField = { value, onValueChange, onOk ->
+                        DurationTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
+            item("tolerance") {
+                TextFieldPreference(
+                    value = state.testTolerance,
+                    onValueChange = { viewModel.setTestTolerance(it) },
+                    title = { Text(stringResource(R.string.urltest_tolerance)) },
+                    textToValue = { it.toIntOrNull() ?: 50 },
+                    icon = { Icon(Icons.Filled.EmojiEmotions, null) },
+                    summary = { Text(state.testTolerance.toString()) },
+                    valueToText = { it.toString() },
+                    textField = { value, onValueChange, onOk ->
+                        UIntegerTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
         }
         item("type") {
             fun typeName(type: Int) = when (type) {
@@ -234,16 +236,18 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 },
             )
         }
-        item("filter_not_regex") {
-            TextFieldPreference(
-                value = state.filterNotRegex,
-                onValueChange = { viewModel.setFilterNotRegex(it) },
-                title = { Text(stringResource(R.string.filter_regex)) },
-                textToValue = { it },
-                icon = { Icon(Icons.Filled.DeleteSweep, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.filterNotRegex)) },
-                valueToText = { it },
-            )
+        if (state.collectType == ProxySetBean.TYPE_GROUP) {
+            item("filter_not_regex") {
+                TextFieldPreference(
+                    value = state.filterNotRegex,
+                    onValueChange = { viewModel.setFilterNotRegex(it) },
+                    title = { Text(stringResource(R.string.filter_regex)) },
+                    textToValue = { it },
+                    icon = { Icon(Icons.Filled.DeleteSweep, null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(state.filterNotRegex)) },
+                    valueToText = { it },
+                )
+            }
         }
 
         item("divider", 1) {

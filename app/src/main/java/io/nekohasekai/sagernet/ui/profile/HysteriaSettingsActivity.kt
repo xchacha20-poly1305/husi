@@ -234,16 +234,14 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 valueToText = { it },
             )
         }
-        if (state.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
-            item("allow_insecure") {
-                SwitchPreference(
-                    value = state.allowInsecure,
-                    onValueChange = { viewModel.setAllowInsecure(it) },
-                    title = { Text(stringResource(R.string.allow_insecure)) },
-                    summary = { Text(stringResource(R.string.allow_insecure_sum)) },
-                    icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
-                )
-            }
+        item("allow_insecure") {
+            SwitchPreference(
+                value = state.allowInsecure,
+                onValueChange = { viewModel.setAllowInsecure(it) },
+                title = { Text(stringResource(R.string.allow_insecure)) },
+                summary = { Text(stringResource(R.string.allow_insecure_sum)) },
+                icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+            )
         }
         item("disable_sni") {
             SwitchPreference(
