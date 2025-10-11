@@ -198,7 +198,7 @@ data class ProxyEntity(
         rx = input.readLong()
         status = input.readInt()
         ping = input.readInt()
-        if (version >= 1) {
+        if (version < 1) {
             // useless uuid
             input.readString()
         }
