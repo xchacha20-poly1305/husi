@@ -87,6 +87,9 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 icon = { Icon(Icons.Filled.Domain, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.localAddress)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("private_key") {

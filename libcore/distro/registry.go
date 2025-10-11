@@ -17,6 +17,7 @@ import (
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing-box/protocol/http"
 	"github.com/sagernet/sing-box/protocol/hysteria"
+	"github.com/sagernet/sing-box/protocol/hysteria2"
 	"github.com/sagernet/sing-box/protocol/mixed"
 	"github.com/sagernet/sing-box/protocol/shadowsocks"
 	"github.com/sagernet/sing-box/protocol/shadowtls"
@@ -97,7 +98,7 @@ func registerQUICInbounds(registry *inbound.Registry) {
 func registerQUICOutbounds(registry *outbound.Registry) {
 	hysteria.RegisterOutbound(registry)
 	tuic.RegisterOutbound(registry)
-	// hysteria2.RegisterOutbound(registry) // Move to plugin
+	hysteria2.RegisterOutbound(registry)
 }
 
 func registerWireGuardOutbound(registry *outbound.Registry) {
