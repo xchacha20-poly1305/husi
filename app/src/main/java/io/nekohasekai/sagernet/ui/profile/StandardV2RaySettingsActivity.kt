@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MultipleStop
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Numbers
@@ -51,6 +52,10 @@ import me.zhanghai.compose.preference.TextFieldPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSettingsActivity<T>() {
+
+    companion object {
+        private const val KEY_SECURITY = "security"
+    }
 
     override val viewModel by viewModels<StandardV2RaySettingsViewModel<T>>()
 
@@ -92,18 +97,26 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
         }
     }
 
-    internal fun LazyListScope.tlsSettings(state: StandardV2RayUiState) {
+    internal fun LazyListScope.tlsSettings(
+        state: StandardV2RayUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
         val isTls = state.security == "tls"
         val isReality = state.realityPublicKey.isNotBlank()
 
         item("category_security") {
             PreferenceCategory(text = { Text(stringResource(R.string.security_settings)) })
         }
-        item("security") {
+        item(KEY_SECURITY) {
             ListPreference(
                 value = state.security,
                 values = listOf("", "tls"),
-                onValueChange = { viewModel.setSecurity(it) },
+                onValueChange = {
+                    viewModel.setSecurity(it)
+                    if (it == "tls") {
+                        scrollTo(KEY_SECURITY)
+                    }
+                },
                 title = { Text(stringResource(R.string.security)) },
                 icon = { Icon(Icons.Filled.Layers, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.security)) },
@@ -245,6 +258,32 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Nfc, null) },
                         enabled = state.ech,
                         summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
+                        valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
+                    )
+
+                    PreferenceCategory(text = { Text(stringResource(R.string.mutual_tls)) })
+                    TextFieldPreference(
+                        value = state.clientCert,
+                        onValueChange = { viewModel.setClientCert(it) },
+                        title = { Text(stringResource(R.string.certificates)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Lock, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.clientCert)) },
+                        valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
+                    )
+                    TextFieldPreference(
+                        value = state.clientKey,
+                        onValueChange = { viewModel.setClientKey(it) },
+                        title = { Text(stringResource(R.string.ssh_private_key)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.clientKey)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
                             MultilineTextField(value, onValueChange, onOk)

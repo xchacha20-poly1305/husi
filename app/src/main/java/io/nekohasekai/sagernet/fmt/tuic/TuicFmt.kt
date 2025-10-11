@@ -76,10 +76,10 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             if (bean.alpn.isNotBlank()) {
                 alpn = bean.alpn.listByLineOrComma()
             }
-            if (bean.certificates.isNotBlank()) {
-                certificate = listOf(bean.certificates)
-            }
+            certificate = bean.certificates.blankAsNull()?.lines()
             certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
+            client_certificate = bean.clientCert.blankAsNull()?.lines()
+            client_key = bean.clientKey.blankAsNull()?.lines()
             if (bean.ech) {
                 val echConfig =
                     bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
@@ -118,6 +118,8 @@ fun parseTuicOutbound(json: JSONMap): TuicBean = TuicBean().apply {
                 disableSNI = tls.disable_sni
                 certificates = tls.certificate?.joinToString("\n")
                 certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n")
+                clientCert = tls.client_certificate?.joinToString("\n")
+                clientKey = tls.client_key?.joinToString("\n")
                 alpn = tls.alpn?.joinToString("\n")
                 tls.ech?.let {
                     ech = it.enabled

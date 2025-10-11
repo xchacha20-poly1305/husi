@@ -25,29 +25,32 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
 
     override val viewModel by viewModels<VLESSSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as VLESSUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as VLESSUiState
 
-        headSettings(state)
+        headSettings(uiState)
         item("uuid") {
             TextFieldPreference(
-                value = state.uuid,
+                value = uiState.uuid,
                 onValueChange = { viewModel.setUUID(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.uuid)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
         }
         item("flow") {
             ListPreference(
-                value = state.flow,
+                value = uiState.flow,
                 onValueChange = { viewModel.setFlow(it) },
-                values = listOf("", "rprx-xtls-vision"),
+                values = listOf("", "xtls-rprx-vision"),
                 title = { Text(stringResource(R.string.xtls_flow)) },
                 icon = { Icon(Icons.Filled.Stream, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.flow)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.flow)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
@@ -60,19 +63,19 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 else -> error("impossible")
             }
             ListPreference(
-                value = state.packetEncoding,
+                value = uiState.packetEncoding,
                 onValueChange = { viewModel.setPacketEncoding(it) },
                 values = intListN(3),
                 title = { Text(stringResource(R.string.packet_encoding)) },
                 icon = { Icon(Icons.Filled.Outbox, null) },
-                summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(state.packetEncoding))) },
+                summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(uiState.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
             )
         }
 
-        transportSettings(state)
-        muxSettings(state)
-        tlsSettings(state)
+        transportSettings(uiState)
+        muxSettings(uiState)
+        tlsSettings(uiState, scrollTo)
     }
 }

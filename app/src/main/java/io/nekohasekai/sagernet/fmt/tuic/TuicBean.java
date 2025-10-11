@@ -44,6 +44,10 @@ public class TuicBean extends AbstractBean {
     public Boolean ech;
     public String echConfig;
 
+    // mTLS
+    public String clientCert;
+    public String clientKey;
+
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
@@ -62,11 +66,13 @@ public class TuicBean extends AbstractBean {
         if (uuid == null) uuid = "";
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
+        if (clientCert == null) clientCert = "";
+        if (clientKey == null) clientKey = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
 
         // version 0
         super.serialize(output);
@@ -87,6 +93,10 @@ public class TuicBean extends AbstractBean {
 
         // version 1
         output.writeString(certPublicKeySha256);
+
+        // version 2
+        output.writeString(clientCert);
+        output.writeString(clientKey);
     }
 
     @Override
@@ -111,6 +121,11 @@ public class TuicBean extends AbstractBean {
 
         if (version >= 1) {
             certPublicKeySha256 = input.readString();
+        }
+
+        if (version >= 2) {
+            clientCert = input.readString();
+            clientKey = input.readString();
         }
     }
 

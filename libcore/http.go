@@ -32,11 +32,10 @@ type HTTPClient interface {
 	// RestrictedTLS forces to use TLS 1.3.
 	RestrictedTLS()
 
-	// ModernTLS allows use common TLS with TLS 1.2.
-	ModernTLS()
-
-	// PinnedSHA256 verifies server TLS certificate's sha256 whether same as sumHex.
-	// If not, it will reject this handshake.
+	// PinnedSHA256 verifies server TLS certificate's sha256 when using self-signed certificates.
+	// This is designed for OOCv1
+	//
+	// https://github.com/Shadowsocks-NET/OpenOnlineConfig/blob/0db1f2452f8ad579967ca4c5092f5e11053c813c/docs/0001-open-online-config-v1.md?plain=1#L69
 	PinnedSHA256(sumHex string)
 
 	// UseSocks5 connects to server by socks5.
@@ -117,29 +116,35 @@ func NewHttpClient() HTTPClient {
 	return client
 }
 
-func (c *httpClient) ModernTLS() {
-	c.tls.MinVersion = tls.VersionTLS12
-	c.tls.CipherSuites = common.Map(tls.CipherSuites(), func(it *tls.CipherSuite) uint16 { return it.ID })
-}
-
 func (c *httpClient) RestrictedTLS() {
 	c.tls.MinVersion = tls.VersionTLS13
-	c.tls.CipherSuites = common.Map(common.Filter(tls.CipherSuites(), func(it *tls.CipherSuite) bool {
-		return common.Contains(it.SupportedVersions, uint16(tls.VersionTLS13))
-	}), func(it *tls.CipherSuite) uint16 {
-		return it.ID
-	})
 }
 
 func (c *httpClient) PinnedSHA256(sumHex string) {
-	c.tls.VerifyPeerCertificate = func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
-		for _, rawCert := range rawCerts {
-			certSum := sha256.Sum256(rawCert)
-			if sumHex == hex.EncodeToString(certSum[:]) {
-				return nil
-			}
+	c.tls.InsecureSkipVerify = true
+	c.tls.VerifyPeerCertificate = func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+		opts := x509.VerifyOptions{
+			DNSName:       c.tls.ServerName,
+			Roots:         c.tls.RootCAs,
+			Intermediates: x509.NewCertPool(),
 		}
-		return E.New("pinned sha256 sum mismatch")
+		if c.tls.Time != nil {
+			opts.CurrentTime = c.tls.Time()
+		}
+		for _, rawCert := range rawCerts[1:] {
+			cert, _ := x509.ParseCertificate(rawCert)
+			opts.Intermediates.AddCert(cert)
+		}
+		cert, _ := x509.ParseCertificate(rawCerts[0])
+		_, err := cert.Verify(opts)
+		if err == nil {
+			return nil
+		}
+		certSum := sha256.Sum256(rawCerts[0])
+		if sumHex == hex.EncodeToString(certSum[:]) {
+			return nil
+		}
+		return E.Errors(err, E.New("cert sha256 not matched"))
 	}
 }
 

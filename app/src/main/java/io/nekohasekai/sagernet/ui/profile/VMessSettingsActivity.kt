@@ -34,29 +34,32 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
 
     override val viewModel by viewModels<VMessSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as VMessUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as VMessUiState
 
-        headSettings(state)
+        headSettings(uiState)
         item("uuid") {
             TextFieldPreference(
-                value = state.uuid,
+                value = uiState.uuid,
                 onValueChange = { viewModel.setUUID(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.uuid)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
         }
         item("alter_id") {
             TextFieldPreference(
-                value = state.alterID,
+                value = uiState.alterID,
                 onValueChange = { viewModel.setAlterID(it) },
                 title = { Text(stringResource(R.string.alter_id)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
                 icon = { Icon(Icons.Filled.AlternateEmail, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.alterID)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.alterID)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -65,12 +68,12 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
         }
         item("encryption") {
             ListPreference(
-                value = state.encryption,
+                value = uiState.encryption,
                 onValueChange = { viewModel.setEncryption(it) },
                 values = listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none", "zero"),
                 title = { Text(stringResource(R.string.encryption)) },
                 icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.encryption)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.encryption)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
             )
@@ -83,20 +86,20 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 else -> error("impossible")
             }
             ListPreference(
-                value = state.packetEncoding,
+                value = uiState.packetEncoding,
                 onValueChange = { viewModel.setPacketEncoding(it) },
                 values = intListN(3),
                 title = { Text(stringResource(R.string.packet_encoding)) },
                 icon = { Icon(Icons.Filled.Outbox, null) },
-                summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(state.packetEncoding))) },
+                summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(uiState.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
             )
         }
 
-        transportSettings(state)
-        muxSettings(state)
-        tlsSettings(state)
+        transportSettings(uiState)
+        muxSettings(uiState)
+        tlsSettings(uiState, scrollTo)
 
         item("category_experimental") {
             PreferenceCategory(
@@ -106,7 +109,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
         }
         item("authenticated_length") {
             SwitchPreference(
-                value = state.authenticatedLength,
+                value = uiState.authenticatedLength,
                 onValueChange = { viewModel.setAuthenticatedLength(it) },
                 title = { Text(stringResource(R.string.authenticated_length)) },
                 icon = { Spacer(Modifier.size(24.dp)) },

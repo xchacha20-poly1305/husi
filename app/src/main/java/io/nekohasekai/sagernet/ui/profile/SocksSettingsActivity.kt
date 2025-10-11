@@ -34,17 +34,20 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
 
     override val viewModel by viewModels<SocksSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as SocksUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as SocksUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -54,7 +57,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         }
         item("protocol") {
             ListPreference(
-                value = state.protocol,
+                value = uiState.protocol,
                 values = listOf(
                     SOCKSBean.PROTOCOL_SOCKS4,
                     SOCKSBean.PROTOCOL_SOCKS4A,
@@ -64,7 +67,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 title = { Text(stringResource(R.string.protocol_version)) },
                 icon = { Icon(Icons.Filled.Nfc, null) },
                 summary = {
-                    val text = when (state.protocol) {
+                    val text = when (uiState.protocol) {
                         SOCKSBean.PROTOCOL_SOCKS4 -> "SOCKS4"
                         SOCKSBean.PROTOCOL_SOCKS4A -> "SOCKS4A"
                         else -> "SOCKS5"
@@ -85,23 +88,23 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 1080 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -109,21 +112,21 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
             )
         }
 
-        val showAuth = state.protocol == SOCKSBean.PROTOCOL_SOCKS5
+        val showAuth = uiState.protocol == SOCKSBean.PROTOCOL_SOCKS5
         item("auth") {
             AnimatedVisibility(visible = showAuth) {
                 Column {
                     TextFieldPreference(
-                        value = state.username,
+                        value = uiState.username,
                         onValueChange = { viewModel.setUsername(it) },
                         title = { Text(stringResource(R.string.username_opt)) },
                         textToValue = { it },
                         icon = { Icon(Icons.Filled.Person, null) },
-                        summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                        summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                         valueToText = { it },
                     )
                     PasswordPreference(
-                        value = state.password,
+                        value = uiState.password,
                         onValueChange = { viewModel.setPassword(it) },
                         title = { Text(stringResource(R.string.password_opt)) },
                     )
@@ -139,7 +142,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         }
         item("udp_over_tcp") {
             SwitchPreference(
-                value = state.udpOverTcp,
+                value = uiState.udpOverTcp,
                 onValueChange = { viewModel.setUdpOverTcp(it) },
                 title = { Text(stringResource(R.string.udp_over_tcp)) },
                 icon = { Icon(Icons.Filled.GridOn, null) },

@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -149,21 +150,30 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                         expanded = showExtendMenu,
                                         onDismissRequest = { showExtendMenu = false },
                                     ) {
-                                        if (!viewModel.isNew
-                                            && !viewModel.isSubscription
-                                            && SagerDatabase.groupDao.allGroups()
-                                                .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
+                                        if (!viewModel.isNew // May cancel crating
+                                            && !viewModel.isSubscription // Updating may make profile lost
                                         ) DropdownMenuItem(
                                             text = { Text(stringResource(R.string.create_shortcut)) },
                                             onClick = ::buildShortCut,
                                         )
-                                        if (!viewModel.isNew && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) DropdownMenuItem(
+                                        if (!viewModel.isNew // Uncreated
+                                            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                                            && SagerDatabase.groupDao.allGroups()
+                                                .filter { it.type == GroupType.BASIC }.size > 1 // Movable
+                                        ) DropdownMenuItem(
                                             text = { Text(stringResource(R.string.move)) },
                                             onClick = { showMoveDialog = true },
                                         )
 
                                         HorizontalDivider()
-                                        Text(stringResource(R.string.custom_config))
+                                        Text(
+                                            text = stringResource(R.string.custom_config),
+                                            modifier = Modifier.padding(
+                                                horizontal = 16.dp,
+                                                vertical = 8.dp,
+                                            ),
+                                            style = MaterialTheme.typography.titleSmall,
+                                        )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.outbound)) },
                                             onClick = {
@@ -287,8 +297,25 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
     private fun MainColumn(modifier: Modifier) {
         ProvidePreferenceLocals {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            LazyColumn(modifier = modifier) {
-                settings(uiState)
+            val listState = rememberLazyListState()
+            var scrollToKey by remember { mutableStateOf<String?>(null) }
+
+            LaunchedEffect(scrollToKey) {
+                listState.layoutInfo.visibleItemsInfo
+                    .indexOfFirst { it.key == scrollToKey }
+                    .takeIf { it >= 0 }?.let {
+                        listState.animateScrollToItem(it)
+                        scrollToKey = null
+                    }
+            }
+
+            LazyColumn(
+                modifier = modifier,
+                state = listState,
+            ) {
+                settings(uiState) { key ->
+                    scrollToKey = key
+                }
 
                 item("bottom_padding") {
                     Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
@@ -297,7 +324,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
         }
     }
 
-    internal abstract fun LazyListScope.settings(state: ProfileSettingsUiState)
+    internal abstract fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    )
 
     private fun buildShortCut() {
         val entity = viewModel.proxyEntity

@@ -69,17 +69,20 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
 
     override val title = R.string.chain_settings
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as ChainUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as ChainUiState
 
         item("name", 0) {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -128,7 +131,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxHeight),
-                items = state.profiles.toImmutableList(),
+                items = uiState.profiles.toImmutableList(),
                 key = { it.id },
                 contentType = { 0 },
                 userScrollEnabled = false,

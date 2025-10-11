@@ -356,18 +356,23 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     override suspend fun onUpdated(profile: ProxyEntity) {
+        if (profile.groupId != group.id) return
         _uiState.update { state ->
-            val profiles = state.profiles.toMutableList()
-            val index = profiles.indexOfFirst { it.profile.id == profile.id }
-            if (index >= 0) {
-                val selectedId = DataStore.selectedProxy
-                val currentId = DataStore.currentProfile
-                val started = DataStore.serviceState.started
-                val isSelected = profile.id == selectedId
-                profiles[index] = profiles[index].copy(
-                    profile = profile,
+            val selectedId = DataStore.selectedProxy
+            val currentId = DataStore.currentProfile
+            val started = DataStore.serviceState.started
+
+            val profiles = state.profiles.map { item ->
+                val updatedProfile = if (item.profile.id == profile.id) {
+                    profile
+                } else {
+                    item.profile
+                }
+                val isSelected = updatedProfile.id == selectedId
+                ProfileItem(
+                    profile = updatedProfile,
                     isSelected = isSelected,
-                    started = isSelected && started && profile.id == currentId,
+                    started = isSelected && started && updatedProfile.id == currentId,
                 )
             }
             state.copy(profiles = profiles, scrollIndex = null)

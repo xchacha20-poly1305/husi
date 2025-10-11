@@ -34,17 +34,20 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
 
     override val viewModel by viewModels<SSHSettingsViewModel>()
 
-    override fun LazyListScope.settings(state: ProfileSettingsUiState) {
-        state as SshUiState
+    override fun LazyListScope.settings(
+        uiState: ProfileSettingsUiState,
+        scrollTo: (key: String) -> Unit,
+    ) {
+        uiState as SshUiState
 
         item("name") {
             TextFieldPreference(
-                value = state.name,
+                value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.EmojiSymbols, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
         }
@@ -54,23 +57,23 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
         }
         item("address") {
             TextFieldPreference(
-                value = state.address,
+                value = uiState.address,
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Router, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
         }
         item("port") {
             TextFieldPreference(
-                value = state.port,
+                value = uiState.port,
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 22 },
                 icon = { Icon(Icons.Filled.DirectionsBoat, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
@@ -79,12 +82,12 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
         }
         item("username") {
             TextFieldPreference(
-                value = state.username,
+                value = uiState.username,
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Person, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.username)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
         }
@@ -96,7 +99,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 else -> error("impossible")
             }
             ListPreference(
-                value = state.authType,
+                value = uiState.authType,
                 values = listOf(
                     SSHBean.AUTH_TYPE_NONE,
                     SSHBean.AUTH_TYPE_PASSWORD,
@@ -106,7 +109,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 title = { Text(stringResource(R.string.hysteria_auth_type)) },
                 icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
                 summary = {
-                    val text = stringResource(authType(state.authType))
+                    val text = stringResource(authType(uiState.authType))
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
@@ -117,28 +120,28 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
         }
 
         item("auth_fields") {
-            AnimatedVisibility(visible = state.authType == SSHBean.AUTH_TYPE_PASSWORD) {
+            AnimatedVisibility(visible = uiState.authType == SSHBean.AUTH_TYPE_PASSWORD) {
                 PasswordPreference(
-                    value = state.password,
+                    value = uiState.password,
                     onValueChange = { viewModel.setPassword(it) },
                 )
             }
-            AnimatedVisibility(visible = state.authType == SSHBean.AUTH_TYPE_PRIVATE_KEY) {
+            AnimatedVisibility(visible = uiState.authType == SSHBean.AUTH_TYPE_PRIVATE_KEY) {
                 Column {
                     TextFieldPreference(
-                        value = state.privateKey,
+                        value = uiState.privateKey,
                         onValueChange = { viewModel.setPrivateKey(it) },
                         title = { Text(stringResource(R.string.ssh_private_key)) },
                         textToValue = { it },
                         icon = { Icon(Icons.Filled.VpnKey, null) },
-                        summary = { Text(LocalContext.current.contentOrUnset(state.privateKey)) },
+                        summary = { Text(LocalContext.current.contentOrUnset(uiState.privateKey)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
                             MultilineTextField(value, onValueChange, onOk)
                         },
                     )
                     PasswordPreference(
-                        value = state.privateKeyPassphrase,
+                        value = uiState.privateKeyPassphrase,
                         onValueChange = { viewModel.setPrivateKeyPassphrase(it) },
                         title = { Text(stringResource(R.string.ssh_private_key_passphrase)) },
                     )
@@ -148,12 +151,12 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
 
         item("public_key") {
             TextFieldPreference(
-                value = state.publicKey,
+                value = uiState.publicKey,
                 onValueChange = { viewModel.setPublicKey(it) },
                 title = { Text(stringResource(R.string.ssh_public_key)) },
                 textToValue = { it },
                 icon = { Icon(Icons.Filled.Copyright, null) },
-                summary = { Text(LocalContext.current.contentOrUnset(state.publicKey)) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.publicKey)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)

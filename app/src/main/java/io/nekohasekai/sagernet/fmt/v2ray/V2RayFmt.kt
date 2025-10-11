@@ -530,8 +530,10 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         if (bean.disableSNI) disable_sni = true
         if (bean.sni.isNotBlank()) server_name = bean.sni
         alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
-        certificate = bean.certificates.blankAsNull()?.split("\n")
-        certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
+        certificate = bean.certificates.blankAsNull()?.lines()
+        certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.lines()
+        client_certificate = bean.clientCert.blankAsNull()?.lines()
+        client_key = bean.clientKey.blankAsNull()?.lines()
         if (bean.fragment) {
             fragment = true
             fragment_fallback_delay = bean.fragmentFallbackDelay.blankAsNull()
@@ -723,6 +725,8 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.alpn = tls.alpn?.joinToString(",")
                 bean.certificates = tls.certificate?.joinToString("\n")
                 bean.certPublicKeySha256 = tls.certificate_public_key_sha256?.joinToString("\n")
+                bean.clientCert = tls.client_certificate?.joinToString("\n")
+                bean.clientKey = tls.client_key?.joinToString("\n")
                 bean.utlsFingerprint = tls.utls?.fingerprint
                 bean.fragment = tls.fragment
                 bean.fragmentFallbackDelay = tls.fragment_fallback_delay

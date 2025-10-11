@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "2.2.20-2.0.4"
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.20"
 }
 
@@ -81,7 +81,7 @@ dependencies {
 
     implementation(platform("androidx.compose:compose-bom:2025.09.01"))
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material3:material3:1.5.0-alpha04")
+    implementation("androidx.compose.material3:material3:1.5.0-alpha06")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.11.0")
@@ -100,9 +100,9 @@ dependencies {
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
 
-    implementation("androidx.camera:camera-view:1.5.0")
-    implementation("androidx.camera:camera-lifecycle:1.5.0")
-    implementation("androidx.camera:camera-camera2:1.5.0")
+    implementation("androidx.camera:camera-view:1.5.1")
+    implementation("androidx.camera:camera-lifecycle:1.5.1")
+    implementation("androidx.camera:camera-camera2:1.5.1")
     implementation("com.google.zxing:core:3.5.3")
 
     implementation("com.jakewharton:process-phoenix:3.0.0")
@@ -117,7 +117,7 @@ dependencies {
 
     implementation("androidx.room:room-runtime:2.8.1")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
-    ksp("androidx.room:room-compiler:2.8.1")
+    ksp("androidx.room:room-compiler:2.8.2")
     implementation("androidx.room:room-ktx:2.8.2")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")

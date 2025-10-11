@@ -35,6 +35,8 @@ internal data class VLESSUiState(
     override val realityShortID: String = "",
     override val ech: Boolean = false,
     override val echConfig: String = "",
+    override val clientCert: String = "",
+    override val clientKey: String = "",
 
     override val enableMux: Boolean = false,
     override val brutal: Boolean = false,
@@ -89,6 +91,8 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
                 realityShortID = realityShortID,
                 ech = ech,
                 echConfig = echConfig,
+                clientCert = clientCert,
+                clientKey = clientKey,
 
                 enableMux = serverMux,
                 brutal = serverBrutal,
@@ -136,6 +140,8 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
         realityShortID = state.realityShortID
         ech = state.ech
         echConfig = state.echConfig
+        clientCert = state.clientCert
+        clientKey = state.clientKey
 
         serverMux = state.enableMux
         serverBrutal = state.brutal
@@ -254,6 +260,14 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
     override fun setEchConfig(config: String) {
         _uiState.update { it.copy(echConfig = config) }
+    }
+
+    override fun setClientCert(cert: String) {
+        _uiState.update { it.copy(clientCert = cert) }
+    }
+
+    override fun setClientKey(key: String) {
+        _uiState.update { it.copy(clientKey = key) }
     }
 
     override fun setEnableMux(enable: Boolean) {
