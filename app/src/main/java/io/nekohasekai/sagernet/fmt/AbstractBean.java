@@ -32,7 +32,6 @@ public abstract class AbstractBean extends Serializable {
 
     public transient String finalAddress;
     public transient int finalPort;
-    private transient boolean serializeWithoutName;
 
     public String displayName() {
         if (TextUtils.isEmpty(name)) {
@@ -96,9 +95,7 @@ public abstract class AbstractBean extends Serializable {
         serialize(output);
 
         output.writeInt(4);
-        if (!serializeWithoutName) {
-            output.writeString(name);
-        }
+        output.writeString(name);
         output.writeString(customOutboundJson);
         output.writeString(customConfigJson);
 
@@ -148,24 +145,12 @@ public abstract class AbstractBean extends Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        try {
-            serializeWithoutName = true;
-            ((AbstractBean) o).serializeWithoutName = true;
-            return Arrays.equals(KryoConverters.serialize(this), KryoConverters.serialize((AbstractBean) o));
-        } finally {
-            serializeWithoutName = false;
-            ((AbstractBean) o).serializeWithoutName = false;
-        }
+        return Arrays.equals(KryoConverters.serialize(this), KryoConverters.serialize((AbstractBean) o));
     }
 
     @Override
     public int hashCode() {
-        try {
-            serializeWithoutName = true;
-            return Arrays.hashCode(KryoConverters.serialize(this));
-        } finally {
-            serializeWithoutName = false;
-        }
+        return Arrays.hashCode(KryoConverters.serialize(this));
     }
 
     @NotNull
