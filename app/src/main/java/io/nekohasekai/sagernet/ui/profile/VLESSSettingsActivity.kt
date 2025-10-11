@@ -47,7 +47,7 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
             ListPreference(
                 value = uiState.flow,
                 onValueChange = { viewModel.setFlow(it) },
-                values = listOf("", "rprx-xtls-vision"),
+                values = listOf("", "xtls-rprx-vision"),
                 title = { Text(stringResource(R.string.xtls_flow)) },
                 icon = { Icon(Icons.Filled.Stream, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.flow)) },
