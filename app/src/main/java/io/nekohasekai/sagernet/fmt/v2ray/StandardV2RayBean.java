@@ -45,6 +45,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public String certPublicKeySha256;
 
+    public String clientCert;
+
+    public String clientKey;
+
     // --------------------------------------- reality
 
 
@@ -90,6 +94,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (certificates == null) certificates = "";
         if (certPublicKeySha256 == null) certPublicKeySha256 = "";
+        if (clientCert == null) clientCert = "";
+        if (clientKey == null) clientKey = "";
         if (earlyDataHeaderName == null) earlyDataHeaderName = "";
         if (utlsFingerprint == null) utlsFingerprint = "";
 
@@ -111,7 +117,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(9);
+        output.writeInt(10);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -169,6 +175,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
             output.writeBoolean(disableSNI);
 
             output.writeString(certPublicKeySha256);
+
+            output.writeString(clientCert);
+            output.writeString(clientKey);
         }
 
         output.writeInt(packetEncoding);
@@ -251,6 +260,11 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
             if (version >= 8) {
                 certPublicKeySha256 = input.readString();
+            }
+
+            if (version >= 10) {
+                clientCert = input.readString();
+                clientKey = input.readString();
             }
         }
 

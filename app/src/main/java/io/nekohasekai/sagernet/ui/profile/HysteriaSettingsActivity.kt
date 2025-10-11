@@ -313,12 +313,12 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             }
             item("mtls_cert") {
                 TextFieldPreference(
-                    value = uiState.mtlsCert,
-                    onValueChange = { viewModel.setMtlsCert(it) },
+                    value = uiState.clientCert,
+                    onValueChange = { viewModel.setClientCert(it) },
                     title = { Text(stringResource(R.string.certificates)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.Lock, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(uiState.mtlsCert)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.clientCert)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)
@@ -327,12 +327,12 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             }
             item("mtls_key") {
                 TextFieldPreference(
-                    value = uiState.mtlsKey,
-                    onValueChange = { viewModel.setMtlsKey(it) },
+                    value = uiState.clientKey,
+                    onValueChange = { viewModel.setClientKey(it) },
                     title = { Text(stringResource(R.string.ssh_private_key)) },
                     textToValue = { it },
                     icon = { Icon(Icons.Filled.VpnKey, null) },
-                    summary = { Text(LocalContext.current.contentOrUnset(uiState.mtlsKey)) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.clientKey)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
                         MultilineTextField(value, onValueChange, onOk)

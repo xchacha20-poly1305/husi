@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MultipleStop
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Numbers
@@ -257,6 +258,32 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Nfc, null) },
                         enabled = state.ech,
                         summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
+                        valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
+                    )
+
+                    PreferenceCategory(text = { Text(stringResource(R.string.mutual_tls)) })
+                    TextFieldPreference(
+                        value = state.clientCert,
+                        onValueChange = { viewModel.setClientCert(it) },
+                        title = { Text(stringResource(R.string.certificates)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.Lock, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.clientCert)) },
+                        valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
+                    )
+                    TextFieldPreference(
+                        value = state.clientKey,
+                        onValueChange = { viewModel.setClientKey(it) },
+                        title = { Text(stringResource(R.string.ssh_private_key)) },
+                        textToValue = { it },
+                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        summary = { Text(LocalContext.current.contentOrUnset(state.clientKey)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
                             MultilineTextField(value, onValueChange, onOk)

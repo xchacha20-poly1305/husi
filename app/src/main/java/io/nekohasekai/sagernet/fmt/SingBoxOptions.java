@@ -716,6 +716,14 @@ public class SingBoxOptions {
 
         public List<String> certificate_public_key_sha256;
 
+        public List<String> client_certificate;
+
+        public String client_certificate_path;
+
+        public List<String> client_key;
+
+        public String client_key_path;
+
         public Boolean fragment;
 
         public String fragment_fallback_delay;
@@ -2102,10 +2110,6 @@ public class SingBoxOptions {
         public OutboundTLSOptions tls;
 
         public Boolean brutal_debug;
-
-        public List<String> m_tls_cert;
-
-        public List<String> m_tls_key;
 
     }
 

@@ -28,6 +28,8 @@ internal data class AnyTLSUiState(
     val tlsRecordFragment: Boolean = false,
     val ech: Boolean = false,
     val echConfig: String = "",
+    val clientCert: String = "",
+    val clientKey: String = "",
 ) : ProfileSettingsUiState
 
 internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() {
@@ -60,6 +62,8 @@ internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() 
                 tlsRecordFragment = tlsRecordFragment,
                 ech = ech,
                 echConfig = echConfig,
+                clientCert = clientCert,
+                clientKey = clientKey,
             )
         }
     }
@@ -87,6 +91,8 @@ internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() 
         tlsRecordFragment = state.tlsRecordFragment
         ech = state.ech
         echConfig = state.echConfig
+        clientCert = state.clientCert
+        clientKey = state.clientKey
     }
 
     override fun setCustomConfig(config: String) {
@@ -175,6 +181,14 @@ internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() 
 
     fun setEchConfig(config: String) {
         _uiState.update { it.copy(echConfig = config) }
+    }
+
+    fun setClientCert(cert: String) {
+        _uiState.update { it.copy(clientCert = cert) }
+    }
+
+    fun setClientKey(key: String) {
+        _uiState.update { it.copy(clientKey = key) }
     }
 
 }

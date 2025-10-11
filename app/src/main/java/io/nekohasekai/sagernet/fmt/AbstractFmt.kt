@@ -238,6 +238,9 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
                 certificate_public_key_sha256 = listable<String>(value)
             }
 
+            "client_certificate" -> client_certificate = listable<String>(value)
+            "client_key" -> client_key = listable<String>(value)
+
             "fragment" -> fragment = value.toString().toBoolean()
             "fragment_fallback_delay" -> fragment_fallback_delay = value.toString()
             "record_fragment" -> record_fragment = value.toString().toBoolean()

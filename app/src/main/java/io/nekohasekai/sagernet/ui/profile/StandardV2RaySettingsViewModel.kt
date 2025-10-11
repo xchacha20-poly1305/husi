@@ -29,6 +29,8 @@ internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
     val realityShortID: String
     val ech: Boolean
     val echConfig: String
+    val clientCert: String
+    val clientKey: String
 
     val enableMux: Boolean
     val brutal: Boolean
@@ -65,6 +67,8 @@ internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
     abstract fun setRealityShortID(shortID: String)
     abstract fun setEch(enable: Boolean)
     abstract fun setEchConfig(config: String)
+    abstract fun setClientCert(cert: String)
+    abstract fun setClientKey(key: String)
     abstract fun setEnableMux(enable: Boolean)
     abstract fun setBrutal(enable: Boolean)
     abstract fun setMuxType(type: Int)

@@ -27,8 +27,8 @@ internal data class HysteriaUiState(
     val connectionReceiveWindow: Int = 0,
     val disableMtuDiscovery: Boolean = false,
     val hopInterval: String = "10s",
-    val mtlsCert: String = "",
-    val mtlsKey: String = "",
+    val clientCert: String = "",
+    val clientKey: String = "",
     val ech: Boolean = false,
     val echConfig: String = "",
 ) : ProfileSettingsUiState
@@ -62,8 +62,8 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
                 connectionReceiveWindow = connectionReceiveWindow,
                 disableMtuDiscovery = disableMtuDiscovery,
                 hopInterval = hopInterval,
-                mtlsCert = mtlsCert,
-                mtlsKey = mtlsKey,
+                clientCert = clientCert,
+                clientKey = clientKey,
                 ech = ech,
                 echConfig = echConfig,
             )
@@ -92,8 +92,8 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
         connectionReceiveWindow = state.connectionReceiveWindow
         disableMtuDiscovery = state.disableMtuDiscovery
         hopInterval = state.hopInterval
-        mtlsCert = state.mtlsCert
-        mtlsKey = state.mtlsKey
+        clientCert = state.clientCert
+        clientKey = state.clientKey
         ech = state.ech
         echConfig = state.echConfig
     }
@@ -178,12 +178,12 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
         _uiState.update { it.copy(hopInterval = interval) }
     }
 
-    fun setMtlsCert(cert: String) {
-        _uiState.update { it.copy(mtlsCert = cert) }
+    fun setClientCert(cert: String) {
+        _uiState.update { it.copy(clientCert = cert) }
     }
 
-    fun setMtlsKey(key: String) {
-        _uiState.update { it.copy(mtlsKey = key) }
+    fun setClientKey(key: String) {
+        _uiState.update { it.copy(clientKey = key) }
     }
 
     fun setEch(enabled: Boolean) {

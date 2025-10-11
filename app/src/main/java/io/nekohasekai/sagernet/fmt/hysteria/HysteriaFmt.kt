@@ -290,12 +290,12 @@ fun HysteriaBean.buildHysteriaConfig(
                         put("ca", caFile.absolutePath)
                     }
 
-                    mtlsCert.blankAsNull()?.let {
-                        if (mtlsKey.isBlank()) error("empty mtls key")
+                    clientCert.blankAsNull()?.let {
+                        if (clientKey.isBlank()) error("empty mtls key")
                         val certFile = cacheFile("mtls_cert")
                         certFile.writeText(it)
                         val keyFile = cacheFile("mtls_key")
-                        keyFile.writeText(mtlsKey)
+                        keyFile.writeText(clientKey)
                         put("clientCertificate", certFile.absolutePath)
                         put("clientKey", keyFile.absolutePath)
                     }
@@ -415,8 +415,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 if (bean.allowInsecure) insecure = true
                 if (bean.disableSNI) disable_sni = true
 
-                m_tls_cert = bean.mtlsCert.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
-                m_tls_key = bean.mtlsKey.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
+                client_certificate = bean.clientCert.blankAsNull()?.lines()
+                client_key = bean.clientKey.blankAsNull()?.lines()
             }
         }
 

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Copyright
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material.icons.filled.FlightTakeoff
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Person
@@ -224,6 +225,38 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 icon = { Icon(Icons.Filled.Nfc, null) },
                 enabled = uiState.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+
+        item("category_mtls") {
+            PreferenceCategory(text = { Text(stringResource(R.string.mutual_tls)) })
+        }
+        item("mtls_cert") {
+            TextFieldPreference(
+                value = uiState.clientCert,
+                onValueChange = { viewModel.setClientCert(it) },
+                title = { Text(stringResource(R.string.certificates)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.Lock, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.clientCert)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("mtls_key") {
+            TextFieldPreference(
+                value = uiState.clientKey,
+                onValueChange = { viewModel.setClientKey(it) },
+                title = { Text(stringResource(R.string.ssh_private_key)) },
+                textToValue = { it },
+                icon = { Icon(Icons.Filled.VpnKey, null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.clientKey)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)

@@ -59,8 +59,8 @@ public class HysteriaBean extends AbstractBean {
     public Integer authPayloadType;
     public Integer protocol;
 
-    public String mtlsCert;
-    public String mtlsKey;
+    public String clientCert;
+    public String clientKey;
 
     @Override
     public boolean canMapping() {
@@ -92,8 +92,8 @@ public class HysteriaBean extends AbstractBean {
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
 
-        if (mtlsCert == null) mtlsCert = "";
-        if (mtlsKey == null) mtlsKey = "";
+        if (clientCert == null) clientCert = "";
+        if (clientKey == null) clientKey = "";
     }
 
     @Override
@@ -125,8 +125,8 @@ public class HysteriaBean extends AbstractBean {
         output.writeBoolean(disableSNI);
 
         // version 3
-        output.writeString(mtlsCert);
-        output.writeString(mtlsKey);
+        output.writeString(clientCert);
+        output.writeString(clientKey);
 
         // version 4
         output.writeString(certPublicKeySha256);
@@ -165,8 +165,8 @@ public class HysteriaBean extends AbstractBean {
         }
 
         if (version >= 3) {
-            mtlsCert = input.readString();
-            mtlsKey = input.readString();
+            clientCert = input.readString();
+            clientKey = input.readString();
         }
 
         if (version >= 4) {

@@ -25,6 +25,8 @@ internal data class TuicUiState(
     val allowInsecure: Boolean = false,
     val ech: Boolean = false,
     val echConfig: String = "",
+    val clientCert: String = "",
+    val clientKey: String = "",
 ) : ProfileSettingsUiState
 
 internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
@@ -54,6 +56,8 @@ internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
                 allowInsecure = allowInsecure,
                 ech = ech,
                 echConfig = echConfig,
+                clientCert = clientCert,
+                clientKey = clientKey,
             )
         }
     }
@@ -79,6 +83,8 @@ internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
         allowInsecure = state.allowInsecure
         ech = state.ech
         echConfig = state.echConfig
+        clientCert = state.clientCert
+        clientKey = state.clientKey
     }
 
     override fun setCustomConfig(config: String) {
@@ -151,5 +157,13 @@ internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
 
     fun setEchConfig(config: String) {
         _uiState.update { it.copy(echConfig = config) }
+    }
+
+    fun setClientCert(cert: String) {
+        _uiState.update { it.copy(clientCert = cert) }
+    }
+
+    fun setClientKey(key: String) {
+        _uiState.update { it.copy(clientKey = key) }
     }
 }
