@@ -100,7 +100,7 @@ dependencies {
     implementation("com.blacksquircle.ui:language-base:2.9.0")
     implementation("com.blacksquircle.ui:language-json:2.9.0")
 
-    implementation("androidx.camera:camera-view:1.5.0")
+    implementation("androidx.camera:camera-view:1.5.1")
     implementation("androidx.camera:camera-lifecycle:1.5.1")
     implementation("androidx.camera:camera-camera2:1.5.1")
     implementation("com.google.zxing:core:3.5.3")
