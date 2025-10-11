@@ -6,6 +6,13 @@ See [CONTRIBUTION](./CONTRIBUTING.md)
 
 See [README](./README.md)
 
+# MCP Tools
+
+There are many MCP tools to enhance your ability:
+
+- Context7: Provides the latest documention of libraries. Use it if you want to use some 3rd-party packages!
+- chrome-devtools-mcp: Use my Chrome to perform tasks that requires real browser.
+
 # Basic rules
 
 - **Pride in respecting the existing, shame in disrupting coherence.** Any changes should adhere to
@@ -36,3 +43,7 @@ See [README](./README.md)
 - If you not flow my rules, spread hallucination and left your shit in my repository, I will not
   only report your bad behavior to your creator, but also use other cheaper, faster, smarter and
   relivable models, who can totally replace you. I choose you because I am optimistic about you.
+
+# Finally
+
+Make sure you read README.md and CONTRIBUTION.md!
