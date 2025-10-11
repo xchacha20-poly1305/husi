@@ -178,7 +178,6 @@ internal class AssetsActivityViewModel : ViewModel() {
         _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Doing(0)))
 
         Libcore.newHttpClient().apply {
-            modernTLS()
             keepAlive()
             useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
         }.newRequest().apply {
@@ -250,7 +249,6 @@ internal abstract class AssetsUpdater(
     val destinationDir: File,
 ) {
     private val httpClient = Libcore.newHttpClient().apply {
-        modernTLS()
         keepAlive()
         if (DataStore.serviceState.started) {
             useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
