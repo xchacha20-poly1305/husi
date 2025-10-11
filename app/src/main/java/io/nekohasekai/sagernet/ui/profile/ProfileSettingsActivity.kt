@@ -166,7 +166,14 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                         )
 
                                         HorizontalDivider()
-                                        Text(stringResource(R.string.custom_config))
+                                        Text(
+                                            text = stringResource(R.string.custom_config),
+                                            modifier = Modifier.padding(
+                                                horizontal = 16.dp,
+                                                vertical = 8.dp,
+                                            ),
+                                            style = MaterialTheme.typography.titleSmall,
+                                        )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.outbound)) },
                                             onClick = {
