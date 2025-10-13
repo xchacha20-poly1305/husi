@@ -14,13 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.KeyboardTab
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
@@ -44,35 +44,40 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.wakaztahir.codeeditor.model.CodeLang
 import com.wakaztahir.codeeditor.prettify.PrettifyParser
-import com.wakaztahir.codeeditor.theme.CodeThemeType
+import com.wakaztahir.codeeditor.theme.CodeTheme
+import com.wakaztahir.codeeditor.theme.SyntaxColors
 import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.ComposeActivity
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterial3Api
-class ConfigEditActivity : ThemedActivity() {
+class ConfigEditActivity : ComposeActivity() {
 
     companion object {
         const val EXTRA_CUSTOM_CONFIG = "custom_config"
@@ -91,11 +96,11 @@ class ConfigEditActivity : ThemedActivity() {
                     viewModel = viewModel,
                     onBackPress = { onBackPressedDispatcher.onBackPressed() },
                     initialText = initialText,
+                    finish = { finish() },
                     saveAndExit = { text ->
                         setResult(RESULT_OK, Intent().putExtra(EXTRA_CUSTOM_CONFIG, text))
                         finish()
                     },
-                    finish = { finish() }
                 )
             }
         }
@@ -109,8 +114,30 @@ private fun ConfigEditScreen(
     viewModel: ConfigEditActivityViewModel,
     onBackPress: () -> Unit,
     initialText: String,
-    saveAndExit: (text: String) -> Unit,
     finish: () -> Unit,
+    saveAndExit: (text: String) -> Unit,
+) {
+    // Force LTR ( this is json editor + make AutoMirrored arrow correct  )
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        ConfigEditScreenContent(
+            modifier = modifier,
+            viewModel = viewModel,
+            onBackPress = onBackPress,
+            initialText = initialText,
+            finish = finish,
+            saveAndExit = saveAndExit,
+        )
+    }
+}
+
+@Composable
+private fun ConfigEditScreenContent(
+    modifier: Modifier = Modifier,
+    viewModel: ConfigEditActivityViewModel,
+    onBackPress: () -> Unit,
+    initialText: String,
+    finish: () -> Unit,
+    saveAndExit: (text: String) -> Unit,
 ) {
     val context = LocalContext.current
     var alert by remember { mutableStateOf<String?>(null) }
@@ -138,7 +165,6 @@ private fun ConfigEditScreen(
         }
     }
 
-    val parser = remember { PrettifyParser() }
     val uiState by viewModel.uiState.collectAsState()
 
     var showBackDialog by remember { mutableStateOf(false) }
@@ -149,6 +175,44 @@ private fun ConfigEditScreen(
     val coroutineScope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val parser = remember { PrettifyParser() }
+
+    val colorScheme = MaterialTheme.colorScheme
+    val theme = remember(colorScheme) {
+        object : CodeTheme(
+            SyntaxColors(
+                type = Color(0xFFA7E22E),
+                keyword = Color(0xFFFA2772),
+                literal = Color(0xFF66D9EE),
+                comment = colorScheme.onSurfaceVariant,
+                string = Color(0xFFE6DB74),
+                punctuation = colorScheme.onSurface.copy(alpha = 0.7f),
+                plain = colorScheme.onSurface,
+                tag = Color(0xFFF92672),
+                declaration = Color(0xFFFA2772),
+                source = colorScheme.onSurface,
+                attrName = Color(0xFFA6E22E),
+                attrValue = Color(0xFFE6DB74),
+                nocode = colorScheme.onSurface,
+            ),
+        ) {}
+    }
+
+    val highlightedText = remember(
+        uiState.textFieldValue.text,
+        theme,
+    ) {
+        parseCodeAsAnnotatedString(parser, theme, CodeLang.JSON, uiState.textFieldValue.text)
+    }
+
+    val displayValue = remember(
+        highlightedText,
+        uiState.textFieldValue.selection,
+        uiState.textFieldValue.composition,
+    ) {
+        uiState.textFieldValue.copy(annotatedString = highlightedText)
+    }
 
     Scaffold(
         modifier = modifier
@@ -175,7 +239,11 @@ private fun ConfigEditScreen(
             BottomAppBar(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                windowInsets = WindowInsets.ime.union(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
+                windowInsets = WindowInsets.ime.union(
+                    windowInsets.only(
+                        WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+                    )
+                ),
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -227,7 +295,7 @@ private fun ConfigEditScreen(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val secondRowKeys = remember { listOf("\"", ":", "_", "-") }
+                        val secondRowKeys = remember { listOf("\"", ":", "-", "_") }
                         secondRowKeys.forEach { key ->
                             IconButton(onClick = {
                                 viewModel.insertText(key)
@@ -239,6 +307,14 @@ private fun ConfigEditScreen(
                                     ),
                                 )
                             }
+                        }
+
+                        SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft) {
+                            viewModel.moveCursor(-1)
+                        }
+
+                        SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardArrowRight) {
+                            viewModel.moveCursor(1)
                         }
 
                         SimpleIconButton(Icons.AutoMirrored.Filled.FormatAlignLeft) {
@@ -258,8 +334,16 @@ private fun ConfigEditScreen(
     ) { innerPadding ->
         Column {
             TextField(
-                value = uiState.textFieldValue,
-                onValueChange = { viewModel.onTextChange(it) },
+                value = displayValue,
+                onValueChange = { newValue ->
+                    viewModel.onTextChange(
+                        TextFieldValue(
+                            text = newValue.text,
+                            selection = newValue.selection,
+                            composition = newValue.composition,
+                        ),
+                    )
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
@@ -297,5 +381,17 @@ private fun ConfigEditScreen(
         },
         icon = { Icon(Icons.Filled.Warning, null) },
         title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
+    )
+}
+
+@Preview()
+@Composable
+private fun PreviewConfigEditScreen() {
+    ConfigEditScreen(
+        viewModel = ConfigEditActivityViewModel(),
+        onBackPress = {},
+        initialText = "{}",
+        finish = {},
+        saveAndExit = {},
     )
 }

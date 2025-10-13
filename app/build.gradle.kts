@@ -92,6 +92,7 @@ dependencies {
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-core:0.3.2")
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-material3:0.3.2")
     implementation(project(":library:compose-code-editor:codeeditor"))
+    implementation("androidx.compose.ui:ui-text:1.9.3")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("com.google.android.material:material:1.14.0-alpha05")

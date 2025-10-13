@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -8,10 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.wakaztahir.codeeditor.model.CodeLang
-import com.wakaztahir.codeeditor.prettify.PrettifyParser
-import com.wakaztahir.codeeditor.theme.CodeThemeType
-import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.readableMessage
 import kotlinx.coroutines.Job
@@ -24,24 +21,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
+@Stable
 internal sealed interface ConfigEditActivityUiEvent {
     class Finish(val text: String) : ConfigEditActivityUiEvent
     class Alert(val message: String) : ConfigEditActivityUiEvent
     class SnackBar(@param:StringRes val id: Int) : ConfigEditActivityUiEvent
 }
 
+@Stable
 internal data class ConfigEditUiState(
     val textFieldValue: TextFieldValue = TextFieldValue(),
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
 )
 
+@Stable
 internal class ConfigEditActivityViewModel : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ConfigEditActivityUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
-
-    private val parser = PrettifyParser()
 
     private val _uiState = MutableStateFlow(ConfigEditUiState())
     val uiState: StateFlow<ConfigEditUiState> = _uiState.asStateFlow()
@@ -59,16 +57,7 @@ internal class ConfigEditActivityViewModel : ViewModel() {
     }
 
     fun onTextChange(newValue: TextFieldValue) {
-        _uiState.value = _uiState.value.copy(
-            textFieldValue = newValue.copy(
-                annotatedString = parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = CodeThemeType.Monokai.theme,
-                    lang = CodeLang.JSON,
-                    code = newValue.text,
-                ),
-            )
-        )
+        _uiState.value = _uiState.value.copy(textFieldValue = newValue)
 
         debounceJob?.cancel()
         debounceJob = viewModelScope.launch {
@@ -91,13 +80,20 @@ internal class ConfigEditActivityViewModel : ViewModel() {
     fun updateText(text: String, selection: TextRange? = null) {
         _uiState.value = _uiState.value.copy(
             textFieldValue = TextFieldValue(
-                annotatedString = parseCodeAsAnnotatedString(
-                    parser = parser,
-                    theme = CodeThemeType.Monokai.theme,
-                    lang = CodeLang.JSON,
-                    code = text,
-                ),
+                text = text,
                 selection = selection ?: TextRange(text.length),
+            ),
+        )
+    }
+
+    fun moveCursor(offset: Int) {
+        val current = _uiState.value.textFieldValue
+        val currentPos = current.selection.start
+        val newPos = (currentPos + offset).coerceIn(0, current.text.length)
+
+        _uiState.value = _uiState.value.copy(
+            textFieldValue = current.copy(
+                selection = TextRange(newPos)
             )
         )
     }
