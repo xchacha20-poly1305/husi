@@ -91,14 +91,11 @@ dependencies {
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-core:0.3.2")
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-material3:0.3.2")
+    implementation(project(":library:compose-code-editor:codeeditor"))
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("com.google.android.material:material:1.14.0-alpha05")
     implementation("com.google.code.gson:gson:2.13.2")
-
-    implementation("com.blacksquircle.ui:editorkit:2.9.0")
-    implementation("com.blacksquircle.ui:language-base:2.9.0")
-    implementation("com.blacksquircle.ui:language-json:2.9.0")
 
     implementation("androidx.camera:camera-view:1.5.1")
     implementation("androidx.camera:camera-lifecycle:1.5.1")
