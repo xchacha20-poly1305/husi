@@ -35,7 +35,9 @@
 
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
+        tools:ignore="PackageVisibilityPolicy" />
+    <!-- For rogue vendors -->
+    <uses-permission android:name="com.android.permission.GET_INSTALLED_APPS" />
 
 
     <uses-feature
