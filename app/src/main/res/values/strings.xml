@@ -713,4 +713,5 @@
     <string name="format">Format</string>
     <string name="not_found">Not found</string>
     <string name="full">Full</string>
+    <string name="query_package_denied">Query all packages permission is denied, please go to settings to enable it.</string>
 </resources>
