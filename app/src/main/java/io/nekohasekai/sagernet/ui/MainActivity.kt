@@ -57,6 +57,7 @@ import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
+import io.nekohasekai.sagernet.ktx.openPermissionSettings
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -71,6 +72,10 @@ class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
     OnPreferenceDataStoreChangeListener,
     NavigationView.OnNavigationItemSelectedListener {
+
+    companion object {
+        private const val PERMISSION_GET_APPS = "com.android.permission.GET_INSTALLED_APPS"
+    }
 
     lateinit var binding: LayoutMainBinding
     private lateinit var navigation: NavigationView
@@ -152,6 +157,8 @@ class MainActivity : ThemedActivity(),
 
             else -> {}
         }
+
+        checkQueryPackagePermissionForRogueVendors()
 
         // sdk 33 notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -534,7 +541,9 @@ class MainActivity : ThemedActivity(),
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
 
-    // 入口
+    /**
+     * Start getting location permission from here
+     */
     private fun requestLocationPermission() {
         Logs.d("start getting location")
         if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -579,6 +588,37 @@ class MainActivity : ThemedActivity(),
             .setNegativeButton(R.string.no_thanks, null)
             .setCancelable(false)
             .show()
+    }
+
+    private val queryAllPackagesPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (!granted) MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.permission_denied)
+                .setMessage(R.string.query_package_denied)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    openPermissionSettings()
+                }
+                .setNegativeButton(R.string.no_thanks, null)
+                .setCancelable(false)
+                .show()
+        }
+
+    /**
+     * For rogue vendors.
+     * If we don't query for `com.android.permission.GET_INSTALLED_APPS` permission,
+     * only when we query all packages in foreground will pop the permission window for query permission.
+     * @see <a href="https://www.taf.org.cn/upload/AssociationStandard/TTAF%20108-2022%20%E7%A7%BB%E5%8A%A8%E7%BB%88%E7%AB%AF%E5%BA%94%E7%94%A8%E8%BD%AF%E4%BB%B6%E5%88%97%E8%A1%A8%E6%9D%83%E9%99%90%E5%AE%9E%E6%96%BD%E6%8C%87%E5%8D%97.pdf">移动终端应用软件列表权限实施指南</a>
+     */
+    private fun checkQueryPackagePermissionForRogueVendors() {
+        val hasVendorRuntime = try {
+            packageManager.getPermissionInfo(PERMISSION_GET_APPS, 0) != null
+        } catch (_: PackageManager.NameNotFoundException) {
+            false
+        }
+        if (!hasVendorRuntime) return
+        if (hasPermission(PERMISSION_GET_APPS)) return
+
+        queryAllPackagesPermissionLauncher.launch(PERMISSION_GET_APPS)
     }
 
     fun parseProxy(text: String) {
