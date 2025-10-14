@@ -4,6 +4,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.BuildConfig
@@ -22,16 +23,19 @@ import kotlinx.coroutines.launch
 import kotlin.collections.iterator
 import kotlin.coroutines.coroutineContext
 
+@Stable
 internal data class AppListActivityUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted, for show
 )
 
+@Stable
 internal sealed interface AppListActivityUIEvent {
     class Snackbar(val message: StringOrRes) : AppListActivityUIEvent
 }
 
+@Stable
 internal class AppListActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppListActivityUiState())
     val uiState = _uiState.asStateFlow()
