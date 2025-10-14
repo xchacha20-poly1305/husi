@@ -5,7 +5,12 @@ import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,7 +21,9 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -34,6 +41,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -54,8 +62,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -74,6 +85,8 @@ import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ui.ComposeActivity
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterial3Api
@@ -106,6 +119,50 @@ class ConfigEditActivity : ComposeActivity() {
         }
     }
 
+}
+
+@Composable
+private fun RepeatableIconButton(
+    imageVector: ImageVector,
+    enabled: Boolean = true,
+    initialDelay: Long = 500L,
+    repeatDelay: Long = 60L,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled) { } // Make ripple
+            .pointerInput(enabled) {
+                coroutineScope {
+                    awaitEachGesture {
+                        awaitFirstDown()
+                        val job = launch {
+                            onClick()
+                            delay(initialDelay)
+                            while (true) {
+                                onClick()
+                                delay(repeatDelay)
+                            }
+                        }
+                        waitForUpOrCancellation()
+                        job.cancel()
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = null,
+            tint = if (enabled) {
+                LocalContentColor.current
+            } else {
+                LocalContentColor.current.copy(alpha = 0.38f)
+            },
+        )
+    }
 }
 
 @Composable
@@ -237,8 +294,6 @@ private fun ConfigEditScreenContent(
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
                 windowInsets = WindowInsets.ime.union(
                     windowInsets.only(
                         WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
@@ -256,6 +311,7 @@ private fun ConfigEditScreenContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardTab) {
+                            // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
                             viewModel.insertText(" ".repeat(2))
                         }
 
@@ -295,7 +351,7 @@ private fun ConfigEditScreenContent(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val secondRowKeys = remember { listOf("\"", ":", "-", "_") }
+                        val secondRowKeys = remember { listOf(":", "-", "_", "\"") }
                         secondRowKeys.forEach { key ->
                             IconButton(onClick = {
                                 viewModel.insertText(key)
@@ -309,11 +365,15 @@ private fun ConfigEditScreenContent(
                             }
                         }
 
-                        SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft) {
+                        RepeatableIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        ) {
                             viewModel.moveCursor(-1)
                         }
 
-                        SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardArrowRight) {
+                        RepeatableIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        ) {
                             viewModel.moveCursor(1)
                         }
 
