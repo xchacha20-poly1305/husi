@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -27,6 +26,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
@@ -52,6 +52,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
@@ -68,11 +69,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
@@ -85,7 +88,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.first
 import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.repository.TempRepository
@@ -153,121 +155,147 @@ private fun AppManagerScreen(
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val listScrollState = rememberLazyListState()
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    if (searchActivate) {
-                        OutlinedTextField(
-                            value = uiState.searchQuery,
-                            onValueChange = { viewModel.setSearchQuery(it) },
-                            placeholder = { Text(stringResource(android.R.string.search_go)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.5f
-                                ),
-                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.2f
-                                ),
-                            ),
-                        )
-                    } else {
-                        Text(stringResource(R.string.proxied_apps))
-                    }
-                },
-                navigationIcon = {
-                    SimpleIconButton(
-                        imageVector = Icons.Filled.Close,
-                        onClick = onBackPress,
-                    )
-                },
-                actions = {
-                    if (searchActivate) {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.SearchOff,
-                            contentDescription = stringResource(R.string.close),
-                        ) {
-                            searchActivate = false
-                            viewModel.setSearchQuery("")
-                        }
-                    } else {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = stringResource(android.R.string.search_go),
-                            onClick = { searchActivate = true },
-                        )
+            val colors = TopAppBarDefaults.topAppBarColors()
+            val isScrolled = scrollBehavior.state.overlappedFraction > 0
+            val containerColor = if (isScrolled) {
+                colors.scrolledContainerColor
+            } else {
+                colors.containerColor
+            }
 
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.CopyAll,
-                            contentDescription = stringResource(R.string.action_copy),
-                        ) {
-                            val toExport = viewModel.export()
-                            val success = clipboardManager?.trySetPrimaryClip(toExport) ?: false
-                            scope.launch {
-                                val message = if (success) {
-                                    context.getString(R.string.copy_success)
-                                } else {
-                                    context.getString(R.string.copy_failed)
+            Surface(
+                color = containerColor,
+            ) {
+                Column {
+                    TopAppBar(
+                        title = {
+                            if (searchActivate) {
+                                OutlinedTextField(
+                                    value = uiState.searchQuery,
+                                    onValueChange = { viewModel.setSearchQuery(it) },
+                                    placeholder = { Text(stringResource(android.R.string.search_go)) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                                    keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                                    colors = TextFieldDefaults.colors(
+                                        focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
+                                            alpha = 0.2f
+                                        ),
+                                    ),
+                                )
+                            } else {
+                                Text(stringResource(R.string.proxied_apps))
+                            }
+                        },
+                        navigationIcon = {
+                            SimpleIconButton(
+                                imageVector = Icons.Filled.Close,
+                                onClick = onBackPress,
+                            )
+                        },
+                        actions = {
+                            if (searchActivate) {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.SearchOff,
+                                    contentDescription = stringResource(R.string.close),
+                                ) {
+                                    searchActivate = false
+                                    viewModel.setSearchQuery("")
                                 }
-                                snackbarHostState.showSnackbar(
-                                    message = message,
-                                    actionLabel = context.getString(android.R.string.ok),
-                                    duration = SnackbarDuration.Short,
+                            } else {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = stringResource(android.R.string.search_go),
+                                    onClick = { searchActivate = true },
                                 )
-                            }
-                        }
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.ContentPaste,
-                            contentDescription = stringResource(R.string.action_import),
-                        ) {
-                            val text = clipboardManager?.first()
-                            viewModel.import(text)
-                        }
 
-                        Box {
-                            SimpleIconButton(Icons.Filled.MoreVert) {
-                                showOverflowMenu = true
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.CopyAll,
+                                    contentDescription = stringResource(R.string.action_copy),
+                                ) {
+                                    val toExport = viewModel.export()
+                                    val success = clipboardManager?.trySetPrimaryClip(toExport) ?: false
+                                    scope.launch {
+                                        val message = if (success) {
+                                            context.getString(R.string.copy_success)
+                                        } else {
+                                            context.getString(R.string.copy_failed)
+                                        }
+                                        snackbarHostState.showSnackbar(
+                                            message = message,
+                                            actionLabel = context.getString(android.R.string.ok),
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
+                                }
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.ContentPaste,
+                                    contentDescription = stringResource(R.string.action_import),
+                                ) {
+                                    val text = clipboardManager?.first()
+                                    viewModel.import(text)
+                                }
+
+                                Box {
+                                    SimpleIconButton(Icons.Filled.MoreVert) {
+                                        showOverflowMenu = true
+                                    }
+                                    DropdownMenu(
+                                        expanded = showOverflowMenu,
+                                        onDismissRequest = { showOverflowMenu = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.action_scan_china_apps)) },
+                                            onClick = {
+                                                showOverflowMenu = false
+                                                viewModel.scanChinaApps()
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.invert_selections)) },
+                                            onClick = {
+                                                viewModel.invertSections()
+                                                showOverflowMenu = false
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.clear_selections)) },
+                                            onClick = {
+                                                viewModel.clearSections()
+                                                showOverflowMenu = false
+                                            },
+                                        )
+                                    }
+                                }
                             }
-                            DropdownMenu(
-                                expanded = showOverflowMenu,
-                                onDismissRequest = { showOverflowMenu = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_scan_china_apps)) },
-                                    onClick = {
-                                        showOverflowMenu = false
-                                        viewModel.scanChinaApps()
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.invert_selections)) },
-                                    onClick = {
-                                        viewModel.invertSections()
-                                        showOverflowMenu = false
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.clear_selections)) },
-                                    onClick = {
-                                        viewModel.clearSections()
-                                        showOverflowMenu = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                scrollBehavior = scrollBehavior,
-            )
+                        },
+                        windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            scrolledContainerColor = Color.Transparent,
+                        ),
+                        scrollBehavior = scrollBehavior,
+                    )
+
+                    ProxyModeSelector(
+                        selectedMode = uiState.mode,
+                        onSelect = { mode ->
+                            viewModel.setProxyMode(mode)
+                        },
+                    )
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
@@ -276,17 +304,6 @@ private fun AppManagerScreen(
                 .fillMaxSize()
                 .paddingExceptBottom(innerPadding),
         ) {
-            ProxyModeSelector(
-                selectedMode = uiState.mode,
-                onSelect = { mode ->
-                    viewModel.setProxyMode(mode)
-                    DataStore.proxyApps = true
-                    DataStore.bypassMode = mode == ProxyMode.BYPASS
-                },
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
             Crossfade(
                 targetState = uiState.isLoading,
                 animationSpec = tween(durationMillis = 300),
@@ -300,6 +317,7 @@ private fun AppManagerScreen(
                 } else {
                     AppList(
                         uiState = uiState,
+                        scrollState = listScrollState,
                         onClick = { viewModel.onItemClick(it) },
                     )
                 }
@@ -328,22 +346,43 @@ private fun ProxyModeSelector(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.Center,
     ) {
         FilterChip(
             selected = selectedMode == ProxyMode.DISABLED,
             onClick = { onSelect(ProxyMode.DISABLED) },
-            label = { Text(stringResource(R.string.off)) },
+            label = {
+                Text(
+                    text = stringResource(R.string.off),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            modifier = Modifier.weight(1f),
         )
         FilterChip(
             selected = selectedMode == ProxyMode.PROXY,
             onClick = { onSelect(ProxyMode.PROXY) },
-            label = { Text(stringResource(R.string.route_proxy)) },
+            label = {
+                Text(
+                    text = stringResource(R.string.route_proxy),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            modifier = Modifier.weight(1f),
         )
         FilterChip(
             selected = selectedMode == ProxyMode.BYPASS,
             onClick = { onSelect(ProxyMode.BYPASS) },
-            label = { Text(stringResource(R.string.bypass_apps)) },
+            label = {
+                Text(
+                    text = stringResource(R.string.bypass_apps),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -351,9 +390,9 @@ private fun ProxyModeSelector(
 @Composable
 private fun AppList(
     uiState: AppManagerUiState,
+    scrollState: LazyListState,
     onClick: (ProxiedApp) -> Unit,
 ) {
-    val scrollState = rememberLazyListState()
     Box {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

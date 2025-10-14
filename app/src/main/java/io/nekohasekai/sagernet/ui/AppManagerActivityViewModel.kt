@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.BuildConfig
@@ -29,6 +30,7 @@ import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.coroutines.coroutineContext
 
+@Stable
 internal data class AppManagerUiState(
     val searchQuery: String = "",
     val mode: ProxyMode = ProxyMode.DISABLED,
@@ -38,11 +40,13 @@ internal data class AppManagerUiState(
     val scanProcess: Int? = null,
 )
 
+@Stable
 internal sealed interface AppManagerUiEvent {
     class Snackbar(val message: StringOrRes) : AppManagerUiEvent
     object Finish : AppManagerUiEvent
 }
 
+@Stable
 internal enum class ProxyMode {
     DISABLED,
     BYPASS,
