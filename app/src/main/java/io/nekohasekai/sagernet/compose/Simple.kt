@@ -22,9 +22,10 @@ import io.nekohasekai.sagernet.R
 fun SimpleIconButton(
     imageVector: ImageVector,
     contentDescription: String? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, enabled = enabled) {
         Icon(
             imageVector = imageVector,
             contentDescription = contentDescription,
