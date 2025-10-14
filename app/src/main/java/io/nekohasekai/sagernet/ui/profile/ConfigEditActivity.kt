@@ -1,321 +1,457 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
-import android.view.KeyEvent
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardTab
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.core.graphics.toColorInt
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.blacksquircle.ui.editorkit.insert
-import com.blacksquircle.ui.editorkit.model.ColorScheme
-import com.blacksquircle.ui.editorkit.plugin.autoindent.autoIndentation
-import com.blacksquircle.ui.editorkit.plugin.base.PluginSupplier
-import com.blacksquircle.ui.editorkit.plugin.delimiters.highlightDelimiters
-import com.blacksquircle.ui.editorkit.plugin.linenumbers.lineNumbers
-import com.blacksquircle.ui.language.json.JsonLanguage
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import com.wakaztahir.codeeditor.model.CodeLang
+import com.wakaztahir.codeeditor.prettify.PrettifyParser
+import com.wakaztahir.codeeditor.theme.CodeTheme
+import com.wakaztahir.codeeditor.theme.SyntaxColors
+import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.databinding.LayoutEditConfigBinding
-import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.ui.ThemedActivity
-import io.nekohasekai.sagernet.utils.Theme
+import io.nekohasekai.sagernet.ui.ComposeActivity
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterial3Api
-class ConfigEditActivity : ThemedActivity() {
+class ConfigEditActivity : ComposeActivity() {
 
     companion object {
         const val EXTRA_CUSTOM_CONFIG = "custom_config"
     }
 
-    override val onBackPressedCallback = object : OnBackPressedCallback(enabled = false) {
-        override fun handleOnBackPressed() {
-            MaterialAlertDialogBuilder(this@ConfigEditActivity)
-                .setTitle(R.string.unsaved_changes_prompt)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                        saveAndExit()
-                }
-                .setNegativeButton(R.string.no) { _, _ ->
-                    finish()
-                }
-                .setNeutralButton(android.R.string.cancel, null)
-                .show()
-        }
-    }
-
-    private lateinit var binding: LayoutEditConfigBinding
     private val viewModel by viewModels<ConfigEditActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val content = intent?.extras?.getString(EXTRA_CUSTOM_CONFIG) ?: ""
+        val initialText = intent?.extras?.getString(EXTRA_CUSTOM_CONFIG) ?: "{}"
 
-        binding = LayoutEditConfigBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding.editor) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-            )
-            insets
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.keyboardContainer) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            v.updatePadding(
-                left = bars.left,
-                right = bars.right,
-                bottom = ime.bottom,
-            )
-            insets
-        }
-
-        val toolbar = findViewById<ComposeView>(R.id.toolbar)
-        toolbar.setContent {
-            @Suppress("DEPRECATION")
+        setContent {
             AppTheme {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.config_settings)) },
-                    navigationIcon = {
-                        SimpleIconButton(Icons.Filled.Close) {
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                    },
-                    actions = {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = stringResource(R.string.apply),
-                            onClick = ::saveAndExit,
-                        )
+                ConfigEditScreen(
+                    viewModel = viewModel,
+                    onBackPress = { onBackPressedDispatcher.onBackPressed() },
+                    initialText = initialText,
+                    finish = { finish() },
+                    saveAndExit = { text ->
+                        setResult(RESULT_OK, Intent().putExtra(EXTRA_CUSTOM_CONFIG, text))
+                        finish()
                     },
                 )
             }
         }
+    }
 
-        binding.editor.apply {
-            useSpacesInsteadOfTabs = true
-            // https://github.com/SagerNet/sing-box/blob/43fef1dae66e581309d62bb4421df4d07683a49c/experimental/libbox/config.go#L166C25-L166C27
-            tabWidth = 2
-            language = JsonLanguage()
-            setHorizontallyScrolling(true)
-            viewModel.content = content
-            setTextContent(viewModel.content)
-            colorScheme = editorScheme
-            plugins(PluginSupplier.create {
-                lineNumbers {
-                    lineNumbers = true
-                    highlightCurrentLine = true
+}
+
+@Composable
+private fun RepeatableIconButton(
+    imageVector: ImageVector,
+    enabled: Boolean = true,
+    initialDelay: Long = 500L,
+    repeatDelay: Long = 60L,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled) { } // Make ripple
+            .pointerInput(enabled) {
+                coroutineScope {
+                    awaitEachGesture {
+                        awaitFirstDown()
+                        val job = launch {
+                            onClick()
+                            delay(initialDelay)
+                            while (true) {
+                                onClick()
+                                delay(repeatDelay)
+                            }
+                        }
+                        waitForUpOrCancellation()
+                        job.cancel()
+                    }
                 }
-                highlightDelimiters()
-                autoIndentation {
-                    autoIndentLines = true
-                    autoCloseBrackets = true
-                    autoCloseQuotes = true
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = null,
+            tint = if (enabled) {
+                LocalContentColor.current
+            } else {
+                LocalContentColor.current.copy(alpha = 0.38f)
+            },
+        )
+    }
+}
+
+@Composable
+private fun ConfigEditScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ConfigEditActivityViewModel,
+    onBackPress: () -> Unit,
+    initialText: String,
+    finish: () -> Unit,
+    saveAndExit: (text: String) -> Unit,
+) {
+    // Force LTR ( this is json editor + make AutoMirrored arrow correct  )
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        ConfigEditScreenContent(
+            modifier = modifier,
+            viewModel = viewModel,
+            onBackPress = onBackPress,
+            initialText = initialText,
+            finish = finish,
+            saveAndExit = saveAndExit,
+        )
+    }
+}
+
+@Composable
+private fun ConfigEditScreenContent(
+    modifier: Modifier = Modifier,
+    viewModel: ConfigEditActivityViewModel,
+    onBackPress: () -> Unit,
+    initialText: String,
+    finish: () -> Unit,
+    saveAndExit: (text: String) -> Unit,
+) {
+    val context = LocalContext.current
+    var alert by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.initialize(initialText)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { uiEvent ->
+            when (uiEvent) {
+                is ConfigEditActivityUiEvent.Finish -> {
+                    saveAndExit(uiEvent.text)
                 }
-            })
-            addTextChangedListener {
-                viewModel.content = it.toString()
-                if (!onBackPressedCallback.isEnabled) {
-                    viewModel.needSave = true
-                    onBackPressedCallback.isEnabled = true
+
+                is ConfigEditActivityUiEvent.Alert -> alert = uiEvent.message
+
+                is ConfigEditActivityUiEvent.SnackBar -> snackbarHostState.showSnackbar(
+                    message = context.getString(uiEvent.id),
+                    actionLabel = context.getString(android.R.string.ok),
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    }
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    var showBackDialog by remember { mutableStateOf(false) }
+    BackHandler(enabled = uiState.textFieldValue.text != initialText) {
+        showBackDialog = true
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+    val windowInsets = WindowInsets.safeDrawing
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val parser = remember { PrettifyParser() }
+
+    val colorScheme = MaterialTheme.colorScheme
+    val theme = remember(colorScheme) {
+        object : CodeTheme(
+            SyntaxColors(
+                type = Color(0xFFA7E22E),
+                keyword = Color(0xFFFA2772),
+                literal = Color(0xFF66D9EE),
+                comment = colorScheme.onSurfaceVariant,
+                string = Color(0xFFE6DB74),
+                punctuation = colorScheme.onSurface.copy(alpha = 0.7f),
+                plain = colorScheme.onSurface,
+                tag = Color(0xFFF92672),
+                declaration = Color(0xFFFA2772),
+                source = colorScheme.onSurface,
+                attrName = Color(0xFFA6E22E),
+                attrValue = Color(0xFFE6DB74),
+                nocode = colorScheme.onSurface,
+            ),
+        ) {}
+    }
+
+    val highlightedText = remember(
+        uiState.textFieldValue.text,
+        theme,
+    ) {
+        parseCodeAsAnnotatedString(parser, theme, CodeLang.JSON, uiState.textFieldValue.text)
+    }
+
+    val displayValue = remember(
+        highlightedText,
+        uiState.textFieldValue.selection,
+        uiState.textFieldValue.composition,
+    ) {
+        uiState.textFieldValue.copy(annotatedString = highlightedText)
+    }
+
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.edit_config)) },
+                navigationIcon = {
+                    SimpleIconButton(Icons.Filled.Close) {
+                        onBackPress()
+                    }
+                },
+                actions = {
+                    SimpleIconButton(Icons.Filled.Done) {
+                        viewModel.saveAndExit(uiState.textFieldValue.text)
+                    }
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                windowInsets = WindowInsets.ime.union(
+                    windowInsets.only(
+                        WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+                    )
+                ),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardTab) {
+                            // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
+                            viewModel.insertText(" ".repeat(2))
+                        }
+
+                        val firstRowKeys = remember { listOf("{", "}", "[", "]") }
+                        firstRowKeys.forEach { key ->
+                            IconButton(onClick = {
+                                viewModel.insertText(key)
+                            }) {
+                                Text(
+                                    text = key,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                )
+                            }
+                        }
+
+                        SimpleIconButton(
+                            Icons.AutoMirrored.Filled.Undo,
+                            enabled = uiState.canUndo
+                        ) {
+                            viewModel.undo()
+                        }
+
+                        SimpleIconButton(
+                            Icons.AutoMirrored.Filled.Redo,
+                            enabled = uiState.canRedo
+                        ) {
+                            viewModel.redo()
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val secondRowKeys = remember { listOf(":", "-", "_", "\"") }
+                        secondRowKeys.forEach { key ->
+                            IconButton(onClick = {
+                                viewModel.insertText(key)
+                            }) {
+                                Text(
+                                    text = key,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                )
+                            }
+                        }
+
+                        RepeatableIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        ) {
+                            viewModel.moveCursor(-1)
+                        }
+
+                        RepeatableIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        ) {
+                            viewModel.moveCursor(1)
+                        }
+
+                        SimpleIconButton(Icons.AutoMirrored.Filled.FormatAlignLeft) {
+                            viewModel.formatCurrentText()
+                        }
+
+                        SimpleIconButton(Icons.Filled.Info) {
+                            coroutineScope.launch {
+                                viewModel.checkConfig(uiState.textFieldValue.text)
+                            }
+                        }
+                    }
                 }
             }
-        }
-
-        binding.actionTab.setOnClickListener {
-            binding.editor.insert(binding.editor.tab())
-        }
-        binding.actionUndo.setOnClickListener {
-            try {
-                binding.editor.undo()
-            } catch (_: Exception) {
-            }
-        }
-        binding.actionRedo.setOnClickListener {
-            try {
-                binding.editor.redo()
-            } catch (_: Exception) {
-            }
-        }
-        binding.actionFormat.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.formatJson(binding.editor.text)
-            }
-        }
-        binding.actionConfigTest.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.checkConfig(binding.editor.text.toString())
-            }
-        }
-
-        binding.extendedKeyboard.apply {
-            setKeyListener { char ->
-                binding.editor.insert(char)
-            }
-            setHasFixedSize(true)
-            submitList(listOf("{", "}", ",", ":", "_", "\""))
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
-        }
-
-        onBackPressedCallback.isEnabled = viewModel.needSave
-    }
-
-    private fun handleUiEvent(event: ConfigEditActivityUiEvent) {
-        when (event) {
-            is ConfigEditActivityUiEvent.UpdateText -> {
-                binding.editor.setText(event.text)
-            }
-
-            is ConfigEditActivityUiEvent.Alert -> alert(event.message).show()
-            is ConfigEditActivityUiEvent.SnackBar -> snackbar(event.id).show()
-        }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_TAB) {
-            if (currentFocus == binding.editor) {
-                binding.editor.insert(binding.editor.tab())
-                return true
-            }
-        }
-        return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
-        return true
-    }
-
-    override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT)
-    }
-
-    private fun saveAndExit() {
-        setResult(RESULT_OK, Intent().putExtra(EXTRA_CUSTOM_CONFIG, binding.editor.text.toString()))
-        finish()
-    }
-
-    private val editorScheme: ColorScheme
-        get() {
-            val colorPrimary = getColorAttr(androidx.appcompat.R.attr.colorPrimary)
-            val colorPrimaryDark = getColorAttr(androidx.appcompat.R.attr.colorPrimaryDark)
-            val appTheme = Theme.getTheme()
-            val nightMode = Theme.usingNightMode()
-
-            return ColorScheme(
-                textColor = when (appTheme) {
-                    R.style.Theme_SagerNet_Black -> if (nightMode) {
-                        Color.WHITE
-                    } else {
-                        Color.BLACK
-                    }
-
-                    else -> colorPrimary
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { innerPadding ->
+        Column {
+            TextField(
+                value = displayValue,
+                onValueChange = { newValue ->
+                    viewModel.onTextChange(
+                        TextFieldValue(
+                            text = newValue.text,
+                            selection = newValue.selection,
+                            composition = newValue.composition,
+                        ),
+                    )
                 },
-                cursorColor = "#BBBBBB".toColorInt(),
-                backgroundColor = if (nightMode) {
-                    Color.BLACK
-                } else {
-                    Color.WHITE
-                },
-                gutterColor = colorPrimary,
-                gutterDividerColor = if (nightMode) {
-                    Color.BLACK
-                } else {
-                    Color.WHITE
-                },
-                gutterCurrentLineNumberColor = when (appTheme) {
-                    R.style.Theme_SagerNet_Black -> if (nightMode) {
-                        Color.WHITE
-                    } else {
-                        Color.BLACK
-                    }
-
-                    else -> Color.WHITE
-                },
-                gutterTextColor = when (appTheme) {
-                    R.style.Theme_SagerNet_Black -> if (nightMode) {
-                        Color.WHITE
-                    } else {
-                        Color.BLACK
-                    }
-
-                    else -> Color.WHITE
-                },
-                selectedLineColor = if (nightMode) {
-                    "#2C2C2C".toColorInt()
-                } else {
-                    "#D3D3D3".toColorInt()
-                },
-                selectionColor = when (appTheme) {
-                    R.style.Theme_SagerNet_Black -> if (nightMode) {
-                        "#4C4C4C".toColorInt()
-                    } else {
-                        "#B3B3B3".toColorInt()
-                    }
-
-                    else -> colorPrimary
-                },
-                suggestionQueryColor = "#7CE0F3".toColorInt(),
-                findResultBackgroundColor = "#5F5E5A".toColorInt(),
-                delimiterBackgroundColor = "#5F5E5A".toColorInt(),
-                numberColor = "#BB8FF8".toColorInt(),
-                operatorColor = if (nightMode) {
-                    Color.WHITE
-                } else {
-                    Color.BLACK
-                },
-                keywordColor = "#EB347E".toColorInt(),
-                typeColor = "#7FD0E4".toColorInt(),
-                langConstColor = "#EB347E".toColorInt(),
-                preprocessorColor = "#EB347E".toColorInt(),
-                variableColor = "#7FD0E4".toColorInt(),
-                methodColor = "#B6E951".toColorInt(),
-                stringColor = when (Theme.getTheme()) {
-                    R.style.Theme_SagerNet_Black -> if (nightMode) {
-                        Color.WHITE
-                    } else {
-                        Color.BLACK
-                    }
-
-                    else -> colorPrimaryDark
-                },
-                commentColor = "#89826D".toColorInt(),
-                tagColor = "#F8F8F8".toColorInt(),
-                tagNameColor = "#EB347E".toColorInt(),
-                attrNameColor = "#B6E951".toColorInt(),
-                attrValueColor = "#EBE48C".toColorInt(),
-                entityRefColor = "#BB8FF8".toColorInt(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             )
         }
+    }
+
+    if (alert != null) AlertDialog(
+        onDismissRequest = {
+            alert = null
+        },
+        confirmButton = {
+            TextButton(stringResource(android.R.string.ok)) {
+                alert = null
+            }
+        },
+        icon = { Icon(Icons.Filled.Error, null) },
+        title = { Text(stringResource(R.string.error_title)) },
+        text = { Text(alert!!) },
+    )
+
+    if (showBackDialog) AlertDialog(
+        onDismissRequest = {
+            showBackDialog = false
+        },
+        confirmButton = {
+            TextButton(stringResource(android.R.string.ok)) {
+                viewModel.saveAndExit(uiState.textFieldValue.text)
+            }
+        },
+        dismissButton = {
+            TextButton(stringResource(R.string.no)) {
+                finish()
+            }
+        },
+        icon = { Icon(Icons.Filled.Warning, null) },
+        title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
+    )
+}
+
+@Preview()
+@Composable
+private fun PreviewConfigEditScreen() {
+    ConfigEditScreen(
+        viewModel = ConfigEditActivityViewModel(),
+        onBackPress = {},
+        initialText = "{}",
+        finish = {},
+        saveAndExit = {},
+    )
 }
