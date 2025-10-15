@@ -52,12 +52,6 @@ class SagerNet : Application(),
         System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
-        if (isMainProcess || isBgProcess) {
-            runOnDefaultDispatcher {
-                PackageCache.register()
-            }
-        }
-
         Seq.setContext(this)
         updateNotificationChannels()
 

@@ -92,6 +92,7 @@ import io.nekohasekai.sagernet.ktx.first
 import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.repository.TempRepository
 import io.nekohasekai.sagernet.repository.repo
+import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.launch
 
 class AppManagerActivity : ComposeActivity() {
@@ -100,6 +101,8 @@ class AppManagerActivity : ComposeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        PackageCache.awaitLoadSync()
 
         setContent {
             AppTheme {
