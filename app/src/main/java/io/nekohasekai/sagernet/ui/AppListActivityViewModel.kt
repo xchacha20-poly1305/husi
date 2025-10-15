@@ -53,6 +53,7 @@ internal class AppListActivityViewModel : ViewModel() {
     }
 
     fun initialize(pm: PackageManager, packages: Set<String>) {
+        PackageCache.awaitLoadSync()
         packageManager = pm
 
         viewModelScope.launch(Dispatchers.IO) {

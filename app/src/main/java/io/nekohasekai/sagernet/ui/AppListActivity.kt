@@ -81,7 +81,6 @@ import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.repository.TempRepository
 import io.nekohasekai.sagernet.repository.repo
-import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.launch
 
 class AppListActivity : ComposeActivity() {
@@ -94,8 +93,6 @@ class AppListActivity : ComposeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        PackageCache.awaitLoadSync()
 
         setContent {
             BackHandler(enabled = true) {

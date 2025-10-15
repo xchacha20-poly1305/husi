@@ -132,6 +132,7 @@ internal class AppManagerActivityViewModel : ViewModel() {
     }
 
     fun initialize(pm: PackageManager) = viewModelScope.launch(Dispatchers.IO) {
+        PackageCache.awaitLoadSync()
         if (!DataStore.proxyApps) {
             DataStore.proxyApps = true
         }
