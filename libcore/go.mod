@@ -9,8 +9,7 @@ require (
 	github.com/miekg/dns v1.1.68
 	github.com/sagernet/gomobile v0.1.8
 	github.com/sagernet/sing v0.8.0-beta.5
-	github.com/sagernet/sing-box v1.13.0-alpha.21
-	github.com/sagernet/sing-quic v0.6.0-beta.3
+	github.com/sagernet/sing-box v1.13.0-alpha.22
 	github.com/sagernet/sing-tun v0.8.0-beta.10
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
@@ -56,7 +55,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mdlayher/netlink v1.7.3-0.20250113171957-fbb4dce95f42 // indirect
 	github.com/mdlayher/socket v0.5.1 // indirect
-	github.com/metacubex/utls v1.8.0 // indirect
+	github.com/metacubex/utls v1.8.2 // indirect
 	github.com/mholt/acmez/v3 v3.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
@@ -67,6 +66,7 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.54.0-sing-box-mod.3 // indirect
 	github.com/sagernet/sing-mux v0.3.3 // indirect
+	github.com/sagernet/sing-quic v0.6.0-beta.3 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
