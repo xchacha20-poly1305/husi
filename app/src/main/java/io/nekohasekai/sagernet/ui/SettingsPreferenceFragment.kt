@@ -339,7 +339,7 @@ class SettingsPreferenceFragment : MaterialPreferenceFragment() {
                             }
                         }
 
-                        Key.CONNECTION_TEST_URL, Key.IGNORE_DEVICE_IDLE -> Unit
+                        Key.CONNECTION_TEST_URL -> Unit
 
                         else -> preference.onPreferenceChangeListener = reloadListener
                     }

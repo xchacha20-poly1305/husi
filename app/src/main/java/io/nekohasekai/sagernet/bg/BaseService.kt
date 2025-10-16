@@ -81,7 +81,7 @@ class BaseService {
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
                     val powerManager = (service as Context).getSystemService<PowerManager>()!!
                     if (powerManager.isDeviceIdleMode) {
-                        if (!DataStore.ignoreDeviceIdle) proxy?.box?.pause()
+                        proxy?.box?.pause()
                     } else {
                         proxy?.box?.wake()
                     }
