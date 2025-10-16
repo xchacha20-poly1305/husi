@@ -362,11 +362,6 @@
             app:useSimpleSummaryProvider="true" />
         <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
             app:defaultValue="false"
-            app:icon="@drawable/ic_communication_phonelink_ring"
-            app:key="ignoreDeviceIdle"
-            app:title="@string/ignore_device_idle" />
-        <io.nekohasekai.sagernet.widget.MaterialSwitchPreference
-            app:defaultValue="false"
             app:icon="@drawable/ic_baseline_format_align_left_24"
             app:key="disableProcessText"
             app:title="@string/disable_process_text" />

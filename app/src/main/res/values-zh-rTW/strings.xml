@@ -598,7 +598,6 @@
     <string name="tasker_action_stop_service">停止服務</string>
     <string name="tasker_start_current_profile">當前設定檔</string>
     <string name="tasker_blurb_start_profile">啟動設定檔 %s</string>
-    <string name="ignore_device_idle">忽略裝置閒置</string>
     <string name="max_log_size">最大日誌大小（KB）</string>
     <string name="process">程序</string>
     <string name="forced_search_process">強制搜尋程序</string>

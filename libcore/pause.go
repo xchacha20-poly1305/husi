@@ -6,12 +6,10 @@ import (
 
 func (b *BoxInstance) Pause() {
 	b.pauseManager.DevicePause()
-	b.Router().ResetNetwork()
 }
 
 func (b *BoxInstance) Wake() {
 	b.pauseManager.DeviceWake()
-	b.Router().ResetNetwork()
 }
 
 func (b *BoxInstance) ResetNetwork() {

@@ -674,7 +674,6 @@
     <string name="tasker_action_stop_service">Stop service</string>
     <string name="tasker_start_current_profile">Current profile</string>
     <string name="tasker_blurb_start_profile">Start profile %s</string>
-    <string name="ignore_device_idle">Ignore Device Idle</string>
     <string name="max_log_size">Max Log Size (kb)</string>
     <string name="process">Process</string>
     <string name="forced_search_process">Forceed search process</string>

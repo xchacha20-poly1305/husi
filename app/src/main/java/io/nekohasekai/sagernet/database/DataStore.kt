@@ -190,7 +190,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
     var certProvider by configurationStore.stringToInt(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
-    var ignoreDeviceIdle by configurationStore.boolean(Key.IGNORE_DEVICE_IDLE)
     var disableProcessText by configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
 
     var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
