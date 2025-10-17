@@ -87,6 +87,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.ui:ui-viewbinding")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
+    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
     implementation("me.zhanghai.compose.preference:preference:2.1.0")
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-core:0.3.2")
@@ -97,9 +98,10 @@ dependencies {
     implementation("com.google.android.material:material:1.14.0-alpha05")
     implementation("com.google.code.gson:gson:2.13.2")
 
-    implementation("androidx.camera:camera-view:1.5.1")
+    implementation("androidx.camera:camera-core:1.5.1")
     implementation("androidx.camera:camera-lifecycle:1.5.1")
     implementation("androidx.camera:camera-camera2:1.5.1")
+    implementation("androidx.camera:camera-compose:1.5.1")
     implementation("com.google.zxing:core:3.5.3")
 
     implementation("com.jakewharton:process-phoenix:3.0.0")

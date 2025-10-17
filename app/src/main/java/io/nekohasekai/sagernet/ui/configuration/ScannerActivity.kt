@@ -23,17 +23,35 @@ package io.nekohasekai.sagernet.ui.configuration
 import android.Manifest
 import android.content.Intent
 import android.content.pm.ShortcutManager
+import android.graphics.RectF
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
-import android.view.MenuItem
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.camera.core.Camera
+import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.SurfaceRequest
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Close
@@ -41,176 +59,81 @@ import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.snackbar.Snackbar
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.ktx.forEachTry
-import io.nekohasekai.sagernet.ktx.hasPermission
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.startFilesForResult
+import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.getStringOrRes
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executors
+import kotlin.math.roundToInt
 
 @ExperimentalMaterial3Api
-class ScannerActivity : ThemedActivity() {
+class ScannerActivity : ComposeActivity() {
 
-    private lateinit var binding: LayoutScannerBinding
+    companion object {
+        const val SHORTCUT_ID = "scan"
+    }
+
     private val viewModel: ScannerActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT >= 25) getSystemService<ShortcutManager>()!!.reportShortcutUsed("scan")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            getSystemService<ShortcutManager>()!!.reportShortcutUsed(SHORTCUT_ID)
+        }
 
-        binding = LayoutScannerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val toolbar = findViewById<ComposeView>(R.id.toolbar)
-        toolbar.setContent {
-            @Suppress("DEPRECATION")
+        setContent {
             AppTheme {
-                val flashOn by viewModel.isFlashlightOn.collectAsStateWithLifecycle()
-                TopAppBar(
-                    title = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
-                    navigationIcon = {
-                        SimpleIconButton(Icons.Filled.Close, stringResource(R.string.close)) {
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                    },
-                    actions = {
-                        SimpleIconButton(
-                            imageVector = Icons.Filled.Photo,
-                            contentDescription = stringResource(R.string.action_import_file),
-                        ) {
-                            startFilesForResult(importCodeFile, "image/*")
-                        }
-                        SimpleIconButton(
-                            imageVector = if (flashOn) {
-                                Icons.Filled.FlashlightOff
-                            } else {
-                                Icons.Filled.FlashlightOn
-                            },
-                            contentDescription = stringResource(
-                                if (flashOn) {
-                                    R.string.action_flash_off
-                                } else {
-                                    R.string.action_flash_on
-                                }
-                            ),
-                        ) {
-                            viewModel.toggleFlashlight()
-                        }
-                        SimpleIconButton(
-                            imageVector =  Icons.Filled.Cameraswitch,
-                            contentDescription =  stringResource(R.string.action_camera_switch),
-                        ) {
-                            viewModel.useFront = !viewModel.useFront
-                            viewModel.setFlashlight(false)
-                            loadCamara()
-                        }
-                    },
+                ScannerScreen(
+                    viewModel = viewModel,
+                    onBackPress = { onBackPressedDispatcher.onBackPressed() },
                 )
             }
         }
-
-        binding.previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-        binding.previewView.previewStreamState.observe(this) {
-            if (it === PreviewView.StreamState.STREAMING) {
-                binding.previewView.implementationMode = PreviewView.ImplementationMode.PERFORMANCE
-            }
-        }
-        if (hasPermission(Manifest.permission.CAMERA)) {
-            startCamera()
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
-        }
     }
-
-    private fun handleUiEvent(event: ScannerUiEvent) {
-        when (event) {
-            is ScannerUiEvent.ImportSubscription -> {
-                startActivity(Intent(this, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = event.uri
-                })
-            }
-
-            is ScannerUiEvent.Snakebar -> snackbar(event.message).show()
-
-            is ScannerUiEvent.SnakebarR -> snackbar(event.message).show()
-
-            ScannerUiEvent.Finish -> finish()
-        }
-    }
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                startCamera()
-            } else {
-                setResult(RESULT_CANCELED)
-                finish()
-            }
-        }
-
-    private lateinit var cameraProvider: ProcessCameraProvider
-    private lateinit var cameraPreview: Preview
-    private lateinit var camera: Camera
-
-    private fun startCamera() {
-        val cameraProviderFuture = try {
-            ProcessCameraProvider.getInstance(this)
-        } catch (e: Exception) {
-            viewModel.onFailure(e)
-            return
-        }
-        cameraProviderFuture.addListener({
-            cameraProvider = try {
-                cameraProviderFuture.get()
-            } catch (e: Exception) {
-                viewModel.onFailure(e)
-                return@addListener
-            }
-
-            cameraPreview = Preview.Builder().build().also {
-                it.surfaceProvider = binding.previewView.surfaceProvider
-            }
-            loadCamara()
-        }, ContextCompat.getMainExecutor(this))
-    }
-
-    private val importCodeFile =
-        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
-            runOnDefaultDispatcher {
-                try {
-                    it.forEachTry { uri ->
-                        viewModel.importFromUri(uri, contentResolver)
-                    }
-                } catch (e: Exception) {
-                    viewModel.onFailure(e)
-                }
-            }
-        }
 
     /**
      * See also: https://stackoverflow.com/a/31350642/2245107
@@ -219,51 +142,278 @@ class ScannerActivity : ThemedActivity() {
         return super.shouldUpRecreateTask(targetIntent) || isTaskRoot
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return binding.previewView.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun ScannerScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ScannerActivityViewModel,
+    onBackPress: () -> Unit,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val camaraPermission = rememberPermissionState(Manifest.permission.CAMERA)
+    LaunchedEffect(Unit) {
+        if (!camaraPermission.status.isGranted) {
+            camaraPermission.launchPermissionRequest()
+        }
     }
 
-    private fun loadCamara() {
-        val cameraSelector = if (viewModel.useFront) {
+    var surfaceRequest by remember { mutableStateOf<SurfaceRequest?>(null) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
+    DisposableEffect(Unit) {
+        onDispose {
+            analysisExecutor.shutdown()
+        }
+    }
+
+    LaunchedEffect(uiState.useFrontCamera) {
+        val provider = ProcessCameraProvider.getInstance(context).get()
+        provider.unbindAll()
+
+        val cameraSelector = if (uiState.useFrontCamera) {
             CameraSelector.DEFAULT_FRONT_CAMERA
         } else {
             CameraSelector.DEFAULT_BACK_CAMERA
         }
 
-        cameraProvider.unbindAll()
-        try {
-            camera = cameraProvider.bindToLifecycle(
-                this,
-                cameraSelector,
-                cameraPreview,
-                viewModel.imageAnalysis,
+        val preview = Preview.Builder().build().apply {
+            setSurfaceProvider { req -> surfaceRequest = req }
+        }
+
+        val imageAnalysis = ImageAnalysis.Builder().build().apply {
+            setAnalyzer(
+                analysisExecutor,
+                ZxingQRCodeAnalyzer(viewModel::onSuccess, viewModel::onFailure),
             )
+        }
 
-            flash?.isVisible = !viewModel.useFront
-            lifecycleScope.launch {
-                viewModel.isFlashlightOn.collect { enable ->
-                    camera.cameraControl.enableTorch(enable)
+        val camera = provider.bindToLifecycle(
+            lifecycleOwner,
+            cameraSelector,
+            preview,
+            imageAnalysis,
+        )
 
-                    updateFlashIcon(enable)
+        val hasFlash = camera.cameraInfo.hasFlashUnit()
+        viewModel.setHasFlashUnit(hasFlash)
+
+        launch {
+            viewModel.uiState.collect { state ->
+                camera.cameraControl.enableTorch(state.isFlashlightOn)
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is ScannerUiEvent.ImportSubscription -> {
+                    context.startActivity(
+                        Intent(context, MainActivity::class.java)
+                            .setAction(Intent.ACTION_VIEW)
+                            .setData(event.uri)
+                    )
+                }
+
+                is ScannerUiEvent.Snakebar -> {
+                    snackbarHostState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+
+                ScannerUiEvent.Finish -> {
+                    onBackPress()
                 }
             }
-        } catch (e: Exception) {
-            viewModel.onFailure(e)
         }
     }
 
-    private var flash: MenuItem? = null
-    private fun updateFlashIcon(enable: Boolean) {
-        if (enable) {
-            flash?.setIcon(R.drawable.ic_action_flight_off)
-            flash?.setTitle(R.string.action_flash_off)
-        } else {
-            flash?.setIcon(R.drawable.ic_action_flight_on)
-            flash?.setTitle(R.string.action_flash_on)
+    val importCodeFile = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        scope.launch {
+            try {
+                uris.forEachTry { uri ->
+                    viewModel.importFromUri(uri, context.contentResolver)
+                }
+            } catch (e: Exception) {
+                viewModel.onFailure(e)
+            }
         }
     }
 
-    override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(binding.root, text, Snackbar.LENGTH_LONG)
+    val windowInsets = WindowInsets.safeDrawing
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Close,
+                        onClick = onBackPress,
+                    )
+                },
+                actions = {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Photo,
+                        onClick = { importCodeFile.launch("image/*") },
+                    )
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { innerPadding ->
+        var viewSize by remember { mutableStateOf(IntSize.Zero) }
+        val scanBox = remember(viewSize) {
+            defaultScanBox(viewSize)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .paddingExceptBottom(innerPadding)
+                .onSizeChanged { viewSize = it },
+        ) {
+            surfaceRequest?.let { req ->
+                CameraXViewfinder(
+                    surfaceRequest = req,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            QrFinderOverlay(
+                box = scanBox,
+                lineThickness = 2.dp,
+                cornerLength = 22.dp,
+                cornerStroke = 4.dp,
+            )
+
+            if (uiState.hasFlashUnit) {
+                val density = LocalDensity.current
+                val flashButtonSize = 48.dp
+                SimpleIconButton(
+                    imageVector = if (uiState.isFlashlightOn) {
+                        Icons.Filled.FlashlightOff
+                    } else {
+                        Icons.Filled.FlashlightOn
+                    },
+                    onClick = { viewModel.toggleFlashlight() },
+                    modifier = Modifier
+                        .size(flashButtonSize)
+                        .offset {
+                            val buttonSizePx = with(density) { flashButtonSize.toPx() }
+                            androidx.compose.ui.unit.IntOffset(
+                                x = ((scanBox.left + scanBox.right - buttonSizePx) / 2).toInt(),
+                                y = (scanBox.bottom - buttonSizePx - with(density) { 32.dp.toPx() }).toInt(),
+                            )
+                        },
+                )
+            }
+
+            SimpleIconButton(
+                imageVector = Icons.Filled.Cameraswitch,
+                onClick = { viewModel.switchCamera() },
+                modifier = Modifier
+                    .align(androidx.compose.ui.Alignment.BottomCenter)
+                    .padding(bottom = 24.dp),
+            )
+        }
+    }
+}
+
+private fun defaultScanBox(
+    view: IntSize,
+    boxWidthRatio: Float = 0.66f,
+    aspect: Float = 1f,
+    verticalBias: Float = 0.33f,
+): RectF {
+    val boxW = (view.width * boxWidthRatio).coerceAtMost(view.height.toFloat()).roundToInt()
+    val boxH = (boxW / aspect).roundToInt()
+    val left = (view.width - boxW) / 2f
+    val top = (view.height - boxH) * verticalBias
+    return RectF(left, top, left + boxW, top + boxH)
+}
+
+@Composable
+private fun QrFinderOverlay(
+    box: RectF,
+    modifier: Modifier = Modifier,
+    lineThickness: Dp = 2.dp,
+    cornerLength: Dp = 20.dp,
+    cornerStroke: Dp = 3.dp,
+) {
+    val dimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
+    val cornerColor = MaterialTheme.colorScheme.primary
+    val lineColor = MaterialTheme.colorScheme.primary
+
+    val density = LocalDensity.current
+    val linePx = with(density) { lineThickness.toPx() }
+    val cornerLenPx = with(density) { cornerLength.toPx() }
+    val cornerStrokePx = with(density) { cornerStroke.toPx() }
+
+    val transition = rememberInfiniteTransition(label = "qr-line")
+    val animY by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = box.height(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "qr-line-y",
+    )
+
+    Canvas(
+        modifier = modifier
+            .fillMaxSize()
+            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    ) {
+        drawRect(color = dimColor, size = size)
+
+        drawRoundRect(
+            color = Color.Transparent,
+            topLeft = Offset(box.left, box.top),
+            size = Size(box.width(), box.height()),
+            cornerRadius = CornerRadius(18f, 18f),
+            blendMode = BlendMode.Clear,
+        )
+
+        fun drawCorner(x: Float, y: Float, dx: Float, dy: Float) {
+            drawLine(
+                color = cornerColor,
+                start = Offset(x, y),
+                end = Offset(x + dx * cornerLenPx, y + dy * 0f),
+                strokeWidth = cornerStrokePx,
+                cap = StrokeCap.Round,
+            )
+            drawLine(
+                color = cornerColor,
+                start = Offset(x, y),
+                end = Offset(x + dx * 0f, y + dy * cornerLenPx),
+                strokeWidth = cornerStrokePx,
+                cap = StrokeCap.Round,
+            )
+        }
+        drawCorner(box.left, box.top, 1f, 1f)
+        drawCorner(box.right, box.top, -1f, 1f)
+        drawCorner(box.left, box.bottom, 1f, -1f)
+        drawCorner(box.right, box.bottom, -1f, -1f)
+
+        val y = box.top + animY
+        drawLine(
+            color = lineColor,
+            start = Offset(box.left + 8f, y),
+            end = Offset(box.right - 8f, y),
+            strokeWidth = linePx,
+            pathEffect = PathEffect.cornerPathEffect(8f),
+        )
     }
 }

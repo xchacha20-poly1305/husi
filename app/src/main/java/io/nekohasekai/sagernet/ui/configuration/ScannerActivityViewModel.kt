@@ -5,8 +5,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import androidx.annotation.StringRes
-import androidx.camera.core.ImageAnalysis
+import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,39 +23,39 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
 
+@Stable
+internal data class ScannerUiState(
+    val isFlashlightOn: Boolean = false,
+    val useFrontCamera: Boolean = false,
+    val hasFlashUnit: Boolean = false,
+)
+
+@Stable
 internal sealed interface ScannerUiEvent {
     class ImportSubscription(val uri: Uri) : ScannerUiEvent
-    class Snakebar(val message: String) : ScannerUiEvent
-    class SnakebarR(@param:StringRes val message: Int) : ScannerUiEvent
+    class Snakebar(val message: StringOrRes) : ScannerUiEvent
     object Finish : ScannerUiEvent
 }
 
+@Stable
 internal class ScannerActivityViewModel : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ScannerUiState())
+    val uiState = _uiState.asStateFlow()
+
     private val _uiEvent = MutableSharedFlow<ScannerUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    private val _isFlashlightOn = MutableStateFlow(false)
-    val isFlashlightOn = _isFlashlightOn.asStateFlow()
-
-    // Every time camera.cameraInfo.cameraSelector returns different value,
-    // so useFront used to record it.
-    // sfa use select to resolve record.
-    var useFront = false
-
-    private val analysisExecutor = Executors.newSingleThreadExecutor()
-    val imageAnalysis = ImageAnalysis.Builder().build()
-    private val imageAnalyzer = ZxingQRCodeAnalyzer(::onSuccess, ::onFailure)
-
-    init {
-        imageAnalysis.setAnalyzer(analysisExecutor, imageAnalyzer)
-    }
+    @Volatile
+    private var isProcessing = false
 
     suspend fun importFromUri(uri: Uri, contentResolver: ContentResolver) {
         val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -106,15 +105,15 @@ internal class ScannerActivityViewModel : ViewModel() {
         }
     }
 
-    private fun onSuccess(value: String) {
-        imageAnalysis.clearAnalyzer()
+    fun onSuccess(value: String) {
+        if (isProcessing) return
+        isProcessing = true
 
         runOnDefaultDispatcher {
-            _uiEvent.emit(ScannerUiEvent.Finish)
-
             try {
                 val results = RawUpdater.parseRaw(value)
                 if (results.isNullOrEmpty()) {
+                    isProcessing = false
                     onFailure(null)
                 } else {
                     val currentGroupId = DataStore.selectedGroupForImport()
@@ -125,10 +124,14 @@ internal class ScannerActivityViewModel : ViewModel() {
                     for (profile in results) {
                         ProfileManager.createProfile(currentGroupId, profile)
                     }
+
+                    _uiEvent.emit(ScannerUiEvent.Finish)
                 }
             } catch (e: SubscriptionFoundException) {
                 _uiEvent.emit(ScannerUiEvent.ImportSubscription(e.link.toUri()))
+                _uiEvent.emit(ScannerUiEvent.Finish)
             } catch (e: Exception) {
+                isProcessing = false
                 onFailure(e)
             }
         }
@@ -138,18 +141,36 @@ internal class ScannerActivityViewModel : ViewModel() {
         viewModelScope.launch {
             if (e != null) {
                 Logs.w(e)
-                _uiEvent.emit(ScannerUiEvent.Snakebar(e.readableMessage))
+                _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Direct(e.readableMessage)))
             } else {
-                _uiEvent.emit(ScannerUiEvent.SnakebarR(R.string.action_import_err))
+                _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(R.string.action_import_err)))
             }
         }
     }
 
     fun toggleFlashlight() {
-        _isFlashlightOn.value = !_isFlashlightOn.value
+        _uiState.update {
+            it.copy(
+                isFlashlightOn = !it.isFlashlightOn
+            )
+        }
     }
 
-    fun setFlashlight(isOn: Boolean) {
-        _isFlashlightOn.value = isOn
+    fun switchCamera() {
+        _uiState.update {
+            it.copy(
+                useFrontCamera = !it.useFrontCamera,
+                isFlashlightOn = false,
+            )
+        }
+    }
+
+    fun setHasFlashUnit(hasFlash: Boolean) {
+        _uiState.update {
+            it.copy(
+                hasFlashUnit = hasFlash,
+                isFlashlightOn = if (!hasFlash) false else it.isFlashlightOn,
+            )
+        }
     }
 }
