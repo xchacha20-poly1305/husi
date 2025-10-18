@@ -17,11 +17,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
@@ -39,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutAboutBinding
@@ -67,15 +65,14 @@ class AboutFragment : OnKeyDownFragment(R.layout.layout_about) {
                 TopAppBar(
                     title = { Text(stringResource(R.string.menu_about)) },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            (requireActivity() as MainActivity).binding
-                                .drawerLayout.openDrawer(GravityCompat.START)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Menu,
-                                contentDescription = stringResource(R.string.menu),
-                            )
-                        }
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.menu),
+                            onClick = {
+                                (requireActivity() as MainActivity).binding
+                                    .drawerLayout.openDrawer(GravityCompat.START)
+                            },
+                        )
                     },
                 )
             }

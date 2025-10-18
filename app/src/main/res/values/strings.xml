@@ -713,4 +713,8 @@
     <string name="not_found">Not found</string>
     <string name="full">Full</string>
     <string name="query_package_denied">Query all packages permission is denied, please go to settings to enable it.</string>
+    <string name="more">More</string>
+    <string name="redo">Redo</string>
+    <string name="indent">Indent</string>
+    <string name="back">Back</string>
 </resources>

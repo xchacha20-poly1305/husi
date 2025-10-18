@@ -201,6 +201,7 @@ private fun AppManagerScreen(
                         navigationIcon = {
                             SimpleIconButton(
                                 imageVector = Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.close),
                                 onClick = onBackPress,
                             )
                         },
@@ -209,10 +210,11 @@ private fun AppManagerScreen(
                                 SimpleIconButton(
                                     imageVector = Icons.Filled.SearchOff,
                                     contentDescription = stringResource(R.string.close),
-                                ) {
-                                    searchActivate = false
-                                    viewModel.setSearchQuery("")
-                                }
+                                    onClick = {
+                                        searchActivate = false
+                                        viewModel.setSearchQuery("")
+                                    },
+                                )
                             } else {
                                 SimpleIconButton(
                                     imageVector = Icons.Filled.Search,
@@ -223,34 +225,39 @@ private fun AppManagerScreen(
                                 SimpleIconButton(
                                     imageVector = Icons.Filled.CopyAll,
                                     contentDescription = stringResource(R.string.action_copy),
-                                ) {
-                                    val toExport = viewModel.export()
-                                    val success = clipboardManager?.trySetPrimaryClip(toExport) ?: false
-                                    scope.launch {
-                                        val message = if (success) {
-                                            context.getString(R.string.copy_success)
-                                        } else {
-                                            context.getString(R.string.copy_failed)
+                                    onClick = {
+                                        val toExport = viewModel.export()
+                                        val success =
+                                            clipboardManager?.trySetPrimaryClip(toExport) ?: false
+                                        scope.launch {
+                                            val message = if (success) {
+                                                context.getString(R.string.copy_success)
+                                            } else {
+                                                context.getString(R.string.copy_failed)
+                                            }
+                                            snackbarHostState.showSnackbar(
+                                                message = message,
+                                                actionLabel = context.getString(android.R.string.ok),
+                                                duration = SnackbarDuration.Short,
+                                            )
                                         }
-                                        snackbarHostState.showSnackbar(
-                                            message = message,
-                                            actionLabel = context.getString(android.R.string.ok),
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                    }
-                                }
+                                    },
+                                )
                                 SimpleIconButton(
                                     imageVector = Icons.Filled.ContentPaste,
                                     contentDescription = stringResource(R.string.action_import),
-                                ) {
-                                    val text = clipboardManager?.first()
-                                    viewModel.import(text)
-                                }
+                                    onClick = {
+                                        val text = clipboardManager?.first()
+                                        viewModel.import(text)
+                                    },
+                                )
 
                                 Box {
-                                    SimpleIconButton(Icons.Filled.MoreVert) {
-                                        showOverflowMenu = true
-                                    }
+                                    SimpleIconButton(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = stringResource(R.string.more),
+                                        onClick = { showOverflowMenu = true },
+                                    )
                                     DropdownMenu(
                                         expanded = showOverflowMenu,
                                         onDismissRequest = { showOverflowMenu = false },

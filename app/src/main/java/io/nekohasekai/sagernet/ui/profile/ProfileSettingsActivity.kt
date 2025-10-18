@@ -126,7 +126,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                         TopAppBar(
                             title = { Text(stringResource(title)) },
                             navigationIcon = {
-                                SimpleIconButton(Icons.Filled.Close) {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = stringResource(R.string.close),
+                                ) {
                                     onBackPressedDispatcher.onBackPressed()
                                 }
                             },
@@ -143,7 +146,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                 )
 
                                 Box {
-                                    SimpleIconButton(Icons.Filled.MoreVert) {
+                                    SimpleIconButton(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = stringResource(R.string.more),
+                                    ) {
                                         showExtendMenu = true
                                     }
                                     DropdownMenu(

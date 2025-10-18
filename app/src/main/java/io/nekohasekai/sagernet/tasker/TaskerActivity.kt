@@ -103,19 +103,22 @@ class TaskerActivity : ComposeActivity() {
                         TopAppBar(
                             title = { Text(stringResource(R.string.tasker_settings)) },
                             navigationIcon = {
-                                SimpleIconButton(Icons.Filled.Close) {
-                                    onBackPressedDispatcher.onBackPressed()
-                                }
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = stringResource(R.string.close),
+                                    onClick = {
+                                        onBackPressedDispatcher.onBackPressed()
+                                    },
+                                )
                             },
                             actions = {
                                 SimpleIconButton(
                                     imageVector = Icons.Filled.Done,
                                     contentDescription = stringResource(R.string.apply),
-                                ) {
-                                    lifecycleScope.launch {
+                                    onClick = {
                                         saveAndExit()
-                                    }
-                                }
+                                    },
+                                )
                             },
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,
@@ -170,7 +173,7 @@ class TaskerActivity : ComposeActivity() {
         }
     }
 
-    fun saveAndExit() {
+    private fun saveAndExit() {
         setResult(RESULT_OK, buildIntent())
         finish()
     }

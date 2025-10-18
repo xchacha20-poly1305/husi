@@ -94,7 +94,10 @@ class AssetEditActivity : ComposeActivity() {
                         TopAppBar(
                             title = { Text(stringResource(R.string.assets_settings)) },
                             navigationIcon = {
-                                SimpleIconButton(Icons.Filled.Close) {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = stringResource(R.string.close),
+                                ) {
                                     onBackPressedDispatcher.onBackPressed()
                                 }
                             },

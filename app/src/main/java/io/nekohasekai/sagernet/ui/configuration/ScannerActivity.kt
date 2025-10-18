@@ -260,12 +260,14 @@ private fun ScannerScreen(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.close),
                         onClick = onBackPress,
                     )
                 },
                 actions = {
                     SimpleIconButton(
                         imageVector = Icons.Filled.Photo,
+                        contentDescription = stringResource(R.string.action_import_file),
                         onClick = { importCodeFile.launch("image/*") },
                     )
                 },
@@ -306,6 +308,13 @@ private fun ScannerScreen(
                     } else {
                         Icons.Filled.FlashlightOn
                     },
+                    contentDescription = stringResource(
+                        if (uiState.isFlashlightOn) {
+                            R.string.action_flash_off
+                        } else {
+                            R.string.action_flash_on
+                        }
+                    ),
                     onClick = { viewModel.toggleFlashlight() },
                     modifier = Modifier
                         .size(flashButtonSize)
@@ -321,6 +330,7 @@ private fun ScannerScreen(
 
             SimpleIconButton(
                 imageVector = Icons.Filled.Cameraswitch,
+                contentDescription = stringResource(R.string.action_camera_switch),
                 onClick = { viewModel.switchCamera() },
                 modifier = Modifier
                     .align(androidx.compose.ui.Alignment.BottomCenter)

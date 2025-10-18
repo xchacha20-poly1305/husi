@@ -105,6 +105,7 @@ private fun RuleSetMatchScreen(
             SimpleTopAppBar(
                 title = R.string.rule_set_match,
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
                 onNavigationClick = onBackPress,

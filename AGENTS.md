@@ -8,11 +8,22 @@ See [README](./README.md)
 
 # MCP Tools
 
-Here are many MCP tools to enhance your ability. They are like your loyal friend.
+Here are many MCP tools to enhance your ability. They are like your loyal friend, so you are
+encouraged to use them.
 
-- Context7: Provides the latest documentation of libraries. Use it if you want to use some 3rd-party
-  packages!
-- chrome-devtools-mcp: Use my Chrome to perform tasks that requires real browser.
+- `Context7`: Provides the latest documentation of libraries. Use it if you want to use some
+  3rd-party packages!
+- `chrome-devtools-mcp`: Use my Chrome to perform tasks that requires real browser.
+- `serena`: Semantic code analysis and refactoring tool with IDE-like capabilities. Use it to
+  search symbols, understand code structure, and perform surgical edits without reading entire
+  files. Far more efficient than text-based search for targeted code analysis.
+
+  **Limitations:**
+  - Only works for Kotlin code in this project (not Go/libcore, not config files).
+  - Only finds symbols defined in this project, not third-party libraries (e.g., can't find
+    Material3's `IconButton`, but can find project's `SimpleIconButton`).
+  - Most tools require knowing file location first (`relative_path` parameter).
+  - For non-code files (Gradle, XML, Markdown), use traditional Read/Edit tools.
 
 # Basic rules
 

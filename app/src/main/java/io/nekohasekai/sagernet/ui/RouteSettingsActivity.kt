@@ -166,7 +166,10 @@ class RouteSettingsActivity : ComposeActivity() {
                                 }
 
                                 Box {
-                                    SimpleIconButton(Icons.Filled.MoreVert) {
+                                    SimpleIconButton(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = stringResource(R.string.more),
+                                    ) {
                                         showExpandedMenu = true
                                     }
                                     DropdownMenu(
