@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 @Stable
 internal data class ScannerUiState(
     val isFlashlightOn: Boolean = false,
-    val useFrontCamera: Boolean = false,
     val hasFlashUnit: Boolean = false,
 )
 
@@ -156,14 +155,6 @@ internal class ScannerActivityViewModel : ViewModel() {
         }
     }
 
-    fun switchCamera() {
-        _uiState.update {
-            it.copy(
-                useFrontCamera = !it.useFrontCamera,
-                isFlashlightOn = false,
-            )
-        }
-    }
 
     fun setHasFlashUnit(hasFlash: Boolean) {
         _uiState.update {
