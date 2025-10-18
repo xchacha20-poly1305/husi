@@ -76,25 +76,27 @@ class AssetsActivity : ThemedActivity(), UndoSnackbarManager.Interface<File> {
                     navigationIcon = {
                         SimpleIconButton(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
-                        ) {
-                            onBackPressedDispatcher.onBackPressed()
-                        }
+                            contentDescription = stringResource(R.string.back),
+                            onClick = { onBackPressedDispatcher.onBackPressed() },
+                        )
                     },
                     actions = {
                         SimpleIconButton(
                             imageVector = Icons.Filled.Update,
                             contentDescription = stringResource(R.string.assets_update),
-                        ) {
-                            viewModel.updateAsset(destinationDir = geoDir, cacheDir = cacheDir)
-                        }
+                            onClick = {
+                                viewModel.updateAsset(
+                                    destinationDir = geoDir,
+                                    cacheDir = cacheDir,
+                                )
+                            },
+                        )
                         Box {
                             SimpleIconButton(
                                 imageVector = Icons.AutoMirrored.Filled.NoteAdd,
                                 contentDescription = stringResource(R.string.import_asset),
-                            ) {
-                                showImportMenu = true
-                            }
+                                onClick = { showImportMenu = true },
+                            )
                             DropdownMenu(
                                 expanded = showImportMenu,
                                 onDismissRequest = { showImportMenu = false },

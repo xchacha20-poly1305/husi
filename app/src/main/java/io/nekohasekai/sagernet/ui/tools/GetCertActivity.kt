@@ -35,7 +35,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DropDownSelector
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
+import io.nekohasekai.sagernet.compose.TooltipIconButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.theme.AppTheme
@@ -122,9 +122,10 @@ private fun GetCertScreen(
             SimpleTopAppBar(
                 title = R.string.get_cert,
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
-                onNavigationClick = onBack
+                onNavigationClick = onBack,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -270,20 +271,17 @@ private fun GetCertContent(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End,
                             ) {
-                                IconButton(
+                                TooltipIconButton(
                                     onClick = {
                                         copyToClipboard(state.cert)
                                     },
+                                    icon = Icons.Filled.ContentCopy,
+                                    contentDescription = stringResource(R.string.action_copy),
                                     colors = IconButtonDefaults.iconButtonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary,
                                     ),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.ContentCopy,
-                                        contentDescription = stringResource(R.string.action_copy),
-                                    )
-                                }
+                                )
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             SelectionContainer {

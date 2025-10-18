@@ -42,7 +42,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -138,6 +137,7 @@ private fun SpeedtestScreen(
                 SimpleTopAppBar(
                     title = R.string.speed_test,
                     navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                    navigationDescription = stringResource(R.string.back),
                     windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                     scrollBehavior = scrollBehavior,
                     onNavigationClick = onBackPress,

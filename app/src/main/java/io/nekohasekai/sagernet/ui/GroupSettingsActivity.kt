@@ -112,7 +112,10 @@ class GroupSettingsActivity : ComposeActivity() {
                         TopAppBar(
                             title = { Text(stringResource(R.string.group_settings)) },
                             navigationIcon = {
-                                SimpleIconButton(Icons.Filled.Close) {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = stringResource(R.string.close),
+                                ) {
                                     onBackPressedDispatcher.onBackPressed()
                                 }
                             },

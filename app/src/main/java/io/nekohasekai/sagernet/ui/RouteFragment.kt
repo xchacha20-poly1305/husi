@@ -92,6 +92,7 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
                         }
                         SimpleIconButton(
                             imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.more),
                             onClick = { menuExpanded = true },
                         )
                         DropdownMenu(

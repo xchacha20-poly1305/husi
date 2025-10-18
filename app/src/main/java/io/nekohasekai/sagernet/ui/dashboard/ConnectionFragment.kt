@@ -74,11 +74,12 @@ class ConnectionFragment() :
                     navigationIcon = {
                         SimpleIconButton(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
-                        ) {
-                            (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
-                            parentFragmentManager.popBackStack()
-                        }
+                            contentDescription = stringResource(R.string.back),
+                            onClick = {
+                                (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
+                                parentFragmentManager.popBackStack()
+                            },
+                        )
                     },
                     actions = {
                         SimpleIconButton(

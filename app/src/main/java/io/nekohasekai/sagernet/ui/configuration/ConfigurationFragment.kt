@@ -793,7 +793,10 @@ class ConfigurationFragment : OnKeyDownFragment {
                     }
 
                     Box {
-                        SimpleIconButton(Icons.Filled.MoreVert) {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.more),
+                        ) {
                             showOverflowMenu = true
                         }
                         DropdownMenu(

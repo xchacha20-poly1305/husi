@@ -124,6 +124,7 @@ class ConfigEditActivity : ComposeActivity() {
 @Composable
 private fun RepeatableIconButton(
     imageVector: ImageVector,
+    contentDescription: String,
     enabled: Boolean = true,
     initialDelay: Long = 500L,
     repeatDelay: Long = 60L,
@@ -155,7 +156,7 @@ private fun RepeatableIconButton(
     ) {
         Icon(
             imageVector = imageVector,
-            contentDescription = null,
+            contentDescription = contentDescription,
             tint = if (enabled) {
                 LocalContentColor.current
             } else {
@@ -279,12 +280,18 @@ private fun ConfigEditScreenContent(
             TopAppBar(
                 title = { Text(stringResource(R.string.edit_config)) },
                 navigationIcon = {
-                    SimpleIconButton(Icons.Filled.Close) {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.close),
+                    ) {
                         onBackPress()
                     }
                 },
                 actions = {
-                    SimpleIconButton(Icons.Filled.Done) {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Done,
+                        contentDescription = stringResource(R.string.apply),
+                    ) {
                         viewModel.saveAndExit(uiState.textFieldValue.text)
                     }
                 },
@@ -310,7 +317,10 @@ private fun ConfigEditScreenContent(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        SimpleIconButton(Icons.AutoMirrored.Filled.KeyboardTab) {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardTab,
+                            contentDescription = stringResource(R.string.indent),
+                        ) {
                             // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
                             viewModel.insertText(" ".repeat(2))
                         }
@@ -331,14 +341,16 @@ private fun ConfigEditScreenContent(
 
                         SimpleIconButton(
                             Icons.AutoMirrored.Filled.Undo,
-                            enabled = uiState.canUndo
+                            contentDescription = stringResource(R.string.undo),
+                            enabled = uiState.canUndo,
                         ) {
                             viewModel.undo()
                         }
 
                         SimpleIconButton(
                             Icons.AutoMirrored.Filled.Redo,
-                            enabled = uiState.canRedo
+                            contentDescription = stringResource(R.string.redo),
+                            enabled = uiState.canRedo,
                         ) {
                             viewModel.redo()
                         }
@@ -367,21 +379,27 @@ private fun ConfigEditScreenContent(
 
                         RepeatableIconButton(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                        ) {
-                            viewModel.moveCursor(-1)
-                        }
+                            contentDescription = "<-",
+                            onClick = { viewModel.moveCursor(-1) },
+                        )
 
                         RepeatableIconButton(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        ) {
-                            viewModel.moveCursor(1)
-                        }
+                            contentDescription = "->",
+                            onClick = { viewModel.moveCursor(1) },
+                        )
 
-                        SimpleIconButton(Icons.AutoMirrored.Filled.FormatAlignLeft) {
+                        SimpleIconButton(
+                            imageVector = Icons.AutoMirrored.Filled.FormatAlignLeft,
+                            contentDescription = stringResource(R.string.action_format),
+                        ) {
                             viewModel.formatCurrentText()
                         }
 
-                        SimpleIconButton(Icons.Filled.Info) {
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = stringResource(R.string.action_test_config),
+                        ) {
                             coroutineScope.launch {
                                 viewModel.checkConfig(uiState.textFieldValue.text)
                             }

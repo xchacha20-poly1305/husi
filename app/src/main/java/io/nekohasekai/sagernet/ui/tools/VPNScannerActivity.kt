@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -120,19 +119,17 @@ private fun VPNScannerScreen(
                     navigationIcon = {
                         SimpleIconButton(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
                             onClick = onBackPress,
                         )
                     },
                     actions = {
-                        IconButton(
-                            onClick = { viewModel.scanVPN() },
+                        SimpleIconButton(
+                            imageVector = Icons.Filled.Cached,
+                            contentDescription = stringResource(R.string.refresh),
                             enabled = !isScanning,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Cached,
-                                contentDescription = stringResource(R.string.refresh),
-                            )
-                        }
+                            onClick = { viewModel.scanVPN() },
+                        )
                     },
                     windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                     scrollBehavior = scrollBehavior,

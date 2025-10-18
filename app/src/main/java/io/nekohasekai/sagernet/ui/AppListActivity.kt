@@ -194,6 +194,7 @@ private fun AppListScreen(
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.close),
                         onClick = onBackPress,
                     )
                 },
@@ -240,9 +241,11 @@ private fun AppListScreen(
                         )
 
                         Box {
-                            SimpleIconButton(Icons.Filled.MoreVert) {
-                                showOverflowMenu = true
-                            }
+                            SimpleIconButton(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.more),
+                                onClick = { showOverflowMenu = true },
+                            )
                             DropdownMenu(
                                 expanded = showOverflowMenu,
                                 onDismissRequest = { showOverflowMenu = false },

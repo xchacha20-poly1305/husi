@@ -164,10 +164,9 @@ class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
                             Box {
                                 SimpleIconButton(
                                     imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = null,
-                                ) {
-                                    isOverflowMenuExpanded = true
-                                }
+                                    contentDescription = stringResource(R.string.more),
+                                    onClick = { isOverflowMenuExpanded = true },
+                                )
 
                                 DropdownMenu(
                                     expanded = isOverflowMenuExpanded,

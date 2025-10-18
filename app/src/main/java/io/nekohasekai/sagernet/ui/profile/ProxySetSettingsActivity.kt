@@ -55,7 +55,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -83,6 +83,7 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
+import io.nekohasekai.sagernet.compose.TooltipIconButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.displayType
@@ -387,28 +388,30 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        IconButton(onClick = {
-                            viewModel.replacing = index
-                            selectProfileForAdd.launch(
-                                Intent(
-                                    this@ProxySetSettingsActivity,
-                                    ProfileSelectActivity::class.java,
-                                ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
-                            )
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = stringResource(R.string.edit),
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                        IconButton(onClick = { viewModel.remove(index) }) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = stringResource(R.string.delete),
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
+                        TooltipIconButton(
+                            onClick = {
+                                viewModel.replacing = index
+                                selectProfileForAdd.launch(
+                                    Intent(
+                                        this@ProxySetSettingsActivity,
+                                        ProfileSelectActivity::class.java,
+                                    ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
+                                )
+                            },
+                            icon = Icons.Filled.Edit,
+                            contentDescription = stringResource(R.string.edit),
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
+                        )
+                        TooltipIconButton(
+                            onClick = { viewModel.remove(index) },
+                            icon = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.delete),
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
