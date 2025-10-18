@@ -49,11 +49,9 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
@@ -75,15 +73,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -173,15 +164,11 @@ private fun ScannerScreen(
         }
     }
 
-    LaunchedEffect(uiState.useFrontCamera) {
+    LaunchedEffect(Unit) {
         val provider = ProcessCameraProvider.getInstance(context).get()
         provider.unbindAll()
 
-        val cameraSelector = if (uiState.useFrontCamera) {
-            CameraSelector.DEFAULT_FRONT_CAMERA
-        } else {
-            CameraSelector.DEFAULT_BACK_CAMERA
-        }
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { req -> surfaceRequest = req }
@@ -295,8 +282,6 @@ private fun ScannerScreen(
             QrFinderOverlay(
                 box = scanBox,
                 lineThickness = 2.dp,
-                cornerLength = 22.dp,
-                cornerStroke = 4.dp,
             )
 
             if (uiState.hasFlashUnit) {
@@ -327,27 +312,18 @@ private fun ScannerScreen(
                         },
                 )
             }
-
-            SimpleIconButton(
-                imageVector = Icons.Filled.Cameraswitch,
-                contentDescription = stringResource(R.string.action_camera_switch),
-                onClick = { viewModel.switchCamera() },
-                modifier = Modifier
-                    .align(androidx.compose.ui.Alignment.BottomCenter)
-                    .padding(bottom = 24.dp),
-            )
         }
     }
 }
 
 private fun defaultScanBox(
     view: IntSize,
-    boxWidthRatio: Float = 0.66f,
-    aspect: Float = 1f,
+    boxWidthRatio: Float = 0.85f,
+    boxHeightRatio: Float = 0.8f,
     verticalBias: Float = 0.33f,
 ): RectF {
-    val boxW = (view.width * boxWidthRatio).coerceAtMost(view.height.toFloat()).roundToInt()
-    val boxH = (boxW / aspect).roundToInt()
+    val boxW = (view.width * boxWidthRatio).roundToInt()
+    val boxH = (view.height * boxHeightRatio).roundToInt()
     val left = (view.width - boxW) / 2f
     val top = (view.height - boxH) * verticalBias
     return RectF(left, top, left + boxW, top + boxH)
@@ -358,17 +334,11 @@ private fun QrFinderOverlay(
     box: RectF,
     modifier: Modifier = Modifier,
     lineThickness: Dp = 2.dp,
-    cornerLength: Dp = 20.dp,
-    cornerStroke: Dp = 3.dp,
 ) {
-    val dimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
-    val cornerColor = MaterialTheme.colorScheme.primary
     val lineColor = MaterialTheme.colorScheme.primary
 
     val density = LocalDensity.current
     val linePx = with(density) { lineThickness.toPx() }
-    val cornerLenPx = with(density) { cornerLength.toPx() }
-    val cornerStrokePx = with(density) { cornerStroke.toPx() }
 
     val transition = rememberInfiniteTransition(label = "qr-line")
     val animY by transition.animateFloat(
@@ -382,47 +352,27 @@ private fun QrFinderOverlay(
     )
 
     Canvas(
-        modifier = modifier
-            .fillMaxSize()
-            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+        modifier = modifier.fillMaxSize()
     ) {
-        drawRect(color = dimColor, size = size)
+        val y = box.top + animY
+        val startX = box.left + 8f
+        val endX = box.right - 8f
 
-        drawRoundRect(
-            color = Color.Transparent,
-            topLeft = Offset(box.left, box.top),
-            size = Size(box.width(), box.height()),
-            cornerRadius = CornerRadius(18f, 18f),
-            blendMode = BlendMode.Clear,
+        val brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+            0f to lineColor.copy(alpha = 0f),
+            0.3f to lineColor.copy(alpha = 0.6f),
+            0.5f to lineColor,
+            0.7f to lineColor.copy(alpha = 0.6f),
+            1f to lineColor.copy(alpha = 0f),
+            startX = startX,
+            endX = endX,
         )
 
-        fun drawCorner(x: Float, y: Float, dx: Float, dy: Float) {
-            drawLine(
-                color = cornerColor,
-                start = Offset(x, y),
-                end = Offset(x + dx * cornerLenPx, y + dy * 0f),
-                strokeWidth = cornerStrokePx,
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                color = cornerColor,
-                start = Offset(x, y),
-                end = Offset(x + dx * 0f, y + dy * cornerLenPx),
-                strokeWidth = cornerStrokePx,
-                cap = StrokeCap.Round,
-            )
-        }
-        drawCorner(box.left, box.top, 1f, 1f)
-        drawCorner(box.right, box.top, -1f, 1f)
-        drawCorner(box.left, box.bottom, 1f, -1f)
-        drawCorner(box.right, box.bottom, -1f, -1f)
-
-        val y = box.top + animY
         drawLine(
-            color = lineColor,
-            start = Offset(box.left + 8f, y),
-            end = Offset(box.right - 8f, y),
-            strokeWidth = linePx,
+            brush = brush,
+            start = Offset(startX, y),
+            end = Offset(endX, y),
+            strokeWidth = linePx * 2,
             pathEffect = PathEffect.cornerPathEffect(8f),
         )
     }
