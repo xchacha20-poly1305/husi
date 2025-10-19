@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.pm.PackageInfo
 import android.os.Build
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.fmt.PluginEntry
@@ -14,10 +15,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+@Stable
 internal data class AboutFragmentUiState(
     val plugins: List<AboutPlugin> = emptyList(),
 )
 
+@Stable
 internal data class AboutPlugin(
     val id: String,
     val packageName: String,
@@ -27,6 +30,7 @@ internal data class AboutPlugin(
     val entry: PluginEntry? = null,
 )
 
+@Stable
 internal class AboutFragmentViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AboutFragmentUiState())
     val uiState = _uiState.asStateFlow()
