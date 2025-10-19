@@ -974,12 +974,6 @@ fun buildConfig(
                     ip_is_private = true
                 }.asMap())
             }
-            // block mcast
-            route.rules.add(Rule_Default().apply {
-                ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
-                source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
-                action = SingBoxOptions.ACTION_REJECT
-            }.asMap())
 
             // FakeDNS obj
             if (useFakeDns) {
