@@ -461,7 +461,6 @@
     <string name="enable_brutal">کنترل‌کننده ترافیک شدید TCP فعال شد</string>
     <string name="scan_vpn_app_introduce">بررسی کردن نصب شدن VPN و نوع آن روی دستگاه.</string>
     <string name="vpn_core_path">مسیر شناسایی شده</string>
-    <string name="action_camera_switch">عوض کردن دوربین</string>
     <string name="location_permission_title">اجازه دادن موقعیت مکانی</string>
     <string name="location_permission_description">قوانین route شما شامل قوانین مسیریابی Wi-Fi SSID و Wi-Fi BSSID می باشد. برای اینکه کار کنند، husi مجوز موقعیت یابی را در پس زمینه میخواهد تا اطلاعاتی درباره شبکه ی وای فای بدست آورد. این اطلاعات فقط برای اهداف مسیریابی استفاده خواهد شد.</string>
     <string name="domain_strategy_for_direct">استراتژی دامنه برای اتصال مستقیم</string>

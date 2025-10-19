@@ -541,7 +541,6 @@
     <string name="fake_dns" translatable="false">Fake DNS</string>
     <string name="blurred_address">Make the server address blurred</string>
     <string name="action_flash_on">Turn on flash</string>
-    <string name="action_camera_switch">Switch camera</string>
     <string name="action_flash_off">Turn of flash</string>
     <string name="location_permission_title">Location permission</string>
     <string name="no_thanks">No, thanks</string>

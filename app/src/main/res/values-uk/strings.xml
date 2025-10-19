@@ -423,7 +423,6 @@
     <string name="vpn_app_type_other">Інший</string>
     <string name="vpn_core_type_unknown">Невідомий</string>
     <string name="enable_brutal">Увімкнути контролер перевантаження TCP Brutal</string>
-    <string name="action_camera_switch">Змінити камеру</string>
     <string name="action_flash_off">Вимкнути спалах</string>
     <string name="blurred_address">Зробити адресу сервера розмитою</string>
     <string name="location_permission_description">Ваше правило маршрутизації містить правила маршрутизації Wi-Fi SSID або Wi-Fi BSSID. Для того, щоб вони працювали, husi використовує дозвіл на визначення місцерозташування у фоновому режимі, аби отримувати інформацію про підключену мережу Wi-Fi. Інформація буде використовуватися виключно для маршрутизації.</string>

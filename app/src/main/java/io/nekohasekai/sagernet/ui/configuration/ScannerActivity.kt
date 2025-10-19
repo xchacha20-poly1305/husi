@@ -43,14 +43,20 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashlightOff
@@ -62,8 +68,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -80,6 +85,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
@@ -241,27 +247,8 @@ private fun ScannerScreen(
     val windowInsets = WindowInsets.safeDrawing
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
-                navigationIcon = {
-                    SimpleIconButton(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.close),
-                        onClick = onBackPress,
-                    )
-                },
-                actions = {
-                    SimpleIconButton(
-                        imageVector = Icons.Filled.Photo,
-                        contentDescription = stringResource(R.string.action_import_file),
-                        onClick = { importCodeFile.launch("image/*") },
-                    )
-                },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-            )
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         var viewSize by remember { mutableStateOf(IntSize.Zero) }
         val scanBox = remember(viewSize) {
@@ -284,33 +271,75 @@ private fun ScannerScreen(
                 lineThickness = 2.dp,
             )
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+                            .asPaddingValues()
+                    )
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.close),
+                        onClick = onBackPress,
+                    )
+                }
+
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    SimpleIconButton(
+                        imageVector = Icons.Filled.Photo,
+                        contentDescription = stringResource(R.string.action_import_file),
+                        onClick = { importCodeFile.launch("image/*") },
+                    )
+                }
+            }
+
+
             if (uiState.hasFlashUnit) {
                 val density = LocalDensity.current
                 val flashButtonSize = 48.dp
-                SimpleIconButton(
-                    imageVector = if (uiState.isFlashlightOn) {
-                        Icons.Filled.FlashlightOff
-                    } else {
-                        Icons.Filled.FlashlightOn
-                    },
-                    contentDescription = stringResource(
-                        if (uiState.isFlashlightOn) {
-                            R.string.action_flash_off
-                        } else {
-                            R.string.action_flash_on
-                        }
-                    ),
-                    onClick = { viewModel.toggleFlashlight() },
+
+                // Box to wrap offsets so that tooltip can be shown.
+                Box(
                     modifier = Modifier
                         .size(flashButtonSize)
                         .offset {
                             val buttonSizePx = with(density) { flashButtonSize.toPx() }
-                            androidx.compose.ui.unit.IntOffset(
+                            IntOffset(
                                 x = ((scanBox.left + scanBox.right - buttonSizePx) / 2).toInt(),
                                 y = (scanBox.bottom - buttonSizePx - with(density) { 32.dp.toPx() }).toInt(),
                             )
                         },
-                )
+                ) {
+                    SimpleIconButton(
+                        imageVector = if (uiState.isFlashlightOn) {
+                            Icons.Filled.FlashlightOff
+                        } else {
+                            Icons.Filled.FlashlightOn
+                        },
+                        contentDescription = stringResource(
+                            if (uiState.isFlashlightOn) {
+                                R.string.action_flash_off
+                            } else {
+                                R.string.action_flash_on
+                            }
+                        ),
+                        onClick = { viewModel.toggleFlashlight() },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         }
     }

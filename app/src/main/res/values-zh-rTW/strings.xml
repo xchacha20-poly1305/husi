@@ -472,7 +472,6 @@
     <string name="assets_update">更新地理資產</string>
     <string name="test_timeout">測試逾時 (毫秒)</string>
     <string name="blurred_address">讓伺服器位址變得模糊</string>
-    <string name="action_camera_switch">切換相機</string>
     <string name="action_flash_off">開啟閃光燈</string>
     <string name="location_permission_background_description">在 Android 10 及更高版本上，需要後台位置權限。選擇「始終允許」以授予權限。</string>
     <string name="no_thanks">不，謝謝</string>
