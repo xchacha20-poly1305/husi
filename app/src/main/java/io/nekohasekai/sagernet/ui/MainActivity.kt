@@ -12,6 +12,7 @@ import android.os.RemoteException
 import android.view.KeyEvent
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.IdRes
@@ -56,6 +57,7 @@ import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.launchCustomTab
+import io.nekohasekai.sagernet.ktx.needRestart
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.openPermissionSettings
 import io.nekohasekai.sagernet.ktx.parseProxies
@@ -178,13 +180,15 @@ class MainActivity : ThemedActivity(),
         try {
             val f = File(application.filesDir, "consent")
             if (!f.exists()) {
-                MaterialAlertDialogBuilder(this@MainActivity)
+                MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.license)
                     .setMessage(LICENSE)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         f.createNewFile()
                     }
                     .setNegativeButton(android.R.string.cancel) { _, _ ->
+                        Toast.makeText(this, R.string.have_a_nice_day, Toast.LENGTH_SHORT)
+                            .show()
                         finish()
                     }
                     .show()
@@ -592,13 +596,17 @@ class MainActivity : ThemedActivity(),
 
     private val queryAllPackagesPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (!granted) MaterialAlertDialogBuilder(this)
+            if (granted) {
+                needRestart()
+            } else MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.permission_denied)
                 .setMessage(R.string.query_package_denied)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     openPermissionSettings()
                 }
-                .setNegativeButton(R.string.no_thanks, null)
+                .setNegativeButton(R.string.no_thanks) { _, _ ->
+                    snackbar(R.string.have_a_nice_day).show()
+                }
                 .setCancelable(false)
                 .show()
         }
