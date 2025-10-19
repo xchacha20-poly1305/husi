@@ -636,9 +636,10 @@
     <string name="format">格式</string>
     <string name="not_found">未找到</string>
     <string name="full">完整</string>
-    <string name="query_package_denied">查询所有已安装应用权限被拒绝，请前往设置开启。</string>
+    <string name="query_package_denied">我们需要查询所有包的权限，用于根据应用路由。</string>
     <string name="more">更多</string>
     <string name="redo">重做</string>
     <string name="indent">缩进</string>
     <string name="back">返回</string>
+    <string name="have_a_nice_day">祝您生活愉快！</string>
 </resources>

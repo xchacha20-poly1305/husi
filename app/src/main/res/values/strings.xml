@@ -711,9 +711,10 @@
     <string name="format">Format</string>
     <string name="not_found">Not found</string>
     <string name="full">Full</string>
-    <string name="query_package_denied">Query all packages permission is denied, please go to settings to enable it.</string>
+    <string name="query_package_denied">We need query all packages permission to route based on application.</string>
     <string name="more">More</string>
     <string name="redo">Redo</string>
     <string name="indent">Indent</string>
     <string name="back">Back</string>
+    <string name="have_a_nice_day">Have a nice day!</string>
 </resources>

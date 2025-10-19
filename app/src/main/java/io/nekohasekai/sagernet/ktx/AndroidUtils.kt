@@ -101,18 +101,24 @@ fun Fragment.needReload() {
     }
 }
 
-fun Fragment.needRestart() {
+fun ThemedActivity.needRestart() {
     snackbar(R.string.need_restart).setAction(R.string.apply) {
         repo.stopService()
-        val ctx = requireContext()
         runOnDefaultDispatcher {
             delay(500)
             SagerDatabase.instance.close()
             PublicDatabase.instance.close()
             Executable.killAll(true)
-            ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
+            ProcessPhoenix.triggerRebirth(
+                this@needRestart,
+                Intent(this@needRestart, MainActivity::class.java),
+            )
         }
     }.show()
+}
+
+fun Fragment.needRestart() {
+    (requireActivity() as ThemedActivity).needRestart()
 }
 
 @ColorInt
