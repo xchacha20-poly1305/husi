@@ -520,7 +520,6 @@
     <string name="insecure_warn">Советы по безопасности</string>
     <string name="experimental_authenticated_length">Сделать длину каждого сегмента полезной нагрузки фиксированной. • Требуется, чтобы клиент и сервер использовали одинаковую версию v2ray-core. Ожидаются обновления, потенциально нарушающие обратную совместимость.</string>
     <string name="keep_default">Оставить по умолчанию</string>
-    <string name="action_camera_switch">Изменить камеру</string>
     <string name="action_flash_on">Включить вспышку</string>
     <string name="action_flash_off">Выключить вспышку</string>
     <string name="http_upgrade_path">HTTPUpgrade - Путь</string>

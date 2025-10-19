@@ -488,7 +488,6 @@
     <string name="assets_update">Actualizar activos geográficos</string>
     <string name="enable_brutal">Activar controlador de congestión TCP Brutal</string>
     <string name="blurred_address">Difuminar la dirección del servidor</string>
-    <string name="action_camera_switch">Cambiar de cámara</string>
     <string name="action_flash_off">Apagar el flash</string>
     <string name="action_flash_on">Encender el flash</string>
     <string name="location_permission_title">Permiso de ubicación</string>

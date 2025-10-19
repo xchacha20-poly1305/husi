@@ -478,7 +478,6 @@
     <string name="enable_brutal">启用 TCP Brutal 拥塞控制算法</string>
     <string name="blurred_address">使服务器地址模糊</string>
     <string name="action_flash_on">开启闪光灯</string>
-    <string name="action_camera_switch">切换摄像头</string>
     <string name="action_flash_off">关闭闪光灯</string>
     <string name="location_permission_title">位置权限</string>
     <string name="no_thanks">不了，谢谢</string>
