@@ -205,6 +205,9 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 icon = { Icon(Icons.Filled.WbSunny, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("utls_fingerprint") {
