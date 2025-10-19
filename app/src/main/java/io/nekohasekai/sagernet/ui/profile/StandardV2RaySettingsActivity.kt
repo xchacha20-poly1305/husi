@@ -170,6 +170,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.WbSunny, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                     SwitchPreference(
                         value = state.allowInsecure,
@@ -395,6 +398,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Language, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("path") {
@@ -434,6 +440,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Language, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("path") {
@@ -512,6 +521,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(Icons.Filled.Language, null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
                         valueToText = { it },
+                        textField = { value, onValueChange, onOk ->
+                            MultilineTextField(value, onValueChange, onOk)
+                        },
                     )
                 }
                 item("path") {

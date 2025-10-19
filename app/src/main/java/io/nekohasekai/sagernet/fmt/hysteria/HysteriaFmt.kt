@@ -78,7 +78,7 @@ fun parseHysteria2(link: String): HysteriaBean {
         allowInsecure = url.parseBoolean("insecure")
         obfuscation = url.queryParameter("obfs-password")
         /*url.queryParameterNotBlank("pinSHA256").also {
-            // TODO sing-box do not support it
+            // sing-box do not support it
         }*/
         // May invented by shadowrocket
         url.queryParameterNotBlank("mport")?.let {
@@ -406,8 +406,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     server_name = bean.sni
                 }
                 alpn = listOf("h3")
-                certificate = bean.certificates.blankAsNull()?.split("\n")
-                certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
+                certificate = bean.certificates.blankAsNull()?.lines()
+                certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.lines()
                 if (bean.ech) ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
                     config = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }

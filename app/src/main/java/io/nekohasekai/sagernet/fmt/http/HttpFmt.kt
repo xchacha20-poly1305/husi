@@ -41,7 +41,6 @@ fun HttpBean.toUri(): String {
     sni?.blankAsNull()?.let { url.addQueryParameter("sni", it) }
     name?.blankAsNull()?.let { url.fragment = it }
 
-
     return url.string
 }
 

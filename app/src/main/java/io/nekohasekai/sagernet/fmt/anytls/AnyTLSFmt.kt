@@ -58,13 +58,9 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
             bean.certificates.blankAsNull()?.let {
                 certificate = listOf(it)
             }
-            bean.clientCert.blankAsNull()?.lines()?.let {
-                client_certificate = it
-            }
-            bean.clientKey.blankAsNull()?.lines()?.let {
-                client_key = it
-            }
-            certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
+            client_certificate = bean.clientCert.blankAsNull()?.lines()
+            client_key = bean.clientKey.blankAsNull()?.lines()
+            certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.lines()
             bean.utlsFingerprint.blankAsNull()?.let {
                 utls = SingBoxOptions.OutboundUTLSOptions().apply {
                     enabled = true

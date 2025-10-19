@@ -235,6 +235,9 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 icon = { Icon(Icons.Filled.WbSunny, null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("allow_insecure") {
