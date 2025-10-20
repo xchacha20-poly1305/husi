@@ -59,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -68,7 +69,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
@@ -200,10 +200,11 @@ private fun AboutScreen(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(
-                innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                innerPadding.calculateTopPadding(),
-                innerPadding.calculateEndPadding(LayoutDirection.Ltr),
-                innerPadding.calculateBottomPadding() + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
+                top = innerPadding.calculateTopPadding(),
+                end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                bottom = innerPadding.calculateBottomPadding() +
+                        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
             ),
         ) {
             item("info_card") {
