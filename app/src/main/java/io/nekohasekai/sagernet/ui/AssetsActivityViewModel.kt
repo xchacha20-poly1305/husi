@@ -1,11 +1,18 @@
 package io.nekohasekai.sagernet.ui
 
+import android.content.ContentResolver
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
+import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.use
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +20,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import libcore.CopyCallback
 import libcore.HTTPRequest
 import libcore.Libcore
@@ -22,29 +28,23 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-internal typealias UpdateProgress = (Int) -> Unit
+internal typealias UpdateProgress = (Float) -> Unit
 
-internal sealed interface AssetEvent {
-    class UpdateItem(val asset: File, val state: AssetItemUiState) : AssetEvent
-}
+internal data class AssetsUiState(
+    val process: Float? = null,
+    val assets: List<AssetItem> = emptyList(),
+)
 
-internal sealed interface AssetItemUiState {
-    // object Idle : AssetItemUiState
-    class Doing(val progress: Int) : AssetItemUiState
-    class Done(val e: Exception? = null) : AssetItemUiState
-}
-
-internal sealed interface AssetsUiState {
-    object Idle : AssetsUiState
-    class Doing(val progress: Int) : AssetsUiState
-    class Done(val e: Exception? = null) : AssetsUiState
-}
-
-internal data class AssetListItem(
+internal data class AssetItem(
     val file: File,
     val version: String,
     val builtIn: Boolean,
+    val progress: Float? = null,
 )
+
+internal sealed interface AssetsActivityUiEvent {
+    class Snackbar(val message: StringOrRes) : AssetsActivityUiEvent
+}
 
 internal class AssetsActivityViewModel : ViewModel() {
 
@@ -52,45 +52,62 @@ internal class AssetsActivityViewModel : ViewModel() {
         fun isBuiltIn(index: Int): Boolean = index < 2
     }
 
-    private val _uiState: MutableStateFlow<AssetsUiState> = MutableStateFlow(AssetsUiState.Idle)
+    private val _uiState = MutableStateFlow(AssetsUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _uiEvent = MutableSharedFlow<AssetEvent>()
+    private val _uiEvent = MutableSharedFlow<AssetsActivityUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
-
-    private val _assets = MutableStateFlow<List<AssetListItem>>(emptyList())
-    val assets = _assets.asStateFlow()
 
     private lateinit var assetsDir: File
     private lateinit var geoDir: File
 
-    suspend fun initialize(assetsDir: File, geoDir: File) {
+    fun initialize(assetsDir: File, geoDir: File) {
         this.assetsDir = assetsDir
         this.geoDir = geoDir
         refreshAssets()
     }
 
-    suspend fun refreshAssets() {
+    fun refreshAssets() = viewModelScope.launch {
+        refreshAssets0()
+    }
+
+    private suspend fun refreshAssets0() {
         val files = buildList {
             add(File(assetsDir, "geoip.version.txt"))
             add(File(assetsDir, "geosite.version.txt"))
             SagerDatabase.assetDao.getAll().forEach { add(File(geoDir, it.name)) }
         }
 
-        _assets.value = files.mapIndexed { index, file ->
-            val isVersionName = file.name.endsWith(".version.txt")
-            val versionFile =
-                if (isVersionName) file else File(assetsDir, "${file.name}.version.txt")
-            val version = if (versionFile.isFile) {
-                versionFile.readText().trim().ifBlank { "Unknown" }
-            } else {
-                versionFile.writeText("Unknown"); "Unknown"
-            }
-            AssetListItem(file = file, version = version, builtIn = isBuiltIn(index))
+        _uiState.update { state ->
+            state.copy(
+                assets = files.mapIndexed { i, asset ->
+                    buildAssetItem(i, asset)
+                },
+                process = null,
+            )
         }
     }
 
-    private fun isBuiltIn(index: Int): Boolean = index < 2
+    private fun buildAssetItem(index: Int, file: File): AssetItem {
+        val isVersionName = file.name.endsWith(".version.txt")
+        val versionFile = if (isVersionName) {
+            file
+        } else {
+            File(assetsDir, "${file.name}.version.txt")
+        }
+        val version = if (versionFile.isFile) {
+            versionFile.readText().trim()
+        } else {
+            versionFile.writeText("Unknown")
+            null
+        }?.blankAsNull() ?: "Unknown"
+        return AssetItem(
+            file = file,
+            version = version,
+            builtIn = isBuiltIn(index),
+            progress = null,
+        )
+    }
 
     suspend fun deleteAssets(files: List<File>) {
         for (file in files) {
@@ -99,29 +116,28 @@ internal class AssetsActivityViewModel : ViewModel() {
             if (versionFile.isFile) versionFile.delete()
             SagerDatabase.assetDao.delete(file.name)
         }
-        refreshAssets()
+        refreshAssets0()
     }
 
     fun updateAsset(destinationDir: File, cacheDir: File) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 updateAsset0(destinationDir, cacheDir)
-                _uiState.update { AssetsUiState.Done() }
             } catch (e: Exception) {
-                _uiState.update { AssetsUiState.Done(e) }
-            } finally {
-                refreshAssets()
+                Logs.e(e)
+                _uiEvent.emit(AssetsActivityUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
             }
+            refreshAssets0()
         }
     }
 
     private suspend fun updateAsset0(destinationDir: File, cacheDir: File) {
-        _uiState.update { AssetsUiState.Doing(0) }
+        _uiState.update { it.copy(process = 0f) }
 
-        var process = 0
+        var process = 0f
         val updateProgress: UpdateProgress = { p ->
             process += p
-            _uiState.update { AssetsUiState.Doing(process) }
+            _uiState.update { it.copy(process = process) }
         }
 
         val assetsDir = destinationDir.parentFile!!
@@ -159,15 +175,14 @@ internal class AssetsActivityViewModel : ViewModel() {
         updater.runUpdateIfAvailable()
     }
 
-    suspend fun updateSingleAsset(asset: File) = withContext(Dispatchers.IO) {
+    fun updateSingleAsset(asset: File) = viewModelScope.launch(Dispatchers.IO) {
         try {
             updateSingleAsset0(asset)
-            _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done()))
         } catch (e: Exception) {
-            _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Done(e)))
-        } finally {
-            refreshAssets()
+            Logs.e(e)
+            _uiEvent.emit(AssetsActivityUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
+        refreshAssets0()
     }
 
     private suspend fun updateSingleAsset0(asset: File) {
@@ -175,7 +190,19 @@ internal class AssetsActivityViewModel : ViewModel() {
         val entity = SagerDatabase.assetDao.get(name)!!
         val url = entity.url
 
-        _uiEvent.emit(AssetEvent.UpdateItem(asset, AssetItemUiState.Doing(0)))
+        _uiState.update { state ->
+            state.copy(
+                assets = state.assets.map {
+                    if (it.file == asset) {
+                        it.copy(
+                            progress = 0f,
+                        )
+                    } else {
+                        it
+                    }
+                }
+            )
+        }
 
         Libcore.newHttpClient().apply {
             keepAlive()
@@ -194,12 +221,18 @@ internal class AssetsActivityViewModel : ViewModel() {
                 override fun update(n: Long) {
                     if (length <= 0) return
                     saved += n.toDouble()
-                    val progress = ((saved / length) * 100).toInt()
-                    viewModelScope.launch {
-                        _uiEvent.emit(
-                            AssetEvent.UpdateItem(
-                                asset, AssetItemUiState.Doing(progress)
-                            ),
+                    val progress = ((saved / length) * 100).toFloat()
+                    _uiState.update { state ->
+                        state.copy(
+                            assets = state.assets.map {
+                                if (it.file == asset) {
+                                    it.copy(
+                                        progress = progress,
+                                    )
+                                } else {
+                                    it
+                                }
+                            }
                         )
                     }
                 }
@@ -210,18 +243,37 @@ internal class AssetsActivityViewModel : ViewModel() {
         File(assetsDir, "$name.version.txt").writeText(time)
     }
 
-    suspend fun importFile(sourceFile: File, destinationDir: File) {
+    fun importFile(
+        contentResolver: ContentResolver,
+        uri: Uri?,
+        cacheDir: File,
+        destinationDir: File,
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        if (uri == null) return@launch
+        val fileName = contentResolver.query(uri, null, null, null, null)
+            ?.use { cursor ->
+                cursor.moveToFirst()
+                cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
+                    .let(cursor::getString)
+            }
+            ?.blankAsNull()
+            ?: uri.path
+            ?: return@launch
+
+        val tempImportFile = File(cacheDir, fileName).apply {
+            parentFile?.mkdirs()
+        }
+        contentResolver.openInputStream(uri)?.use(tempImportFile.outputStream())
         try {
-            Libcore.tryUnpack(sourceFile.absolutePath, destinationDir.absolutePath)
+            Libcore.tryUnpack(tempImportFile.absolutePath, destinationDir.absolutePath)
         } catch (e: Exception) {
-            _uiState.update { AssetsUiState.Done(e) }
-            return
+            Logs.e(e)
+            return@launch
         } finally {
-            sourceFile.delete()
+            tempImportFile.delete()
         }
 
-        val assetsDir =
-            destinationDir.parentFile ?: throw IllegalStateException("Destination has no parent")
+        val assetsDir = destinationDir.parentFile
         val nameList = listOf("geosite", "geoip")
         for (name in nameList) {
             val file = File(assetsDir, "$name.version.txt")
@@ -231,7 +283,6 @@ internal class AssetsActivityViewModel : ViewModel() {
         }
 
         refreshAssets()
-        _uiState.update { AssetsUiState.Done() }
     }
 }
 
@@ -291,7 +342,7 @@ internal class CustomAssetUpdater(
         val cacheFiles = ArrayList<File>(updates.size)
 
         try {
-            updateProgress(35)
+            updateProgress(35f)
             for ((i, update) in updates.withIndex()) {
                 update as UpdateInfo.Custom
                 val response = newRequest(update.link).execute()
@@ -304,16 +355,16 @@ internal class CustomAssetUpdater(
                 cacheFiles.add(cacheFile)
             }
 
-            updateProgress(25)
+            updateProgress(25f)
             for (file in cacheFiles) {
                 Libcore.tryUnpack(file.absolutePath, destinationDir.absolutePath)
             }
 
-            updateProgress(25)
+            updateProgress(25f)
             for (version in versionFiles) {
                 version.writeText("custom")
             }
-            updateProgress(15)
+            updateProgress(15f)
         } finally {
             for (file in cacheFiles) {
                 file.runCatching { delete() }
@@ -341,7 +392,7 @@ internal class GithubAssetUpdater(
 
             if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
                 updatesNeeded.add(UpdateInfo.Github(repo, latestVersion))
-                updateProgress(5)
+                updateProgress(5f)
             }
         }
         return updatesNeeded
@@ -349,8 +400,8 @@ internal class GithubAssetUpdater(
 
     override suspend fun performUpdate(updates: List<UpdateInfo>) {
         val cacheFiles = ArrayList<File>(updates.size)
-        val progressTotalDownload = 60
-        val progressTotalUnpack = 25
+        val progressTotalDownload = 60f
+        val progressTotalUnpack = 25f
 
         try {
             val progressPerDownload = progressTotalDownload / updates.size
