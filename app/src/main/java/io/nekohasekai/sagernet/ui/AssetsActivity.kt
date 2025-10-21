@@ -8,6 +8,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +38,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.Button
@@ -42,6 +47,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -51,12 +57,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,6 +78,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -75,6 +88,7 @@ import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -165,6 +179,16 @@ private fun AssetsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val visibilityMap = remember { mutableStateMapOf<String, Boolean>() }
+
+    LaunchedEffect(uiState.assets) {
+        uiState.assets.forEach { asset ->
+            if (!visibilityMap.containsKey(asset.file.name)) {
+                visibilityMap[asset.file.name] = true
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -271,92 +295,169 @@ private fun AssetsScreen(
                     }
                 },
             ) { asset ->
-                OutlinedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.elevatedCardElevation(),
+                val resources = LocalResources.current
+                val swipeState = rememberSwipeToDismissBoxState()
+                val visible = visibilityMap[asset.file.name] ?: true
+
+                AnimatedVisibility(
+                    visible = visible,
+                    exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        asset.progress?.let {
-                            LinearProgressIndicator(
-                                progress = { it },
-                                modifier = Modifier.fillMaxWidth(),
+                    if (!asset.builtIn) {
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = true,
+                            enableDismissFromEndToStart = true,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(Icons.Default.Delete, null)
+                                }
+                            },
+                            onDismiss = { value ->
+                                when (value) {
+                                    SwipeToDismissBoxValue.StartToEnd,
+                                    SwipeToDismissBoxValue.EndToStart,
+                                        -> visibilityMap[asset.file.name] = false
+
+                                    else -> {}
+                                }
+                            },
+                        ) {
+                            AssetCard(
+                                asset = asset,
+                                importUrl = importUrl,
+                                viewModel = viewModel,
+                                uiState = uiState,
                             )
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+                    } else {
+                        AssetCard(
+                            asset = asset,
+                            importUrl = importUrl,
+                            viewModel = viewModel,
+                            uiState = uiState,
+                        )
+                    }
+                }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
+                LaunchedEffect(visible) {
+                    if (!visible) {
+                        delay(220)
+
+                        val result = snackbarHostState.showSnackbar(
+                            message = resources.getQuantityString(R.plurals.removed, 1, 1),
+                            actionLabel = context.getString(R.string.undo),
+                            duration = SnackbarDuration.Short,
+                        )
+
+                        when (result) {
+                            SnackbarResult.ActionPerformed -> {
+                                visibilityMap[asset.file.name] = true
+                            }
+                            SnackbarResult.Dismissed -> {
+                                viewModel.deleteAssets(listOf(asset.file))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssetCard(
+    asset: AssetItem,
+    importUrl: androidx.activity.result.ActivityResultLauncher<Intent>,
+    viewModel: AssetsActivityViewModel,
+    uiState: AssetsUiState,
+) {
+    val context = LocalContext.current
+
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.elevatedCardElevation(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            asset.progress?.let {
+                LinearProgressIndicator(
+                    progress = { it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = asset.file.name,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                        ),
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = stringResource(
+                            R.string.route_asset_status,
+                            asset.version
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                if (!asset.builtIn) {
+                    Column(
+                        modifier = Modifier.wrapContentWidth(),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        val clickable = uiState.process == null && asset.progress == null
+                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                            Box(modifier = Modifier.size(36.dp)) {
+                                SimpleIconButton(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = stringResource(R.string.edit),
+                                    enabled = clickable,
+                                    onClick = {
+                                        importUrl.launch(
+                                            Intent(context, AssetEditActivity::class.java)
+                                                .putExtra(
+                                                    AssetEditActivity.EXTRA_ASSET_NAME,
+                                                    asset.file.name
+                                                )
+                                        )
+                                    },
+                                )
+                            }
+                        }
+                        Button(
+                            onClick = {
+                                viewModel.updateSingleAsset(asset.file)
+                            },
+                            enabled = clickable,
+                            contentPadding = PaddingValues(
+                                horizontal = 12.dp,
+                                vertical = 6.dp,
+                            ),
+                            modifier = Modifier.defaultMinSize(minHeight = 36.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                Text(
-                                    text = asset.file.name,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = stringResource(
-                                        R.string.route_asset_status,
-                                        asset.version
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-
-                            if (!asset.builtIn) {
-                                Column(
-                                    modifier = Modifier.wrapContentWidth(),
-                                    horizontalAlignment = Alignment.End,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                ) {
-                                    val clickable =
-                                        uiState.process == null && asset.progress == null
-                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                                        Box(modifier = Modifier.size(36.dp)) {
-                                            SimpleIconButton(
-                                                imageVector = Icons.Filled.Edit,
-                                                contentDescription = stringResource(R.string.edit),
-                                                enabled = clickable,
-                                                onClick = {
-                                                    importUrl.launch(
-                                                        Intent(
-                                                            context,
-                                                            AssetEditActivity::class.java
-                                                        )
-                                                            .putExtra(
-                                                                AssetEditActivity.EXTRA_ASSET_NAME,
-                                                                asset.file.name
-                                                            )
-                                                    )
-                                                },
-                                            )
-                                        }
-                                    }
-                                    Button(
-                                        onClick = {
-                                            viewModel.updateSingleAsset(asset.file)
-                                        },
-                                        enabled = clickable,
-                                        contentPadding = PaddingValues(
-                                            horizontal = 12.dp,
-                                            vertical = 6.dp,
-                                        ),
-                                        modifier = Modifier.defaultMinSize(minHeight = 36.dp),
-                                    ) {
-                                        Text(stringResource(R.string.group_update))
-                                    }
-                                }
-                            }
+                            Text(stringResource(R.string.group_update))
                         }
                     }
                 }
