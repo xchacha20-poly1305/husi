@@ -58,7 +58,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
@@ -68,11 +67,9 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.configuration.ProfileSelectActivity
-import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
-import com.twofortyfouram.locale.api.Intent as ApiIntent
 
 class TaskerActivity : ComposeActivity() {
 
@@ -203,8 +200,8 @@ class TaskerActivity : ComposeActivity() {
             }
         }
         return Intent().apply {
-            putExtra(ApiIntent.EXTRA_BUNDLE, settings.bundle)
-            putExtra(ApiIntent.EXTRA_STRING_BLURB, blurb)
+            putExtra(TaskerBundle.EXTRA_BUNDLE, settings.bundle)
+            putExtra(TaskerBundle.EXTRA_STRING_BLURB, blurb)
         }
     }
 
