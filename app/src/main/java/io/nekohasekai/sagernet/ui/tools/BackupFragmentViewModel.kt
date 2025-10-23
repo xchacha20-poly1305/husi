@@ -5,17 +5,18 @@ import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.database.AssetEntity
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ParcelizeBridge
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.KeyValuePair
-import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
 import io.nekohasekai.sagernet.ktx.forEach
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.repository.repo
@@ -160,17 +161,15 @@ internal class BackupViewModel : ViewModel() {
                 })
             }
             if (setting) {
-                put("settings", JSONArray().apply {
-                    PublicDatabase.kvPairDao.all().forEach {
-                        put(it.toBase64Str())
-                    }
+                put("settings", JSONObject().apply {
+                    DataStore.configurationStore.exportToJson(this)
                 })
             }
         }
         return out.toString(2)
     }
 
-    private fun finishImport(
+    private suspend fun finishImport(
         content: JSONObject,
         profile: Boolean,
         rule: Boolean,
@@ -231,18 +230,30 @@ internal class BackupViewModel : ViewModel() {
             SagerDatabase.assetDao.insert(assets)
         }
         if (setting && content.has("settings")) {
-            val settings = mutableListOf<KeyValuePair>()
-            val jsonSettings = content.getJSONArray("settings")
-            jsonSettings.forEach { setting ->
-                val data = (setting as String).b64Decode()
-                val parcel = Parcel.obtain()
-                parcel.unmarshall(data, 0, data.size)
-                parcel.setDataPosition(0)
-                settings.add(KeyValuePair.CREATOR.createFromParcel(parcel))
-                parcel.recycle()
+            onIoDispatcher {
+                when (val rawSettings = content.get("settings")) {
+                    is JSONArray -> {
+                        val pairs = mutableListOf<KeyValuePair>()
+                        rawSettings.forEach { settingItem ->
+                            val data = (settingItem as String).b64Decode()
+                            val parcel = Parcel.obtain()
+                            parcel.unmarshall(data, 0, data.size)
+                            parcel.setDataPosition(0)
+                            pairs.add(KeyValuePair.CREATOR.createFromParcel(parcel))
+                            parcel.recycle()
+                        }
+                        DataStore.configurationStore.importLegacyPairs(pairs)
+                    }
+
+                    is JSONObject -> {
+                        DataStore.configurationStore.importFromJson(rawSettings)
+                    }
+
+                    else -> {
+                        Logs.w("Ignore settings import: unsupported format ${rawSettings::class.simpleName}")
+                    }
+                }
             }
-            PublicDatabase.kvPairDao.reset()
-            PublicDatabase.kvPairDao.insert(settings)
         }
     }
 

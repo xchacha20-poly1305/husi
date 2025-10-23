@@ -12,10 +12,28 @@ import io.nekohasekai.sagernet.repository.repo
 @GenerateRoomMigrations
 abstract class PublicDatabase : RoomDatabase() {
     companion object {
-        val instance by lazy {
+        @Volatile
+        private var cachedInstance: PublicDatabase? = null
+
+        val instance: PublicDatabase
+            get() = cachedInstance ?: synchronized(this) {
+                cachedInstance ?: buildDatabase().also { cachedInstance = it }
+            }
+
+        val kvPairDao get() = instance.keyValuePairDao()
+
+        fun hasInstance(): Boolean = cachedInstance != null
+
+        fun clearInstance() {
+            synchronized(this) {
+                cachedInstance = null
+            }
+        }
+
+        private fun buildDatabase(): PublicDatabase {
             val dbFile = repo.getDatabasePath(Key.DB_PUBLIC)
             dbFile.parentFile?.mkdirs()
-            Room.databaseBuilder(repo.context, PublicDatabase::class.java, dbFile.absolutePath)
+            return Room.databaseBuilder(repo.context, PublicDatabase::class.java, dbFile.absolutePath)
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
                 .fallbackToDestructiveMigration(true)
@@ -23,10 +41,7 @@ abstract class PublicDatabase : RoomDatabase() {
                 .setQueryExecutor { runOnDefaultDispatcher { it.run() } }
                 .build()
         }
-
-        val kvPairDao get() = instance.keyValuePairDao()
     }
 
     abstract fun keyValuePairDao(): KeyValuePair.Dao
-
 }

@@ -78,6 +78,9 @@ dependencies {
     implementation("androidx.work:work-multiprocess:2.10.5")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0")
+    implementation("androidx.datastore:datastore:1.1.7")
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation("androidx.datastore:datastore-preferences-core:1.1.7")
 
     implementation(platform("androidx.compose:compose-bom:2025.10.00"))
     implementation("androidx.compose.ui:ui")
@@ -113,10 +116,10 @@ dependencies {
     }
     implementation("com.google.guava:guava:33.5.0-android")
 
-    implementation("androidx.room:room-runtime:2.8.2")
+    implementation("androidx.room:room-runtime:2.8.3")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
-    ksp("androidx.room:room-compiler:2.8.2")
-    implementation("androidx.room:room-ktx:2.8.2")
+    ksp("androidx.room:room-compiler:2.8.3")
+    implementation("androidx.room:room-ktx:2.8.3")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
 

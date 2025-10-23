@@ -6,10 +6,11 @@ import android.os.Build
 import android.util.Log
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.database.preference.PublicDatabase
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.BlankActivity
+import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -97,9 +98,13 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
 
         try {
             report += "Settings: \n"
-            for (pair in PublicDatabase.kvPairDao.all()) {
+            val json = org.json.JSONObject()
+            runBlocking {
+                DataStore.configurationStore.exportToJson(json)
+            }
+            json.keys().forEach { key ->
                 report += "\n"
-                report += pair.key + ": " + pair.toString()
+                report += "$key: ${json.getString(key)}"
             }
         } catch (e: Exception) {
             report += "Export settings failed: " + formatThrowable(e)
