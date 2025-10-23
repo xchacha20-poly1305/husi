@@ -29,7 +29,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.delay
@@ -107,7 +106,6 @@ fun ThemedActivity.needRestart() {
         runOnDefaultDispatcher {
             delay(500)
             SagerDatabase.instance.close()
-            PublicDatabase.instance.close()
             Executable.killAll(true)
             ProcessPhoenix.triggerRebirth(
                 this@needRestart,

@@ -103,9 +103,25 @@ fun JSONObject.getLongOrNull(name: String): Long? {
     }
 }
 
+fun JSONObject.getDoubleOrNull(name: String): Double? {
+    return try {
+        getDouble(name)
+    } catch (_: Exception) {
+        null
+    }
+}
+
 fun JSONObject.getObject(key: String): JSONObject? {
     return try {
         getJSONObject(key)
+    } catch (_: Exception) {
+        null
+    }
+}
+
+fun JSONObject.getArray(key: String): JSONArray? {
+    return try {
+        getJSONArray(key)
     } catch (_: Exception) {
         null
     }
