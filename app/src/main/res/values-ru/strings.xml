@@ -674,4 +674,10 @@
     <string name="format">Формат</string>
     <string name="not_found">Не найдено</string>
     <string name="full">Полностью</string>
+    <string name="query_package_denied">Необходимо запросить разрешение на маршрутизацию всех пакетов на основе приложения.</string>
+    <string name="more">Меню</string>
+    <string name="redo">Повторить</string>
+    <string name="indent">Отступ</string>
+    <string name="back">Назад</string>
+    <string name="have_a_nice_day">Хорошего дня!</string>
 </resources>
