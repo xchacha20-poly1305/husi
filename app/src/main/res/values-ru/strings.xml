@@ -674,7 +674,7 @@
     <string name="format">Формат</string>
     <string name="not_found">Не найдено</string>
     <string name="full">Полностью</string>
-    <string name="query_package_denied">Необходимо запросить разрешение на маршрутизацию всех пакетов на основе приложения.</string>
+    <string name="query_package_denied">Необходимо разрешение на запрос списка установленных пакетов, для маршрутизации на основе приложения.</string>
     <string name="more">Меню</string>
     <string name="redo">Повторить</string>
     <string name="indent">Отступ</string>
