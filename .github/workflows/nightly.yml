@@ -64,7 +64,7 @@ jobs:
         run: |
           ./run lib core
       - name: Upload libcore
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           path: app/libs/libcore.aar
           name: "libcore"
@@ -79,7 +79,7 @@ jobs:
         with:
           submodules: recursive
       - name: LibCore Artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: "libcore"
           path: app/libs/libcore.aar
@@ -112,7 +112,7 @@ jobs:
           APK=$(dirname $APK)
           rm $APK/output-metadata.json
           echo "APK=$APK" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: APKs
           path: ${{ env.APK }}
