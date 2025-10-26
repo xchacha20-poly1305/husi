@@ -7,4 +7,4 @@ GEOIP_VERSION="20251012"
 
 # https://github.com/v2fly/domain-list-community
 # or https://github.com/SagerNet/sing-geosite
-GEOSITE_VERSION="20250916122507"
+GEOSITE_VERSION="20251026063608"

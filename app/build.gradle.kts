@@ -4,8 +4,8 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.2.20-2.0.4"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20"
+    id("com.google.devtools.ksp") version "2.3.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.21"
 }
 
 setupApp()
@@ -73,17 +73,17 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.5")
-    implementation("androidx.work:work-multiprocess:2.10.5")
+    implementation("androidx.work:work-runtime-ktx:2.11.0")
+    implementation("androidx.work:work-multiprocess:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0")
     implementation("androidx.datastore:datastore:1.1.7")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("androidx.datastore:datastore-preferences-core:1.1.7")
 
-    implementation(platform("androidx.compose:compose-bom:2025.10.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.10.01"))
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material3:material3:1.5.0-alpha06")
+    implementation("androidx.compose.material3:material3:1.5.0-alpha07")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.ui:ui-viewbinding")
@@ -96,7 +96,7 @@ dependencies {
     implementation(project(":library:compose-code-editor:codeeditor"))
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    implementation("com.google.android.material:material:1.14.0-alpha05")
+    implementation("com.google.android.material:material:1.14.0-alpha06")
     implementation("com.google.code.gson:gson:2.13.2")
 
     implementation("androidx.camera:camera-core:1.5.1")
