@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.compose
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,10 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -72,7 +70,7 @@ fun PasswordPreference(
     onValueChange: (String) -> Unit,
     title: @Composable () -> Unit = { Text(stringResource(R.string.password)) },
     enabled: Boolean = true,
-    icon: @Composable (() -> Unit) = { Icon(Icons.Filled.Password, null) },
+    icon: @Composable (() -> Unit) = { Icon(ImageVector.vectorResource(R.drawable.password), null) },
 ) {
     TextFieldPreference(
         value = value,
@@ -217,7 +215,7 @@ private fun PreviewCustomPreference() {
                 .verticalScroll(rememberScrollState())
         ) {
             PreferenceCategory(
-                icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.settings), contentDescription = null) },
                 text = { Text("Account Settings") }
             )
 
@@ -250,7 +248,7 @@ private fun PreviewCustomPreference() {
                 displayKey = { it },
                 textToValue = { it },
                 title = { Text("Connection Settings") },
-                icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.wifi), contentDescription = null) },
                 summary = {
                     Text(mapValue.entries.joinToString { "${it.key}: ${it.value}" })
                 }

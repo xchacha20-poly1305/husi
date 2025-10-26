@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -17,42 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.automirrored.filled.Segment
-import androidx.compose.material.icons.filled.AddRoad
-import androidx.compose.material.icons.filled.Cached
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.Domain
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.FiberSmartRecord
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.HourglassTop
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.LegendToggle
-import androidx.compose.material.icons.filled.LocalAirport
-import androidx.compose.material.icons.filled.LocalBar
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PinDrop
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.Timelapse
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.WifiFind
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -142,7 +108,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             title = { Text(stringResource(R.string.menu_route)) },
                             navigationIcon = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Close,
+                                    imageVector = ImageVector.vectorResource(R.drawable.close),
                                     contentDescription = stringResource(R.string.close),
                                 ) {
                                     onBackPressedDispatcher.onBackPressed()
@@ -150,12 +116,12 @@ class RouteSettingsActivity : ComposeActivity() {
                             },
                             actions = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Delete,
+                                    imageVector = ImageVector.vectorResource(R.drawable.delete),
                                     contentDescription = stringResource(R.string.delete),
                                     onClick = { showDeleteConfirm = true },
                                 )
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Done,
+                                    imageVector = ImageVector.vectorResource(R.drawable.done),
                                     contentDescription = stringResource(R.string.apply),
                                 ) {
                                     if (isDirty) {
@@ -167,7 +133,7 @@ class RouteSettingsActivity : ComposeActivity() {
 
                                 Box {
                                     SimpleIconButton(
-                                        imageVector = Icons.Filled.MoreVert,
+                                        imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                         contentDescription = stringResource(R.string.more),
                                     ) {
                                         showExpandedMenu = true
@@ -235,7 +201,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             finish()
                         }
                     },
-                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
                     title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
                 if (showDeleteConfirm) AlertDialog(
@@ -251,7 +217,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             showDeleteConfirm = false
                         }
                     },
-                    icon = { Icon(Icons.Filled.Warning, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
                     title = { Text(stringResource(R.string.delete_confirm_prompt)) },
                 )
                 if (showUnchangedAlert) AlertDialog(
@@ -261,7 +227,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             showUnchangedAlert = false
                         }
                     },
-                    icon = { Icon(Icons.Filled.WarningAmber, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.warning_amber), null) },
                     title = { Text(stringResource(R.string.empty_route)) },
                     text = { Text(stringResource(R.string.empty_route_notice)) },
                 )
@@ -283,7 +249,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setName(it) },
                         title = { Text(stringResource(R.string.route_name)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                         valueToText = { it },
                     )
@@ -291,7 +257,7 @@ class RouteSettingsActivity : ComposeActivity() {
                 item("apps") {
                     Preference(
                         title = { Text(stringResource(R.string.apps)) },
-                        icon = { Icon(Icons.Filled.LegendToggle, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.legend_toggle), null) },
                         summary = {
                             val text = when (val size = uiState.packages.size) {
                                 0 -> stringResource(R.string.not_set)
@@ -317,7 +283,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setNetworkType(it) },
                         values = networkTypes,
                         title = { Text(stringResource(R.string.network_type)) },
-                        icon = { Icon(Icons.Filled.Public, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.public_icon), null) },
                         summary = {
                             val text = if (uiState.networkType.isEmpty()) {
                                 stringResource(R.string.not_set)
@@ -342,7 +308,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             SingBoxOptions.ACTION_REJECT,
                         ),
                         title = { Text(stringResource(R.string.route_action)) },
-                        icon = { Icon(Icons.Filled.Shuffle, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.shuffle), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.action)) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         valueToText = { AnnotatedString(it) },
@@ -358,7 +324,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setDomains(it) },
                         title = { Text("domain") },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Domain, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.domain), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.domains)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -372,7 +338,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setIp(it) },
                         title = { Text("ip") },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.AddRoad, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.add_road), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.ip)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -386,7 +352,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setPort(it) },
                         title = { Text("port") },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -400,7 +366,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setSourcePort(it) },
                         title = { Text("sourcePort") },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Home, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.home), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.sourcePort)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -418,7 +384,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             SingBoxOptions.NetworkICMP,
                         ),
                         title = { Text("network") },
-                        icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                         summary = {
                             val text = if (uiState.network.isEmpty()) {
                                 stringResource(R.string.not_set)
@@ -436,7 +402,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setSource(it) },
                         title = { Text("source") },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.LocalBar, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.local_bar), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.source)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -450,7 +416,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setProtocol(it) },
                         values = sniffers,
                         title = { Text("protocol") },
-                        icon = { Icon(Icons.Filled.Layers, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                         summary = {
                             val text = if (uiState.protocol.isEmpty()) {
                                 stringResource(R.string.not_set)
@@ -468,7 +434,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setClient(it) },
                         title = { Text("client") },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Fingerprint, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.fingerprint), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.client)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -486,7 +452,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             onValueChange = { viewModel.setSsid(it) },
                             title = { Text("SSID") },
                             textToValue = { it },
-                            icon = { Icon(Icons.Filled.Wifi, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.wifi), null) },
                             summary = { Text(LocalContext.current.contentOrUnset(uiState.ssid)) },
                             valueToText = { it },
                             textField = { value, onValueChange, onOk ->
@@ -500,7 +466,7 @@ class RouteSettingsActivity : ComposeActivity() {
                             onValueChange = { viewModel.setBssid(it) },
                             title = { Text("BSSID") },
                             textToValue = { it },
-                            icon = { Icon(Icons.Filled.WifiFind, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.wifi_find), null) },
                             summary = { Text(LocalContext.current.contentOrUnset(uiState.bssid)) },
                             valueToText = { it },
                             textField = { value, onValueChange, onOk ->
@@ -516,7 +482,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         onValueChange = { viewModel.setClashMode(it) },
                         title = { Text(stringResource(R.string.clash_mode)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Category, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.category), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.clashMode)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -529,7 +495,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         value = uiState.networkIsExpensive,
                         onValueChange = { viewModel.setNetworkIsExpensive(it) },
                         title = { Text(stringResource(R.string.network_expensive)) },
-                        icon = { Icon(Icons.Filled.MonetizationOn, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.monetization_on), null) },
                     )
                 }
                 item("network_interface_address") {
@@ -541,7 +507,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         valueToText = { it },
                         textToValue = { it },
                         title = { Text("networkInterfaceAddress") },
-                        icon = { Icon(Icons.Filled.LocalAirport, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.local_airport), null) },
                         summary = { Text(uiState.networkInterfaceAddress.toString()) },
                     )
                 }
@@ -579,7 +545,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                     -4L, // Custom
                                 ),
                                 title = { Text(stringResource(R.string.outbound)) },
-                                icon = { Icon(Icons.Filled.Router, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                                 summary = {
                                     val text = when (uiState.outbound) {
                                         RuleEntity.OUTBOUND_PROXY -> stringResource(R.string.route_proxy)
@@ -615,7 +581,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 onValueChange = { viewModel.setOverrideAddress(it) },
                                 title = { Text(stringResource(R.string.override_address)) },
                                 textToValue = { it },
-                                icon = { Icon(Icons.Filled.LocationOn, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.location_on), null) },
                                 summary = { Text(LocalContext.current.contentOrUnset(uiState.overrideAddress)) },
                                 valueToText = { it },
                             )
@@ -626,7 +592,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 onValueChange = { viewModel.setOverridePort(it) },
                                 title = { Text(stringResource(R.string.override_port)) },
                                 textToValue = { it.toIntOrNull() ?: 0 },
-                                icon = { Icon(Icons.Filled.PinDrop, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.pin_drop), null) },
                                 summary = { Text(LocalContext.current.contentOrUnset(uiState.overridePort)) },
                                 textField = { value, onValueChange, onOk ->
                                     UIntegerTextField(value, onValueChange, onOk)
@@ -638,7 +604,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 value = uiState.tlsFragment,
                                 onValueChange = { viewModel.setTlsFragment(it) },
                                 title = { Text(stringResource(R.string.tls_fragment)) },
-                                icon = { Icon(Icons.AutoMirrored.Filled.Segment, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.segment), null) },
                             )
                         }
                         item("tls_fragment_fallback_delay") {
@@ -648,7 +614,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 title = { Text(stringResource(R.string.tls_fragment_fallback_delay)) },
                                 textToValue = { it },
                                 enabled = uiState.tlsFragment,
-                                icon = { Icon(Icons.Filled.HourglassTop, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.hourglass_top), null) },
                                 summary = { Text(LocalContext.current.contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
                                 textField = { value, onValueChange, onOk ->
                                     DurationTextField(value, onValueChange, onOk)
@@ -660,7 +626,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 value = uiState.tlsRecordFragment,
                                 onValueChange = { viewModel.setTlsRecordFragment(it) },
                                 title = { Text(stringResource(R.string.tls_record_fragment)) },
-                                icon = { Icon(Icons.Filled.FiberSmartRecord, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.fiber_smart_record), null) },
                             )
                         }
                     }
@@ -681,7 +647,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                     SingBoxOptions.STRATEGY_IPV6_ONLY,
                                 ),
                                 title = { Text("Resolve Strategy") },
-                                icon = { Icon(Icons.Filled.Dns, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.dns), null) },
                                 summary = {
                                     val text = uiState.resolveStrategy.blankAsNull()
                                         ?: stringResource(R.string.auto)
@@ -696,7 +662,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 value = uiState.resolveDisableCache,
                                 onValueChange = { viewModel.setResolveDisableCache(it) },
                                 title = { Text("Disable Cache") },
-                                icon = { Icon(Icons.Filled.Cached, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.cached), null) },
                             )
                         }
                         item("rewrite_ttl") {
@@ -705,7 +671,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 onValueChange = { viewModel.setResolveRewriteTTL(it) },
                                 title = { Text("Rewrite TTL") },
                                 textToValue = { it.toIntOrNull() ?: 0 },
-                                icon = { Icon(Icons.Filled.Timer, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.timer), null) },
                                 summary = {
                                     val text =
                                         uiState.resolveRewriteTTL.takeIf { it > 0 }?.toString()
@@ -723,7 +689,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 onValueChange = { viewModel.setResolveClientSubnet(it) },
                                 title = { Text("Client Subnet") },
                                 textToValue = { it },
-                                icon = { Icon(Icons.Filled.PushPin, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.push_pin), null) },
                                 summary = { Text(LocalContext.current.contentOrUnset(uiState.resolveClientSubnet)) },
                                 valueToText = { it },
                             )
@@ -740,7 +706,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 onValueChange = { viewModel.setSniffTimeout(it) },
                                 title = { Text(stringResource(R.string.sniff_timeout)) },
                                 textToValue = { it },
-                                icon = { Icon(Icons.Filled.Timelapse, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.timelapse), null) },
                                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sniffTimeout)) },
                                 textField = { value, onValueChange, onOk ->
                                     DurationTextField(value, onValueChange, onOk)
@@ -753,7 +719,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 onValueChange = { viewModel.setSniffers(it) },
                                 values = sniffers,
                                 title = { Text("Sniffers") },
-                                icon = { Icon(Icons.Filled.Layers, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                                 summary = {
                                     val text = if (uiState.sniffers.isEmpty()) {
                                         stringResource(R.string.not_set)

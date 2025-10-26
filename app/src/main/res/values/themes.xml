@@ -18,7 +18,7 @@
         <item name="colorOnTertiaryContainer">@color/material_red_900</item>
 
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
+        <item name="actionModeCloseDrawable">@drawable/close</item>
 
         <item name="selectedColorPrimary">?colorPrimary</item>
 
@@ -42,7 +42,7 @@
         <item name="colorOnTertiaryContainer">@color/material_red_900</item>
 
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
+        <item name="actionModeCloseDrawable">@drawable/close</item>
 
         <item name="selectedColorPrimary">?colorPrimary</item>
 

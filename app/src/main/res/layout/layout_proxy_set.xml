@@ -62,7 +62,7 @@
                         android:layout_marginStart="4dp"
                         android:backgroundTint="?colorSurfaceContainerLow"
                         android:contentDescription="@string/action_urltest"
-                        android:src="@drawable/ic_baseline_bolt"
+                        android:src="@drawable/bolt"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                     <ImageButton
@@ -72,7 +72,7 @@
                         android:layout_marginStart="4dp"
                         android:backgroundTint="?colorSurfaceContainerLow"
                         android:contentDescription="@string/expand"
-                        android:src="@drawable/ic_expand_less_24"
+                        android:src="@drawable/expand_less"
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </LinearLayout>

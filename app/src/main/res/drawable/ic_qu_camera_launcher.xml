@@ -9,7 +9,7 @@
             android:bottom="2dp"/>
 
     <item
-            android:drawable="@drawable/ic_image_camera_alt"
+            android:drawable="@drawable/camera_alt"
             android:left="12dp"
             android:top="12dp"
             android:right="12dp"

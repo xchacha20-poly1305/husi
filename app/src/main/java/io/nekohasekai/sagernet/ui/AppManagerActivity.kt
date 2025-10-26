@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.ClipboardManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -31,13 +33,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.CopyAll
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -200,7 +195,7 @@ private fun AppManagerScreen(
                         },
                         navigationIcon = {
                             SimpleIconButton(
-                                imageVector = Icons.Filled.Close,
+                                imageVector = ImageVector.vectorResource(R.drawable.close),
                                 contentDescription = stringResource(R.string.close),
                                 onClick = onBackPress,
                             )
@@ -208,7 +203,7 @@ private fun AppManagerScreen(
                         actions = {
                             if (searchActivate) {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.SearchOff,
+                                    imageVector = ImageVector.vectorResource(R.drawable.search_off),
                                     contentDescription = stringResource(R.string.close),
                                     onClick = {
                                         searchActivate = false
@@ -217,13 +212,13 @@ private fun AppManagerScreen(
                                 )
                             } else {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Search,
+                                    imageVector = ImageVector.vectorResource(R.drawable.search),
                                     contentDescription = stringResource(android.R.string.search_go),
                                     onClick = { searchActivate = true },
                                 )
 
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.CopyAll,
+                                    imageVector = ImageVector.vectorResource(R.drawable.copy_all),
                                     contentDescription = stringResource(R.string.action_copy),
                                     onClick = {
                                         val toExport = viewModel.export()
@@ -244,7 +239,7 @@ private fun AppManagerScreen(
                                     },
                                 )
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.ContentPaste,
+                                    imageVector = ImageVector.vectorResource(R.drawable.content_paste),
                                     contentDescription = stringResource(R.string.action_import),
                                     onClick = {
                                         val text = clipboardManager?.first()
@@ -254,7 +249,7 @@ private fun AppManagerScreen(
 
                                 Box {
                                     SimpleIconButton(
-                                        imageVector = Icons.Filled.MoreVert,
+                                        imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                         contentDescription = stringResource(R.string.more),
                                         onClick = { showOverflowMenu = true },
                                     )

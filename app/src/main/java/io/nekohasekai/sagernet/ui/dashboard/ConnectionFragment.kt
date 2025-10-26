@@ -1,11 +1,10 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.View
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -73,7 +72,7 @@ class ConnectionFragment() :
                     title = { Text(viewModel.uiState.collectAsState().value.connection.uuid) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
                             contentDescription = stringResource(R.string.back),
                             onClick = {
                                 (requireActivity() as MainActivity).onBackPressedCallback.isEnabled = true
@@ -83,7 +82,7 @@ class ConnectionFragment() :
                     },
                     actions = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.DeleteForever,
+                            imageVector = ImageVector.vectorResource(R.drawable.delete_forever),
                             contentDescription = stringResource(R.string.close),
                         ) {
                             val activity = requireActivity() as MainActivity

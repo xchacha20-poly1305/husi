@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.configuration
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
@@ -19,12 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.NoteAdd
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -479,12 +475,12 @@ class ConfigurationFragment : OnKeyDownFragment {
             },
             navigationIcon = {
                 if (viewModel.forSelect) SimpleIconButton(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = ImageVector.vectorResource(R.drawable.close),
                     contentDescription = stringResource(R.string.close),
                 ) {
                     requireActivity().finish()
                 } else SimpleIconButton(
-                    imageVector = Icons.Filled.Menu,
+                    imageVector = ImageVector.vectorResource(R.drawable.menu),
                     contentDescription = stringResource(R.string.menu),
                 ) {
                     (requireActivity() as MainActivity).binding
@@ -494,14 +490,14 @@ class ConfigurationFragment : OnKeyDownFragment {
             actions = {
                 if (viewModel.forSelect) return@TopAppBar
                 if (isSearchActive) SimpleIconButton(
-                    imageVector = Icons.Default.Close,
+                    imageVector = ImageVector.vectorResource(R.drawable.close),
                     contentDescription = stringResource(R.string.close),
                 ) {
                     isSearchActive = false
                     viewModel.setSearchQuery("")
                 } else {
                     SimpleIconButton(
-                        imageVector = Icons.Filled.Search,
+                        imageVector = ImageVector.vectorResource(R.drawable.search),
                         contentDescription = stringResource(android.R.string.search_go),
                     ) {
                         isSearchActive = true
@@ -509,7 +505,7 @@ class ConfigurationFragment : OnKeyDownFragment {
 
                     Box {
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                            imageVector = ImageVector.vectorResource(R.drawable.note_add),
                             contentDescription = stringResource(R.string.add_profile),
                         ) {
                             showAddMenu = true
@@ -794,7 +790,7 @@ class ConfigurationFragment : OnKeyDownFragment {
 
                     Box {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.MoreVert,
+                            imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                             contentDescription = stringResource(R.string.more),
                         ) {
                             showOverflowMenu = true

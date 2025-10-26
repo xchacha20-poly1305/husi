@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -33,15 +35,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.GTranslate
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -192,7 +185,7 @@ private fun AboutScreen(
         topBar = {
             SimpleTopAppBar(
                 title = R.string.menu_about,
-                navigationIcon = Icons.Filled.Menu,
+                navigationIcon = ImageVector.vectorResource(R.drawable.menu),
                 navigationDescription = stringResource(R.string.menu),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
@@ -257,7 +250,7 @@ private fun AboutScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         CardItem(
-                            icon = { Icon(Icons.Filled.Android, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.android), null) },
                             title = stringResource(R.string.app_name),
                             description = displayVersion,
                             onCLick = {
@@ -265,7 +258,7 @@ private fun AboutScreen(
                             },
                         )
                         CardItem(
-                            icon = { Icon(Icons.Filled.LibraryMusic, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.library_music), null) },
                             title = stringResource(R.string.version_x, "sing-box"),
                             description = coreVersion,
                             onCLick = {
@@ -275,7 +268,7 @@ private fun AboutScreen(
 
                         for (plugin in uiState.plugins) {
                             CardItem(
-                                icon = { Icon(Icons.Filled.Nfc, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                                 title = stringResource(R.string.version_x, plugin.id)
                                         + " (${plugin.provider})",
                                 description = "v${plugin.version}",
@@ -302,7 +295,7 @@ private fun AboutScreen(
 
                         if (shouldRequestBatteryOptimizations) {
                             CardItem(
-                                icon = { Icon(Icons.Filled.BatteryChargingFull, null) },
+                                icon = { Icon(ImageVector.vectorResource(R.drawable.battery_charging_full), null) },
                                 title = stringResource(R.string.ignore_battery_optimizations),
                                 description = stringResource(R.string.ignore_battery_optimizations_sum),
                                 onCLick = {
@@ -316,7 +309,7 @@ private fun AboutScreen(
                             )
                         }
                         CardItem(
-                            icon = { Icon(Icons.Filled.Public, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.public_icon), null) },
                             title = stringResource(R.string.sekai),
                             onCLick = {
                                 uriHandler.openUri("https://sekai.icu/sponsor")
@@ -356,13 +349,13 @@ private fun AboutScreen(
 
                         CardItem(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            icon = { Icon(Icons.Filled.Code, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.code), null) },
                             title = stringResource(R.string.github),
                             onCLick = { uriHandler.openUri("https://github.com/xchacha20-poly1305/husi") },
                         )
                         CardItem(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            icon = { Icon(Icons.Filled.GTranslate, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.g_translate), null) },
                             title = stringResource(R.string.translate_platform),
                             onCLick = { uriHandler.openUri("https://hosted.weblate.org/projects/husi/husi/") },
                         )

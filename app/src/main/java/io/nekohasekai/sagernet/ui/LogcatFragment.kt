@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.GestureDetector
@@ -7,12 +9,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Sailing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -60,7 +56,7 @@ class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
                     title = { Text(stringResource(R.string.menu_log)) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Menu,
+                            imageVector = ImageVector.vectorResource(R.drawable.menu),
                             contentDescription = stringResource(R.string.menu),
                         ) {
                             (requireActivity() as MainActivity).binding
@@ -70,15 +66,15 @@ class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
                     actions = {
                         SimpleIconButton(
                             imageVector = if (isPinned) {
-                                Icons.Filled.Sailing
+                                ImageVector.vectorResource(R.drawable.sailing)
                             } else {
-                                Icons.Filled.PushPin
+                                ImageVector.vectorResource(R.drawable.push_pin)
                             },
                             contentDescription = stringResource(R.string.pin_log),
                             onClick = { viewModel.togglePinLog() },
                         )
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            imageVector = ImageVector.vectorResource(R.drawable.send),
                             contentDescription = stringResource(R.string.logcat),
                         ) {
                             try {
@@ -91,7 +87,7 @@ class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
                             }
                         }
                         SimpleIconButton(
-                            imageVector = Icons.Filled.DeleteSweep,
+                            imageVector = ImageVector.vectorResource(R.drawable.delete_sweep),
                             contentDescription = stringResource(R.string.clear_logcat),
                             onClick = { viewModel.clearLog() },
                         )

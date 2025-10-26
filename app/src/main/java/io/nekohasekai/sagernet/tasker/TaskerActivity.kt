@@ -18,6 +18,8 @@
 
 package io.nekohasekai.sagernet.tasker
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -35,12 +37,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -101,7 +97,7 @@ class TaskerActivity : ComposeActivity() {
                             title = { Text(stringResource(R.string.tasker_settings)) },
                             navigationIcon = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Close,
+                                    imageVector = ImageVector.vectorResource(R.drawable.close),
                                     contentDescription = stringResource(R.string.close),
                                     onClick = {
                                         onBackPressedDispatcher.onBackPressed()
@@ -110,7 +106,7 @@ class TaskerActivity : ComposeActivity() {
                             },
                             actions = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Done,
+                                    imageVector = ImageVector.vectorResource(R.drawable.done),
                                     contentDescription = stringResource(R.string.apply),
                                     onClick = {
                                         saveAndExit()
@@ -141,7 +137,7 @@ class TaskerActivity : ComposeActivity() {
                             finish()
                         }
                     },
-                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
                     title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
             }
@@ -220,7 +216,7 @@ class TaskerActivity : ComposeActivity() {
                 onValueChange = { viewModel.setAction(it) },
                 values = intListN(2),
                 title = { Text(stringResource(R.string.tasker_action)) },
-                icon = { Icon(Icons.Filled.Layers, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(stringResource(actionText(uiState.action))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(actionText(it))) },
@@ -241,7 +237,7 @@ class TaskerActivity : ComposeActivity() {
                 values = listOf(-1L, 0L),
                 title = { Text(stringResource(R.string.menu_configuration)) },
                 enabled = uiState.action == TaskerBundle.ACTION_START,
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = {
                     val summary = ProfileManager.getProfile(uiState.profileID)?.displayName()
                         ?: stringResource(R.string.not_set)

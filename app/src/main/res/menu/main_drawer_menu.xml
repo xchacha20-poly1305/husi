@@ -4,22 +4,22 @@
     <group android:checkableBehavior="single">
         <item
                 android:id="@+id/nav_configuration"
-                android:icon="@drawable/ic_action_description"
+                android:icon="@drawable/description"
                 android:title="@string/menu_configuration"/>
 
         <item
                 android:id="@+id/nav_group"
-                android:icon="@drawable/ic_baseline_view_list_24"
+                android:icon="@drawable/view_list"
                 android:title="@string/menu_group"/>
 
         <item
                 android:id="@+id/nav_route"
-                android:icon="@drawable/ic_maps_directions"
+                android:icon="@drawable/directions"
                 android:title="@string/menu_route"/>
 
         <item
                 android:id="@+id/nav_settings"
-                android:icon="@drawable/ic_action_settings"
+                android:icon="@drawable/settings"
                 android:title="@string/settings"/>
     </group>
 
@@ -28,15 +28,15 @@
             android:checkableBehavior="single">
         <item
                 android:id="@+id/nav_logcat"
-                android:icon="@drawable/ic_baseline_bug_report_24"
+                android:icon="@drawable/bug_report"
                 android:title="@string/menu_log"/>
         <item
                 android:id="@+id/nav_traffic"
-                android:icon="@drawable/ic_baseline_transform_24"
+                android:icon="@drawable/transform"
                 android:title="@string/menu_dashboard"/>
         <item
                 android:id="@+id/nav_tools"
-                android:icon="@drawable/baseline_construction_24"
+                android:icon="@drawable/construction"
                 android:title="@string/menu_tools"/>
     </group>
 
@@ -45,11 +45,11 @@
             android:checkableBehavior="single">
         <item
                 android:id="@+id/nav_faq"
-                android:icon="@drawable/ic_device_data_usage"
+                android:icon="@drawable/data_usage"
                 android:title="@string/document"/>
         <item
                 android:id="@+id/nav_about"
-                android:icon="@drawable/ic_baseline_info_24"
+                android:icon="@drawable/info"
                 android:title="@string/menu_about"/>
     </group>
 

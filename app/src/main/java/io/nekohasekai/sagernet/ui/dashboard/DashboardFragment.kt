@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.layout.Box
@@ -7,14 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CleaningServices
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -109,7 +103,7 @@ class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
                     },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Menu,
+                            imageVector = ImageVector.vectorResource(R.drawable.menu),
                             contentDescription = stringResource(R.string.menu),
                         ) {
                             (requireActivity() as MainActivity).binding
@@ -118,30 +112,30 @@ class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
                     },
                     actions = {
                         if (isSearchActive) SimpleIconButton(
-                            imageVector = Icons.Filled.Close,
+                            imageVector = ImageVector.vectorResource(R.drawable.close),
                             contentDescription = stringResource(R.string.close),
                         ) {
                             isSearchActive = false
                             viewModel.setSearchQuery("")
                         } else {
                             SimpleIconButton(
-                                imageVector = Icons.Filled.Search,
+                                imageVector = ImageVector.vectorResource(R.drawable.search),
                                 contentDescription = stringResource(android.R.string.search_go),
                             ) {
                                 isSearchActive = true
                             }
                             SimpleIconButton(
                                 imageVector = if (toolbarState.isPause) {
-                                    Icons.Filled.PlayArrow
+                                    ImageVector.vectorResource(R.drawable.play_arrow)
                                 } else {
-                                    Icons.Filled.Pause
+                                    ImageVector.vectorResource(R.drawable.pause)
                                 },
                                 contentDescription = stringResource(R.string.pause),
                             ) {
                                 viewModel.togglePausing()
                             }
                             SimpleIconButton(
-                                imageVector = Icons.Filled.CleaningServices,
+                                imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
                                 contentDescription = stringResource(R.string.reset_connections),
                             ) {
                                 val size = getFragment<ConnectionListFragment>(POSITION_CONNECTIONS)
@@ -163,7 +157,7 @@ class DashboardFragment : OnKeyDownFragment(R.layout.layout_dashboard) {
 
                             Box {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.MoreVert,
+                                    imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                     contentDescription = stringResource(R.string.more),
                                     onClick = { isOverflowMenuExpanded = true },
                                 )

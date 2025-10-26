@@ -185,9 +185,9 @@ class ProxySetFragment : Fragment(R.layout.layout_dashboard_list) {
 
             binding.expandButton.setImageResource(
                 if (data.isExpanded) {
-                    R.drawable.ic_expand_less_24
+                    R.drawable.expand_less
                 } else {
-                    R.drawable.ic_expand_more_24
+                    R.drawable.expand_more
                 }
             )
             binding.expandButton.setOnClickListener {

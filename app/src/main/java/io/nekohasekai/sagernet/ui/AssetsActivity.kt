@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
@@ -35,12 +37,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.NoteAdd
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -202,14 +198,14 @@ private fun AssetsScreen(
                     title = { Text(stringResource(R.string.route_assets)) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
                             contentDescription = stringResource(R.string.back),
                             onClick = onBackPress,
                         )
                     },
                     actions = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Update,
+                            imageVector = ImageVector.vectorResource(R.drawable.update),
                             contentDescription = stringResource(R.string.assets_update),
                             enabled = uiState.process == null && uiState.assets.all { it.progress == null },
                             onClick = {
@@ -221,7 +217,7 @@ private fun AssetsScreen(
                         )
                         Box {
                             SimpleIconButton(
-                                imageVector = Icons.AutoMirrored.Filled.NoteAdd,
+                                imageVector = ImageVector.vectorResource(R.drawable.note_add),
                                 contentDescription = stringResource(R.string.import_asset),
                                 onClick = { showImportMenu = true },
                             )
@@ -315,7 +311,7 @@ private fun AssetsScreen(
                                         .padding(horizontal = 16.dp),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    Icon(Icons.Default.Delete, null)
+                                    Icon(ImageVector.vectorResource(R.drawable.delete), null)
                                 }
                             },
                             onDismiss = { value ->
@@ -431,7 +427,7 @@ private fun AssetCard(
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                             Box(modifier = Modifier.size(36.dp)) {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Edit,
+                                    imageVector = ImageVector.vectorResource(R.drawable.edit),
                                     contentDescription = stringResource(R.string.edit),
                                     enabled = clickable,
                                     onClick = {

@@ -1,24 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.automirrored.filled.Toc
-import androidx.compose.material.icons.filled.AddRoad
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.FlightTakeoff
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.VpnKey
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -54,7 +39,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -69,7 +54,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -80,7 +65,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -94,7 +79,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setUuid(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
@@ -111,7 +96,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
-                icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.toc), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -125,7 +110,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.VpnKey, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -139,7 +124,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.WbSunny, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.wb_sunny), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
             )
@@ -150,7 +135,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 values = listOf("native", "quic", "UDP over Stream"),
                 onValueChange = { viewModel.setUdpRelayMode(it) },
                 title = { Text(stringResource(R.string.tuic_udp_relay_mode)) },
-                icon = { Icon(Icons.Filled.AddRoad, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.add_road), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.udpRelayMode)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -162,7 +147,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 values = congestionControls,
                 onValueChange = { viewModel.setCongestionController(it) },
                 title = { Text(stringResource(R.string.tuic_congestion_controller)) },
-                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.congestionController)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -173,7 +158,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 value = uiState.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
-                icon = { Icon(Icons.Filled.Block, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.block), null) },
             )
         }
         item("sni") {
@@ -182,7 +167,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 enabled = !uiState.disableSNI,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
@@ -193,7 +178,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 value = uiState.zeroRTT,
                 onValueChange = { viewModel.setZeroRTT(it) },
                 title = { Text(stringResource(R.string.tuic_reduce_rtt)) },
-                icon = { Icon(Icons.Filled.FlightTakeoff, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.flight_takeoff), null) },
             )
         }
         item("allow_insecure") {
@@ -201,7 +186,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
-                icon = { Icon(Icons.Filled.LockOpen, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.lock_open), null) },
             )
         }
 
@@ -213,7 +198,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 value = uiState.ech,
                 onValueChange = { viewModel.setEch(it) },
                 title = { Text(stringResource(R.string.enable)) },
-                icon = { Icon(Icons.Filled.Security, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
             )
         }
         item("ech_config") {
@@ -222,7 +207,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setEchConfig(it) },
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Nfc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 enabled = uiState.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
                 valueToText = { it },
@@ -241,7 +226,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setClientCert(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Lock, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.lock), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.clientCert)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -255,7 +240,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 onValueChange = { viewModel.setClientKey(it) },
                 title = { Text(stringResource(R.string.ssh_private_key)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.VpnKey, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.clientKey)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->

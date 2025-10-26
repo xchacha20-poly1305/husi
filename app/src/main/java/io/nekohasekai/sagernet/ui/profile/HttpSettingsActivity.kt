@@ -1,14 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Grid3x3
-import androidx.compose.material.icons.filled.GridOn
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalContext
@@ -39,7 +34,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username_opt)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
@@ -55,7 +50,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
                 onValueChange = { viewModel.setHost(it) },
                 title = { Text(stringResource(R.string.http_host)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Language, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.language), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.host)) },
                 valueToText = { it },
             )
@@ -66,7 +61,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
                 onValueChange = { viewModel.setPath(it) },
                 title = { Text(stringResource(R.string.http_path)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Route, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.route), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.path)) },
                 valueToText = { it },
             )
@@ -77,7 +72,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
                 onValueChange = { viewModel.setHeaders(it) },
                 title = { Text(stringResource(R.string.http_headers)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Code, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.code), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.headers)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -90,7 +85,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
 
         item("category_experimental") {
             PreferenceCategory(
-                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                 text = { Text(stringResource(R.string.experimental_settings)) },
             )
         }
@@ -99,7 +94,7 @@ class HttpSettingsActivity : StandardV2RaySettingsActivity<HttpBean>() {
                 value = uiState.udpOverTcp,
                 onValueChange = { viewModel.setUdpOverTcp(it) },
                 title = { Text(stringResource(R.string.udp_over_tcp)) },
-                icon = { Icon(Icons.Filled.GridOn, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_on), null) },
             )
         }
     }

@@ -54,7 +54,7 @@
                     android:focusableInTouchMode="false"
                     android:minWidth="40dp"
                     android:minHeight="40dp"
-                    app:icon="@drawable/ic_image_edit"
+                    app:icon="@drawable/edit"
                     app:iconSize="30dp"
                     app:iconTint="?attr/colorOnSurface" />
 

@@ -1,25 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Toc
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Gesture
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Texture
-import androidx.compose.material.icons.filled.Timelapse
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.VpnKey
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -56,7 +40,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -71,7 +55,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -82,7 +66,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -102,7 +86,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setIdleSessionCheckInterval(it) },
                 title = { Text(stringResource(R.string.idle_session_check_interval)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Timelapse, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.timelapse), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.idleSessionCheckInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -116,7 +100,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setIdleSessionTimeout(it) },
                 title = { Text(stringResource(R.string.idle_session_timeout)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Timer, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.timer), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.idleSessionTimeout)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -130,7 +114,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setMinIdleSession(it) },
                 title = { Text(stringResource(R.string.min_idle_session)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(Icons.Filled.Gesture, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.gesture), null) },
                 summary = {
                     val text = if (uiState.minIdleSession == 0) {
                         stringResource(R.string.not_set)
@@ -154,7 +138,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 enabled = !uiState.disableSNI,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
@@ -165,7 +149,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
-                icon = { Icon(Icons.Filled.LockOpen, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.lock_open), null) },
             )
         }
         item("alpn") {
@@ -174,7 +158,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
-                icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.toc), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -188,7 +172,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.VpnKey, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -202,7 +186,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.WbSunny, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.wb_sunny), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -216,7 +200,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 values = fingerprints,
                 onValueChange = { viewModel.setUtlsFingerprint(it) },
                 title = { Text(stringResource(R.string.utls_fingerprint)) },
-                icon = { Icon(Icons.Filled.Fingerprint, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.fingerprint), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.utlsFingerprint)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -227,7 +211,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 value = uiState.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
-                icon = { Icon(Icons.Filled.Block, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.block), null) },
             )
         }
         item("tls_fragment") {
@@ -236,7 +220,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setTlsFragment(it) },
                 title = { Text(stringResource(R.string.tls_fragment)) },
                 enabled = !uiState.tlsRecordFragment,
-                icon = { Icon(Icons.Filled.Texture, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
             )
         }
         item("tls_fragment_fallback_delay") {
@@ -245,7 +229,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setTlsFragmentFallbackDelay(it) },
                 title = { Text(stringResource(R.string.tls_fragment_fallback_delay)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Timelapse, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.timelapse), null) },
                 enabled = uiState.tlsFragment,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.tlsFragmentFallbackDelay)) },
                 valueToText = { it },
@@ -260,7 +244,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setTlsRecordFragment(it) },
                 title = { Text(stringResource(R.string.tls_record_fragment)) },
                 enabled = !uiState.tlsFragment,
-                icon = { Icon(Icons.Filled.WbSunny, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.wb_sunny), null) },
             )
         }
 
@@ -272,7 +256,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 value = uiState.ech,
                 onValueChange = { viewModel.setEch(it) },
                 title = { Text(stringResource(R.string.ech)) },
-                icon = { Icon(Icons.Filled.Security, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
             )
         }
         item("ech_config") {
@@ -281,7 +265,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setEchConfig(it) },
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Nfc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 enabled = uiState.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
                 valueToText = { it },
@@ -300,7 +284,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setClientCert(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Lock, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.lock), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.clientCert)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -314,7 +298,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 onValueChange = { viewModel.setClientKey(it) },
                 title = { Text(stringResource(R.string.ssh_private_key)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.VpnKey, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.clientKey)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->

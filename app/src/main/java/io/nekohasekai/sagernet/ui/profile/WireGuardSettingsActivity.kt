@@ -1,18 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.Domain
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Replay
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Stream
-import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -44,7 +35,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -59,7 +50,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -70,7 +61,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 51820 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -84,7 +75,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setLocalAddress(it) },
                 title = { Text(stringResource(R.string.wireguard_local_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Domain, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.domain), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.localAddress)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -97,7 +88,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 value = uiState.privateKey,
                 onValueChange = { viewModel.setPrivateKey(it) },
                 title = { Text(stringResource(R.string.ssh_private_key)) },
-                icon = { Icon(Icons.Filled.VpnKey, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
             )
         }
         item("public_key") {
@@ -106,7 +97,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setPublicKey(it) },
                 title = { Text(stringResource(R.string.wireguard_public_key)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.publicKey)) },
                 valueToText = { it },
             )
@@ -124,7 +115,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setMtu(it) },
                 title = { Text(stringResource(R.string.mtu)) },
                 textToValue = { it.toIntOrNull() ?: 1420 },
-                icon = { Icon(Icons.Filled.Public, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.public_icon), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.mtu.toString())) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -138,7 +129,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setReserved(it) },
                 title = { Text(stringResource(R.string.reserved)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Fingerprint, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.fingerprint), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.reserved)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -152,7 +143,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setListenPort(it) },
                 title = { Text(stringResource(R.string.listen_port)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(Icons.Filled.Stream, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.stream), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.listenPort)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -166,7 +157,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
                 onValueChange = { viewModel.setPersistentKeepaliveInterval(it) },
                 title = { Text(stringResource(R.string.persistent_keepalive_interval)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(Icons.Filled.Replay, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.replay), null) },
                 summary = {
                     Text(LocalContext.current.contentOrUnset(uiState.persistentKeepaliveInterval))
                 },

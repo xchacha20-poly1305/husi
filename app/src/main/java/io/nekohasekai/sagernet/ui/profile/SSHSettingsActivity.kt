@@ -1,17 +1,11 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -46,7 +40,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -61,7 +55,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -72,7 +66,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 22 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -86,7 +80,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
@@ -107,7 +101,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 ),
                 onValueChange = { viewModel.setAuthType(it) },
                 title = { Text(stringResource(R.string.hysteria_auth_type)) },
-                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = {
                     val text = stringResource(authType(uiState.authType))
                     Text(text)
@@ -133,7 +127,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                         onValueChange = { viewModel.setPrivateKey(it) },
                         title = { Text(stringResource(R.string.ssh_private_key)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.privateKey)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -155,7 +149,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 onValueChange = { viewModel.setPublicKey(it) },
                 title = { Text(stringResource(R.string.ssh_public_key)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.publicKey)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->

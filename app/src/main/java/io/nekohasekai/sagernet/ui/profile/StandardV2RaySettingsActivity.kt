@@ -1,37 +1,11 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.AssistantDirection
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.automirrored.filled.Toc
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.BorderInner
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.EnhancedEncryption
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MultipleStop
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.material.icons.filled.Route
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Stream
-import androidx.compose.material.icons.filled.Texture
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.TypeSpecimen
-import androidx.compose.material.icons.filled.ViewInAr
-import androidx.compose.material.icons.filled.VpnKey
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -66,7 +40,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.name)) },
                 valueToText = { it },
             )
@@ -80,7 +54,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.address)) },
                 valueToText = { it },
             )
@@ -91,7 +65,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
             )
         }
@@ -118,7 +92,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                     }
                 },
                 title = { Text(stringResource(R.string.security)) },
-                icon = { Icon(Icons.Filled.Layers, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.security)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -133,7 +107,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setSni(it) },
                         title = { Text(stringResource(R.string.sni)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Copyright, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                         enabled = !state.disableSNI,
                         summary = { Text(LocalContext.current.contentOrUnset(state.sni)) },
                         valueToText = { it },
@@ -143,7 +117,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setAlpn(it) },
                         title = { Text(stringResource(R.string.alpn)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.toc), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.alpn)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -155,7 +129,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setCertificate(it) },
                         title = { Text(stringResource(R.string.certificates)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.certificate)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -167,7 +141,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setCertPublicKeySha256(it) },
                         title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.WbSunny, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.wb_sunny), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.certPublicKeySha256)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -179,14 +153,14 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setAllowInsecure(it) },
                         title = { Text(stringResource(R.string.allow_insecure)) },
                         summary = { Text(stringResource(R.string.allow_insecure_sum)) },
-                        icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
                     )
                     if (!isReality) {
                         SwitchPreference(
                             value = state.disableSNI,
                             onValueChange = { viewModel.setDisableSNI(it) },
                             title = { Text(stringResource(R.string.tuic_disable_sni)) },
-                            icon = { Icon(Icons.Filled.Block, null) },
+                            icon = { Icon(ImageVector.vectorResource(R.drawable.block), null) },
                         )
                     }
                     SwitchPreference(
@@ -194,7 +168,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setTlsFragment(it) },
                         title = { Text(stringResource(R.string.tls_fragment)) },
                         enabled = !state.tlsRecordFragment,
-                        icon = { Icon(Icons.Filled.Texture, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
                     )
                     TextFieldPreference(
                         value = state.tlsFragmentFallbackDelay,
@@ -202,7 +176,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         title = { Text(stringResource(R.string.tls_fragment_fallback_delay)) },
                         textToValue = { it },
                         enabled = state.tlsFragment,
-                        icon = { Icon(Icons.Filled.Timer, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.timer), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.tlsFragmentFallbackDelay)) },
                         valueToText = { it },
                     )
@@ -211,7 +185,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setTlsRecordFragment(it) },
                         title = { Text(stringResource(R.string.tls_record_fragment)) },
                         enabled = !state.tlsFragment,
-                        icon = { Icon(Icons.Filled.WbSunny, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.wb_sunny), null) },
                     )
 
                     PreferenceCategory(text = { Text(stringResource(R.string.tls_camouflage_settings)) })
@@ -220,7 +194,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         values = fingerprints,
                         onValueChange = { viewModel.setUtlsFingerprint(it) },
                         title = { Text(stringResource(R.string.utls_fingerprint)) },
-                        icon = { Icon(Icons.Filled.Security, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.utlsFingerprint)) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         valueToText = { AnnotatedString(it) },
@@ -231,7 +205,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         title = { Text(stringResource(R.string.reality_public_key)) },
                         textToValue = { it },
                         enabled = state.utlsFingerprint.isNotBlank(),
-                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.realityPublicKey)) },
                         valueToText = { it },
                     )
@@ -241,7 +215,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         title = { Text(stringResource(R.string.reality_public_key)) },
                         textToValue = { it },
                         enabled = isReality,
-                        icon = { Icon(Icons.Filled.Texture, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.realityShortID)) },
                         valueToText = { it },
                     )
@@ -251,14 +225,14 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         value = state.ech,
                         onValueChange = { viewModel.setEch(it) },
                         title = { Text(stringResource(R.string.enable)) },
-                        icon = { Icon(Icons.Filled.Security, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
                     )
                     TextFieldPreference(
                         value = state.echConfig,
                         onValueChange = { viewModel.setEchConfig(it) },
                         title = { Text(stringResource(R.string.ech_config)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Nfc, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                         enabled = state.ech,
                         summary = { Text(LocalContext.current.contentOrUnset(state.echConfig)) },
                         valueToText = { it },
@@ -273,7 +247,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setClientCert(it) },
                         title = { Text(stringResource(R.string.certificates)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Lock, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.lock), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.clientCert)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -285,7 +259,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setClientKey(it) },
                         title = { Text(stringResource(R.string.ssh_private_key)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.VpnKey, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.clientKey)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -306,7 +280,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 value = state.enableMux,
                 onValueChange = { viewModel.setEnableMux(it) },
                 title = { Text(stringResource(R.string.enable)) },
-                icon = { Icon(Icons.Filled.MultipleStop, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.multiple_stop), null) },
             )
         }
         item("mux_settings") {
@@ -316,14 +290,14 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         value = state.brutal,
                         onValueChange = { viewModel.setBrutal(it) },
                         title = { Text(stringResource(R.string.enable_brutal)) },
-                        icon = { Icon(Icons.Filled.Bolt, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.bolt), null) },
                     )
                     ListPreference(
                         value = state.muxType,
                         values = intListN(muxTypes.size),
                         onValueChange = { viewModel.setMuxType(it) },
                         title = { Text(stringResource(R.string.mux_type)) },
-                        icon = { Icon(Icons.Filled.TypeSpecimen, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.type_specimen), null) },
                         summary = { Text(muxTypes[state.muxType]) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         valueToText = { AnnotatedString(muxTypes[it]) },
@@ -333,7 +307,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         values = intListN(muxStrategies.size),
                         onValueChange = { viewModel.setMuxStrategy(it) },
                         title = { Text(stringResource(R.string.mux_strategy)) },
-                        icon = { Icon(Icons.Filled.ViewInAr, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.view_in_ar), null) },
                         summary = { Text(stringResource(muxStrategies[state.muxStrategy])) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         valueToText = { AnnotatedString(getString(muxStrategies[it])) },
@@ -344,7 +318,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setMuxNumber(it) },
                         title = { Text(stringResource(R.string.mux_number)) },
                         textToValue = { it.toIntOrNull() ?: 0 },
-                        icon = { Icon(Icons.Filled.Numbers, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.numbers), null) },
                         summary = { Text(state.muxNumber.toString()) },
                         valueToText = { it.toString() },
                         enabled = !state.brutal,
@@ -353,7 +327,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         value = state.muxPadding,
                         onValueChange = { viewModel.setMuxPadding(it) },
                         title = { Text(stringResource(R.string.padding)) },
-                        icon = { Icon(Icons.Filled.BorderInner, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.border_inner), null) },
                     )
                 }
             }
@@ -378,7 +352,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 ),
                 onValueChange = { viewModel.setTransport(it) },
                 title = { Text(stringResource(R.string.v2ray_transport)) },
-                icon = { Icon(Icons.Filled.Route, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.route), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.v2rayTransport)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(contentOrUnset(it)) },
@@ -395,7 +369,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setHost(it) },
                         title = { Text(stringResource(R.string.http_host)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Language, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.language), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -409,7 +383,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.http_path)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.AutoMirrored.Filled.AssistantDirection, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -420,7 +394,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setHeaders(it) },
                         title = { Text(stringResource(R.string.http_headers)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Code, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.code), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -437,7 +411,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setHost(it) },
                         title = { Text(stringResource(R.string.ws_host)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Language, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.language), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -451,7 +425,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.ws_path)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.AutoMirrored.Filled.AssistantDirection, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -462,7 +436,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setHeaders(it) },
                         title = { Text(stringResource(R.string.http_headers)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Code, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.code), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -480,7 +454,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setWsMaxEarlyData(it) },
                         title = { Text(stringResource(R.string.ws_max_early_data)) },
                         textToValue = { it.toIntOrNull() ?: 0 },
-                        icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.wsMaxEarlyData)) },
                     )
                 }
@@ -490,7 +464,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setWsEarlyDataHeaderName(it) },
                         title = { Text(stringResource(R.string.early_data_header_name)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Stream, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.stream), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.wsEarlyDataHeaderName)) },
                         valueToText = { it },
                     )
@@ -504,7 +478,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.grpc_service_name)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.AutoMirrored.Filled.AssistantDirection, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -518,7 +492,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setHost(it) },
                         title = { Text(stringResource(R.string.http_upgrade_host)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Language, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.language), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.host)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->
@@ -532,7 +506,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.http_upgrade_path)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.AutoMirrored.Filled.AssistantDirection, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -543,7 +517,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setHeaders(it) },
                         title = { Text(stringResource(R.string.http_headers)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Code, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.code), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.headers)) },
                         valueToText = { it },
                         textField = { value, onValueChange, onOk ->

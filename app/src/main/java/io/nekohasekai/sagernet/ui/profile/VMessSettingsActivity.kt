@@ -1,15 +1,11 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AlternateEmail
-import androidx.compose.material.icons.filled.EnhancedEncryption
-import androidx.compose.material.icons.filled.Grid3x3
-import androidx.compose.material.icons.filled.Outbox
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
@@ -47,7 +43,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 onValueChange = { viewModel.setUUID(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
@@ -58,7 +54,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 onValueChange = { viewModel.setAlterID(it) },
                 title = { Text(stringResource(R.string.alter_id)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(Icons.Filled.AlternateEmail, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.alternate_email), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.alterID)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -72,7 +68,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 onValueChange = { viewModel.setEncryption(it) },
                 values = listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none", "zero"),
                 title = { Text(stringResource(R.string.encryption)) },
-                icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.encryption)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -90,7 +86,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 onValueChange = { viewModel.setPacketEncoding(it) },
                 values = intListN(3),
                 title = { Text(stringResource(R.string.packet_encoding)) },
-                icon = { Icon(Icons.Filled.Outbox, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.outbox), null) },
                 summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(uiState.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
@@ -104,7 +100,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
         item("category_experimental") {
             PreferenceCategory(
                 text = { Text(stringResource(R.string.experimental_settings)) },
-                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
             )
         }
         item("authenticated_length") {

@@ -1,19 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.automirrored.filled.Toc
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DeveloperBoard
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.FlightTakeoff
-import androidx.compose.material.icons.filled.Nat
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Texture
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -48,7 +38,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -63,7 +53,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -74,7 +64,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -88,7 +78,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Texture, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
@@ -105,7 +95,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setAlpn(it) },
                 title = { Text(stringResource(R.string.alpn)) },
                 textToValue = { it },
-                icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.toc), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                 valueToText = { it },
             )
@@ -116,7 +106,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 values = congestionControls,
                 onValueChange = { viewModel.setCongestionControl(it) },
                 title = { Text(stringResource(R.string.tuic_congestion_controller)) },
-                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(uiState.congestionControl) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -128,7 +118,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
@@ -138,7 +128,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 value = uiState.zeroRTT,
                 onValueChange = { viewModel.setZeroRTT(it) },
                 title = { Text(stringResource(R.string.tuic_reduce_rtt)) },
-                icon = { Icon(Icons.Filled.FlightTakeoff, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.flight_takeoff), null) },
             )
         }
         item("initial_mtu") {
@@ -147,7 +137,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setInitialMtu(it) },
                 title = { Text(stringResource(R.string.initial_mtu)) },
                 textToValue = { it.toIntOrNull() ?: 1300 },
-                icon = { Icon(Icons.Filled.Public, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.public_icon), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.initialMtu)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -161,7 +151,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setMinMtu(it) },
                 title = { Text(stringResource(R.string.minimum_mtu)) },
                 textToValue = { it.toIntOrNull() ?: 1290 },
-                icon = { Icon(Icons.Filled.DeveloperBoard, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.developer_board), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.minMtu)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -174,7 +164,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 value = uiState.udpOverStream,
                 onValueChange = { viewModel.setUdpOverStream(it) },
                 title = { Text(stringResource(R.string.udp_over_stream)) },
-                icon = { Icon(Icons.Filled.Nat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nat), null) },
             )
         }
     }

@@ -19,6 +19,8 @@
 
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -37,19 +39,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.CastConnected
-import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EmojiEmotions
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.FlipCameraAndroid
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -117,7 +106,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -133,7 +122,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 onValueChange = { viewModel.setManagement(it) },
                 values = intListN(2),
                 title = { Text(stringResource(R.string.management)) },
-                icon = { Icon(Icons.Filled.Widgets, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.widgets), null) },
                 summary = { Text(stringResource(managementName(uiState.management))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(managementName(it))) },
@@ -144,7 +133,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 value = uiState.interruptExistConnections,
                 onValueChange = { viewModel.setInterruptExistConnections(it) },
                 title = { Text(stringResource(R.string.interrupt_exist_connections)) },
-                icon = { Icon(Icons.Filled.Stop, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.stop), null) },
             )
         }
         if (uiState.management == ProxySetBean.MANAGEMENT_URLTEST) {
@@ -154,7 +143,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     onValueChange = { viewModel.setTestURL(it) },
                     title = { Text(stringResource(R.string.connection_test_url)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.CastConnected, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.cast_connected), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.testURL)) },
                     valueToText = { it },
                 )
@@ -165,7 +154,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     onValueChange = { viewModel.setTestInterval(it) },
                     title = { Text(stringResource(R.string.urltest_interval)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.FlipCameraAndroid, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.flip_camera_android), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.testInterval)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -179,7 +168,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     onValueChange = { viewModel.setTestIdleTimeout(it) },
                     title = { Text(stringResource(R.string.idle_timeout)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.PhotoCamera, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.photo_camera), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.testIdleTimeout)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -193,7 +182,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     onValueChange = { viewModel.setTestTolerance(it) },
                     title = { Text(stringResource(R.string.urltest_tolerance)) },
                     textToValue = { it.toIntOrNull() ?: 50 },
-                    icon = { Icon(Icons.Filled.EmojiEmotions, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_emotions), null) },
                     summary = { Text(uiState.testTolerance.toString()) },
                     valueToText = { it.toString() },
                     textField = { value, onValueChange, onOk ->
@@ -213,7 +202,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 onValueChange = { viewModel.setCollectType(it) },
                 values = intListN(2),
                 title = { Text(stringResource(R.string.group_type)) },
-                icon = { Icon(Icons.Filled.Nfc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 summary = { Text(stringResource(typeName(uiState.collectType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(typeName(it))) },
@@ -225,7 +214,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 onValueChange = { viewModel.setGroupID(it) },
                 values = uiState.groups.keys.toList(),
                 title = { Text(stringResource(R.string.menu_group)) },
-                icon = { Icon(Icons.AutoMirrored.Filled.ViewList, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.view_list), null) },
                 summary = {
                     val text = uiState.groups[uiState.groupID]?.displayName()
                         ?: stringResource(R.string.not_set)
@@ -247,7 +236,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     onValueChange = { viewModel.setFilterNotRegex(it) },
                     title = { Text(stringResource(R.string.filter_regex)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.DeleteSweep, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.delete_sweep), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.filterNotRegex)) },
                     valueToText = { it },
                 )
@@ -328,7 +317,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                                         .padding(horizontal = 16.dp),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    Icon(Icons.Default.Delete, null)
+                                    Icon(ImageVector.vectorResource(R.drawable.delete), null)
                                 }
                             },
                             onDismiss = { value ->
@@ -398,7 +387,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                                     ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
                                 )
                             },
-                            icon = Icons.Filled.Edit,
+                            icon = ImageVector.vectorResource(R.drawable.edit),
                             contentDescription = stringResource(R.string.edit),
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface,
@@ -406,7 +395,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                         )
                         TooltipIconButton(
                             onClick = { viewModel.remove(index) },
-                            icon = Icons.Filled.Delete,
+                            icon = ImageVector.vectorResource(R.drawable.delete),
                             contentDescription = stringResource(R.string.delete),
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface,

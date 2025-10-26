@@ -1,17 +1,11 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Grid3x3
-import androidx.compose.material.icons.filled.GridOn
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -46,7 +40,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -65,7 +59,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 ),
                 onValueChange = { viewModel.setProtocol(it) },
                 title = { Text(stringResource(R.string.protocol_version)) },
-                icon = { Icon(Icons.Filled.Nfc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 summary = {
                     val text = when (uiState.protocol) {
                         SOCKSBean.PROTOCOL_SOCKS4 -> "SOCKS4"
@@ -92,7 +86,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -103,7 +97,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 1080 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -121,7 +115,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                         onValueChange = { viewModel.setUsername(it) },
                         title = { Text(stringResource(R.string.username_opt)) },
                         textToValue = { it },
-                        icon = { Icon(Icons.Filled.Person, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                         valueToText = { it },
                     )
@@ -136,7 +130,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
 
         item("category_experimental") {
             PreferenceCategory(
-                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                 text = { Text(stringResource(R.string.experimental_settings)) },
             )
         }
@@ -145,7 +139,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 value = uiState.udpOverTcp,
                 onValueChange = { viewModel.setUdpOverTcp(it) },
                 title = { Text(stringResource(R.string.udp_over_tcp)) },
-                icon = { Icon(Icons.Filled.GridOn, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_on), null) },
             )
         }
     }
