@@ -32,8 +32,6 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ui.MainActivity
 import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.delay
-import androidx.preference.ListPreference
-import androidx.preference.Preference
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -164,8 +162,6 @@ fun Resources.Theme.resolveResourceId(@AttrRes resId: Int): Int {
     return typedValue.resourceId
 }
 
-fun Preference.remove() = parent!!.removePreference(this)
-
 /** Generate friendly and easy-understand message for failed URL test */
 @StringRes
 fun readableUrlTestError(error: String?): Int? {
@@ -187,37 +183,13 @@ fun readableUrlTestError(error: String?): Int? {
     }
 }
 
-/**
- * If the summary has a [java.lang.String.format] String formatting} marker in it,
- * (i.e. "%s" or "%1$s"), then the current entry value will be substituted in its place.
- * @see [androidx.preference.ListPreference.getSummary]
- */
-fun ListPreference.setSummaryUserInput(userInput: String) {
-    summary = userInput.replace("%", "%%")
-}
-
-fun EditText.textChanges(): Flow<Editable?> {
-    return callbackFlow {
-        val watcher = object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                trySend(s)
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        }
-        addTextChangedListener(watcher)
-        awaitClose { removeTextChangedListener(watcher) }
-    }
-}
-
 fun Context.contentOrUnset(content: String): String {
-    return content.blankAsNull() ?: getString(androidx.preference.R.string.not_set)
+    return content.blankAsNull() ?: getString(R.string.not_set)
 }
 
 fun Context.contentOrUnset(content: Int): String {
     return if (content <= 0) {
-        getString(androidx.preference.R.string.not_set)
+        getString(R.string.not_set)
     } else {
         content.toString()
     }

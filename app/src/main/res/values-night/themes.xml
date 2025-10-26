@@ -20,7 +20,6 @@
 
         <item name="selectedColorPrimary">@color/white</item>
 
-        <item name="preferenceCategoryTitleTextColor">@color/white</item>
         <item name="tabSelectedTextColor">@color/white</item>
         <item name="tabTextColor">@color/material_grey_500</item>
         <item name="android:textColorLink">@color/color_ng_black_accent</item>
@@ -48,7 +47,6 @@
 
         <item name="selectedColorPrimary">@color/white</item>
 
-        <item name="preferenceCategoryTitleTextColor">@color/white</item>
         <item name="tabSelectedTextColor">@color/white</item>
         <item name="tabTextColor">@color/material_grey_500</item>
         <item name="android:textColorLink">@color/color_ng_black_accent</item>

@@ -133,7 +133,7 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
                 icon = { Icon(Icons.Filled.Gesture, null) },
                 summary = {
                     val text = if (uiState.minIdleSession == 0) {
-                        stringResource(androidx.preference.R.string.not_set)
+                        stringResource(R.string.not_set)
                     } else {
                         uiState.minIdleSession.toString()
                     }

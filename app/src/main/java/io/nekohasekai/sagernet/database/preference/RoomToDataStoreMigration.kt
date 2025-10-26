@@ -34,6 +34,38 @@ class RoomToDataStoreMigration(
             val kvPairs = PublicDatabase.kvPairDao.all()
             Logs.i("migrating ${kvPairs.size} preferences from Room to DataStore")
 
+            /**
+             * Legacy compatibility workaround for stringToInt delegate migration.
+             *
+             * These preference keys previously used the `stringToInt` delegate, which stored
+             * integer values as strings in the database (e.g., "9000", "1"). After removing
+             * androidx.preference dependency, these fields now use the `int` delegate, which
+             * expects Long type in DataStore.
+             *
+             * We need to convert these String values to Long during migration to prevent
+             * "String cannot be cast to Long" errors.
+             */
+            val legacyStringToIntKeys = setOf(
+                Key.NIGHT_THEME,
+                Key.NETWORK_INTERFACE_STRATEGY,
+                Key.MTU,
+                Key.SPEED_INTERVAL,
+                Key.RULES_PROVIDER,
+                Key.LOG_LEVEL,
+                Key.LOG_MAX_SIZE,
+                Key.PROVIDER_HYSTERIA2,
+                Key.PROVIDER_JUICITY,
+                Key.TUN_IMPLEMENTATION,
+                Key.CERT_PROVIDER,
+                Key.NTP_PORT,
+                Key.UPLOAD_SPEED,
+                Key.DOWNLOAD_SPEED,
+
+                // In legacy code, they are not use stringToInt and use int.
+                Key.CONNECTION_TEST_CONCURRENT,
+                Key.CONNECTION_TEST_TIMEOUT,
+            )
+
             var successCount = 0
             kvPairs.forEach { pair ->
                 try {
@@ -63,9 +95,19 @@ class RoomToDataStoreMigration(
                         }
 
                         KeyValuePair.TYPE_STRING -> {
-                            pair.string?.let {
-                                prefs[stringPreferencesKey(pair.key)] = it
-                                successCount++
+                            pair.string?.let { stringValue ->
+                                // Legacy stringToInt workaround: convert String to Long
+                                if (pair.key in legacyStringToIntKeys) {
+                                    stringValue.toLongOrNull()?.let { longValue ->
+                                        prefs[longPreferencesKey(pair.key)] = longValue
+                                        successCount++
+                                    } ?: run {
+                                        Logs.w("Failed to convert legacy stringToInt value for key ${pair.key}: $stringValue")
+                                    }
+                                } else {
+                                    prefs[stringPreferencesKey(pair.key)] = stringValue
+                                    successCount++
+                                }
                             }
                         }
 

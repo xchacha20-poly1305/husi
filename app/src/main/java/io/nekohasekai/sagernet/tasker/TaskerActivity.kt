@@ -244,7 +244,7 @@ class TaskerActivity : ComposeActivity() {
                 icon = { Icon(Icons.Filled.Router, null) },
                 summary = {
                     val summary = ProfileManager.getProfile(uiState.profileID)?.displayName()
-                        ?: stringResource(androidx.preference.R.string.not_set)
+                        ?: stringResource(R.string.not_set)
                     Text(summary)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,

@@ -717,4 +717,6 @@
     <string name="indent">Indent</string>
     <string name="back">Back</string>
     <string name="have_a_nice_day">Have a nice day!</string>
+    <string name="not_set">Not set</string>
+
 </resources>

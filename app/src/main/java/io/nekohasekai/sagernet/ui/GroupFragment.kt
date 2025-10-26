@@ -310,13 +310,13 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                 R.id.action_standard_clipboard -> {
                     group.subscription!!.link.blankAsNull()?.let {
                         export(it)
-                    } ?: snackbar(androidx.preference.R.string.not_set).show()
+                    } ?: snackbar(R.string.not_set).show()
                 }
 
                 R.id.action_standard_qr -> group.subscription!!.link.blankAsNull()?.let {
                     QRCodeDialog(it, group.displayName())
                         .showAllowingStateLoss(parentFragmentManager)
-                } ?: snackbar(androidx.preference.R.string.not_set).show()
+                } ?: snackbar(R.string.not_set).show()
 
                 R.id.action_universal_qr -> QRCodeDialog(
                     group.toUniversalLink(),

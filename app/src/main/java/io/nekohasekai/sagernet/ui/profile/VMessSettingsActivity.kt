@@ -80,7 +80,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
         }
         item("packet_encoding") {
             fun packetEncodingName(packetEncoding: Int) = when (packetEncoding) {
-                0 -> StringOrRes.Res(androidx.preference.R.string.not_set)
+                0 -> StringOrRes.Res(R.string.not_set)
                 1 -> StringOrRes.Direct("packetaddr")
                 2 -> StringOrRes.Direct("XUDP")
                 else -> error("impossible")

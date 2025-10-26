@@ -243,7 +243,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 icon = { Icon(Icons.Filled.LowPriority, null) },
                 summary = {
                     val text = chainName(uiState.frontProxy)
-                        ?: stringResource(androidx.preference.R.string.not_set)
+                        ?: stringResource(R.string.not_set)
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
@@ -276,7 +276,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 icon = { Icon(Icons.Filled.Public, null) },
                 summary = {
                     val text = chainName(uiState.landingProxy)
-                        ?: stringResource(androidx.preference.R.string.not_set)
+                        ?: stringResource(R.string.not_set)
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,

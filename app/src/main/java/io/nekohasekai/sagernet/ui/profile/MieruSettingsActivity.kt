@@ -137,7 +137,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                         1 -> stringResource(R.string.low)
                         2 -> stringResource(R.string.middle)
                         3 -> stringResource(R.string.high)
-                        else -> stringResource(androidx.preference.R.string.not_set)
+                        else -> stringResource(R.string.not_set)
                     }
                     Text(text)
                 },

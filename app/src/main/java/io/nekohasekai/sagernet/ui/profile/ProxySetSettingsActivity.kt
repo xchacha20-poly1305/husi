@@ -228,14 +228,14 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(Icons.AutoMirrored.Filled.ViewList, null) },
                 summary = {
                     val text = uiState.groups[uiState.groupID]?.displayName()
-                        ?: stringResource(androidx.preference.R.string.not_set)
+                        ?: stringResource(R.string.not_set)
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { id ->
                     val text =
                         uiState.groups[id]?.displayName()
-                            ?: getString(androidx.preference.R.string.not_set)
+                            ?: getString(R.string.not_set)
                     AnnotatedString(text)
                 },
             )
