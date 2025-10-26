@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -21,9 +23,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -104,7 +103,7 @@ private fun RuleSetMatchScreen(
         topBar = {
             SimpleTopAppBar(
                 title = R.string.rule_set_match,
-                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
                 navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
@@ -199,7 +198,7 @@ private fun RuleSetMatchScreen(
                 alert = null
             }
         },
-        icon = { Icon(Icons.Filled.Error, null) },
+        icon = { Icon(ImageVector.vectorResource(R.drawable.error), null) },
         title = { Text(stringResource(R.string.error_title)) },
         text = { Text(alert!!) },
     )

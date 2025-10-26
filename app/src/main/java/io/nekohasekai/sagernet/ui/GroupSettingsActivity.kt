@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -17,24 +19,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ManageSearch
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.FlipCameraAndroid
-import androidx.compose.material.icons.filled.Grid3x3
-import androidx.compose.material.icons.filled.ImportContacts
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LowPriority
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -113,7 +97,7 @@ class GroupSettingsActivity : ComposeActivity() {
                             title = { Text(stringResource(R.string.group_settings)) },
                             navigationIcon = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Close,
+                                    imageVector = ImageVector.vectorResource(R.drawable.close),
                                     contentDescription = stringResource(R.string.close),
                                 ) {
                                     onBackPressedDispatcher.onBackPressed()
@@ -121,7 +105,7 @@ class GroupSettingsActivity : ComposeActivity() {
                             },
                             actions = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Delete,
+                                    imageVector = ImageVector.vectorResource(R.drawable.delete),
                                     contentDescription = stringResource(R.string.delete),
                                 ) {
                                     if (viewModel.isNew) {
@@ -136,7 +120,7 @@ class GroupSettingsActivity : ComposeActivity() {
                                         .show()
                                 }
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Done,
+                                    imageVector = ImageVector.vectorResource(R.drawable.done),
                                     contentDescription = stringResource(R.string.apply),
                                     onClick = ::saveAndExit,
                                 )
@@ -169,7 +153,7 @@ class GroupSettingsActivity : ComposeActivity() {
                             finish()
                         }
                     },
-                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
                     title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
             }
@@ -186,7 +170,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.group_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -201,7 +185,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 onValueChange = { viewModel.setType(it) },
                 values = intListN(2),
                 title = { Text(stringResource(R.string.group_type)) },
-                icon = { Icon(Icons.Filled.Layers, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(stringResource(groupType(uiState.type))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(groupType(it))) },
@@ -218,7 +202,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 onValueChange = { viewModel.setOrder(it) },
                 values = intListN(3),
                 title = { Text(stringResource(R.string.group_order)) },
-                icon = { Icon(Icons.Filled.LowPriority, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.low_priority), null) },
                 summary = { Text(stringResource(groupOrder(uiState.order))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(groupOrder(it))) },
@@ -240,7 +224,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 },
                 values = listOf(-1L, 0L),
                 title = { Text(stringResource(R.string.front_proxy)) },
-                icon = { Icon(Icons.Filled.LowPriority, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.low_priority), null) },
                 summary = {
                     val text = chainName(uiState.frontProxy)
                         ?: stringResource(R.string.not_set)
@@ -273,7 +257,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 },
                 values = listOf(-1L, 0L),
                 title = { Text(stringResource(R.string.landing_proxy)) },
-                icon = { Icon(Icons.Filled.Public, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.public_icon), null) },
                 summary = {
                     val text = chainName(uiState.landingProxy)
                         ?: stringResource(R.string.not_set)
@@ -303,7 +287,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     onValueChange = { viewModel.setSubscriptionType(it) },
                     values = intListN(3),
                     title = { Text(stringResource(R.string.subscription_type)) },
-                    icon = { Icon(Icons.Filled.Nfc, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                     summary = { Text(stringResource(subType(uiState.subscriptionType))) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(getString(subType(it))) },
@@ -314,7 +298,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     onValueChange = { viewModel.setSubscriptionLink(it) },
                     title = { Text(stringResource(R.string.group_subscription_link)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.Link, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.link), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.subscriptionLink)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -327,7 +311,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     onValueChange = { viewModel.setSubscriptionToken(it) },
                     title = { Text(stringResource(R.string.ooc_subscription_token)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.VpnKey, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.subscriptionToken)) },
                     valueToText = { it },
                 )
@@ -336,14 +320,14 @@ class GroupSettingsActivity : ComposeActivity() {
                     value = uiState.subscriptionForceResolve,
                     onValueChange = { viewModel.setSubscriptionForceResolve(it) },
                     title = { Text(stringResource(R.string.force_resolve)) },
-                    icon = { Icon(Icons.AutoMirrored.Filled.ManageSearch, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.manage_search), null) },
                     summary = { Text(stringResource(R.string.force_resolve_sum)) },
                 )
                 SwitchPreference(
                     value = uiState.subscriptionDeduplication,
                     onValueChange = { viewModel.setSubscriptionDeduplication(it) },
                     title = { Text(stringResource(R.string.deduplication)) },
-                    icon = { Icon(Icons.Filled.ImportContacts, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.import_contacts), null) },
                     summary = { Text(stringResource(R.string.deduplication_sum)) },
                 )
                 TextFieldPreference(
@@ -351,7 +335,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     onValueChange = { viewModel.setSubscriptionFilterNotRegex(it) },
                     title = { Text(stringResource(R.string.filter_regex)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.DeleteSweep, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.delete_sweep), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.subscriptionFilterNotRegex)) },
                     valueToText = { it },
                 )
@@ -361,7 +345,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     value = uiState.subscriptionUpdateWhenConnectedOnly,
                     onValueChange = { viewModel.setSubscriptionUpdateWhenConnectedOnly(it) },
                     title = { Text(stringResource(R.string.update_when_connected_only)) },
-                    icon = { Icon(Icons.Filled.Security, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
                     summary = { Text(stringResource(R.string.update_when_connected_only_sum)) },
                 )
                 TextFieldPreference(
@@ -369,7 +353,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     onValueChange = { viewModel.setSubscriptionUserAgent(it) },
                     title = { Text(stringResource(R.string.subscription_user_agent)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.Grid3x3, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                     summary = {
                         val text = uiState.subscriptionUserAgent.blankAsNull() ?: USER_AGENT
                         Text(text)
@@ -380,14 +364,14 @@ class GroupSettingsActivity : ComposeActivity() {
                     value = uiState.subscriptionAutoUpdate,
                     onValueChange = { viewModel.setSubscriptionAutoUpdate(it) },
                     title = { Text(stringResource(R.string.auto_update)) },
-                    icon = { Icon(Icons.Filled.FlipCameraAndroid, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.flip_camera_android), null) },
                 )
                 TextFieldPreference(
                     value = uiState.subscriptionUpdateDelay,
                     onValueChange = { viewModel.setSubscriptionUpdateDelay(it) },
                     title = { Text(stringResource(R.string.auto_update_delay)) },
                     textToValue = { it.toIntOrNull() ?: 1440 },
-                    icon = { Icon(Icons.Filled.Grid3x3, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                     summary = { Text(uiState.subscriptionUpdateDelay.toString()) },
                     textField = { value, onValueChange, onOk ->
                         UIntegerTextField(value, onValueChange, onOk)

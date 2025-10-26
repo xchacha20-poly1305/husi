@@ -1,15 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -41,7 +35,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -56,7 +50,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -67,7 +61,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -81,7 +75,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setUuid(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
@@ -102,7 +96,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
@@ -112,7 +106,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 value = uiState.allowInsecure,
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
-                icon = { Icon(Icons.Filled.LockOpen, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.lock_open), null) },
             )
         }
         item("pin_cert_hash") {
@@ -121,7 +115,7 @@ class JuicitySettingsActivity : ProfileSettingsActivity<JuicityBean>() {
                 onValueChange = { viewModel.setPinSha256(it) },
                 title = { Text(stringResource(R.string.pinned_peer_certificate_chain_sha256)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.PushPin, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.push_pin), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.pinSha256)) },
                 valueToText = { it },
             )

@@ -19,7 +19,7 @@
         <item name="colorOnTertiaryContainer">@android:color/system_accent3_900</item>
 
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
+        <item name="actionModeCloseDrawable">@drawable/close</item>
 
         <item name="selectedColorPrimary">?colorPrimary</item>
 
@@ -46,7 +46,7 @@
         <item name="colorOnTertiaryContainer">@android:color/system_accent3_900</item>
 
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
+        <item name="actionModeCloseDrawable">@drawable/close</item>
 
         <item name="selectedColorPrimary">?colorPrimary</item>
 

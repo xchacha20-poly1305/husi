@@ -1,11 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Outbox
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Stream
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalContext
@@ -38,7 +36,7 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 onValueChange = { viewModel.setUUID(it) },
                 title = { Text(stringResource(R.string.uuid)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.uuid)) },
                 valueToText = { it },
             )
@@ -49,7 +47,7 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 onValueChange = { viewModel.setFlow(it) },
                 values = listOf("", "xtls-rprx-vision"),
                 title = { Text(stringResource(R.string.xtls_flow)) },
-                icon = { Icon(Icons.Filled.Stream, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.stream), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.flow)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -67,7 +65,7 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 onValueChange = { viewModel.setPacketEncoding(it) },
                 values = intListN(3),
                 title = { Text(stringResource(R.string.packet_encoding)) },
-                icon = { Icon(Icons.Filled.Outbox, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.outbox), null) },
                 summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(uiState.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getStringOrRes(packetEncodingName(it))) },

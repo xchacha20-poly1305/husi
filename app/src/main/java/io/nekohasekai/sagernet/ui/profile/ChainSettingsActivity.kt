@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -18,10 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,7 +81,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -163,7 +161,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                                         .padding(horizontal = 16.dp),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    Icon(Icons.Default.Delete, null)
+                                    Icon(ImageVector.vectorResource(R.drawable.delete), null)
                                 }
                             },
                             onDismiss = { value ->
@@ -233,7 +231,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                                     ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
                                 )
                             },
-                            icon = Icons.Filled.Edit,
+                            icon = ImageVector.vectorResource(R.drawable.edit),
                             contentDescription = stringResource(R.string.edit),
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface,
@@ -241,7 +239,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>() {
                         )
                         TooltipIconButton(
                             onClick = { viewModel.remove(index) },
-                            icon = Icons.Filled.Delete,
+                            icon = ImageVector.vectorResource(R.drawable.delete),
                             contentDescription = stringResource(R.string.delete),
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface,

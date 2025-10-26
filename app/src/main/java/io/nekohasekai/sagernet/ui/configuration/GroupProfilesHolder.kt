@@ -574,7 +574,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
                     binding.share.isVisible = true
 
                     binding.share.setBackgroundColor(Color.RED)
-                    binding.share.setIconResource(R.drawable.ic_baseline_warning_24)
+                    binding.share.setIconResource(R.drawable.warning)
                     binding.share.setIconTint(ColorStateList.valueOf(Color.WHITE))
 
                     binding.share.setOnClickListener {
@@ -598,7 +598,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
                     binding.share.isVisible = true
 
                     binding.share.setBackgroundColor(Color.YELLOW)
-                    binding.share.setIconResource(R.drawable.ic_baseline_warning_24)
+                    binding.share.setIconResource(R.drawable.warning)
                     binding.share.setIconTint(ColorStateList.valueOf(Color.GRAY))
 
                     binding.share.setOnClickListener {
@@ -620,7 +620,7 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
 
                 is ValidateResult.Secure -> {
                     binding.share.setBackgroundColor(Color.TRANSPARENT)
-                    binding.share.setIconResource(R.drawable.ic_social_share)
+                    binding.share.setIconResource(R.drawable.share)
                     binding.share.setIconTint(
                         ColorStateList.valueOf(
                             binding.share.context.getColorAttr(

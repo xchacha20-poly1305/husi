@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -29,13 +31,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.CopyAll
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -193,28 +188,28 @@ private fun AppListScreen(
                 },
                 navigationIcon = {
                     SimpleIconButton(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = ImageVector.vectorResource(R.drawable.close),
                         contentDescription = stringResource(R.string.close),
                         onClick = onBackPress,
                     )
                 },
                 actions = {
                     if (searchActivate) SimpleIconButton(
-                        imageVector = Icons.Filled.SearchOff,
+                        imageVector = ImageVector.vectorResource(R.drawable.search_off),
                         contentDescription = stringResource(R.string.close),
                     ) {
                         searchActivate = false
                         viewModel.setSearchQuery("")
                     } else {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Search,
+                            imageVector = ImageVector.vectorResource(R.drawable.search),
                             contentDescription = stringResource(android.R.string.search_go),
                             onClick = { searchActivate = true },
                         )
 
                         val clipboard = LocalClipboard.current
                         SimpleIconButton(
-                            imageVector = Icons.Filled.CopyAll,
+                            imageVector = ImageVector.vectorResource(R.drawable.copy_all),
                             contentDescription = stringResource(R.string.action_copy),
                         ) {
                             val toExport = viewModel.export()
@@ -228,7 +223,7 @@ private fun AppListScreen(
                             }
                         }
                         SimpleIconButton(
-                            imageVector = Icons.Filled.ContentPaste,
+                            imageVector = ImageVector.vectorResource(R.drawable.content_paste),
                             contentDescription = stringResource(R.string.action_import),
                             onClick = {
                                 scope.launch {
@@ -242,7 +237,7 @@ private fun AppListScreen(
 
                         Box {
                             SimpleIconButton(
-                                imageVector = Icons.Filled.MoreVert,
+                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                 contentDescription = stringResource(R.string.more),
                                 onClick = { showOverflowMenu = true },
                             )

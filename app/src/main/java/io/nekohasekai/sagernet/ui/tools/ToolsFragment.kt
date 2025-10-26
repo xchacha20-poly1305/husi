@@ -1,9 +1,9 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.os.Bundle
 import android.view.View
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -42,7 +42,7 @@ class ToolsFragment : OnKeyDownFragment(R.layout.layout_tools) {
                     title = { Text(stringResource(R.string.menu_tools)) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Menu,
+                            imageVector = ImageVector.vectorResource(R.drawable.menu),
                             contentDescription = stringResource(R.string.menu),
                         ) {
                             (requireActivity() as MainActivity).binding

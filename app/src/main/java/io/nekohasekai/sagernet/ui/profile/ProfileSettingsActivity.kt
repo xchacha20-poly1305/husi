@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -25,13 +27,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -127,7 +122,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                             title = { Text(stringResource(title)) },
                             navigationIcon = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Close,
+                                    imageVector = ImageVector.vectorResource(R.drawable.close),
                                     contentDescription = stringResource(R.string.close),
                                 ) {
                                     onBackPressedDispatcher.onBackPressed()
@@ -135,19 +130,19 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                             },
                             actions = {
                                 if (!viewModel.isNew) SimpleIconButton(
-                                    imageVector = Icons.Filled.Delete,
+                                    imageVector = ImageVector.vectorResource(R.drawable.delete),
                                     contentDescription = stringResource(R.string.delete),
                                     onClick = { showDeleteAlert = true },
                                 )
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Done,
+                                    imageVector = ImageVector.vectorResource(R.drawable.done),
                                     contentDescription = stringResource(R.string.apply),
                                     onClick = ::saveAndExit,
                                 )
 
                                 Box {
                                     SimpleIconButton(
-                                        imageVector = Icons.Filled.MoreVert,
+                                        imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                         contentDescription = stringResource(R.string.more),
                                     ) {
                                         showExtendMenu = true
@@ -231,7 +226,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                             finish()
                         }
                     },
-                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
                     title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
 
@@ -249,7 +244,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                             showDeleteAlert = false
                         }
                     },
-                    icon = { Icon(Icons.Filled.Warning, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
                     title = { Text(stringResource(R.string.delete_confirm_prompt)) },
                 )
 
@@ -267,7 +262,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                 showGenericAlert = null
                             }
                         },
-                        icon = { Icon(Icons.Filled.Warning, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
                         title = { Text(stringResource(alert.title)) },
                         text = { Text(stringResource(alert.message)) }
                     )

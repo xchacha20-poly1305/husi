@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -25,10 +27,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -121,7 +119,7 @@ private fun GetCertScreen(
         topBar = {
             SimpleTopAppBar(
                 title = R.string.get_cert,
-                navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
                 navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
@@ -275,7 +273,7 @@ private fun GetCertContent(
                                     onClick = {
                                         copyToClipboard(state.cert)
                                     },
-                                    icon = Icons.Filled.ContentCopy,
+                                    icon = ImageVector.vectorResource(R.drawable.content_copy),
                                     contentDescription = stringResource(R.string.action_copy),
                                     colors = IconButtonDefaults.iconButtonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
@@ -303,7 +301,7 @@ private fun GetCertContent(
                 Text(stringResource(android.R.string.ok))
             }
         },
-        icon = { Icon(Icons.Filled.Error, null) },
+        icon = { Icon(ImageVector.vectorResource(R.drawable.error), null) },
         title = { Text(stringResource(R.string.error_title)) },
         text = { Text(alert!!) },
     )

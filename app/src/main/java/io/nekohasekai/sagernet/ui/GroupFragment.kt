@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.annotation.SuppressLint
 import android.content.ClipboardManager
 import android.content.Intent
@@ -11,10 +13,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.appcompat.widget.PopupMenu
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -85,7 +83,7 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                     title = { Text(stringResource(R.string.menu_group)) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Menu,
+                            imageVector = ImageVector.vectorResource(R.drawable.menu),
                             contentDescription = stringResource(R.string.menu),
                         ) {
                             (requireActivity() as MainActivity).binding
@@ -94,7 +92,7 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                     },
                     actions = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Update,
+                            imageVector = ImageVector.vectorResource(R.drawable.update),
                             contentDescription = stringResource(R.string.update_all_subscription),
                         ) {
                             MaterialAlertDialogBuilder(requireContext())
@@ -107,7 +105,7 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
                                 .show()
                         }
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                            imageVector = ImageVector.vectorResource(R.drawable.playlist_add),
                             contentDescription = stringResource(R.string.group_create),
                         ) {
                             startActivity(

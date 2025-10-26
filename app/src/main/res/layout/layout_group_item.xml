@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:contentDescription="@string/edit"
-                app:icon="@drawable/ic_image_edit"
+                app:icon="@drawable/edit"
                 app:iconTint="?attr/colorOnSurface" />
 
             <com.google.android.material.button.MaterialButton
@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:nextFocusLeft="@+id/container"
-                app:icon="@drawable/ic_baseline_more_vert_24"
+                app:icon="@drawable/more_vert"
                 app:iconTint="?attr/colorOnSurface" />
 
         </LinearLayout>

@@ -61,7 +61,7 @@
                     android:contentDescription="@string/edit"
                     android:minWidth="40dp"
                     android:minHeight="40dp"
-                    app:icon="@drawable/ic_image_edit"
+                    app:icon="@drawable/edit"
                     app:iconTint="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
@@ -72,7 +72,7 @@
                     android:contentDescription="@string/share"
                     android:minWidth="40dp"
                     android:minHeight="40dp"
-                    app:icon="@drawable/ic_social_share"
+                    app:icon="@drawable/share"
                     app:iconTint="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
@@ -84,7 +84,7 @@
                     android:minWidth="40dp"
                     android:minHeight="40dp"
                     android:visibility="gone"
-                    app:icon="@drawable/ic_action_delete"
+                    app:icon="@drawable/delete"
                     app:iconTint="?attr/colorOnSurface" />
 
             </LinearLayout>

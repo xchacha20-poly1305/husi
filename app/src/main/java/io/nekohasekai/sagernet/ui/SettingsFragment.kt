@@ -33,13 +33,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Label
-import androidx.compose.material.icons.filled.AppRegistration
-import androidx.compose.material.icons.filled.ArrowOutward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Traffic
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -221,7 +214,7 @@ private fun SettingsScreen(
         topBar = {
             SimpleTopAppBar(
                 title = R.string.settings,
-                navigationIcon = Icons.Filled.Menu,
+                navigationIcon = ImageVector.vectorResource(R.drawable.menu),
                 navigationDescription = stringResource(R.string.menu),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
@@ -256,7 +249,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.auto_connect)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_communication_phonelink_ring),
+                                ImageVector.vectorResource(R.drawable.phonelink_ring),
                                 null
                             )
                         },
@@ -295,7 +288,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.night_mode)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_wb_sunny_24),
+                                ImageVector.vectorResource(R.drawable.wb_sunny),
                                 null,
                             )
                         },
@@ -350,7 +343,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.language)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_translate_24),
+                                ImageVector.vectorResource(R.drawable.translate),
                                 null,
                             )
                         },
@@ -382,7 +375,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.service_mode)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_device_developer_mode),
+                                ImageVector.vectorResource(R.drawable.developer_mode),
                                 null,
                             )
                         },
@@ -407,7 +400,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.memory_limit)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_local_bar_24),
+                                ImageVector.vectorResource(R.drawable.local_bar),
                                 null,
                             )
                         },
@@ -439,7 +432,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.tun_implementation)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_flip_camera_android_24),
+                                ImageVector.vectorResource(R.drawable.flip_camera_android),
                                 null,
                             )
                         },
@@ -462,7 +455,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 9000 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_public_24),
+                                ImageVector.vectorResource(R.drawable.public_icon),
                                 null,
                             )
                         },
@@ -483,7 +476,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.allow_apps_bypass_vpn)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_transform_24),
+                                ImageVector.vectorResource(R.drawable.transform),
                                 null,
                             )
                         },
@@ -514,7 +507,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.speed_interval)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_shutter_speed_24),
+                                ImageVector.vectorResource(R.drawable.shutter_speed),
                                 null,
                             )
                         },
@@ -534,7 +527,7 @@ private fun SettingsScreen(
                             needReload()
                         },
                         title = { Text(stringResource(R.string.profile_traffic_statistics)) },
-                        icon = { Icon(Icons.Filled.Traffic, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.traffic), null) },
                         summary = { Text(stringResource(R.string.profile_traffic_statistics_summary)) },
                         enabled = speedIntervalState != 0,
                     )
@@ -552,7 +545,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.show_direct_speed)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_speed_24),
+                                ImageVector.vectorResource(R.drawable.speed),
                                 null,
                             )
                         },
@@ -571,7 +564,7 @@ private fun SettingsScreen(
                             needReload()
                         },
                         title = { Text(stringResource(R.string.show_group_in_notification)) },
-                        icon = { Icon(Icons.AutoMirrored.Filled.Label, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.label), null) },
                     )
                 }
                 item(Key.ALWAYS_SHOW_ADDRESS, TYPE_SWITCH_PREFERENCE) {
@@ -584,7 +577,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.always_show_address)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_center_focus_weak_24),
+                                ImageVector.vectorResource(R.drawable.center_focus_weak),
                                 null
                             )
                         },
@@ -601,7 +594,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.blurred_address)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_transgender_24),
+                                ImageVector.vectorResource(R.drawable.transgender),
                                 null
                             )
                         },
@@ -618,7 +611,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.insecure_warn)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_security_24),
+                                ImageVector.vectorResource(R.drawable.security),
                                 null
                             )
                         },
@@ -637,7 +630,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.metered)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_device_data_usage),
+                                ImageVector.vectorResource(R.drawable.data_usage),
                                 null
                             )
                         },
@@ -658,7 +651,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.log_level)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_bug_report_24),
+                                ImageVector.vectorResource(R.drawable.bug_report),
                                 null,
                             )
                         },
@@ -678,7 +671,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 50 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_action_description),
+                                ImageVector.vectorResource(R.drawable.description),
                                 null,
                             )
                         },
@@ -706,7 +699,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.proxied_apps)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_navigation_apps),
+                                ImageVector.vectorResource(R.drawable.apps),
                                 null
                             )
                         },
@@ -723,7 +716,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.update_proxy_apps_when_install)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_keyboard_tab_24),
+                                ImageVector.vectorResource(R.drawable.keyboard_tab),
                                 null
                             )
                         },
@@ -742,7 +735,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.route_opt_bypass_lan)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_legend_toggle_24),
+                                ImageVector.vectorResource(R.drawable.legend_toggle),
                                 null
                             )
                         },
@@ -760,7 +753,7 @@ private fun SettingsScreen(
                         },
                         title = { Text(stringResource(R.string.bypass_lan_in_core)) },
                         enabled = bypassLanState,
-                        icon = { Icon(Icons.Filled.ArrowOutward, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.arrow_outward), null) },
                     )
                 }
                 item(Key.NETWORK_STRATEGY, TYPE_LIST_PREFERENCE) {
@@ -789,7 +782,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.network_strategy)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_hardware_router),
+                                ImageVector.vectorResource(R.drawable.router),
                                 null,
                             )
                         },
@@ -825,7 +818,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.network_interface_strategy)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_construction_24),
+                                ImageVector.vectorResource(R.drawable.construction),
                                 null,
                             )
                         },
@@ -855,7 +848,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.network_interface_preference)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_public_24),
+                                ImageVector.vectorResource(R.drawable.public_icon),
                                 null
                             )
                         },
@@ -881,7 +874,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.forced_search_process)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_android_24),
+                                ImageVector.vectorResource(R.drawable.android),
                                 null,
                             )
                         },
@@ -913,7 +906,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.route_rules_provider)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_rule_folder_24),
+                                ImageVector.vectorResource(R.drawable.rule_folder),
                                 null,
                             )
                         },
@@ -939,7 +932,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_import_contacts_24),
+                                ImageVector.vectorResource(R.drawable.import_contacts),
                                 null,
                             )
                         },
@@ -967,7 +960,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 0 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_file_file_upload),
+                                ImageVector.vectorResource(R.drawable.file_upload),
                                 null,
                             )
                         },
@@ -991,7 +984,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 0 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_download_24),
+                                ImageVector.vectorResource(R.drawable.download),
                                 null,
                             )
                         },
@@ -1023,7 +1016,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.hysteria2_provider)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_flight_takeoff_24),
+                                ImageVector.vectorResource(R.drawable.flight_takeoff),
                                 null,
                             )
                         },
@@ -1054,7 +1047,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.juicity_provider)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_flight_takeoff_24),
+                                ImageVector.vectorResource(R.drawable.flight_takeoff),
                                 null,
                             )
                         },
@@ -1077,7 +1070,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_action_copyright),
+                                ImageVector.vectorResource(R.drawable.copyright),
                                 null,
                             )
                         },
@@ -1103,7 +1096,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_action_dns),
+                                ImageVector.vectorResource(R.drawable.dns),
                                 null,
                             )
                         },
@@ -1125,7 +1118,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_action_dns),
+                                ImageVector.vectorResource(R.drawable.dns),
                                 null,
                             )
                         },
@@ -1218,7 +1211,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.fake_dns)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_lock_24),
+                                ImageVector.vectorResource(R.drawable.lock),
                                 null,
                             )
                         },
@@ -1239,7 +1232,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_transform_24),
+                                ImageVector.vectorResource(R.drawable.transform),
                                 null,
                             )
                         },
@@ -1267,7 +1260,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_maps_directions_boat),
+                                ImageVector.vectorResource(R.drawable.directions_boat),
                                 null,
                             )
                         },
@@ -1292,7 +1285,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_navigation_apps),
+                                ImageVector.vectorResource(R.drawable.apps),
                                 null,
                             )
                         },
@@ -1314,7 +1307,7 @@ private fun SettingsScreen(
                             needReload()
                         },
                         title = { Text(stringResource(R.string.append_http_proxy)) },
-                        icon = { Icon(Icons.Filled.AppRegistration, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.app_registration), null) },
                         summary = { Text(stringResource(R.string.append_http_proxy_sum)) },
                     )
                 }
@@ -1332,7 +1325,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_domain_24),
+                                ImageVector.vectorResource(R.drawable.domain),
                                 null,
                             )
                         },
@@ -1355,7 +1348,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.allow_access)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_nat_24),
+                                ImageVector.vectorResource(R.drawable.nat),
                                 null,
                             )
                         },
@@ -1376,7 +1369,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_person_24),
+                                ImageVector.vectorResource(R.drawable.person),
                                 null,
                             )
                         },
@@ -1414,7 +1407,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_wifi),
+                                ImageVector.vectorResource(R.drawable.wifi),
                                 null,
                             )
                         },
@@ -1437,7 +1430,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_cast_connected_24),
+                                ImageVector.vectorResource(R.drawable.cast_connected),
                                 null,
                             )
                         },
@@ -1458,7 +1451,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 5 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_fast_forward_24),
+                                ImageVector.vectorResource(R.drawable.fast_forward),
                                 null,
                             )
                         },
@@ -1480,7 +1473,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 3000 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_navigation_apps),
+                                ImageVector.vectorResource(R.drawable.apps),
                                 null,
                             )
                         },
@@ -1510,7 +1503,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.acquire_wake_lock)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.baseline_developer_board_24),
+                                ImageVector.vectorResource(R.drawable.developer_board),
                                 null,
                             )
                         },
@@ -1544,7 +1537,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.certificate_authority)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_push_pin_24),
+                                ImageVector.vectorResource(R.drawable.push_pin),
                                 null,
                             )
                         },
@@ -1577,7 +1570,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.disable_process_text)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_format_align_left_24),
+                                ImageVector.vectorResource(R.drawable.format_align_left),
                                 null,
                             )
                         },
@@ -1600,7 +1593,7 @@ private fun SettingsScreen(
                         title = { Text(stringResource(R.string.enable_ntp)) },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_timelapse_24),
+                                ImageVector.vectorResource(R.drawable.timelapse),
                                 null,
                             )
                         },
@@ -1621,7 +1614,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_hardware_router),
+                                ImageVector.vectorResource(R.drawable.router),
                                 null,
                             )
                         },
@@ -1644,7 +1637,7 @@ private fun SettingsScreen(
                         textToValue = { it.toIntOrNull() ?: 123 },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_maps_directions_boat),
+                                ImageVector.vectorResource(R.drawable.directions_boat),
                                 null,
                             )
                         },
@@ -1670,7 +1663,7 @@ private fun SettingsScreen(
                         textToValue = { it },
                         icon = {
                             Icon(
-                                ImageVector.vectorResource(R.drawable.ic_baseline_flip_camera_android_24),
+                                ImageVector.vectorResource(R.drawable.flip_camera_android),
                                 null,
                             )
                         },
@@ -1702,7 +1695,7 @@ private inline fun LazyListScope.colorPickerPreference(
             enabled = enabled,
             icon = {
                 Icon(
-                    ImageVector.vectorResource(R.drawable.ic_baseline_color_lens_24),
+                    ImageVector.vectorResource(R.drawable.color_lens),
                     null,
                 )
             },
@@ -1801,7 +1794,7 @@ private fun Circle(
     ) {
         if (selected) {
             Icon(
-                imageVector = Icons.Filled.Check,
+                imageVector = ImageVector.vectorResource(R.drawable.check),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(24.dp),

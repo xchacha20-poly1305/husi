@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -27,9 +29,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -118,14 +117,14 @@ private fun VPNScannerScreen(
                     title = { Text(stringResource(R.string.scan_vpn_app)) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
                             contentDescription = stringResource(R.string.back),
                             onClick = onBackPress,
                         )
                     },
                     actions = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Cached,
+                            imageVector = ImageVector.vectorResource(R.drawable.cached),
                             contentDescription = stringResource(R.string.refresh),
                             enabled = !isScanning,
                             onClick = { viewModel.scanVPN() },

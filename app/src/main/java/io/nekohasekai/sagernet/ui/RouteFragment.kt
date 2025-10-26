@@ -1,15 +1,13 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddRoad
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,7 +69,7 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
                     title = { Text(stringResource(R.string.menu_route)) },
                     navigationIcon = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Menu,
+                            imageVector = ImageVector.vectorResource(R.drawable.menu),
                             contentDescription = stringResource(R.string.menu),
                         ) {
                             (requireActivity() as MainActivity).binding
@@ -80,7 +78,7 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
                     },
                     actions = {
                         SimpleIconButton(
-                            imageVector = Icons.Filled.AddRoad,
+                            imageVector = ImageVector.vectorResource(R.drawable.add_road),
                             contentDescription = stringResource(R.string.route_add),
                         ) {
                             startActivity(
@@ -91,7 +89,7 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
                             )
                         }
                         SimpleIconButton(
-                            imageVector = Icons.Filled.MoreVert,
+                            imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                             contentDescription = stringResource(R.string.more),
                             onClick = { menuExpanded = true },
                         )

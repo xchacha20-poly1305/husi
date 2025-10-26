@@ -1,9 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EmojiSymbols
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,7 +31,7 @@ class DirectSettingsActivity : ProfileSettingsActivity<DirectBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )

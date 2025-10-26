@@ -1,23 +1,13 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Grain
-import androidx.compose.material.icons.filled.Grid3x3
-import androidx.compose.material.icons.filled.Https
-import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -57,7 +47,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -72,7 +62,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -83,7 +73,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -97,7 +87,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username_opt)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
@@ -107,7 +97,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 value = uiState.password,
                 onValueChange = { viewModel.setPassword(it) },
                 title = { Text(stringResource(R.string.password_opt)) },
-                icon = { Icon(Icons.Filled.Password, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.password), null) },
             )
         }
         item("proto") {
@@ -116,7 +106,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 values = protos,
                 onValueChange = { viewModel.setProto(it) },
                 title = { Text(stringResource(R.string.protocol)) },
-                icon = { Icon(Icons.Filled.Https, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.https), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.proto)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -128,7 +118,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
@@ -139,7 +129,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setExtraHeaders(it) },
                 title = { Text(stringResource(R.string.extra_headers)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Code, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.code), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.extraHeaders)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -153,7 +143,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setInsecureConcurrency(it) },
                 title = { Text(stringResource(R.string.naive_insecure_concurrency)) },
                 textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(Icons.Filled.Speed, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.speed), null) },
                 summary = {
                     val text = if (uiState.insecureConcurrency == 0) {
                         stringResource(R.string.not_set)
@@ -177,7 +167,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
 
         item("category_experimental") {
             PreferenceCategory(
-                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                 text = { Text(stringResource(R.string.experimental_settings)) },
             )
         }
@@ -194,7 +184,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 value = uiState.noPostQuantum,
                 onValueChange = { viewModel.setNoPostQuantum(it) },
                 title = { Text(stringResource(R.string.disable_post_quantum)) },
-                icon = { Icon(Icons.Filled.Grain, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grain), null) },
             )
         }
     }

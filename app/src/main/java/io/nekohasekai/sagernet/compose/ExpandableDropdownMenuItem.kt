@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.compose
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -22,7 +22,7 @@ fun ExpandableDropdownMenuItem(
         modifier = modifier,
         trailingIcon = {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                imageVector = ImageVector.vectorResource(R.drawable.navigate_next),
                 contentDescription = stringResource(R.string.expand),
             )
         },

@@ -1,27 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.automirrored.filled.Toc
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Copyright
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.EnhancedEncryption
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MultipleStop
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Texture
-import androidx.compose.material.icons.filled.Timelapse
-import androidx.compose.material.icons.filled.Transform
-import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.filled.VpnKey
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -68,7 +50,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -80,7 +62,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 values = listOf(HysteriaBean.PROTOCOL_VERSION_1, HysteriaBean.PROTOCOL_VERSION_2),
                 onValueChange = { viewModel.setProtocolVersion(it) },
                 title = { Text(stringResource(R.string.protocol_version)) },
-                icon = { Icon(Icons.Filled.Update, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.update), null) },
                 summary = { Text(uiState.protocolVersion.toString()) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it.toString()) },
@@ -96,7 +78,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -107,7 +89,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setPorts(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.ports)) },
                 valueToText = { it },
             )
@@ -118,7 +100,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setHopInterval(it) },
                 title = { Text(stringResource(R.string.hop_interval)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Timelapse, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.timelapse), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.hopInterval)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -131,7 +113,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 value = uiState.obfuscation,
                 onValueChange = { viewModel.setObfuscation(it) },
                 title = { Text(stringResource(R.string.hysteria_obfs)) },
-                icon = { Icon(Icons.Filled.Texture, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
             )
         }
         if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
@@ -147,7 +129,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     values = intListN(3),
                     onValueChange = { viewModel.setAuthType(it) },
                     title = { Text(stringResource(R.string.hysteria_auth_type)) },
-                    icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                     summary = { Text(stringResource(authTypeName(uiState.authType))) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(getStringOrRes(authTypeName(it))) },
@@ -177,7 +159,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     values = intListN(3),
                     onValueChange = { viewModel.setProtocol(it) },
                     title = { Text(stringResource(R.string.protocol)) },
-                    icon = { Icon(Icons.Filled.Layers, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                     summary = { Text(protocolNames[uiState.protocol]) },
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(protocolNames[it]) },
@@ -190,7 +172,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setSni(it) },
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Copyright, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
                 enabled = !uiState.disableSNI,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
@@ -203,7 +185,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     onValueChange = { viewModel.setAlpn(it) },
                     title = { Text(stringResource(R.string.alpn)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.AutoMirrored.Filled.Toc, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.toc), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.alpn)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -218,7 +200,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setCertificates(it) },
                 title = { Text(stringResource(R.string.certificates)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.VpnKey, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -232,7 +214,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setCertPublicKeySha256(it) },
                 title = { Text(stringResource(R.string.cert_public_key_sha256)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.WbSunny, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.wb_sunny), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.certPublicKeySha256)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -246,7 +228,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setAllowInsecure(it) },
                 title = { Text(stringResource(R.string.allow_insecure)) },
                 summary = { Text(stringResource(R.string.allow_insecure_sum)) },
-                icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
             )
         }
         item("disable_sni") {
@@ -254,7 +236,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 value = uiState.disableSNI,
                 onValueChange = { viewModel.setDisableSNI(it) },
                 title = { Text(stringResource(R.string.tuic_disable_sni)) },
-                icon = { Icon(Icons.Filled.Block, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.block), null) },
             )
         }
         if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
@@ -264,7 +246,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     onValueChange = { viewModel.setStreamReceiveWindow(it) },
                     title = { Text(stringResource(R.string.hysteria_stream_receive_window)) },
                     textToValue = { it.toIntOrNull() ?: 0 },
-                    icon = { Icon(Icons.Filled.Texture, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
                     summary = {
                         val text = if (uiState.streamReceiveWindow == 0) {
                             stringResource(R.string.not_set)
@@ -285,7 +267,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     onValueChange = { viewModel.setConnectionReceiveWindow(it) },
                     title = { Text(stringResource(R.string.hysteria_connection_receive_window)) },
                     textToValue = { it.toIntOrNull() ?: 0 },
-                    icon = { Icon(Icons.Filled.Transform, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.transform), null) },
                     summary = {
                         val text = if (uiState.connectionReceiveWindow == 0) {
                             stringResource(R.string.not_set)
@@ -305,7 +287,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     value = uiState.disableMtuDiscovery,
                     onValueChange = { viewModel.setDisableMtuDiscovery(it) },
                     title = { Text(stringResource(R.string.hysteria_disable_mtu_discovery)) },
-                    icon = { Icon(Icons.Filled.MultipleStop, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.multiple_stop), null) },
                 )
             }
         }
@@ -320,7 +302,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     onValueChange = { viewModel.setClientCert(it) },
                     title = { Text(stringResource(R.string.certificates)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.Lock, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.lock), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.clientCert)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -334,7 +316,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     onValueChange = { viewModel.setClientKey(it) },
                     title = { Text(stringResource(R.string.ssh_private_key)) },
                     textToValue = { it },
-                    icon = { Icon(Icons.Filled.VpnKey, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.vpn_key), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.clientKey)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -352,7 +334,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 value = uiState.ech,
                 onValueChange = { viewModel.setEch(it) },
                 title = { Text(stringResource(R.string.enable)) },
-                icon = { Icon(Icons.Filled.Security, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
             )
         }
         item("ech_config") {
@@ -361,7 +343,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setEchConfig(it) },
                 title = { Text(stringResource(R.string.ech_config)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Nfc, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 enabled = uiState.ech,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
                 valueToText = { it },

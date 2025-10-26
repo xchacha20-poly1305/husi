@@ -49,9 +49,28 @@ encouraged to use them.
   your error is good, but don't wag your tail like a dog. Just improve yourself silently. There is a
   Chinese saying goes "千夫诺诺，不如一士谔谔".
 
-# Other tips
+# Technical best practices
 
-- If a Compose icon has a mirrored version, use it.
+## Script execution
+
+- **Use Python3 for complex operations.** Bash long scripts are fragile and prone to syntax errors in
+  eval contexts. For file processing, batch operations, or anything beyond simple commands, write
+  Python3 scripts. Python provides better error handling, string manipulation, and doesn't suffer
+  from shell escaping issues.
+- **Avoid multi-threading when dealing with large files.** When extracting from huge archives (4GB+),
+  use single-threaded sequential processing. Opening the same large zip file in multiple threads
+  causes memory exhaustion and OOM. Instead, open the archive once, build an index, then extract
+  sequentially.
+
+## Icons
+
+- **Do NOT use `androidx.compose.material:material-icons-extended` dependency.** This library has been
+  removed due to Compose breaking changes.
+- **Use drawable resources instead.** All icons are stored as XML drawables in
+  `app/src/main/res/drawable/`. Reference them with `ImageVector.vectorResource(R.drawable.*)`.
+- Import `androidx.compose.ui.res.vectorResource` when using this pattern.
+
+# Other tips
 
 # Carrot and sticks
 

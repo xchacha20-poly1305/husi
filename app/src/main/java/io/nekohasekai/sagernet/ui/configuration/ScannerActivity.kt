@@ -20,6 +20,8 @@
 
 package io.nekohasekai.sagernet.ui.configuration
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.Manifest
 import android.content.Intent
 import android.content.pm.ShortcutManager
@@ -57,11 +59,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FlashlightOff
-import androidx.compose.material.icons.filled.FlashlightOn
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -287,7 +284,7 @@ private fun ScannerScreen(
                     modifier = Modifier.size(36.dp),
                 ) {
                     SimpleIconButton(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = ImageVector.vectorResource(R.drawable.close),
                         contentDescription = stringResource(R.string.close),
                         onClick = onBackPress,
                     )
@@ -299,7 +296,7 @@ private fun ScannerScreen(
                     modifier = Modifier.size(36.dp),
                 ) {
                     SimpleIconButton(
-                        imageVector = Icons.Filled.Photo,
+                        imageVector = ImageVector.vectorResource(R.drawable.photo),
                         contentDescription = stringResource(R.string.action_import_file),
                         onClick = { importCodeFile.launch("image/*") },
                     )
@@ -325,9 +322,9 @@ private fun ScannerScreen(
                 ) {
                     SimpleIconButton(
                         imageVector = if (uiState.isFlashlightOn) {
-                            Icons.Filled.FlashlightOff
+                            ImageVector.vectorResource(R.drawable.flashlight_off)
                         } else {
-                            Icons.Filled.FlashlightOn
+                            ImageVector.vectorResource(R.drawable.flashlight_on)
                         },
                         contentDescription = stringResource(
                             if (uiState.isFlashlightOn) {

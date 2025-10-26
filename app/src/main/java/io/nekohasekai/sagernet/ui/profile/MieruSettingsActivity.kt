@@ -1,14 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Router
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -45,7 +40,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -60,7 +55,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -71,7 +66,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 443 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -85,7 +80,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 values = protocols,
                 onValueChange = { viewModel.setProtocol(it) },
                 title = { Text(stringResource(R.string.protocol)) },
-                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.protocol.uppercase())) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -97,7 +92,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 onValueChange = { viewModel.setUsername(it) },
                 title = { Text(stringResource(R.string.username)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Person, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.person), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.username)) },
                 valueToText = { it },
             )
@@ -115,7 +110,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                     onValueChange = { viewModel.setMtu(it) },
                     title = { Text(stringResource(R.string.mtu)) },
                     textToValue = { it.toIntOrNull() ?: 1400 },
-                    icon = { Icon(Icons.Filled.Public, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.public_icon), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.mtu)) },
                     valueToText = { it.toString() },
                     textField = { value, onValueChange, onOk ->
@@ -130,7 +125,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 values = intListN(4),
                 onValueChange = { viewModel.setMuxNumber(it) },
                 title = { Text(stringResource(R.string.mux_preference)) },
-                icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = {
                     val text = when (uiState.muxNumber) {
                         0 -> stringResource(R.string.off)

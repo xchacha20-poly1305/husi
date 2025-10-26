@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -18,15 +20,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -95,7 +88,7 @@ class AssetEditActivity : ComposeActivity() {
                             title = { Text(stringResource(R.string.assets_settings)) },
                             navigationIcon = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Close,
+                                    imageVector = ImageVector.vectorResource(R.drawable.close),
                                     contentDescription = stringResource(R.string.close),
                                 ) {
                                     onBackPressedDispatcher.onBackPressed()
@@ -103,7 +96,7 @@ class AssetEditActivity : ComposeActivity() {
                             },
                             actions = {
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Delete,
+                                    imageVector = ImageVector.vectorResource(R.drawable.delete),
                                     contentDescription = stringResource(R.string.delete),
                                 ) {
                                     val editingAssetName = viewModel.editingName
@@ -114,7 +107,7 @@ class AssetEditActivity : ComposeActivity() {
                                     }
                                 }
                                 SimpleIconButton(
-                                    imageVector = Icons.Filled.Done,
+                                    imageVector = ImageVector.vectorResource(R.drawable.done),
                                     contentDescription = stringResource(R.string.apply),
                                     onClick = ::saveAndExit,
                                 )
@@ -152,7 +145,7 @@ class AssetEditActivity : ComposeActivity() {
                             showBackAlert = false
                         }
                     },
-                    icon = { Icon(Icons.Filled.QuestionMark, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
                     title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
                 )
 
@@ -169,7 +162,7 @@ class AssetEditActivity : ComposeActivity() {
                             showDeleteConfirm = false
                         }
                     },
-                    icon = { Icon(Icons.Filled.Warning, null) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
                     title = { Text(stringResource(R.string.delete_confirm_prompt)) },
                 )
 
@@ -181,7 +174,7 @@ class AssetEditActivity : ComposeActivity() {
                                 illegalNameMessage = 0
                             }
                         },
-                        icon = { Icon(Icons.Filled.WarningAmber, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.warning_amber), null) },
                         title = { Text(stringResource(R.string.error_title)) },
                         text = { Text(stringResource(id)) },
                     )
@@ -213,7 +206,7 @@ class AssetEditActivity : ComposeActivity() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.route_asset_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -222,7 +215,7 @@ class AssetEditActivity : ComposeActivity() {
                 onValueChange = { viewModel.setLink(it) },
                 title = { Text(stringResource(R.string.url)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Link, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.link), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.link)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->

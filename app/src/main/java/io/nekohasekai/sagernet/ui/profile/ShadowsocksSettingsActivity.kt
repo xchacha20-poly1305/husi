@@ -1,25 +1,13 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EmojiSymbols
-import androidx.compose.material.icons.filled.EnhancedEncryption
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.DirectionsBoat
-import androidx.compose.material.icons.filled.Router
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.BorderInner
-import androidx.compose.material.icons.filled.Grid3x3
-import androidx.compose.material.icons.filled.MultipleStop
-import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.material.icons.filled.TypeSpecimen
-import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -83,7 +71,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 onValueChange = { viewModel.setName(it) },
                 title = { Text(stringResource(R.string.profile_name)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.EmojiSymbols, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.emoji_symbols), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
@@ -98,7 +86,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 onValueChange = { viewModel.setAddress(it) },
                 title = { Text(stringResource(R.string.server_address)) },
                 textToValue = { it },
-                icon = { Icon(Icons.Filled.Router, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.router), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.address)) },
                 valueToText = { it },
             )
@@ -109,7 +97,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 onValueChange = { viewModel.setPort(it) },
                 title = { Text(stringResource(R.string.server_port)) },
                 textToValue = { it.toIntOrNull() ?: 8388 },
-                icon = { Icon(Icons.Filled.DirectionsBoat, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.port)) },
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
@@ -123,7 +111,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 values = encryptionMethods,
                 onValueChange = { viewModel.setMethod(it) },
                 title = { Text(stringResource(R.string.enc_method)) },
-                icon = { Icon(Icons.Filled.EnhancedEncryption, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.method)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -150,7 +138,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 },
                 title = { Text(stringResource(R.string.enable_mux)) },
                 summary = { Text(stringResource(R.string.mux_sum)) },
-                icon = { Icon(Icons.Filled.MultipleStop, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.multiple_stop), null) },
             )
         }
         item("mux") {
@@ -160,7 +148,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         value = uiState.brutal,
                         onValueChange = { viewModel.setBrutal(it) },
                         title = { Text(stringResource(R.string.enable_brutal)) },
-                        icon = { Icon(Icons.Filled.Bolt, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.bolt), null) },
                         enabled = uiState.enableMux,
                     )
                     ListPreference(
@@ -168,7 +156,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         values = intListN(3),
                         onValueChange = { viewModel.setMuxType(it) },
                         title = { Text(stringResource(R.string.mux_type)) },
-                        icon = { Icon(Icons.Filled.TypeSpecimen, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.type_specimen), null) },
                         summary = { Text(muxTypes[uiState.muxType]) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         valueToText = { AnnotatedString(muxTypes[it]) },
@@ -178,7 +166,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         values = intListN(3),
                         onValueChange = { viewModel.setMuxStrategy(it) },
                         title = { Text(stringResource(R.string.mux_strategy)) },
-                        icon = { Icon(Icons.Filled.ViewInAr, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.view_in_ar), null) },
                         summary = { Text(LocalContext.current.getString(muxStrategies[uiState.muxStrategy])) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         valueToText = { AnnotatedString(getString(muxStrategies[it])) },
@@ -189,7 +177,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         onValueChange = { viewModel.setMuxNumber(it) },
                         title = { Text(stringResource(R.string.mux_number)) },
                         textToValue = { it.toIntOrNull() ?: 8 },
-                        icon = { Icon(Icons.Filled.Numbers, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.numbers), null) },
                         summary = { Text(uiState.muxNumber.toString()) },
                         valueToText = { it.toString() },
                         textField = { value, onValueChange, onOk ->
@@ -201,7 +189,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         value = uiState.muxPadding,
                         onValueChange = { viewModel.setMuxPadding(it) },
                         title = { Text(stringResource(R.string.padding)) },
-                        icon = { Icon(Icons.Filled.BorderInner, null) },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.border_inner), null) },
                     )
                 }
             }
@@ -216,7 +204,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 values = listOf("", "obfs-local", "v2ray-plugin"),
                 onValueChange = { viewModel.setPluginName(it) },
                 title = { Text(stringResource(R.string.plugin)) },
-                icon = { Icon(Icons.Filled.Build, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.build), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.pluginName)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(it) },
@@ -229,7 +217,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 title = { Text(stringResource(R.string.plugin_configure)) },
                 textToValue = { it },
                 enabled = uiState.pluginName.isNotBlank(),
-                icon = { Icon(Icons.Filled.Settings, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.settings), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.pluginConfig)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
@@ -240,7 +228,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
 
         item("category_experimental") {
             PreferenceCategory(
-                icon = { Icon(Icons.Filled.Grid3x3, null) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                 text = { Text(stringResource(R.string.experimental_settings)) },
             )
         }

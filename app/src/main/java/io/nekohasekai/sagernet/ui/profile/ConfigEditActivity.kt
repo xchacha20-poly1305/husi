@@ -24,18 +24,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.KeyboardTab
-import androidx.compose.material.icons.automirrored.filled.Redo
-import androidx.compose.material.icons.automirrored.filled.Undo
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -281,7 +270,7 @@ private fun ConfigEditScreenContent(
                 title = { Text(stringResource(R.string.edit_config)) },
                 navigationIcon = {
                     SimpleIconButton(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = ImageVector.vectorResource(R.drawable.close),
                         contentDescription = stringResource(R.string.close),
                     ) {
                         onBackPress()
@@ -289,7 +278,7 @@ private fun ConfigEditScreenContent(
                 },
                 actions = {
                     SimpleIconButton(
-                        imageVector = Icons.Filled.Done,
+                        imageVector = ImageVector.vectorResource(R.drawable.done),
                         contentDescription = stringResource(R.string.apply),
                     ) {
                         viewModel.saveAndExit(uiState.textFieldValue.text)
@@ -318,7 +307,7 @@ private fun ConfigEditScreenContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardTab,
+                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_tab),
                             contentDescription = stringResource(R.string.indent),
                         ) {
                             // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
@@ -340,7 +329,7 @@ private fun ConfigEditScreenContent(
                         }
 
                         SimpleIconButton(
-                            Icons.AutoMirrored.Filled.Undo,
+                            ImageVector.vectorResource(R.drawable.undo),
                             contentDescription = stringResource(R.string.undo),
                             enabled = uiState.canUndo,
                         ) {
@@ -348,7 +337,7 @@ private fun ConfigEditScreenContent(
                         }
 
                         SimpleIconButton(
-                            Icons.AutoMirrored.Filled.Redo,
+                            ImageVector.vectorResource(R.drawable.redo),
                             contentDescription = stringResource(R.string.redo),
                             enabled = uiState.canRedo,
                         ) {
@@ -378,26 +367,26 @@ private fun ConfigEditScreenContent(
                         }
 
                         RepeatableIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_left),
                             contentDescription = "<-",
                             onClick = { viewModel.moveCursor(-1) },
                         )
 
                         RepeatableIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
                             contentDescription = "->",
                             onClick = { viewModel.moveCursor(1) },
                         )
 
                         SimpleIconButton(
-                            imageVector = Icons.AutoMirrored.Filled.FormatAlignLeft,
+                            imageVector = ImageVector.vectorResource(R.drawable.format_align_left),
                             contentDescription = stringResource(R.string.action_format),
                         ) {
                             viewModel.formatCurrentText()
                         }
 
                         SimpleIconButton(
-                            imageVector = Icons.Filled.Info,
+                            imageVector = ImageVector.vectorResource(R.drawable.info),
                             contentDescription = stringResource(R.string.action_test_config),
                         ) {
                             coroutineScope.launch {
@@ -438,7 +427,7 @@ private fun ConfigEditScreenContent(
                 alert = null
             }
         },
-        icon = { Icon(Icons.Filled.Error, null) },
+        icon = { Icon(ImageVector.vectorResource(R.drawable.error), null) },
         title = { Text(stringResource(R.string.error_title)) },
         text = { Text(alert!!) },
     )
@@ -457,7 +446,7 @@ private fun ConfigEditScreenContent(
                 finish()
             }
         },
-        icon = { Icon(Icons.Filled.Warning, null) },
+        icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
         title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
     )
 }
