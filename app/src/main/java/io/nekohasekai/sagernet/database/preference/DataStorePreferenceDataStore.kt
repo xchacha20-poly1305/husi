@@ -16,7 +16,6 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
-import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.ktx.getArray
 import io.nekohasekai.sagernet.ktx.getBool
 import io.nekohasekai.sagernet.ktx.getDoubleOrNull
@@ -27,7 +26,13 @@ import io.nekohasekai.sagernet.ktx.getStr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.InputStream
@@ -79,7 +84,7 @@ private object MultiProcessPreferencesSerializer : Serializer<Preferences> {
 @Suppress("MemberVisibilityCanBePrivate", "unused", "UNCHECKED_CAST")
 class DataStorePreferenceDataStore private constructor(
     private val dataStore: DataStore<Preferences>,
-) : PreferenceDataStore() {
+) : PreferenceDataStore {
 
     companion object {
 
@@ -93,6 +98,11 @@ class DataStorePreferenceDataStore private constructor(
             return DataStorePreferenceDataStore(context.applicationContext.appDataStore)
         }
     }
+
+    private val flowScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    val preferencesFlow: StateFlow<Preferences> =
+        dataStore.data.stateIn(flowScope, SharingStarted.WhileSubscribed(5_000), emptyPreferences())
 
     fun getBoolean(key: String): Boolean? = runBlocking {
         dataStore.data.first()[booleanPreferencesKey(key)]
@@ -117,6 +127,25 @@ class DataStorePreferenceDataStore private constructor(
     fun getStringSet(key: String): Set<String>? = runBlocking {
         dataStore.data.first()[stringSetPreferencesKey(key)]
     }
+
+    fun booleanFlow(key: String, default: Boolean = false): Flow<Boolean> =
+        preferencesFlow.map { it[booleanPreferencesKey(key)] ?: default }.distinctUntilChanged()
+
+    fun floatFlow(key: String, default: Float = 0f): Flow<Float> =
+        preferencesFlow.map { it[floatPreferencesKey(key)] ?: default }.distinctUntilChanged()
+
+    fun intFlow(key: String, default: Int = 0): Flow<Int> =
+        preferencesFlow.map { (it[longPreferencesKey(key)] ?: default.toLong()).toInt() }
+            .distinctUntilChanged()
+
+    fun longFlow(key: String, default: Long = 0L): Flow<Long> =
+        preferencesFlow.map { it[longPreferencesKey(key)] ?: default }.distinctUntilChanged()
+
+    fun stringFlow(key: String, default: String = ""): Flow<String> =
+        preferencesFlow.map { it[stringPreferencesKey(key)] ?: default }.distinctUntilChanged()
+
+    fun stringSetFlow(key: String, default: Set<String> = emptySet()): Flow<Set<String>> =
+        preferencesFlow.map { it[stringSetPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun reset() = runBlocking {
         dataStore.edit { prefs ->
@@ -313,6 +342,19 @@ class DataStorePreferenceDataStore private constructor(
         preferences.asMap().forEach { (key, value) ->
             if (key.name == RoomToDataStoreMigration.MIGRATION_KEY) return@forEach
             json.put(key.name, toValueHolder(value))
+        }
+    }
+
+    suspend fun exportToString(): String {
+        val preferences = dataStore.data.first()
+        return buildString {
+            preferences.asMap().forEach { (key, value) ->
+                if (key.name == RoomToDataStoreMigration.MIGRATION_KEY) return@forEach
+                append(key.name)
+                append(": ")
+                append(value)
+                append("\n")
+            }
         }
     }
 

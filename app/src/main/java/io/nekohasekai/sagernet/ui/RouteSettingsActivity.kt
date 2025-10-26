@@ -294,7 +294,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.LegendToggle, null) },
                         summary = {
                             val text = when (val size = uiState.packages.size) {
-                                0 -> stringResource(androidx.preference.R.string.not_set)
+                                0 -> stringResource(R.string.not_set)
                                 in 1..5 -> uiState.packages.joinToString("\n")
                                 else -> stringResource(R.string.apps_message, size)
                             }
@@ -320,7 +320,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.Public, null) },
                         summary = {
                             val text = if (uiState.networkType.isEmpty()) {
-                                stringResource(androidx.preference.R.string.not_set)
+                                stringResource(R.string.not_set)
                             } else {
                                 uiState.networkType.joinToString("\n")
                             }
@@ -421,7 +421,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.AutoMirrored.Filled.CompareArrows, null) },
                         summary = {
                             val text = if (uiState.network.isEmpty()) {
-                                stringResource(androidx.preference.R.string.not_set)
+                                stringResource(R.string.not_set)
                             } else {
                                 uiState.network.joinToString("\n")
                             }
@@ -453,7 +453,7 @@ class RouteSettingsActivity : ComposeActivity() {
                         icon = { Icon(Icons.Filled.Layers, null) },
                         summary = {
                             val text = if (uiState.protocol.isEmpty()) {
-                                stringResource(androidx.preference.R.string.not_set)
+                                stringResource(R.string.not_set)
                             } else {
                                 uiState.protocol.joinToString("\n")
                             }
@@ -587,7 +587,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                         RuleEntity.OUTBOUND_BLOCK -> stringResource(R.string.route_block)
                                         else -> SagerDatabase.proxyDao.getById(uiState.outbound)
                                             ?.displayName()
-                                            ?: stringResource(androidx.preference.R.string.not_set)
+                                            ?: stringResource(R.string.not_set)
                                     }
                                     Text(text)
                                 },
@@ -709,7 +709,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 summary = {
                                     val text =
                                         uiState.resolveRewriteTTL.takeIf { it > 0 }?.toString()
-                                            ?: stringResource(androidx.preference.R.string.not_set)
+                                            ?: stringResource(R.string.not_set)
                                     Text(text)
                                 },
                                 textField = { value, onValueChange, onOk ->
@@ -756,7 +756,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 icon = { Icon(Icons.Filled.Layers, null) },
                                 summary = {
                                     val text = if (uiState.sniffers.isEmpty()) {
-                                        stringResource(androidx.preference.R.string.not_set)
+                                        stringResource(R.string.not_set)
                                     } else {
                                         uiState.sniffers.joinToString("\n")
                                     }

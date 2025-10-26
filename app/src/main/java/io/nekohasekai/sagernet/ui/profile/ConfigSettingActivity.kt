@@ -71,7 +71,7 @@ class ConfigSettingActivity : ProfileSettingsActivity<ConfigBean>() {
                 summary = {
 
                     val text = if (config.isBlank()) {
-                        stringResource(androidx.preference.R.string.not_set)
+                        stringResource(R.string.not_set)
                     } else {
                         stringResource(R.string.lines, config.count { it == 'n' } + 1)
                     }

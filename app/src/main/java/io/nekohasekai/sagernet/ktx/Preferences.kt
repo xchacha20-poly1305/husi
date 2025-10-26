@@ -1,6 +1,6 @@
 package io.nekohasekai.sagernet.ktx
 
-import androidx.preference.PreferenceDataStore
+import io.nekohasekai.sagernet.database.preference.PreferenceDataStore
 import kotlin.reflect.KProperty
 
 fun PreferenceDataStore.string(
@@ -21,21 +21,12 @@ fun PreferenceDataStore.int(
 fun PreferenceDataStore.stringSet(
     name: String,
     defaultValue: () -> Set<String> = { emptySet() },
-) = PreferenceProxy(name, defaultValue, ::getStringSet, ::putStringSet)
-
-fun PreferenceDataStore.stringToInt(
-    name: String,
-    defaultValue: () -> Int = { 0 },
-) = PreferenceProxy(name, defaultValue, { key, default ->
-    getString(key, "$default")?.toIntOrNull() ?: default
-}, { key, value -> putString(key, "$value") })
-
-fun PreferenceDataStore.stringToIntIfExists(
-    name: String,
-    defaultValue: () -> Int = { 0 },
-) = PreferenceProxy(name, defaultValue, { key, default ->
-    getString(key, "$default")?.toIntOrNull() ?: default
-}, { key, value -> putString(key, value.takeIf { it > 0 }?.toString() ?: "") })
+) = PreferenceProxy(
+    name,
+    defaultValue,
+    { key, def -> getStringSet(key, def.toMutableSet())?.toSet() },
+    { key, value -> putStringSet(key, value.toMutableSet()) }
+)
 
 fun PreferenceDataStore.long(
     name: String,

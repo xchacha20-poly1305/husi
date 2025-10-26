@@ -1,18 +1,37 @@
 package io.nekohasekai.sagernet.compose.theme
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    val isDarkMode = Theme.usingNightMode()
-    when (DataStore.appTheme) {
+    val resources = LocalResources.current
+    val nightModeFlow by DataStore.configurationStore
+        .intFlow(Key.NIGHT_THEME)
+        .collectAsStateWithLifecycle(0)
+    val isDarkMode = remember(nightModeFlow, resources.configuration) {
+        when (nightModeFlow) {
+            1 -> true
+            2 -> false
+            else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        }
+    }
+    val appTheme by DataStore.configurationStore
+        .intFlow(Key.APP_THEME)
+        .collectAsStateWithLifecycle(Theme.DEFAULT)
+    when (appTheme) {
         Theme.RED -> Red.Theme(isDarkMode, content)
         Theme.PINK_SSR -> PinkSSR.Theme(isDarkMode, content)
         Theme.PINK -> Pink.Theme(isDarkMode, content)

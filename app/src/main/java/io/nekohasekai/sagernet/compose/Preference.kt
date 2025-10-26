@@ -84,7 +84,7 @@ fun PasswordPreference(
         icon = icon,
         summary = {
             val summaryText = if (value.isEmpty()) {
-                stringResource(id = androidx.preference.R.string.not_set)
+                stringResource(id = R.string.not_set)
             } else {
                 "\u2022".repeat(value.length)
             }

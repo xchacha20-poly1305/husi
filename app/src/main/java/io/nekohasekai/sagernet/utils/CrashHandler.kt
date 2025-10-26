@@ -98,13 +98,8 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
 
         try {
             report += "Settings: \n"
-            val json = org.json.JSONObject()
             runBlocking {
-                DataStore.configurationStore.exportToJson(json)
-            }
-            json.keys().forEach { key ->
-                report += "\n"
-                report += "$key: ${json.getString(key)}"
+                report += DataStore.configurationStore.exportToString()
             }
         } catch (e: Exception) {
             report += "Export settings failed: " + formatThrowable(e)

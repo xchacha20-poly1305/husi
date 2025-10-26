@@ -142,15 +142,82 @@ fun UIntegerTextField(
     onValueChange: (TextFieldValue) -> Unit,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
+    minValue: Int? = null,
+    maxValue: Int? = null,
+) {
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    fun validate(text: String): String? {
+        if (text.isBlank()) {
+            return null
+        }
+        val intValue = text.toIntOrNull()
+        if (intValue == null) {
+            return null // Will be handled by input filter
+        }
+        if (minValue != null && intValue < minValue) {
+            return "Must be ≥ $minValue"
+        }
+        if (maxValue != null && intValue > maxValue) {
+            return "Must be ≤ $maxValue"
+        }
+        return null
+    }
+
+    LaunchedEffect(value.text) {
+        errorMessage = validate(value.text)
+    }
+
+    Column {
+        OutlinedTextField(
+            value = value,
+            onValueChange = { newValue ->
+                val text = newValue.text
+                if (text.isBlank()) {
+                    onValueChange(TextFieldValue("0"))
+                } else if (text.toUIntOrNull() != null) {
+                    onValueChange(newValue)
+                    errorMessage = validate(text)
+                }
+            },
+            modifier = modifier.fillMaxWidth(),
+            keyboardActions = KeyboardActions { onOk() },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            isError = errorMessage != null,
+            supportingText = errorMessage?.let {
+                {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp),
+                    )
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun PortTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = { newValue ->
             val text = newValue.text
+            // Port: 0-65535, max 5 digits
             if (text.isBlank()) {
-                onValueChange(TextFieldValue("0"))
-            } else if (text.toUIntOrNull() != null) {
                 onValueChange(newValue)
+            } else {
+                val intValue = text.toIntOrNull()
+                if (intValue != null && intValue <= 65535 && text.length <= 5) {
+                    onValueChange(newValue)
+                }
             }
         },
         modifier = modifier.fillMaxWidth(),
@@ -176,6 +243,46 @@ fun HostTextField(
             .horizontalScroll(scrollState),
         keyboardActions = KeyboardActions { onOk() },
         singleLine = false,
+    )
+}
+
+@Composable
+fun ValidatedIntegerTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+    minValue: Int? = null,
+    maxValue: Int? = null,
+    modifier: Modifier = Modifier,
+) {
+    fun validate(text: String): String? {
+        if (text.isBlank()) {
+            return null
+        }
+        val intValue = text.toIntOrNull()
+        if (intValue == null) {
+            return "Invalid number"
+        }
+        if (minValue != null && intValue < minValue) {
+            return "Must be >= $minValue"
+        }
+        if (maxValue != null && intValue > maxValue) {
+            return "Must be <= $maxValue"
+        }
+        return null
+    }
+
+    ValidatedTextField(
+        value = value,
+        onValueChange = { newValue ->
+            val text = newValue.text
+            if (text.isBlank() || text.toIntOrNull() != null) {
+                onValueChange(newValue)
+            }
+        },
+        onOk = onOk,
+        singleLine = true,
+        validator = ::validate,
     )
 }
 

@@ -72,7 +72,6 @@ dependencies {
     implementation("androidx.browser:browser:1.9.0")
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
-    implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.work:work-runtime-ktx:2.10.5")
     implementation("androidx.work:work-multiprocess:2.10.5")
@@ -117,7 +116,6 @@ dependencies {
     implementation("com.google.guava:guava:33.5.0-android")
 
     implementation("androidx.room:room-runtime:2.8.3")
-    implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
     ksp("androidx.room:room-compiler:2.8.3")
     implementation("androidx.room:room-ktx:2.8.3")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")

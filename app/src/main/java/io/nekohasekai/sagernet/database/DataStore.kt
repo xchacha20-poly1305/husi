@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.database
 
 import android.os.Binder
-import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.CertProvider
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
@@ -16,7 +15,6 @@ import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.preference.DataStorePreferenceDataStore
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ktx.boolean
 import io.nekohasekai.sagernet.ktx.int
@@ -24,9 +22,8 @@ import io.nekohasekai.sagernet.ktx.long
 import io.nekohasekai.sagernet.ktx.parsePort
 import io.nekohasekai.sagernet.ktx.string
 import io.nekohasekai.sagernet.ktx.stringSet
-import io.nekohasekai.sagernet.ktx.stringToInt
 
-object DataStore : OnPreferenceDataStoreChangeListener {
+object DataStore {
 
     // share service state in main & bg process
     @Volatile
@@ -96,21 +93,21 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)
-    var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
+    var nightTheme by configurationStore.int(Key.NIGHT_THEME)
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
     var memoryLimit by configurationStore.boolean(Key.MEMORY_LIMIT) { false }
     var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
     var networkStrategy by configurationStore.string(Key.NETWORK_STRATEGY)
     var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)
 
-    var networkInterfaceType by configurationStore.stringToInt(Key.NETWORK_INTERFACE_STRATEGY) {
+    var networkInterfaceType by configurationStore.int(Key.NETWORK_INTERFACE_STRATEGY) {
         NetworkInterfaceStrategy.DEFAULT
     }
     var networkPreferredInterfaces by configurationStore.stringSet(Key.NETWORK_PREFERRED_INTERFACES)
     var forcedSearchProcess by configurationStore.boolean(Key.FORCED_SEARCH_PROCESS) { false }
 
-    //    var tcpKeepAliveInterval by configurationStore.stringToInt(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
-    var mtu by configurationStore.stringToInt(Key.MTU) { 9000 }
+    //    var tcpKeepAliveInterval by configurationStore.int(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
+    var mtu by configurationStore.int(Key.MTU) { 9000 }
     var allowAppsBypassVpn by configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
 
     var bypassLan by configurationStore.boolean(Key.BYPASS_LAN)
@@ -119,7 +116,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var inboundPassword by configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
-    var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL)
+    var speedInterval by configurationStore.int(Key.SPEED_INTERVAL)
     var showGroupInNotification by configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
@@ -130,10 +127,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
-    var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
+    var rulesProvider by configurationStore.int(Key.RULES_PROVIDER)
     var customRuleProvider by configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
-    var logLevel by configurationStore.stringToInt(Key.LOG_LEVEL)
-    var logMaxSize by configurationStore.stringToInt(Key.LOG_MAX_SIZE) { 50 }
+    var logLevel by configurationStore.int(Key.LOG_LEVEL)
+    var logMaxSize by configurationStore.int(Key.LOG_MAX_SIZE) { 50 }
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
@@ -156,7 +153,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         }
     }
 
-
     private fun getLocalPort(key: String, default: Int): Int {
         return parsePort(configurationStore.getString(key), default + userIndex)
     }
@@ -174,7 +170,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var packages by configurationStore.stringSet(Key.PACKAGES)
     var showDirectSpeed by configurationStore.boolean(Key.SHOW_DIRECT_SPEED) { true }
 
-    val persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
+    var persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
     var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_BYPASS }
@@ -184,12 +180,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
     var blurredAddress by configurationStore.boolean(Key.BLURRED_ADDRESS)
 
-    var providerHysteria2 by configurationStore.stringToInt(Key.PROVIDER_HYSTERIA2) { ProtocolProvider.CORE }
-    var providerJuicity by configurationStore.stringToInt(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
+    var providerHysteria2 by configurationStore.int(Key.PROVIDER_HYSTERIA2) { ProtocolProvider.CORE }
+    var providerJuicity by configurationStore.int(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
 
-    var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
+    var tunImplementation by configurationStore.int(Key.TUN_IMPLEMENTATION) { TunImplementation.MIXED }
     var profileTrafficStatistics by configurationStore.boolean(Key.PROFILE_TRAFFIC_STATISTICS) { true }
-    var certProvider by configurationStore.stringToInt(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
+    var certProvider by configurationStore.int(Key.CERT_PROVIDER) { CertProvider.MOZILLA }
     var disableProcessText by configurationStore.boolean(Key.DISABLE_PROCESS_TEXT)
 
     var trafficDescending by configurationStore.boolean(Key.TRAFFIC_DESCENDING) { false }
@@ -204,17 +200,15 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // ntp
     var ntpEnable by configurationStore.boolean(Key.ENABLE_NTP) { false }
     var ntpAddress by configurationStore.string(Key.NTP_SERVER) { "time.apple.com" }
-    var ntpPort by configurationStore.stringToInt(Key.NTP_PORT) { 123 }
+    var ntpPort by configurationStore.int(Key.NTP_PORT) { 123 }
     var ntpInterval by configurationStore.string(Key.NTP_INTERVAL) { "30m" }
 
     // protocol
 
-    var uploadSpeed by configurationStore.stringToInt(Key.UPLOAD_SPEED) { 0 }
-    var downloadSpeed by configurationStore.stringToInt(Key.DOWNLOAD_SPEED) { 0 }
+    var uploadSpeed by configurationStore.int(Key.UPLOAD_SPEED) { 0 }
+    var downloadSpeed by configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
     var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
 
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-    }
 }

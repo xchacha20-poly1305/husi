@@ -267,7 +267,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     icon = { Icon(Icons.Filled.Texture, null) },
                     summary = {
                         val text = if (uiState.streamReceiveWindow == 0) {
-                            stringResource(androidx.preference.R.string.not_set)
+                            stringResource(R.string.not_set)
                         } else {
                             uiState.streamReceiveWindow.toString()
                         }
@@ -288,7 +288,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     icon = { Icon(Icons.Filled.Transform, null) },
                     summary = {
                         val text = if (uiState.connectionReceiveWindow == 0) {
-                            stringResource(androidx.preference.R.string.not_set)
+                            stringResource(R.string.not_set)
                         } else {
                             uiState.connectionReceiveWindow.toString()
                         }

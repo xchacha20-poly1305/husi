@@ -156,7 +156,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 icon = { Icon(Icons.Filled.Speed, null) },
                 summary = {
                     val text = if (uiState.insecureConcurrency == 0) {
-                        stringResource(androidx.preference.R.string.not_set)
+                        stringResource(R.string.not_set)
                     } else {
                         uiState.insecureConcurrency.toString()
                     }
