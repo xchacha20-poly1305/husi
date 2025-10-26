@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
@@ -74,9 +75,11 @@ import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
@@ -99,6 +102,7 @@ class AboutFragment : OnKeyDownFragment(R.layout.compose_holder) {
             AppTheme {
                 AboutScreen(
                     viewModel = viewModel,
+                    fab = (requireActivity() as MainActivity).binding.fab,
                     openDrawer = {
                         (requireActivity() as MainActivity).binding.drawerLayout
                             .openDrawer(GravityCompat.START)
@@ -114,6 +118,7 @@ class AboutFragment : OnKeyDownFragment(R.layout.compose_holder) {
 private fun AboutScreen(
     modifier: Modifier = Modifier,
     viewModel: AboutFragmentViewModel,
+    fab: FloatingActionButton,
     openDrawer: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -123,6 +128,9 @@ private fun AboutScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+
+    HideOnBottomScrollBehavior(listState = listState, fab = fab)
 
     val displayVersion = remember {
         var displayVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
@@ -196,6 +204,7 @@ private fun AboutScreen(
         val uriHandler = LocalUriHandler.current
 
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -451,9 +460,13 @@ private fun PreviewAboutScreen() {
     val context = LocalContext.current
     repo = TempRepository(context)
 
+    // Mock FAB for preview
+    val mockFab = remember { FloatingActionButton(context) }
+
     AppTheme {
         AboutScreen(
             viewModel = AboutFragmentViewModel(),
+            fab = mockFab,
             openDrawer = {},
         )
     }
