@@ -8,8 +8,8 @@ require (
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.68
 	github.com/sagernet/gomobile v0.1.8
-	github.com/sagernet/sing v0.8.0-beta.5
-	github.com/sagernet/sing-box v1.13.0-alpha.26
+	github.com/sagernet/sing v0.8.0-beta.6
+	github.com/sagernet/sing-box v1.13.0-alpha.27
 	github.com/sagernet/sing-tun v0.8.0-beta.11
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
