@@ -85,6 +85,28 @@ Truly readable code is more than just clear—it's understandable even without c
 
 ### Java / Kotlin Guidelines
 
+#### Import usage
+
+* **Always use imports** instead of fully qualified names in code.
+* The **only exception** is when referencing `R` classes from other packages (e.g., `com.google.android.material.R`).
+
+**Bad:**
+
+```kotlin
+val density = androidx.compose.ui.platform.LocalDensity.current
+androidx.compose.runtime.DisposableEffect(view) { /* ... */ }
+```
+
+**Good:**
+
+```kotlin
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.DisposableEffect
+
+val density = LocalDensity.current
+DisposableEffect(view) { /* ... */ }
+```
+
 #### `forEach` vs `for` loops
 
 * `forEach` is fluent, especially at the end of a chain:

@@ -46,6 +46,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -66,6 +68,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomappbar.BottomAppBar
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.CertProvider
@@ -121,11 +124,12 @@ class SettingsFragment : OnKeyDownFragment(R.layout.compose_holder) {
 
         binding = ComposeHolderBinding.bind(view)
         binding.root.setContent {
+            val mainActivity = requireActivity() as MainActivity
             AppTheme {
                 SettingsScreen(
+                    bottomBar = mainActivity.binding.stats,
                     openDrawer = {
-                        (requireActivity() as MainActivity).binding
-                            .drawerLayout.openDrawer(GravityCompat.START)
+                        mainActivity.binding.drawerLayout.openDrawer(GravityCompat.START)
                     },
                 )
             }
@@ -144,6 +148,7 @@ private const val TYPE_COLOR_PICKER_PREFERENCE = 5
 @Composable
 private fun SettingsScreen(
     modifier: Modifier = Modifier,
+    bottomBar: BottomAppBar,
     openDrawer: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -151,6 +156,20 @@ private fun SettingsScreen(
     val windowInsets = WindowInsets.safeDrawing
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val density = LocalDensity.current
+    var bottomBarHeightDp by remember { mutableStateOf(0.dp) }
+
+    DisposableEffect(bottomBar) {
+        val listener = android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        }
+        bottomBar.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        onDispose {
+            bottomBar.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        }
+    }
 
     fun needReload() = scope.launch {
         if (!DataStore.serviceState.started) return@launch
@@ -221,7 +240,12 @@ private fun SettingsScreen(
                 onNavigationClick = openDrawer,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = bottomBarHeightDp)
+            )
+        },
     ) { innerPadding ->
         ProvidePreferenceLocals {
             LazyColumn(
