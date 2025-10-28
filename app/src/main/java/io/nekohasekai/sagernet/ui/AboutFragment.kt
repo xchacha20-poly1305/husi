@@ -46,13 +46,17 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -68,6 +72,7 @@ import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.LICENSE
@@ -92,12 +97,14 @@ class AboutFragment : OnKeyDownFragment(R.layout.compose_holder) {
 
         val binding = ComposeHolderBinding.bind(view)
         binding.root.setContent {
+            val mainActivity = requireActivity() as MainActivity
             AppTheme {
                 AboutScreen(
                     viewModel = viewModel,
-                    fab = (requireActivity() as MainActivity).binding.fab,
+                    fab = mainActivity.binding.fab,
+                    bottomBar = mainActivity.binding.stats,
                     openDrawer = {
-                        (requireActivity() as MainActivity).binding.drawerLayout
+                        mainActivity.binding.drawerLayout
                             .openDrawer(GravityCompat.START)
                     },
                 )
@@ -112,6 +119,7 @@ private fun AboutScreen(
     modifier: Modifier = Modifier,
     viewModel: AboutFragmentViewModel,
     fab: FloatingActionButton,
+    bottomBar: BottomAppBar,
     openDrawer: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -123,7 +131,21 @@ private fun AboutScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
 
-    HideOnBottomScrollBehavior(listState = listState, fab = fab)
+    val density = LocalDensity.current
+    var bottomBarHeightDp by remember { mutableStateOf(0.dp) }
+
+    DisposableEffect(bottomBar) {
+        val listener = android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        }
+        bottomBar.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        onDispose {
+            bottomBar.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        }
+    }
+
+    HideOnBottomScrollBehavior(listState = listState, fab = fab, bottomBar = bottomBar)
 
     val displayVersion = remember {
         var displayVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
@@ -192,7 +214,12 @@ private fun AboutScreen(
                 onNavigationClick = openDrawer,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = bottomBarHeightDp)
+            )
+        },
     ) { innerPadding ->
         val uriHandler = LocalUriHandler.current
 
@@ -453,13 +480,15 @@ private fun PreviewAboutScreen() {
     val context = LocalContext.current
     repo = TempRepository(context)
 
-    // Mock FAB for preview
+    // Mock FAB and bottom bar for preview
     val mockFab = remember { FloatingActionButton(context) }
+    val mockBottomBar = remember { BottomAppBar(context) }
 
     AppTheme {
         AboutScreen(
             viewModel = AboutFragmentViewModel(),
             fab = mockFab,
+            bottomBar = mockBottomBar,
             openDrawer = {},
         )
     }

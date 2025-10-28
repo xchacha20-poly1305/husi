@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.core.view.isVisible
+import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 fun HideOnBottomScrollBehavior(
     listState: LazyListState,
     fab: FloatingActionButton,
+    bottomBar: BottomAppBar,
 ) {
     val isAtBottom by remember {
         derivedStateOf {
@@ -27,13 +29,19 @@ fun HideOnBottomScrollBehavior(
         }
     }
 
-    DisposableEffect(fab) {
+    DisposableEffect(fab, bottomBar) {
         if (!fab.isVisible) {
             fab.show()
+        }
+        if (!bottomBar.isVisible) {
+            bottomBar.performShow()
         }
         onDispose {
             if (!fab.isVisible) {
                 fab.show()
+            }
+            if (!bottomBar.isVisible) {
+                bottomBar.performShow()
             }
         }
     }
@@ -58,6 +66,9 @@ fun HideOnBottomScrollBehavior(
                         if (!fab.isVisible) {
                             fab.show()
                         }
+                        if (!bottomBar.isVisible) {
+                            bottomBar.performShow()
+                        }
                     }
                     isAtBottom && isScrollingDown -> {
                         fab.hide(object : FloatingActionButton.OnVisibilityChangedListener() {
@@ -66,6 +77,7 @@ fun HideOnBottomScrollBehavior(
                                 button.visibility = View.INVISIBLE
                             }
                         })
+                        bottomBar.performHide()
                     }
                 }
 
