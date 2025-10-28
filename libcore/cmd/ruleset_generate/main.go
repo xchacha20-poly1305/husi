@@ -34,6 +34,27 @@ const (
 	ipName   = "Country.mmdb"
 
 	finalBufCap = 524288
+
+	// windowSize defines the zstd compression window size.
+	// Using 128KB instead of MaxWindowSize (1GB) to avoid OOM on low-memory devices during decompression.
+	//
+	// Analysis of actual file sizes in tar archives:
+	//   geoip.tar:   237 files, median 633B,  95th percentile 28.62KB,  max 259KB
+	//   geosite.tar: 1683 files, median 94B, 95th percentile 1.09KB, max 182KB
+	//
+	// Since .srs files are already compressed with zlib.BestCompression, they contain high-entropy
+	// data that cannot be significantly re-compressed. The 1GB window searches through massive amounts
+	// of effectively random data, providing no benefit over a smaller window while requiring 1GB+ memory.
+	//
+	// 128KB window is sufficient to:
+	//   - Cover 4.5x the 95th percentile file size
+	//   - Capture patterns across 23-222 average files
+	//   - Compress tar headers and metadata effectively
+	//   - Decompress with only ~256KB memory (128KB window + 128KB max block)
+	//
+	// See: https://github.com/xchacha20-poly1305/husi/issues/614
+	//      https://github.com/klauspost/compress/discussions/675
+	windowSize = 128 << 10 // 128KB
 )
 
 func init() {
@@ -173,6 +194,6 @@ func newZstdWriter(writer io.Writer) (*zstd.Encoder, error) {
 	return zstd.NewWriter(
 		writer,
 		zstd.WithEncoderLevel(zstd.SpeedBestCompression),
-		zstd.WithWindowSize(zstd.MaxWindowSize),
+		zstd.WithWindowSize(windowSize),
 	)
 }
