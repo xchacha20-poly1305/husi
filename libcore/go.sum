@@ -97,10 +97,10 @@ github.com/sagernet/nftables v0.3.0-beta.4/go.mod h1:OQXAjvjNGGFxaTgVCSTRIhYB5/l
 github.com/sagernet/quic-go v0.55.0-sing-box-mod.2 h1:I79gW4Xl5ciVARHfnp122lDAMhC0AwUCU765Q8Kxdfo=
 github.com/sagernet/quic-go v0.55.0-sing-box-mod.2/go.mod h1:IE9naq7Kekj0rPAdWc0GLW1ENR7gAOQV9VRTDlKN8Bk=
 github.com/sagernet/sing v0.6.9/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing v0.8.0-beta.5 h1:Cm4CnLQGNyG5Jl1U9pKWAjFUcbjchGGqn1xeXzfI5kw=
-github.com/sagernet/sing v0.8.0-beta.5/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.13.0-alpha.26 h1:+/PtESxvNxJfjmkX/FazxmLIkk+ktR9qlcgTZHjc1qA=
-github.com/sagernet/sing-box v1.13.0-alpha.26/go.mod h1:gnVOktHUCf2tH1lr9H0Ai5sT94gBBRFAYwWCf9Cot9k=
+github.com/sagernet/sing v0.8.0-beta.6 h1:GXv1j1xWHihx6ptyOXh0yp4jUqJoNjCqD8d+AI9rnLU=
+github.com/sagernet/sing v0.8.0-beta.6/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing-box v1.13.0-alpha.27 h1:B9Y4oW/nbrF3v84GiAFjSUDvm/tqoO1NsDIEjP32w1c=
+github.com/sagernet/sing-box v1.13.0-alpha.27/go.mod h1:bV27uL6xQ0laIDvcvsq6My+Bw/XA18bOwCU2Dzf62es=
 github.com/sagernet/sing-mux v0.3.3 h1:YFgt9plMWzH994BMZLmyKL37PdIVaIilwP0Jg+EcLfw=
 github.com/sagernet/sing-mux v0.3.3/go.mod h1:pht8iFY4c9Xltj7rhVd208npkNaeCxzyXCgulDPLUDA=
 github.com/sagernet/sing-quic v0.6.0-beta.4 h1:2k/+Xrv/pjl7AYC7LD9tcB7y1lIgw04LjJjqTI8q5Xk=
