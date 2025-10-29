@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
@@ -81,6 +82,7 @@ import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.TunImplementation
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.compose.DurationTextField
+import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
 import io.nekohasekai.sagernet.compose.HostTextField
 import io.nekohasekai.sagernet.compose.LinkOrContentTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
@@ -156,6 +158,7 @@ private fun SettingsScreen(
     val windowInsets = WindowInsets.safeDrawing
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
 
     val density = LocalDensity.current
     var bottomBarHeightDp by remember { mutableStateOf(0.dp) }
@@ -170,6 +173,8 @@ private fun SettingsScreen(
             bottomBar.viewTreeObserver.removeOnGlobalLayoutListener(listener)
         }
     }
+
+    HideOnBottomScrollBehavior(listState = listState, fab = (context as MainActivity).binding.fab, bottomBar = bottomBar)
 
     fun needReload() = scope.launch {
         if (!DataStore.serviceState.started) return@launch
@@ -249,6 +254,7 @@ private fun SettingsScreen(
     ) { innerPadding ->
         ProvidePreferenceLocals {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
