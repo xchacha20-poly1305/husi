@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -153,7 +151,10 @@ class AssetEditActivity : ComposeActivity() {
                     onDismissRequest = { showDeleteConfirm = false },
                     confirmButton = {
                         TextButton(stringResource(android.R.string.ok)) {
-                            setResult(RESULT_DELETE)
+                            setResult(
+                                RESULT_DELETE,
+                                Intent().putExtra(EXTRA_ASSET_NAME, viewModel.editingName),
+                            )
                             finish()
                         }
                     },
