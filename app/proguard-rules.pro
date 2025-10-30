@@ -1,6 +1,8 @@
 -repackageclasses ''
 -allowaccessmodification
 
+-dontobfuscate
+-keepattributes SourceFile,LineNumberTable
 -keep class io.nekohasekai.sagernet.** { *;}
 
 # Clean Kotlin
