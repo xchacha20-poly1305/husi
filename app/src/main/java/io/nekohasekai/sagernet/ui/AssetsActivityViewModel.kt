@@ -12,7 +12,9 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ktx.use
+import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +48,7 @@ internal sealed interface AssetsActivityUiEvent {
     class Snackbar(val message: StringOrRes) : AssetsActivityUiEvent
 }
 
-internal class AssetsActivityViewModel : ViewModel() {
+internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interface<AssetItem> {
 
     companion object {
         fun isBuiltIn(index: Int): Boolean = index < 2
@@ -284,6 +286,41 @@ internal class AssetsActivityViewModel : ViewModel() {
 
         refreshAssets()
     }
+
+    fun fakeRemove(index: Int) = viewModelScope.launch {
+        _uiState.update { state ->
+            val assets = state.assets.toMutableList()
+            assets.removeAt(index)
+            state.copy(assets = assets)
+        }
+    }
+
+    override fun undo(actions: List<Pair<Int, AssetItem>>) {
+        _uiState.update { state ->
+            val assets = state.assets.toMutableList()
+            for ((index, item) in actions) {
+                assets.add(index, item)
+            }
+            state.copy(assets = assets)
+        }
+    }
+
+    override fun commit(actions: List<Pair<Int, AssetItem>>) {
+        runOnIoDispatcher {
+            for ((_, asset) in actions) {
+                val file = asset.file
+                file.delete()
+                val versionFile = File(file.parentFile!!.parentFile!!, "${file.name}.version.txt")
+                if (versionFile.isFile) versionFile.delete()
+                SagerDatabase.assetDao.delete(file.name)
+            }
+
+            viewModelScope.launch {
+                refreshAssets0()
+            }
+        }
+    }
+
 }
 
 internal class NoUpdateException : Exception()
