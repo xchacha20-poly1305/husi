@@ -54,6 +54,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
+import io.nekohasekai.sagernet.ktx.snackbarAdapter
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.widget.QRCodeDialog
@@ -135,7 +136,10 @@ class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
             groupAdapter = it
         }
 
-        undoManager = UndoSnackbarManager(requireActivity() as ThemedActivity, viewModel)
+        undoManager = UndoSnackbarManager(
+            (requireActivity() as ThemedActivity).snackbarAdapter,
+            viewModel,
+        )
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START

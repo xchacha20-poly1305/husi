@@ -62,8 +62,9 @@ import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.readableUrlTestError
+import io.nekohasekai.sagernet.ktx.snackbarAdapter
 import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
-import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.ThemedActivity
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment.SelectCallback
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
@@ -135,7 +136,10 @@ class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
         binding.configurationList.requestFocus()
 
         if (!viewModel.forSelect) {
-            undoManager = UndoSnackbarManager(activity as MainActivity, viewModel)
+            undoManager = UndoSnackbarManager(
+                (requireActivity() as ThemedActivity).snackbarAdapter,
+                viewModel,
+                )
 
             ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START

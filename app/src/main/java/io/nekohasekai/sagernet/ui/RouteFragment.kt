@@ -45,6 +45,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.needReload
+import io.nekohasekai.sagernet.ktx.snackbarAdapter
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.launch
 
@@ -152,7 +153,10 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
         }.also {
             ruleAdapter = it
         }
-        undoManager = UndoSnackbarManager(requireActivity() as ThemedActivity, viewModel)
+        undoManager = UndoSnackbarManager(
+            (requireActivity() as ThemedActivity).snackbarAdapter,
+            viewModel,
+        )
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN,
@@ -300,7 +304,7 @@ class RouteFragment : OnKeyDownFragment(R.layout.layout_route),
             }
         }
 
-        private fun RuleEntity.summary(context: Context): String  {
+        private fun RuleEntity.summary(context: Context): String {
             var summary = ""
             if (domains.isNotBlank()) summary += "$domains\n"
             if (ip.isNotBlank()) summary += "$ip\n"

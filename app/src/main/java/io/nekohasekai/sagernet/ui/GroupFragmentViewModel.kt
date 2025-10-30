@@ -151,8 +151,8 @@ internal class GroupFragmentViewModel : ViewModel(),
     }
 
     override fun commit(actions: List<Pair<Int, ProxyGroup>>) {
-        val groups = actions.map { it.second }
         runOnDefaultDispatcher {
+            val groups = actions.map { it.second }
             GroupManager.deleteGroup(groups)
         }
     }

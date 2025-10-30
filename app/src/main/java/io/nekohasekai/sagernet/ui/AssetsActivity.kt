@@ -1,19 +1,14 @@
 package io.nekohasekai.sagernet.ui
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +31,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -53,39 +48,40 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.ComposeSnackbarAdapter
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import kotlinx.coroutines.delay
+import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 
 @ExperimentalMaterial3Api
@@ -173,18 +169,28 @@ private fun AssetsScreen(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    val visibilityMap = remember { mutableStateMapOf<String, Boolean>() }
-
-    LaunchedEffect(uiState.assets) {
-        uiState.assets.forEach { asset ->
-            if (!visibilityMap.containsKey(asset.file.name)) {
-                visibilityMap[asset.file.name] = true
-            }
+    val undoManager = remember {
+        UndoSnackbarManager(
+            snackbar = ComposeSnackbarAdapter(
+                showSnackbar = { message, label ->
+                    snackbarHostState.showSnackbar(
+                        message = context.getStringOrRes(message),
+                        actionLabel = context.getStringOrRes(label),
+                        duration = SnackbarDuration.Short,
+                    )
+                },
+                scope = scope,
+            ),
+            callback = viewModel,
+        )
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            undoManager.flush()
         }
     }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -280,58 +286,47 @@ private fun AssetsScreen(
                         WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
             )
         ) {
-            items(
+            itemsIndexed(
                 items = uiState.assets,
-                key = { it.file.name },
-                contentType = {
-                    if (it.builtIn) {
+                key = { index, asset -> asset.file.name },
+                contentType = { index, asset ->
+                    if (asset.builtIn) {
                         ASSET_BUILT_IN
                     } else {
                         ASSET_CUSTOM
                     }
                 },
-            ) { asset ->
-                val resources = LocalResources.current
+            ) { index, asset ->
                 val swipeState = rememberSwipeToDismissBoxState()
-                val visible = visibilityMap[asset.file.name] ?: true
 
-                AnimatedVisibility(
-                    visible = visible,
-                    exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(),
-                ) {
-                    if (!asset.builtIn) {
-                        SwipeToDismissBox(
-                            state = swipeState,
-                            enableDismissFromStartToEnd = true,
-                            enableDismissFromEndToStart = true,
-                            backgroundContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(ImageVector.vectorResource(R.drawable.delete), null)
+                if (!asset.builtIn) {
+                    SwipeToDismissBox(
+                        state = swipeState,
+                        enableDismissFromStartToEnd = true,
+                        enableDismissFromEndToStart = true,
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(ImageVector.vectorResource(R.drawable.delete), null)
+                            }
+                        },
+                        onDismiss = { value ->
+                            when (value) {
+                                SwipeToDismissBoxValue.StartToEnd,
+                                SwipeToDismissBoxValue.EndToStart,
+                                    -> {
+                                    viewModel.fakeRemove(index)
+                                    undoManager.remove(index to asset)
                                 }
-                            },
-                            onDismiss = { value ->
-                                when (value) {
-                                    SwipeToDismissBoxValue.StartToEnd,
-                                    SwipeToDismissBoxValue.EndToStart,
-                                        -> visibilityMap[asset.file.name] = false
 
-                                    else -> {}
-                                }
-                            },
-                        ) {
-                            AssetCard(
-                                asset = asset,
-                                importUrl = importUrl,
-                                viewModel = viewModel,
-                                uiState = uiState,
-                            )
-                        }
-                    } else {
+                                else -> {}
+                            }
+                        },
+                    ) {
                         AssetCard(
                             asset = asset,
                             importUrl = importUrl,
@@ -339,28 +334,15 @@ private fun AssetsScreen(
                             uiState = uiState,
                         )
                     }
+                } else {
+                    AssetCard(
+                        asset = asset,
+                        importUrl = importUrl,
+                        viewModel = viewModel,
+                        uiState = uiState,
+                    )
                 }
 
-                LaunchedEffect(visible) {
-                    if (!visible) {
-                        delay(220)
-
-                        val result = snackbarHostState.showSnackbar(
-                            message = resources.getQuantityString(R.plurals.removed, 1, 1),
-                            actionLabel = context.getString(R.string.undo),
-                            duration = SnackbarDuration.Short,
-                        )
-
-                        when (result) {
-                            SnackbarResult.ActionPerformed -> {
-                                visibilityMap[asset.file.name] = true
-                            }
-                            SnackbarResult.Dismissed -> {
-                                viewModel.deleteAssets(listOf(asset.file))
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -369,7 +351,7 @@ private fun AssetsScreen(
 @Composable
 private fun AssetCard(
     asset: AssetItem,
-    importUrl: androidx.activity.result.ActivityResultLauncher<Intent>,
+    importUrl: ActivityResultLauncher<Intent>,
     viewModel: AssetsActivityViewModel,
     uiState: AssetsUiState,
 ) {

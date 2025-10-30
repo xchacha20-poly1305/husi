@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ktx
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.ClipData
@@ -8,10 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.TypedValue
-import android.widget.EditText
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
@@ -23,19 +21,20 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ThemedActivity
-import kotlinx.coroutines.delay
 import io.nekohasekai.sagernet.repository.repo
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import io.nekohasekai.sagernet.ui.MainActivity
+import io.nekohasekai.sagernet.ui.StringOrRes
+import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.getStringOrRes
+import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import kotlinx.coroutines.delay
 
 // Utils that require Android. Split it so that test can not include Android parts.
 
@@ -208,3 +207,60 @@ fun ClipboardManager.trySetPrimaryClip(clip: String): Boolean {
 fun ClipboardManager.first(): String? {
     return primaryClip?.getItemAt(0)?.text?.toString()
 }
+
+val ThemedActivity.snackbarAdapter: UndoSnackbarManager.SnackbarAdapter
+    get() = object : UndoSnackbarManager.SnackbarAdapter {
+        private lateinit var message: StringOrRes
+        private var actionLabel: StringOrRes? = null
+        private var onAction: (() -> Unit)? = null
+        private var onDismiss: (() -> Unit)? = null
+
+        private var last: Snackbar? = null
+
+        override fun setMessage(message: StringOrRes): UndoSnackbarManager.SnackbarAdapter {
+            this.message = message
+            return this
+        }
+
+        override fun setAction(actionLabel: StringOrRes): UndoSnackbarManager.SnackbarAdapter {
+            this.actionLabel = actionLabel
+            return this
+        }
+
+        override fun setOnAction(block: () -> Unit): UndoSnackbarManager.SnackbarAdapter {
+            this.onAction = block
+            return this
+        }
+
+        override fun setOnDismiss(block: () -> Unit): UndoSnackbarManager.SnackbarAdapter {
+            this.onDismiss = block
+            return this
+        }
+
+        override fun show() {
+            snackbar(getStringOrRes(message)).apply {
+                addCallback(object : Snackbar.Callback() {
+                    @SuppressLint("SwitchIntDef")
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        if (last !== transientBottomBar) return
+                        when (event) {
+                            DISMISS_EVENT_ACTION -> onAction?.invoke()
+                            else -> onDismiss?.invoke()
+                        }
+                    }
+                })
+                actionLabel?.let { label ->
+                    setAction(getStringOrRes(label)) {}
+                }
+
+                last = this
+                show()
+            }
+        }
+
+        override fun flush() {
+            val toFlush = last
+            last = null
+            toFlush?.dismiss()
+        }
+    }

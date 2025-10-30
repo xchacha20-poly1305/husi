@@ -1,55 +1,74 @@
 package io.nekohasekai.sagernet.widget
 
-import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.StringOrRes
 
-/**
- * @param activity ThemedActivity.
- * //@param view The view to find a parent from.
- * @param undo Callback for undoing removals.
- * @param commit Callback for committing removals.
- * @tparam T Item type.
- */
 class UndoSnackbarManager<in T>(
-    private val activity: ThemedActivity,
+    private val snackbar: SnackbarAdapter,
     private val callback: Interface<T>,
 ) {
 
+    /**
+     * @param undo Callback for undoing removals.
+     * @param commit Callback for committing removals.
+     */
     interface Interface<in T> {
         fun undo(actions: List<Pair<Int, T>>)
         fun commit(actions: List<Pair<Int, T>>)
     }
 
-    private val recycleBin = ArrayList<Pair<Int, T>>()
-    private val removedCallback = object : Snackbar.Callback() {
-        override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-            if (last === transientBottomBar && event != DISMISS_EVENT_ACTION) {
-                callback.commit(recycleBin)
-                recycleBin.clear()
-                last = null
-            }
-        }
+    /**
+     * Adapt compose and view.
+     */
+    interface SnackbarAdapter {
+        fun setMessage(message: StringOrRes): SnackbarAdapter
+        fun setAction(actionLabel: StringOrRes): SnackbarAdapter
+        fun setOnAction(block: () -> Unit): SnackbarAdapter
+        fun setOnDismiss(block: () -> Unit): SnackbarAdapter
+
+         fun show()
+
+        fun flush()
     }
 
-    private var last: Snackbar? = null
+    private val recycleBin = ArrayList<Pair<Int, T>>()
+    private var programmaticDismiss = false
 
     fun remove(items: Collection<Pair<Int, T>>) {
+        programmaticDismiss = true
+        snackbar.flush()
+        programmaticDismiss = false
+
         recycleBin.addAll(items)
         val count = recycleBin.size
-        activity.snackbar(activity.resources.getQuantityString(R.plurals.removed, count, count))
-            .apply {
-                addCallback(removedCallback)
-                setAction(R.string.undo) {
-                    callback.undo(recycleBin.reversed())
-                    recycleBin.clear()
-                }
-                last = this
-                show()
+
+        snackbar.setMessage(StringOrRes.PluralsRes(R.plurals.removed, count, count))
+            .setAction(StringOrRes.Res(R.string.undo))
+            .setOnAction {
+                callback.undo(recycleBin.reversed())
+                recycleBin.clear()
             }
+            .setOnDismiss {
+                if (!programmaticDismiss) {
+                    commitAndClear()
+                }
+            }
+            .show()
     }
 
     fun remove(vararg items: Pair<Int, T>) = remove(items.toList())
 
-    fun flush() = last?.dismiss()
+    fun flush() {
+        commitAndClear()
+        programmaticDismiss = true
+        snackbar.flush()
+        programmaticDismiss = false
+    }
+
+    private fun commitAndClear() {
+        if (recycleBin.isNotEmpty()) {
+            callback.commit(recycleBin.toList())
+            recycleBin.clear()
+        }
+    }
 }

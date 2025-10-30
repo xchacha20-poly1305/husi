@@ -280,8 +280,8 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
     }
 
     override fun commit(actions: List<Pair<Int, ProfileItem>>) {
-        val ids = actions.map { it.second.profile.id }
         runOnIoDispatcher {
+            val ids = actions.map { it.second.profile.id }
             ProfileManager.deleteProfiles(group.id, ids)
         }
     }

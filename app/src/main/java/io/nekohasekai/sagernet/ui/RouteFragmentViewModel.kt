@@ -143,8 +143,8 @@ internal class RouteFragmentViewModel : ViewModel(),
     }
 
     override fun commit(actions: List<Pair<Int, RuleEntity>>) {
-        val rules = actions.map { it.second }
         runOnDefaultDispatcher {
+            val rules = actions.map { it.second }
             ProfileManager.deleteRules(rules)
         }
     }
