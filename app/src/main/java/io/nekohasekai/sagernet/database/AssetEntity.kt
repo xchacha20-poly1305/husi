@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "assets")
@@ -14,13 +15,14 @@ class AssetEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var url: String = "",
     var name: String = "",
+    // TODO version
 ) : Parcelable {
 
     @androidx.room.Dao
     interface Dao {
 
         @Query("SELECT * FROM assets")
-        fun getAll(): List<AssetEntity>
+        fun getAll(): Flow<List<AssetEntity>>
 
         @Query("SELECT * FROM assets WHERE name = :name")
         fun getAllByName(name: String): List<AssetEntity>

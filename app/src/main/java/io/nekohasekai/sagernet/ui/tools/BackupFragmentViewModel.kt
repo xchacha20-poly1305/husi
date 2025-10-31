@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -155,7 +156,7 @@ internal class BackupViewModel : ViewModel() {
                     }
                 })
                 put("assets", JSONArray().apply {
-                    SagerDatabase.assetDao.getAll().forEach {
+                    SagerDatabase.assetDao.getAll().first().forEach {
                         put(it.toBase64Str())
                     }
                 })

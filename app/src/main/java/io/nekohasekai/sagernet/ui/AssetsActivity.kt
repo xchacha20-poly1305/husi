@@ -80,7 +80,6 @@ import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -149,19 +148,13 @@ private fun AssetsScreen(
         val assetName = result.data?.getStringExtra(AssetEditActivity.EXTRA_ASSET_NAME)
 
         when (result.resultCode) {
-            RESULT_OK -> runOnDefaultDispatcher {
-                viewModel.refreshAssets()
-            }
+            RESULT_OK -> {}
 
-            AssetEditActivity.RESULT_CREATED -> runOnDefaultDispatcher {
-                // Wait for database creation
-                delay(200)
-                viewModel.refreshAssets()
-                viewModel.updateSingleAsset(File(geoDir, assetName!!))
+            AssetEditActivity.RESULT_CREATED -> {
+                // Callback will auto-update when asset appears in DB
             }
 
             AssetEditActivity.RESULT_SHOULD_UPDATE -> runOnDefaultDispatcher {
-                viewModel.refreshAssets()
                 viewModel.updateSingleAsset(File(geoDir, assetName!!))
             }
 

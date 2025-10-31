@@ -6,6 +6,7 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.RuleProvider
+import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import libcore.CopyCallback
@@ -63,21 +65,37 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
     private lateinit var assetsDir: File
     private lateinit var geoDir: File
 
+    private var previousAssetNames = emptySet<String>()
+
     fun initialize(assetsDir: File, geoDir: File) {
         this.assetsDir = assetsDir
         this.geoDir = geoDir
-        refreshAssets()
+
+        viewModelScope.launch {
+            SagerDatabase.assetDao.getAll().collect { assets ->
+                val currentNames = assets.map { it.name }.toSet()
+                val newAssets = currentNames - previousAssetNames
+
+                newAssets.forEach { name ->
+                    updateSingleAsset(File(geoDir, name))
+                }
+
+                previousAssetNames = currentNames
+                refreshAssets0(assets)
+            }
+        }
     }
 
     fun refreshAssets() = viewModelScope.launch {
-        refreshAssets0()
+        val assets = SagerDatabase.assetDao.getAll().first()
+        refreshAssets0(assets)
     }
 
-    private suspend fun refreshAssets0() {
+    private suspend fun refreshAssets0(dbAssets: List<AssetEntity>) {
         val files = buildList {
             add(File(assetsDir, "geoip.version.txt"))
             add(File(assetsDir, "geosite.version.txt"))
-            SagerDatabase.assetDao.getAll().forEach { add(File(geoDir, it.name)) }
+            dbAssets.forEach { add(File(geoDir, it.name)) }
         }
 
         _uiState.update { state ->
@@ -118,7 +136,6 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
             if (versionFile.isFile) versionFile.delete()
             SagerDatabase.assetDao.delete(file.name)
         }
-        refreshAssets0()
     }
 
     fun updateAsset(destinationDir: File, cacheDir: File) {
@@ -129,7 +146,8 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
                 Logs.e(e)
                 _uiEvent.emit(AssetsActivityUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
             }
-            refreshAssets0()
+            val assets = SagerDatabase.assetDao.getAll().first()
+            refreshAssets0(assets)
         }
     }
 
@@ -184,7 +202,8 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
             Logs.e(e)
             _uiEvent.emit(AssetsActivityUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
-        refreshAssets0()
+        val assets = SagerDatabase.assetDao.getAll().first()
+        refreshAssets0(assets)
     }
 
     private suspend fun updateSingleAsset0(asset: File) {
@@ -315,10 +334,6 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
                 val versionFile = File(file.parentFile!!.parentFile!!, "${file.name}.version.txt")
                 if (versionFile.isFile) versionFile.delete()
                 SagerDatabase.assetDao.delete(file.name)
-            }
-
-            viewModelScope.launch {
-                refreshAssets0()
             }
         }
     }
