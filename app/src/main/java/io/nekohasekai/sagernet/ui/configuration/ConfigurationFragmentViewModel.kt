@@ -12,8 +12,6 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
-import io.nekohasekai.sagernet.database.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
@@ -105,19 +103,24 @@ internal sealed class ConfigurationChildEvent(open val group: Long) {
 
 
 internal class ConfigurationFragmentViewModel : ViewModel(),
-    ProfileManager.Listener, GroupManager.Listener,
-    OnPreferenceDataStoreChangeListener {
+    ProfileManager.Listener, GroupManager.Listener {
 
     init {
         ProfileManager.addListener(this)
         GroupManager.addListener(this)
-        DataStore.configurationStore.registerChangeListener(this)
+
+        viewModelScope.launch {
+            DataStore.configurationStore.longFlow(Key.PROFILE_GROUP).collect { selectedGroup ->
+                _uiState.update { state ->
+                    state.copy(selectedGroupIndex = state.groups.indexOfFirst { it.id == selectedGroup })
+                }
+            }
+        }
     }
 
     override fun onCleared() {
         ProfileManager.removeListener(this)
         GroupManager.removeListener(this)
-        DataStore.configurationStore.unregisterChangeListener(this)
         super.onCleared()
     }
 
@@ -436,13 +439,5 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     }
 
     override suspend fun groupUpdated(groupId: Long) {}
-
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        if (key != Key.PROFILE_GROUP) return
-
-        _uiState.update { state ->
-            state.copy(selectedGroupIndex = state.groups.indexOfFirst { it.id == DataStore.selectedGroup })
-        }
-    }
 
 }

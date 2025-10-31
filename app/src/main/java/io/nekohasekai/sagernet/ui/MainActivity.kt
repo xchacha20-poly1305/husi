@@ -23,6 +23,9 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
@@ -41,8 +44,6 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
-import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
-import io.nekohasekai.sagernet.database.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.databinding.LayoutMainBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.KryoConverters
@@ -68,11 +69,12 @@ import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
 import io.nekohasekai.sagernet.ui.dashboard.DashboardFragment
 import io.nekohasekai.sagernet.ui.tools.ToolsFragment
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
-    OnPreferenceDataStoreChangeListener,
     NavigationView.OnNavigationItemSelectedListener {
 
     companion object {
@@ -148,7 +150,32 @@ class MainActivity : ThemedActivity(),
         setContentView(binding.root)
         changeState(BaseService.State.Idle)
         connection.connect(this, this)
-        DataStore.configurationStore.registerChangeListener(this)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                DataStore.configurationStore.intFlow(Key.SERVICE_MODE)
+                    .drop(1) // Skip initial value
+                    .collect {
+                    onBinderDied()
+                }
+            }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                DataStore.configurationStore.keysFlow(
+                    Key.PROXY_APPS,
+                    Key.BYPASS_MODE,
+                    Key.PACKAGES,
+                ).collect {
+                    if (DataStore.serviceState.canStop) onMainDispatcher {
+                        snackbar(getString(R.string.need_reload))
+                            .setAction(R.string.apply) {
+                                repo.reloadService()
+                            }
+                            .show()
+                    }
+                }
+            }
+        }
         GroupManager.userInterface = GroupInterfaceAdapter(this)
 
         when (intent.action) {
@@ -491,19 +518,6 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
-        when (key) {
-            Key.SERVICE_MODE -> onBinderDied()
-            Key.PROXY_APPS, Key.BYPASS_MODE, Key.PACKAGES -> {
-                if (DataStore.serviceState.canStop) {
-                    snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-                        repo.reloadService()
-                    }.show()
-                }
-            }
-        }
-    }
-
     override fun onStart() {
         connection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
         super.onStart()
@@ -517,7 +531,6 @@ class MainActivity : ThemedActivity(),
     override fun onDestroy() {
         super.onDestroy()
         GroupManager.userInterface = null
-        DataStore.configurationStore.unregisterChangeListener(this)
         connection.disconnect(this)
     }
 
