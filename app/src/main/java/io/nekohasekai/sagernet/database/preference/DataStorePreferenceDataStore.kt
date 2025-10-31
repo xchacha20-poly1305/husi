@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -147,6 +148,26 @@ class DataStorePreferenceDataStore private constructor(
     fun stringSetFlow(key: String, default: Set<String> = emptySet()): Flow<Set<String>> =
         preferencesFlow.map { it[stringSetPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
+    fun keysFlow(vararg keys: String, emitInitialState: Boolean = false): Flow<Unit> {
+        val keysToWatch = keys.toSet()
+
+        val flow = preferencesFlow
+            .map { prefs ->
+                prefs.asMap()
+                    .filter { (key, _) -> key.name in keysToWatch }
+                    .values
+                    .toList()
+            }
+            .distinctUntilChanged()
+            .map { }
+
+        return if (emitInitialState) {
+            flow
+        } else {
+            flow.drop(1)
+        }
+    }
+
     fun reset() = runBlocking {
         dataStore.edit { prefs ->
             prefs.clear()
@@ -189,7 +210,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs[booleanPreferencesKey(key)] = value
             }
         }
-        fireChangeListener(key)
     }
 
     override fun putFloat(key: String, value: Float) {
@@ -198,7 +218,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs[floatPreferencesKey(key)] = value
             }
         }
-        fireChangeListener(key)
     }
 
     override fun putInt(key: String, value: Int) {
@@ -207,7 +226,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs[longPreferencesKey(key)] = value.toLong()
             }
         }
-        fireChangeListener(key)
     }
 
     override fun putLong(key: String, value: Long) {
@@ -216,7 +234,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs[longPreferencesKey(key)] = value
             }
         }
-        fireChangeListener(key)
     }
 
     override fun putString(key: String, value: String?) {
@@ -229,7 +246,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs[stringPreferencesKey(key)] = value
             }
         }
-        fireChangeListener(key)
     }
 
     override fun putStringSet(key: String, values: MutableSet<String>?) {
@@ -242,7 +258,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs[stringSetPreferencesKey(key)] = values
             }
         }
-        fireChangeListener(key)
     }
 
     fun remove(key: String) {
@@ -255,28 +270,6 @@ class DataStorePreferenceDataStore private constructor(
                 prefs.remove(stringPreferencesKey(key))
                 prefs.remove(stringSetPreferencesKey(key))
             }
-        }
-        fireChangeListener(key)
-    }
-
-    private val listeners = HashSet<OnPreferenceDataStoreChangeListener>()
-
-    private fun fireChangeListener(key: String) {
-        val listeners = synchronized(listeners) {
-            listeners.toList()
-        }
-        listeners.forEach { it.onPreferenceDataStoreChanged(this, key) }
-    }
-
-    fun registerChangeListener(listener: OnPreferenceDataStoreChangeListener) {
-        synchronized(listeners) {
-            listeners.add(listener)
-        }
-    }
-
-    fun unregisterChangeListener(listener: OnPreferenceDataStoreChangeListener) {
-        synchronized(listeners) {
-            listeners.remove(listener)
         }
     }
 
@@ -333,7 +326,6 @@ class DataStorePreferenceDataStore private constructor(
                 }
             }
         }
-        changedKeys.forEach { fireChangeListener(it) }
     }
 
     suspend fun exportToJson(json: JSONObject) {
@@ -413,7 +405,6 @@ class DataStorePreferenceDataStore private constructor(
                 }
             }
         }
-        changedKeys.forEach { fireChangeListener(it) }
     }
 
     private enum class ValueType(val code: Int) {
