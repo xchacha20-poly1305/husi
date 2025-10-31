@@ -208,7 +208,9 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
 
         Libcore.newHttpClient().apply {
             keepAlive()
-            useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            if (DataStore.serviceState.started) {
+                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
+            }
         }.newRequest().apply {
             setURL(url)
             setUserAgent(USER_AGENT)

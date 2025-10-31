@@ -52,6 +52,7 @@ class AssetEditActivity : ComposeActivity() {
 
         const val RESULT_SHOULD_UPDATE = 1
         const val RESULT_DELETE = 2
+        const val RESULT_CREATED = 3
     }
 
     private val viewModel: AssetEditActivityViewModel by viewModels()
@@ -160,7 +161,7 @@ class AssetEditActivity : ComposeActivity() {
                     },
                     dismissButton = {
                         TextButton(stringResource(android.R.string.cancel)) {
-                            showDeleteConfirm = false
+                            finish()
                         }
                     },
                     icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
@@ -187,13 +188,14 @@ class AssetEditActivity : ComposeActivity() {
 
     private fun saveAndExit() {
         viewModel.save()
+        val resultCode = when {
+            viewModel.isNew -> RESULT_CREATED
+            viewModel.shouldUpdateFromInternet -> RESULT_SHOULD_UPDATE
+            else -> RESULT_OK
+        }
         setResult(
-            if (viewModel.shouldUpdateFromInternet) {
-                RESULT_SHOULD_UPDATE
-            } else {
-                RESULT_OK
-            },
-            Intent().putExtra(EXTRA_ASSET_NAME, viewModel.editingName),
+            resultCode,
+            Intent().putExtra(EXTRA_ASSET_NAME, viewModel.uiState.value.name),
         )
         finish()
     }

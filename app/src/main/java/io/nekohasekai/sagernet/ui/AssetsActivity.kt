@@ -80,8 +80,8 @@ import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
 @ExperimentalMaterial3Api
@@ -151,6 +151,13 @@ private fun AssetsScreen(
         when (result.resultCode) {
             RESULT_OK -> runOnDefaultDispatcher {
                 viewModel.refreshAssets()
+            }
+
+            AssetEditActivity.RESULT_CREATED -> runOnDefaultDispatcher {
+                // Wait for database creation
+                delay(200)
+                viewModel.refreshAssets()
+                viewModel.updateSingleAsset(File(geoDir, assetName!!))
             }
 
             AssetEditActivity.RESULT_SHOULD_UPDATE -> runOnDefaultDispatcher {
