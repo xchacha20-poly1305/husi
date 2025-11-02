@@ -1,8 +1,11 @@
 package io.nekohasekai.sagernet.compose
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,4 +26,19 @@ fun Modifier.paddingExceptBottom(paddingValues: PaddingValues): Modifier {
         end = paddingValues.calculateEndPadding(LocalLayoutDirection.current),
     )
     return padding(paddingExceptBottom)
+}
+
+/**
+ * Different from [paddingExceptBottom], [paddingWithNavigation] usually used in
+ * LazyColumn's contentPadding to make content avoid navigation bar.
+ */
+@Composable
+fun PaddingValues.paddingWithNavigation(): PaddingValues {
+    return PaddingValues(
+        start = calculateStartPadding(LocalLayoutDirection.current),
+        top = calculateTopPadding(),
+        end = calculateEndPadding(LocalLayoutDirection.current),
+        bottom = calculateBottomPadding() +
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+    )
 }

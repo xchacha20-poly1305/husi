@@ -13,6 +13,9 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.NetworkUDP
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.repository.repo
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import java.io.IOException
 import java.sql.SQLException
 import java.util.Locale
@@ -26,29 +29,12 @@ object ProfileManager {
         suspend fun onRemoved(groupId: Long, profileId: Long)
     }
 
-    interface RuleListener {
-        suspend fun onAdd(rule: RuleEntity)
-        suspend fun onUpdated(rule: RuleEntity)
-        suspend fun onRemoved(ruleId: Long)
-        suspend fun onCleared()
-    }
-
     private val listeners = ArrayList<Listener>()
-    private val ruleListeners = ArrayList<RuleListener>()
 
     suspend fun iterator(what: suspend Listener.() -> Unit) {
         synchronized(listeners) {
             listeners.toList()
         }.forEach { listener ->
-            what(listener)
-        }
-    }
-
-    suspend fun ruleIterator(what: suspend RuleListener.() -> Unit) {
-        val ruleListeners = synchronized(ruleListeners) {
-            ruleListeners.toList()
-        }
-        for (listener in ruleListeners) {
             what(listener)
         }
     }
@@ -62,18 +48,6 @@ object ProfileManager {
     fun removeListener(listener: Listener) {
         synchronized(listeners) {
             listeners.remove(listener)
-        }
-    }
-
-    fun addListener(listener: RuleListener) {
-        synchronized(ruleListeners) {
-            ruleListeners.add(listener)
-        }
-    }
-
-    fun removeListener(listener: RuleListener) {
-        synchronized(ruleListeners) {
-            ruleListeners.remove(listener)
         }
     }
 
@@ -178,110 +152,109 @@ object ProfileManager {
     suspend fun createRule(rule: RuleEntity, post: Boolean = true): RuleEntity {
         rule.userOrder = SagerDatabase.rulesDao.nextOrder() ?: 1
         rule.id = SagerDatabase.rulesDao.createRule(rule)
-        if (post) {
-            ruleIterator { onAdd(rule) }
-        }
         return rule
     }
 
     suspend fun updateRule(rule: RuleEntity) {
         SagerDatabase.rulesDao.updateRule(rule)
-        ruleIterator { onUpdated(rule) }
     }
 
     suspend fun deleteRule(ruleId: Long) {
         SagerDatabase.rulesDao.deleteById(ruleId)
-        ruleIterator { onRemoved(ruleId) }
     }
 
     suspend fun deleteRules(rules: List<RuleEntity>) {
         SagerDatabase.rulesDao.deleteRules(rules)
-        ruleIterator {
-            rules.forEach {
-                onRemoved(it.id)
-            }
-        }
     }
 
-    suspend fun getRules(): List<RuleEntity> {
-        var rules = SagerDatabase.rulesDao.allRules()
-        if (rules.isEmpty() && !DataStore.rulesFirstCreate) {
-            DataStore.rulesFirstCreate = true
-            createRule(
-                RuleEntity(
-                    enabled = true,
-                    name = repo.getString(R.string.sniff),
-                    action = ACTION_SNIFF,
-                )
-            )
-            createRule(
-                RuleEntity(
-                    enabled = true,
-                    name = repo.getString(R.string.hijack_dns),
-                    protocol = setOf("dns"),
-                    action = ACTION_HIJACK_DNS,
-                )
-            )
-            createRule(
-                RuleEntity(
-                    enabled = true,
-                    action = ACTION_ROUTE,
-                    name = repo.getString(R.string.bypass_icmp),
-                    network = setOf(NetworkICMP),
-                    outbound = RuleEntity.OUTBOUND_DIRECT,
-                )
-            )
-            createRule(
-                RuleEntity(
-                    name = repo.getString(R.string.route_opt_block_quic),
-                    action = ACTION_REJECT,
-                    protocol = setOf("quic"),
-                    network = setOf(NetworkUDP),
-                )
-            )
-            createRule(
-                RuleEntity(
-                    name = repo.getString(R.string.route_opt_block_ads),
-                    action = ACTION_REJECT,
-                    domains = "set+dns:geosite-category-ads-all",
-                )
-            )
-            val walledCountry = mutableListOf("cn:中国")
-            if (Locale.getDefault().country == Locale.US.country) {
-                // English users
-                walledCountry += "ir:Iran"
-            }
-            for (c in walledCountry) {
-                val country = c.substringBefore(":")
-                val displayCountry = c.substringAfter(":")
-                if (country == "cn") createRule(
+    /**
+     * Get all rules as a Flow with automatic initialization.
+     *
+     * This is a wrapper around [SagerDatabase.rulesDao.allRules] that ensures default rules
+     * are created on first app launch. When the Flow is first collected, it checks if the
+     * rule list is empty and creates the following rules.
+     *
+     * Always use this method instead of calling the DAO directly to ensure proper initialization.
+     */
+    fun getRules(): Flow<List<RuleEntity>> {
+        return SagerDatabase.rulesDao.allRules().onStart {
+            val currentRules = SagerDatabase.rulesDao.allRules().first()
+            if (currentRules.isEmpty() && !DataStore.rulesFirstCreate) {
+                DataStore.rulesFirstCreate = true
+                createRule(
                     RuleEntity(
-                        name = repo.getString(R.string.route_play_store, displayCountry),
-                        action = ACTION_ROUTE,
-                        domains = "set+dns:geosite-google-play",
-                        outbound = RuleEntity.OUTBOUND_PROXY,
-                    ), false
+                        enabled = true,
+                        name = repo.getString(R.string.sniff),
+                        action = ACTION_SNIFF,
+                    )
                 )
                 createRule(
                     RuleEntity(
-                        name = repo.getString(R.string.route_bypass_domain, displayCountry),
-                        action = ACTION_ROUTE,
-                        domains = "set+dns:geosite-$country",
-                        outbound = RuleEntity.OUTBOUND_DIRECT,
-                    ), false
+                        enabled = true,
+                        name = repo.getString(R.string.hijack_dns),
+                        protocol = setOf("dns"),
+                        action = ACTION_HIJACK_DNS,
+                    )
                 )
                 createRule(
                     RuleEntity(
-                        name = repo.getString(R.string.route_bypass_ip, displayCountry),
+                        enabled = true,
                         action = ACTION_ROUTE,
-                        ip = "set-dns:geoip-$country",
+                        name = repo.getString(R.string.bypass_icmp),
+                        network = setOf(NetworkICMP),
                         outbound = RuleEntity.OUTBOUND_DIRECT,
-                    ), false
+                    )
                 )
+                createRule(
+                    RuleEntity(
+                        name = repo.getString(R.string.route_opt_block_quic),
+                        action = ACTION_REJECT,
+                        protocol = setOf("quic"),
+                        network = setOf(NetworkUDP),
+                    )
+                )
+                createRule(
+                    RuleEntity(
+                        name = repo.getString(R.string.route_opt_block_ads),
+                        action = ACTION_REJECT,
+                        domains = "set+dns:geosite-category-ads-all",
+                    )
+                )
+                val walledCountry = mutableListOf("cn:中国")
+                if (Locale.getDefault().country == Locale.US.country) {
+                    // English users
+                    walledCountry += "ir:Iran"
+                }
+                for (c in walledCountry) {
+                    val country = c.substringBefore(":")
+                    val displayCountry = c.substringAfter(":")
+                    if (country == "cn") createRule(
+                        RuleEntity(
+                            name = repo.getString(R.string.route_play_store, displayCountry),
+                            action = ACTION_ROUTE,
+                            domains = "set+dns:geosite-google-play",
+                            outbound = RuleEntity.OUTBOUND_PROXY,
+                        ), false
+                    )
+                    createRule(
+                        RuleEntity(
+                            name = repo.getString(R.string.route_bypass_domain, displayCountry),
+                            action = ACTION_ROUTE,
+                            domains = "set+dns:geosite-$country",
+                            outbound = RuleEntity.OUTBOUND_DIRECT,
+                        ), false
+                    )
+                    createRule(
+                        RuleEntity(
+                            name = repo.getString(R.string.route_bypass_ip, displayCountry),
+                            action = ACTION_ROUTE,
+                            ip = "set-dns:geoip-$country",
+                            outbound = RuleEntity.OUTBOUND_DIRECT,
+                        ), false
+                    )
+                }
             }
-            rules = SagerDatabase.rulesDao.allRules()
         }
-        return rules
     }
 
 }

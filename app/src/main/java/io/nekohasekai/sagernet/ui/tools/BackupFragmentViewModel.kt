@@ -151,7 +151,7 @@ internal class BackupViewModel : ViewModel() {
             }
             if (rule) {
                 put("rules", JSONArray().apply {
-                    SagerDatabase.rulesDao.allRules().forEach {
+                    SagerDatabase.rulesDao.allRules().first().forEach {
                         put(it.toBase64Str())
                     }
                 })

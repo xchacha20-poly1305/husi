@@ -366,7 +366,9 @@ class DataStorePreferenceDataStore private constructor(
                 if (key == KEY_BACKUP_VERSION || key == RoomToDataStoreMigration.MIGRATION_KEY) continue
 
                 val holder = json.getObject(key) ?: error("invalid holder of key: $key")
-                val type = ValueType.fromJson(holder.getIntOrNull(FIELD_TYPE) ?: error("missing type for key: $key"))
+                val type = ValueType.fromJson(
+                    holder.getIntOrNull(FIELD_TYPE) ?: error("missing type for key: $key")
+                )
                 when (type) {
                     ValueType.BOOLEAN -> {
                         val value = holder.getBool(FIELD_VALUE) ?: false
@@ -425,6 +427,7 @@ class DataStorePreferenceDataStore private constructor(
                 is Number -> fromCode(any.toInt())
                 is String -> entries.firstOrNull { it.name == any }
                     ?: throw IllegalArgumentException("Unknown ValueHolder type name: $any")
+
                 else -> throw IllegalArgumentException("Unsupported 'type' field: $any")
             }
 

@@ -209,6 +209,16 @@ object DataStore {
     var downloadSpeed by configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
-    var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
+    var rulesFirstCreate: Boolean
+        get() = try {
+            configurationStore.getBoolean(Key.RULES_FIRST_CREATE, false)
+        } catch (_: ClassCastException) {
+            // Migration: clean up corrupted value
+            configurationStore.remove(Key.RULES_FIRST_CREATE)
+            false
+        }
+        set(value) {
+            configurationStore.putBoolean(Key.RULES_FIRST_CREATE, value)
+        }
 
 }
