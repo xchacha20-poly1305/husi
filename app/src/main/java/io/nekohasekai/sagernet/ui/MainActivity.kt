@@ -152,7 +152,7 @@ class MainActivity : ThemedActivity(),
         connection.connect(this, this)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                DataStore.configurationStore.intFlow(Key.SERVICE_MODE)
+                DataStore.configurationStore.keysFlow(Key.SERVICE_MODE)
                     .drop(1) // Skip initial value
                     .collect {
                     onBinderDied()

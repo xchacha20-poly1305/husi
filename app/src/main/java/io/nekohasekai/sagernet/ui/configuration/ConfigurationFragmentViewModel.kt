@@ -105,6 +105,13 @@ internal sealed class ConfigurationChildEvent(open val group: Long) {
 internal class ConfigurationFragmentViewModel : ViewModel(),
     ProfileManager.Listener, GroupManager.Listener {
 
+
+    private val _uiState = MutableStateFlow(ConfigurationFragmentUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _childEvent = MutableSharedFlow<ConfigurationChildEvent>()
+    val childEvent = _childEvent.asSharedFlow()
+
     init {
         ProfileManager.addListener(this)
         GroupManager.addListener(this)
@@ -123,12 +130,6 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
         GroupManager.removeListener(this)
         super.onCleared()
     }
-
-    private val _uiState = MutableStateFlow(ConfigurationFragmentUiState())
-    val uiState = _uiState.asStateFlow()
-
-    private val _childEvent = MutableSharedFlow<ConfigurationChildEvent>()
-    val childEvent = _childEvent.asSharedFlow()
 
     suspend fun emitChildEvent(event: ConfigurationChildEvent) {
         _childEvent.emit(event)
