@@ -10,6 +10,7 @@ import androidx.room.Query
 import androidx.room.TypeConverters
 import androidx.room.Update
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import kotlinx.coroutines.flow.Flow
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
@@ -89,8 +90,14 @@ data class RuleEntity(
         @Query("SELECT * from rules WHERE (packages != '') AND enabled = 1")
         fun checkVpnNeeded(): List<RuleEntity>
 
+        /**
+         * Get all rules as a Flow.
+         *
+         * IMPORTANT: Prefer using [ProfileManager.getRules] instead of calling this directly.
+         * The wrapper handles first-time initialization of default rules (sniff, hijack_dns, etc).
+         */
         @Query("SELECT * FROM rules ORDER BY userOrder")
-        fun allRules(): List<RuleEntity>
+        fun allRules(): Flow<List<RuleEntity>>
 
         @Query("SELECT * FROM rules WHERE enabled = :enabled ORDER BY userOrder")
         fun enabledRules(enabled: Boolean = true): List<RuleEntity>

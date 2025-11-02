@@ -4,10 +4,6 @@ project_name: husi
 #  * For JavaScript, use typescript
 # Special requirements:
 #  * csharp: Requires the presence of a .sln file in the project folder.
-language: kotlin
-
-# the encoding used by text files in the project
-# For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
 encoding: "utf-8"
 
 # whether to use the project's gitignore file to ignore files
@@ -18,11 +14,7 @@ ignore_all_files_in_gitignore: true
 # Was previously called `ignored_dirs`, please update your config if you are using that.
 # Added (renamed) on 2025-04-07
 ignored_paths:
-  - "plugin/**"
-
-# whether the project is in read-only mode
-# If set to true, all editing tools will be disabled and attempts to use them will result in an error
-# Added on 2025-04-18
+- "plugin/**"
 read_only: false
 
 # list of tool names to exclude. We recommend not excluding any tools, see the readme for more details.
@@ -70,3 +62,8 @@ excluded_tools: []
 # (contrary to the memories, which are loaded on demand).
 initial_prompt: ""
 
+languages:
+- kotlin
+- go
+- java
+included_optional_tools: []
