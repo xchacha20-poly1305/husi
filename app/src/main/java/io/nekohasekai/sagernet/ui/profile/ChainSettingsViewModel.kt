@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
+import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Stable
 internal data class ChainUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -21,6 +24,7 @@ internal data class ChainUiState(
     val profiles: List<ProxyEntity> = emptyList(),
 ) : ProfileSettingsUiState
 
+@Stable
 internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
     private val _uiState = MutableStateFlow(ChainUiState())
     override val uiState = _uiState.asStateFlow()
@@ -61,9 +65,16 @@ internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
         }
     }
 
-    fun submitList(list: List<ProxyEntity>) {
+    fun submitReorder(changes: List<OrderedItem<ProxyEntity>>) {
+        val currentProfiles = _uiState.value.profiles
+        val changesMap = changes.associate { it.value.id to it.newIndex }
+
+        val reordered = currentProfiles.sortedBy { profile ->
+            changesMap[profile.id] ?: currentProfiles.indexOf(profile)
+        }
+
         _uiState.update {
-            it.copy(profiles = list)
+            it.copy(profiles = reordered)
         }
     }
 

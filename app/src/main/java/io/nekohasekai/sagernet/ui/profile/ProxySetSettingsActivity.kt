@@ -291,7 +291,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 key = { it.id },
                 contentType = { 0 },
                 userScrollEnabled = false,
-                onIndicesChangedViaDragAndDrop = { viewModel.submitList(it.map { it.value }) },
+                onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
             ) { i, profile ->
                 val swipeState = rememberSwipeToDismissBoxState()
                 var visible by remember { mutableStateOf(true) }

@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -60,11 +61,11 @@ internal class RouteFragmentViewModel : ViewModel(),
         )
     }
 
-    fun submitList(rules: List<RuleEntity>) = runOnDefaultDispatcher {
-        val toUpdate = rules.mapIndexedNotNull { i, rule ->
-            val newUserOrder = i.toLong()
-            if (rule.userOrder != newUserOrder) {
-                rule.copy(
+    fun submitReorder(changes: List<OrderedItem<RuleEntity>>) = runOnDefaultDispatcher {
+        val toUpdate = changes.mapNotNull { orderedItem ->
+            val newUserOrder = orderedItem.newIndex.toLong()
+            if (orderedItem.value.userOrder != newUserOrder) {
+                orderedItem.value.copy(
                     userOrder = newUserOrder,
                 )
             } else {
