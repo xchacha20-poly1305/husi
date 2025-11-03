@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.database.DataStore
@@ -15,10 +16,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Stable
 internal data class RouteFragmentUiState(
     val rules: List<RuleEntity> = emptyList(),
 )
 
+@Stable
 internal class RouteFragmentViewModel : ViewModel(),
     UndoSnackbarManager.Interface<RuleEntity> {
 
@@ -40,10 +43,12 @@ internal class RouteFragmentViewModel : ViewModel(),
         DataStore.rulesFirstCreate = false
     }
 
-
     fun toggleEnabled(rule: RuleEntity) = runOnIoDispatcher {
-        rule.enabled = !rule.enabled
-        SagerDatabase.rulesDao.updateRule(rule)
+        ProfileManager.updateRule(
+            rule.copy(
+                enabled = !rule.enabled,
+            )
+        )
     }
 
     fun submitList(rules: List<RuleEntity>) = runOnDefaultDispatcher {
