@@ -11,8 +11,8 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.gson.GsonConverters
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class, AssetEntity::class],
@@ -54,7 +54,7 @@ abstract class SagerDatabase : RoomDatabase() {
                 .enableMultiInstanceInvalidation()
                 .fallbackToDestructiveMigration(true)
                 .fallbackToDestructiveMigrationOnDowngrade(true)
-                .setQueryExecutor { GlobalScope.launch { it.run() } }
+                .setQueryExecutor(Dispatchers.IO.asExecutor())
                 .build()
         }
 
