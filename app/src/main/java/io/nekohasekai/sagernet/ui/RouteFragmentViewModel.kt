@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -28,7 +29,14 @@ internal class RouteFragmentViewModel : ViewModel(),
     private val _uiState = MutableStateFlow(RouteFragmentUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val collectJob: Job? = null
+
     init {
+        startCollect()
+    }
+
+    private fun startCollect() {
+        collectJob?.cancel()
         viewModelScope.launch {
             ProfileManager.getRules().collect { rules ->
                 _uiState.update {
@@ -41,6 +49,7 @@ internal class RouteFragmentViewModel : ViewModel(),
     fun reset() = runOnIoDispatcher {
         SagerDatabase.rulesDao.reset()
         DataStore.rulesFirstCreate = false
+        startCollect()
     }
 
     fun toggleEnabled(rule: RuleEntity) = runOnIoDispatcher {
@@ -55,8 +64,9 @@ internal class RouteFragmentViewModel : ViewModel(),
         val toUpdate = rules.mapIndexedNotNull { i, rule ->
             val newUserOrder = i.toLong()
             if (rule.userOrder != newUserOrder) {
-                rule.userOrder = newUserOrder
-                rule
+                rule.copy(
+                    userOrder = newUserOrder,
+                )
             } else {
                 null
             }
