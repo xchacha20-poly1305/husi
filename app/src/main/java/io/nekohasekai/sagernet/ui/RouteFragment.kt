@@ -288,7 +288,7 @@ private fun RouteScreen(
                     items = uiState.rules.toImmutableList(),
                     key = { it.id },
                     onIndicesChangedViaDragAndDrop = {
-                        viewModel.submitList(it.map { it.value })
+                        viewModel.submitReorder(it)
                         needReload()
                     },
                 ) { i, rule ->
