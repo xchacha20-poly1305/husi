@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -76,10 +75,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
@@ -446,11 +444,9 @@ private fun AppList(
             }
         }
 
-        VerticalScrollbar(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .fillMaxHeight(),
-            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+        AutoFadeVerticalScrollbar(
+            modifier = Modifier.align(Alignment.TopEnd),
+            scrollState = scrollState,
             style = defaultMaterialScrollbarStyle().copy(
                 thickness = 16.dp,
             ),

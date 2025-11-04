@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -70,10 +69,9 @@ import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
 import io.nekohasekai.sagernet.compose.ComposeSnackbarAdapter
 import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
 import io.nekohasekai.sagernet.compose.SimpleIconButton
@@ -342,11 +340,9 @@ private fun RouteScreen(
                 Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
             }
 
-            VerticalScrollbar(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
+            AutoFadeVerticalScrollbar(
+                modifier = Modifier.align(Alignment.TopEnd),
+                scrollState = dragDropListState.lazyListState,
                 style = defaultMaterialScrollbarStyle().copy(
                     thickness = 12.dp,
                 ),
