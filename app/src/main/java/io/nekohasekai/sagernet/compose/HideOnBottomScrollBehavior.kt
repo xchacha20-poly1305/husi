@@ -12,6 +12,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.core.view.isVisible
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -63,7 +64,7 @@ fun HideOnBottomScrollBehavior(
 
                 if (!isScrollingDown) {
                     fab.show()
-                    bottomBar.performShow()
+                    if (DataStore.serviceState.started) bottomBar.performShow()
                 } else if (isAtBottom) {
                     fab.hide(object : FloatingActionButton.OnVisibilityChangedListener() {
                         override fun onHidden(button: FloatingActionButton) {
