@@ -107,4 +107,6 @@ jobs:
         run: |
           mkdir apks
           find artifacts -name "*.apk" -exec cp {} apks \;
-          gh release create "${{ github.event.inputs.tag }}" --title "${{ github.event.inputs.tag }}" --prerelease ./apks/*
+          UPSTREAM_VERSION=$(echo "${{ github.event.inputs.tag }}" | sed -E 's/plugin-juicity-(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          gh release create "${{ github.event.inputs.tag }}" --title "${{ github.event.inputs.tag }}" --prerelease ./apks/* \
+            --notes $'# :memo: Release Notes\n\nUpstream: https://github.com/juicity/juicity/releases/tag/'"$UPSTREAM_VERSION"
