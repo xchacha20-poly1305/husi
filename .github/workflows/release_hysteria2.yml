@@ -104,7 +104,9 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: | 
+        run: |
           mkdir apks
           find artifacts -name "*.apk" -exec cp {} apks \;
-          gh release create "${{ github.event.inputs.tag }}" --title "${{ github.event.inputs.tag }}" --prerelease ./apks/*
+          UPSTREAM_VERSION=$(echo "${{ github.event.inputs.tag }}" | sed -E 's/plugin-hysteria2-(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          gh release create "${{ github.event.inputs.tag }}" --title "${{ github.event.inputs.tag }}" --prerelease ./apks/* \
+            --notes $'# :memo: Release Notes\n\nUpstream: https://github.com/apernet/hysteria/releases/tag/app/'"$UPSTREAM_VERSION"
