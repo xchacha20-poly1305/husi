@@ -42,6 +42,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -223,7 +224,7 @@ private fun RouteScreen(
                             onClick = {
                                 menuExpanded = false
                                 showResetAlert = true
-                            }
+                            },
                         )
 
                         DropdownMenuItem(
@@ -233,7 +234,7 @@ private fun RouteScreen(
                                 context.startActivity(
                                     Intent(context, AssetsActivity::class.java)
                                 )
-                            }
+                            },
                         )
                     }
                 },
@@ -247,12 +248,12 @@ private fun RouteScreen(
         },
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .paddingExceptBottom(innerPadding)
+                    .paddingExceptBottom(innerPadding),
             ) {
                 OutlinedCard(
                     modifier = Modifier
@@ -264,7 +265,7 @@ private fun RouteScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         val uriHandler = LocalUriHandler.current
                         Text(
@@ -293,6 +294,19 @@ private fun RouteScreen(
                     },
                 ) { i, rule ->
                     val swipeState = rememberSwipeToDismissBoxState()
+
+                    // Monitor swipe state changes and perform deletion when user completes swipe gesture.
+                    // After deletion, immediately reset state to Settled to prevent re-triggering
+                    // when item is restored via undo. Without this, the preserved swipeState
+                    // (due to stable key) would cause onDismiss to fire again on recomposition.
+                    LaunchedEffect(swipeState.currentValue) {
+                        if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
+                            viewModel.undoableRemove(i)
+                            undoManager.remove(i to rule)
+                            swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                        }
+                    }
+
                     DraggableSwipeableItem(
                         modifier = Modifier.animateDraggableSwipeableItem(),
                         colors = DraggableSwipeableItemColors.createRemembered(
@@ -312,20 +326,6 @@ private fun RouteScreen(
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
                                     Icon(ImageVector.vectorResource(R.drawable.delete), null)
-                                }
-                            },
-                            onDismiss = { value ->
-                                when (value) {
-                                    SwipeToDismissBoxValue.StartToEnd,
-                                    SwipeToDismissBoxValue.EndToStart,
-                                        -> {
-                                        scope.launch {
-                                            viewModel.undoableRemove(i)
-                                        }
-                                        undoManager.remove(i to rule)
-                                    }
-
-                                    else -> {}
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -368,7 +368,7 @@ private fun RouteScreen(
             TextButton(stringResource(android.R.string.cancel)) {
                 showResetAlert = false
             }
-        }
+        },
     )
 }
 
@@ -459,7 +459,7 @@ private fun DraggableSwipeableItemScope<RuleEntity>.RuleCard(
                         .fillMaxWidth()
                         .padding(horizontal = 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val context = LocalContext.current
                     Text(
@@ -469,7 +469,7 @@ private fun DraggableSwipeableItemScope<RuleEntity>.RuleCard(
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
 
                     Switch(

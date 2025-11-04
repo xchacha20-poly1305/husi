@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -30,7 +31,7 @@ internal class RouteFragmentViewModel : ViewModel(),
     private val _uiState = MutableStateFlow(RouteFragmentUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val collectJob: Job? = null
+    private var collectJob: Job? = null
 
     init {
         startCollect()
@@ -38,8 +39,8 @@ internal class RouteFragmentViewModel : ViewModel(),
 
     private fun startCollect() {
         collectJob?.cancel()
-        viewModelScope.launch {
-            ProfileManager.getRules().collect { rules ->
+        collectJob = viewModelScope.launch {
+            ProfileManager.getRules().distinctUntilChanged().collect { rules ->
                 _uiState.update {
                     it.copy(rules = rules)
                 }
@@ -77,15 +78,14 @@ internal class RouteFragmentViewModel : ViewModel(),
         }
     }
 
-    suspend fun undoableRemove(index: Int) {
-        val old = _uiState.value
-        _uiState.emit(
-            old.copy(
-                rules = old.rules.toMutableList().apply {
-                    removeAt(index)
-                },
-            )
-        )
+    fun undoableRemove(index: Int) = viewModelScope.launch {
+        _uiState.update { state ->
+             state.copy(
+                 rules= state.rules.toMutableList().also {
+                        it.removeAt(index)
+                 },
+             )
+        }
     }
 
     override fun undo(actions: List<Pair<Int, RuleEntity>>) {

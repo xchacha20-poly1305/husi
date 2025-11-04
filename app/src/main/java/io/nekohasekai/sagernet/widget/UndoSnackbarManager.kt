@@ -26,7 +26,7 @@ class UndoSnackbarManager<in T>(
         fun setOnAction(block: () -> Unit): SnackbarAdapter
         fun setOnDismiss(block: () -> Unit): SnackbarAdapter
 
-         fun show()
+        fun show()
 
         fun flush()
     }

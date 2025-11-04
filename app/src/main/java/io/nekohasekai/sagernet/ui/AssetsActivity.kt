@@ -53,6 +53,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -289,6 +290,20 @@ private fun AssetsScreen(
             ) { index, asset ->
                 val swipeState = rememberSwipeToDismissBoxState()
 
+                // Monitor swipe state changes and perform deletion when user completes swipe gesture.
+                // After deletion, immediately reset state to Settled to prevent re-triggering
+                // when item is restored via undo. Without this, the preserved swipeState
+                // (due to stable key) would cause onDismiss to fire again on recomposition.
+                if (!asset.builtIn) {
+                    LaunchedEffect(swipeState.currentValue) {
+                        if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
+                            viewModel.fakeRemove(index)
+                            undoManager.remove(index to asset)
+                            swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                        }
+                    }
+                }
+
                 if (!asset.builtIn) {
                     SwipeToDismissBox(
                         state = swipeState,
@@ -302,18 +317,6 @@ private fun AssetsScreen(
                                 contentAlignment = Alignment.CenterEnd
                             ) {
                                 Icon(ImageVector.vectorResource(R.drawable.delete), null)
-                            }
-                        },
-                        onDismiss = { value ->
-                            when (value) {
-                                SwipeToDismissBoxValue.StartToEnd,
-                                SwipeToDismissBoxValue.EndToStart,
-                                    -> {
-                                    viewModel.fakeRemove(index)
-                                    undoManager.remove(index to asset)
-                                }
-
-                                else -> {}
                             }
                         },
                     ) {
