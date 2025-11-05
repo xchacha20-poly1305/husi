@@ -116,7 +116,7 @@ object DataStore {
     var inboundPassword by configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
-    var speedInterval by configurationStore.int(Key.SPEED_INTERVAL)
+    var speedInterval by configurationStore.int(Key.SPEED_INTERVAL) { 1000 }
     var showGroupInNotification by configurationStore.boolean(Key.SHOW_GROUP_IN_NOTIFICATION)
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "tcp://dns.google" }
@@ -209,16 +209,6 @@ object DataStore {
     var downloadSpeed by configurationStore.int(Key.DOWNLOAD_SPEED) { 0 }
     var customPluginPrefix by configurationStore.string(Key.CUSTOM_PLUGIN_PREFIX)
 
-    var rulesFirstCreate: Boolean
-        get() = try {
-            configurationStore.getBoolean(Key.RULES_FIRST_CREATE, false)
-        } catch (_: ClassCastException) {
-            // Migration: clean up corrupted value
-            configurationStore.remove(Key.RULES_FIRST_CREATE)
-            false
-        }
-        set(value) {
-            configurationStore.putBoolean(Key.RULES_FIRST_CREATE, value)
-        }
+    var rulesFirstCreate by configurationStore.boolean(Key.RULES_FIRST_CREATE)
 
 }
