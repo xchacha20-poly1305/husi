@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -86,7 +87,7 @@ internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean
     }
 
     private fun load(ids: List<Long>) = viewModelScope.launch(Dispatchers.IO) {
-        val groups = SagerDatabase.groupDao.allGroups()
+        val groups = SagerDatabase.groupDao.allGroups().first()
         val groupMap = LinkedHashMap<Long, ProxyGroup>(groups.size)
         groups.associateByTo(groupMap) { it.id }
         _uiState.update {

@@ -1,26 +1,36 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import io.nekohasekai.sagernet.GroupType
+import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.group.GroupUpdater
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
+import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
+@Stable
 internal data class GroupUiState(
     val groups: List<GroupItemUiState> = emptyList(),
 )
 
+@Stable
 data class GroupItemUiState(
     val group: ProxyGroup,
     val counts: Long,
@@ -28,132 +38,124 @@ data class GroupItemUiState(
     val updateProgress: GroupUpdateProgress? = null,
 )
 
+@Stable
 data class GroupUpdateProgress(
-    val progress: Int,
+    val progress: Float,
     val isIndeterminate: Boolean,
 )
 
-internal sealed interface GroupEvents {
-    object FlushUndoManager : GroupEvents
-}
-
-internal class GroupFragmentViewModel : ViewModel(),
-    GroupManager.Listener,
-    UndoSnackbarManager.Interface<ProxyGroup> {
+@Stable
+internal class GroupFragmentViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(GroupUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _uiEvent = MutableSharedFlow<GroupEvents>()
-    val uiEvent = _uiEvent.asSharedFlow()
-
     init {
         viewModelScope.launch {
-            loadGroups()
+            SagerDatabase.groupDao.allGroups().collect(::reloadGroups)
         }
     }
 
-    private suspend fun loadGroups() {
-        for (group in SagerDatabase.groupDao.allGroups()) {
-            if (group.ungrouped && SagerDatabase.proxyDao.countByGroup(group.id) == 0L) {
-                continue
-            }
-            _uiState.update {
-                it.copy(groups = it.groups + buildItem(group))
-            }
+    private var deleteTimer: Job? = null
+    private val hiddenGroupAccess = Mutex()
+    private val hiddenGroup = mutableSetOf<Long>()
+
+    private suspend fun reloadGroups(groups: List<ProxyGroup>?) = hiddenGroupAccess.withLock {
+        _uiState.update { state ->
+            state.copy(
+                groups = (groups ?: onIoDispatcher {
+                    SagerDatabase.groupDao.allGroups().first()
+                }).mapNotNull {
+                    val counts = onIoDispatcher {
+                        SagerDatabase.proxyDao.countByGroup(it.id)
+                    }
+                    if (it.ungrouped && counts == 0L) {
+                        null
+                    } else if (it.id in hiddenGroup) {
+                        null
+                    } else {
+                        buildItem(it, counts)
+                    }
+                },
+            )
         }
     }
 
-    private fun buildItem(group: ProxyGroup): GroupItemUiState {
-        val counts = SagerDatabase.proxyDao.countByGroup(group.id)
+    private fun buildItem(group: ProxyGroup, counts: Long): GroupItemUiState {
         return GroupItemUiState(
             group = group,
             counts = counts,
             isUpdating = group.id in GroupUpdater.updating,
             updateProgress = group.subscription?.let {
                 GroupUpdateProgress(
-                    progress = (it.bytesUsed.toDouble() / (it.bytesUsed + it.bytesRemaining).toDouble() * 100).toInt(),
+                    progress = (it.bytesUsed.toDouble() / (it.bytesUsed + it.bytesRemaining).toDouble()).toFloat(),
                     isIndeterminate = true,
                 )
             },
         )
     }
 
-    fun fakeRemove(index: Int) = viewModelScope.launch {
-        _uiState.update {
-            it.copy(groups = it.groups.filterIndexed { i, _ -> i != index })
-        }
-    }
-
-    fun move(from: Int, to: Int) {
-        val groups = _uiState.value.groups.toMutableList()
-        val movedItem = groups.removeAt(from)
-        groups.add(to, movedItem)
-        _uiState.update { it.copy(groups = groups) }
-    }
-
-    fun commitMove(groups: List<GroupItemUiState>) = runOnIoDispatcher {
-        val groupsToUpdate = mutableListOf<ProxyGroup>()
-        groups.forEachIndexed { i, item ->
-            val index = i.toLong()
-            if (item.group.userOrder != index) {
-                item.group.userOrder = index
-                groupsToUpdate.add(item.group)
-            }
-        }
-
-        if (groupsToUpdate.isNotEmpty()) {
-            groupsToUpdate.forEach { SagerDatabase.groupDao.updateGroup(it) }
-        }
-    }
-
-    override suspend fun groupAdd(group: ProxyGroup) {
-        _uiState.update { it.copy(it.groups + buildItem(group)) }
-        if (group.type == GroupType.SUBSCRIPTION) {
-            GroupUpdater.startUpdate(group, true)
-        }
-    }
-
-    override suspend fun groupRemoved(groupId: Long) {
-        _uiEvent.emit(GroupEvents.FlushUndoManager)
-        _uiState.update {
-            it.copy(groups = it.groups.filter { group ->
-                group.group.id != groupId
-            })
-        }
-    }
-
-    override suspend fun groupUpdated(groupId: Long) {
-        val group = SagerDatabase.groupDao.getById(groupId) ?: return
-        groupUpdated(group)
-    }
-
-    override suspend fun groupUpdated(group: ProxyGroup) {
-        _uiState.update {
-            it.copy(groups = it.groups.map { item ->
-                if (item.group.id == group.id) {
-                    buildItem(group)
-                } else {
-                    item
+    fun undoableRemove(id: Long) = viewModelScope.launch {
+        hiddenGroupAccess.withLock {
+            _uiState.update { state ->
+                val groups = state.groups.toMutableList()
+                val groupIndex = groups.indexOfFirst { it.group.id == id }
+                if (groupIndex >= 0) {
+                    groups.removeAt(groupIndex)
+                    hiddenGroup.add(id)
                 }
-            })
-        }
-    }
-
-    override fun undo(actions: List<Pair<Int, ProxyGroup>>) {
-        _uiState.update {
-            val groups = it.groups.toMutableList()
-            for ((index, group) in actions) {
-                groups.add(index, buildItem(group))
+                state.copy(
+                    groups = groups,
+                )
             }
-            it.copy(groups = groups)
+        }
+        startDeleteTimer()
+    }
+
+    private fun startDeleteTimer() {
+        deleteTimer?.cancel()
+        deleteTimer = viewModelScope.launch {
+            delay(5000)
+            commit()
         }
     }
 
-    override fun commit(actions: List<Pair<Int, ProxyGroup>>) {
-        runOnDefaultDispatcher {
-            val groups = actions.map { it.second }
-            GroupManager.deleteGroup(groups)
+    fun submitReorder(changes: List<OrderedItem<GroupItemUiState>>) = runOnDefaultDispatcher {
+        val toUpdate = changes.mapNotNull { orderedItem ->
+            val newUserOrder = orderedItem.newIndex.toLong()
+            val group = orderedItem.value.group
+            if (group.userOrder != newUserOrder) {
+                group.copy(
+                    userOrder = newUserOrder,
+                )
+            } else {
+                null
+            }
+        }
+        if (toUpdate.isNotEmpty()) onIoDispatcher {
+            SagerDatabase.groupDao.updateGroups(toUpdate)
+        }
+    }
+
+    fun undo() = viewModelScope.launch {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        hiddenGroupAccess.withLock {
+            hiddenGroup.clear()
+            reloadGroups(null)
+        }
+    }
+
+    fun commit() = runOnDefaultDispatcher {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        val toDelete = hiddenGroupAccess.withLock {
+            val toDelete = hiddenGroup.toList()
+            hiddenGroup.clear()
+            toDelete
+        }
+        onIoDispatcher {
+            SagerDatabase.groupDao.deleteByIds(toDelete)
         }
     }
 
@@ -161,8 +163,8 @@ internal class GroupFragmentViewModel : ViewModel(),
         GroupUpdater.startUpdate(group, true)
     }
 
-    fun doUpdateAll() = runOnIoDispatcher {
-        SagerDatabase.groupDao.allGroups()
+    fun doUpdateAll() = runOnDefaultDispatcher {
+        SagerDatabase.groupDao.allGroups().first()
             .filter { it.type == GroupType.SUBSCRIPTION }
             .forEach { group ->
                 GroupUpdater.startUpdate(group, true)
@@ -171,18 +173,23 @@ internal class GroupFragmentViewModel : ViewModel(),
 
     fun clearGroup(id: Long) = runOnIoDispatcher {
         GroupManager.clearGroup(id)
-        // clearGroup will automatically notify changed.
-        // _uiState.update { GroupUiState() }
     }
 
-    private val _exportingGroup = MutableStateFlow<ProxyGroup?>(null)
-    val exportingGroup = _exportingGroup.asStateFlow()
-
-    fun prepareGroupForExport(group: ProxyGroup) {
-        _exportingGroup.value = group
+    fun exportToFile(
+        group: Long,
+        writeContent: suspend (content: String) -> Unit,
+        showSnackbar: (message: StringOrRes) -> Unit,
+    ) = viewModelScope.launch {
+        val links = SagerDatabase.proxyDao
+            .getByGroup(group)
+            .joinToString("\n") { it.toStdLink() }
+        try {
+            writeContent(links)
+            showSnackbar(StringOrRes.Res(R.string.action_export_msg))
+        } catch (e: Exception) {
+            Logs.e(e)
+            showSnackbar(StringOrRes.Direct(e.readableMessage))
+        }
     }
 
-    fun clearGroupExport() {
-        _exportingGroup.value = null
-    }
 }

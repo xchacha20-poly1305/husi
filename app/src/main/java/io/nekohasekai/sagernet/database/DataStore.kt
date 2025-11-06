@@ -22,6 +22,8 @@ import io.nekohasekai.sagernet.ktx.long
 import io.nekohasekai.sagernet.ktx.parsePort
 import io.nekohasekai.sagernet.ktx.string
 import io.nekohasekai.sagernet.ktx.stringSet
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 object DataStore {
 
@@ -54,7 +56,9 @@ object DataStore {
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
         if (currentSelected > 0L) return currentSelected
-        val groups = SagerDatabase.groupDao.allGroups()
+        val groups = runBlocking {
+            SagerDatabase.groupDao.allGroups().first()
+        }
         if (groups.isNotEmpty()) {
             val groupId = groups[0].id
             selectedGroup = groupId
@@ -72,7 +76,9 @@ object DataStore {
             group = SagerDatabase.groupDao.getById(currentSelected)
         }
         if (group != null) return group
-        val groups = SagerDatabase.groupDao.allGroups()
+        val groups = runBlocking {
+            SagerDatabase.groupDao.allGroups().first()
+        }
         if (groups.isEmpty()) {
             group = ProxyGroup(ungrouped = true).apply {
                 id = SagerDatabase.groupDao.createGroup(this)
@@ -87,7 +93,9 @@ object DataStore {
     fun selectedGroupForImport(): Long {
         val current = currentGroup()
         if (current.type == GroupType.BASIC) return current.id
-        val groups = SagerDatabase.groupDao.allGroups()
+        val groups = runBlocking {
+            SagerDatabase.groupDao.allGroups().first()
+        }
         return groups.find { it.type == GroupType.BASIC }!!.id
     }
 
