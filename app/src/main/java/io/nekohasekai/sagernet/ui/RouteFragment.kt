@@ -238,6 +238,7 @@ private fun RouteScreen(
                         )
                     }
                 },
+                scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = {
@@ -288,6 +289,7 @@ private fun RouteScreen(
                     state = dragDropListState,
                     items = uiState.rules.toImmutableList(),
                     key = { it.id },
+                    userScrollEnabled = true,
                     onIndicesChangedViaDragAndDrop = {
                         viewModel.submitReorder(it)
                         needReload()
