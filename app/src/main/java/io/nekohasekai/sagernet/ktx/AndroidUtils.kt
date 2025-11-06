@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
+import android.text.format.DateUtils
 import android.util.TypedValue
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
@@ -264,3 +265,11 @@ val ThemedActivity.snackbarAdapter: UndoSnackbarManager.SnackbarAdapter
             toFlush?.dismiss()
         }
     }
+
+fun Context.formatTime(millis: Long): String {
+    return DateUtils.getRelativeTimeSpanString(this, millis)
+        // hack for Chinese to add space, "1月1日" -> "1 月 1 日","上午0:00" -> 上午 0:00"
+        .replace("^([1-9]|1[0-2])月([1-9]|1[0-9]|2[0-9]|3[0-1])日+".toRegex(), "$1 月 $2 日")
+        .replace("^上午(([1-9]|1[0-2]):([0-5][0-9]))+".toRegex(), "上午 $1")
+        .replace("^下午(([1-9]|1[0-2]):([0-5][0-9]))+".toRegex(), "下午 $1")
+}

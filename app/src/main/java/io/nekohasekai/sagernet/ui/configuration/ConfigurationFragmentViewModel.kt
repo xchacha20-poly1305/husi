@@ -29,11 +29,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
@@ -372,10 +374,10 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
     }
 
     private suspend fun reloadGroups() {
-        var all = SagerDatabase.groupDao.allGroups().toMutableList()
+        var all = SagerDatabase.groupDao.allGroups().first().toMutableList()
         if (all.isEmpty()) {
             SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
-            all = SagerDatabase.groupDao.allGroups().toMutableList()
+            all = SagerDatabase.groupDao.allGroups().first().toMutableList()
         }
         if (all.size > 1) all.removeFirstMatched {
             it.ungrouped && SagerDatabase.proxyDao.countByGroup(it.id) == 0L

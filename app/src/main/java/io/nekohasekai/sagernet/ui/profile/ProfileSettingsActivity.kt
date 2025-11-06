@@ -66,6 +66,8 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.stringResource
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 
 @ExperimentalMaterial3Api
@@ -159,8 +161,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                         )
                                         if (!viewModel.isNew // Uncreated
                                             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                                            && SagerDatabase.groupDao.allGroups()
-                                                .filter { it.type == GroupType.BASIC }.size > 1 // Movable
+                                            && runBlocking {
+                                                SagerDatabase.groupDao.allGroups().first()
+                                                    .filter {
+                                                        it.type == GroupType.BASIC
+                                                    }.size > 1 // Movable
+                                            }
                                         ) DropdownMenuItem(
                                             text = { Text(stringResource(R.string.move)) },
                                             onClick = { showMoveDialog = true },
