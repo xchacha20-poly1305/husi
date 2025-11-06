@@ -111,6 +111,9 @@ data class RuleEntity(
         @Query("DELETE FROM rules WHERE id = :ruleId")
         fun deleteById(ruleId: Long): Int
 
+        @Query("DELETE FROM rules WHERE id IN (:ruleIds)")
+        fun deleteByIds(ruleIds: List<Long>): Int
+
         @Delete
         fun deleteRule(rule: RuleEntity)
 

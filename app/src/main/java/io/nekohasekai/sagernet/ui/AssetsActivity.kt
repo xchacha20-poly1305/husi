@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -44,6 +44,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -64,19 +65,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.compose.ComposeSnackbarAdapter
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.paddingWithNavigation
 import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -130,6 +130,7 @@ private fun AssetsScreen(
     onBackPress: () -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val cacheDir = remember(context) { context.cacheDir }
     val assetsDir = remember(context) { context.assetsDir() }
     val geoDir = remember(context) { geoDir(assetsDir) }
@@ -166,28 +167,30 @@ private fun AssetsScreen(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val undoManager = remember {
-        UndoSnackbarManager(
-            snackbar = ComposeSnackbarAdapter(
-                showSnackbar = { message, label ->
-                    snackbarHostState.showSnackbar(
-                        message = context.getStringOrRes(message),
-                        actionLabel = context.getStringOrRes(label),
-                        duration = SnackbarDuration.Short,
-                    )
-                },
-                scope = scope,
-            ),
-            callback = viewModel,
-        )
-    }
     DisposableEffect(Unit) {
         onDispose {
-            undoManager.flush()
+            viewModel.commit()
         }
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.pendingDeleteCount) {
+        if (uiState.pendingDeleteCount > 0) {
+            val result = snackbarHostState.showSnackbar(
+                message = resources.getQuantityString(
+                    R.plurals.removed,
+                    uiState.pendingDeleteCount,
+                    uiState.pendingDeleteCount,
+                ),
+                actionLabel = context.getString(R.string.undo),
+                duration = SnackbarDuration.Short,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undo()
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -277,17 +280,17 @@ private fun AssetsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = innerPadding.paddingWithNavigation(),
         ) {
-            itemsIndexed(
+            items(
                 items = uiState.assets,
-                key = { index, asset -> asset.file.name },
-                contentType = { index, asset ->
+                key = { asset -> asset.file.name },
+                contentType = { asset ->
                     if (asset.builtIn) {
                         ASSET_BUILT_IN
                     } else {
                         ASSET_CUSTOM
                     }
                 },
-            ) { index, asset ->
+            ) { asset ->
                 val swipeState = rememberSwipeToDismissBoxState()
 
                 // Monitor swipe state changes and perform deletion when user completes swipe gesture.
@@ -297,8 +300,7 @@ private fun AssetsScreen(
                 if (!asset.builtIn) {
                     LaunchedEffect(swipeState.currentValue) {
                         if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
-                            viewModel.fakeRemove(index)
-                            undoManager.remove(index to asset)
+                            viewModel.undoableRemove(asset.file.name)
                             swipeState.snapTo(SwipeToDismissBoxValue.Settled)
                         }
                     }
