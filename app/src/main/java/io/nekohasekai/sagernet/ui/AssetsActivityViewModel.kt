@@ -13,10 +13,12 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.USER_AGENT
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ktx.use
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -24,6 +26,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import libcore.CopyCallback
 import libcore.HTTPRequest
 import libcore.Libcore
@@ -37,6 +41,7 @@ internal typealias UpdateProgress = (Float) -> Unit
 internal data class AssetsUiState(
     val process: Float? = null,
     val assets: List<AssetItem> = emptyList(),
+    val pendingDeleteCount: Int = 0,
 )
 
 internal data class AssetItem(
@@ -50,7 +55,7 @@ internal sealed interface AssetsActivityUiEvent {
     class Snackbar(val message: StringOrRes) : AssetsActivityUiEvent
 }
 
-internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interface<AssetItem> {
+internal class AssetsActivityViewModel : ViewModel() {
 
     companion object {
         fun isBuiltIn(index: Int): Boolean = index < 2
@@ -66,6 +71,10 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
     private lateinit var geoDir: File
 
     private var previousAssetNames = emptySet<String>()
+
+    private var deleteTimer: Job? = null
+    private val hiddenAssetsAccess = Mutex()
+    private val hiddenAssets = mutableSetOf<String>()
 
     fun initialize(assetsDir: File, geoDir: File) {
         this.assetsDir = assetsDir
@@ -98,13 +107,16 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
             dbAssets.forEach { add(File(geoDir, it.name)) }
         }
 
-        _uiState.update { state ->
-            state.copy(
-                assets = files.mapIndexed { i, asset ->
-                    buildAssetItem(i, asset)
-                },
-                process = null,
-            )
+        hiddenAssetsAccess.withLock {
+            _uiState.update { state ->
+                state.copy(
+                    assets = files.mapIndexed { i, asset ->
+                        buildAssetItem(i, asset)
+                    }.filterNot { hiddenAssets.contains(it.file.name) },
+                    pendingDeleteCount = hiddenAssets.size,
+                    process = null,
+                )
+            }
         }
     }
 
@@ -308,32 +320,62 @@ internal class AssetsActivityViewModel : ViewModel(), UndoSnackbarManager.Interf
         refreshAssets()
     }
 
-    fun fakeRemove(index: Int) = viewModelScope.launch {
-        _uiState.update { state ->
-            val assets = state.assets.toMutableList()
-            assets.removeAt(index)
-            state.copy(assets = assets)
-        }
-    }
-
-    override fun undo(actions: List<Pair<Int, AssetItem>>) {
-        _uiState.update { state ->
-            val assets = state.assets.toMutableList()
-            for ((index, item) in actions) {
-                assets.add(index, item)
+    fun undoableRemove(fileName: String) = viewModelScope.launch {
+        hiddenAssetsAccess.withLock {
+            _uiState.update { state ->
+                val assets = state.assets.toMutableList()
+                val assetIndex = assets.indexOfFirst { it.file.name == fileName }
+                if (assetIndex >= 0) {
+                    val asset = assets.removeAt(assetIndex)
+                    hiddenAssets.add(asset.file.name)
+                }
+                state.copy(
+                    assets = assets,
+                    pendingDeleteCount = hiddenAssets.size,
+                )
             }
-            state.copy(assets = assets)
+        }
+        startDeleteTimer()
+    }
+
+    private fun startDeleteTimer() {
+        deleteTimer?.cancel()
+        deleteTimer = viewModelScope.launch {
+            delay(5000)
+            commit()
         }
     }
 
-    override fun commit(actions: List<Pair<Int, AssetItem>>) {
+    fun undo() = viewModelScope.launch {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        hiddenAssetsAccess.withLock {
+            hiddenAssets.clear()
+        }
+        refreshAssets()
+    }
+
+    fun commit() = runOnDefaultDispatcher {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        val toDelete = hiddenAssetsAccess.withLock {
+            val toDelete = hiddenAssets.toList()
+            hiddenAssets.clear()
+            toDelete
+        }
         runOnIoDispatcher {
-            for ((_, asset) in actions) {
-                val file = asset.file
+            for (fileName in toDelete) {
+                val file = if (fileName.endsWith(".version.txt")) {
+                    File(assetsDir, fileName)
+                } else {
+                    File(geoDir, fileName)
+                }
                 file.delete()
-                val versionFile = File(file.parentFile!!.parentFile!!, "${file.name}.version.txt")
-                if (versionFile.isFile) versionFile.delete()
-                SagerDatabase.assetDao.delete(file.name)
+                if (!fileName.endsWith(".version.txt")) {
+                    val versionFile = File(assetsDir, "$fileName.version.txt")
+                    if (versionFile.isFile) versionFile.delete()
+                    SagerDatabase.assetDao.delete(fileName)
+                }
             }
         }
     }

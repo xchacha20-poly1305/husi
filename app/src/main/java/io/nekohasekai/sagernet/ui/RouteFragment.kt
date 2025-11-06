@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -72,7 +73,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
-import io.nekohasekai.sagernet.compose.ComposeSnackbarAdapter
 import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
@@ -87,7 +87,6 @@ import io.nekohasekai.sagernet.database.RuleEntity.Companion.OUTBOUND_PROXY
 import io.nekohasekai.sagernet.databinding.ComposeHolderBinding
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.repository.repo
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
@@ -126,27 +125,13 @@ private fun RouteScreen(
     bottomBar: BottomAppBar,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
-    val undoManager = remember {
-        UndoSnackbarManager(
-            snackbar = ComposeSnackbarAdapter(
-                showSnackbar = { message, actionLabel ->
-                    snackbarState.showSnackbar(
-                        message = context.getStringOrRes(message),
-                        actionLabel = context.getStringOrRes(actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                },
-                scope = scope,
-            ),
-            callback = viewModel,
-        )
-    }
     DisposableEffect(Unit) {
         onDispose {
-            undoManager.flush()
+            viewModel.commit()
         }
     }
 
@@ -181,6 +166,23 @@ private fun RouteScreen(
         )
         if (result == SnackbarResult.ActionPerformed) {
             repo.reloadService()
+        }
+    }
+
+    LaunchedEffect(uiState.pendingDeleteCount) {
+        if (uiState.pendingDeleteCount > 0) {
+            val result = snackbarState.showSnackbar(
+                message = resources.getQuantityString(
+                    R.plurals.removed,
+                    uiState.pendingDeleteCount,
+                    uiState.pendingDeleteCount,
+                ),
+                actionLabel = context.getString(R.string.undo),
+                duration = SnackbarDuration.Short,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undo()
+            }
         }
     }
 
@@ -290,7 +292,7 @@ private fun RouteScreen(
                         viewModel.submitReorder(it)
                         needReload()
                     },
-                ) { i, rule ->
+                ) { _, rule ->
                     val swipeState = rememberSwipeToDismissBoxState()
 
                     // Monitor swipe state changes and perform deletion when user completes swipe gesture.
@@ -299,8 +301,7 @@ private fun RouteScreen(
                     // (due to stable key) would cause onDismiss to fire again on recomposition.
                     LaunchedEffect(swipeState.currentValue) {
                         if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
-                            viewModel.undoableRemove(i)
-                            undoManager.remove(i to rule)
+                            viewModel.undoableRemove(rule.id)
                             swipeState.snapTo(SwipeToDismissBoxValue.Settled)
                         }
                     }
