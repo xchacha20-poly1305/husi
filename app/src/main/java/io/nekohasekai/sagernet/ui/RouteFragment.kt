@@ -77,6 +77,7 @@ import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
+import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -171,7 +172,7 @@ private fun RouteScreen(
 
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
-            val result = snackbarState.showSnackbar(
+            val result = snackbarState.showAndDismissOld(
                 message = resources.getQuantityString(
                     R.plurals.removed,
                     uiState.pendingDeleteCount,

@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -50,6 +51,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,6 +75,7 @@ import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.paddingWithNavigation
 import io.nekohasekai.sagernet.compose.setPlainText
+import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.ComposeHolderBinding
@@ -121,6 +124,7 @@ private fun GroupScreen(
     bottomBar: BottomAppBar,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     DisposableEffect(Unit) {
@@ -134,6 +138,22 @@ private fun GroupScreen(
     var clearGroupConfirm by remember { mutableStateOf<Long?>(null) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.hiddenGroups) {
+        if (uiState.hiddenGroups > 0) {
+            val result = snackbarHostState.showAndDismissOld(
+                message = resources.getQuantityString(
+                    R.plurals.removed,
+                    uiState.hiddenGroups,
+                    uiState.hiddenGroups,
+                ),
+                actionLabel = context.getString(R.string.undo),
+                duration = SnackbarDuration.Short,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undo()
+            }
+        }
+    }
 
     var groupToExport by remember { mutableStateOf<Long?>(null) }
     val exportProfiles = rememberLauncherForActivityResult(
@@ -475,35 +495,33 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                     expanded = showOptionsMenu,
                                     onDismissRequest = { showOptionsMenu = false },
                                 ) {
-                                    group.subscription?.link?.blankAsNull()?.let { link ->
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.share_subscription)) },
-                                            onClick = {
-                                                showOptionsMenu = false
-                                                showShareSubscription = true
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
-                                                    null,
-                                                )
-                                            },
-                                        )
+                                    if (group.subscription?.link?.isNotBlank() == true) DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.share_subscription)) },
+                                        onClick = {
+                                            showOptionsMenu = false
+                                            showShareSubscription = true
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                                null,
+                                            )
+                                        },
+                                    )
 
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.internal_link)) },
-                                            onClick = {
-                                                showOptionsMenu = false
-                                                showUniversalLinkMenu = true
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
-                                                    null,
-                                                )
-                                            },
-                                        )
-                                    }
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.internal_link)) },
+                                        onClick = {
+                                            showOptionsMenu = false
+                                            showUniversalLinkMenu = true
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                                null,
+                                            )
+                                        },
+                                    )
 
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.action_export)) },
@@ -513,7 +531,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         },
                                         trailingIcon = {
                                             Icon(
-                                                ImageVector.vectorResource(R.drawable.file_export),
+                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
                                                 null,
                                             )
                                         },
@@ -538,7 +556,10 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                     ) {
                                         Text(
                                             text = stringResource(R.string.share_subscription),
-                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                            modifier = Modifier.padding(
+                                                horizontal = 16.dp,
+                                                vertical = 12.dp
+                                            ),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -560,38 +581,41 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                             },
                                         )
                                     }
+                                }
 
-                                    DropdownMenu(
-                                        expanded = showUniversalLinkMenu,
-                                        onDismissRequest = { showUniversalLinkMenu = false },
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.internal_link),
-                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.action_export_clipboard)) },
-                                            onClick = {
-                                                scope.launch {
-                                                    clipboard.setPlainText(group.toUniversalLink())
-                                                    snackbar(context.getString(R.string.copy_success))
-                                                }
-                                                showUniversalLinkMenu = false
-                                            },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.share_qr_nfc)) },
-                                            onClick = {
-                                                showQRDialog(
-                                                    group.toUniversalLink(),
-                                                    group.displayName(),
-                                                )
-                                                showUniversalLinkMenu = false
-                                            },
-                                        )
-                                    }
+                                DropdownMenu(
+                                    expanded = showUniversalLinkMenu,
+                                    onDismissRequest = { showUniversalLinkMenu = false },
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.internal_link),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 12.dp,
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                        onClick = {
+                                            scope.launch {
+                                                clipboard.setPlainText(group.toUniversalLink())
+                                                snackbar(context.getString(R.string.copy_success))
+                                            }
+                                            showUniversalLinkMenu = false
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.share_qr_nfc)) },
+                                        onClick = {
+                                            showQRDialog(
+                                                group.toUniversalLink(),
+                                                group.displayName(),
+                                            )
+                                            showUniversalLinkMenu = false
+                                        },
+                                    )
                                 }
 
                                 DropdownMenu(
@@ -600,7 +624,10 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                 ) {
                                     Text(
                                         text = stringResource(R.string.action_export),
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 12.dp
+                                        ),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -620,12 +647,24 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                             }
                                             showExport = false
                                         },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.content_copy),
+                                                null,
+                                            )
+                                        },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.action_export_file)) },
                                         onClick = {
                                             exportToFile()
                                             showExport = false
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.file_export),
+                                                null,
+                                            )
                                         },
                                     )
                                 }
@@ -705,7 +744,8 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         if (state.counts == 0L) {
                                             context.getString(R.string.group_status_empty_subscription)
                                         } else {
-                                            val dateFormat = SimpleDateFormat("M - d", Locale.getDefault())
+                                            val dateFormat =
+                                                SimpleDateFormat("M - d", Locale.getDefault())
                                             val formattedDate = dateFormat.format(
                                                 Date(state.group.subscription!!.lastUpdated * 1000L)
                                             )

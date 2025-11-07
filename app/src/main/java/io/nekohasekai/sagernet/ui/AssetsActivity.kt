@@ -74,6 +74,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -177,7 +178,7 @@ private fun AssetsScreen(
 
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
-            val result = snackbarHostState.showSnackbar(
+            val result = snackbarHostState.showAndDismissOld(
                 message = resources.getQuantityString(
                     R.plurals.removed,
                     uiState.pendingDeleteCount,

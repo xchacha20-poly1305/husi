@@ -28,6 +28,7 @@ import kotlinx.coroutines.sync.withLock
 @Stable
 internal data class GroupUiState(
     val groups: List<GroupItemUiState> = emptyList(),
+    val hiddenGroups: Int = 0,
 )
 
 @Stable
@@ -54,6 +55,17 @@ internal class GroupFragmentViewModel : ViewModel() {
         viewModelScope.launch {
             SagerDatabase.groupDao.allGroups().collect(::reloadGroups)
         }
+        viewModelScope.launch {
+            GroupUpdater.updatingGroups.collect { updatingGroupIds ->
+                _uiState.update { state ->
+                    state.copy(
+                        groups = state.groups.map { item ->
+                            item.copy(isUpdating = item.group.id in updatingGroupIds)
+                        },
+                    )
+                }
+            }
+        }
     }
 
     private var deleteTimer: Job? = null
@@ -77,6 +89,7 @@ internal class GroupFragmentViewModel : ViewModel() {
                         buildItem(it, counts)
                     }
                 },
+                hiddenGroups = hiddenGroup.size,
             )
         }
     }
@@ -85,7 +98,7 @@ internal class GroupFragmentViewModel : ViewModel() {
         return GroupItemUiState(
             group = group,
             counts = counts,
-            isUpdating = group.id in GroupUpdater.updating,
+            isUpdating = group.id in GroupUpdater.updatingGroups.value,
             updateProgress = group.subscription?.let {
                 GroupUpdateProgress(
                     progress = (it.bytesUsed.toDouble() / (it.bytesUsed + it.bytesRemaining).toDouble()).toFloat(),
@@ -106,6 +119,7 @@ internal class GroupFragmentViewModel : ViewModel() {
                 }
                 state.copy(
                     groups = groups,
+                    hiddenGroups = hiddenGroup.size,
                 )
             }
         }
@@ -142,8 +156,8 @@ internal class GroupFragmentViewModel : ViewModel() {
         deleteTimer = null
         hiddenGroupAccess.withLock {
             hiddenGroup.clear()
-            reloadGroups(null)
         }
+        reloadGroups(null)
     }
 
     fun commit() = runOnDefaultDispatcher {
