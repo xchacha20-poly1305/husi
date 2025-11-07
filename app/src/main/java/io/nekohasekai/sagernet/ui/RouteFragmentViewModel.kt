@@ -120,8 +120,8 @@ internal class RouteFragmentViewModel : ViewModel() {
         deleteTimer = null
         hiddenRulesAccess.withLock {
             hiddenRules.clear()
-            reloadRules(null)
         }
+        reloadRules(null)
     }
 
     fun commit() = runOnDefaultDispatcher {

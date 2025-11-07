@@ -28,12 +28,14 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import java.net.Inet4Address
 import java.net.InetAddress
-import java.util.Collections
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 abstract class GroupUpdater {
@@ -275,7 +277,8 @@ abstract class GroupUpdater {
 
     companion object {
 
-        val updating = Collections.synchronizedSet<Long>(mutableSetOf())
+        private val _updatingGroups = MutableStateFlow<Set<Long>>(emptySet())
+        val updatingGroups = _updatingGroups.asStateFlow()
 
         fun startUpdate(proxyGroup: ProxyGroup, byUser: Boolean) {
             runOnDefaultDispatcher {
@@ -285,7 +288,16 @@ abstract class GroupUpdater {
 
         suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {
             return coroutineScope {
-                if (!updating.add(proxyGroup.id)) cancel()
+                var added = false
+                _updatingGroups.update { current ->
+                    if (proxyGroup.id !in current) {
+                        added = true
+                        current + proxyGroup.id
+                    } else {
+                        current
+                    }
+                }
+                if (!added) cancel()
                 GroupManager.postReload(proxyGroup.id)
 
                 val subscription = proxyGroup.subscription!!
@@ -317,9 +329,8 @@ abstract class GroupUpdater {
             }
         }
 
-
         suspend fun finishUpdate(proxyGroup: ProxyGroup) {
-            updating.remove(proxyGroup.id)
+            _updatingGroups.update { it - proxyGroup.id }
             GroupManager.postUpdate(proxyGroup)
         }
 
