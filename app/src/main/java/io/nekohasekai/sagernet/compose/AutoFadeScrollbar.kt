@@ -2,6 +2,9 @@ package io.nekohasekai.sagernet.compose
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -33,6 +36,10 @@ fun AutoFadeVerticalScrollbar(
         thickness = 12.dp,
     ),
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isDragging by interactionSource.collectIsDraggedAsState()
+    val isHovered by interactionSource.collectIsHoveredAsState()
+
     var isScrolling by remember { mutableStateOf(false) }
     var shouldShow by remember { mutableStateOf(false) }
 
@@ -43,23 +50,26 @@ fun AutoFadeVerticalScrollbar(
     LaunchedEffect(Unit) {
         snapshotFlow { isScrollInProgress }
             .collectLatest { scrolling ->
+                isScrolling = scrolling
                 if (scrolling) {
-                    isScrolling = true
                     shouldShow = true
-                } else {
-                    isScrolling = false
-                    delay(fadeOutDelayMs)
-                    if (!isScrolling) {
-                        shouldShow = false
-                    }
                 }
             }
+    }
+
+    LaunchedEffect(isDragging, isHovered, isScrolling) {
+        if (isDragging || isHovered || isScrolling) {
+            shouldShow = true
+        } else {
+            delay(fadeOutDelayMs)
+            shouldShow = false
+        }
     }
 
     val alpha by animateFloatAsState(
         targetValue = if (shouldShow) 1f else 0f,
         animationSpec = tween(
-            durationMillis = if (shouldShow) fadeInDurationMs else fadeOutDurationMs
+            durationMillis = if (shouldShow) fadeInDurationMs else fadeOutDurationMs,
         ),
         label = "scrollbar_alpha",
     )
@@ -71,5 +81,6 @@ fun AutoFadeVerticalScrollbar(
             .alpha(alpha),
         adapter = adapter,
         style = style,
+        interactionSource = interactionSource,
     )
 }
