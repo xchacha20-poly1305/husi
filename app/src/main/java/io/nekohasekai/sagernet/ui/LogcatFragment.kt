@@ -1,209 +1,228 @@
 package io.nekohasekai.sagernet.ui
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.GestureDetector
-import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.ansiEscape
+import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
-import io.nekohasekai.sagernet.databinding.ViewLogItemBinding
+import io.nekohasekai.sagernet.databinding.ComposeHolderBinding
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.ktx.snackbar
 import io.nekohasekai.sagernet.utils.SendLog
-import io.nekohasekai.sfa.utils.ColorUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
-class LogcatFragment : OnKeyDownFragment(R.layout.layout_logcat) {
+class LogcatFragment : OnKeyDownFragment(R.layout.compose_holder) {
 
-    private lateinit var binding: LayoutLogcatBinding
     private val viewModel: LogcatFragmentViewModel by viewModels()
-    private lateinit var logAdapter: LogAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutLogcatBinding.bind(view)
-        binding.toolbar.setContent {
-            @Suppress("DEPRECATION")
+        val activity = requireActivity() as MainActivity
+        val binding = ComposeHolderBinding.bind(view)
+        binding.root.setContent {
             AppTheme {
-                val isPinned by viewModel.pinLog.collectAsStateWithLifecycle()
-                TopAppBar(
-                    title = { Text(stringResource(R.string.menu_log)) },
-                    navigationIcon = {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.menu),
-                            contentDescription = stringResource(R.string.menu),
-                        ) {
-                            (requireActivity() as MainActivity).binding
-                                .drawerLayout.openDrawer(GravityCompat.START)
-                        }
+                LogcatScreen(
+                    viewModel = viewModel,
+                    openDrawer = {
+                        activity.binding.drawerLayout.openDrawer(GravityCompat.START)
                     },
-                    actions = {
-                        SimpleIconButton(
-                            imageVector = if (isPinned) {
-                                ImageVector.vectorResource(R.drawable.sailing)
-                            } else {
-                                ImageVector.vectorResource(R.drawable.push_pin)
-                            },
-                            contentDescription = stringResource(R.string.pin_log),
-                            onClick = { viewModel.togglePinLog() },
-                        )
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.send),
-                            contentDescription = stringResource(R.string.logcat),
-                        ) {
-                            try {
-                                SendLog.sendLog(requireContext(), "husi")
-                            } catch (e: Exception) {
-                                lifecycleScope.launch {
-                                    Logs.e(e)
-                                }
-                                snackbar(e.readableMessage).show()
-                            }
-                        }
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.delete_sweep),
-                            contentDescription = stringResource(R.string.clear_logcat),
-                            onClick = { viewModel.clearLog() },
-                        )
-                    },
+                    fab = activity.binding.fab,
+                    bottomBar = activity.binding.stats,
                 )
             }
         }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.logView) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left + dp2px(8),
-                right = bars.right + dp2px(8),
-                bottom = bars.bottom + dp2px(64),
-            )
-            insets
+    }
+
+}
+
+@Composable
+private fun LogcatScreen(
+    modifier: Modifier = Modifier,
+    viewModel: LogcatFragmentViewModel,
+    openDrawer: () -> Unit,
+    fab: FloatingActionButton,
+    bottomBar: BottomAppBar,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val snackbarState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    HideOnBottomScrollBehavior(listState, fab, bottomBar)
+    val density = LocalDensity.current
+    var bottomBarHeightDp by remember { mutableStateOf(0.dp) }
+    DisposableEffect(bottomBar) {
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
         }
-
-        logAdapter = LogAdapter(ArrayList(128))
-        binding.logView.adapter = logAdapter
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleEvents)
-            }
-        }
-
-        if (savedInstanceState == null) {
-            viewModel.initialize()
+        bottomBar.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        onDispose {
+            bottomBar.viewTreeObserver.removeOnGlobalLayoutListener(listener)
         }
     }
 
-    private fun handleEvents(event: LogcatUiEvent) {
-        when (event) {
-            is LogcatUiEvent.Appended -> {
-                val currentSize = logAdapter.itemCount
-                logAdapter.appendLogs(event.newLogs)
-                logAdapter.notifyItemRangeInserted(currentSize, event.newLogs.size)
-                if (!viewModel.pinLog.value) {
-                    scrollToBottom()
-                }
-            }
-
-            is LogcatUiEvent.Cleared -> {
-                logAdapter.clearLogs()
-                logAdapter.notifyDataSetChanged()
-            }
-
-            is LogcatUiEvent.Error -> {
-                snackbar(event.message).show()
-            }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.logs.size) {
+        if (!uiState.pinScroll && uiState.logs.isNotEmpty()) {
+            listState.scrollToItem(uiState.logs.size - 1)
         }
     }
-
-    private fun scrollToBottom() {
-        val itemCount = logAdapter.itemCount
-        if (itemCount > 0) {
-            binding.logView.scrollToPosition(itemCount - 1)
-        }
-    }
-
-    private class LogAdapter(private val logList: MutableList<String>) :
-        RecyclerView.Adapter<LogViewHolder>() {
-
-        fun appendLogs(newLogs: List<String>) {
-            logList.addAll(newLogs)
-        }
-
-        fun clearLogs() {
-            logList.clear()
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
-            return LogViewHolder(
-                ViewLogItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarState.showAndDismissOld(
+                message = message,
+                actionLabel = context.getString(android.R.string.ok),
+                duration = SnackbarDuration.Short,
             )
         }
-
-        override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
-            holder.bind(logList[position])
-        }
-
-        override fun getItemCount(): Int = logList.size
     }
 
-    private class LogViewHolder(private val binding: ViewLogItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(message: String) {
-            binding.text.text = ColorUtils.ansiEscapeToSpannable(binding.root.context, message)
-
-            // Make ripple even text selectable.
-            val gestureDetector = GestureDetector(
-                binding.root.context,
-                object : GestureDetector.SimpleOnGestureListener() {
-                    override fun onSingleTapUp(e: MotionEvent): Boolean {
-                        binding.root.performClick()
-                        return true
-                    }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.menu_log)) },
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.menu),
+                        contentDescription = stringResource(R.string.menu),
+                        onClick = openDrawer,
+                    )
                 },
+                actions = {
+                    SimpleIconButton(
+                        imageVector = if (uiState.pinScroll) {
+                            ImageVector.vectorResource(R.drawable.sailing)
+                        } else {
+                            ImageVector.vectorResource(R.drawable.push_pin)
+                        },
+                        contentDescription = stringResource(R.string.pin_log),
+                        onClick = { viewModel.togglePinScroll() },
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.send),
+                        contentDescription = stringResource(R.string.logcat),
+                    ) {
+                        scope.launch {
+                            try {
+                                SendLog.sendLog(context, "husi")
+                            } catch (e: Exception) {
+                                Logs.e(e)
+                                snackbarState.showAndDismissOld(
+                                    message = e.readableMessage,
+                                    actionLabel = context.getString(android.R.string.ok),
+                                    duration = SnackbarDuration.Short,
+                                )
+                            }
+                        }
+                    }
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.delete_sweep),
+                        contentDescription = stringResource(R.string.clear_logcat),
+                        onClick = { viewModel.clearLog() },
+                    )
+                },
+                scrollBehavior = scrollBehavior,
             )
-            @SuppressLint("ClickableViewAccessibility") binding.text.setOnTouchListener { _, event ->
-                gestureDetector.onTouchEvent(event)
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        binding.root.isPressed = true
-                    }
-
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                        binding.root.isPressed = false
-                    }
-                }
-                false
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarState,
+                modifier = Modifier.padding(bottom = bottomBarHeightDp),
+            )
+        },
+    ) { innerPadding ->
+        val basePadding = innerPadding.paddingWithNavigation()
+        val layoutDirection = LocalLayoutDirection.current
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            state = listState,
+            contentPadding = PaddingValues(
+                start = basePadding.calculateStartPadding(layoutDirection),
+                top = basePadding.calculateTopPadding(),
+                end = basePadding.calculateEndPadding(layoutDirection),
+                bottom = basePadding.calculateBottomPadding() + bottomBarHeightDp,
+            ),
+        ) {
+            itemsIndexed(
+                items = uiState.logs,
+                key = { index, _ -> index },
+                contentType = { _, _ -> 0 },
+            ) { _, logLine ->
+                LogCard(logLine = logLine)
             }
         }
     }
 
+}
+
+@Composable
+private fun LogCard(
+    modifier: Modifier = Modifier,
+    logLine: String,
+) {
+    ElevatedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        SelectionContainer {
+            Text(
+                text = logLine.ansiEscape(),
+                modifier = Modifier.padding(12.dp),
+            )
+        }
+    }
 }

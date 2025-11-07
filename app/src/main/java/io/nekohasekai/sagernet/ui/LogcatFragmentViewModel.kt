@@ -2,19 +2,20 @@ package io.nekohasekai.sagernet.ui
 
 import android.os.Build
 import android.os.FileObserver
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.closeQuietly
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.utils.SendLog
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import libcore.Libcore
@@ -24,29 +25,26 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import kotlin.coroutines.cancellation.CancellationException
 
-internal sealed interface LogcatUiEvent {
-    data class Appended(val newLogs: List<String>) : LogcatUiEvent
-    object Cleared : LogcatUiEvent
-    data class Error(val message: String) : LogcatUiEvent
-}
+@Stable
+internal data class LogcatUiState(
+    val pinScroll: Boolean = false,
+    val logs: PersistentList<String> = persistentListOf(),
+    val errorMessage: String? = null,
+)
 
+@Stable
 internal class LogcatFragmentViewModel : ViewModel() {
+
+    private val _uiState = MutableStateFlow(LogcatUiState())
+    val uiState = _uiState.asStateFlow()
+
     companion object {
         private const val SPLIT_FLAG_LENGTH = Libcore.LogSplitFlag.length
     }
 
     private val logFile = SendLog.logFile
 
-    private val logList = mutableListOf<String>()
-    private val _uiEvent = MutableSharedFlow<LogcatUiEvent>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    private val _pinLog = MutableStateFlow(false)
     private var lastPosition = 0L
-
-    val uiEvent = _uiEvent.asSharedFlow()
-    val pinLog = _pinLog.asStateFlow()
 
     private val fileChange = Channel<Unit>(Channel.CONFLATED)
     private val fileObserver = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -64,27 +62,32 @@ internal class LogcatFragmentViewModel : ViewModel() {
         }
     }
 
-    fun initialize() {
+    init {
         loadAndObserveLog()
     }
 
-    fun togglePinLog() {
-        _pinLog.value = !_pinLog.value
+    fun togglePinScroll() {
+        _uiState.update { state ->
+            state.copy(pinScroll = !state.pinScroll)
+        }
     }
 
     fun clearLog() {
         viewModelScope.launch {
             try {
-                logList.clear()
                 lastPosition = 0L
 
                 Libcore.logClear()
                 Runtime.getRuntime().exec("/system/bin/logcat -c").waitFor()
 
-                _uiEvent.emit(LogcatUiEvent.Cleared)
+                _uiState.update { state ->
+                    state.copy(logs = state.logs.clear())
+                }
             } catch (e: Exception) {
                 Logs.e(e)
-                _uiEvent.emit(LogcatUiEvent.Error(e.readableMessage))
+                _uiState.update { state ->
+                    state.copy(errorMessage = e.readableMessage)
+                }
             }
         }
     }
@@ -99,9 +102,12 @@ internal class LogcatFragmentViewModel : ViewModel() {
                 }
                 linesList
             }
-            logList.addAll(initialLogs)
+            _uiState.update { state ->
+                state.copy(
+                    logs = state.logs.addAll(initialLogs),
+                )
+            }
             lastPosition = logFile.length()
-            _uiEvent.emit(LogcatUiEvent.Appended(initialLogs))
 
             fileObserver.startWatching()
             updateLogOnChange(RandomAccessFile(logFile, "r"))
@@ -134,8 +140,11 @@ internal class LogcatFragmentViewModel : ViewModel() {
                         .filterNot { it.isBlank() }
 
                     if (lines.isNotEmpty()) {
-                        logList.addAll(lines)
-                        _uiEvent.emit(LogcatUiEvent.Appended(lines))
+                        _uiState.update { state ->
+                            state.copy(
+                                logs = state.logs.addAll(lines),
+                            )
+                        }
                     }
                 }
                 lastPosition = file.filePointer
@@ -146,7 +155,9 @@ internal class LogcatFragmentViewModel : ViewModel() {
             // Coroutine cancelled
         } catch (e: Exception) {
             Logs.w(e)
-            _uiEvent.emit(LogcatUiEvent.Error(e.readableMessage))
+            _uiState.update { state ->
+                state.copy(errorMessage = e.readableMessage)
+            }
         } finally {
             file.closeQuietly()
         }
