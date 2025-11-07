@@ -2,486 +2,781 @@ package io.nekohasekai.sagernet.ui
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import android.annotation.SuppressLint
-import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.Formatter
-import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
-import androidx.appcompat.widget.PopupMenu
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.getSystemService
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
-import androidx.core.view.setPadding
-import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
+import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
+import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
+import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
+import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
+import io.nekohasekai.sagernet.compose.QRCodeDialog
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.setPlainText
+import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.database.GroupManager
-import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.databinding.LayoutGroupBinding
-import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
+import io.nekohasekai.sagernet.databinding.ComposeHolderBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
-import io.nekohasekai.sagernet.group.GroupUpdater
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.onMainDispatcher
-import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
-import io.nekohasekai.sagernet.ktx.snackbar
-import io.nekohasekai.sagernet.ktx.snackbarAdapter
-import io.nekohasekai.sagernet.ktx.startFilesForResult
-import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
-import io.nekohasekai.sagernet.widget.QRCodeDialog
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import io.nekohasekai.sagernet.ktx.formatTime
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
-class GroupFragment : OnKeyDownFragment(R.layout.layout_group) {
+class GroupFragment : OnKeyDownFragment(R.layout.compose_holder) {
 
-    private lateinit var binding: LayoutGroupBinding
     private val viewModel: GroupFragmentViewModel by viewModels()
-    private lateinit var groupAdapter: GroupAdapter
-    private lateinit var undoManager: UndoSnackbarManager<ProxyGroup>
-
-    private val clipboard by lazy { requireContext().getSystemService<ClipboardManager>()!! }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = LayoutGroupBinding.bind(view)
-        binding.toolbar.setContent {
-            @Suppress("DEPRECATION")
+        val activity = (requireActivity() as MainActivity)
+        val binding = ComposeHolderBinding.bind(view)
+        binding.root.setContent {
             AppTheme {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.menu_group)) },
-                    navigationIcon = {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.menu),
-                            contentDescription = stringResource(R.string.menu),
-                        ) {
-                            (requireActivity() as MainActivity).binding
-                                .drawerLayout.openDrawer(GravityCompat.START)
-                        }
+                GroupScreen(
+                    viewModel = viewModel,
+                    openDrawer = {
+                        activity.binding.drawerLayout.openDrawer(GravityCompat.START)
                     },
-                    actions = {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.update),
-                            contentDescription = stringResource(R.string.update_all_subscription),
-                        ) {
-                            MaterialAlertDialogBuilder(requireContext())
-                                .setTitle(R.string.confirm)
-                                .setMessage(R.string.update_all_subscription)
-                                .setPositiveButton(android.R.string.ok) { _, _ ->
-                                    viewModel.doUpdateAll()
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
-                        }
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.playlist_add),
-                            contentDescription = stringResource(R.string.group_create),
-                        ) {
-                            startActivity(
-                                Intent(
-                                    requireContext(),
-                                    GroupSettingsActivity::class.java,
-                                )
-                            )
-                        }
-                    },
+                    fab = activity.binding.fab,
+                    bottomBar = activity.binding.stats,
                 )
             }
         }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.groupList) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left + dp2px(4),
-                right = bars.right + dp2px(4),
-                bottom = bars.bottom + dp2px(64),
-            )
-            insets
-        }
-        GroupManager.addListener(viewModel)
-        binding.groupList.adapter = GroupAdapter().also {
-            groupAdapter = it
-        }
+    }
 
-        undoManager = UndoSnackbarManager(
-            (requireActivity() as ThemedActivity).snackbarAdapter,
-            viewModel,
-        )
+}
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
+@Composable
+private fun GroupScreen(
+    modifier: Modifier = Modifier,
+    viewModel: GroupFragmentViewModel,
+    openDrawer: () -> Unit,
+    fab: FloatingActionButton,
+    bottomBar: BottomAppBar,
+) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.commit()
+        }
+    }
+
+    var showUpdateAll by remember { mutableStateOf(false) }
+    var qrDialogData by remember { mutableStateOf<Pair<String, String>?>(null) } // url:name
+    var clearGroupConfirm by remember { mutableStateOf<Long?>(null) }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.hiddenGroups) {
+        if (uiState.hiddenGroups > 0) {
+            val result = snackbarHostState.showAndDismissOld(
+                message = resources.getQuantityString(
+                    R.plurals.removed,
+                    uiState.hiddenGroups,
+                    uiState.hiddenGroups,
+                ),
+                actionLabel = context.getString(R.string.undo),
+                duration = SnackbarDuration.Short,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undo()
+            }
+        }
+    }
+
+    var groupToExport by remember { mutableStateOf<Long?>(null) }
+    val exportProfiles = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { data ->
+        if (data != null && groupToExport != null) {
+            viewModel.exportToFile(
+                group = groupToExport!!,
+                writeContent = { content ->
+                    context.contentResolver.openOutputStream(data)!!.bufferedWriter().use {
+                        it.write(content)
+                    }
+                },
+                showSnackbar = { str ->
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = context.getStringOrRes(str),
+                            actionLabel = context.getString(android.R.string.ok),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val dragDropListState = rememberDragDropSwipeLazyColumnState()
+
+    HideOnBottomScrollBehavior(dragDropListState.lazyListState, fab, bottomBar)
+    val density = LocalDensity.current
+    var bottomBarHeightDp by remember { mutableStateOf(0.dp) }
+    DisposableEffect(bottomBar) {
+        val listener = android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        }
+        bottomBar.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
+        onDispose {
+            bottomBar.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        }
+    }
+
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.menu_group)) },
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.menu),
+                        contentDescription = stringResource(R.string.menu),
+                        onClick = openDrawer,
+                    )
+                },
+                actions = {
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.update),
+                        contentDescription = stringResource(R.string.update_all_subscription),
+                        onClick = { showUpdateAll = true },
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.playlist_add),
+                        contentDescription = stringResource(R.string.group_create),
+                        onClick = {
+                            context.startActivity(
+                                Intent(context, GroupSettingsActivity::class.java)
+                            )
+                        },
+                    )
+                },
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = bottomBarHeightDp),
+            )
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier.fillMaxSize(),
         ) {
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
-            ): Int {
-                val proxyGroup = (viewHolder as GroupHolder).group
-                if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
-                    return 0
+            DragDropSwipeLazyColumn(
+                state = dragDropListState,
+                items = uiState.groups.toImmutableList(),
+                key = { it.group.id },
+                contentType = { 0 },
+                userScrollEnabled = true,
+                contentPadding = innerPadding.paddingWithNavigation(),
+                onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
+            ) { _, groupState ->
+                val swipeState = rememberSwipeToDismissBoxState()
+
+                LaunchedEffect(swipeState.currentValue) {
+                    if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
+                        viewModel.undoableRemove(groupState.group.id)
+                        swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                    }
                 }
-                return super.getSwipeDirs(recyclerView, viewHolder)
-            }
 
-            override fun getDragDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
-            ): Int {
-                val proxyGroup = (viewHolder as GroupHolder).group
-                if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
-                    return 0
+                DraggableSwipeableItem(
+                    modifier = Modifier.animateDraggableSwipeableItem(),
+                    colors = DraggableSwipeableItemColors.createRemembered(
+                        containerBackgroundColor = Color.Transparent,
+                        containerBackgroundColorWhileDragged = Color.Transparent,
+                    ),
+                ) {
+                    SwipeToDismissBox(
+                        state = swipeState,
+                        enableDismissFromStartToEnd = !groupState.group.ungrouped && !groupState.isUpdating,
+                        enableDismissFromEndToStart = !groupState.group.ungrouped && !groupState.isUpdating,
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(ImageVector.vectorResource(R.drawable.delete), null)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        GroupCard(
+                            state = groupState,
+                            viewModel = viewModel,
+                            snackbar = { message ->
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = message,
+                                        actionLabel = context.getString(android.R.string.ok),
+                                        duration = SnackbarDuration.Short,
+                                    )
+                                }
+                            },
+                            showQRDialog = { url, name ->
+                                qrDialogData = url to name
+                            },
+                            showClearGroupDialog = {
+                                clearGroupConfirm = groupState.group.id
+                            },
+                            exportToFile = {
+                                groupToExport = groupState.group.id
+                                exportProfiles.launch("profiles_${groupState.group.displayName()}.txt")
+                            },
+                        )
+                    }
                 }
-                return super.getDragDirs(recyclerView, viewHolder)
             }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val index = viewHolder.bindingAdapterPosition
-                undoManager.remove(index to (viewHolder as GroupHolder).group)
-                viewModel.fakeRemove(index)
-            }
-
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder,
-            ): Boolean {
-                viewModel.move(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
-                return true
-            }
-
-            override fun clearView(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) {
-                super.clearView(recyclerView, viewHolder)
-                viewModel.commitMove(groupAdapter.currentList)
-            }
-        }).attachToRecyclerView(binding.groupList)
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::handleUiState)
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
+            AutoFadeVerticalScrollbar(
+                modifier = Modifier.align(Alignment.TopEnd),
+                scrollState = dragDropListState.lazyListState,
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
         }
     }
 
-    private fun handleUiState(state: GroupUiState) {
-        groupAdapter.submitList(state.groups)
-    }
+    if (showUpdateAll) AlertDialog(
+        onDismissRequest = { showUpdateAll = false },
+        confirmButton = {
+            TextButton(stringResource(android.R.string.ok)) {
+                viewModel.doUpdateAll()
+                showUpdateAll = false
+            }
+        },
+        dismissButton = {
+            TextButton(stringResource(android.R.string.cancel)) {
+                showUpdateAll = false
+            }
+        },
+        icon = { Icon(ImageVector.vectorResource(R.drawable.update), null) },
+        title = { Text(stringResource(R.string.confirm)) },
+        text = { Text(stringResource(R.string.update_all_subscription)) },
+    )
 
-    private fun handleUiEvent(event: GroupEvents) {
-        when (event) {
-            GroupEvents.FlushUndoManager -> undoManager.flush()
-        }
-    }
-
-    private val exportProfiles =
-        registerForActivityResult(CreateDocument("text/plain")) { data ->
-            if (data != null) {
-                lifecycleScope.launch {
-                    val profiles = SagerDatabase.proxyDao.getByGroup(
-                        viewModel.exportingGroup.value!!.id
+    qrDialogData?.let { (url, name) ->
+        QRCodeDialog(
+            url = url,
+            name = name,
+            onDismiss = { qrDialogData = null },
+            showSnackbar = { message ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
                     )
-                    viewModel.clearGroupExport()
-                    val links = profiles.joinToString("\n") { it.toStdLink() }
-                    try {
-                        (requireActivity() as MainActivity).contentResolver.openOutputStream(
-                            data
-                        )!!.bufferedWriter().use {
-                            it.write(links)
-                        }
-                        onMainDispatcher {
-                            snackbar(getString(R.string.action_export_msg)).show()
-                        }
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                        onMainDispatcher {
-                            snackbar(e.readableMessage).show()
-                        }
-                    }
-
                 }
-            }
-        }
-
-    inner class GroupAdapter : ListAdapter<GroupItemUiState, GroupHolder>(GroupItemDiffCallback) {
-
-        init {
-            setHasStableIds(true)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupHolder {
-            return GroupHolder(LayoutGroupItemBinding.inflate(layoutInflater, parent, false))
-        }
-
-        override fun onBindViewHolder(holder: GroupHolder, position: Int) {
-            holder.bind(getItem(position))
-        }
-
-        override fun getItemId(position: Int): Long {
-            return getItem(position).group.id
-        }
-
+            },
+        )
     }
 
-    override fun onDestroy() {
-        if (::groupAdapter.isInitialized) {
-            GroupManager.removeListener(viewModel)
-        }
-
-        super.onDestroy()
-
-        if (!::undoManager.isInitialized) return
-        undoManager.flush()
+    clearGroupConfirm?.let { id ->
+        AlertDialog(
+            onDismissRequest = { clearGroupConfirm = null },
+            confirmButton = {
+                TextButton(stringResource(android.R.string.ok)) {
+                    viewModel.clearGroup(id)
+                    clearGroupConfirm = null
+                }
+            },
+            dismissButton = {
+                TextButton(stringResource(android.R.string.cancel)) {
+                    clearGroupConfirm = null
+                }
+            },
+            icon = { Icon(ImageVector.vectorResource(R.drawable.mop), null) },
+            title = { Text(stringResource(R.string.confirm)) },
+            text = { Text(stringResource(R.string.clear_profiles_message)) },
+        )
     }
+}
 
-    private object GroupItemDiffCallback : DiffUtil.ItemCallback<GroupItemUiState>() {
-        override fun areItemsTheSame(old: GroupItemUiState, new: GroupItemUiState): Boolean {
-            return old.group.id == new.group.id
-        }
+@Composable
+private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
+    modifier: Modifier = Modifier,
+    state: GroupItemUiState,
+    viewModel: GroupFragmentViewModel,
+    snackbar: suspend (message: String) -> Unit,
+    showQRDialog: (url: String, name: String) -> Unit,
+    showClearGroupDialog: () -> Unit,
+    exportToFile: () -> Unit,
+) {
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
-        override fun areContentsTheSame(old: GroupItemUiState, new: GroupItemUiState): Boolean {
-            return old == new
-        }
+    val group = state.group
 
-    }
+    var showOptionsMenu by remember { mutableStateOf(false) }
+    var showShareSubscription by remember { mutableStateOf(false) }
+    var showUniversalLinkMenu by remember { mutableStateOf(false) }
+    var showExport by remember { mutableStateOf(false) }
 
-    inner class GroupHolder(binding: LayoutGroupItemBinding) :
-        RecyclerView.ViewHolder(binding.root),
-        PopupMenu.OnMenuItemClickListener {
-
-        lateinit var group: ProxyGroup
-        val groupName = binding.groupName
-        val groupStatus = binding.groupStatus
-        val groupTraffic = binding.groupTraffic
-        val groupUser = binding.groupUser
-        val editButton = binding.edit
-        val optionsButton = binding.options
-        val updateButton = binding.groupUpdate
-        val subscriptionUpdateProgress = binding.subscriptionUpdateProgress
-
-        override fun onMenuItemClick(item: MenuItem): Boolean {
-
-            fun export(link: String) {
-                val success = clipboard.trySetPrimaryClip(link)
-                snackbar(
-                    if (success) {
-                        R.string.action_export_msg
-                    } else {
-                        R.string.action_export_err
-                    }
-                ).show()
-            }
-
-            when (item.itemId) {
-                R.id.action_standard_clipboard -> {
-                    group.subscription!!.link.blankAsNull()?.let {
-                        export(it)
-                    } ?: snackbar(R.string.not_set).show()
-                }
-
-                R.id.action_standard_qr -> group.subscription!!.link.blankAsNull()?.let {
-                    QRCodeDialog(it, group.displayName())
-                        .showAllowingStateLoss(parentFragmentManager)
-                } ?: snackbar(R.string.not_set).show()
-
-                R.id.action_universal_qr -> QRCodeDialog(
-                    group.toUniversalLink(),
-                    group.displayName(),
-                ).showAllowingStateLoss(parentFragmentManager)
-
-                R.id.action_universal_clipboard -> export(group.toUniversalLink())
-
-                R.id.action_export_clipboard -> runOnDefaultDispatcher {
-                    val profiles = SagerDatabase.proxyDao.getByGroup(group.id)
-                    val links = profiles.joinToString("\n") { it.toStdLink() }
-                    onMainDispatcher {
-                        clipboard.trySetPrimaryClip(links)
-                        snackbar(getString(androidx.browser.R.string.copy_toast_msg)).show()
-                    }
-                }
-
-                R.id.action_export_file -> {
-                    viewModel.prepareGroupForExport(group)
-                    startFilesForResult(exportProfiles, "profiles_${group.displayName()}.txt")
-                }
-
-                R.id.action_clear -> MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
-                    .setMessage(R.string.clear_profiles_message)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        viewModel.clearGroup(group.id)
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-
-            return true
-        }
-
-
-        fun bind(state: GroupItemUiState) {
-            group = state.group
-
-            itemView.setOnClickListener { }
-
-            editButton.isGone = group.ungrouped
-            updateButton.isInvisible = group.type != GroupType.SUBSCRIPTION
-            groupName.text = group.displayName()
-
-            editButton.setOnClickListener {
-                startActivity(Intent(it.context, GroupSettingsActivity::class.java).apply {
-                    putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
-                })
-            }
-
-            updateButton.setOnClickListener {
-                viewModel.doUpdate(group)
-            }
-
-            optionsButton.setOnClickListener {
-                val popup = PopupMenu(requireContext(), it)
-                popup.menuInflater.inflate(R.menu.group_action_menu, popup.menu)
-
-                if (group.type != GroupType.SUBSCRIPTION) {
-                    popup.menu.let { menu ->
-                        menu.removeItem(R.id.action_share_subscription)
-                        menu.removeItem(R.id.action_share_subscription_universe)
-                    }
-                }
-                popup.setOnMenuItemClickListener(this)
-                popup.show()
-            }
-
+    ElevatedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             if (state.isUpdating) {
-                (groupName.parent as LinearLayout).apply {
-                    setPadding(paddingLeft, dp2px(11), paddingRight, paddingBottom)
-                }
-
-                subscriptionUpdateProgress.isVisible = true
-                subscriptionUpdateProgress.isIndeterminate = true
-
-                updateButton.isInvisible = true
-                editButton.isGone = true
-            } else {
-                (groupName.parent as LinearLayout).apply {
-                    setPadding(paddingLeft, dp2px(15), paddingRight, paddingBottom)
-                }
-
-                subscriptionUpdateProgress.isVisible = false
-                updateButton.isInvisible = group.type != GroupType.SUBSCRIPTION
-                editButton.isGone = group.ungrouped
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else if (state.updateProgress != null) {
+                LinearProgressIndicator(
+                    progress = { state.updateProgress.progress },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
-            val subscription = group.subscription
-            val context = requireContext()
-            if (subscription != null &&
-                (subscription.bytesUsed > 0L || subscription.bytesRemaining > 0)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(0.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val builder = StringBuilder().apply {
-                    append(
-                        if (subscription.bytesRemaining > 0L) {
-                            context.getString(
-                                R.string.subscription_traffic,
-                                Formatter.formatFileSize(context, subscription.bytesUsed),
-                                Formatter.formatFileSize(context, subscription.bytesRemaining),
-                            )
-                        } else {
-                            context.getString(
-                                R.string.subscription_used, Formatter.formatFileSize(
-                                    context, subscription.bytesUsed
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.drag_indicator),
+                    contentDescription = "Drag to reorder",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(8.dp)
+                        .dragDropModifier(),
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(0.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 0.dp, end = 4.dp, top = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(
+                                    text = group.displayName(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold,
                                 )
+
+                                val subscription = group.subscription
+                                subscription?.username.blankAsNull()?.let { username ->
+                                    Text(
+                                        text = username,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+
+                        Row {
+                            if (!group.ungrouped) {
+                                SimpleIconButton(
+                                    imageVector = ImageVector.vectorResource(R.drawable.edit),
+                                    contentDescription = stringResource(R.string.edit),
+                                    onClick = {
+                                        context.startActivity(
+                                            Intent(context, GroupSettingsActivity::class.java)
+                                                .putExtra(
+                                                    GroupSettingsActivity.EXTRA_GROUP_ID,
+                                                    group.id,
+                                                )
+                                        )
+                                    },
+                                )
+                            }
+
+                            Box {
+                                SimpleIconButton(
+                                    imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                                    contentDescription = stringResource(R.string.menu),
+                                    onClick = { showOptionsMenu = true },
+                                )
+
+                                DropdownMenu(
+                                    expanded = showOptionsMenu,
+                                    onDismissRequest = { showOptionsMenu = false },
+                                ) {
+                                    if (group.subscription?.link?.isNotBlank() == true) DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.share_subscription)) },
+                                        onClick = {
+                                            showOptionsMenu = false
+                                            showShareSubscription = true
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                                null,
+                                            )
+                                        },
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.internal_link)) },
+                                        onClick = {
+                                            showOptionsMenu = false
+                                            showUniversalLinkMenu = true
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                                null,
+                                            )
+                                        },
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_export)) },
+                                        onClick = {
+                                            showOptionsMenu = false
+                                            showExport = true
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                                null,
+                                            )
+                                        },
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.clear_profiles)) },
+                                        onClick = showClearGroupDialog,
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.delete),
+                                                null,
+                                            )
+                                        },
+                                    )
+                                }
+
+                                group.subscription?.link?.blankAsNull()?.let { link ->
+                                    DropdownMenu(
+                                        expanded = showShareSubscription,
+                                        onDismissRequest = { showShareSubscription = false },
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.share_subscription),
+                                            modifier = Modifier.padding(
+                                                horizontal = 16.dp,
+                                                vertical = 12.dp
+                                            ),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                            onClick = {
+                                                scope.launch {
+                                                    clipboard.setPlainText(link)
+                                                    snackbar(context.getString(R.string.copy_success))
+                                                }
+                                                showShareSubscription = false
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.share_qr_nfc)) },
+                                            onClick = {
+                                                showQRDialog(link, group.displayName())
+                                                showShareSubscription = false
+                                            },
+                                        )
+                                    }
+                                }
+
+                                DropdownMenu(
+                                    expanded = showUniversalLinkMenu,
+                                    onDismissRequest = { showUniversalLinkMenu = false },
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.internal_link),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 12.dp,
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                        onClick = {
+                                            scope.launch {
+                                                clipboard.setPlainText(group.toUniversalLink())
+                                                snackbar(context.getString(R.string.copy_success))
+                                            }
+                                            showUniversalLinkMenu = false
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.share_qr_nfc)) },
+                                        onClick = {
+                                            showQRDialog(
+                                                group.toUniversalLink(),
+                                                group.displayName(),
+                                            )
+                                            showUniversalLinkMenu = false
+                                        },
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = showExport,
+                                    onDismissRequest = { showExport = false },
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.action_export),
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 12.dp
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                        onClick = {
+                                            scope.launch {
+                                                val links = onIoDispatcher {
+                                                    SagerDatabase.proxyDao
+                                                        .getByGroup(group.id)
+                                                        .joinToString("\n") {
+                                                            it.toStdLink()
+                                                        }
+                                                }
+                                                clipboard.setPlainText(links)
+                                                snackbar(context.getString(R.string.copy_success))
+                                            }
+                                            showExport = false
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.content_copy),
+                                                null,
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_export_file)) },
+                                        onClick = {
+                                            exportToFile()
+                                            showExport = false
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.file_export),
+                                                null,
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 0.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(bottom = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            val subscription = group.subscription
+                            if (subscription != null &&
+                                (subscription.bytesUsed > 0L || subscription.bytesRemaining > 0)
+                            ) {
+                                Text(
+                                    text = if (subscription.bytesRemaining > 0L) {
+                                        context.getString(
+                                            R.string.subscription_traffic,
+                                            Formatter.formatFileSize(
+                                                context,
+                                                subscription.bytesUsed,
+                                            ),
+                                            Formatter.formatFileSize(
+                                                context,
+                                                subscription.bytesRemaining,
+                                            ),
+                                        )
+                                    } else {
+                                        context.getString(
+                                            R.string.subscription_used,
+                                            Formatter.formatFileSize(
+                                                context,
+                                                subscription.bytesUsed,
+                                            )
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+
+                                if (subscription.expiryDate > 0) {
+                                    Text(
+                                        text = context.getString(
+                                            R.string.subscription_expire,
+                                            context.formatTime(subscription.expiryDate * 1000L),
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = when (state.group.type) {
+                                    GroupType.BASIC -> {
+                                        if (state.counts == 0L) {
+                                            context.getString(R.string.group_status_empty)
+                                        } else {
+                                            context.getString(
+                                                R.string.group_status_proxies,
+                                                state.counts,
+                                            )
+                                        }
+                                    }
+
+                                    GroupType.SUBSCRIPTION -> {
+                                        if (state.counts == 0L) {
+                                            context.getString(R.string.group_status_empty_subscription)
+                                        } else {
+                                            val dateFormat =
+                                                SimpleDateFormat("M - d", Locale.getDefault())
+                                            val formattedDate = dateFormat.format(
+                                                Date(state.group.subscription!!.lastUpdated * 1000L)
+                                            )
+                                            context.getString(
+                                                R.string.group_status_proxies_subscription,
+                                                state.counts,
+                                                formattedDate,
+                                            )
+                                        }
+                                    }
+
+                                    else -> error("impossible")
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                    )
-                    if (subscription.expiryDate > 0) append(
-                        "\n" + getString(
-                            R.string.subscription_expire,
-                            @SuppressLint("SimpleDateFormat") // TODO: time zone
-                            SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date(subscription.expiryDate * 1000L)),
-                        )
-                    )
-                }
 
-                val text = builder.toString()
-                if (text.isNotBlank()) {
-                    groupTraffic.isVisible = true
-                    groupTraffic.text = text
-                    groupStatus.setPadding(0)
-
-                    // Show traffic used percent by progress.
-                    if (!state.isUpdating && state.updateProgress != null) {
-                        subscriptionUpdateProgress.apply {
-                            isVisible = true
-                            setProgressCompat(
-                                state.updateProgress.progress,
-                                true,
-                            )
+                        if (group.type == GroupType.SUBSCRIPTION) {
+                            TextButton(
+                                onClick = { viewModel.doUpdate(group) },
+                                modifier = Modifier.padding(end = 8.dp),
+                                enabled = !state.isUpdating,
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.group_update),
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                         }
                     }
-                }
-            } else {
-                groupTraffic.isVisible = false
-                groupStatus.setPadding(0, 0, 0, dp2px(4))
-            }
-
-            groupUser.text = subscription?.username ?: ""
-
-            @Suppress("DEPRECATION") when (state.group.type) {
-                GroupType.BASIC -> {
-                    if (state.counts == 0L) {
-                        groupStatus.setText(R.string.group_status_empty)
-                    } else {
-                        groupStatus.text = getString(R.string.group_status_proxies, state.counts)
-                    }
-                }
-
-                GroupType.SUBSCRIPTION -> {
-                    groupStatus.text = if (state.counts == 0L) {
-                        getString(R.string.group_status_empty_subscription)
-                    } else {
-                        val date = Date(state.group.subscription!!.lastUpdated * 1000L)
-                        getString(
-                            R.string.group_status_proxies_subscription,
-                            state.counts,
-                            "${date.month + 1} - ${date.date}"
-                        )
-                    }
-
                 }
             }
         }

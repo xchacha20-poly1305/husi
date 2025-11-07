@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.repository.repo
+import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "proxy_groups")
 data class ProxyGroup(
@@ -91,7 +92,7 @@ data class ProxyGroup(
     interface Dao {
 
         @Query("SELECT * FROM proxy_groups ORDER BY userOrder")
-        fun allGroups(): List<ProxyGroup>
+        fun allGroups(): Flow<List<ProxyGroup>>
 
         @Query("SELECT * FROM proxy_groups WHERE type = ${GroupType.SUBSCRIPTION}")
         suspend fun subscriptions(): List<ProxyGroup>
@@ -105,6 +106,9 @@ data class ProxyGroup(
         @Query("DELETE FROM proxy_groups WHERE id = :groupId")
         fun deleteById(groupId: Long): Int
 
+        @Query("DELETE FROM proxy_groups WHERE id IN (:groupIDs)")
+        fun deleteByIds(groupIDs: List<Long>): Int
+
         @Delete
         fun deleteGroup(group: ProxyGroup)
 
@@ -116,6 +120,9 @@ data class ProxyGroup(
 
         @Update
         fun updateGroup(group: ProxyGroup)
+
+        @Update
+        fun updateGroups(rules: List<ProxyGroup>)
 
         @Query("DELETE FROM proxy_groups")
         fun reset()

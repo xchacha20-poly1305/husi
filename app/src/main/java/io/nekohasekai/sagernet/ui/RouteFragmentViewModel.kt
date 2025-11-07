@@ -11,39 +11,50 @@ import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @Stable
 internal data class RouteFragmentUiState(
     val rules: List<RuleEntity> = emptyList(),
+    val pendingDeleteCount: Int = 0,
 )
 
 @Stable
-internal class RouteFragmentViewModel : ViewModel(),
-    UndoSnackbarManager.Interface<RuleEntity> {
+internal class RouteFragmentViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(RouteFragmentUiState())
     val uiState = _uiState.asStateFlow()
 
-    private var collectJob: Job? = null
+    private var deleteTimer: Job? = null
 
     init {
-        startCollect()
+        viewModelScope.launch {
+            ProfileManager.getRules().distinctUntilChanged().collect(::reloadRules)
+        }
     }
 
-    private fun startCollect() {
-        collectJob?.cancel()
-        collectJob = viewModelScope.launch {
-            ProfileManager.getRules().distinctUntilChanged().collect { rules ->
-                _uiState.update {
-                    it.copy(rules = rules)
-                }
+    private val hiddenRulesAccess = Mutex()
+    private val hiddenRules = mutableSetOf<Long>()
+
+    private suspend fun reloadRules(_rules: List<RuleEntity>?) {
+        val rules = _rules ?: onIoDispatcher {
+            ProfileManager.getRules().first()
+        }
+        hiddenRulesAccess.withLock {
+            _uiState.update { state ->
+                state.copy(
+                    rules = rules.filterNot { hiddenRules.contains(it.id) },
+                    pendingDeleteCount = hiddenRules.size,
+                )
             }
         }
     }
@@ -51,7 +62,7 @@ internal class RouteFragmentViewModel : ViewModel(),
     fun reset() = runOnIoDispatcher {
         SagerDatabase.rulesDao.reset()
         DataStore.rulesFirstCreate = false
-        startCollect()
+        reloadRules(null)
     }
 
     fun toggleEnabled(rule: RuleEntity) = runOnIoDispatcher {
@@ -78,30 +89,51 @@ internal class RouteFragmentViewModel : ViewModel(),
         }
     }
 
-    fun undoableRemove(index: Int) = viewModelScope.launch {
-        _uiState.update { state ->
-             state.copy(
-                 rules= state.rules.toMutableList().also {
-                        it.removeAt(index)
-                 },
-             )
+    fun undoableRemove(id: Long) = viewModelScope.launch {
+        hiddenRulesAccess.withLock {
+            _uiState.update { state ->
+                val rules = state.rules.toMutableList()
+                val ruleIndex = rules.indexOfFirst { it.id == id }
+                if (ruleIndex >= 0) {
+                    val rule = rules.removeAt(ruleIndex)
+                    hiddenRules.add(rule.id)
+                }
+                state.copy(
+                    rules = rules,
+                    pendingDeleteCount = hiddenRules.size,
+                )
+            }
+        }
+        startDeleteTimer()
+    }
+
+    private fun startDeleteTimer() {
+        deleteTimer?.cancel()
+        deleteTimer = viewModelScope.launch {
+            delay(5000)
+            commit()
         }
     }
 
-    override fun undo(actions: List<Pair<Int, RuleEntity>>) {
-        val rules = _uiState.value.rules.toMutableList()
-        for ((index, rule) in actions) {
-            rules.add(index, rule)
+    fun undo() = viewModelScope.launch {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        hiddenRulesAccess.withLock {
+            hiddenRules.clear()
         }
-        viewModelScope.launch {
-            _uiState.emit(_uiState.value.copy(rules = rules))
-        }
+        reloadRules(null)
     }
 
-    override fun commit(actions: List<Pair<Int, RuleEntity>>) {
-        runOnDefaultDispatcher {
-            val rules = actions.map { it.second }
-            ProfileManager.deleteRules(rules)
+    fun commit() = runOnDefaultDispatcher {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        val toDelete = hiddenRulesAccess.withLock {
+            val toDelete = hiddenRules.toList()
+            hiddenRules.clear()
+            toDelete
+        }
+        onIoDispatcher {
+            ProfileManager.deleteRulesByIds(toDelete)
         }
     }
 

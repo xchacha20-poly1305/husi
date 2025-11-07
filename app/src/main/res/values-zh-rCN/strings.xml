@@ -643,4 +643,5 @@
     <string name="back">返回</string>
     <string name="have_a_nice_day">祝您生活愉快！</string>
     <string name="not_set">未设置</string>
+    <string name="internal_link">内部链接</string>
 </resources>

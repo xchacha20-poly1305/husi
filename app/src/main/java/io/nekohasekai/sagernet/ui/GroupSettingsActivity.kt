@@ -371,6 +371,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     onValueChange = { viewModel.setSubscriptionUpdateDelay(it) },
                     title = { Text(stringResource(R.string.auto_update_delay)) },
                     textToValue = { it.toIntOrNull() ?: 1440 },
+                    enabled = uiState.subscriptionAutoUpdate,
                     icon = { Icon(ImageVector.vectorResource(R.drawable.grid_3x3), null) },
                     summary = { Text(uiState.subscriptionUpdateDelay.toString()) },
                     textField = { value, onValueChange, onOk ->

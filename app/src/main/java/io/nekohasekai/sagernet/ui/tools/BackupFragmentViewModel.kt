@@ -144,7 +144,7 @@ internal class BackupViewModel : ViewModel() {
                     }
                 })
                 put("groups", JSONArray().apply {
-                    SagerDatabase.groupDao.allGroups().forEach {
+                    SagerDatabase.groupDao.allGroups().first().forEach {
                         put(it.toBase64Str())
                     }
                 })

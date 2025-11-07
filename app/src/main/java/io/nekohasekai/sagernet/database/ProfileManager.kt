@@ -167,6 +167,10 @@ object ProfileManager {
         SagerDatabase.rulesDao.deleteRules(rules)
     }
 
+    suspend fun deleteRulesByIds(ruleIds: List<Long>) {
+        SagerDatabase.rulesDao.deleteByIds(ruleIds)
+    }
+
     /**
      * Get all rules as a Flow with automatic initialization.
      *
