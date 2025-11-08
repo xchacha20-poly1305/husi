@@ -127,20 +127,14 @@ private fun AppListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is AppListActivityUIEvent.Snackbar -> {
-                    val message = context.getStringOrRes(event.message)
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = message,
-                            actionLabel = context.getString(android.R.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                }
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getStringOrRes(message),
+                    actionLabel = context.getString(android.R.string.ok),
+                    duration = SnackbarDuration.Short,
+                )
             }
         }
     }
@@ -168,15 +162,17 @@ private fun AppListScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(onSearch = {
-                                focusManager.clearFocus()
-                            }),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    focusManager.clearFocus()
+                                },
+                            ),
                             colors = TextFieldDefaults.colors(
                                 focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.5f
+                                    alpha = 0.5f,
                                 ),
                                 unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.2f
+                                    alpha = 0.2f,
                                 ),
                             ),
                         )

@@ -13,35 +13,26 @@ import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.collections.iterator
-import kotlin.coroutines.coroutineContext
 
 @Stable
 internal data class AppListActivityUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted, for show
+    val snackbarMessage: StringOrRes? = null,
 )
-
-@Stable
-internal sealed interface AppListActivityUIEvent {
-    class Snackbar(val message: StringOrRes) : AppListActivityUIEvent
-}
 
 @Stable
 internal class AppListActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppListActivityUiState())
     val uiState = _uiState.asStateFlow()
-
-    private val _uiEvent = MutableSharedFlow<AppListActivityUIEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
 
     private lateinit var packageManager: PackageManager
 
@@ -80,7 +71,7 @@ internal class AppListActivityViewModel : ViewModel() {
         val apps = mutableListOf<ProxiedApp>()
         val query = _uiState.value.searchQuery
         for ((packageName, packageInfo) in cachedApps) {
-            coroutineContext[Job]!!.ensureActive()
+            currentCoroutineContext()[Job]!!.ensureActive()
 
             val applicationInfo = packageInfo.applicationInfo!!
             val name = applicationInfo.loadLabel(packageManager).toString()
@@ -152,10 +143,15 @@ internal class AppListActivityViewModel : ViewModel() {
 
     fun import(raw: String?) = viewModelScope.launch {
         if (raw?.blankAsNull() == null) {
-            _uiEvent.emit(AppListActivityUIEvent.Snackbar(StringOrRes.Res(R.string.action_import_err)))
+            _uiState.update { state ->
+                state.copy(
+                    snackbarMessage = StringOrRes.Res(R.string.action_import_err),
+                )
+            }
+            return@launch
         }
         var bypass = false
-        val apps = raw!!.lineSequence().let {
+        val apps = raw.lineSequence().let {
             when (it.firstOrNull()) {
                 "false" -> {
                     bypass = false
@@ -189,7 +185,11 @@ internal class AppListActivityViewModel : ViewModel() {
                 proxiedPackageName.add(packageName)
             }
         }
-        _uiEvent.emit(AppListActivityUIEvent.Snackbar(StringOrRes.Res(R.string.action_import_msg)))
+        _uiState.update { state ->
+            state.copy(
+                snackbarMessage = StringOrRes.Res(R.string.action_import_msg),
+            )
+        }
         reload()
     }
 
