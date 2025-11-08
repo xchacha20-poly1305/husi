@@ -123,21 +123,16 @@ private fun AppManagerScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is AppManagerUiEvent.Snackbar -> {
-                    val message = context.getStringOrRes(event.message)
-                    snackbarHostState.showSnackbar(
-                        message = message,
-                        actionLabel = context.getString(android.R.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                AppManagerUiEvent.Finish -> finish()
-            }
+    LaunchedEffect(uiState.shouldFinish) {
+        if (uiState.shouldFinish) finish()
+    }
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = context.getStringOrRes(message),
+                actionLabel = context.getString(android.R.string.ok),
+                duration = SnackbarDuration.Short,
+            )
         }
     }
 
@@ -180,10 +175,10 @@ private fun AppManagerScreen(
                                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                                     colors = TextFieldDefaults.colors(
                                         focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.5f
+                                            alpha = 0.5f,
                                         ),
                                         unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.2f
+                                            alpha = 0.2f,
                                         ),
                                     ),
                                 )
