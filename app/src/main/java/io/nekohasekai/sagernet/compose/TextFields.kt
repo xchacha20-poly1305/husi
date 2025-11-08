@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -68,7 +69,7 @@ fun ValidatedTextField(
                         modifier = Modifier.padding(start = 16.dp),
                     )
                 }
-            }
+            },
         )
     }
 }
@@ -151,10 +152,7 @@ fun UIntegerTextField(
         if (text.isBlank()) {
             return null
         }
-        val intValue = text.toIntOrNull()
-        if (intValue == null) {
-            return null // Will be handled by input filter
-        }
+        val intValue = text.toIntOrNull() ?: return null // Will be handled by input filter
         if (minValue != null && intValue < minValue) {
             return "Must be ≥ $minValue"
         }
@@ -174,9 +172,23 @@ fun UIntegerTextField(
             onValueChange = { newValue ->
                 val text = newValue.text
                 if (text.isBlank()) {
-                    onValueChange(TextFieldValue("0"))
+                    onValueChange(
+                        TextFieldValue(
+                            text = "0",
+                            selection = TextRange(1),
+                        ),
+                    )
                 } else if (text.toUIntOrNull() != null) {
-                    onValueChange(newValue)
+                    onValueChange(
+                        if (text.startsWith("0")) {
+                            TextFieldValue(
+                                text = text.trimStart('0'),
+                                selection = TextRange((text.trimStart('0')).length),
+                            )
+                        } else {
+                            newValue
+                        },
+                    )
                     errorMessage = validate(text)
                 }
             },
@@ -194,7 +206,7 @@ fun UIntegerTextField(
                         modifier = Modifier.padding(start = 16.dp),
                     )
                 }
-            }
+            },
         )
     }
 }
@@ -212,11 +224,25 @@ fun PortTextField(
             val text = newValue.text
             // Port: 0-65535, max 5 digits
             if (text.isBlank()) {
-                onValueChange(newValue)
+                onValueChange(
+                    TextFieldValue(
+                        text = "0",
+                        selection = TextRange(1),
+                    ),
+                )
             } else {
                 val intValue = text.toIntOrNull()
-                if (intValue != null && intValue <= 65535 && text.length <= 5) {
-                    onValueChange(newValue)
+                if (intValue != null && intValue <= 65535) {
+                    onValueChange(
+                        if (text.startsWith("0")) {
+                            TextFieldValue(
+                                text = text.trimStart('0'),
+                                selection = TextRange(text.trimStart('0').length),
+                            )
+                        } else {
+                            newValue
+                        },
+                    )
                 }
             }
         },
@@ -259,10 +285,7 @@ fun ValidatedIntegerTextField(
         if (text.isBlank()) {
             return null
         }
-        val intValue = text.toIntOrNull()
-        if (intValue == null) {
-            return "Invalid number"
-        }
+        val intValue = text.toIntOrNull() ?: return "Invalid number"
         if (minValue != null && intValue < minValue) {
             return "Must be >= $minValue"
         }
