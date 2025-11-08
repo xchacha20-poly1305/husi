@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.MultilineTextField
+import io.nekohasekai.sagernet.compose.PortTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
@@ -67,6 +68,9 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 textToValue = { it.toIntOrNull() ?: 443 },
                 icon = { Icon(ImageVector.vectorResource(R.drawable.directions_boat), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.port)) },
+                textField = { value, onValueChange, onOk ->
+                    PortTextField(value, onValueChange, onOk)
+                },
             )
         }
     }
@@ -153,7 +157,12 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setAllowInsecure(it) },
                         title = { Text(stringResource(R.string.allow_insecure)) },
                         summary = { Text(stringResource(R.string.allow_insecure_sum)) },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.enhanced_encryption),
+                                null,
+                            )
+                        },
                     )
                     if (!isReality) {
                         SwitchPreference(
@@ -383,7 +392,12 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.http_path)) },
                         textToValue = { it },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.assistant_direction),
+                                null,
+                            )
+                        },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -425,7 +439,12 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.ws_path)) },
                         textToValue = { it },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.assistant_direction),
+                                null,
+                            )
+                        },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -454,7 +473,12 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setWsMaxEarlyData(it) },
                         title = { Text(stringResource(R.string.ws_max_early_data)) },
                         textToValue = { it.toIntOrNull() ?: 0 },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.compare_arrows),
+                                null,
+                            )
+                        },
                         summary = { Text(LocalContext.current.contentOrUnset(state.wsMaxEarlyData)) },
                     )
                 }
@@ -478,7 +502,12 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.grpc_service_name)) },
                         textToValue = { it },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.assistant_direction),
+                                null,
+                            )
+                        },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
@@ -506,7 +535,12 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         onValueChange = { viewModel.setPath(it) },
                         title = { Text(stringResource(R.string.http_upgrade_path)) },
                         textToValue = { it },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.assistant_direction), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.assistant_direction),
+                                null,
+                            )
+                        },
                         summary = { Text(LocalContext.current.contentOrUnset(state.path)) },
                         valueToText = { it },
                     )
