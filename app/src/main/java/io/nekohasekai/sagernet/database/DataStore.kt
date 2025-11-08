@@ -132,6 +132,7 @@ object DataStore {
     var domainStrategyForDirect by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_DIRECT)
     var domainStrategyForServer by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER)
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
+    var fakeDNSForAll by configurationStore.boolean(Key.FAKE_DNS_FOR_ALL) { false }
     var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }

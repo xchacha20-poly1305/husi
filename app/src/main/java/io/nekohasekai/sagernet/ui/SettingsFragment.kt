@@ -169,7 +169,11 @@ private fun SettingsScreen(
         }
     }
 
-    HideOnBottomScrollBehavior(listState = listState, fab = (context as MainActivity).binding.fab, bottomBar = bottomBar)
+    HideOnBottomScrollBehavior(
+        listState = listState,
+        fab = (context as MainActivity).binding.fab,
+        bottomBar = bottomBar,
+    )
 
     fun needReload() = scope.launch {
         if (!DataStore.serviceState.started) return@launch
@@ -222,6 +226,9 @@ private fun SettingsScreen(
     val rulesProviderState by DataStore.configurationStore
         .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
         .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
+    val fakeDNSState by DataStore.configurationStore
+        .booleanFlow(Key.ENABLE_FAKE_DNS, false)
+        .collectAsStateWithLifecycle(false)
     val ntpEnableState by DataStore.configurationStore
         .booleanFlow(Key.ENABLE_NTP, false)
         .collectAsStateWithLifecycle(false)
@@ -243,7 +250,7 @@ private fun SettingsScreen(
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.padding(bottom = bottomBarHeightDp)
+                modifier = Modifier.padding(bottom = bottomBarHeightDp),
             )
         },
     ) { innerPadding ->
@@ -267,7 +274,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.phonelink_ring),
-                                null
+                                null,
                             )
                         },
                         summary = { Text(stringResource(R.string.auto_connect_summary)) },
@@ -351,7 +358,7 @@ private fun SettingsScreen(
                         onValueChange = { newValue ->
                             selectedValue = newValue
                             AppCompatDelegate.setApplicationLocales(
-                                LocaleListCompat.forLanguageTags(newValue)
+                                LocaleListCompat.forLanguageTags(newValue),
                             )
                             needRestart()
                             ActivityCompat.recreate(context.findActivity<Activity>()!!)
@@ -403,7 +410,7 @@ private fun SettingsScreen(
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) item(
                     Key.MEMORY_LIMIT,
-                    TYPE_SWITCH_PREFERENCE
+                    TYPE_SWITCH_PREFERENCE,
                 ) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.MEMORY_LIMIT, false)
@@ -595,7 +602,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.center_focus_weak),
-                                null
+                                null,
                             )
                         },
                         summary = { Text(stringResource(R.string.always_show_address_sum)) },
@@ -612,7 +619,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.transgender),
-                                null
+                                null,
                             )
                         },
                         enabled = alwaysShowAddressState,
@@ -629,7 +636,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.security),
-                                null
+                                null,
                             )
                         },
                     )
@@ -648,7 +655,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.data_usage),
-                                null
+                                null,
                             )
                         },
                         summary = { Text(stringResource(R.string.metered_summary)) },
@@ -717,7 +724,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.apps),
-                                null
+                                null,
                             )
                         },
                         summary = { Text(stringResource(R.string.proxied_apps_summary)) },
@@ -734,7 +741,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.keyboard_tab),
-                                null
+                                null,
                             )
                         },
                     )
@@ -753,7 +760,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.legend_toggle),
-                                null
+                                null,
                             )
                         },
                     )
@@ -844,8 +851,8 @@ private fun SettingsScreen(
                         valueToText = {
                             AnnotatedString(
                                 context.getString(
-                                    networkInterfaceStrategyTextRes(it)
-                                )
+                                    networkInterfaceStrategyTextRes(it),
+                                ),
                             )
                         },
                     )
@@ -866,7 +873,7 @@ private fun SettingsScreen(
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.public_icon),
-                                null
+                                null,
                             )
                         },
                         summary = {
@@ -934,7 +941,7 @@ private fun SettingsScreen(
                 }
                 if (rulesProviderState == RuleProvider.CUSTOM) item(
                     Key.CUSTOM_RULE_PROVIDER,
-                    TYPE_TEXT_FIELD_PREFERENCE
+                    TYPE_TEXT_FIELD_PREFERENCE,
                 ) {
                     val defaultUrl =
                         "https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set"
@@ -1216,11 +1223,8 @@ private fun SettingsScreen(
                     )
                 }
                 item(Key.ENABLE_FAKE_DNS, TYPE_SWITCH_PREFERENCE) {
-                    val value by DataStore.configurationStore
-                        .booleanFlow(Key.ENABLE_FAKE_DNS, false)
-                        .collectAsStateWithLifecycle(false)
                     SwitchPreference(
-                        value = value,
+                        value = fakeDNSState,
                         onValueChange = {
                             DataStore.enableFakeDns = it
                             needReload()
@@ -1233,6 +1237,27 @@ private fun SettingsScreen(
                             )
                         },
                         summary = { Text(stringResource(R.string.fakedns_message)) },
+                    )
+                }
+                item(Key.FAKE_DNS_FOR_ALL, TYPE_SWITCH_PREFERENCE) {
+                    val value by DataStore.configurationStore
+                        .booleanFlow(Key.FAKE_DNS_FOR_ALL, false)
+                        .collectAsStateWithLifecycle(false)
+                    SwitchPreference(
+                        value = value,
+                        onValueChange = {
+                            DataStore.fakeDNSForAll = it
+                            needReload()
+                        },
+                        title = { Text(stringResource(R.string.fake_dns_for_all)) },
+                        enabled = fakeDNSState,
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.lock),
+                                null,
+                            )
+                        },
+                        summary = { Text(stringResource(R.string.fake_dns_for_all_sum)) },
                     )
                 }
                 item(Key.DNS_HOSTS, TYPE_TEXT_FIELD_PREFERENCE) {
@@ -1324,7 +1349,12 @@ private fun SettingsScreen(
                             needReload()
                         },
                         title = { Text(stringResource(R.string.append_http_proxy)) },
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.app_registration), null) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.app_registration),
+                                null,
+                            )
+                        },
                         summary = { Text(stringResource(R.string.append_http_proxy_sum)) },
                     )
                 }
@@ -1409,7 +1439,7 @@ private fun SettingsScreen(
                 }
                 if (isExpert) item(
                     Key.ANCHOR_SSID,
-                    TYPE_TEXT_FIELD_PREFERENCE
+                    TYPE_TEXT_FIELD_PREFERENCE,
                 ) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.ANCHOR_SSID, "")
@@ -1502,7 +1532,7 @@ private fun SettingsScreen(
                                 onValueChange,
                                 onOk,
                                 minValue = 1000,
-                                maxValue = 10000
+                                maxValue = 10000,
                             )
                         },
                     )
@@ -1771,7 +1801,7 @@ private inline fun LazyListScope.colorPickerPreference(
                                             showDialog = false
                                             postChange()
                                         },
-                                    contentAlignment = androidx.compose.ui.Alignment.Center
+                                    contentAlignment = androidx.compose.ui.Alignment.Center,
                                 ) {
                                     Circle(
                                         modifier = Modifier.size(48.dp),
