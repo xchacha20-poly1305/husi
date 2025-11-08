@@ -644,4 +644,6 @@
     <string name="have_a_nice_day">祝您生活愉快！</string>
     <string name="not_set">未设置</string>
     <string name="internal_link">内部链接</string>
+    <string name="fake_dns_for_all">为所有域名应用 Fake DNS</string>
+    <string name="fake_dns_for_all_sum">统一各个应用的网络偏好行为。</string>
 </resources>
