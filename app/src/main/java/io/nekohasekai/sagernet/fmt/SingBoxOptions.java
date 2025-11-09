@@ -1411,6 +1411,8 @@ public class SingBoxOptions {
 
         public Integer auto_redirect_output_mark;
 
+        public Boolean exclude_mptcp;
+
         public List<String> loopback_address;
 
         public Boolean strict_route;
@@ -2180,6 +2182,7 @@ public class SingBoxOptions {
 
     public static class Outbound_VLESSOptions extends Outbound {
 
+        // Generate note: nested type VLESSOutboundOptions
         // Generate note: nested type DialerOptions
         public String detour;
 
@@ -2236,6 +2239,8 @@ public class SingBoxOptions {
         public V2RayTransportOptions transport;
 
         public String packet_encoding;
+
+        public String encryption;
 
     }
 

@@ -53,6 +53,17 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 valueToText = { AnnotatedString(it) },
             )
         }
+        item("encryption") {
+            TextFieldPreference(
+                value = uiState.encryption,
+                onValueChange = { viewModel.setEncryption(it) },
+                title = { Text(stringResource(R.string.encryption)) },
+                textToValue = { it },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.encrypted), null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.encryption)) },
+                valueToText = { it },
+            )
+        }
         item("packet_encoding") {
             fun packetEncodingName(packetEncoding: Int) = when (packetEncoding) {
                 0 -> StringOrRes.Res(R.string.not_set)

@@ -4,6 +4,7 @@ import (
 	"libcore/plugin/http"
 	"libcore/plugin/juicity"
 	"libcore/plugin/plugindns"
+	"libcore/plugin/vless"
 
 	"github.com/sagernet/sing-box/adapter/outbound"
 	"github.com/sagernet/sing-box/dns"
@@ -12,6 +13,7 @@ import (
 func registerPluginsOutbound(registry *outbound.Registry) {
 	http.RegisterOutbound(registry)
 	juicity.RegisterOutbound(registry)
+	vless.RegisterOutbound(registry)
 }
 
 func registerPluginsDNSTransport(registry *dns.TransportRegistry) {
