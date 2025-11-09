@@ -26,7 +26,6 @@ import (
 	"github.com/sagernet/sing-box/protocol/trojan"
 	"github.com/sagernet/sing-box/protocol/tuic"
 	"github.com/sagernet/sing-box/protocol/tun"
-	"github.com/sagernet/sing-box/protocol/vless"
 	"github.com/sagernet/sing-box/protocol/vmess"
 	"github.com/sagernet/sing-box/protocol/wireguard"
 	_ "github.com/sagernet/sing-box/transport/v2rayquic"
@@ -70,7 +69,7 @@ func OutboundRegistry() *outbound.Registry {
 	trojan.RegisterOutbound(registry)
 	ssh.RegisterOutbound(registry)
 	shadowtls.RegisterOutbound(registry)
-	vless.RegisterOutbound(registry)
+	// vless.RegisterOutbound(registry) // Move to plugin
 	anytls.RegisterOutbound(registry)
 
 	registerQUICOutbounds(registry)

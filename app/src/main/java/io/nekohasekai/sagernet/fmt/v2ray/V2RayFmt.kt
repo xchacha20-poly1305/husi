@@ -200,8 +200,7 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
                 "packetaddr" -> packetEncoding = 1
                 "xudp" -> packetEncoding = 2
             }
-            // TODO
-            // encryption = url.queryParameterNotBlank("encryption")
+            encryption = url.queryParameterNotBlank("encryption")
             flow = url.queryParameterNotBlank("flow")?.removeSuffix("-udp443")
         }
     }
@@ -345,7 +344,7 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
         if (isVLESS) {
             this as VLESSBean
             builder.addQueryParameter("flow", flow)
-            // builder.addQueryParameter("encryption", encryption)
+            builder.addQueryParameter("encryption", encryption)
         } else {
             this as VMessBean
             builder.addQueryParameter("encryption", encryption)
@@ -609,7 +608,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         server_port = bean.serverPort
         uuid = bean.uuid
         flow = bean.flow.blankAsNull()
-        // encryption = bean.encryption.blankAsNull()
+        encryption = bean.encryption.takeUnless { it.isBlank() || it == "none" }
         packet_encoding = when (bean.packetEncoding) {
             1 -> "packetaddr"
             2 -> "xudp"

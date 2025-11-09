@@ -50,9 +50,8 @@ internal data class VLESSUiState(
 
     val uuid: String = "",
     val flow: String = "",
-    // val encryption: String = "",
+    val encryption: String = "",
     val packetEncoding: Int = 0,
-    val authenticatedLength: Boolean = false,
 ) : StandardV2RayUiState
 
 internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean>() {
@@ -106,6 +105,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
                 uuid = uuid,
                 flow = flow,
+                encryption = encryption,
                 packetEncoding = packetEncoding,
             )
         }
@@ -155,6 +155,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
         uuid = state.uuid
         flow = state.flow
+        encryption = state.encryption
         packetEncoding = state.packetEncoding
     }
 
@@ -302,12 +303,12 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
         _uiState.update { it.copy(flow = flow) }
     }
 
-    fun setPacketEncoding(packetEncoding: Int) {
-        _uiState.update { it.copy(packetEncoding = packetEncoding) }
+    fun setEncryption(encryption: String) {
+        _uiState.update { it.copy(encryption = encryption) }
     }
 
-    fun setAuthenticatedLength(enabled: Boolean) {
-        _uiState.update { it.copy(authenticatedLength = enabled) }
+    fun setPacketEncoding(packetEncoding: Int) {
+        _uiState.update { it.copy(packetEncoding = packetEncoding) }
     }
 
 }
