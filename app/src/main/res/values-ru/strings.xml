@@ -372,7 +372,7 @@
     <string name="route_for">Правило для %s</string>
     <string name="app_no_launcher">У приложения нет интерфейса.</string>
     <string name="copy_failed">Не удалось скопировать.</string>
-    <string name="copy_success">Копировано успешно!</string>
+    <string name="copy_success">Скопировано успешно!</string>
     <string name="create_rule">Создать правило</string>
     <string name="open_market">Показать в маркете</string>
     <string name="open_settings">Открыть настройки</string>
@@ -681,4 +681,6 @@
     <string name="back">Назад</string>
     <string name="have_a_nice_day">Хорошего дня!</string>
     <string name="not_set">Не установлено</string>
+    <string name="fake_dns_for_all_sum">Унификация сетевой стратегии и поведения приложений.</string>
+    <string name="fake_dns_for_all">Применять поддельный DNS (Fake DNS) для каждого домена</string>
 </resources>
