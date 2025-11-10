@@ -50,7 +50,7 @@ internal data class VLESSUiState(
 
     val uuid: String = "",
     val flow: String = "",
-    val encryption: String = "",
+    val encryption: String = "none",
     val packetEncoding: Int = 0,
 ) : StandardV2RayUiState
 
