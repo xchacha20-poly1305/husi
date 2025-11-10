@@ -72,7 +72,9 @@ fun AbstractBean.isInsecure(): ValidateResult {
         }
 
         is VLESSBean -> {
-            if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
+            if (encryption in arrayOf("", "none")) {
+                if (!isTLS()) return ValidateResult.Insecure(R.raw.not_encrypted)
+            }
             if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
         }
 
@@ -83,9 +85,9 @@ fun AbstractBean.isInsecure(): ValidateResult {
 
         is HysteriaBean -> {
             if (allowInsecure) return ValidateResult.Insecure(R.raw.insecure)
-            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) return ValidateResult.Deprecated(
-                R.raw.hysteria_legacy
-            )
+            if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) {
+                return ValidateResult.Deprecated(R.raw.hysteria_legacy)
+            }
         }
 
         is TuicBean -> {
