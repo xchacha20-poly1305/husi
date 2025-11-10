@@ -157,7 +157,7 @@ private fun GroupScreen(
 
     var groupToExport by remember { mutableStateOf<Long?>(null) }
     val exportProfiles = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("text/plain")
+        ActivityResultContracts.CreateDocument("text/plain"),
     ) { data ->
         if (data != null && groupToExport != null) {
             viewModel.exportToFile(
@@ -222,7 +222,7 @@ private fun GroupScreen(
                         contentDescription = stringResource(R.string.group_create),
                         onClick = {
                             context.startActivity(
-                                Intent(context, GroupSettingsActivity::class.java)
+                                Intent(context, GroupSettingsActivity::class.java),
                             )
                         },
                     )
@@ -273,7 +273,7 @@ private fun GroupScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterEnd
+                                contentAlignment = Alignment.CenterEnd,
                             ) {
                                 Icon(ImageVector.vectorResource(R.drawable.delete), null)
                             }
@@ -447,7 +447,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                         ) {
                             Column(
                                 modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 Text(
                                     text = group.displayName(),
@@ -478,7 +478,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                 .putExtra(
                                                     GroupSettingsActivity.EXTRA_GROUP_ID,
                                                     group.id,
-                                                )
+                                                ),
                                         )
                                     },
                                 )
@@ -558,7 +558,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                             text = stringResource(R.string.share_subscription),
                                             modifier = Modifier.padding(
                                                 horizontal = 16.dp,
-                                                vertical = 12.dp
+                                                vertical = 12.dp,
                                             ),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -572,12 +572,24 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                 }
                                                 showShareSubscription = false
                                             },
+                                            trailingIcon = {
+                                                Icon(
+                                                    ImageVector.vectorResource(R.drawable.content_copy),
+                                                    null,
+                                                )
+                                            },
                                         )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.share_qr_nfc)) },
                                             onClick = {
                                                 showQRDialog(link, group.displayName())
                                                 showShareSubscription = false
+                                            },
+                                            trailingIcon = {
+                                                Icon(
+                                                    ImageVector.vectorResource(R.drawable.qr_code),
+                                                    null,
+                                                )
                                             },
                                         )
                                     }
@@ -626,7 +638,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         text = stringResource(R.string.action_export),
                                         modifier = Modifier.padding(
                                             horizontal = 16.dp,
-                                            vertical = 12.dp
+                                            vertical = 12.dp,
                                         ),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -708,7 +720,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                             Formatter.formatFileSize(
                                                 context,
                                                 subscription.bytesUsed,
-                                            )
+                                            ),
                                         )
                                     },
                                     style = MaterialTheme.typography.bodySmall,
@@ -747,7 +759,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                             val dateFormat =
                                                 SimpleDateFormat("M - d", Locale.getDefault())
                                             val formattedDate = dateFormat.format(
-                                                Date(state.group.subscription!!.lastUpdated * 1000L)
+                                                Date(state.group.subscription!!.lastUpdated * 1000L),
                                             )
                                             context.getString(
                                                 R.string.group_status_proxies_subscription,
