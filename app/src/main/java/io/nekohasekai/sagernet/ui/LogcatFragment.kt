@@ -184,24 +184,26 @@ private fun LogcatScreen(
     ) { innerPadding ->
         val basePadding = innerPadding.paddingWithNavigation()
         val layoutDirection = LocalLayoutDirection.current
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            state = listState,
-            contentPadding = PaddingValues(
-                start = basePadding.calculateStartPadding(layoutDirection),
-                top = basePadding.calculateTopPadding(),
-                end = basePadding.calculateEndPadding(layoutDirection),
-                bottom = basePadding.calculateBottomPadding() + bottomBarHeightDp,
-            ),
-        ) {
-            itemsIndexed(
-                items = uiState.logs,
-                key = { index, _ -> index },
-                contentType = { _, _ -> 0 },
-            ) { _, logLine ->
-                LogCard(logLine = logLine)
+        SelectionContainer {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                state = listState,
+                contentPadding = PaddingValues(
+                    start = basePadding.calculateStartPadding(layoutDirection),
+                    top = basePadding.calculateTopPadding(),
+                    end = basePadding.calculateEndPadding(layoutDirection),
+                    bottom = basePadding.calculateBottomPadding() + bottomBarHeightDp,
+                ),
+            ) {
+                itemsIndexed(
+                    items = uiState.logs,
+                    key = { index, _ -> index },
+                    contentType = { _, _ -> 0 },
+                ) { _, logLine ->
+                    LogCard(logLine = logLine)
+                }
             }
         }
     }
@@ -218,11 +220,9 @@ private fun LogCard(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
-        SelectionContainer {
-            Text(
-                text = logLine.ansiEscape(),
-                modifier = Modifier.padding(12.dp),
-            )
-        }
+        Text(
+            text = logLine.ansiEscape(),
+            modifier = Modifier.padding(12.dp),
+        )
     }
 }
