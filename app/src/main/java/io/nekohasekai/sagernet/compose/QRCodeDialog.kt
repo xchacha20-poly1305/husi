@@ -9,11 +9,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -22,25 +18,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
@@ -61,19 +59,18 @@ fun QRCodeDialog(
     showSnackbar: suspend (String) -> Unit,
 ) {
     val context = LocalContext.current
-    val configuration = LocalConfiguration.current
+    val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
 
     var showMenu by remember { mutableStateOf(false) }
+    var touchOffset by remember { mutableStateOf(Offset.Zero) }
 
-    val qrSize = remember(configuration) {
-        val screenWidthDp = configuration.screenWidthDp
-        val screenHeightDp = configuration.screenHeightDp
-        val minDimensionDp = minOf(screenWidthDp, screenHeightDp)
-        with(density) {
-            (minDimensionDp * 0.7f).dp.roundToPx()
-        }
+    val qrSize = remember(windowInfo.containerSize) {
+        val screenWidthPx = windowInfo.containerSize.width
+        val screenHeightPx = windowInfo.containerSize.height
+        val minDimensionPx = minOf(screenWidthPx, screenHeightPx)
+        (minDimensionPx * 0.7f).toInt()
     }
 
     val qrBitmap = remember(url, qrSize) {
@@ -87,81 +84,86 @@ fun QRCodeDialog(
                 Text(stringResource(android.R.string.ok))
             }
         },
+        icon = {
+            Icon(ImageVector.vectorResource(R.drawable.qr_code), null)
+        },
+        title = {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+        },
         text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(vertical = 16.dp),
-            ) {
-                qrBitmap?.let { bitmap ->
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = stringResource(R.string.share_qr_nfc),
-                        modifier = Modifier
-                            .size(with(density) { qrSize.toDp() })
-                            .combinedClickable(
-                                onClick = {},
-                                onLongClick = { showMenu = true },
-                            ),
-                    )
+            if (qrBitmap != null) {
+                Image(
+                    bitmap = qrBitmap.asImageBitmap(),
+                    contentDescription = stringResource(R.string.share_qr_nfc),
+                    modifier = Modifier
+                        .size(with(density) { qrSize.toDp() })
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onLongPress = { offset ->
+                                    touchOffset = offset
+                                    showMenu = true
+                                },
+                            )
+                        },
+                )
 
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.save_to_system)) },
-                            onClick = {
-                                showMenu = false
-                                scope.launch {
-                                    val success = saveQRCodeToGallery(context, bitmap, name)
-                                    showSnackbar(
-                                        if (success) {
-                                            context.getString(R.string.saved_to_download)
-                                        } else {
-                                            context.getString(R.string.error_title)
-                                        }
-                                    )
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    ImageVector.vectorResource(R.drawable.download),
-                                    contentDescription = null,
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    offset = DpOffset(
+                        x = with(density) { touchOffset.x.toDp() },
+                        y = with(density) { (touchOffset.y - qrSize).toDp() },
+                    ),
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.save_to_system)) },
+                        onClick = {
+                            showMenu = false
+                            scope.launch {
+                                val success = saveQRCodeToGallery(context, qrBitmap, name)
+                                showSnackbar(
+                                    if (success) {
+                                        context.getString(R.string.saved_to_download)
+                                    } else {
+                                        context.getString(R.string.error_title)
+                                    },
                                 )
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.share)) },
-                            onClick = {
-                                showMenu = false
-                                scope.launch {
-                                    shareQRCode(context, bitmap, name)
-                                }
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    ImageVector.vectorResource(R.drawable.share),
-                                    contentDescription = null,
-                                )
-                            },
-                        )
-                    }
-                } ?: run {
-                    Text(
-                        text = stringResource(R.string.error_title),
-                        color = MaterialTheme.colorScheme.error,
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.download),
+                                contentDescription = null,
+                            )
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.share)) },
+                        onClick = {
+                            showMenu = false
+                            scope.launch {
+                                shareQRCode(context, qrBitmap, name)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.share),
+                                contentDescription = null,
+                            )
+                        },
                     )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
+            } else {
                 Text(
-                    text = name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
+                    text = stringResource(R.string.error_title),
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
-        }
+        },
     )
 }
 
@@ -184,15 +186,11 @@ private fun generateQRCode(content: String, size: Int): Bitmap? {
         createBitmap(size, size, Bitmap.Config.RGB_565).apply {
             for (x in 0 until size) {
                 for (y in 0 until size) {
-                    setPixel(
-                        x,
-                        y,
-                        if (qrBits.get(x, y)) {
-                            Color.BLACK
-                        } else {
-                            Color.WHITE
-                        },
-                    )
+                    this[x, y] = if (qrBits.get(x, y)) {
+                        Color.BLACK
+                    } else {
+                        Color.WHITE
+                    }
                 }
             }
         }
@@ -270,7 +268,7 @@ private suspend fun shareQRCode(
                 Intent.createChooser(
                     shareIntent,
                     context.getString(R.string.share),
-                )
+                ),
             )
         }
     } catch (e: Exception) {
