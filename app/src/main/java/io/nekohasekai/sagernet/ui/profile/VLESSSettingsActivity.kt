@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -62,6 +63,9 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.encrypted), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.encryption)) },
                 valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
             )
         }
         item("packet_encoding") {
