@@ -7,7 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import io.nekohasekai.sagernet.utils.Theme
+import io.nekohasekai.sagernet.compose.theme.isDarkMode
+import io.nekohasekai.sagernet.database.DataStore
 
 open class ComposeActivity : ComponentActivity() {
 
@@ -27,7 +28,7 @@ open class ComposeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val insetController = WindowCompat.getInsetsController(window, window.decorView)
-            val usingNightMode = Theme.usingNightMode()
+            val usingNightMode = resources.isDarkMode(DataStore.nightTheme)
             // https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1576
             insetController.isAppearanceLightNavigationBars = !usingNightMode
             insetController.isAppearanceLightStatusBars = !usingNightMode

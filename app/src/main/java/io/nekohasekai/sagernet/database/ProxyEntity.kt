@@ -10,7 +10,6 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.ProtocolProvider
@@ -77,9 +76,10 @@ import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VLESSSettingsActivity
+import kotlinx.coroutines.flow.Flow
 
 @Entity(
-    tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
+    tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")],
 )
 data class ProxyEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
@@ -310,9 +310,9 @@ data class ProxyEntity(
         else -> false
     }
 
-    fun exportConfig(): Pair<String, String> {
-        var name = "${requireBean().displayName()}.json"
+    private val exportName get() = "${requireBean().displayName()}.json"
 
+    fun exportConfig(): Pair<String, String> {
         return with(requireBean()) {
             StringBuilder().apply {
                 val config = buildConfig(this@ProxyEntity, forExport = true)
@@ -354,10 +354,10 @@ data class ProxyEntity(
                     }
                 }
             }.toString()
-        } to name
+        } to exportName
     }
 
-    fun exportOutbound(): String = buildSingBoxOutbound(requireBean())
+    fun exportOutbound(): Pair<String, String> = buildSingBoxOutbound(requireBean()) to exportName
 
     fun needExternal(): Boolean {
         return when (type) {
@@ -368,6 +368,7 @@ data class ProxyEntity(
                 // https://github.com/juicity/juicity/issues/140
                 !DataStore.enableFakeDns && DataStore.providerJuicity != ProtocolProvider.CORE
             }
+
             TYPE_SHADOWQUIC -> true
             else -> false
         }
@@ -503,7 +504,8 @@ data class ProxyEntity(
 
     fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
         return Intent(
-            ctx, when (type) {
+            ctx,
+            when (type) {
                 TYPE_SOCKS -> SocksSettingsActivity::class.java
                 TYPE_HTTP -> HttpSettingsActivity::class.java
                 TYPE_SS -> ShadowsocksSettingsActivity::class.java
@@ -525,7 +527,7 @@ data class ProxyEntity(
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 else -> throw IllegalArgumentException()
-            }
+            },
         )
             .putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             .putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
@@ -541,7 +543,7 @@ data class ProxyEntity(
         fun getIdsByGroup(groupId: Long): List<Long>
 
         @Query("SELECT * FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder")
-        fun getByGroup(groupId: Long): List<ProxyEntity>
+        fun getByGroup(groupId: Long): Flow<List<ProxyEntity>>
 
         @Query("SELECT * FROM proxy_entities WHERE id in (:proxyIds)")
         fun getEntities(proxyIds: List<Long>): List<ProxyEntity>
@@ -602,7 +604,7 @@ data class ProxyEntity(
            SET tx = CASE WHEN :tx  IS NULL THEN tx  ELSE :tx  END,
                rx = CASE WHEN :rx  IS NULL THEN rx  ELSE :rx  END
          WHERE id = :id
-    """
+    """,
         )
         fun updateTraffic(id: Long, tx: Long?, rx: Long?): Int
     }

@@ -63,13 +63,13 @@ import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.repository.TempRepository
 import io.nekohasekai.sagernet.repository.repo
-import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.getStringOrRes
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
-class SpeedtestActivity : ThemedActivity() {
+class SpeedtestActivity : ComposeActivity() {
 
     private val viewModel by viewModels<SpeedTestActivityViewModel>()
 
@@ -133,14 +133,14 @@ private fun SpeedtestScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-                SimpleTopAppBar(
-                    title = R.string.speed_test,
-                    navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
-                    navigationDescription = stringResource(R.string.back),
-                    windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                    scrollBehavior = scrollBehavior,
-                    onNavigationClick = onBackPress,
-                )
+            SimpleTopAppBar(
+                title = { Text(stringResource(R.string.speed_test)) },
+                navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
+                navigationDescription = stringResource(R.string.back),
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
+                onNavigationClick = onBackPress,
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->

@@ -4,6 +4,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,7 +30,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
 
-@Stable
+@Immutable
 internal data class AppManagerUiState(
     val searchQuery: String = "",
     val mode: ProxyMode = ProxyMode.DISABLED,
@@ -41,7 +42,7 @@ internal data class AppManagerUiState(
     val shouldFinish: Boolean = false,
 )
 
-@Stable
+@Immutable
 internal enum class ProxyMode {
     DISABLED,
     BYPASS,

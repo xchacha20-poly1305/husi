@@ -1,11 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.os.Bundle
-import android.view.View
-import android.view.ViewTreeObserver
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +8,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -23,92 +16,48 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.core.view.GravityCompat
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomappbar.BottomAppBar
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.compose.HideOnBottomScrollBehavior
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.StatsBar
 import io.nekohasekai.sagernet.compose.ansiEscape
 import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.showAndDismissOld
-import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.databinding.ComposeHolderBinding
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.utils.SendLog
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
-class LogcatFragment : OnKeyDownFragment(R.layout.compose_holder) {
-
-    private val viewModel: LogcatFragmentViewModel by viewModels()
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val activity = requireActivity() as MainActivity
-        val binding = ComposeHolderBinding.bind(view)
-        binding.root.setContent {
-            AppTheme {
-                LogcatScreen(
-                    viewModel = viewModel,
-                    openDrawer = {
-                        activity.binding.drawerLayout.openDrawer(GravityCompat.START)
-                    },
-                    fab = activity.binding.fab,
-                    bottomBar = activity.binding.stats,
-                )
-            }
-        }
-    }
-
-}
-
 @Composable
-private fun LogcatScreen(
+fun LogcatScreen(
     modifier: Modifier = Modifier,
-    viewModel: LogcatFragmentViewModel,
-    openDrawer: () -> Unit,
-    fab: FloatingActionButton,
-    bottomBar: BottomAppBar,
+    mainViewModel: MainViewModel,
+    viewModel: LogcatScreenViewModel = viewModel(),
+    onDrawerClick: () -> Unit,
+    connection: SagerConnection,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    HideOnBottomScrollBehavior(listState, fab, bottomBar)
-    val density = LocalDensity.current
-    var bottomBarHeightDp by remember { mutableStateOf(0.dp) }
-    DisposableEffect(bottomBar) {
-        val listener = ViewTreeObserver.OnGlobalLayoutListener {
-            bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
-        }
-        bottomBar.viewTreeObserver.addOnGlobalLayoutListener(listener)
-        bottomBarHeightDp = with(density) { bottomBar.height.toDp() }
-        onDispose {
-            bottomBar.viewTreeObserver.removeOnGlobalLayoutListener(listener)
-        }
-    }
+    val scrollHideVisible by rememberScrollHideState(listState)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.logs.size) {
@@ -127,6 +76,10 @@ private fun LogcatScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val serviceStatus by connection.status.collectAsStateWithLifecycle()
+    val service by connection.service.collectAsStateWithLifecycle()
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -136,7 +89,7 @@ private fun LogcatScreen(
                     SimpleIconButton(
                         imageVector = ImageVector.vectorResource(R.drawable.menu),
                         contentDescription = stringResource(R.string.menu),
-                        onClick = openDrawer,
+                        onClick = onDrawerClick,
                     )
                 },
                 actions = {
@@ -175,27 +128,39 @@ private fun LogcatScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarState,
-                modifier = Modifier.padding(bottom = bottomBarHeightDp),
+        snackbarHost = { SnackbarHost(snackbarState) },
+        floatingActionButton = {
+            SagerFab(
+                visible = scrollHideVisible,
+                state = serviceStatus.state,
+                showSnackbar = { message ->
+                    scope.launch {
+                        snackbarState.showSnackbar(
+                            message = context.getStringOrRes(message),
+                            actionLabel = context.getString(android.R.string.ok),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                },
             )
         },
+        bottomBar = {
+            if (serviceStatus.state == BaseService.State.Connected) {
+                StatsBar(
+                    visible = scrollHideVisible,
+                    mainViewModel = mainViewModel,
+                    service = service,
+                )
+            }
+        },
     ) { innerPadding ->
-        val basePadding = innerPadding.paddingWithNavigation()
-        val layoutDirection = LocalLayoutDirection.current
         SelectionContainer {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 state = listState,
-                contentPadding = PaddingValues(
-                    start = basePadding.calculateStartPadding(layoutDirection),
-                    top = basePadding.calculateTopPadding(),
-                    end = basePadding.calculateEndPadding(layoutDirection),
-                    bottom = basePadding.calculateBottomPadding() + bottomBarHeightDp,
-                ),
+                contentPadding = innerPadding.paddingWithNavigation(),
             ) {
                 itemsIndexed(
                     items = uiState.logs,
@@ -208,6 +173,30 @@ private fun LogcatScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        mainViewModel.uiEvent.collect { event ->
+            when (event) {
+                is MainViewModelUiEvent.Snackbar -> scope.launch {
+                    snackbarState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+
+                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
+                    val result = snackbarState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getStringOrRes(event.actionLabel),
+                        duration = SnackbarDuration.Short,
+                    )
+                    event.callback(result)
+                }
+
+                else -> {}
+            }
+        }
+    }
 }
 
 @Composable

@@ -77,6 +77,8 @@ import io.nekohasekai.sagernet.ktx.toJsonMap
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.PackageCache
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import libcore.Libcore
 
 // Inbound
@@ -147,7 +149,9 @@ fun buildConfig(
             is ProxySetBean -> {
                 val beans = when (bean.type) {
                     ProxySetBean.TYPE_LIST -> SagerDatabase.proxyDao.getEntities(bean.proxies)
-                    ProxySetBean.TYPE_GROUP -> SagerDatabase.proxyDao.getByGroup(bean.groupId)
+                    ProxySetBean.TYPE_GROUP -> runBlocking {
+                        SagerDatabase.proxyDao.getByGroup(bean.groupId).first()
+                    }
                     else -> throw IllegalStateException("invalid proxy set type ${bean.type}")
                 }
 

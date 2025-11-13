@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.compose
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -87,7 +86,7 @@ fun TextButton(text: String, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimpleTopAppBar(
-    @StringRes title: Int,
+    title: @Composable ()->Unit,
     navigationIcon: ImageVector,
     navigationDescription: String,
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
@@ -95,7 +94,7 @@ fun SimpleTopAppBar(
     onNavigationClick: () -> Unit,
 ) {
     TopAppBar(
-        title = { Text(stringResource(title)) },
+        title = title,
         navigationIcon = {
             SimpleIconButton(
                 imageVector = navigationIcon,
@@ -112,7 +111,9 @@ fun SimpleTopAppBar(
 @Composable
 private fun PreviewSimpleTopAppBar() {
     SimpleTopAppBar(
-        title = R.string.app_name,
+        title = {
+            stringResource(R.string.app_name)
+        },
         navigationIcon = ImageVector.vectorResource(R.drawable.menu),
         navigationDescription = stringResource(R.string.menu),
     ) {}

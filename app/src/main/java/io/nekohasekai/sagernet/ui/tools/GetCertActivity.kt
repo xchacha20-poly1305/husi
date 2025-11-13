@@ -118,7 +118,7 @@ private fun GetCertScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SimpleTopAppBar(
-                title = R.string.get_cert,
+                title = { Text(stringResource(R.string.get_cert)) },
                 navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
                 navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -165,7 +165,7 @@ private fun GetCertContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Card(
             modifier = Modifier
@@ -183,7 +183,7 @@ private fun GetCertContent(
                     onValueChange = { viewModel.setServer(it) },
                     label = { Text(stringResource(R.string.get_cert_server_hint)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -192,7 +192,7 @@ private fun GetCertContent(
                     onValueChange = { viewModel.setServerName(it) },
                     label = { Text(stringResource(R.string.sni)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -202,7 +202,7 @@ private fun GetCertContent(
                     values = listOf("https", "quic"),
                     onValueChange = { viewModel.setProtocol(it) },
                     displayValue = { it },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -212,7 +212,7 @@ private fun GetCertContent(
                     values = listOf("raw", "v2ray", "hysteria"),
                     onValueChange = { viewModel.setFormat(it) },
                     displayValue = { it },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -221,7 +221,7 @@ private fun GetCertContent(
                     onValueChange = { viewModel.setProxy(it) },
                     label = { Text(stringResource(R.string.route_proxy)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
