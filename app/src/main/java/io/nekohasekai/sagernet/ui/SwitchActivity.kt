@@ -1,36 +1,36 @@
 package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.ProfileManager
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.repository.repo
-import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment
+import io.nekohasekai.sagernet.ui.configuration.ConfigurationScreen
 
-class SwitchActivity : ThemedActivity(R.layout.layout_empty),
-    ConfigurationFragment.SelectCallback {
+class SwitchActivity : ComposeActivity() {
 
-    override val isDialog = true
+    private val mainViewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        supportFragmentManager.beginTransaction()
-            .replace(
-                R.id.fragment_holder,
-                ConfigurationFragment(true, null, R.string.action_switch)
-            )
-            .commitAllowingStateLoss()
+        setContent {
+            AppTheme {
+                ConfigurationScreen(
+                    mainViewModel = mainViewModel,
+                    onNavigationClick = ::finish,
+                    titleRes = R.string.action_switch,
+                    selectCallback = ::returnProfile,
+                    preSelected = null,
+                )
+            }
+        }
     }
 
-    override fun returnProfile(profileId: Long) {
-        val old = DataStore.selectedProxy
+    private fun returnProfile(profileId: Long) {
         DataStore.selectedProxy = profileId
-        runOnMainDispatcher {
-            ProfileManager.postUpdate(old)
-            ProfileManager.postUpdate(profileId)
-        }
         repo.reloadService()
         finish()
     }

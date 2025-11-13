@@ -17,6 +17,8 @@ object Key {
     const val MISC_SETTINGS = "miscSettings"
     const val NTP_SETTINGS = "ntpSettings"
 
+    const val ACCEPTED_LICENSE = "acceptedLicense"
+
     const val PERSIST_ACROSS_REBOOT = "isAutoConnect"
 
     const val APP_EXPERT = "isExpert"
@@ -116,6 +118,19 @@ object Key {
 
     const val RULES_FIRST_CREATE = "rulesFirstCreate"
 
+}
+
+object NavRoutes {
+    const val CONFIGURATION = "configuration"
+    const val GROUPS = "groups"
+    const val ROUTE = "route"
+    const val SETTINGS = "settings"
+    const val LOG = "log"
+    const val DASHBOARD = "dashboard"
+    const val TOOLS = "tools"
+    const val ABOUT = "about"
+    fun connectionsDetail(uuid: String) = "connections/$uuid"
+    const val CONNECTIONS_DETAIL_TEMPLE = "connections/{uuid}"
 }
 
 fun logLevelString(level: Int): String = when (level) {

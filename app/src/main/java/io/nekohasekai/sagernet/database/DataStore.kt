@@ -99,6 +99,8 @@ object DataStore {
         return groups.find { it.type == GroupType.BASIC }!!.id
     }
 
+    var acceptedLicense by configurationStore.boolean(Key.ACCEPTED_LICENSE)
+
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)
     var nightTheme by configurationStore.int(Key.NIGHT_THEME)

@@ -111,8 +111,6 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
         val from = proxyEntity.groupId
         proxyEntity.groupId = to
         ProfileManager.updateProfile(proxyEntity)
-        GroupManager.postUpdate(from)
-        GroupManager.postUpdate(to)
         DataStore.selectedGroup = to
     }
 
