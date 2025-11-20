@@ -116,7 +116,7 @@ dependencies {
 
     implementation("androidx.room:room-runtime:2.8.3")
     ksp("androidx.room:room-compiler:2.8.3")
-    implementation("androidx.room:room-ktx:2.8.3")
+    implementation("androidx.room:room-ktx:2.8.4")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
 
