@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.fmt.v2ray
 
-import com.google.gson.Gson
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Outbound
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundECHOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundRealityOptions
@@ -36,6 +35,7 @@ import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.b64DecodeToString
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.forEach
+import io.nekohasekai.sagernet.ktx.gson
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
@@ -46,7 +46,11 @@ import libcore.URL
 import org.json.JSONArray
 import org.json.JSONObject
 
-data class VmessQRCode(
+/**
+ * A legacy but still be used widely and be updated continually format.
+ * @see <a href="https://github.com/2dust/v2rayN/wiki/Description-of-VMess-share-link">Description of VMess share link</a>
+ */
+data class V2rayNVMessShare(
     var v: String = "",
     var ps: String = "",
     var add: String = "",
@@ -55,7 +59,6 @@ data class VmessQRCode(
     var aid: String = "0",
     var scy: String = "",
     var net: String = "",
-    var packetEncoding: String = "",
     var type: String = "",
     var host: String = "",
     var path: String = "",
@@ -63,6 +66,7 @@ data class VmessQRCode(
     var sni: String = "",
     var alpn: String = "",
     var fp: String = "",
+    var insecure: String = "",
 )
 
 fun StandardV2RayBean.isTLS(): Boolean {
@@ -186,20 +190,10 @@ fun StandardV2RayBean.parseDuckSoft(url: URL) {
 
     when (this) {
         is VMessBean -> {
-            // maybe from Matsuri vmess export
-            when (url.queryParameter("packetEncoding")) {
-                "packetaddr" -> packetEncoding = 1
-                "xudp" -> packetEncoding = 2
-            }
             encryption = url.queryParameterNotBlank("encryption")
         }
 
         is VLESSBean -> {
-            // maybe from Matsuri vmess export
-            when (url.queryParameter("packetEncoding")) {
-                "packetaddr" -> packetEncoding = 1
-                "xudp" -> packetEncoding = 2
-            }
             encryption = url.queryParameterNotBlank("encryption")
             flow = url.queryParameterNotBlank("flow")?.removeSuffix("-udp443")
         }
@@ -216,38 +210,28 @@ fun parseV2RayN(link: String): VMessBean {
         return parseCsvVMess(result)
     }
     val bean = VMessBean()
-    val vmessQRCode = Gson().fromJson(result, VmessQRCode::class.java)
+    val vmessData = gson.fromJson(result, V2rayNVMessShare::class.java)
 
-    // Although VmessQRCode fields are non null, looks like Gson may still create null fields
+    // Although V2rayNVMessShare fields are non null, looks like Gson may still create null fields
     @Suppress("UselessCallOnNotNull")
-    if (vmessQRCode.add.isNullOrEmpty()
-        || vmessQRCode.port.isNullOrBlank()
-        || vmessQRCode.id.isNullOrBlank()
-        || vmessQRCode.net.isNullOrBlank()
+    if (vmessData.add.isNullOrEmpty()
+        || vmessData.port.isNullOrBlank()
+        || vmessData.id.isNullOrBlank()
+        || vmessData.net.isNullOrBlank()
     ) {
         throw Exception("invalid VmessQRCode")
     }
 
-    bean.name = vmessQRCode.ps
-    bean.serverAddress = vmessQRCode.add
-    bean.serverPort = vmessQRCode.port.toIntOrNull() ?: 10086
-    bean.encryption = vmessQRCode.scy
-    bean.uuid = vmessQRCode.id
-    bean.alterId = vmessQRCode.aid.toIntOrNull() ?: 0
-    bean.v2rayTransport = vmessQRCode.net
-    bean.host = vmessQRCode.host
-    bean.path = vmessQRCode.path
-    val headerType = vmessQRCode.type
-
-    when (vmessQRCode.packetEncoding) {
-        "packetaddr" -> {
-            bean.packetEncoding = 1
-        }
-
-        "xudp" -> {
-            bean.packetEncoding = 2
-        }
-    }
+    bean.name = vmessData.ps
+    bean.serverAddress = vmessData.add
+    bean.serverPort = vmessData.port.toIntOrNull() ?: 10086
+    bean.encryption = vmessData.scy
+    bean.uuid = vmessData.id
+    bean.alterId = vmessData.aid.toIntOrNull() ?: 0
+    bean.v2rayTransport = vmessData.net
+    bean.host = vmessData.host
+    bean.path = vmessData.path
+    val headerType = vmessData.type
 
     when (bean.v2rayTransport) {
         "", "tcp" -> {
@@ -256,13 +240,14 @@ fun parseV2RayN(link: String): VMessBean {
             }
         }
     }
-    when (vmessQRCode.tls) {
+    when (vmessData.tls) {
         "tls", "reality" -> {
             bean.security = "tls"
-            bean.sni = vmessQRCode.sni
+            bean.sni = vmessData.sni
             if (bean.sni.isNullOrBlank()) bean.sni = bean.host
-            bean.alpn = vmessQRCode.alpn
-            bean.utlsFingerprint = vmessQRCode.fp
+            bean.alpn = vmessData.alpn
+            bean.utlsFingerprint = vmessData.fp
+            bean.allowInsecure = vmessData.insecure == "1"
         }
     }
 
@@ -348,15 +333,6 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
         } else {
             this as VMessBean
             builder.addQueryParameter("encryption", encryption)
-        }
-        when (packetEncoding) {
-            1 -> {
-                builder.addQueryParameter("packetEncoding", "packetaddr")
-            }
-
-            2 -> {
-                builder.addQueryParameter("packetEncoding", "xudp")
-            }
         }
     }
 
