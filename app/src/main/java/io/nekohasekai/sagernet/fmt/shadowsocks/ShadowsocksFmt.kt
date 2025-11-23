@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.ktx.b64DecodeToString
 import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
+import io.nekohasekai.sagernet.ktx.substringBetween
 import io.nekohasekai.sagernet.ktx.unUrlSafe
 import libcore.Libcore
 import libcore.URL
@@ -29,14 +30,24 @@ fun pluginToStandard(plugin: String): String {
 }
 
 fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
+    val fixedURL = try {
+        // https://shadowsocks.org/doc/configs.html#uri-and-qr-code
+        // ss://BASE64-ENCODED-STRING-WITHOUT-PADDING#TAG
+        // Legacy shadosocks-android format
+        val fragment = rawUrl.substringAfter("#")
+        val decoded = rawUrl.substringBetween("ss://", "#").b64DecodeToString()
+        "ss://$decoded#$fragment"
+    } catch (_: Exception) {
+        rawUrl
+    }
 
-    if (rawUrl.substringBefore("#").contains("@")) {
+    if (fixedURL.substringBefore("#").contains("@")) {
         // ss-android style
-        var url = Libcore.parseURL(rawUrl)
+        var url = Libcore.parseURL(fixedURL)
 
         if (url.username.isBlank()) { // fix justmysocks' non-standard link
-            url = Libcore.parseURL(rawUrl.substringBefore("#").b64DecodeToString())
-            url.fragment = rawUrl.substringAfter("#")
+            url = Libcore.parseURL(fixedURL.substringBefore("#").b64DecodeToString())
+            url.fragment = fixedURL.substringAfter("#")
         }
 
         val pass = try {

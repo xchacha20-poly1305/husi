@@ -368,3 +368,7 @@ fun <T : Serializable> T.applyDefaultValues(): T {
     initializeDefaultValues()
     return this
 }
+
+fun String.substringBetween(after: String, before: String): String {
+    return substringAfter(after).substringBefore(before)
+}
