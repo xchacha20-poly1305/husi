@@ -10,6 +10,7 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.ProtocolProvider
@@ -546,7 +547,7 @@ data class ProxyEntity(
         fun getEntities(proxyIds: List<Long>): List<ProxyEntity>
 
         @Query("SELECT COUNT(*) FROM proxy_entities WHERE groupId = :groupId")
-        fun countByGroup(groupId: Long): Long
+        fun countByGroup(groupId: Long): Flow<Long>
 
         @Query("SELECT  MAX(userOrder) + 1 FROM proxy_entities WHERE groupId = :groupId")
         fun nextOrder(groupId: Long): Long?

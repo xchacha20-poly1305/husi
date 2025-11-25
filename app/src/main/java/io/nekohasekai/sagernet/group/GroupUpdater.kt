@@ -30,6 +30,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -260,7 +261,7 @@ abstract class GroupUpdater {
             Logs.d("Deleted profiles: $it")
         }
 
-        val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).toInt()
+        val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).first().toInt()
 
         if (existCount != newProxies.size) {
             Logs.e("Exist profiles: $existCount, new profiles: ${newProxies.size}")
