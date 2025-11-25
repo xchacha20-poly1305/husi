@@ -29,8 +29,13 @@ class VpnService : BaseVpnService(),
 
         const val PRIVATE_VLAN4_CLIENT = "172.19.0.1"
         const val PRIVATE_VLAN4_ROUTER = "172.19.0.2"
-        const val FAKEDNS_VLAN4_CLIENT = "198.18.0.0"
-        const val FAKEDNS_VLAN6_CLIENT = "fc00::"
+        // https://developer.chrome.com/blog/local-network-access
+        // Use the address belongs to these "local" networks
+        // (https://wicg.github.io/local-network-access/#non-public-ip-address-blocks)
+        // will make permission warning in Chrome.
+        // To avoid user agreeing plenty of permissions, we decide to use these new address.
+        const val FAKEDNS_VLAN4_CLIENT = "198.51.100.0"
+        const val FAKEDNS_VLAN6_CLIENT = "2001:2::"
         const val PRIVATE_VLAN6_CLIENT = "fdfe:dcba:9876::1"
         const val PRIVATE_VLAN6_ROUTER = "fdfe:dcba:9876::2"
 
@@ -131,20 +136,20 @@ class VpnService : BaseVpnService(),
             when (networkStrategy) {
                 SingBoxOptions.STRATEGY_IPV4_ONLY -> {
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
-                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
+                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 24)
                 }
 
                 SingBoxOptions.STRATEGY_IPV6_ONLY -> {
                     // https://issuetracker.google.com/issues/149636790
                     builder.addRoute("2000::", 3)
-                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
+                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 48)
                 }
 
                 else -> {
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
-                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 15)
+                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 24)
                     builder.addRoute("2000::", 3)
-                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 18)
+                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 48)
                 }
             }
         } else {
