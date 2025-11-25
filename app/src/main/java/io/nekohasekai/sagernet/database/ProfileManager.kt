@@ -87,7 +87,7 @@ object ProfileManager {
             DataStore.selectedProxy = 0L
         }
         iterator { onRemoved(groupId, profileId) }
-        if (SagerDatabase.proxyDao.countByGroup(groupId) > 1) {
+        if (SagerDatabase.proxyDao.countByGroup(groupId).first() > 1) {
             GroupManager.rearrange(groupId)
         }
     }
@@ -103,7 +103,7 @@ object ProfileManager {
                 onRemoved(groupId, profileId)
             }
         }
-        if (SagerDatabase.proxyDao.countByGroup(groupId) > 1) {
+        if (SagerDatabase.proxyDao.countByGroup(groupId).first() > 1) {
             GroupManager.rearrange(groupId)
         }
     }

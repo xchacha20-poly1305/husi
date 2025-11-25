@@ -703,7 +703,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                             ) {
                                 Text(
                                     text = if (subscription.bytesRemaining > 0L) {
-                                        context.getString(
+                                        stringResource(
                                             R.string.subscription_traffic,
                                             Formatter.formatFileSize(
                                                 context,
@@ -715,7 +715,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                             ),
                                         )
                                     } else {
-                                        context.getString(
+                                        stringResource(
                                             R.string.subscription_used,
                                             Formatter.formatFileSize(
                                                 context,
@@ -729,7 +729,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
 
                                 if (subscription.expiryDate > 0) {
                                     Text(
-                                        text = context.getString(
+                                        text = stringResource(
                                             R.string.subscription_expire,
                                             context.formatTime(subscription.expiryDate * 1000L),
                                         ),
@@ -743,9 +743,9 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                 text = when (state.group.type) {
                                     GroupType.BASIC -> {
                                         if (state.counts == 0L) {
-                                            context.getString(R.string.group_status_empty)
+                                            stringResource(R.string.group_status_empty)
                                         } else {
-                                            context.getString(
+                                            stringResource(
                                                 R.string.group_status_proxies,
                                                 state.counts,
                                             )
@@ -754,14 +754,14 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
 
                                     GroupType.SUBSCRIPTION -> {
                                         if (state.counts == 0L) {
-                                            context.getString(R.string.group_status_empty_subscription)
+                                            stringResource(R.string.group_status_empty_subscription)
                                         } else {
                                             val dateFormat =
                                                 SimpleDateFormat("M - d", Locale.getDefault())
                                             val formattedDate = dateFormat.format(
                                                 Date(state.group.subscription!!.lastUpdated * 1000L),
                                             )
-                                            context.getString(
+                                            stringResource(
                                                 R.string.group_status_proxies_subscription,
                                                 state.counts,
                                                 formattedDate,

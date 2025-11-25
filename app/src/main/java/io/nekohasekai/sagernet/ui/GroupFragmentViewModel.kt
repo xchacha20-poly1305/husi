@@ -19,7 +19,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -53,7 +56,20 @@ internal class GroupFragmentViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            SagerDatabase.groupDao.allGroups().collect(::reloadGroups)
+            SagerDatabase.groupDao.allGroups().collectLatest { groups ->
+                if (groups.isEmpty()) {
+                    _uiState.update { it.copy(groups = emptyList()) }
+                    return@collectLatest
+                }
+                combine(
+                    groups.map { group ->
+                        SagerDatabase.proxyDao.countByGroup(group.id)
+                            .map { count -> group to count }
+                    }
+                ) { it.toList() }.collect { groupsWithCounts ->
+                    reloadGroups(groupsWithCounts)
+                }
+            }
         }
         viewModelScope.launch {
             GroupUpdater.updatingGroups.collect { updatingGroupIds ->
@@ -72,21 +88,16 @@ internal class GroupFragmentViewModel : ViewModel() {
     private val hiddenGroupAccess = Mutex()
     private val hiddenGroup = mutableSetOf<Long>()
 
-    private suspend fun reloadGroups(groups: List<ProxyGroup>?) = hiddenGroupAccess.withLock {
+    private suspend fun reloadGroups(groupsWithCounts: List<Pair<ProxyGroup, Long>>) = hiddenGroupAccess.withLock {
         _uiState.update { state ->
             state.copy(
-                groups = (groups ?: onIoDispatcher {
-                    SagerDatabase.groupDao.allGroups().first()
-                }).mapNotNull {
-                    val counts = onIoDispatcher {
-                        SagerDatabase.proxyDao.countByGroup(it.id)
-                    }
-                    if (it.ungrouped && counts == 0L) {
+                groups = groupsWithCounts.mapNotNull { (group, counts) ->
+                    if (group.ungrouped && counts == 0L) {
                         null
-                    } else if (it.id in hiddenGroup) {
+                    } else if (group.id in hiddenGroup) {
                         null
                     } else {
-                        buildItem(it, counts)
+                        buildItem(group, counts)
                     }
                 },
                 hiddenGroups = hiddenGroup.size,
@@ -157,7 +168,11 @@ internal class GroupFragmentViewModel : ViewModel() {
         hiddenGroupAccess.withLock {
             hiddenGroup.clear()
         }
-        reloadGroups(null)
+        val groups = onIoDispatcher { SagerDatabase.groupDao.allGroups().first() }
+        val groupsWithCounts = groups.map { group ->
+            group to onIoDispatcher { SagerDatabase.proxyDao.countByGroup(group.id).first() }
+        }
+        reloadGroups(groupsWithCounts)
     }
 
     fun commit() = runOnDefaultDispatcher {

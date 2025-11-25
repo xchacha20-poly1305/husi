@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
@@ -380,7 +379,7 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
             all = SagerDatabase.groupDao.allGroups().first().toMutableList()
         }
         if (all.size > 1) all.removeFirstMatched {
-            it.ungrouped && SagerDatabase.proxyDao.countByGroup(it.id) == 0L
+            it.ungrouped && SagerDatabase.proxyDao.countByGroup(it.id).first() == 0L
         }
 
         val selectedId = DataStore.currentGroupId()
@@ -411,7 +410,7 @@ internal class ConfigurationFragmentViewModel : ViewModel(),
 
     override suspend fun onRemoved(groupId: Long, profileId: Long) {
         val group = _uiState.value.groups.find { it.id == groupId } ?: return
-        if (group.ungrouped && SagerDatabase.proxyDao.countByGroup(groupId) == 0L) {
+        if (group.ungrouped && SagerDatabase.proxyDao.countByGroup(groupId).first() == 0L) {
             reloadGroups()
         }
     }

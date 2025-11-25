@@ -168,7 +168,7 @@ fun ByteArray.sha256Hex(): String = MessageDigest.getInstance("SHA-256")
         "%02x".format(it)
     }
 
-fun <E> MutableList<E>.removeFirstMatched(match: (E) -> Boolean): E? {
+inline fun <E> MutableList<E>.removeFirstMatched(match: (E) -> Boolean): E? {
     val index = indexOfFirst(match)
     return if (index >= 0) {
         removeAt(index)
