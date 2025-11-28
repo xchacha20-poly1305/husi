@@ -221,7 +221,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                     TextFieldPreference(
                         value = state.realityShortID,
                         onValueChange = { viewModel.setRealityShortID(it) },
-                        title = { Text(stringResource(R.string.reality_public_key)) },
+                        title = { Text(stringResource(R.string.reality_short_id)) },
                         textToValue = { it },
                         enabled = isReality,
                         icon = { Icon(ImageVector.vectorResource(R.drawable.texture), null) },
