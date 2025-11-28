@@ -16,8 +16,6 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
-import androidx.recyclerview.widget.LinearSmoothScroller
-import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -26,26 +24,6 @@ import io.nekohasekai.sagernet.database.DataStore
 
 val isExpert: Boolean
     get() = BuildConfig.DEBUG || DataStore.isExpert
-
-fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
-    if (force) post {
-        scrollToPosition(index)
-    }
-    postDelayed({
-        try {
-            layoutManager?.startSmoothScroll(object : LinearSmoothScroller(context) {
-                init {
-                    targetPosition = index
-                }
-
-                override fun getVerticalSnapPreference(): Int {
-                    return SNAP_TO_START
-                }
-            })
-        } catch (_: IllegalArgumentException) {
-        }
-    }, 300L)
-}
 
 @ColorInt
 fun Context.getColour(@ColorRes colorRes: Int): Int {
