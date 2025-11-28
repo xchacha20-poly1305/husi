@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package io.nekohasekai.sagernet.ui
 
 import android.net.Uri
@@ -40,6 +42,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @Immutable
 data class MainUiState(
@@ -79,6 +83,8 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
 
     private val _uiEvent = MutableSharedFlow<MainViewModelUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    private val urlTestRunning = AtomicBoolean(false)
 
     private fun alertDialog(
         message: StringOrRes,
@@ -125,6 +131,9 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
     }
 
     fun urlTest(service: ISagerNetService?) = viewModelScope.launch(Dispatchers.IO) {
+        if (!urlTestRunning.compareAndSet(expectedValue = false, newValue = true)) {
+            return@launch
+        }
         try {
             if (!DataStore.serviceState.connected || service == null) {
                 error("not started")
@@ -138,6 +147,8 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
             _uiState.update {
                 it.copy(urlTestResult = null)
             }
+        } finally {
+            urlTestRunning.store(false)
         }
     }
 
