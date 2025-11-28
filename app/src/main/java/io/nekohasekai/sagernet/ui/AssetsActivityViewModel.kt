@@ -3,6 +3,8 @@ package io.nekohasekai.sagernet.ui
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.RuleProvider
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,12 +41,14 @@ import java.time.format.DateTimeFormatter
 
 internal typealias UpdateProgress = (Float) -> Unit
 
+@Immutable
 internal data class AssetsUiState(
     val process: Float? = null,
     val assets: List<AssetItem> = emptyList(),
     val pendingDeleteCount: Int = 0,
 )
 
+@Immutable
 internal data class AssetItem(
     val file: File,
     val version: String,
@@ -51,10 +56,12 @@ internal data class AssetItem(
     val progress: Float? = null,
 )
 
+@Immutable
 internal sealed interface AssetsActivityUiEvent {
     class Snackbar(val message: StringOrRes) : AssetsActivityUiEvent
 }
 
+@Stable
 internal class AssetsActivityViewModel : ViewModel() {
 
     companion object {
@@ -81,7 +88,7 @@ internal class AssetsActivityViewModel : ViewModel() {
         this.geoDir = geoDir
 
         viewModelScope.launch {
-            SagerDatabase.assetDao.getAll().collect { assets ->
+            SagerDatabase.assetDao.getAll().collectLatest { assets ->
                 val currentNames = assets.map { it.name }.toSet()
                 val newAssets = currentNames - previousAssetNames
 

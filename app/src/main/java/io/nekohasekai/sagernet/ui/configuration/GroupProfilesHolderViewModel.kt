@@ -1,102 +1,95 @@
 package io.nekohasekai.sagernet.ui.configuration
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
 import io.nekohasekai.sagernet.GroupOrder
-import io.nekohasekai.sagernet.aidl.TrafficData
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.displayType
-import io.nekohasekai.sagernet.fmt.Deduplication
-import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
-import io.nekohasekai.sagernet.ktx.removeFirstMatched
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.repository.repo
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-internal data class GroupProfilesHolderUiState(
+@Stable
+data class GroupProfilesHolderUiState(
     val profiles: List<ProfileItem> = emptyList(),
+    val hiddenProfiles: Int = 0,
     val scrollIndex: Int? = null,
+    val shouldRequestFocus: Boolean = false,
 )
 
-internal data class ProfileItem(
+@Stable
+data class ProfileItem(
     val profile: ProxyEntity,
     val isSelected: Boolean,
     val started: Boolean,
 )
 
-internal sealed interface GroupProfilesHolderUiEvent {
-    class AlertForDelete(val size: Int, val summary: String, val confirm: () -> Unit) :
-        GroupProfilesHolderUiEvent
-}
-
-internal class GroupProfilesHolderViewModel : ViewModel(),
-    ProfileManager.Listener, GroupManager.Listener,
-    UndoSnackbarManager.Interface<ProfileItem> {
-
-    init {
-        ProfileManager.addListener(this)
-        GroupManager.addListener(this)
-    }
-
-    override fun onCleared() {
-        ProfileManager.removeListener(this)
-        GroupManager.removeListener(this)
-        super.onCleared()
-    }
+@Stable
+class GroupProfilesHolderViewModel(
+    val group: ProxyGroup,
+    val preSelected: Long?,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GroupProfilesHolderUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _uiEvent = MutableSharedFlow<GroupProfilesHolderUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    val alwaysShowAddress = DataStore.configurationStore.booleanFlow(Key.ALWAYS_SHOW_ADDRESS)
+    val blurredAddress = DataStore.configurationStore.booleanFlow(Key.BLURRED_ADDRESS)
+    val securityAdvisory = DataStore.configurationStore.booleanFlow(Key.SECURITY_ADVISORY)
+    val selectedProxy = DataStore.configurationStore.longFlow(Key.PROFILE_ID)
 
-    val alwaysShowAddress: Boolean = DataStore.alwaysShowAddress
-    val blurredAddress: Boolean = DataStore.blurredAddress
-    val securityAdvisory: Boolean = DataStore.securityAdvisory
-
-    var forSelect = false
-    lateinit var group: ProxyGroup
-    private var preSelected: Long? = null
-
+    private var isFirstLoad = true
     private var loadJob: Job? = null
+    private var deleteTimer: Job? = null
+    private val hiddenProfileAccess = Mutex()
+    private val hiddenProfileIds = mutableSetOf<Long>()
 
-    fun initialize(
-        forSelect: Boolean,
-        proxyGroup: ProxyGroup,
-        preSelected: Long?,
-    ) {
-        val initialized = ::group.isInitialized
+    init {
+        viewModelScope.launch {
+            SagerDatabase.proxyDao.getByGroup(group.id).collect { profiles ->
+                val shouldScroll = isFirstLoad
+                isFirstLoad = false
+                reloadProfiles(profiles, shouldScroll)
+            }
+        }
 
-        this.forSelect = forSelect
-        this.group = proxyGroup
-        this.preSelected = preSelected
-
-        if (!initialized) {
-            loadJob = viewModelScope.launch {
-                reloadProfiles(true)
+        if (preSelected == null) {
+            viewModelScope.launch {
+                selectedProxy.collect {
+                    reloadProfiles(null, false)
+                }
             }
         }
     }
 
-    fun updateOrder(order: Int) {
-        if (group.order == order) return
-        group.order = order
-        runOnIoDispatcher {
-            GroupManager.updateGroup(group)
+    fun submitReordered(changes: List<OrderedItem<ProfileItem>>) = runOnDefaultDispatcher {
+        val toChange = changes.mapNotNull { orderedItem ->
+            val profile = orderedItem.value.profile
+            val newOrder = orderedItem.newIndex.toLong()
+            if (profile.userOrder != newOrder) {
+                profile.copy(userOrder = newOrder)
+            } else {
+                null
+            }
+        }
+        if (toChange.isNotEmpty()) onIoDispatcher {
+            ProfileManager.updateProfile(toChange)
         }
     }
 
@@ -107,12 +100,15 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
                 field = lowercase
                 loadJob?.cancel()
                 loadJob = viewModelScope.launch {
-                    reloadProfiles(false)
+                    reloadProfiles(null, false)
                 }
             }
         }
 
-    private suspend fun reloadProfiles(shouldScroll: Boolean) {
+    private suspend fun reloadProfiles(
+        raw: List<ProxyEntity>?,
+        shouldScroll: Boolean,
+    ) = hiddenProfileAccess.withLock {
         val started = DataStore.serviceState.started
         val current = DataStore.currentProfile
         val selected = preSelected ?: DataStore.selectedProxy
@@ -130,8 +126,11 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
             else -> compareBy { it.userOrder }
         }
         var selectedIndex = -1
-        val profiles = SagerDatabase.proxyDao.getByGroup(group.id)
+        val profiles = (raw ?: onIoDispatcher {
+            SagerDatabase.proxyDao.getByGroup(group.id).first()
+        })
             .filter {
+                if (it.id in hiddenProfileIds) return@filter false
                 val query = query
                 if (query.isBlank()) {
                     true
@@ -152,256 +151,91 @@ internal class GroupProfilesHolderViewModel : ViewModel(),
                 )
             }
 
-        _uiState.emit(
-            _uiState.value.copy(
+        _uiState.update { state ->
+            state.copy(
                 profiles = profiles,
+                hiddenProfiles = hiddenProfileIds.size,
                 scrollIndex = selectedIndex.takeIf { shouldScroll && selectedIndex >= 0 },
             )
-        )
-    }
-
-
-    fun onProfileSelect(new: Long) = viewModelScope.launch {
-        _uiState.update { state ->
-            val started = DataStore.serviceState.started
-
-            state.copy(profiles = state.profiles.map {
-                val isSelected = it.profile.id == new
-                it.copy(
-                    isSelected = isSelected,
-                    started = started && isSelected,
-                )
-            }, scrollIndex = null)
         }
     }
 
-    fun clearTrafficStatistics() = runOnIoDispatcher {
-        val toClear = SagerDatabase.proxyDao.getByGroup(group.id).mapNotNull {
-            if (it.tx != 0L || it.rx != 0L) {
-                it.tx = 0L
-                it.rx = 0L
-                it
-            } else {
-                null
-            }
-        }
-        if (toClear.isEmpty()) return@runOnIoDispatcher
-        SagerDatabase.proxyDao.updateProxy(toClear)
-        onDefaultDispatcher {
-            reloadProfiles(false)
-        }
+    fun consumeScrollIndex() {
+        _uiState.update { it.copy(scrollIndex = null) }
     }
 
-    fun clearResults() = runOnIoDispatcher {
-        val toClear = SagerDatabase.proxyDao.getByGroup(group.id).mapNotNull {
-            if (it.status != ProxyEntity.STATUS_INITIAL) {
-                it.status = ProxyEntity.STATUS_INITIAL
-                it.ping = 0
-                it.error = null
-                it
-            } else {
-                null
-            }
-        }
-        if (toClear.isEmpty()) return@runOnIoDispatcher
-        SagerDatabase.proxyDao.updateProxy(toClear)
-        onDefaultDispatcher {
-            reloadProfiles(false)
-        }
-    }
-
-    fun deleteUnavailable() = viewModelScope.launch {
-        val toClear = SagerDatabase.proxyDao.getByGroup(group.id).mapNotNull {
-            when (it.status) {
-                ProxyEntity.STATUS_INITIAL, ProxyEntity.STATUS_AVAILABLE -> null
-                else -> it
-            }
-        }
-        if (toClear.isEmpty()) return@launch
-
-        fun confirmDelete() = runOnIoDispatcher {
-            val ids = toClear.map { it.id }
-            ProfileManager.deleteProfiles(group.id, ids)
-        }
-        _uiEvent.emit(
-            GroupProfilesHolderUiEvent.AlertForDelete(
-                toClear.size,
-                nameSummary(toClear),
-                ::confirmDelete,
-            )
-        )
-    }
-
-    fun removeDuplicate() = runOnDefaultDispatcher {
-        val uniqueProxies = LinkedHashSet<Deduplication>()
-        val toClear = SagerDatabase.proxyDao.getByGroup(group.id).mapNotNull {
-            val bean = it.requireBean()
-            val deduplication = Deduplication(bean, bean.javaClass.name)
-            if (uniqueProxies.add(deduplication)) {
-                null
-            } else {
-                it
-            }
-        }
-        if (toClear.isEmpty()) return@runOnDefaultDispatcher
-
-        fun confirmDelete() = runOnIoDispatcher {
-            val ids = toClear.map { it.id }
-            ProfileManager.deleteProfiles(group.id, ids)
-        }
-
-        _uiEvent.emit(
-            GroupProfilesHolderUiEvent.AlertForDelete(
-                toClear.size,
-                nameSummary(toClear),
-                ::confirmDelete,
-            )
-        )
-    }
-
-    private fun nameSummary(profiles: List<ProxyEntity>): String {
-        return profiles.mapIndexedNotNull { index, entity ->
-            when (index) {
-                20 -> "......"
-                in 1..19 -> entity.displayName()
-                else -> null
-            }
-        }.joinToString("\n")
-    }
-
-    override fun undo(actions: List<Pair<Int, ProfileItem>>) {
-        _uiState.update { state ->
-            val profiles = state.profiles.toMutableList()
-            for ((index, profile) in actions) {
-                profiles.add(index, profile)
-            }
-            state.copy(profiles = profiles, scrollIndex = null)
-        }
-    }
-
-    override fun commit(actions: List<Pair<Int, ProfileItem>>) {
-        runOnIoDispatcher {
-            val ids = actions.map { it.second.profile.id }
-            ProfileManager.deleteProfiles(group.id, ids)
-        }
-    }
-
-    fun fakeRemove(index: Int) {
-        _uiState.update { state ->
-            val profiles = state.profiles.toMutableList()
-            profiles.removeAt(index)
-            state.copy(profiles = profiles, scrollIndex = null)
-        }
-    }
-
-    fun move(from: Int, to: Int) {
-        val profiles = _uiState.value.profiles.toMutableList()
-        val moved = profiles.removeAt(from)
-        profiles.add(to, moved)
-        _uiState.update { state ->
-            state.copy(profiles = profiles, scrollIndex = null)
-        }
-    }
-
-    fun commitMove() = runOnDefaultDispatcher {
-        val profilesToUpdate = mutableListOf<ProxyEntity>()
-        for ((i, profile) in _uiState.value.profiles.withIndex()) {
-            val index = i.toLong()
-            if (profile.profile.userOrder != index) {
-                profile.profile.userOrder = index
-                profilesToUpdate.add(profile.profile)
-            }
-        }
-        if (profilesToUpdate.isNotEmpty()) onIoDispatcher {
-            SagerDatabase.proxyDao.updateProxy(profilesToUpdate)
-        }
-    }
-
-    var exportConfig: String? = null
-    var editingID: Long? = null
-
-    override suspend fun onAdd(profile: ProxyEntity) {
-        if (profile.groupId != group.id) return
-        _uiState.update { state ->
-            val selected = preSelected ?: DataStore.selectedProxy
-            val isSelected = profile.id == selected
-            state.copy(
-                profiles = state.profiles + ProfileItem(
-                    profile = profile,
-                    isSelected = isSelected,
-                    started = isSelected && DataStore.serviceState.started && profile.id == DataStore.currentProfile,
-                ),
-                scrollIndex = null,
-            )
-        }
-    }
-
-    override suspend fun onUpdated(data: TrafficData) {
-        _uiState.update { state ->
-            val profiles = state.profiles.toMutableList()
-            val index = profiles.indexOfFirst { it.profile.id == data.id }
+    fun scrollToProxy(proxyId: Long, fallbackToTop: Boolean) {
+        viewModelScope.launch {
+            val profiles = _uiState.value.profiles
+            val index = profiles.indexOfFirst { it.profile.id == proxyId }
             if (index >= 0) {
-                val target = profiles[index]
-                profiles[index] = target.copy(
-                    profile = target.profile.copy(
-                        tx = data.tx,
-                        rx = data.rx,
-                    )
-                )
-                state.copy(profiles = profiles, scrollIndex = null)
-            } else {
-                state.copy(scrollIndex = null)
+                _uiState.update { it.copy(scrollIndex = index) }
+            } else if (fallbackToTop) {
+                _uiState.update { it.copy(scrollIndex = 0) }
             }
         }
     }
 
-    override suspend fun onUpdated(profile: ProxyEntity) {
-        if (profile.groupId != group.id) return
-        _uiState.update { state ->
-            val selectedId = DataStore.selectedProxy
-            val currentId = DataStore.currentProfile
-            val started = DataStore.serviceState.started
+    fun requestFocusIfNotHave() {
+        _uiState.update { it.copy(shouldRequestFocus = true) }
+    }
 
-            val profiles = state.profiles.map { item ->
-                val updatedProfile = if (item.profile.id == profile.id) {
-                    profile
-                } else {
-                    item.profile
+    fun consumeFocusRequest() {
+        _uiState.update { it.copy(shouldRequestFocus = false) }
+    }
+
+    fun onProfileSelected(profileId: Long) {
+        viewModelScope.launch {
+            reloadProfiles(null, false)
+        }
+    }
+
+    fun undoableRemove(id: Long) = viewModelScope.launch {
+        hiddenProfileAccess.withLock {
+            _uiState.update { state ->
+                val profiles = state.profiles.toMutableList()
+                val index = profiles.indexOfFirst { it.profile.id == id }
+                if (index >= 0) {
+                    profiles.removeAt(index)
+                    hiddenProfileIds.add(id)
                 }
-                val isSelected = updatedProfile.id == selectedId
-                ProfileItem(
-                    profile = updatedProfile,
-                    isSelected = isSelected,
-                    started = isSelected && started && updatedProfile.id == currentId,
+                state.copy(
+                    profiles = profiles,
+                    hiddenProfiles = hiddenProfileIds.size,
                 )
             }
-            state.copy(profiles = profiles, scrollIndex = null)
+        }
+        startDeleteTimer()
+    }
+
+    private fun startDeleteTimer() {
+        deleteTimer?.cancel()
+        deleteTimer = viewModelScope.launch {
+            delay(5000)
+            commit()
         }
     }
 
-    override suspend fun onRemoved(groupId: Long, profileId: Long) {
-        if (groupId != group.id) return
-        _uiState.update { state ->
-            val profiles = state.profiles.toMutableList()
-            profiles.removeFirstMatched { it.profile.id == profileId }
-            state.copy(profiles = profiles, scrollIndex = null)
+    fun undo() = viewModelScope.launch {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        hiddenProfileAccess.withLock {
+            hiddenProfileIds.clear()
+        }
+        val profiles = onIoDispatcher { SagerDatabase.proxyDao.getByGroup(group.id).first() }
+        reloadProfiles(profiles, false)
+    }
+
+    fun commit() = runOnDefaultDispatcher {
+        deleteTimer?.cancel()
+        deleteTimer = null
+        val toDelete = hiddenProfileAccess.withLock {
+            val toDelete = hiddenProfileIds.toList()
+            hiddenProfileIds.clear()
+            toDelete
+        }
+        onIoDispatcher {
+            ProfileManager.deleteProfiles(group.id, toDelete)
         }
     }
-
-    override suspend fun groupAdd(group: ProxyGroup) {}
-
-    override suspend fun groupUpdated(group: ProxyGroup) {
-        if (group.id != this.group.id) return
-        this.group = group
-        reloadProfiles(true)
-    }
-
-    override suspend fun groupRemoved(groupId: Long) {}
-
-    override suspend fun groupUpdated(groupId: Long) {
-        if (groupId != group.id) return
-        this.group = SagerDatabase.groupDao.getById(groupId)!!
-        reloadProfiles(true)
-    }
-
 }

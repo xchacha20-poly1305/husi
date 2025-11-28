@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.R
@@ -17,11 +19,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 internal data class AssetEditActivityUiState(
     val name: String = "",
     val link: String = "",
 )
 
+@Stable
 internal class AssetEditActivityViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(AssetEditActivityUiState())

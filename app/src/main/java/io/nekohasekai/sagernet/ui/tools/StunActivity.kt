@@ -91,7 +91,7 @@ private fun StunScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SimpleTopAppBar(
-                title = R.string.stun_test,
+                title = { Text(stringResource(R.string.stun_test)) },
                 navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
                 navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),

@@ -51,10 +51,10 @@ import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.getStringOrRes
 
-class RuleSetMatchActivity : ThemedActivity() {
+class RuleSetMatchActivity : ComposeActivity() {
 
     private val viewModel by viewModels<RuleSetMatchActivityViewModel>()
 
@@ -102,7 +102,7 @@ private fun RuleSetMatchScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SimpleTopAppBar(
-                title = R.string.rule_set_match,
+                title = { Text(stringResource(R.string.rule_set_match)) },
                 navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
                 navigationDescription = stringResource(R.string.back),
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),

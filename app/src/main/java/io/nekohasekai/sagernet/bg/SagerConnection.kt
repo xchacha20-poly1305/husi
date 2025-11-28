@@ -6,18 +6,37 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.RemoteException
+import androidx.compose.runtime.Immutable
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+@Immutable
+data class ServiceStatus(
+    val state: BaseService.State = BaseService.State.Idle,
+    val profileName: String? = null,
+    val message: String? = null,
+)
+
+@Immutable
+data class MissingPlugin(
+    val profileName: String,
+    val pluginName: String,
+)
 
 class SagerConnection(
     private var connectionId: Int,
-    private var listenForDeath: Boolean = false
+    private var listenForDeath: Boolean = false,
 ) : ServiceConnection, IBinder.DeathRecipient {
 
     companion object {
@@ -34,72 +53,53 @@ class SagerConnection(
         const val CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND = 3
     }
 
-    interface Callback {
-        // smaller ISagerNetServiceCallback
+    private val _status = MutableStateFlow(ServiceStatus())
+    val status: StateFlow<ServiceStatus> = _status.asStateFlow()
 
-        fun cbSpeedUpdate(stats: SpeedDisplayData) {}
-        fun cbTrafficUpdate(data: TrafficData) {}
-        fun cbSelectorUpdate(id: Long) {}
+    private val _speed = MutableStateFlow(SpeedDisplayData())
+    val speed: StateFlow<SpeedDisplayData> = _speed.asStateFlow()
 
-        fun stateChanged(state: BaseService.State, profileName: String?, msg: String?)
+    private val _service = MutableStateFlow<ISagerNetService?>(null)
+    val service: StateFlow<ISagerNetService?> = _service.asStateFlow()
 
-        fun missingPlugin(profileName: String, pluginName: String) {}
+    private val _missingPlugin = MutableSharedFlow<MissingPlugin>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val missingPlugin: SharedFlow<MissingPlugin> = _missingPlugin.asSharedFlow()
 
-        fun onServiceConnected(service: ISagerNetService)
-
-        /**
-         * Different from Android framework, this method will be called even when you call `detachService`.
-         */
-        fun onServiceDisconnected() {}
-        fun onBinderDied() {}
-    }
+    private val _binderDied = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val binderDied: SharedFlow<Unit> = _binderDied.asSharedFlow()
 
     private var connectionActive = false
     private var callbackRegistered = false
-    private var callback: Callback? = null
-    private val serviceCallback = object : ISagerNetServiceCallback.Stub() {
 
+    private val serviceCallback = object : ISagerNetServiceCallback.Stub() {
         override fun stateChanged(state: Int, profileName: String?, msg: String?) {
             if (state < 0) return // skip private
             val s = BaseService.State.entries[state]
             DataStore.serviceState = s
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.stateChanged(s, profileName, msg)
-            }
+            _status.value = ServiceStatus(s, profileName, msg)
         }
 
         override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.cbSpeedUpdate(stats)
-            }
-        }
-
-        override fun cbTrafficUpdate(stats: TrafficData) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.cbTrafficUpdate(stats)
-            }
+            _speed.value = stats
         }
 
         override fun missingPlugin(profileName: String, pluginName: String) {
-            val callback = callback ?: return
-            runOnMainDispatcher {
-                callback.missingPlugin(profileName, pluginName)
-            }
+            _missingPlugin.tryEmit(MissingPlugin(profileName, pluginName))
         }
-
     }
 
     private var binder: IBinder? = null
 
-    var service: ISagerNetService? = null
-
     fun updateConnectionId(id: Int) {
         connectionId = id
         try {
-            service?.registerCallback(serviceCallback, id)
+            _service.value?.registerCallback(serviceCallback, id)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -108,7 +108,6 @@ class SagerConnection(
     override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
         this.binder = binder
         val service = ISagerNetService.Stub.asInterface(binder)!!
-        this.service = service
         try {
             if (listenForDeath) binder.linkToDeath(this, 0)
             check(!callbackRegistered)
@@ -117,24 +116,23 @@ class SagerConnection(
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
-        callback!!.onServiceConnected(service)
+        _service.value = service
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         unregisterCallback()
-        callback?.onServiceDisconnected()
-        service = null
+        _service.value = null
         binder = null
     }
 
     override fun binderDied() {
-        service = null
+        _service.value = null
         callbackRegistered = false
-        callback?.also { runOnMainDispatcher { it.onBinderDied() } }
+        _binderDied.tryEmit(Unit)
     }
 
     private fun unregisterCallback() {
-        val service = service
+        val service = _service.value
         if (service != null && callbackRegistered) try {
             service.unregisterCallback(serviceCallback)
         } catch (_: RemoteException) {
@@ -142,11 +140,9 @@ class SagerConnection(
         callbackRegistered = false
     }
 
-    fun connect(context: Context, callback: Callback) {
+    fun connect(context: Context) {
         if (connectionActive) return
         connectionActive = true
-        check(this.callback == null)
-        this.callback = callback
         val intent = Intent(context, serviceClass).setAction(Action.SERVICE)
         context.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
@@ -163,7 +159,7 @@ class SagerConnection(
         } catch (_: NoSuchElementException) {
         }
         binder = null
-        service = null
-        callback = null
+        _service.value = null
+        _status.value = ServiceStatus()
     }
 }
