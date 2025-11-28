@@ -371,7 +371,7 @@ fun DashboardScreen(
                 when (page) {
                     PAGE_STATUS -> DashboardStatusScreen(
                         uiState = uiState,
-                        selectClashMode = { viewModel.selectClashMode(it) },
+                        selectClashMode = { service?.clashMode = it },
                         onCopySuccess = {
                             scope.launch {
                                 snackbarState.showSnackbar(

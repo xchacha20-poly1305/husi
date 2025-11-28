@@ -123,7 +123,4 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    fun selectClashMode(mode: String) {
-        TODO()
-    }
 }
