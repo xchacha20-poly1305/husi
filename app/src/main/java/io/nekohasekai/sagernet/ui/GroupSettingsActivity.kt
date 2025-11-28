@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
@@ -82,6 +81,7 @@ class GroupSettingsActivity : ComposeActivity() {
             BackHandler(enabled = isDirty) {
                 showBackAlert = true
             }
+            var showDeleteAlert by remember { mutableStateOf(false) }
 
             val windowInsets = WindowInsets.safeDrawing
             val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -110,14 +110,9 @@ class GroupSettingsActivity : ComposeActivity() {
                                 ) {
                                     if (viewModel.isNew) {
                                         finish()
-                                    } else MaterialAlertDialogBuilder(this@GroupSettingsActivity)
-                                        .setTitle(R.string.delete_group_prompt)
-                                        .setPositiveButton(android.R.string.ok) { _, _ ->
-                                            viewModel.delete()
-                                            finish()
-                                        }
-                                        .setNegativeButton(android.R.string.cancel, null)
-                                        .show()
+                                    } else {
+                                        showDeleteAlert = true
+                                    }
                                 }
                                 SimpleIconButton(
                                     imageVector = ImageVector.vectorResource(R.drawable.done),
@@ -128,12 +123,12 @@ class GroupSettingsActivity : ComposeActivity() {
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,
                         )
-                    }
+                    },
                 ) { innerPadding ->
                     Column(
                         modifier = Modifier
                             .paddingExceptBottom(innerPadding)
-                            .verticalScroll(scrollState)
+                            .verticalScroll(scrollState),
                     ) {
                         GroupSettings()
 
@@ -155,6 +150,23 @@ class GroupSettingsActivity : ComposeActivity() {
                     },
                     icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
                     title = { Text(stringResource(R.string.unsaved_changes_prompt)) },
+                )
+                if (showDeleteAlert) AlertDialog(
+                    onDismissRequest = { showDeleteAlert = false },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            viewModel.delete()
+                            finish()
+                            showDeleteAlert = false
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(stringResource(R.string.no_thanks)) {
+                            showDeleteAlert = false
+                        }
+                    },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },
+                    title = { Text(stringResource(R.string.delete_group_prompt)) },
                 )
             }
         }
@@ -218,7 +230,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     } else {
                         selectProfileForAddFront.launch(
                             Intent(this, ProfileSelectActivity::class.java)
-                                .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.frontProxy)
+                                .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.frontProxy),
                         )
                     }
                 },
@@ -251,7 +263,7 @@ class GroupSettingsActivity : ComposeActivity() {
                                 .putExtra(
                                     ProfileSelectActivity.EXTRA_SELECTED,
                                     uiState.landingProxy,
-                                )
+                                ),
                         )
                     }
                 },
@@ -364,7 +376,12 @@ class GroupSettingsActivity : ComposeActivity() {
                     value = uiState.subscriptionAutoUpdate,
                     onValueChange = { viewModel.setSubscriptionAutoUpdate(it) },
                     title = { Text(stringResource(R.string.auto_update)) },
-                    icon = { Icon(ImageVector.vectorResource(R.drawable.flip_camera_android), null) },
+                    icon = {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.flip_camera_android),
+                            null,
+                        )
+                    },
                 )
                 TextFieldPreference(
                     value = uiState.subscriptionUpdateDelay,
@@ -389,22 +406,22 @@ class GroupSettingsActivity : ComposeActivity() {
     }
 
     private val selectProfileForAddFront = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
         if (it.resultCode == RESULT_OK) {
             val profile = ProfileManager.getProfile(
-                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0),
             ) ?: return@registerForActivityResult
             viewModel.setFrontProxy(profile.id)
         }
     }
 
     private val selectProfileForAddLanding = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
         if (it.resultCode == RESULT_OK) {
             val profile = ProfileManager.getProfile(
-                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
+                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0),
             ) ?: return@registerForActivityResult
             viewModel.setLandingProxy(profile.id)
         }
