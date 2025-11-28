@@ -56,8 +56,12 @@ fun StatsBar(
             .onSizeChanged { height = it.height }
             .graphicsLayer { translationY = offsetY.toFloat() }
             .then(
-                if (visible) Modifier.clickable { mainViewModel.urlTest(service) }
-                else Modifier
+                if (visible) {
+                    Modifier.clickable { mainViewModel.urlTest(service) }
+                }
+                else {
+                    Modifier
+                }
             ),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 4.dp,
@@ -86,7 +90,7 @@ fun StatsBar(
                 } else {
                     R.string.connection_test_available_http
                 },
-                uiState.urlTestResult.toString(),
+                uiState.urlTestResult!!,
             )
             Text(text)
         }

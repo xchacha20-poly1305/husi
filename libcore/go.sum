@@ -143,8 +143,8 @@ github.com/xchacha20-poly1305/cazilla v1.0.2 h1:IFant4Apw7saEwwLMr6UDlRiJ/F+x30k
 github.com/xchacha20-poly1305/cazilla v1.0.2/go.mod h1:CRNqqSLuWw8gStu7qDwjPYmsLE91OCVWazN9AH4LyWc=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
-github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251111145846-b62a65b53e28 h1:6KuFmYfevdcHss6NDH37ISYiWknsBXFY4SfPP+2NQ+M=
-github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251111145846-b62a65b53e28/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
+github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251124141208-a193c473ca61 h1:sZyH3ddrATL4MjE9cR6OtSRmMtnHu4wt1jUGH0/rV9U=
+github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251124141208-a193c473ca61/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=
 github.com/zeebo/assert v1.1.0/go.mod h1:Pq9JiuJQpG8JLJdtkwrJESF0Foym2/D9XMU5ciN/wJ0=
 github.com/zeebo/blake3 v0.2.4 h1:KYQPkhpRtcqh0ssGYcKLG1JYvddkEA8QwCM/yBqhaZI=
