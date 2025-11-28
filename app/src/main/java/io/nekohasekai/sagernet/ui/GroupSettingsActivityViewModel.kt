@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.GroupOrder
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 internal data class GroupSettingsUiState(
     val name: String = "",
     val type: Int = GroupType.BASIC,
@@ -39,6 +42,7 @@ internal data class GroupSettingsUiState(
     val subscriptionUpdateDelay: Int = 1440,
 )
 
+@Stable
 internal class GroupSettingsActivityViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(GroupSettingsUiState())

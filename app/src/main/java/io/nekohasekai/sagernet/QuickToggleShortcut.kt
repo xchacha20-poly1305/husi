@@ -29,14 +29,19 @@ import androidx.core.content.getSystemService
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.repository.repo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @Suppress("DEPRECATION")
-class QuickToggleShortcut : Activity(), SagerConnection.Callback {
+class QuickToggleShortcut : Activity() {
 
     companion object {
         const val EXTRA_PROFILE_ID = "profile_id"
@@ -44,6 +49,8 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
 
     private val connection = SagerConnection(SagerConnection.CONNECTION_ID_SHORTCUT)
     private var profileId = -1L
+    private var job: Job? = null
+    private val scope = CoroutineScope(Dispatchers.Main.immediate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,36 +78,35 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
             finish()
         } else {
             profileId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
-            connection.connect(this, this)
+            connection.connect(this)
             if (Build.VERSION.SDK_INT >= 25) {
                 getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
             }
-        }
-    }
+            job = scope.launch {
+                val service = connection.service.filterNotNull().first()
+                val state = BaseService.State.entries[service.state]
+                when {
+                    state.canStop -> {
+                        if (profileId == DataStore.selectedProxy || profileId == -1L) {
+                            repo.stopService()
+                        } else {
+                            DataStore.selectedProxy = profileId
+                            repo.reloadService()
+                        }
+                    }
 
-    override fun onServiceConnected(service: ISagerNetService) {
-        val state = BaseService.State.entries[service.state]
-        when {
-            state.canStop -> {
-                if (profileId == DataStore.selectedProxy || profileId == -1L) {
-                    repo.stopService()
-                } else {
-                    DataStore.selectedProxy = profileId
-                    repo.reloadService()
+                    state == BaseService.State.Stopped -> {
+                        if (profileId >= 0L) DataStore.selectedProxy = profileId
+                        repo.startService()
+                    }
                 }
-            }
-
-            state == BaseService.State.Stopped -> {
-                if (profileId >= 0L) DataStore.selectedProxy = profileId
-                repo.startService()
+                finish()
             }
         }
-        finish()
     }
-
-    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {}
 
     override fun onDestroy() {
+        job?.cancel()
         connection.disconnect(this)
         super.onDestroy()
     }

@@ -1,743 +1,771 @@
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.app.Activity
-import android.content.ClipboardManager
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.os.Bundle
 import android.text.format.Formatter
-import android.text.method.LinkMovementMethod
-import android.text.util.Linkify
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
-import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.getSystemService
-import androidx.core.os.BundleCompat
-import androidx.core.os.bundleOf
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
+import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
+import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
+import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.rememberScrollHideState
+import io.nekohasekai.sagernet.compose.setPlainText
+import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
-import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.displayType
-import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
-import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.ValidateResult
-import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.isInsecure
-import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.ktx.scrollTo
-import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
-import io.nekohasekai.sagernet.ktx.snackbar
-import io.nekohasekai.sagernet.ktx.startFilesForResult
 import io.nekohasekai.sagernet.ktx.readableUrlTestError
-import io.nekohasekai.sagernet.ktx.snackbarAdapter
-import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
-import io.nekohasekai.sagernet.ui.ThemedActivity
-import io.nekohasekai.sagernet.ui.configuration.ConfigurationFragment.SelectCallback
-import io.nekohasekai.sagernet.widget.QRCodeDialog
-import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import io.nekohasekai.sagernet.ui.StringOrRes
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
-class GroupProfilesHolder() : Fragment(R.layout.layout_profile_list) {
+@Composable
+internal fun GroupHolderScreen(
+    modifier: Modifier = Modifier,
+    viewModel: GroupProfilesHolderViewModel,
+    onProfileSelect: (Long) -> Unit,
+    needReload: () -> Unit,
+    showQR: (name: String, url: String) -> Unit,
+    onCopySuccess: () -> Unit,
+    showSnackbar: (message: StringOrRes) -> Unit,
+    showUndoSnackbar: (count: Int, onUndo: () -> Unit) -> Unit,
+    onScrollHideChange: (Boolean) -> Unit = {},
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    companion object {
-        private const val ARG_FOR_SELECT = "for_select"
-        private const val ARG_GROUP = "group"
-        private const val ARG_PRE_SELECTED = "pre_selected"
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.hiddenProfiles) {
+        if (uiState.hiddenProfiles > 0) {
+            showUndoSnackbar(uiState.hiddenProfiles) {
+                viewModel.undo()
+            }
+        }
     }
 
-    constructor(
-        forSelect: Boolean,
-        group: ProxyGroup,
-        preSelected: Long?,
-    ) : this() {
-        arguments = bundleOf(
-            ARG_FOR_SELECT to forSelect,
-            ARG_GROUP to group,
-            ARG_PRE_SELECTED to preSelected,
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.commit()
+        }
+    }
+    val showAddress by viewModel.alwaysShowAddress.collectAsStateWithLifecycle(false)
+    val blurAddress by viewModel.blurredAddress.collectAsStateWithLifecycle(false)
+    val securityAdvisory by viewModel.securityAdvisory.collectAsStateWithLifecycle(false)
+
+    val dragDropListState = rememberDragDropSwipeLazyColumnState()
+    val focusRequester = remember { FocusRequester() }
+
+    val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
+    LaunchedEffect(scrollHideVisible) {
+        onScrollHideChange(scrollHideVisible)
+    }
+
+    LaunchedEffect(uiState.scrollIndex) {
+        uiState.scrollIndex?.let { index ->
+            dragDropListState.lazyListState.animateScrollToItem(index)
+            viewModel.consumeScrollIndex()
+        }
+    }
+
+    LaunchedEffect(uiState.shouldRequestFocus) {
+        if (uiState.shouldRequestFocus) {
+            try {
+                focusRequester.requestFocus()
+            } catch (_: Exception) {
+                // non-TV environments
+            }
+            viewModel.consumeFocusRequest()
+        }
+    }
+
+    var editingID by remember { mutableLongStateOf(-1L) }
+    val editProfileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            if (DataStore.currentProfile == editingID) {
+                needReload()
+            }
+            editingID = -1L
+        }
+    }
+
+    var exportConfig by remember { mutableStateOf("") }
+    val exportFileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { data ->
+        if (data != null) lifecycleOwner.lifecycleScope.launch {
+            try {
+                context.contentResolver.openOutputStream(data)!!
+                    .bufferedWriter().use {
+                        it.write(exportConfig)
+                    }
+                onMainDispatcher {
+                    showSnackbar(StringOrRes.Res(R.string.action_export_msg))
+                }
+            } catch (e: Exception) {
+                Logs.w(e)
+                onMainDispatcher {
+                    showSnackbar(StringOrRes.Direct(e.readableMessage))
+                }
+            }
+        }
+        exportConfig = ""
+    }
+
+    Box(
+        modifier = modifier.fillMaxSize(),
+    ) {
+        DragDropSwipeLazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .focusRequester(focusRequester),
+            state = dragDropListState,
+            items = uiState.profiles.toImmutableList(),
+            key = { it.profile.id },
+            contentType = { 0 },
+            userScrollEnabled = true,
+            onIndicesChangedViaDragAndDrop = { viewModel.submitReordered(it) },
+        ) { index, item ->
+            DraggableSwipeableItem(
+                modifier = Modifier.animateDraggableSwipeableItem(),
+                colors = DraggableSwipeableItemColors.createRemembered(
+                    containerBackgroundColor = Color.Transparent,
+                    containerBackgroundColorWhileDragged = Color.Transparent,
+                ),
+            ) {
+                val context = LocalContext.current
+                ProxyCard(
+                    profile = item,
+                    select = { onProfileSelect(item.profile.id) },
+                    edit = {
+                        editingID = item.profile.id
+                        editProfileLauncher.launch(
+                            item.profile.settingIntent(
+                                ctx = context,
+                                isSubscription = viewModel.group.type == GroupType.SUBSCRIPTION,
+                            ),
+                        )
+                    },
+                    delete = { viewModel.undoableRemove(item.profile.id) },
+                    showQR = { url ->
+                        showQR(item.profile.displayName(), url)
+                    },
+                    exportToFile = { name, config ->
+                        exportConfig = config
+                        startFilesForResult(exportFileLauncher, name) {
+                            showSnackbar(StringOrRes.Res(it))
+                        }
+                    },
+                    onCopySuccess = onCopySuccess,
+                    showAddress = showAddress,
+                    blurAddress = blurAddress,
+                    showTraffic = securityAdvisory,
+                )
+            }
+        }
+
+        AutoFadeVerticalScrollbar(
+            modifier = Modifier.align(Alignment.TopEnd),
+            scrollState = dragDropListState.lazyListState,
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 12.dp,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
+    modifier: Modifier = Modifier,
+    profile: ProfileItem,
+    select: () -> Unit,
+    edit: () -> Unit,
+    delete: () -> Unit,
+    showQR: (url: String) -> Unit,
+    onCopySuccess: () -> Unit,
+    exportToFile: (name: String, config: String) -> Unit,
+    showAddress: Boolean,
+    blurAddress: Boolean,
+    showTraffic: Boolean,
+) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+
+    val entity = profile.profile
+    val bean = entity.requireBean()
+
+    val (name, address) = when {
+        blurAddress && bean.name.isNullOrBlank() -> bean.displayAddress().blur() to null
+        blurAddress && showAddress -> bean.displayName() to bean.displayAddress().blur()
+        showAddress -> bean.displayName() to bean.displayAddress()
+        else -> bean.displayName() to null
+    }
+
+    val hasTraffic = entity.tx + entity.rx > 0L
+    val trafficText = hasTraffic.takeIf { showTraffic }?.let {
+        context.getString(
+            R.string.traffic,
+            Formatter.formatFileSize(context, entity.tx),
+            Formatter.formatFileSize(context, entity.rx),
         )
     }
 
-    private val viewModel by viewModels<GroupProfilesHolderViewModel>()
-    private val parentViewModel by viewModels<ConfigurationFragmentViewModel>({ requireParentFragment() })
-    private lateinit var binding: LayoutProfileListBinding
-    private lateinit var undoManager: UndoSnackbarManager<ProfileItem>
-    private lateinit var adapter: ConfigurationAdapter
-
-    private val clipboard by lazy { requireContext().getSystemService<ClipboardManager>()!! }
-
-    private val isEnabled: Boolean
-        get() = DataStore.serviceState.let { it.canStop || it == BaseService.State.Stopped }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        arguments?.let {
-            viewModel.initialize(
-                it.getBoolean(ARG_FOR_SELECT),
-                BundleCompat.getParcelable(it, ARG_GROUP, ProxyGroup::class.java)!!,
-                it.getLong(ARG_PRE_SELECTED).takeIf { it > 0L },
-            )
+    val (statusText, statusColor) = when (entity.status) {
+        in Int.MIN_VALUE..ProxyEntity.STATUS_INITIAL -> {
+            trafficText.orEmpty() to MaterialTheme.colorScheme.onSurfaceVariant
         }
+
+        ProxyEntity.STATUS_AVAILABLE -> {
+            context.getString(
+                R.string.available,
+                entity.ping,
+            ) to Color(context.getColour(R.color.material_green_500))
+        }
+
+        ProxyEntity.STATUS_UNAVAILABLE -> {
+            val msgRes = readableUrlTestError(entity.error)
+            context.getString(
+                msgRes ?: R.string.unavailable,
+            ) to Color(context.getColour(R.color.material_red_500))
+        }
+
+        ProxyEntity.STATUS_UNREACHABLE -> {
+            entity.error.orEmpty() to Color(context.getColour(R.color.material_red_500))
+        }
+
+        else -> "" to MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    val showMiddleRow =
+        address != null || (hasTraffic && entity.status > ProxyEntity.STATUS_INITIAL)
 
-        binding = LayoutProfileListBinding.bind(view)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.configurationList) { v, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-                        or WindowInsetsCompat.Type.displayCutout()
+    var showMenuShare by remember { mutableStateOf(false) }
+    var showMenuQR by remember { mutableStateOf(false) }
+    var showMenuClipboard by remember { mutableStateOf(false) }
+    var showMenuFullConfiguration by remember { mutableStateOf(false) }
+    var showMenuOutbound by remember { mutableStateOf(false) }
+
+    val validateResult = bean.isInsecure()
+    var showSecurityAlert by remember { mutableStateOf(false) }
+
+    OutlinedCard(
+        onClick = select,
+        modifier = modifier.padding(4.dp),
+        elevation = CardDefaults.elevatedCardElevation(),
+        border = if (profile.isSelected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else {
+            CardDefaults.outlinedCardBorder()
+        },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.drag_indicator),
+                contentDescription = "Drag to reorder",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(40.dp)
+                    .padding(8.dp)
+                    .dragDropModifier(),
             )
-            v.updatePadding(
-                left = bars.left + dp2px(4),
-                right = bars.right + dp2px(4),
-                bottom = bars.bottom + dp2px(64),
-            )
-            insets
-        }
-        binding.configurationList.adapter = ConfigurationAdapter().also {
-            adapter = it
-        }
-        binding.configurationList.setItemViewCacheSize(20)
-        binding.configurationList.requestFocus()
 
-        if (!viewModel.forSelect) {
-            undoManager = UndoSnackbarManager(
-                (requireActivity() as ThemedActivity).snackbarAdapter,
-                viewModel,
-                )
-
-            ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-                ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 4.dp),
             ) {
-                override fun getSwipeDirs(
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                ): Int {
-                    return 0
-                }
-
-                override fun getDragDirs(
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                ) = if (isEnabled) {
-                    super.getDragDirs(recyclerView, viewHolder)
-                } else {
-                    0
-                }
-
-                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
-
-                override fun onMove(
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                    target: RecyclerView.ViewHolder,
-                ): Boolean {
-                    viewModel.move(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
-                    return true
-                }
-
-                override fun clearView(
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 0.dp, end = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    super.clearView(recyclerView, viewHolder)
-                    viewModel.commitMove()
-                }
-            }).attachToRecyclerView(binding.configurationList)
-
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::handleUiState)
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect(::handleUiEvent)
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                parentViewModel.childEvent.collect(::handleChildEvent)
-            }
-        }
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                parentViewModel.searchQuery.collect {
-                    viewModel.query = it
-                }
-            }
-        }
-
-        if (savedInstanceState != null) lifecycleScope.launch {
-            viewModel.onProfileSelect(DataStore.selectedProxy)
-        }
-    }
-
-    private fun handleUiState(state: GroupProfilesHolderUiState) {
-        adapter.submitList(state.profiles) {
-            state.scrollIndex?.let {
-                binding.configurationList.scrollTo(it)
-            }
-        }
-    }
-
-    private fun handleUiEvent(event: GroupProfilesHolderUiEvent) = when (event) {
-        is GroupProfilesHolderUiEvent.AlertForDelete -> {
-            val context = requireContext()
-            val message = context.resources.getQuantityString(
-                R.plurals.delete_confirm_detail,
-                event.size,
-                event.summary,
-            )
-            MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.confirm)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    event.confirm()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
-    }
-
-    private fun handleChildEvent(event: ConfigurationChildEvent) {
-        if (event.group != viewModel.group.id) return
-        when (event) {
-            is ConfigurationChildEvent.ScrollToProxy -> {
-                val index = adapter.currentList
-                    .indexOfFirst { it.profile.id == event.id }
-                    .takeIf { it >= 0 }
-                    ?: if (event.fallbackToTop) 0 else return
-
-                val layoutManager = binding.configurationList.layoutManager as LinearLayoutManager
-                val first = layoutManager.findFirstVisibleItemPosition()
-                val last = layoutManager.findLastVisibleItemPosition()
-                if (index !in first..last) {
-                    binding.configurationList.scrollTo(index)
-                }
-            }
-
-            is ConfigurationChildEvent.RequestFocusIfNotHave -> {
-                binding.configurationList.apply {
-                    if (!hasFocus()) requestFocus()
-                }
-            }
-
-            is ConfigurationChildEvent.ClearTrafficStatistic -> viewModel.clearTrafficStatistics()
-
-            is ConfigurationChildEvent.ClearResult -> viewModel.clearResults()
-
-            is ConfigurationChildEvent.DeleteUnavailable -> viewModel.deleteUnavailable()
-
-            is ConfigurationChildEvent.RemoveDuplicate -> viewModel.removeDuplicate()
-
-            is ConfigurationChildEvent.OnProfileSelect -> viewModel.onProfileSelect(event.new)
-
-            is ConfigurationChildEvent.UpdateOrder -> viewModel.updateOrder(event.order)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        if (!::undoManager.isInitialized) return
-        undoManager.flush()
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-
-        checkOrderMenu()
-        if (::binding.isInitialized) {
-            binding.configurationList.requestFocus()
-        }
-    }
-
-    private fun checkOrderMenu() {
-        if (viewModel.forSelect) return
-
-        val parentFragment = requireParentFragment() as ConfigurationFragment
-        parentFragment.composeToolbar()
-    }
-
-    private inner class ConfigurationAdapter :
-        ListAdapter<ProfileItem, ConfigurationHolder>(ProfileItemDiffCallback) {
-
-        init {
-            setHasStableIds(true)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConfigurationHolder {
-            return ConfigurationHolder(
-                LayoutProfileBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false,
-                )
-            )
-        }
-
-        override fun getItemId(position: Int): Long {
-            return getItem(position).profile.id
-        }
-
-        override fun onBindViewHolder(holder: ConfigurationHolder, position: Int) = try {
-            holder.bind(getItem(position))
-        } catch (_: NullPointerException) { // when group deleted
-        }
-
-        override fun onBindViewHolder(
-            holder: ConfigurationHolder,
-            position: Int,
-            payloads: List<Any?>,
-        ) = try {
-            var mask = 0
-            for (payload in payloads) {
-                mask = mask or payload as Int
-            }
-            if (mask == 0) {
-                super.onBindViewHolder(holder, position, payloads)
-            } else {
-                val item = getItem(position)
-                if (mask and ProfileItemDiffCallback.PAYLOAD_BASE != 0) {
-                    holder.bindBase(item.profile)
-                }
-                if (mask and ProfileItemDiffCallback.PAYLOAD_SELECTED != 0) {
-                    holder.bindSelected(item.isSelected)
-                }
-                if (mask and ProfileItemDiffCallback.PAYLOAD_VALIDATE != 0) {
-                    holder.bindShare(item.profile)
-                }
-                Unit
-            }
-        } catch (_: NullPointerException) {
-        }
-
-    }
-
-    private object ProfileItemDiffCallback : DiffUtil.ItemCallback<ProfileItem>() {
-        const val PAYLOAD_BASE = 1 shl 0 // name + address + traffic + status
-        const val PAYLOAD_SELECTED = 1 shl 1
-        const val PAYLOAD_VALIDATE = 1 shl 2
-
-        override fun areItemsTheSame(old: ProfileItem, new: ProfileItem): Boolean {
-            return old.profile.id == new.profile.id
-        }
-
-        override fun areContentsTheSame(old: ProfileItem, new: ProfileItem): Boolean {
-            return old.profile == new.profile
-                    && old.started == new.started
-                    && old.isSelected == new.isSelected
-        }
-
-        override fun getChangePayload(old: ProfileItem, new: ProfileItem): Any? {
-            var mask = 0
-            if (old.profile != new.profile || old.started != new.started) {
-                mask = mask or PAYLOAD_BASE
-            }
-            if (old.isSelected != new.isSelected) {
-                mask = mask or PAYLOAD_SELECTED
-            }
-            val oldBean = old.profile.requireBean()
-            val newBean = new.profile.requireBean()
-            if (oldBean.isInsecure() != newBean.isInsecure()) {
-                mask = mask or PAYLOAD_VALIDATE
-            }
-            return if (mask != 0) {
-                mask
-            } else {
-                null
-            }
-        }
-
-    }
-
-    private inner class ConfigurationHolder(val binding: LayoutProfileBinding) :
-        RecyclerView.ViewHolder(binding.root), PopupMenu.OnMenuItemClickListener {
-
-        private lateinit var entity: ProxyEntity
-
-        fun bind(profile: ProfileItem) {
-            entity = profile.profile
-
-            bindSelected(profile.isSelected)
-            if (viewModel.forSelect) binding.root.setOnClickListener {
-                (requireActivity() as SelectCallback).returnProfile(entity.id)
-            } else binding.root.setOnClickListener {
-                parentViewModel.onProfileSelect(entity.id)
-            }
-
-            bindBase(entity)
-
-            binding.edit.setOnClickListener {
-                viewModel.editingID = entity.id
-                editProfileLauncher.launch(
-                    entity.settingIntent(
-                        it.context,
-                        viewModel.group.type == GroupType.SUBSCRIPTION,
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
                     )
-                )
-            }
 
-            binding.remove.setOnClickListener {
-                val index = bindingAdapterPosition
-                viewModel.fakeRemove(index)
-                undoManager.remove(index to profile)
-            }
-
-            binding.share.isVisible = !viewModel.forSelect
-            binding.edit.isVisible = !viewModel.forSelect
-            binding.remove.isVisible = !viewModel.forSelect
-            binding.remove.isEnabled = !profile.started
-            binding.selectedView.isVisible = profile.isSelected
-
-            bindShare(entity)
-        }
-
-        fun bindBase(entity: ProxyEntity) {
-            this.entity = entity
-            val bean = entity.requireBean()
-
-            binding.profileType.text = entity.displayType(binding.profileType.context)
-
-            val tx = entity.tx
-            val rx = entity.rx
-            val hasTraffic = tx + rx > 0L
-            val trafficString = if (hasTraffic) {
-                binding.root.context.getString(
-                    R.string.traffic,
-                    Formatter.formatFileSize(binding.root.context, tx),
-                    Formatter.formatFileSize(binding.root.context, rx),
-                )
-            } else {
-                null
-            }
-
-            var name: String
-            var address: String? = null
-            if (viewModel.blurredAddress) {
-                if (bean.name.isNullOrBlank()) {
-                    name = bean.displayAddress().blur()
-                } else {
-                    name = bean.displayName()
-                    if (viewModel.alwaysShowAddress) {
-                        address = bean.displayAddress().blur()
-                    }
-                }
-            } else {
-                name = bean.displayName()
-                if (viewModel.alwaysShowAddress) {
-                    address = bean.displayAddress()
-                }
-            }
-
-            binding.profileName.text = name
-
-            binding.profileAddress.apply {
-                if (address == null) {
-                    text = null
-                    isVisible = false
-                } else {
-                    text = address
-                    isVisible = true
-                }
-            }
-
-            binding.trafficText.isVisible = hasTraffic
-            if (hasTraffic) {
-                binding.trafficText.text = trafficString
-            }
-
-            (binding.trafficText.parent as View).isGone =
-                (!hasTraffic || entity.status <= ProxyEntity.STATUS_INITIAL) && address == null
-
-            if (entity.status <= ProxyEntity.STATUS_INITIAL) {
-                if (hasTraffic) {
-                    binding.profileStatus.text = trafficString
-                    binding.profileStatus.setTextColor(
-                        binding.profileStatus.context.getColorAttr(
-                            android.R.attr.textColorSecondary
-                        )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.edit),
+                        contentDescription = stringResource(R.string.edit),
+                        modifier = Modifier.size(40.dp),
+                        onClick = edit,
                     )
-                    binding.trafficText.text = ""
-                } else {
-                    binding.profileStatus.text = ""
-                }
-            } else if (entity.status == ProxyEntity.STATUS_AVAILABLE) {
-                binding.profileStatus.text = binding.profileStatus.context.getString(
-                    R.string.available,
-                    entity.ping,
-                )
-                binding.profileStatus.setTextColor(binding.profileStatus.context.getColour(R.color.material_green_500))
-            } else {
-                binding.profileStatus.setTextColor(binding.profileStatus.context.getColour(R.color.material_red_500))
-                if (entity.status == ProxyEntity.STATUS_UNREACHABLE) {
-                    binding.profileStatus.text = entity.error
-                }
-            }
 
-            if (entity.status == ProxyEntity.STATUS_UNAVAILABLE) {
-                val err = entity.error
-                val msg = readableUrlTestError(err)
-                binding.profileStatus.text =
-                    binding.profileStatus.context.getString(msg ?: R.string.unavailable)
-                if (err != null) {
-                    binding.profileStatus.setOnClickListener {
-                        alert(err).show()
+                    val validateResult = if (showTraffic) {
+                        validateResult
+                    } else {
+                        ValidateResult.Secure
                     }
-                }
-            } else {
-                binding.profileStatus.setOnClickListener(null)
-            }
-        }
 
-        fun bindSelected(isSelected: Boolean) {
-            binding.selectedView.isInvisible = !isSelected
-        }
-
-        fun bindShare(entity: ProxyEntity) {
-            this.entity = entity
-
-            fun showShare(anchor: View) {
-                val popup = PopupMenu(anchor.context, anchor)
-                popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
-
-                if (!entity.haveStandardLink()) {
-                    popup.menu.findItem(R.id.action_group_qr).subMenu?.removeItem(R.id.action_standard_qr)
-                    popup.menu.findItem(R.id.action_group_clipboard).subMenu?.removeItem(R.id.action_standard_clipboard)
-                }
-
-                if (!entity.haveLink()) {
-                    popup.menu.removeItem(R.id.action_group_qr)
-                    popup.menu.removeItem(R.id.action_group_clipboard)
-                }
-
-                val bean = entity.requireBean()
-                if (entity.type == ProxyEntity.TYPE_CHAIN ||
-                    entity.type == ProxyEntity.TYPE_PROXY_SET ||
-                    entity.mustUsePlugin() ||
-                    (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
-                ) {
-                    popup.menu.removeItem(R.id.action_group_outbound)
-                }
-
-                popup.setOnMenuItemClickListener(this@ConfigurationHolder)
-                popup.show()
-            }
-
-            if (viewModel.forSelect) return
-
-            val validateResult = if (viewModel.securityAdvisory) {
-                entity.requireBean().isInsecure()
-            } else {
-                ValidateResult.Secure
-            }
-            when (validateResult) {
-                is ValidateResult.Insecure -> {
-                    binding.share.isVisible = true
-
-                    binding.share.setBackgroundColor(Color.RED)
-                    binding.share.setIconResource(R.drawable.warning)
-                    binding.share.setIconTint(ColorStateList.valueOf(Color.WHITE))
-
-                    binding.share.setOnClickListener {
-                        MaterialAlertDialogBuilder(it.context)
-                            .setTitle(R.string.insecure)
-                            .setMessage(
-                                resources.openRawResource(validateResult.textRes)
-                                    .bufferedReader().use { it.readText() })
-                            .setPositiveButton(android.R.string.ok) { _, _ ->
-                                showShare(it)
-                            }.show().apply {
-                                findViewById<TextView>(android.R.id.message)?.apply {
-                                    Linkify.addLinks(this, Linkify.WEB_URLS)
-                                    movementMethod = LinkMovementMethod.getInstance()
-                                }
-                            }
-                    }
-                }
-
-                is ValidateResult.Deprecated -> {
-                    binding.share.isVisible = true
-
-                    binding.share.setBackgroundColor(Color.YELLOW)
-                    binding.share.setIconResource(R.drawable.warning)
-                    binding.share.setIconTint(ColorStateList.valueOf(Color.GRAY))
-
-                    binding.share.setOnClickListener {
-                        MaterialAlertDialogBuilder(it.context)
-                            .setTitle(R.string.deprecated)
-                            .setMessage(
-                                resources.openRawResource(validateResult.textRes)
-                                    .bufferedReader().use { it.readText() })
-                            .setPositiveButton(android.R.string.ok) { _, _ ->
-                                showShare(it)
-                            }.show().apply {
-                                findViewById<TextView>(android.R.id.message)?.apply {
-                                    Linkify.addLinks(this, Linkify.WEB_URLS)
-                                    movementMethod = LinkMovementMethod.getInstance()
-                                }
-                            }
-                    }
-                }
-
-                is ValidateResult.Secure -> {
-                    binding.share.setBackgroundColor(Color.TRANSPARENT)
-                    binding.share.setIconResource(R.drawable.share)
-                    binding.share.setIconTint(
-                        ColorStateList.valueOf(
-                            binding.share.context.getColorAttr(
-                                com.google.android.material.R.attr.colorOnSurface
+                    val (shareIcon, shareBackground, shareTint) = when (validateResult) {
+                        is ValidateResult.Insecure -> {
+                            Triple(
+                                R.drawable.warning,
+                                Color.Red,
+                                Color.White,
                             )
-                        )
-                    )
-                    binding.share.isVisible = true
+                        }
 
-                    binding.share.setOnClickListener {
-                        showShare(it)
+                        is ValidateResult.Deprecated -> {
+                            Triple(
+                                R.drawable.warning,
+                                Color.Yellow,
+                                Color.Gray,
+                            )
+                        }
+
+                        is ValidateResult.Secure -> {
+                            Triple(
+                                R.drawable.share,
+                                Color.Transparent,
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    Box {
+                        val shareTooltipText = when (validateResult) {
+                            is ValidateResult.Insecure -> stringResource(R.string.insecure)
+                            is ValidateResult.Deprecated -> stringResource(R.string.deprecated)
+                            is ValidateResult.Secure -> stringResource(R.string.share)
+                        }
+                        val shareTooltipState = rememberTooltipState()
+
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(shareBackground, shape = CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    positioning = TooltipAnchorPosition.Below,
+                                ),
+                                tooltip = {
+                                    PlainTooltip {
+                                        Text(shareTooltipText)
+                                    }
+                                },
+                                state = shareTooltipState,
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        when (validateResult) {
+                                            is ValidateResult.Insecure, is ValidateResult.Deprecated -> {
+                                                showSecurityAlert = true
+                                            }
+
+                                            is ValidateResult.Secure -> {
+                                                showMenuShare = true
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.size(40.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(shareIcon),
+                                        contentDescription = shareTooltipText,
+                                        tint = shareTint,
+                                    )
+                                }
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenuShare,
+                            onDismissRequest = { showMenuShare = false },
+                        ) {
+                            if (entity.haveLink()) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.share_qr_nfc)) },
+                                onClick = {
+                                    showMenuQR = true
+                                    showMenuShare = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.qr_code),
+                                        null,
+                                    )
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                        null,
+                                    )
+                                },
+                            )
+                            if (entity.haveLink()) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                onClick = {
+                                    showMenuClipboard = true
+                                    showMenuShare = false
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                        null,
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.menu_configuration)) },
+                                onClick = {
+                                    showMenuFullConfiguration = true
+                                    showMenuShare = false
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                        null,
+                                    )
+                                },
+                            )
+
+                            val canNotShareOutbound = entity.type == ProxyEntity.TYPE_CHAIN ||
+                                    entity.type == ProxyEntity.TYPE_PROXY_SET ||
+                                    entity.mustUsePlugin() ||
+                                    (bean as? ConfigBean)?.type == ConfigBean.TYPE_CONFIG
+                            if (!canNotShareOutbound) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.outbound)) },
+                                onClick = {
+                                    showMenuOutbound = true
+                                    showMenuShare = false
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                                        null,
+                                    )
+                                },
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenuQR,
+                            onDismissRequest = { showMenuQR = false },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.share_qr_nfc),
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 12.dp,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (entity.haveStandardLink()) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.standard)) },
+                                onClick = {
+                                    showQR(entity.toStdLink())
+                                    showMenuQR = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.internal_link)) },
+                                onClick = {
+                                    showQR(bean.toUniversalLink())
+                                    showMenuQR = false
+                                },
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenuClipboard,
+                            onDismissRequest = { showMenuClipboard = false },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.action_export_clipboard),
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 12.dp,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (entity.haveStandardLink()) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.standard)) },
+                                onClick = {
+                                    scope.launch {
+                                        clipboard.setPlainText(entity.toStdLink())
+                                        onCopySuccess()
+                                    }
+                                    showMenuClipboard = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.internal_link)) },
+                                onClick = {
+                                    scope.launch {
+                                        clipboard.setPlainText(bean.toUniversalLink())
+                                        onCopySuccess()
+                                    }
+                                    showMenuClipboard = false
+                                },
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenuFullConfiguration,
+                            onDismissRequest = { showMenuFullConfiguration = false },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.menu_configuration),
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 12.dp,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                onClick = {
+                                    scope.launch {
+                                        clipboard.setPlainText(entity.exportConfig().first)
+                                        onCopySuccess()
+                                    }
+                                    showMenuFullConfiguration = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.copy_all),
+                                        null,
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_export_file)) },
+                                onClick = {
+                                    val data = entity.exportConfig()
+                                    exportToFile(data.second, data.first)
+                                    showMenuFullConfiguration = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.file_export),
+                                        null,
+                                    )
+                                },
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenuOutbound,
+                            onDismissRequest = { showMenuOutbound = false },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.outbound),
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 12.dp,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_export_clipboard)) },
+                                onClick = {
+                                    scope.launch {
+                                        clipboard.setPlainText(entity.exportOutbound().first)
+                                        onCopySuccess()
+                                    }
+                                    showMenuOutbound = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.copy_all),
+                                        null,
+                                    )
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_export_file)) },
+                                onClick = {
+                                    val data = entity.exportOutbound()
+                                    exportToFile(data.second, data.first)
+                                    showMenuOutbound = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        ImageVector.vectorResource(R.drawable.file_export),
+                                        null,
+                                    )
+                                },
+                            )
+                        }
+                    }
+
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.delete),
+                        contentDescription = stringResource(R.string.delete),
+                        modifier = Modifier.size(40.dp),
+                        onClick = delete,
+                    )
+                }
+
+                if (showMiddleRow) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 0.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        address?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        if (hasTraffic && entity.status > ProxyEntity.STATUS_INITIAL) {
+                            trafficText?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 0.dp, end = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = entity.displayType(context),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    if (statusText.isNotEmpty()) {
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = statusColor,
+                        )
                     }
                 }
             }
-        }
-
-        private fun showCode(link: String, name: String) {
-            QRCodeDialog(link, name).showAllowingStateLoss(parentFragmentManager)
-        }
-
-        private fun export(link: String) {
-            val success = clipboard.trySetPrimaryClip(link)
-            snackbar(
-                if (success) {
-                    R.string.action_export_msg
-                } else {
-                    R.string.action_export_err
-                }
-            ).show()
-        }
-
-        override fun onMenuItemClick(item: MenuItem) = try {
-            when (item.itemId) {
-                R.id.action_standard_qr -> {
-                    showCode(entity.toStdLink(), entity.displayName())
-                    true
-                }
-
-                R.id.action_standard_clipboard -> {
-                    export(entity.toStdLink())
-                    true
-                }
-
-                R.id.action_universal_qr -> {
-                    showCode(entity.requireBean().toUniversalLink(), entity.displayName())
-                    true
-                }
-
-                R.id.action_universal_clipboard -> {
-                    export(entity.requireBean().toUniversalLink())
-                    true
-                }
-
-                R.id.action_config_export_clipboard -> {
-                    export(entity.exportConfig().first)
-                    true
-                }
-
-                R.id.action_config_export_file -> {
-                    val cfg = entity.exportConfig()
-                    viewModel.exportConfig = cfg.first
-                    startFilesForResult(
-                        exportConfig, cfg.second
-                    )
-                    true
-                }
-
-                R.id.action_outbound_export_clipboard -> {
-                    export(entity.exportOutbound())
-                    true
-                }
-
-                else -> false
-            }
-        } catch (e: Exception) {
-            Logs.w(e)
-            snackbar(e.readableMessage).show()
-            true
         }
     }
 
-    private val editProfileLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                if (DataStore.currentProfile == viewModel.editingID) {
-                    needReload()
-                }
-                viewModel.editingID = null
+    if (showSecurityAlert) AlertDialog(
+        onDismissRequest = {
+            showSecurityAlert = false
+            showMenuShare = true
+        },
+        icon = {
+            Icon(ImageVector.vectorResource(R.drawable.warning), null)
+        },
+        title = {
+            Text(
+                stringResource(
+                    when (validateResult) {
+                        is ValidateResult.Insecure -> R.string.insecure
+                        is ValidateResult.Deprecated -> R.string.deprecated
+                        else -> error("impossible")
+                    },
+                ),
+            )
+        },
+        text = {
+            val rawRes = when (validateResult) {
+                is ValidateResult.Insecure -> validateResult.textRes
+                is ValidateResult.Deprecated -> validateResult.textRes
+                else -> error("impossible")
             }
-        }
-
-    private val exportConfig =
-        registerForActivityResult(CreateDocument("application/json")) { data ->
-            if (data != null) {
-                lifecycleScope.launch {
-                    try {
-                        requireActivity().contentResolver.openOutputStream(data)!!
-                            .bufferedWriter().use {
-                                it.write(viewModel.exportConfig)
-                            }
-                        onMainDispatcher {
-                            snackbar(getString(R.string.action_export_msg)).show()
-                        }
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                        onMainDispatcher {
-                            snackbar(e.readableMessage).show()
-                        }
-                    }
-
-                }
+            resources.openRawResource(rawRes).bufferedReader().use {
+                Text(it.readText())
             }
-        }
+        },
+        confirmButton = {
+            TextButton(stringResource(android.R.string.ok)) {
+                showSecurityAlert = false
+                showMenuShare = true
+            }
+        },
+    )
 }
 
 /** Make server address blurred. */

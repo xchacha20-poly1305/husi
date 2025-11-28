@@ -4,13 +4,18 @@ import android.graphics.drawable.Icon
 import android.service.quicksettings.Tile
 import androidx.annotation.RequiresApi
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.repository.repo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import android.service.quicksettings.TileService as BaseTileService
 
 @RequiresApi(24)
-class TileService : BaseTileService(), SagerConnection.Callback {
+class TileService : BaseTileService() {
     private val iconRest by lazy { Icon.createWithResource(this, R.drawable.ic_service_rest) }
     private val iconConnected by lazy {
         Icon.createWithResource(this, R.drawable.ic_service_active)
@@ -18,28 +23,30 @@ class TileService : BaseTileService(), SagerConnection.Callback {
     private var tapPending = false
 
     private val connection = SagerConnection(SagerConnection.CONNECTION_ID_TILE)
-    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) =
-        updateTile(state, profileName)
-
-    override fun onServiceConnected(service: ISagerNetService) {
-        updateTile(BaseService.State.entries[service.state], service.profileName)
-        if (tapPending) {
-            tapPending = false
-            onClick()
-        }
-    }
-
-    override fun cbSelectorUpdate(id: Long) {
-        val profile = SagerDatabase.proxyDao.getById(id) ?: return
-        updateTile(BaseService.State.Connected, profile.displayName())
-    }
+    private var observeJob: Job? = null
+    private val scope = CoroutineScope(Dispatchers.Main.immediate)
 
     override fun onStartListening() {
         super.onStartListening()
-        connection.connect(this, this)
+        connection.connect(this)
+        observeJob = scope.launch {
+            combine(connection.status, connection.service) { status, service ->
+                status to service
+            }.collect { (status, service) ->
+                if (service != null) {
+                    updateTile(status.state, status.profileName)
+                    if (tapPending) {
+                        tapPending = false
+                        onClick()
+                    }
+                }
+            }
+        }
     }
 
     override fun onStopListening() {
+        observeJob?.cancel()
+        observeJob = null
         connection.disconnect(this)
         super.onStopListening()
     }
@@ -81,12 +88,16 @@ class TileService : BaseTileService(), SagerConnection.Callback {
     }
 
     private fun toggle() {
-        val service = connection.service
-        if (service == null) tapPending =
-            true else BaseService.State.entries[service.state].let { state ->
-            when {
-                state.canStop -> repo.stopService()
-                state == BaseService.State.Stopped -> repo.startService()
+        scope.launch {
+            val service = connection.service.value
+            if (service == null) {
+                tapPending = true
+            } else {
+                val state = BaseService.State.entries[service.state]
+                when {
+                    state.canStop -> repo.stopService()
+                    state == BaseService.State.Stopped -> repo.startService()
+                }
             }
         }
     }

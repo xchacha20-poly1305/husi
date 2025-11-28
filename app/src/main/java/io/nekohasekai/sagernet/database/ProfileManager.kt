@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.database
 
 import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
@@ -22,35 +21,6 @@ import java.util.Locale
 
 object ProfileManager {
 
-    interface Listener {
-        suspend fun onAdd(profile: ProxyEntity)
-        suspend fun onUpdated(data: TrafficData)
-        suspend fun onUpdated(profile: ProxyEntity)
-        suspend fun onRemoved(groupId: Long, profileId: Long)
-    }
-
-    private val listeners = ArrayList<Listener>()
-
-    suspend fun iterator(what: suspend Listener.() -> Unit) {
-        synchronized(listeners) {
-            listeners.toList()
-        }.forEach { listener ->
-            what(listener)
-        }
-    }
-
-    fun addListener(listener: Listener) {
-        synchronized(listeners) {
-            listeners.add(listener)
-        }
-    }
-
-    fun removeListener(listener: Listener) {
-        synchronized(listeners) {
-            listeners.remove(listener)
-        }
-    }
-
     suspend fun createProfile(groupId: Long, bean: AbstractBean): ProxyEntity {
         bean.applyDefaultValues()
 
@@ -60,25 +30,19 @@ object ProfileManager {
             userOrder = SagerDatabase.proxyDao.nextOrder(groupId) ?: 1
         }
         profile.id = SagerDatabase.proxyDao.addProxy(profile)
-        iterator { onAdd(profile) }
         return profile
     }
 
     suspend fun updateProfile(profile: ProxyEntity) {
         SagerDatabase.proxyDao.updateProxy(profile)
-        iterator { onUpdated(profile) }
     }
 
     suspend fun updateProfile(profiles: List<ProxyEntity>) {
         SagerDatabase.proxyDao.updateProxy(profiles)
-        profiles.forEach {
-            iterator { onUpdated(it) }
-        }
     }
 
     suspend fun updateTraffic(profile: ProxyEntity, tx: Long?, rx: Long?) {
         SagerDatabase.proxyDao.updateTraffic(profile.id, tx, rx)
-        iterator { onUpdated(profile) }
     }
 
     suspend fun deleteProfile(groupId: Long, profileId: Long) {
@@ -86,7 +50,6 @@ object ProfileManager {
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
         }
-        iterator { onRemoved(groupId, profileId) }
         if (SagerDatabase.proxyDao.countByGroup(groupId).first() > 1) {
             GroupManager.rearrange(groupId)
         }
@@ -97,11 +60,6 @@ object ProfileManager {
         SagerDatabase.proxyDao.deleteProxies(profileIDs)
         if (profileIDs.contains(DataStore.selectedProxy)) {
             DataStore.selectedProxy = 0L
-        }
-        iterator {
-            profileIDs.forEach { profileId ->
-                onRemoved(groupId, profileId)
-            }
         }
         if (SagerDatabase.proxyDao.countByGroup(groupId).first() > 1) {
             GroupManager.rearrange(groupId)
@@ -130,23 +88,6 @@ object ProfileManager {
             Logs.w(ex)
             listOf()
         }
-    }
-
-    // postUpdate: post to listeners, not change the DB
-
-    /**
-     * If you already have ProxyEntity, please use it as first param instead of use id.
-     */
-    suspend fun postUpdate(profileId: Long) {
-        postUpdate(getProfile(profileId) ?: return)
-    }
-
-    suspend fun postUpdate(profile: ProxyEntity) {
-        iterator { onUpdated(profile) }
-    }
-
-    suspend fun postUpdate(data: TrafficData) {
-        iterator { onUpdated(data) }
     }
 
     suspend fun createRule(rule: RuleEntity, post: Boolean = true): RuleEntity {
@@ -257,6 +198,24 @@ object ProfileManager {
                         ), false
                     )
                 }
+            }
+        }
+    }
+
+    /**
+     * Get all groups as a Flow with automatic initialization.
+     *
+     * This is a wrapper around [SagerDatabase.groupDao.allGroups] that ensures at least one
+     * group exists. When the Flow is first collected, it checks if the group list is empty
+     * and creates a default ungrouped group if needed.
+     *
+     * Always use this method instead of calling the DAO directly to ensure proper initialization.
+     */
+    fun getGroups(): Flow<List<ProxyGroup>> {
+        return SagerDatabase.groupDao.allGroups().onStart {
+            val currentGroups = SagerDatabase.groupDao.allGroups().first()
+            if (currentGroups.isEmpty()) {
+                SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
             }
         }
     }

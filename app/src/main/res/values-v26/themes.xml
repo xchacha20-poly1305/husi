@@ -1,30 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
+
+    <style name="Theme.Start" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
-
-        <item name="colorPrimary">@color/material_pink_500</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/material_pink_100</item>
-        <item name="colorOnPrimaryContainer">@color/material_pink_900</item>
-        <item name="colorSecondary">@color/material_pink_accent_200</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSecondaryContainer">@color/material_pink_100</item>
-        <item name="colorOnSecondaryContainer">@color/material_pink_900</item>
-        <item name="colorTertiary">@color/material_purple_500</item>
-        <item name="colorOnTertiary">@color/white</item>
-        <item name="colorTertiaryContainer">@color/material_purple_100</item>
-        <item name="colorOnTertiaryContainer">@color/material_purple_900</item>
-
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowNoTitle">true</item>
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeCloseDrawable">@drawable/close</item>
-
-        <item name="selectedColorPrimary">?colorPrimary</item>
-
-        <item name="chipStyle">@style/Widget.App.Chip.Choice</item>
-        <item name="itemShapeAppearance">@style/ShapeAppearance.Material3.MediumComponent</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
     </style>
 </resources>

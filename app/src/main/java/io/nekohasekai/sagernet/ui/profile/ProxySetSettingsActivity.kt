@@ -384,7 +384,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                                     Intent(
                                         this@ProxySetSettingsActivity,
                                         ProfileSelectActivity::class.java,
-                                    ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile),
+                                    ).putExtra(ProfileSelectActivity.EXTRA_SELECTED, profile.id),
                                 )
                             },
                             icon = ImageVector.vectorResource(R.drawable.edit),

@@ -20,6 +20,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.repository.repo
@@ -55,9 +56,6 @@ abstract class GroupUpdater {
         val networkStrategy = DataStore.networkStrategy
         val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
         val lookupJobs = mutableListOf<Job>()
-        if (groupId != null) {
-            GroupManager.postReload(groupId)
-        }
         val ipv6First = when (networkStrategy) {
             SingBoxOptions.STRATEGY_IPV6_ONLY, SingBoxOptions.STRATEGY_PREFER_IPV6 -> true
             else -> false
@@ -71,30 +69,29 @@ abstract class GroupUpdater {
 
             if (profile.serverAddress.isIpAddress()) continue
 
-            lookupJobs.add(GlobalScope.launch(lookupPool) {
-                try {
-                    val results = if (
-                        DataStore.enableFakeDns &&
-                        DataStore.serviceState.started &&
-                        DataStore.serviceMode == Key.MODE_VPN
-                    ) {
-                        // FakeDNS
-                        DefaultNetworkMonitor.require()
-                            .getAllByName(profile.serverAddress)
-                            .filterNotNull()
-                    } else {
-                        // System DNS is enough (when VPN connected, it uses v2ray-core)
-                        InetAddress.getAllByName(profile.serverAddress).filterNotNull()
+            lookupJobs.add(
+                GlobalScope.launch(lookupPool) {
+                    try {
+                        val results = if (
+                            DataStore.enableFakeDns &&
+                            DataStore.serviceState.started &&
+                            DataStore.serviceMode == Key.MODE_VPN
+                        ) {
+                            // FakeDNS
+                            DefaultNetworkMonitor.require()
+                                .getAllByName(profile.serverAddress)
+                                .filterNotNull()
+                        } else {
+                            // System DNS is enough (when VPN connected, it uses v2ray-core)
+                            InetAddress.getAllByName(profile.serverAddress).filterNotNull()
+                        }
+                        if (results.isEmpty()) error("empty response")
+                        rewriteAddress(profile, results, ipv6First)
+                    } catch (e: Exception) {
+                        Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
                     }
-                    if (results.isEmpty()) error("empty response")
-                    rewriteAddress(profile, results, ipv6First)
-                } catch (e: Exception) {
-                    Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
-                }
-                if (groupId != null) {
-                    GroupManager.postReload(groupId)
-                }
-            })
+                },
+            )
         }
 
         lookupJobs.joinAll()
@@ -159,7 +156,9 @@ abstract class GroupUpdater {
 
         if (subscription.forceResolve) forceResolve(newProxies, proxyGroup.id)
 
-        val exists = SagerDatabase.proxyDao.getByGroup(proxyGroup.id)
+        val exists = onIoDispatcher {
+            SagerDatabase.proxyDao.getByGroup(proxyGroup.id).first()
+        }
         val duplicate = ArrayList<String>()
         if (subscription.deduplication) {
             Logs.d("Before deduplication: ${newProxies.size}")
@@ -243,10 +242,11 @@ abstract class GroupUpdater {
                 changed++
                 SagerDatabase.proxyDao.addProxy(
                     ProxyEntity(
-                        groupId = proxyGroup.id, userOrder = userOrder
+                        groupId = proxyGroup.id, userOrder = userOrder,
                     ).apply {
                         putBean(bean)
-                    })
+                    },
+                )
                 added.add(name)
                 Logs.d("Inserted profile: $name")
             }
@@ -272,7 +272,7 @@ abstract class GroupUpdater {
         finishUpdate(proxyGroup)
 
         userInterface?.onUpdateSuccess(
-            proxyGroup, changed, added, updated, deleted, duplicate, byUser
+            proxyGroup, changed, added, updated, deleted, duplicate, byUser,
         )
     }
 
@@ -299,7 +299,6 @@ abstract class GroupUpdater {
                     }
                 }
                 if (!added) cancel()
-                GroupManager.postReload(proxyGroup.id)
 
                 val subscription = proxyGroup.subscription!!
                 val connected = DataStore.serviceState.connected
@@ -332,7 +331,6 @@ abstract class GroupUpdater {
 
         suspend fun finishUpdate(proxyGroup: ProxyGroup) {
             _updatingGroups.update { it - proxyGroup.id }
-            GroupManager.postUpdate(proxyGroup)
         }
 
     }

@@ -24,7 +24,6 @@ import io.nekohasekai.sagernet.repository.SagerRepository
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.CrashHandler
 import io.nekohasekai.sagernet.utils.PackageCache
-import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import libcore.Libcore
@@ -96,8 +95,6 @@ class SagerNet : Application(),
         }
 
         if (isMainProcess) {
-            Theme.apply(this)
-            Theme.applyNightTheme()
             runOnDefaultDispatcher {
                 DefaultNetworkMonitor.start()
             }

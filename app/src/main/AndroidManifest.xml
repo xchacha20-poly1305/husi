@@ -260,7 +260,7 @@
             android:name=".ui.SwitchActivity"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
-            android:theme="@style/Theme.SagerNet.Dialog" />
+            android:theme="@style/Theme.Dialog" />
 
         <service
             android:name=".bg.ProxyService"

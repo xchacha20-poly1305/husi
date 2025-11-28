@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -16,12 +17,11 @@ import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
-import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.compose.theme.getPrimaryColor
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.SwitchActivity
-import io.nekohasekai.sagernet.utils.Theme
 
 /**
  * User can customize visibility of notification since Android 8.
@@ -126,9 +126,7 @@ class ServiceNotification(
     init {
         service as Context
 
-        Theme.apply(repo.context)
-        Theme.apply(service)
-        builder.color = service.getColorAttr(androidx.appcompat.R.attr.colorPrimary)
+        builder.color = service.getPrimaryColor()
 
         service.registerReceiver(this, IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
@@ -180,6 +178,7 @@ class ServiceNotification(
     private suspend fun show() =
         useBuilder { (service as Service).startForeground(notificationId, it.build()) }
 
+    @SuppressLint("MissingPermission")
     private suspend fun update() = useBuilder {
         NotificationManagerCompat.from(service as Service).notify(notificationId, it.build())
     }
