@@ -100,6 +100,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 onValueChange = { viewModel.setHopInterval(it) },
                 title = { Text(stringResource(R.string.hop_interval)) },
                 textToValue = { it },
+                enabled = uiState.ports.toIntOrNull() == null,
                 icon = { Icon(ImageVector.vectorResource(R.drawable.timelapse), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.hopInterval)) },
                 valueToText = { it },
