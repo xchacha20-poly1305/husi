@@ -149,6 +149,11 @@ class BaseService {
                 callbacks.register(cb)
             }
             callbackIdMap[cb] = id
+            val currentState = data?.state
+            if (currentState != null) try {
+                cb.stateChanged(currentState.ordinal, getProfileName(), null)
+            } catch (_: RemoteException) {
+            }
         }
 
         private val broadcastMutex = Mutex()
