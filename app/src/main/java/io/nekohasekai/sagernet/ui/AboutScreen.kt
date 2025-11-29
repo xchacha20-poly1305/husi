@@ -183,6 +183,7 @@ fun AboutScreen(
         bottomBar = {
             if (serviceStatus.state == BaseService.State.Connected) {
                 StatsBar(
+                    status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
                     service = service,

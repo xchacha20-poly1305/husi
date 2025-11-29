@@ -789,6 +789,7 @@ fun ConfigurationScreen(
         bottomBar = {
             if (selectCallback == null && serviceStatus?.state == BaseService.State.Connected) {
                 StatsBar(
+                    status = serviceStatus!!,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
                     service = service,

@@ -26,19 +26,23 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.bg.ServiceStatus
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.ui.MainViewModel
+import io.nekohasekai.sagernet.ui.URLTestStatus
 import kotlinx.coroutines.flow.map
 
 @Composable
 fun StatsBar(
     modifier: Modifier = Modifier,
+    status: ServiceStatus,
     visible: Boolean = true,
     mainViewModel: MainViewModel,
     service: ISagerNetService?,
 ) {
     val context = LocalContext.current
-    val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
+    val urlTestStatus by mainViewModel.urlTestStatus.collectAsStateWithLifecycle()
     val isHTTPS by DataStore.configurationStore
         .stringFlow(Key.CONNECTION_TEST_URL)
         .map { it.startsWith("https://") }
@@ -58,10 +62,9 @@ fun StatsBar(
             .then(
                 if (visible) {
                     Modifier.clickable { mainViewModel.urlTest(service) }
-                }
-                else {
+                } else {
                     Modifier
-                }
+                },
             ),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 4.dp,
@@ -72,26 +75,39 @@ fun StatsBar(
             Text(
                 text = "▲ " + stringResource(
                     R.string.speed,
-                    Formatter.formatFileSize(context, uiState.txSpeed),
+                    Formatter.formatFileSize(context, status.speed?.txRateProxy ?: 0L),
                 ),
             )
             Text(
                 text = "▼ " + stringResource(
                     R.string.speed,
-                    Formatter.formatFileSize(context, uiState.rxSpeed),
+                    Formatter.formatFileSize(context, status.speed?.rxRateProxy ?: 0L),
                 ),
             )
             Spacer(modifier = Modifier.height(4.dp))
-            val text = if (uiState.urlTestResult == null) {
-                stringResource(R.string.vpn_connected)
-            } else stringResource(
-                if (isHTTPS) {
-                    R.string.connection_test_available
-                } else {
-                    R.string.connection_test_available_http
-                },
-                uiState.urlTestResult!!,
-            )
+            val text = when (urlTestStatus) {
+                URLTestStatus.Initial -> stringResource(R.string.vpn_connected)
+                URLTestStatus.Testing -> stringResource(R.string.connection_test_testing)
+
+                is URLTestStatus.Success -> stringResource(
+                    if (isHTTPS) {
+                        R.string.connection_test_available
+                    } else {
+                        R.string.connection_test_available_http
+                    },
+                    (urlTestStatus as URLTestStatus.Success).legacy,
+                )
+
+                is URLTestStatus.Exception -> {
+                    val exception = (urlTestStatus as URLTestStatus.Exception).exception
+                    stringResource(
+                        R.string.connection_test_error,
+                        readableUrlTestError(exception)?.let {
+                            stringResource(it)
+                        } ?: exception,
+                    )
+                }
+            }
             Text(text)
         }
     }

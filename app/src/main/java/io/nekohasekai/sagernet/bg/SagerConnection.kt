@@ -20,12 +20,14 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 @Immutable
 data class ServiceStatus(
     val state: BaseService.State = BaseService.State.Idle,
     val profileName: String? = null,
     val message: String? = null,
+    val speed: SpeedDisplayData? = null,
 )
 
 @Immutable
@@ -56,9 +58,6 @@ class SagerConnection(
     private val _status = MutableStateFlow(ServiceStatus())
     val status: StateFlow<ServiceStatus> = _status.asStateFlow()
 
-    private val _speed = MutableStateFlow(SpeedDisplayData())
-    val speed: StateFlow<SpeedDisplayData> = _speed.asStateFlow()
-
     private val _service = MutableStateFlow<ISagerNetService?>(null)
     val service: StateFlow<ISagerNetService?> = _service.asStateFlow()
 
@@ -86,7 +85,9 @@ class SagerConnection(
         }
 
         override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-            _speed.value = stats
+            _status.update {
+                it.copy(speed = stats)
+            }
         }
 
         override fun missingPlugin(profileName: String, pluginName: String) {
@@ -117,6 +118,9 @@ class SagerConnection(
             e.printStackTrace()
         }
         _service.value = service
+        _status.update {
+            it.copy(speed = null)
+        }
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
