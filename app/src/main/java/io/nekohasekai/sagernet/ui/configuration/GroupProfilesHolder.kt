@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
@@ -179,6 +179,8 @@ internal fun GroupHolderScreen(
         exportConfig = ""
     }
 
+    var showErrorAlert by remember { mutableStateOf<String?>(null) }
+
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -223,6 +225,7 @@ internal fun GroupHolderScreen(
                             showSnackbar(StringOrRes.Res(it))
                         }
                     },
+                    showErrorAlert = { item.profile.error?.let { showErrorAlert = it } },
                     onCopySuccess = onCopySuccess,
                     showAddress = showAddress,
                     blurAddress = blurAddress,
@@ -239,6 +242,20 @@ internal fun GroupHolderScreen(
             ),
         )
     }
+
+    if (showErrorAlert != null) AlertDialog(
+        onDismissRequest = { showErrorAlert = null },
+        confirmButton = {
+            TextButton(stringResource(android.R.string.ok)) {
+                showErrorAlert = null
+            }
+        },
+        icon = {
+            Icon(ImageVector.vectorResource(R.drawable.error), null)
+        },
+        title = { Text(stringResource(R.string.error_title)) },
+        text = { Text(showErrorAlert!!) },
+    )
 }
 
 @Composable
@@ -251,6 +268,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     showQR: (url: String) -> Unit,
     onCopySuccess: () -> Unit,
     exportToFile: (name: String, config: String) -> Unit,
+    showErrorAlert: () -> Unit,
     showAddress: Boolean,
     blurAddress: Boolean,
     showTraffic: Boolean,
@@ -272,7 +290,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
 
     val hasTraffic = entity.tx + entity.rx > 0L
     val trafficText = hasTraffic.takeIf { showTraffic }?.let {
-        context.getString(
+        stringResource(
             R.string.traffic,
             Formatter.formatFileSize(context, entity.tx),
             Formatter.formatFileSize(context, entity.rx),
@@ -285,21 +303,24 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
         }
 
         ProxyEntity.STATUS_AVAILABLE -> {
-            context.getString(
+            stringResource(
                 R.string.available,
                 entity.ping,
             ) to Color(context.getColour(R.color.material_green_500))
         }
 
         ProxyEntity.STATUS_UNAVAILABLE -> {
-            val msgRes = readableUrlTestError(entity.error)
-            context.getString(
-                msgRes ?: R.string.unavailable,
-            ) to Color(context.getColour(R.color.material_red_500))
+            val text = entity.error?.takeUnless { it.isBlank() }
+                ?: readableUrlTestError(entity.error)?.let { stringResource(it) }
+                ?: stringResource(R.string.unavailable)
+            text to Color(context.getColour(R.color.material_red_500))
         }
 
         ProxyEntity.STATUS_UNREACHABLE -> {
-            entity.error.orEmpty() to Color(context.getColour(R.color.material_red_500))
+            val text = entity.error?.takeUnless { it.isBlank() }
+                ?: readableUrlTestError(entity.error)?.let { stringResource(it) }
+                ?: stringResource(R.string.connection_test_unreachable)
+            text to Color(context.getColour(R.color.material_red_500))
         }
 
         else -> "" to MaterialTheme.colorScheme.onSurfaceVariant
@@ -721,6 +742,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                     if (statusText.isNotEmpty()) {
                         Text(
                             text = statusText,
+                            modifier = Modifier.clickable(onClick = showErrorAlert),
                             style = MaterialTheme.typography.bodyMedium,
                             color = statusColor,
                         )

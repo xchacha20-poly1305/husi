@@ -45,6 +45,7 @@ import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import java.net.InetAddress
 import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipInputStream
 
 @Stable
@@ -81,7 +82,6 @@ sealed interface TestResult {
     data class Failure(val reason: FailureReason) : TestResult
 }
 
-/** Let UI map tp the R class resource. */
 @Stable
 sealed interface FailureReason {
     object InvalidConfig : FailureReason
@@ -112,6 +112,7 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
     val selectedGroup = DataStore.configurationStore.longFlow(Key.PROFILE_GROUP)
 
     private val childViewModels = mutableMapOf<Long, GroupProfilesHolderViewModel>()
+    private val testErrorMessages = ConcurrentHashMap<Long, String>()
 
     init {
         viewModelScope.launch {
@@ -163,6 +164,7 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
             TestType.URLTest -> ::urlTest
         }
 
+        testErrorMessages.clear()
         testJob = viewModelScope.launch {
             val proxies = SagerDatabase.proxyDao.getByGroup(group).first()
             val totalCount = proxies.size
@@ -206,13 +208,22 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
                         }
                     }
             } finally {
-                saveResultsAndFinish(group, results)
+                saveResultsAndFinish(results)
             }
         }
     }
 
-    private fun saveResultsAndFinish(group: Long, results: List<ProfileTestResult>) {
+    fun rememberDisplayedError(profileId: Long, message: String?) {
+        if (message.isNullOrEmpty()) {
+            testErrorMessages.remove(profileId)
+        } else {
+            testErrorMessages[profileId] = message
+        }
+    }
+
+    private fun saveResultsAndFinish(results: List<ProfileTestResult>) {
         viewModelScope.launch(Dispatchers.IO) {
+            val displayedErrors = testErrorMessages.toMap()
             results.forEach {
                 try {
                     when (val result = it.result) {
@@ -236,6 +247,13 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
                                 is FailureReason.Generic, FailureReason.TcpUnavailable -> ProxyEntity.STATUS_UNAVAILABLE
                             }
+
+                            val displayedError = displayedErrors[it.profile.id]
+                            it.profile.error = when (result.reason) {
+                                is FailureReason.Generic -> displayedError ?: result.reason.message
+                                is FailureReason.PluginNotFound -> displayedError ?: result.reason.message
+                                else -> displayedError
+                            }
                         }
                     }
                     ProfileManager.updateProfile(it.profile)
@@ -247,6 +265,7 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
             onDefaultDispatcher {
                 _uiState.update { state -> state.copy(testState = null) }
             }
+            testErrorMessages.clear()
         }
     }
 
