@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"net"
@@ -15,7 +16,6 @@ import (
 	_ "github.com/sagernet/sing-box/common/certificate"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing/common/buf"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
@@ -101,10 +101,12 @@ func tryAddCert(pool *x509.CertPool, raw []byte) bool {
 	return true
 }
 
+const typeCert = "CERTIFICATE"
+
 // GetCert try to get cert from create a connection to address with serverName as SNI.
 // mode can choose TLS or QUIC.
 // proxy is a socks5 URL for dialer.
-func GetCert(address, serverName, mode, format, proxy string) (string, error) {
+func GetCert(address, serverName, mode, proxy string) (string, error) {
 	target := M.ParseSocksaddr(address)
 	if target.Port == 0 {
 		target.Port = 443
@@ -158,39 +160,43 @@ func GetCert(address, serverName, mode, format, proxy string) (string, error) {
 		return "", err
 	}
 
-	const typeCert = "CERTIFICATE"
-	certBuffer := func() *bytes.Buffer {
-		buffer := bytes.NewBuffer(buf.Get(buf.BufferSize)[:0])
-		for _, cert := range certs {
-			_ = pem.Encode(buffer, &pem.Block{
-				Type:  typeCert,
-				Bytes: cert.Raw,
-			})
-		}
-		return buffer
-	}
-	switch format {
-	case "v2ray":
-		buffer := certBuffer()
-		defer buf.Put(buffer.Bytes())
-		base64Hash := raybridge.CalculatePEMCertHash(buffer.Bytes())
-		return string(base64Hash), nil
-	case "hysteria":
-		cert := certs[0]
-		buffer := bytes.NewBuffer(buf.Get(buf.BufferSize)[:0])
-		defer buf.Put(buffer.Bytes())
+	buffer := bytes.NewBuffer(nil)
+	for _, cert := range certs {
 		_ = pem.Encode(buffer, &pem.Block{
 			Type:  typeCert,
 			Bytes: cert.Raw,
 		})
-		hash := sha256.Sum256(buffer.Bytes())
-		hashHex := hex.EncodeToString(hash[:])
-		return hashHex, nil
-	case "raw":
-		fallthrough
-	default:
-		buffer := certBuffer()
-		defer buf.Put(buffer.Bytes())
-		return buffer.String(), nil
 	}
+	return buffer.String(), nil
+}
+
+func ToV2RayPemHash(rawPem string) string {
+	return string(raybridge.CalculatePEMCertHash([]byte(rawPem)))
+}
+
+func ToHysteriaHexSha256(rawPem string) string {
+	block, _ := pem.Decode([]byte(rawPem))
+	if block == nil {
+		return ""
+	}
+	sum256 := sha256.Sum256(block.Bytes)
+	hashHex := hex.EncodeToString(sum256[:])
+	return hashHex
+}
+
+func ToSingPublicKeySha256(rawPem string) (string, error) {
+	block, _ := pem.Decode([]byte(rawPem))
+	if block == nil {
+		return "", E.New("failed to decode pem")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return "", E.Cause(err, "parse certificate")
+	}
+	publicKey, err := x509.MarshalPKIXPublicKey(cert.PublicKey)
+	if err != nil {
+		return "", E.Cause(err, "marshal public key")
+	}
+	sum256 := sha256.Sum256(publicKey)
+	return base64.StdEncoding.EncodeToString(sum256[:]), nil
 }

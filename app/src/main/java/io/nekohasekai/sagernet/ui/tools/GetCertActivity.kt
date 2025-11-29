@@ -57,6 +57,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -151,15 +152,10 @@ private fun GetCertContent(
     viewModel: GetCertActivityViewModel,
     copyToClipboard: (String) -> Unit,
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var alert by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is GetCertUiEvent.Alert -> alert = event.e.readableMessage
-            }
-        }
+    LaunchedEffect(uiState.alert) {
+        alert = uiState.alert?.readableMessage
     }
 
     Column(
@@ -179,7 +175,7 @@ private fun GetCertContent(
                     .fillMaxWidth(),
             ) {
                 OutlinedTextField(
-                    value = state.server,
+                    value = uiState.server,
                     onValueChange = { viewModel.setServer(it) },
                     label = { Text(stringResource(R.string.get_cert_server_hint)) },
                     singleLine = true,
@@ -188,7 +184,7 @@ private fun GetCertContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
-                    value = state.serverName,
+                    value = uiState.serverName,
                     onValueChange = { viewModel.setServerName(it) },
                     label = { Text(stringResource(R.string.sni)) },
                     singleLine = true,
@@ -198,7 +194,7 @@ private fun GetCertContent(
 
                 DropDownSelector(
                     label = { Text(stringResource(R.string.protocol)) },
-                    value = state.protocol,
+                    value = uiState.protocol,
                     values = listOf("https", "quic"),
                     onValueChange = { viewModel.setProtocol(it) },
                     displayValue = { it },
@@ -208,16 +204,15 @@ private fun GetCertContent(
 
                 DropDownSelector(
                     label = { Text(stringResource(R.string.format)) },
-                    value = state.format,
-                    values = listOf("raw", "v2ray", "hysteria"),
+                    value = uiState.format,
+                    values = Format.entries,
                     onValueChange = { viewModel.setFormat(it) },
-                    displayValue = { it },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
-                    value = state.proxy,
+                    value = uiState.proxy,
                     onValueChange = { viewModel.setProxy(it) },
                     label = { Text(stringResource(R.string.route_proxy)) },
                     singleLine = true,
@@ -234,15 +229,39 @@ private fun GetCertContent(
         ) {
             Button(
                 onClick = { viewModel.launch() },
-                enabled = !state.isDoing,
+                enabled = !uiState.isDoing,
             ) {
                 Text(stringResource(R.string.start))
             }
         }
 
+        if (uiState.formatted.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                ) {
+                    CopyButton {
+                        copyToClipboard(uiState.formatted)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SelectionContainer {
+                        Text(
+                            text = uiState.formatted,
+                            fontFamily = FontFamily.Monospace,
+                        )
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
-
-
         OutlinedCard(
             modifier = Modifier
                 .fillMaxWidth()
@@ -255,7 +274,7 @@ private fun GetCertContent(
                     .fillMaxWidth(),
             ) {
                 Crossfade(
-                    targetState = state.isDoing,
+                    targetState = uiState.isDoing,
                     animationSpec = tween(durationMillis = 300),
                 ) { isDoing ->
                     if (isDoing) {
@@ -265,25 +284,15 @@ private fun GetCertContent(
                         ) { LoadingIndicator() }
                     } else {
                         Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
-                            ) {
-                                TooltipIconButton(
-                                    onClick = {
-                                        copyToClipboard(state.cert)
-                                    },
-                                    icon = ImageVector.vectorResource(R.drawable.content_copy),
-                                    contentDescription = stringResource(R.string.action_copy),
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                                    ),
-                                )
+                            CopyButton {
+                                copyToClipboard(uiState.cert)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             SelectionContainer {
-                                Text(text = state.cert)
+                                Text(
+                                    text = uiState.cert,
+                                    fontFamily = FontFamily.Monospace,
+                                )
                             }
                         }
                     }
@@ -305,6 +314,24 @@ private fun GetCertContent(
         title = { Text(stringResource(R.string.error_title)) },
         text = { Text(alert!!) },
     )
+}
+
+@Composable
+private fun CopyButton(modifier: Modifier = Modifier, copy: () -> Unit) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        TooltipIconButton(
+            onClick = copy,
+            icon = ImageVector.vectorResource(R.drawable.content_copy),
+            contentDescription = stringResource(R.string.action_copy),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+        )
+    }
 }
 
 @Preview
