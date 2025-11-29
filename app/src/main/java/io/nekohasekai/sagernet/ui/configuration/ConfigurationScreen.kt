@@ -10,6 +10,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -972,7 +973,10 @@ fun ConfigurationScreen(
                 Icon(ImageVector.vectorResource(R.drawable.ecg), null)
             },
             text = {
-                Column {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
                     LoadingIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -980,62 +984,63 @@ fun ConfigurationScreen(
                         val profile = result.profile
                         val (statusText, statusColor) = when (val testResult = result.result) {
                             is TestResult.Success -> {
-                                val ping = testResult.ping
-                                context.getString(
-                                    R.string.connection_test_available,
-                                    ping,
-                                ) to MaterialTheme.colorScheme.primary
+                                "${testResult.ping}ms" to MaterialTheme.colorScheme.primary
                             }
 
                             is TestResult.Failure -> {
                                 val text = when (val reason = testResult.reason) {
                                     FailureReason.InvalidConfig ->
-                                        context.getString(
+                                        stringResource(
                                             R.string.connection_test_error,
                                             "Invalid Config",
                                         )
 
                                     FailureReason.DomainNotFound -> {
-                                        context.getString(R.string.connection_test_domain_not_found)
+                                        stringResource(R.string.connection_test_domain_not_found)
                                     }
 
                                     FailureReason.IcmpUnavailable -> {
-                                        context.getString(R.string.connection_test_icmp_ping_unavailable)
+                                        stringResource(R.string.connection_test_icmp_ping_unavailable)
                                     }
 
                                     FailureReason.TcpUnavailable -> {
-                                        context.getString(R.string.connection_test_tcp_ping_unavailable)
+                                        stringResource(R.string.connection_test_tcp_ping_unavailable)
                                     }
 
                                     FailureReason.ConnectionRefused -> {
-                                        context.getString(R.string.connection_test_refused)
+                                        stringResource(R.string.connection_test_refused)
                                     }
 
                                     FailureReason.NetworkUnreachable -> {
-                                        context.getString(R.string.connection_test_unreachable)
+                                        stringResource(R.string.connection_test_unreachable)
                                     }
 
                                     FailureReason.Timeout -> {
-                                        context.getString(R.string.connection_test_timeout)
+                                        stringResource(R.string.connection_test_timeout)
                                     }
 
-                                    is FailureReason.Generic -> context.getString(
-                                        R.string.connection_test_error,
-                                        reason.message ?: "Unknown",
-                                    )
+                                    is FailureReason.Generic -> reason.message ?: "Unknown"
 
-                                    is FailureReason.PluginNotFound -> context.getString(
-                                        R.string.connection_test_error,
-                                        reason.message,
-                                    )
+                                    is FailureReason.PluginNotFound -> reason.message
                                 }
                                 text to MaterialTheme.colorScheme.error
                             }
                         }
 
+                        LaunchedEffect(profile.id, statusText, result.result) {
+                            vm.rememberDisplayedError(
+                                profile.id,
+                                statusText.takeIf { result.result is TestResult.Failure },
+                            )
+                        }
+
                         Text(profile.displayName())
                         Spacer(modifier = Modifier.height(4.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text(
                                 text = profile.displayType(context),
                                 color = MaterialTheme.colorScheme.primary,
