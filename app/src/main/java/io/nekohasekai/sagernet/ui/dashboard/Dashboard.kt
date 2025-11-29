@@ -319,6 +319,7 @@ fun DashboardScreen(
         bottomBar = {
             if (serviceStatus.state == BaseService.State.Connected) {
                 StatsBar(
+                    status = serviceStatus,
                     visible = bottomVisible,
                     mainViewModel = mainViewModel,
                     service = service,

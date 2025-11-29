@@ -42,15 +42,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @Immutable
-data class MainUiState(
-    val txSpeed: Long = 0,
-    val rxSpeed: Long = 0,
-    val urlTestResult: Int? = null,
-)
+sealed interface URLTestStatus {
+    object Initial : URLTestStatus
+    object Testing : URLTestStatus
+    class Success(val legacy: Int) : URLTestStatus
+    class Exception(val exception: String) : URLTestStatus
+}
 
 @Immutable
 data class AlertButton(
@@ -78,13 +78,11 @@ sealed interface MainViewModelUiEvent {
 @Stable
 class MainViewModel() : ViewModel(), GroupManager.Interface {
 
-    private val _uiState = MutableStateFlow(MainUiState())
-    val uiState = _uiState.asStateFlow()
+    private val _urlTestStatus = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
+    val urlTestStatus = _urlTestStatus.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<MainViewModelUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
-
-    private val urlTestRunning = AtomicBoolean(false)
 
     private fun alertDialog(
         message: StringOrRes,
@@ -131,24 +129,20 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
     }
 
     fun urlTest(service: ISagerNetService?) = viewModelScope.launch(Dispatchers.IO) {
-        if (!urlTestRunning.compareAndSet(expectedValue = false, newValue = true)) {
-            return@launch
+        _urlTestStatus.update { status ->
+            if (status == URLTestStatus.Testing) {
+                return@launch
+            }
+            URLTestStatus.Testing
         }
         try {
             if (!DataStore.serviceState.connected || service == null) {
                 error("not started")
             }
             val result = service.urlTest(null)
-            _uiState.update {
-                it.copy(urlTestResult = result)
-            }
+            _urlTestStatus.update { URLTestStatus.Success(result) }
         } catch (e: Exception) {
-            _uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
-            _uiState.update {
-                it.copy(urlTestResult = null)
-            }
-        } finally {
-            urlTestRunning.store(false)
+            _urlTestStatus.update { URLTestStatus.Exception(e.readableMessage) }
         }
     }
 
