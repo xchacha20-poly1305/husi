@@ -227,8 +227,8 @@ class BaseService {
             return data?.proxy?.box?.clashModeList?.toList() ?: emptyList()
         }
 
-        override fun getClashMode(): String? {
-            return data?.proxy?.box?.clashMode
+        override fun getClashMode(): String {
+            return data?.proxy?.box?.clashMode.orEmpty()
         }
 
         override fun setClashMode(mode: String?) {
