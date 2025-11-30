@@ -12,13 +12,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -406,11 +409,15 @@ fun MainScreen(
         },
         title = { Text(stringResource(R.string.license)) },
         text = {
-            SelectionContainer {
-                Text(
-                    text = LICENSE,
-                    fontFamily = FontFamily.Monospace,
-                )
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
+                SelectionContainer {
+                    Text(
+                        text = LICENSE,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
             }
         },
     )
@@ -456,7 +463,13 @@ fun MainScreen(
                 )
             },
             title = { Text(stringResource(dialog.title)) },
-            text = { Text(stringResource(dialog.message)) },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                ) {
+                    Text(stringResource(dialog.message))
+                }
+            },
         )
     }
 }
