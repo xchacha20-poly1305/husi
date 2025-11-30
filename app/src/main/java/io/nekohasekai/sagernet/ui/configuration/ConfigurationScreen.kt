@@ -804,7 +804,7 @@ fun ConfigurationScreen(
                 .paddingExceptBottom(innerPadding),
         ) {
             if (hasGroups) {
-                PrimaryScrollableTabRow(
+                if (uiState.groups.size > 1) PrimaryScrollableTabRow(
                     selectedTabIndex = pagerState.currentPage,
                     edgePadding = 0.dp,
                     containerColor = appBarContainerColor,
