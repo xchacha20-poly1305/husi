@@ -21,6 +21,8 @@ import java.util.Locale
 
 object ProfileManager {
 
+    private val defaultGroupLock = Any()
+
     suspend fun createProfile(groupId: Long, bean: AbstractBean): ProxyEntity {
         bean.applyDefaultValues()
 
@@ -213,11 +215,14 @@ object ProfileManager {
      */
     fun getGroups(): Flow<List<ProxyGroup>> {
         return SagerDatabase.groupDao.allGroups().onStart {
-            val currentGroups = SagerDatabase.groupDao.allGroups().first()
-            if (currentGroups.isEmpty()) {
-                SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
-            }
+            ensureDefaultGroupId()
         }
+    }
+
+    fun ensureDefaultGroupId(): Long = synchronized(defaultGroupLock) {
+        SagerDatabase.groupDao.firstGroupId()
+            ?: SagerDatabase.groupDao.ungroupedId()
+            ?: SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
     }
 
 }

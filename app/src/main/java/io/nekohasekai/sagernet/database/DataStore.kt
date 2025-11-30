@@ -56,15 +56,7 @@ object DataStore {
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
         if (currentSelected > 0L) return currentSelected
-        val groups = runBlocking {
-            SagerDatabase.groupDao.allGroups().first()
-        }
-        if (groups.isNotEmpty()) {
-            val groupId = groups[0].id
-            selectedGroup = groupId
-            return groupId
-        }
-        val groupId = SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
+        val groupId = ProfileManager.ensureDefaultGroupId()
         selectedGroup = groupId
         return groupId
     }
@@ -76,15 +68,9 @@ object DataStore {
             group = SagerDatabase.groupDao.getById(currentSelected)
         }
         if (group != null) return group
-        val groups = runBlocking {
-            SagerDatabase.groupDao.allGroups().first()
-        }
-        if (groups.isEmpty()) {
-            group = ProxyGroup(ungrouped = true).apply {
-                id = SagerDatabase.groupDao.createGroup(this)
-            }
-        } else {
-            group = groups[0]
+        val groupId = ProfileManager.ensureDefaultGroupId()
+        group = SagerDatabase.groupDao.getById(groupId) ?: runBlocking {
+            SagerDatabase.groupDao.allGroups().first().first()
         }
         selectedGroup = group.id
         return group
