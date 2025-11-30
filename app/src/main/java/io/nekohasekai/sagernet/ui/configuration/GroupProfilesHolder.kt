@@ -79,6 +79,7 @@ import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.ValidateResult
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.isInsecure
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -229,7 +230,7 @@ internal fun GroupHolderScreen(
                             showSnackbar(StringOrRes.Res(it))
                         }
                     },
-                    showErrorAlert = { item.profile.error?.let { showErrorAlert = it } },
+                    showErrorAlert = { showErrorAlert = it },
                     onCopySuccess = onCopySuccess,
                     showAddress = showAddress,
                     blurAddress = blurAddress,
@@ -273,7 +274,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     showQR: (url: String) -> Unit,
     onCopySuccess: () -> Unit,
     exportToFile: (name: String, config: String) -> Unit,
-    showErrorAlert: () -> Unit,
+    showErrorAlert: (String) -> Unit,
     showAddress: Boolean,
     blurAddress: Boolean,
     showTraffic: Boolean,
@@ -315,15 +316,13 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
         }
 
         ProxyEntity.STATUS_UNAVAILABLE -> {
-            val text = entity.error?.takeUnless { it.isBlank() }
-                ?: readableUrlTestError(entity.error)?.let { stringResource(it) }
+            val text = readableUrlTestError(entity.error)?.let { stringResource(it) }
                 ?: stringResource(R.string.unavailable)
             text to Color(context.getColour(R.color.material_red_500))
         }
 
         ProxyEntity.STATUS_UNREACHABLE -> {
-            val text = entity.error?.takeUnless { it.isBlank() }
-                ?: readableUrlTestError(entity.error)?.let { stringResource(it) }
+            val text = readableUrlTestError(entity.error)?.let { stringResource(it) }
                 ?: stringResource(R.string.connection_test_unreachable)
             text to Color(context.getColour(R.color.material_red_500))
         }
@@ -710,9 +709,12 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                     )
 
                     if (statusText.isNotEmpty()) {
+                        val errorText = entity.error?.blankAsNull()
                         Text(
                             text = statusText,
-                            modifier = Modifier.clickable(onClick = showErrorAlert),
+                            modifier = Modifier.clickable {
+                                errorText?.let(showErrorAlert)
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = statusColor,
                         )
