@@ -100,6 +100,12 @@ data class ProxyGroup(
         @Query("SELECT MAX(userOrder) + 1 FROM proxy_groups")
         fun nextOrder(): Long?
 
+        @Query("SELECT id FROM proxy_groups ORDER BY userOrder LIMIT 1")
+        fun firstGroupId(): Long?
+
+        @Query("SELECT id FROM proxy_groups WHERE ungrouped = 1 LIMIT 1")
+        fun ungroupedId(): Long?
+
         @Query("SELECT * FROM proxy_groups WHERE id = :groupId")
         fun getById(groupId: Long): ProxyGroup?
 
