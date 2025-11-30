@@ -511,10 +511,7 @@ fun SettingsScreen(
 
                     ListPreference(
                         value = value,
-                        onValueChange = {
-                            DataStore.speedInterval = it
-                            needReload()
-                        },
+                        onValueChange = { DataStore.speedInterval = it },
                         values = values,
                         title = { Text(stringResource(R.string.speed_interval)) },
                         icon = {
@@ -534,10 +531,7 @@ fun SettingsScreen(
                         .collectAsStateWithLifecycle(true)
                     SwitchPreference(
                         value = value,
-                        onValueChange = {
-                            DataStore.profileTrafficStatistics = it
-                            needReload()
-                        },
+                        onValueChange = { DataStore.profileTrafficStatistics = it },
                         title = { Text(stringResource(R.string.profile_traffic_statistics)) },
                         icon = { Icon(ImageVector.vectorResource(R.drawable.traffic), null) },
                         summary = { Text(stringResource(R.string.profile_traffic_statistics_summary)) },
@@ -550,10 +544,7 @@ fun SettingsScreen(
                         .collectAsStateWithLifecycle(true)
                     SwitchPreference(
                         value = value,
-                        onValueChange = {
-                            DataStore.showDirectSpeed = it
-                            needReload()
-                        },
+                        onValueChange = { DataStore.showDirectSpeed = it },
                         title = { Text(stringResource(R.string.show_direct_speed)) },
                         icon = {
                             Icon(
