@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,11 +14,13 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -64,10 +67,25 @@ internal fun DashboardConnectionsScreen(
             SwipeToDismissBox(
                 state = swipState,
                 backgroundContent = {
-                    Icon(ImageVector.vectorResource(R.drawable.delete_forever), null)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.delete_forever),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onError,
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                onDismiss = { closeConnection(connection.uuid) },
+                onDismiss = { swipeToDismissBoxValue ->
+                    if (swipeToDismissBoxValue == SwipeToDismissBoxValue.EndToStart) {
+                        closeConnection(connection.uuid)
+                    }
+                },
             ) {
                 ConnectionCard(
                     connection = connection,
@@ -93,7 +111,11 @@ private fun ConnectionCard(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = connection.network,
+                text = if (connection.protocol == null) {
+                    connection.network
+                } else {
+                    "${connection.network}/${connection.protocol}"
+                },
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.log_green),
