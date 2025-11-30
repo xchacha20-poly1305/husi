@@ -225,7 +225,7 @@ object Red {
     val surfaceContainerHighDarkHighContrast = Color(0xFF4A3734)
     val surfaceContainerHighestDarkHighContrast = Color(0xFF57423F)
 
-    private val lightScheme = lightColorScheme(
+    internal val lightScheme = lightColorScheme(
         primary = primaryLight,
         onPrimary = onPrimaryLight,
         primaryContainer = primaryContainerLight,
@@ -263,7 +263,7 @@ object Red {
         surfaceContainerHighest = surfaceContainerHighestLight,
     )
 
-    private val darkScheme = darkColorScheme(
+    internal val darkScheme = darkColorScheme(
         primary = primaryDark,
         onPrimary = onPrimaryDark,
         primaryContainer = primaryContainerDark,
@@ -456,23 +456,5 @@ object Red {
     val unspecified_scheme = ColorFamily(
         Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
     )
-
-    @Composable
-    fun Theme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
-        content: @Composable() () -> Unit,
-    ) {
-        val colorScheme = if (darkTheme) {
-            darkScheme
-        } else {
-            lightScheme
-        }
-
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content
-        )
-    }
-
 
 }

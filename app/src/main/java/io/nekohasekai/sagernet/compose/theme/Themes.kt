@@ -66,55 +66,56 @@ fun AppTheme(content: @Composable () -> Unit) {
     val appTheme by DataStore.configurationStore
         .intFlow(Key.APP_THEME)
         .collectAsStateWithLifecycle(DEFAULT)
-    when (appTheme) {
-        RED -> Red.Theme(isDarkMode, content)
-        PINK_SSR -> PinkSSR.Theme(isDarkMode, content)
-        PINK -> Pink.Theme(isDarkMode, content)
-        PURPLE -> Purple.Theme(isDarkMode, content)
-        DEEP_PURPLE -> DeepPurple.Theme(isDarkMode, content)
-        INDIGO -> Indigo.Theme(isDarkMode, content)
-        BLUE -> Blue.Theme(isDarkMode, content)
-        LIGHT_BLUE -> LightBlue.Theme(isDarkMode, content)
-        CYAN -> Cyan.Theme(isDarkMode, content)
-        TEAL -> Teal.Theme(isDarkMode, content)
-        GREEN -> Green.Theme(isDarkMode, content)
-        LIGHT_GREEN -> LightGreen.Theme(isDarkMode, content)
-        LIME -> Lime.Theme(isDarkMode, content)
-        YELLOW -> Yellow.Theme(isDarkMode, content)
-        AMBER -> Amber.Theme(isDarkMode, content)
-        ORANGE -> Orange.Theme(isDarkMode, content)
-        DEEP_ORANGE -> DeepOrange.Theme(isDarkMode, content)
-        BROWN -> Brown.Theme(isDarkMode, content)
-        GREY -> Grey.Theme(isDarkMode, content)
-        BLUE_GREY -> BlueGrey.Theme(isDarkMode, content)
-        BLACK -> Black.Theme(isDarkMode, content)
-
-        DYNAMIC -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MaterialTheme(
-                colorScheme = if (isDarkMode) {
-                    dynamicDarkColorScheme(LocalContext.current)
+    val context = LocalContext.current
+    val colorScheme = remember(appTheme, isDarkMode, context) {
+        when (appTheme) {
+            RED -> if (isDarkMode) Red.darkScheme else Red.lightScheme
+            PINK_SSR -> if (isDarkMode) PinkSSR.darkScheme else PinkSSR.lightScheme
+            PINK -> if (isDarkMode) Pink.darkScheme else Pink.lightScheme
+            PURPLE -> if (isDarkMode) Purple.darkScheme else Purple.lightScheme
+            DEEP_PURPLE -> if (isDarkMode) DeepPurple.darkScheme else DeepPurple.lightScheme
+            INDIGO -> if (isDarkMode) Indigo.darkScheme else Indigo.lightScheme
+            BLUE -> if (isDarkMode) Blue.darkScheme else Blue.lightScheme
+            LIGHT_BLUE -> if (isDarkMode) LightBlue.darkScheme else LightBlue.lightScheme
+            CYAN -> if (isDarkMode) Cyan.darkScheme else Cyan.lightScheme
+            TEAL -> if (isDarkMode) Teal.darkScheme else Teal.lightScheme
+            GREEN -> if (isDarkMode) Green.darkScheme else Green.lightScheme
+            LIGHT_GREEN -> if (isDarkMode) LightGreen.darkScheme else LightGreen.lightScheme
+            LIME -> if (isDarkMode) Lime.darkScheme else Lime.lightScheme
+            YELLOW -> if (isDarkMode) Yellow.darkScheme else Yellow.lightScheme
+            AMBER -> if (isDarkMode) Amber.darkScheme else Amber.lightScheme
+            ORANGE -> if (isDarkMode) Orange.darkScheme else Orange.lightScheme
+            DEEP_ORANGE -> if (isDarkMode) DeepOrange.darkScheme else DeepOrange.lightScheme
+            BROWN -> if (isDarkMode) Brown.darkScheme else Brown.lightScheme
+            GREY -> if (isDarkMode) Grey.darkScheme else Grey.lightScheme
+            BLUE_GREY -> if (isDarkMode) BlueGrey.darkScheme else BlueGrey.lightScheme
+            BLACK -> if (isDarkMode) Black.darkScheme else Black.lightScheme
+            DYNAMIC -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (isDarkMode) {
+                    dynamicDarkColorScheme(context)
                 } else {
-                    dynamicLightColorScheme(LocalContext.current)
-                },
-                content = content,
-            )
-        } else {
-            Red.Theme(isDarkMode, content)
-        }
+                    dynamicLightColorScheme(context)
+                }
+            } else {
+                if (isDarkMode) Red.darkScheme else Red.lightScheme
+            }
 
-        else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MaterialTheme(
-                colorScheme = if (isDarkMode) {
-                    dynamicDarkColorScheme(LocalContext.current)
+            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (isDarkMode) {
+                    dynamicDarkColorScheme(context)
                 } else {
-                    dynamicLightColorScheme(LocalContext.current)
-                },
-                content = content,
-            )
-        } else {
-            Red.Theme(isDarkMode, content)
+                    dynamicLightColorScheme(context)
+                }
+            } else {
+                if (isDarkMode) Red.darkScheme else Red.lightScheme
+            }
         }
     }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content,
+    )
 }
 
 @ColorInt
@@ -124,7 +125,7 @@ fun Context.getPrimaryColor(): Int {
     if (theme == DYNAMIC && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         return ContextCompat.getColor(
             this,
-            if (isDark) android.R.color.system_accent1_200 else android.R.color.system_accent1_600
+            if (isDark) android.R.color.system_accent1_200 else android.R.color.system_accent1_600,
         )
     }
     val color = when (theme) {

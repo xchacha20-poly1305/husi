@@ -226,7 +226,7 @@ object DeepOrange {
     val surfaceContainerHighestDarkHighContrast = Color(0xFF56423D)
 
 
-    private val lightScheme = lightColorScheme(
+    internal val lightScheme = lightColorScheme(
         primary = primaryLight,
         onPrimary = onPrimaryLight,
         primaryContainer = primaryContainerLight,
@@ -264,7 +264,7 @@ object DeepOrange {
         surfaceContainerHighest = surfaceContainerHighestLight,
     )
 
-    private val darkScheme = darkColorScheme(
+    internal val darkScheme = darkColorScheme(
         primary = primaryDark,
         onPrimary = onPrimaryDark,
         primaryContainer = primaryContainerDark,
@@ -457,22 +457,5 @@ object DeepOrange {
     val unspecified_scheme = ColorFamily(
         Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
     )
-
-    @Composable
-    fun Theme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
-        content: @Composable() () -> Unit,
-    ) {
-        val colorScheme = if (darkTheme) {
-            darkScheme
-        } else {
-            lightScheme
-        }
-
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content,
-        )
-    }
 
 }
