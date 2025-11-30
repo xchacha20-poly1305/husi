@@ -13,12 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -66,6 +68,8 @@ import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
 import io.nekohasekai.sagernet.compose.QRCodeDialog
 import io.nekohasekai.sagernet.compose.SagerFab
+import io.nekohasekai.sagernet.compose.SheetActionRow
+import io.nekohasekai.sagernet.compose.SheetSectionTitle
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.StatsBar
 import io.nekohasekai.sagernet.compose.TextButton
@@ -379,6 +383,7 @@ fun GroupScreen(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
     modifier: Modifier = Modifier,
@@ -395,10 +400,8 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
 
     val group = state.group
 
-    var showOptionsMenu by remember { mutableStateOf(false) }
-    var showShareSubscription by remember { mutableStateOf(false) }
-    var showUniversalLinkMenu by remember { mutableStateOf(false) }
-    var showExport by remember { mutableStateOf(false) }
+    var showOptionsSheet by remember { mutableStateOf(false) }
+    val optionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ElevatedCard(
         modifier = modifier
@@ -494,197 +497,186 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                 SimpleIconButton(
                                     imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                     contentDescription = stringResource(R.string.menu),
-                                    onClick = { showOptionsMenu = true },
+                                    onClick = { showOptionsSheet = true },
                                 )
 
-                                DropdownMenu(
-                                    expanded = showOptionsMenu,
-                                    onDismissRequest = { showOptionsMenu = false },
-                                ) {
-                                    if (group.subscription?.link?.isNotBlank() == true) DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.share_subscription)) },
-                                        onClick = {
-                                            showOptionsMenu = false
-                                            showShareSubscription = true
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
-                                                null,
-                                            )
-                                        },
-                                    )
-
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.internal_link)) },
-                                        onClick = {
-                                            showOptionsMenu = false
-                                            showUniversalLinkMenu = true
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
-                                                null,
-                                            )
-                                        },
-                                    )
-
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.action_export)) },
-                                        onClick = {
-                                            showOptionsMenu = false
-                                            showExport = true
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
-                                                null,
-                                            )
-                                        },
-                                    )
-
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.clear_profiles)) },
-                                        onClick = showClearGroupDialog,
-                                        trailingIcon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.delete),
-                                                null,
-                                            )
-                                        },
-                                    )
-                                }
-
-                                group.subscription?.link?.blankAsNull()?.let { link ->
-                                    DropdownMenu(
-                                        expanded = showShareSubscription,
-                                        onDismissRequest = { showShareSubscription = false },
+                                if (showOptionsSheet) {
+                                    ModalBottomSheet(
+                                        onDismissRequest = { showOptionsSheet = false },
+                                        sheetState = optionsSheetState,
                                     ) {
-                                        Text(
-                                            text = stringResource(R.string.share_subscription),
-                                            modifier = Modifier.padding(
-                                                horizontal = 16.dp,
-                                                vertical = 12.dp,
-                                            ),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.action_export_clipboard)) },
-                                            onClick = {
-                                                scope.launch {
-                                                    clipboard.setPlainText(link)
-                                                    snackbar(context.getString(R.string.copy_success))
-                                                }
-                                                showShareSubscription = false
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    ImageVector.vectorResource(R.drawable.content_copy),
-                                                    null,
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                                        ) {
+                                            val subscriptionLink =
+                                                group.subscription?.link?.blankAsNull()
+
+                                            subscriptionLink?.let { link ->
+                                                SheetSectionTitle(
+                                                    text = stringResource(R.string.share_subscription),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = ImageVector.vectorResource(
+                                                                R.drawable.share,
+                                                            ),
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        )
+                                                    },
                                                 )
-                                            },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.share_qr_nfc)) },
-                                            onClick = {
-                                                showQRDialog(link, group.displayName())
-                                                showShareSubscription = false
-                                            },
-                                            trailingIcon = {
-                                                Icon(
-                                                    ImageVector.vectorResource(R.drawable.qr_code),
-                                                    null,
+                                                SheetActionRow(
+                                                    text = stringResource(R.string.action_export_clipboard),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = ImageVector.vectorResource(
+                                                                R.drawable.content_copy,
+                                                            ),
+                                                            contentDescription = null,
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        scope.launch {
+                                                            clipboard.setPlainText(link)
+                                                            snackbar(context.getString(R.string.copy_success))
+                                                        }
+                                                        showOptionsSheet = false
+                                                    },
                                                 )
-                                            },
-                                        )
+                                                SheetActionRow(
+                                                    text = stringResource(R.string.share_qr_nfc),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = ImageVector.vectorResource(
+                                                                R.drawable.qr_code,
+                                                            ),
+                                                            contentDescription = null,
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        showQRDialog(link, group.displayName())
+                                                        showOptionsSheet = false
+                                                    },
+                                                )
+                                            }
+                                            if (group.subscription != null) {
+                                                HorizontalDivider()
+                                                SheetSectionTitle(
+                                                    text = stringResource(R.string.internal_link),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = ImageVector.vectorResource(
+                                                                R.drawable.link,
+                                                            ),
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        )
+                                                    },
+                                                )
+                                                SheetActionRow(
+                                                    text = stringResource(R.string.action_export_clipboard),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = ImageVector.vectorResource(
+                                                                R.drawable.content_copy,
+                                                            ),
+                                                            contentDescription = null,
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        scope.launch {
+                                                            clipboard.setPlainText(group.toUniversalLink())
+                                                            snackbar(context.getString(R.string.copy_success))
+                                                        }
+                                                        showOptionsSheet = false
+                                                    },
+                                                )
+                                                SheetActionRow(
+                                                    text = stringResource(R.string.share_qr_nfc),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = ImageVector.vectorResource(
+                                                                R.drawable.qr_code,
+                                                            ),
+                                                            contentDescription = null,
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        showQRDialog(
+                                                            group.toUniversalLink(),
+                                                            group.displayName(),
+                                                        )
+                                                        showOptionsSheet = false
+                                                    },
+                                                )
+                                            }
+                                            HorizontalDivider()
+                                            SheetSectionTitle(
+                                                text = stringResource(R.string.action_export),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        imageVector = ImageVector.vectorResource(R.drawable.file_export),
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                },
+                                            )
+                                            SheetActionRow(
+                                                text = stringResource(R.string.action_export_clipboard),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        imageVector = ImageVector.vectorResource(R.drawable.content_copy),
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                                onClick = {
+                                                    scope.launch {
+                                                        val links = onIoDispatcher {
+                                                            SagerDatabase.proxyDao
+                                                                .getByGroup(group.id)
+                                                                .first()
+                                                        }.joinToString("\n") {
+                                                            it.toStdLink()
+                                                        }
+                                                        clipboard.setPlainText(links)
+                                                        snackbar(context.getString(R.string.copy_success))
+                                                    }
+                                                    showOptionsSheet = false
+                                                },
+                                            )
+                                            SheetActionRow(
+                                                text = stringResource(R.string.action_export_file),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        imageVector = ImageVector.vectorResource(R.drawable.file_export),
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                                onClick = {
+                                                    exportToFile()
+                                                    showOptionsSheet = false
+                                                },
+                                            )
+                                            HorizontalDivider()
+                                            SheetActionRow(
+                                                text = stringResource(R.string.clear_profiles),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        imageVector = ImageVector.vectorResource(R.drawable.delete),
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                                textColor = MaterialTheme.colorScheme.error,
+                                                iconTint = MaterialTheme.colorScheme.error,
+                                                onClick = {
+                                                    showOptionsSheet = false
+                                                    showClearGroupDialog()
+                                                },
+                                            )
+                                        }
                                     }
-                                }
-
-                                DropdownMenu(
-                                    expanded = showUniversalLinkMenu,
-                                    onDismissRequest = { showUniversalLinkMenu = false },
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.internal_link),
-                                        modifier = Modifier.padding(
-                                            horizontal = 16.dp,
-                                            vertical = 12.dp,
-                                        ),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.action_export_clipboard)) },
-                                        onClick = {
-                                            scope.launch {
-                                                clipboard.setPlainText(group.toUniversalLink())
-                                                snackbar(context.getString(R.string.copy_success))
-                                            }
-                                            showUniversalLinkMenu = false
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.share_qr_nfc)) },
-                                        onClick = {
-                                            showQRDialog(
-                                                group.toUniversalLink(),
-                                                group.displayName(),
-                                            )
-                                            showUniversalLinkMenu = false
-                                        },
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = showExport,
-                                    onDismissRequest = { showExport = false },
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.action_export),
-                                        modifier = Modifier.padding(
-                                            horizontal = 16.dp,
-                                            vertical = 12.dp,
-                                        ),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.action_export_clipboard)) },
-                                        onClick = {
-                                            scope.launch {
-                                                val links = onIoDispatcher {
-                                                    SagerDatabase.proxyDao
-                                                        .getByGroup(group.id)
-                                                        .first()
-                                                }.joinToString("\n") {
-                                                    it.toStdLink()
-                                                }
-                                                clipboard.setPlainText(links)
-                                                snackbar(context.getString(R.string.copy_success))
-                                            }
-                                            showExport = false
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.content_copy),
-                                                null,
-                                            )
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.action_export_file)) },
-                                        onClick = {
-                                            exportToFile()
-                                            showExport = false
-                                        },
-                                        trailingIcon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.file_export),
-                                                null,
-                                            )
-                                        },
-                                    )
                                 }
                             }
                         }
