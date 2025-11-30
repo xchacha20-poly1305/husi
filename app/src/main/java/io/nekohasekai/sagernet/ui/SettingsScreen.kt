@@ -1239,6 +1239,52 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.fake_dns_for_all_sum)) },
                     )
                 }
+                item(Key.FAKE_DNS_RANGE_4, TYPE_TEXT_FIELD_PREFERENCE) {
+                    val value by DataStore.configurationStore
+                        .stringFlow(Key.FAKE_DNS_RANGE_4, "198.51.100.0/24")
+                        .collectAsStateWithLifecycle("198.51.100.0/24")
+                    TextFieldPreference(
+                        value = value,
+                        onValueChange = {
+                            DataStore.fakeDNSRange4 = it
+                            needReload()
+                        },
+                        title = { Text(stringResource(R.string.fake_ip_range_4)) },
+                        textToValue = { it },
+                        enabled = fakeDNSState,
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.text_select_end),
+                                null,
+                            )
+                        },
+                        summary = { Text(LocalContext.current.contentOrUnset(value)) },
+                        valueToText = { it },
+                    )
+                }
+                item(Key.FAKE_DNS_RANGE_6, TYPE_TEXT_FIELD_PREFERENCE) {
+                    val value by DataStore.configurationStore
+                        .stringFlow(Key.FAKE_DNS_RANGE_6, "2001:2::/48")
+                        .collectAsStateWithLifecycle("2001:2::/48")
+                    TextFieldPreference(
+                        value = value,
+                        onValueChange = {
+                            DataStore.fakeDNSRange6 = it
+                            needReload()
+                        },
+                        title = { Text(stringResource(R.string.fake_ip_range_6)) },
+                        textToValue = { it },
+                        enabled = fakeDNSState,
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.text_select_end),
+                                null,
+                            )
+                        },
+                        summary = { Text(LocalContext.current.contentOrUnset(value)) },
+                        valueToText = { it },
+                    )
+                }
                 item(Key.DNS_HOSTS, TYPE_TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.DNS_HOSTS, "")

@@ -721,5 +721,7 @@
     <string name="internal_link">Internal Link</string>
     <string name="fake_dns_for_all">Apply fake DNS for every domain</string>
     <string name="fake_dns_for_all_sum">Unify applications network strategy behavior.</string>
+    <string name="fake_ip_range_4">Fake IP Range (IPv4)</string>
+    <string name="fake_ip_range_6">Fake IP Range (IPv6)</string>
 
 </resources>
