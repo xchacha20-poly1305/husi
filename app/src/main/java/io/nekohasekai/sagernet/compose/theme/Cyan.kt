@@ -224,7 +224,7 @@ object Cyan {
     val surfaceContainerDarkHighContrast = Color(0xFF2B3133)
     val surfaceContainerHighDarkHighContrast = Color(0xFF363C3E)
     val surfaceContainerHighestDarkHighContrast = Color(0xFF414849)
-    private val lightScheme = lightColorScheme(
+    internal val lightScheme = lightColorScheme(
         primary = primaryLight,
         onPrimary = onPrimaryLight,
         primaryContainer = primaryContainerLight,
@@ -262,7 +262,7 @@ object Cyan {
         surfaceContainerHighest = surfaceContainerHighestLight,
     )
 
-    private val darkScheme = darkColorScheme(
+    internal val darkScheme = darkColorScheme(
         primary = primaryDark,
         onPrimary = onPrimaryDark,
         primaryContainer = primaryContainerDark,
@@ -455,23 +455,5 @@ object Cyan {
     val unspecified_scheme = ColorFamily(
         Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
     )
-
-    @Composable
-    fun Theme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
-        content: @Composable() () -> Unit,
-    ) {
-        val colorScheme = if (darkTheme) {
-            darkScheme
-        } else {
-            lightScheme
-        }
-
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content,
-        )
-    }
-
 
 }

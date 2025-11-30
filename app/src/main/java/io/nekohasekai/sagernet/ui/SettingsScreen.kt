@@ -164,11 +164,6 @@ fun SettingsScreen(
         }
     }
 
-    fun tryReload() {
-        if (!DataStore.serviceState.started) return
-        repo.reloadService()
-    }
-
     // Dependency states for enable/visibility linking
     val speedIntervalState by DataStore.configurationStore
         .intFlow(Key.SPEED_INTERVAL, 1000)
@@ -265,10 +260,6 @@ fun SettingsScreen(
                 colorPickerPreference(
                     key = Key.APP_THEME,
                     title = { Text(stringResource(R.string.theme)) },
-                    postChange = {
-                        tryReload()
-                        ActivityCompat.recreate(context.findActivity<Activity>()!!)
-                    },
                 )
                 item(Key.NIGHT_THEME, TYPE_LIST_PREFERENCE) {
                     fun nightString(index: Int): Int = when (index) {
@@ -1781,7 +1772,6 @@ private inline fun LazyListScope.colorPickerPreference(
     key: String,
     crossinline title: @Composable () -> Unit,
     enabled: Boolean = true,
-    crossinline postChange: () -> Unit,
 ) {
     item(key, TYPE_COLOR_PICKER_PREFERENCE) {
         val resources = LocalResources.current
@@ -1849,7 +1839,6 @@ private inline fun LazyListScope.colorPickerPreference(
                                         .clickable {
                                             DataStore.configurationStore.putInt(key, theme)
                                             showDialog = false
-                                            postChange()
                                         },
                                     contentAlignment = androidx.compose.ui.Alignment.Center,
                                 ) {
