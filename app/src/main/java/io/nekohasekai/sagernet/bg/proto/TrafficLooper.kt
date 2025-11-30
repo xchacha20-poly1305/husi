@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.bg.proto
 
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
@@ -12,11 +12,16 @@ import io.nekohasekai.sagernet.ktx.Logs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class TrafficLooper(
-    val data: BaseService.Data, private val sc: CoroutineScope,
+    val data: BaseService.Data, private val scope: CoroutineScope,
 ) {
 
     private var job: Job? = null
@@ -25,25 +30,13 @@ class TrafficLooper(
 
     suspend fun stop() {
         job?.cancel()
-        // finally traffic post
         if (!DataStore.profileTrafficStatistics) return
-        val traffic = mutableMapOf<Long, TrafficData>()
-        data.proxy?.config?.trafficMap?.forEach { (_, entities) ->
-            for (ent in entities) {
-                val item = idMap[ent.id] ?: return@forEach
-                ProfileManager.updateTraffic(ent, item.tx, item.rx) // update DB
-                traffic[ent.id] = TrafficData(
-                    id = ent.id,
-                    rx = ent.rx,
-                    tx = ent.tx,
-                )
-            }
-        }
+        updateDb()
         Logs.d("finally traffic post done")
     }
 
     fun start() {
-        job = sc.launch { loop() }
+        job = scope.launch { loop() }
     }
 
     fun updateSelectedTag(groupName: String, old: String, new: String) {
@@ -63,10 +56,26 @@ class TrafficLooper(
     }
 
     private suspend fun loop() {
-        val delayMs = DataStore.speedInterval.toLong()
-        if (delayMs == 0L) return
-        val showDirectSpeed = DataStore.showDirectSpeed
-        val profileTrafficStatistics = DataStore.profileTrafficStatistics
+        val speedInterval = DataStore.configurationStore
+            .intFlow(Key.SPEED_INTERVAL)
+            .map { it.toLong() }
+            .stateIn(scope, SharingStarted.Eagerly, DataStore.speedInterval.toLong())
+        val showDirectSpeed = DataStore.configurationStore
+            .booleanFlow(Key.SHOW_DIRECT_SPEED)
+            .stateIn(scope, SharingStarted.Eagerly, DataStore.showDirectSpeed)
+        val profileTrafficStatistics = DataStore.configurationStore
+            .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS)
+            .stateIn(scope, SharingStarted.Eagerly, DataStore.profileTrafficStatistics)
+        // update database / 10s
+        val persistEveryMs = 10_000L
+        // Calculate loop times (ticks) based on delay ms.
+        fun persistTicksForDelay(delay: Long): Long {
+            val effectiveDelay = delay.coerceAtLeast(1L)
+            return ((persistEveryMs + effectiveDelay - 1) / effectiveDelay).coerceAtLeast(1L)
+        }
+        var delayMs = speedInterval.value
+        var persistTicks = if (delayMs > 0) persistTicksForDelay(delayMs) else 1L
+        var ticks = 0L
 
         var trafficUpdater: TrafficUpdater? = null
         var proxy: ProxyInstance?
@@ -74,7 +83,20 @@ class TrafficLooper(
         // for display
         val itemBypass = TrafficUpdater.TrafficLooperData(tag = TAG_DIRECT)
 
-        while (sc.isActive) {
+        while (scope.isActive) {
+            var currentDelayMs = speedInterval.value
+            if (currentDelayMs <= 0L) {
+                delayMs = 0L
+                ticks = 0
+                // Wait until valid value
+                currentDelayMs = speedInterval.filter { it > 0L }.first()
+            }
+            if (currentDelayMs != delayMs) {
+                delayMs = currentDelayMs
+                persistTicks = persistTicksForDelay(delayMs)
+                ticks = 0
+            }
+
             proxy = data.proxy
             if (proxy == null) {
                 delay(delayMs)
@@ -111,7 +133,7 @@ class TrafficLooper(
             }
 
             trafficUpdater.updateAll()
-            if (!sc.isActive) return
+            if (!scope.isActive) return
 
             // add all non-bypass to "main"
             var mainTxRate = 0L
@@ -131,8 +153,8 @@ class TrafficLooper(
             val speed = SpeedDisplayData(
                 mainTxRate,
                 mainRxRate,
-                if (showDirectSpeed) itemBypass.txRate else 0L,
-                if (showDirectSpeed) itemBypass.rxRate else 0L,
+                if (showDirectSpeed.value) itemBypass.txRate else 0L,
+                if (showDirectSpeed.value) itemBypass.rxRate else 0L,
                 mainTx,
                 mainRx,
             )
@@ -153,7 +175,25 @@ class TrafficLooper(
                 if (listenPostSpeed) postNotificationSpeedUpdate(speed)
             }
 
+            if (profileTrafficStatistics.value) {
+                if (++ticks >= persistTicks) {
+                    updateDb()
+                    ticks = 0
+                }
+            } else {
+                ticks = 0
+            }
+
             delay(delayMs)
+        }
+    }
+
+    private suspend fun updateDb() {
+        data.proxy?.config?.trafficMap?.forEach { (_, entities) ->
+            for (entity in entities) {
+                val item = idMap[entity.id] ?: return@forEach
+                ProfileManager.updateTraffic(entity, item.tx, item.rx)
+            }
         }
     }
 }
