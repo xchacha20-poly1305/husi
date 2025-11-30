@@ -38,6 +38,8 @@ object Key {
     const val DOMAIN_STRATEGY_FOR_SERVER = "domain_strategy_for_server"
     const val ENABLE_FAKE_DNS = "enableFakeDns"
     const val FAKE_DNS_FOR_ALL = "fakeDNSForAll"
+    const val FAKE_DNS_RANGE_4 = "fakeDNSRange4"
+    const val FAKE_DNS_RANGE_6 = "fakeDNSRange6"
     const val DNS_HOSTS = "dnsHosts"
 
     const val PROXY_APPS = "proxyApps"

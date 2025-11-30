@@ -152,6 +152,7 @@ fun buildConfig(
                     ProxySetBean.TYPE_GROUP -> runBlocking {
                         SagerDatabase.proxyDao.getByGroup(bean.groupId).first()
                     }
+
                     else -> throw IllegalStateException("invalid proxy set type ${bean.type}")
                 }
 
@@ -1021,12 +1022,22 @@ fun buildConfig(
 
             // FakeDNS obj
             if (useFakeDns) {
+                val fakeRange4 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {
+                    null
+                } else {
+                    DataStore.fakeDNSRange4.blankAsNull()
+                }
+                val fakeRange6 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV4_ONLY) {
+                    null
+                } else {
+                    DataStore.fakeDNSRange6.blankAsNull()
+                }
                 dns.servers.add(
                     NewDNSServerOptions_FakeIPDNSServerOptions().apply {
                         type = SingBoxOptions.DNS_TYPE_FAKEIP
                         tag = TAG_DNS_FAKE
-                        inet4_range = "198.51.100.0/24"
-                        inet6_range = "2001:2::/48"
+                        inet4_range = fakeRange4
+                        inet6_range = fakeRange6
                     },
                 )
                 dns.rules.add(

@@ -646,4 +646,6 @@
     <string name="internal_link">内部链接</string>
     <string name="fake_dns_for_all">为所有域名应用 Fake DNS</string>
     <string name="fake_dns_for_all_sum">统一各个应用的网络偏好行为。</string>
+    <string name="fake_ip_range_4">Fake IP 范围（IPv4）</string>
+    <string name="fake_ip_range_6">Fake IP 范围（IPv6）</string>
 </resources>

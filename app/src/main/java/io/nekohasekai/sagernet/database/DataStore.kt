@@ -135,6 +135,15 @@ object DataStore {
     var domainStrategyForServer by configurationStore.string(Key.DOMAIN_STRATEGY_FOR_SERVER)
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKE_DNS) { false }
     var fakeDNSForAll by configurationStore.boolean(Key.FAKE_DNS_FOR_ALL) { false }
+
+    // https://developer.chrome.com/blog/local-network-access
+    // Use the address belongs to these "local" networks
+    // (https://wicg.github.io/local-network-access/#non-public-ip-address-blocks)
+    // will make permission warning in Chrome.
+    // To avoid user agreeing plenty of permissions, we decide to use these new address.
+    // The pre-defined IPv4 range is limited, change to whatever user like.
+    var fakeDNSRange4 by configurationStore.string(Key.FAKE_DNS_RANGE_4) { "198.51.100.0/24" }
+    var fakeDNSRange6 by configurationStore.string(Key.FAKE_DNS_RANGE_6) { "2001:2::/48" }
     var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }

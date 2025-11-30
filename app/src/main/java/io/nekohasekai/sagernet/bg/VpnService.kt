@@ -17,11 +17,13 @@ import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import android.net.VpnService as BaseVpnService
 
+@SuppressLint("VpnServicePolicy")
 class VpnService : BaseVpnService(),
     BaseService.Interface {
 
@@ -29,13 +31,6 @@ class VpnService : BaseVpnService(),
 
         const val PRIVATE_VLAN4_CLIENT = "172.19.0.1"
         const val PRIVATE_VLAN4_ROUTER = "172.19.0.2"
-        // https://developer.chrome.com/blog/local-network-access
-        // Use the address belongs to these "local" networks
-        // (https://wicg.github.io/local-network-access/#non-public-ip-address-blocks)
-        // will make permission warning in Chrome.
-        // To avoid user agreeing plenty of permissions, we decide to use these new address.
-        const val FAKEDNS_VLAN4_CLIENT = "198.51.100.0"
-        const val FAKEDNS_VLAN6_CLIENT = "2001:2::"
         const val PRIVATE_VLAN6_CLIENT = "fdfe:dcba:9876::1"
         const val PRIVATE_VLAN6_ROUTER = "fdfe:dcba:9876::2"
 
@@ -85,9 +80,8 @@ class VpnService : BaseVpnService(),
         if (DataStore.serviceMode == Key.MODE_VPN) {
             if (prepare(this) != null) {
                 startActivity(
-                    Intent(
-                        this, VpnRequestActivity::class.java
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    Intent(this, VpnRequestActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
             } else return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
         }
@@ -130,26 +124,44 @@ class VpnService : BaseVpnService(),
         // route
         if (DataStore.bypassLan && !DataStore.bypassLanInCore) {
             resources.getStringArray(R.array.bypass_private_route).forEach {
-                val subnet = Subnet.fromString(it)!!
+                val subnet = Subnet.fromString(it)
                 builder.addRoute(subnet.address.hostAddress!!, subnet.prefixSize)
+            }
+            val fakeDNSRange4 by lazy {
+                DataStore.fakeDNSRange4.blankAsNull()?.let {
+                    Subnet.fromString(it)
+                }
+            }
+            val fakeDNSRange6 by lazy {
+                DataStore.fakeDNSRange6.blankAsNull()?.let {
+                    Subnet.fromString(it)
+                }
             }
             when (networkStrategy) {
                 SingBoxOptions.STRATEGY_IPV4_ONLY -> {
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
-                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 24)
+                    fakeDNSRange4?.let {
+                        builder.addRoute(it.address.hostAddress!!, it.prefixSize)
+                    }
                 }
 
                 SingBoxOptions.STRATEGY_IPV6_ONLY -> {
                     // https://issuetracker.google.com/issues/149636790
                     builder.addRoute("2000::", 3)
-                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 48)
+                    fakeDNSRange6?.let {
+                        builder.addRoute(it.address.hostAddress!!, it.prefixSize)
+                    }
                 }
 
                 else -> {
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
-                    builder.addRoute(FAKEDNS_VLAN4_CLIENT, 24)
+                    fakeDNSRange4?.let {
+                        builder.addRoute(it.address.hostAddress!!, it.prefixSize)
+                    }
+                    fakeDNSRange6?.let {
+                        builder.addRoute(it.address.hostAddress!!, it.prefixSize)
+                    }
                     builder.addRoute("2000::", 3)
-                    builder.addRoute(FAKEDNS_VLAN6_CLIENT, 48)
                 }
             }
         } else {
@@ -243,12 +255,12 @@ class VpnService : BaseVpnService(),
                     },
                 ).also {
                     Logs.d("Appended HTTP info: $it")
-                }
+                },
             )
         }
 
         metered = DataStore.meteredNetwork
-        if (Build.VERSION.SDK_INT >= 29) builder.setMetered(metered)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
 
         if (DataStore.allowAppsBypassVpn) {
             builder.allowBypass()
