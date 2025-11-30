@@ -172,15 +172,16 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
         )
         if (url.isNotBlank()) {
             group = ProxyGroup(type = GroupType.SUBSCRIPTION)
-            val subscription = SubscriptionBean()
-
-            // cleartext format
-            subscription.link = url
-            subscription.type = when (uri.getQueryParameter("type")?.lowercase()) {
-                "oocv1" -> SubscriptionType.OOCv1
-                "sip008" -> SubscriptionType.SIP008
-                else -> SubscriptionType.RAW
+            group.subscription = SubscriptionBean().apply {
+                // cleartext format
+                link = url
+                type = when (uri.getQueryParameter("type")?.lowercase()) {
+                    "oocv1" -> SubscriptionType.OOCv1
+                    "sip008" -> SubscriptionType.SIP008
+                    else -> SubscriptionType.RAW
+                }
             }
+
             group.name = defaultOr(
                 "",
                 { uri.getQueryParameter("name") },
@@ -202,7 +203,7 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
             }
         }
 
-        if (group.name.isNullOrBlank() || group.subscription?.link.isNullOrBlank() || group.subscription?.token.isNullOrBlank()) {
+        if (group.name.isNullOrBlank() && group.subscription?.link.isNullOrBlank() && group.subscription?.token.isNullOrBlank()) {
             return@launch
         }
         group.name = group.name.blankAsNull() ?: ("Subscription #" + System.currentTimeMillis())
