@@ -116,6 +116,9 @@ fun DashboardScreen(
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
     val service by connection.service.collectAsStateWithLifecycle()
+    LaunchedEffect(service) {
+        viewModel.initialize(service)
+    }
 
     Scaffold(
         modifier = modifier
@@ -400,7 +403,14 @@ fun DashboardScreen(
                             connection.service.value?.groupSelect(group, proxy)
                         },
                         urlTestForGroup = { group ->
-                            connection.service.value?.groupURLTest(group, DataStore.connectionTestTimeout)
+                            scope.launch {
+                                viewModel.setTesting(group, true)
+                                connection.service.value?.groupURLTest(
+                                    group,
+                                    DataStore.connectionTestTimeout,
+                                )
+                                viewModel.setTesting(group, false)
+                            }
                         },
                         onVisibleChange = { bottomVisible = it },
                     )
