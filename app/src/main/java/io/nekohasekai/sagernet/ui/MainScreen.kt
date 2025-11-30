@@ -20,13 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.PlainTooltip
@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -63,6 +64,7 @@ import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.NavRoutes
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.TextButton
@@ -98,6 +100,7 @@ fun MainScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val serviceStatus by connection.status.collectAsStateWithLifecycle()
 
     /**
      * Check query packages permission for rogue vendors.
@@ -152,6 +155,12 @@ fun MainScreen(
             drawerState.isOpen -> scope.launch { drawerState.close() }
             currentRoute != NavRoutes.CONFIGURATION -> navController.navigateUp()
             else -> activity?.moveTaskToBack(true)
+        }
+    }
+
+    LaunchedEffect(serviceStatus.state) {
+        if (serviceStatus.state != BaseService.State.Connected) {
+            viewModel.resetUrlTestStatus()
         }
     }
 

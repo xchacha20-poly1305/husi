@@ -128,6 +128,10 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
         _uiEvent.emit(MainViewModelUiEvent.Snackbar(message))
     }
 
+    fun resetUrlTestStatus() {
+        _urlTestStatus.value = URLTestStatus.Initial
+    }
+
     fun urlTest(service: ISagerNetService?) = viewModelScope.launch(Dispatchers.IO) {
         _urlTestStatus.update { status ->
             if (status == URLTestStatus.Testing) {
