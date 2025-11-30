@@ -38,7 +38,7 @@ import java.time.format.DateTimeFormatter
 
 @Stable
 internal data class BackupUiState(
-    val options: Int = 0,
+    val options: Int = OPTIONS_GROUPS_AND_CONFIGURATION or OPTIONS_RULES or OPTIONS_SETTINGS,
     val exported: String? = null,
     val inputResult: JSONObject? = null,
     val isImporting: Boolean = false,
@@ -259,6 +259,12 @@ internal class BackupViewModel : ViewModel() {
         }
         _uiState.update { state ->
             state.copy(isImporting = false)
+        }
+    }
+
+    fun postExport() {
+        _uiState.update { state ->
+            state.copy(exported = null)
         }
     }
 

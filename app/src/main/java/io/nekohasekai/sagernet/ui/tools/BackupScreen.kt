@@ -43,13 +43,21 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.FileProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.readableMessage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 internal fun BackupScreen(
@@ -61,6 +69,7 @@ internal fun BackupScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val visible by rememberScrollHideState(scrollState)
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(visible) {
         onVisibleChange(visible)
@@ -68,6 +77,36 @@ internal fun BackupScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var errorDialog by remember { mutableStateOf<String?>(null) }
+
+    val exportFileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri == null) {
+            viewModel.postExport()
+            return@rememberLauncherForActivityResult
+        }
+        lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                context.contentResolver.openOutputStream(uri)!!.bufferedWriter().use { writer ->
+                    writer.write(uiState.exported)
+                }
+                showSnackbar(context.getString(R.string.action_export_msg))
+            } catch (e: Exception) {
+                Logs.e(e)
+                showSnackbar(e.readableMessage)
+            } finally {
+                viewModel.postExport()
+            }
+        }
+    }
+    LaunchedEffect(uiState.exported) {
+        uiState.exported?.let {
+            val time = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+            val fileName = "husi_backup_${time}"
+            exportFileLauncher.launch(fileName)
+        }
+    }
 
     val importFileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent(),
