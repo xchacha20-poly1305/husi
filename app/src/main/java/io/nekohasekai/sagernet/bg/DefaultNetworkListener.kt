@@ -19,7 +19,7 @@ import kotlinx.coroutines.runBlocking
 
 object DefaultNetworkListener {
     private sealed class NetworkMessage {
-        class Start(val key: Any, val listener: (Network?) -> Unit) : NetworkMessage()
+        class Start(val key: Any, val listener: suspend (Network?) -> Unit) : NetworkMessage()
         class Get : NetworkMessage() {
             val response = CompletableDeferred<Network>()
         }
@@ -33,7 +33,7 @@ object DefaultNetworkListener {
 
     @OptIn(ObsoleteCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val networkActor = GlobalScope.actor<NetworkMessage>(Dispatchers.Unconfined) {
-        val listeners = mutableMapOf<Any, (Network?) -> Unit>()
+        val listeners = mutableMapOf<Any, suspend (Network?) -> Unit>()
         var network: Network? = null
         val pendingRequests = arrayListOf<NetworkMessage.Get>()
         for (message in channel) when (message) {
@@ -77,7 +77,7 @@ object DefaultNetworkListener {
         }
     }
 
-    suspend fun start(key: Any, listener: (Network?) -> Unit) = networkActor.send(
+    suspend fun start(key: Any,  listener: suspend (Network?) -> Unit) = networkActor.send(
         NetworkMessage.Start(
             key,
             listener,

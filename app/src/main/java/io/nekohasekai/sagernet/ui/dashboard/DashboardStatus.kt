@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
@@ -105,7 +106,10 @@ internal fun DashboardStatusScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("IPv4")
+                    Text(
+                        text = "IPv4",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     val text = uiState.ipv4 ?: stringResource(R.string.no_statistics)
                     Text(
                         text = text,
@@ -116,13 +120,17 @@ internal fun DashboardStatusScreen(
                             onCopySuccess()
                         },
                         fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.bodySmallEmphasized,
                     )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("IPv6")
+                    Text(
+                        text = "IPv6",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     val text = uiState.ipv6 ?: stringResource(R.string.no_statistics)
                     Text(
                         text = text,
@@ -133,6 +141,7 @@ internal fun DashboardStatusScreen(
                             onCopySuccess()
                         },
                         fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.bodySmallEmphasized,
                     )
                 }
             }
@@ -149,14 +158,15 @@ internal fun DashboardStatusScreen(
                     text = stringResource(R.string.clash_mode),
                     style = MaterialTheme.typography.titleMedium,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    uiState.clashModes.forEach { mode ->
-                        val selected = mode == uiState.selectedClashMode
+                uiState.clashModes.forEach { mode ->
+                    val selected = mode == uiState.selectedClashMode
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
                         Button(
                             onClick = { selectClashMode(mode) },
+                            modifier = Modifier.fillMaxWidth(),
                             enabled = !selected,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (selected) {
@@ -204,13 +214,13 @@ internal fun DashboardStatusScreen(
                             ) {
                                 Text(
                                     text = interfaceInfo.name,
-                                    fontFamily = FontFamily.Monospace,
                                     style = MaterialTheme.typography.titleSmallEmphasized,
                                 )
                                 for (address in interfaceInfo.addresses) {
                                     Text(
                                         text = address,
                                         fontFamily = FontFamily.Monospace,
+                                        style = MaterialTheme.typography.bodySmall,
                                     )
                                 }
                             }

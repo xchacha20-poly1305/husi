@@ -118,6 +118,7 @@ private fun ProxySetCard(
                     SimpleIconButton(
                         imageVector = ImageVector.vectorResource(R.drawable.bolt),
                         contentDescription = stringResource(R.string.connection_test_url),
+                        enabled = !proxySet.isTesting,
                         onClick = { urlTestForGroup(proxySet.tag) },
                     )
                     SimpleIconButton(
