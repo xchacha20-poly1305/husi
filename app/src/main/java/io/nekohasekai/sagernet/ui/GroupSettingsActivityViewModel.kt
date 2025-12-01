@@ -17,6 +17,8 @@ import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -61,12 +63,12 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
         initialValue = false,
     )
 
-    fun initialize(id: Long) {
+    fun initialize(id: Long) = viewModelScope.launch {
         editingID = id
         val group = if (isNew) {
             ProxyGroup()
         } else {
-            SagerDatabase.groupDao.getById(id)!!
+            SagerDatabase.groupDao.getById(id).first()!!
         }
         _uiState.update {
             val subscription = group.subscription ?: SubscriptionBean().applyDefaultValues()
@@ -103,7 +105,7 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
             return@runOnIoDispatcher
         }
         if (!isDirty.value) return@runOnIoDispatcher
-        val entity = SagerDatabase.groupDao.getById(editingID) ?: return@runOnIoDispatcher
+        val entity = SagerDatabase.groupDao.getById(editingID).firstOrNull() ?: return@runOnIoDispatcher
         val state = _uiState.value
         val keepUserInfo = entity.type == GroupType.SUBSCRIPTION
                 && initialState.type == GroupType.SUBSCRIPTION

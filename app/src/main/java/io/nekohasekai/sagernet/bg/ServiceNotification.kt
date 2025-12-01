@@ -22,6 +22,8 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.ui.SwitchActivity
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 
 /**
  * User can customize visibility of notification since Android 8.
@@ -42,9 +44,12 @@ class ServiceNotification(
         const val flags = PendingIntent.FLAG_IMMUTABLE
 
         fun genTitle(ent: ProxyEntity): String {
-            val gn = if (DataStore.showGroupInNotification)
-                SagerDatabase.groupDao.getById(ent.groupId)?.displayName() else null
-            return if (gn == null) ent.displayName() else "[$gn] ${ent.displayName()}"
+            val groupName = if (DataStore.showGroupInNotification) runBlocking {
+                SagerDatabase.groupDao.getById(ent.groupId).firstOrNull()?.displayName()
+            } else {
+                null
+            }
+            return if (groupName == null) ent.displayName() else "[$groupName] ${ent.displayName()}"
         }
     }
 
@@ -54,27 +59,33 @@ class ServiceNotification(
         useBuilder {
             if (showDirectSpeed) {
                 val speedDetail = (service as Context).getString(
-                    R.string.speed_detail, service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy)
-                    ), service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.rxRateProxy)
-                    ), service.getString(
+                    R.string.speed_detail,
+                    service.getString(
+                        R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy),
+                    ),
+                    service.getString(
+                        R.string.speed, Formatter.formatFileSize(service, stats.rxRateProxy),
+                    ),
+                    service.getString(
                         R.string.speed,
-                        Formatter.formatFileSize(service, stats.txRateDirect)
-                    ), service.getString(
+                        Formatter.formatFileSize(service, stats.txRateDirect),
+                    ),
+                    service.getString(
                         R.string.speed,
-                        Formatter.formatFileSize(service, stats.rxRateDirect)
-                    )
+                        Formatter.formatFileSize(service, stats.rxRateDirect),
+                    ),
                 )
                 it.setStyle(NotificationCompat.BigTextStyle().bigText(speedDetail))
                 it.setContentText(speedDetail)
             } else {
                 val speedSimple = (service as Context).getString(
-                    R.string.traffic, service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy)
-                    ), service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.rxRateProxy)
-                    )
+                    R.string.traffic,
+                    service.getString(
+                        R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy),
+                    ),
+                    service.getString(
+                        R.string.speed, Formatter.formatFileSize(service, stats.rxRateProxy),
+                    ),
                 )
                 it.setContentText(speedSimple)
             }
@@ -82,8 +93,8 @@ class ServiceNotification(
                 service.getString(
                     R.string.traffic,
                     Formatter.formatFileSize(service, stats.txTotal),
-                    Formatter.formatFileSize(service, stats.rxTotal)
-                )
+                    Formatter.formatFileSize(service, stats.rxTotal),
+                ),
             )
         }
         update()
@@ -128,10 +139,13 @@ class ServiceNotification(
 
         builder.color = service.getPrimaryColor()
 
-        service.registerReceiver(this, IntentFilter().apply {
-            addAction(Intent.ACTION_SCREEN_ON)
-            addAction(Intent.ACTION_SCREEN_OFF)
-        })
+        service.registerReceiver(
+            this,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+        )
 
         runOnMainDispatcher {
             updateActions()
@@ -145,24 +159,26 @@ class ServiceNotification(
             it.clearActions()
 
             val closeAction = NotificationCompat.Action.Builder(
-                0, service.getText(R.string.stop), PendingIntent.getBroadcast(
-                    service, 0, Intent(Action.CLOSE).setPackage(service.packageName), flags
-                )
+                0, service.getText(R.string.stop),
+                PendingIntent.getBroadcast(
+                    service, 0, Intent(Action.CLOSE).setPackage(service.packageName), flags,
+                ),
             ).setShowsUserInterface(false).build()
             it.addAction(closeAction)
 
             val switchAction = NotificationCompat.Action.Builder(
-                0, service.getString(R.string.action_switch), PendingIntent.getActivity(
-                    service, 0, Intent(service, SwitchActivity::class.java), flags
-                )
+                0, service.getString(R.string.action_switch),
+                PendingIntent.getActivity(
+                    service, 0, Intent(service, SwitchActivity::class.java), flags,
+                ),
             ).setShowsUserInterface(false).build()
             it.addAction(switchAction)
 
             val resetUpstreamAction = NotificationCompat.Action.Builder(
                 0, service.getString(R.string.reset_connections),
                 PendingIntent.getBroadcast(
-                    service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags
-                )
+                    service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags,
+                ),
             ).setShowsUserInterface(false).build()
             it.addAction(resetUpstreamAction)
         }

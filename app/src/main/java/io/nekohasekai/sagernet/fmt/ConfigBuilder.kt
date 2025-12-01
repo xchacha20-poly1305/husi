@@ -178,7 +178,7 @@ fun buildConfig(
     }
 
     fun ProxyEntity.resolveChain(): MutableList<ProxyEntity> {
-        val thisGroup = SagerDatabase.groupDao.getById(groupId)
+        val thisGroup = runBlocking { SagerDatabase.groupDao.getById(groupId).first() }
         val frontProxy = thisGroup?.frontProxy?.let { SagerDatabase.proxyDao.getById(it) }
         val landingProxy = thisGroup?.landingProxy?.let { SagerDatabase.proxyDao.getById(it) }
         val list = resolveChainInternal()
