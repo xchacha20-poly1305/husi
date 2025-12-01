@@ -42,9 +42,12 @@ data class ProfileItem(
 
 @Stable
 class GroupProfilesHolderViewModel(
-    val group: ProxyGroup,
+    initialGroup: ProxyGroup,
     val preSelected: Long?,
 ) : ViewModel() {
+
+    var group: ProxyGroup = initialGroup
+        private set
 
     private val _uiState = MutableStateFlow(GroupProfilesHolderUiState())
     val uiState = _uiState.asStateFlow()
@@ -72,6 +75,15 @@ class GroupProfilesHolderViewModel(
         if (preSelected == null) {
             viewModelScope.launch {
                 selectedProxy.collect {
+                    reloadProfiles(null, false)
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            SagerDatabase.groupDao.getById(group.id).collect { updated ->
+                if (updated != null && updated != group) {
+                    group = updated
                     reloadProfiles(null, false)
                 }
             }

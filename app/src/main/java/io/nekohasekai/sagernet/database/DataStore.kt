@@ -23,6 +23,7 @@ import io.nekohasekai.sagernet.ktx.parsePort
 import io.nekohasekai.sagernet.ktx.string
 import io.nekohasekai.sagernet.ktx.stringSet
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 
 object DataStore {
@@ -65,12 +66,15 @@ object DataStore {
         var group: ProxyGroup? = null
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
         if (currentSelected > 0L) {
-            group = SagerDatabase.groupDao.getById(currentSelected)
+            group = runBlocking {
+                SagerDatabase.groupDao.getById(currentSelected).firstOrNull()
+            }
         }
         if (group != null) return group
         val groupId = ProfileManager.ensureDefaultGroupId()
-        group = SagerDatabase.groupDao.getById(groupId) ?: runBlocking {
-            SagerDatabase.groupDao.allGroups().first().first()
+        group = runBlocking {
+            SagerDatabase.groupDao.getById(groupId).firstOrNull()
+                ?: SagerDatabase.groupDao.allGroups().first().first()
         }
         selectedGroup = group.id
         return group

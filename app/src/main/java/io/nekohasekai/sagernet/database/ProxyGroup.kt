@@ -107,7 +107,7 @@ data class ProxyGroup(
         fun ungroupedId(): Long?
 
         @Query("SELECT * FROM proxy_groups WHERE id = :groupId")
-        fun getById(groupId: Long): ProxyGroup?
+        fun getById(groupId: Long): Flow<ProxyGroup?>
 
         @Query("DELETE FROM proxy_groups WHERE id = :groupId")
         fun deleteById(groupId: Long): Int
