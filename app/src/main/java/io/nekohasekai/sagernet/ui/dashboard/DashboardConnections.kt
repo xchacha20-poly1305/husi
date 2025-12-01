@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import android.text.format.Formatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -102,6 +104,8 @@ private fun ConnectionCard(
     connection: Connection,
     openDetail: (id: String) -> Unit,
 ) {
+    val context = LocalContext.current
+
     ElevatedCard(
         onClick = { openDetail(connection.uuid) },
         modifier = modifier.fillMaxWidth(),
@@ -147,8 +151,8 @@ private fun ConnectionCard(
             Text(
                 text = stringResource(
                     R.string.traffic,
-                    connection.uploadTotal,
-                    connection.downloadTotal,
+                    Formatter.formatFileSize(context, connection.uploadTotal),
+                    Formatter.formatFileSize(context, connection.downloadTotal),
                 ),
                 fontSize = 14.sp,
             )
