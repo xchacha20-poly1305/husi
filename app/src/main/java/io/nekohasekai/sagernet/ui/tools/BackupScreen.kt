@@ -229,7 +229,7 @@ internal fun BackupScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = {
-                        importFileLauncher.launch("/")
+                        importFileLauncher.launch("*/*")
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -289,27 +289,32 @@ internal fun BackupScreen(
             },
             title = { Text(stringResource(R.string.backup_import)) },
             text = {
-                CheckBoxLine(
-                    checked = importGroupsAndConfig,
-                    onCheckedChange = { importGroupsAndConfig = it },
-                    text = stringResource(R.string.backup_groups_and_configurations),
-                )
-                CheckBoxLine(
-                    checked = importRules,
-                    onCheckedChange = { importRules = it },
-                    text = stringResource(R.string.backup_rules),
-                )
-                CheckBoxLine(
-                    checked = importSettings,
-                    onCheckedChange = { importSettings = it },
-                    text = stringResource(R.string.backup_settings),
-                )
-                Text(
-                    text = stringResource(R.string.backup_import_summary),
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMediumEmphasized,
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    CheckBoxLine(
+                        checked = importGroupsAndConfig,
+                        onCheckedChange = { importGroupsAndConfig = it },
+                        text = stringResource(R.string.backup_groups_and_configurations),
+                    )
+                    CheckBoxLine(
+                        checked = importRules,
+                        onCheckedChange = { importRules = it },
+                        text = stringResource(R.string.backup_rules),
+                    )
+                    CheckBoxLine(
+                        checked = importSettings,
+                        onCheckedChange = { importSettings = it },
+                        text = stringResource(R.string.backup_settings),
+                    )
+                    Text(
+                        text = stringResource(R.string.backup_import_summary),
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMediumEmphasized,
+                    )
+                }
             },
         )
     }
