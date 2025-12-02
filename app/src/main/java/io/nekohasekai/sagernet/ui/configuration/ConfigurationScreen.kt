@@ -90,6 +90,7 @@ import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.StatsBar
 import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.colorForUrlTestDelay
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.startFilesForResult
@@ -988,7 +989,7 @@ fun ConfigurationScreen(
                         val profile = result.profile
                         val (statusText, statusColor) = when (val testResult = result.result) {
                             is TestResult.Success -> {
-                                "${testResult.ping}ms" to MaterialTheme.colorScheme.primary
+                                "${testResult.ping}ms" to colorForUrlTestDelay(testResult.ping)
                             }
 
                             is TestResult.Failure -> {
@@ -1040,23 +1041,17 @@ fun ConfigurationScreen(
 
                         Text(profile.displayName())
                         Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = profile.displayType(context),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = statusText,
-                                color = statusColor,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
+                        Text(
+                            text = profile.displayType(context),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = statusText,
+                            color = statusColor,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
