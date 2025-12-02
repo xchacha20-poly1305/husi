@@ -684,4 +684,6 @@
     <string name="fake_dns_for_all_sum">Унификация сетевой стратегии и поведения приложений.</string>
     <string name="fake_dns_for_all">Применять поддельный DNS (Fake DNS) для каждого домена</string>
     <string name="internal_link">Внутренняя ссылка</string>
+    <string name="fake_ip_range_4">Диапазон поддельных IP (IPv4)</string>
+    <string name="fake_ip_range_6">Диапазон поддельных IP (IPv6)</string>
 </resources>
