@@ -1,8 +1,7 @@
 package io.nekohasekai.sagernet.compose
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,9 +44,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import me.zhanghai.compose.preference.Preference
-import me.zhanghai.compose.preference.TextFieldPreference
 import me.zhanghai.compose.preference.PreferenceCategory
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
+import me.zhanghai.compose.preference.TextFieldPreference
 
 object PreferenceType {
     const val PREFERENCE_CATEGORY = 0
@@ -79,7 +85,12 @@ fun PasswordPreference(
     onValueChange: (String) -> Unit,
     title: @Composable () -> Unit = { Text(stringResource(R.string.password)) },
     enabled: Boolean = true,
-    icon: @Composable (() -> Unit) = { Icon(ImageVector.vectorResource(R.drawable.password), null) },
+    icon: @Composable (() -> Unit) = {
+        Icon(
+            ImageVector.vectorResource(R.drawable.password),
+            null,
+        )
+    },
 ) {
     TextFieldPreference(
         value = value,
@@ -111,9 +122,9 @@ fun PasswordPreference(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = { onOk() },
-                )
+                ),
             )
-        }
+        },
     )
 }
 
@@ -173,7 +184,7 @@ fun <K, V> MapPreference(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .verticalScroll(scroll)
+                    .verticalScroll(scroll),
             ) {
                 var isFirst = true
                 for (key in keys) {
@@ -213,7 +224,7 @@ fun <K, V> MapPreference(
 }
 
 @SuppressLint("MutableCollectionMutableState")
-@Preview()
+@Preview
 @Composable
 private fun PreviewCustomPreference() {
     ProvidePreferenceLocals {
@@ -221,11 +232,16 @@ private fun PreviewCustomPreference() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
         ) {
             PreferenceCategory(
-                icon = { Icon(ImageVector.vectorResource(R.drawable.settings), contentDescription = null) },
-                text = { Text("Account Settings") }
+                icon = {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.settings),
+                        contentDescription = null,
+                    )
+                },
+                text = { Text("Account Settings") },
             )
 
             Spacer(Modifier.height(16.dp))
@@ -234,7 +250,7 @@ private fun PreviewCustomPreference() {
             PasswordPreference(
                 value = password,
                 onValueChange = { password = it },
-                enabled = true
+                enabled = true,
             )
 
             Spacer(Modifier.height(16.dp))
@@ -243,8 +259,8 @@ private fun PreviewCustomPreference() {
                 mutableStateOf(
                     linkedMapOf(
                         "Server" to "192.168.1.1",
-                        "Port" to "8080"
-                    )
+                        "Port" to "8080",
+                    ),
                 )
             }
 
@@ -257,11 +273,49 @@ private fun PreviewCustomPreference() {
                 displayKey = { it },
                 textToValue = { it },
                 title = { Text("Connection Settings") },
-                icon = { Icon(ImageVector.vectorResource(R.drawable.wifi), contentDescription = null) },
+                icon = {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.wifi),
+                        contentDescription = null,
+                    )
+                },
                 summary = {
                     Text(mapValue.entries.joinToString { "${it.key}: ${it.value}" })
-                }
+                },
             )
         }
+    }
+}
+
+/**
+ * Fix selected color
+ */
+@Composable
+fun <T> ListPreferenceMenuItem(
+    valueToText: (T) -> AnnotatedString = { AnnotatedString(it.toString()) },
+): @Composable (value: T, currentValue: T, onClick: () -> Unit) -> Unit {
+    return { value, currentValue, onClick ->
+        val selected = value == currentValue
+        DropdownMenuItem(
+            text = {
+                Text(
+                    text = valueToText(value),
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        Color.Unspecified
+                    },
+                )
+            },
+            onClick = onClick,
+            modifier = Modifier.background(
+                if (selected) {
+                    MaterialTheme.colorScheme.secondaryContainer
+                } else {
+                    Color.Transparent
+                },
+            ),
+            colors = MenuDefaults.itemColors(),
+        )
     }
 }

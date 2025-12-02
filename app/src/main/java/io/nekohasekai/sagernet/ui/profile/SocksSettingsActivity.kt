@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
+import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -69,13 +70,13 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = {
+                item = ListPreferenceMenuItem {
                     AnnotatedString(
                         when (it) {
                             SOCKSBean.PROTOCOL_SOCKS4 -> "SOCKS4"
                             SOCKSBean.PROTOCOL_SOCKS4A -> "SOCKS4A"
                             else -> "SOCKS5"
-                        }
+                        },
                     )
                 },
             )
@@ -102,7 +103,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
-                }
+                },
             )
         }
 

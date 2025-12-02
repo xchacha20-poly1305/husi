@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
+import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -69,7 +70,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
-                }
+                },
             )
         }
         item("username") {
@@ -109,7 +110,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(uiState.congestionControl) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(it) },
+                item = ListPreferenceMenuItem { AnnotatedString(it) },
             )
         }
         item("sni") {
@@ -142,7 +143,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
-                }
+                },
             )
         }
         item("minimum_mtu") {
@@ -156,7 +157,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
-                }
+                },
             )
         }
         item("udp_over_stream") {
