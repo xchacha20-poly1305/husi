@@ -59,13 +59,13 @@ class TrafficLooper(
         val speedInterval = DataStore.configurationStore
             .intFlow(Key.SPEED_INTERVAL)
             .map { it.toLong() }
-            .stateIn(scope, SharingStarted.Eagerly, DataStore.speedInterval.toLong())
+            .stateIn(scope, SharingStarted.Eagerly, 0L)
         val showDirectSpeed = DataStore.configurationStore
             .booleanFlow(Key.SHOW_DIRECT_SPEED)
-            .stateIn(scope, SharingStarted.Eagerly, DataStore.showDirectSpeed)
+            .stateIn(scope, SharingStarted.Eagerly, true)
         val profileTrafficStatistics = DataStore.configurationStore
             .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS)
-            .stateIn(scope, SharingStarted.Eagerly, DataStore.profileTrafficStatistics)
+            .stateIn(scope, SharingStarted.Eagerly, false)
         // update database / 10s
         val persistEveryMs = 10_000L
         // Calculate loop times (ticks) based on delay ms.
