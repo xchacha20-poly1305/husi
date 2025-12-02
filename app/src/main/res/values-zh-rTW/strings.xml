@@ -8,11 +8,11 @@
     <string name="app_version">版本</string>
     <string name="logcat">匯出除錯資訊</string>
     <string name="menu_configuration">配置</string>
-    <string name="menu_group">組</string>
+    <string name="menu_group">群組</string>
     <string name="menu_about">關於</string>
     <string name="quick_toggle">切換</string>
     <!-- group -->
-    <string name="group_name">組名稱</string>
+    <string name="group_name">群組名稱</string>
     <string name="group_update">更新</string>
     <string name="group_subscription_link">訂閱連結</string>
     <string name="group_name_required">需要組名稱</string>
@@ -164,7 +164,7 @@
     <string name="no">否</string>
     <string name="apply">套用</string>
     <string name="license">授權協定</string>
-    <string name="document">文檔</string>
+    <string name="document">文件</string>
     <string name="early_data_header_name">前置資料標頭</string>
     <string name="certificates">憑證（鏈結）</string>
     <string name="alpn">應用層協定協商</string>
@@ -450,7 +450,7 @@
     <string name="inbound_password">入站密碼</string>
     <string name="http_upgrade_path">HTTPUpgrade 路徑</string>
     <string name="nat_stun_server_hint">STUN 伺服器</string>
-    <string name="action_open">打開</string>
+    <string name="action_open">開啟</string>
     <string name="enable_fakedns">啟用 FakeDNS</string>
     <string name="fakedns_message">在代理停止後，可能會導致其他應用程式需要重新啟動，才能重新連線到網路</string>
     <string name="mux_sum">Mux 的設計目的是減少連線握手延遲，而不是增加連線吞吐量。使用 Mux 觀看影片、下載或測試速度通常會適得其反。如果伺服器不支援它，你將無法連接到網際網路。</string>
@@ -633,4 +633,7 @@
     <string name="format">格式</string>
     <string name="not_found">未找到</string>
     <string name="full">完整</string>
+    <string name="more">更多</string>
+    <string name="internal_link">內部連結</string>
+    <string name="back">返回</string>
 </resources>
