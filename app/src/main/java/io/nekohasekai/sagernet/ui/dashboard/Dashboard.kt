@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package io.nekohasekai.sagernet.ui.dashboard
 
 import androidx.compose.animation.animateColorAsState
@@ -5,12 +7,14 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -298,8 +302,8 @@ fun DashboardScreen(
                     containerColor = appBarContainerColor,
                     scrolledContainerColor = appBarContainerColor,
                 ),
-                scrollBehavior = scrollBehavior,
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SnackbarHost(snackbarState) },
@@ -329,17 +333,10 @@ fun DashboardScreen(
             }
         },
     ) { innerPadding ->
-        val bottomPadding = if (bottomVisible) {
-            innerPadding.calculateBottomPadding()
-        } else {
-            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .paddingExceptBottom(innerPadding)
-                .padding(bottom = bottomPadding),
         ) {
             PrimaryTabRow(
                 selectedTabIndex = pagerState.currentPage,

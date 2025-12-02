@@ -1,30 +1,23 @@
 package io.nekohasekai.sagernet.ui
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,15 +25,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.LinkOrContentTextField
+import io.nekohasekai.sagernet.compose.PreferenceType
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
-import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
+import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -71,9 +67,10 @@ class AssetEditActivity : ComposeActivity() {
                     showBackAlert = true
                 }
 
+                val uiState by viewModel.uiState.collectAsState()
+
                 val windowInsets = WindowInsets.safeDrawing
                 val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-                val scrollState = rememberScrollState()
 
                 var showDeleteConfirm by remember { mutableStateOf(false) }
                 var illegalNameMessage by remember { mutableIntStateOf(0) }
@@ -116,14 +113,12 @@ class AssetEditActivity : ComposeActivity() {
                         )
                     },
                 ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .paddingExceptBottom(innerPadding)
-                            .verticalScroll(scrollState)
-                    ) {
-                        AssetEditSettings()
-
-                        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    ProvidePreferenceLocals {
+                        LazyColumn(
+                            contentPadding = innerPadding.withNavigation(),
+                        ) {
+                            assetEditSettings(uiState)
+                        }
                     }
                 }
 
@@ -200,10 +195,8 @@ class AssetEditActivity : ComposeActivity() {
         finish()
     }
 
-    @Composable
-    private fun AssetEditSettings() {
-        ProvidePreferenceLocals {
-            val uiState by viewModel.uiState.collectAsState()
+    private fun LazyListScope.assetEditSettings(uiState: AssetEditActivityUiState) {
+        item("name", PreferenceType.TEXT_FIELD_PREFERENCE) {
             TextFieldPreference(
                 value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
@@ -213,6 +206,8 @@ class AssetEditActivity : ComposeActivity() {
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
+        }
+        item("link", PreferenceType.TEXT_FIELD_PREFERENCE) {
             TextFieldPreference(
                 value = uiState.link,
                 onValueChange = { viewModel.setLink(it) },

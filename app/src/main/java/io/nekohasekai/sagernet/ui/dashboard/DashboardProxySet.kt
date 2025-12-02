@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -41,6 +40,7 @@ import io.nekohasekai.sagernet.aidl.ProxySet
 import io.nekohasekai.sagernet.aidl.ProxySetItem
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.colorForUrlTestDelay
+import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 
 @Composable
@@ -61,10 +61,7 @@ internal fun DashboardProxySetScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         state = listState,
-        contentPadding = PaddingValues(
-            horizontal = 16.dp,
-            vertical = 8.dp,
-        ),
+        contentPadding = extraBottomPadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(

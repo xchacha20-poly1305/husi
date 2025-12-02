@@ -77,12 +77,13 @@ import io.nekohasekai.sagernet.compose.LinkOrContentTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PortTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
+import io.nekohasekai.sagernet.compose.PreferenceType
 import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.compose.StatsBar
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.DEFAULT
@@ -105,13 +106,6 @@ import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
-
-private const val TYPE_PREFERENCE_CATEGORY = 0
-private const val TYPE_SWITCH_PREFERENCE = 1
-private const val TYPE_LIST_PREFERENCE = 2
-private const val TYPE_TEXT_FIELD_PREFERENCE = 3
-private const val TYPE_MULTI_SELECT_LIST_PREFERENCE = 4
-private const val TYPE_COLOR_PICKER_PREFERENCE = 5
 
 @Composable
 fun SettingsScreen(
@@ -235,12 +229,12 @@ fun SettingsScreen(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = innerPadding.paddingWithNavigation(),
+                contentPadding = innerPadding.withNavigation(),
             ) {
-                item(Key.GENERAL_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.GENERAL_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.general_settings)) })
                 }
-                item(Key.PERSIST_ACROSS_REBOOT, TYPE_SWITCH_PREFERENCE) {
+                item(Key.PERSIST_ACROSS_REBOOT, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.PERSIST_ACROSS_REBOOT, false)
                         .collectAsStateWithLifecycle(false)
@@ -261,7 +255,7 @@ fun SettingsScreen(
                     key = Key.APP_THEME,
                     title = { Text(stringResource(R.string.theme)) },
                 )
-                item(Key.NIGHT_THEME, TYPE_LIST_PREFERENCE) {
+                item(Key.NIGHT_THEME, PreferenceType.LIST_PREFERENCE) {
                     fun nightString(index: Int): Int = when (index) {
                         0 -> R.string.follow_system
                         1 -> R.string.enable
@@ -300,7 +294,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(context.getString(nightString(it))) },
                     )
                 }
-                item(Key.APP_LANGUAGE, TYPE_LIST_PREFERENCE) {
+                item(Key.APP_LANGUAGE, PreferenceType.LIST_PREFERENCE) {
                     fun getLanguageDisplayName(code: String): Int = when (code) {
                         "" -> R.string.language_system_default
                         "ar" -> R.string.language_ar_display_name
@@ -355,7 +349,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(context.getString(getLanguageDisplayName(it))) },
                     )
                 }
-                item(Key.SERVICE_MODE, TYPE_LIST_PREFERENCE) {
+                item(Key.SERVICE_MODE, PreferenceType.LIST_PREFERENCE) {
                     val context = LocalContext.current
                     fun serviceModeText(mode: String): Int = when (mode) {
                         Key.MODE_VPN -> R.string.service_mode_vpn
@@ -389,7 +383,7 @@ fun SettingsScreen(
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) item(
                     Key.MEMORY_LIMIT,
-                    TYPE_SWITCH_PREFERENCE,
+                    PreferenceType.SWITCH_PREFERENCE,
                 ) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.MEMORY_LIMIT, false)
@@ -409,7 +403,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.TUN_IMPLEMENTATION, TYPE_LIST_PREFERENCE) {
+                item(Key.TUN_IMPLEMENTATION, PreferenceType.LIST_PREFERENCE) {
                     fun tunImplText(value: Int): String = when (value) {
                         TunImplementation.GVISOR -> "gVisor"
                         TunImplementation.SYSTEM -> "System"
@@ -444,7 +438,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(tunImplText(it)) },
                     )
                 }
-                item(Key.MTU, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.MTU, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.MTU, 9000)
                         .collectAsStateWithLifecycle(9000)
@@ -466,7 +460,7 @@ fun SettingsScreen(
                         valueToText = { it.toString() },
                     )
                 }
-                item(Key.ALLOW_APPS_BYPASS_VPN, TYPE_SWITCH_PREFERENCE) {
+                item(Key.ALLOW_APPS_BYPASS_VPN, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.ALLOW_APPS_BYPASS_VPN, false)
                         .collectAsStateWithLifecycle(false)
@@ -485,7 +479,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.SPEED_INTERVAL, TYPE_LIST_PREFERENCE) {
+                item(Key.SPEED_INTERVAL, PreferenceType.LIST_PREFERENCE) {
                     val values = listOf(0, 500, 1000, 3000, 10000)
                     val value by DataStore.configurationStore
                         .intFlow(Key.SPEED_INTERVAL, 1000)
@@ -516,7 +510,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(speedIntervalText(it)) },
                     )
                 }
-                item(Key.PROFILE_TRAFFIC_STATISTICS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.PROFILE_TRAFFIC_STATISTICS, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
                         .collectAsStateWithLifecycle(true)
@@ -529,7 +523,7 @@ fun SettingsScreen(
                         enabled = speedIntervalState != 0,
                     )
                 }
-                item(Key.SHOW_DIRECT_SPEED, TYPE_SWITCH_PREFERENCE) {
+                item(Key.SHOW_DIRECT_SPEED, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
                         .collectAsStateWithLifecycle(true)
@@ -547,7 +541,7 @@ fun SettingsScreen(
                         enabled = speedIntervalState != 0,
                     )
                 }
-                item(Key.SHOW_GROUP_IN_NOTIFICATION, TYPE_SWITCH_PREFERENCE) {
+                item(Key.SHOW_GROUP_IN_NOTIFICATION, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.SHOW_GROUP_IN_NOTIFICATION, false)
                         .collectAsStateWithLifecycle(false)
@@ -561,7 +555,7 @@ fun SettingsScreen(
                         icon = { Icon(ImageVector.vectorResource(R.drawable.label), null) },
                     )
                 }
-                item(Key.ALWAYS_SHOW_ADDRESS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.ALWAYS_SHOW_ADDRESS, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.ALWAYS_SHOW_ADDRESS, false)
                         .collectAsStateWithLifecycle(false)
@@ -578,7 +572,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.always_show_address_sum)) },
                     )
                 }
-                item(Key.BLURRED_ADDRESS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.BLURRED_ADDRESS, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.BLURRED_ADDRESS, false)
                         .collectAsStateWithLifecycle(false)
@@ -595,7 +589,7 @@ fun SettingsScreen(
                         enabled = alwaysShowAddressState,
                     )
                 }
-                item(Key.SECURITY_ADVISORY, TYPE_SWITCH_PREFERENCE) {
+                item(Key.SECURITY_ADVISORY, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.SECURITY_ADVISORY, true)
                         .collectAsStateWithLifecycle(true)
@@ -611,7 +605,10 @@ fun SettingsScreen(
                         },
                     )
                 }
-                if (Build.VERSION.SDK_INT >= 28) item(Key.METERED_NETWORK, TYPE_SWITCH_PREFERENCE) {
+                if (Build.VERSION.SDK_INT >= 28) item(
+                    Key.METERED_NETWORK,
+                    PreferenceType.SWITCH_PREFERENCE,
+                ) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.METERED_NETWORK, false)
                         .collectAsStateWithLifecycle(false)
@@ -631,7 +628,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.metered_summary)) },
                     )
                 }
-                item(Key.LOG_LEVEL, TYPE_LIST_PREFERENCE) {
+                item(Key.LOG_LEVEL, PreferenceType.LIST_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.LOG_LEVEL, 2)
                         .collectAsStateWithLifecycle(2)
@@ -654,7 +651,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(logLevelString(it)) },
                     )
                 }
-                item(Key.LOG_MAX_SIZE, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.LOG_MAX_SIZE, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.LOG_MAX_SIZE, 50)
                         .collectAsStateWithLifecycle(50)
@@ -677,10 +674,10 @@ fun SettingsScreen(
                     )
                 }
 
-                item(Key.ROUTE_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.ROUTE_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.route_options)) })
                 }
-                item(Key.PROXY_APPS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.PROXY_APPS, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.PROXY_APPS, false)
                         .collectAsStateWithLifecycle(false)
@@ -700,7 +697,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.proxied_apps_summary)) },
                     )
                 }
-                item(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, TYPE_SWITCH_PREFERENCE) {
+                item(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, false)
                         .collectAsStateWithLifecycle(false)
@@ -716,7 +713,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.BYPASS_LAN, TYPE_SWITCH_PREFERENCE) {
+                item(Key.BYPASS_LAN, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.BYPASS_LAN, true)
                         .collectAsStateWithLifecycle(true)
@@ -735,7 +732,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.BYPASS_LAN_IN_CORE, TYPE_SWITCH_PREFERENCE) {
+                item(Key.BYPASS_LAN_IN_CORE, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.BYPASS_LAN_IN_CORE, false)
                         .collectAsStateWithLifecycle(false)
@@ -750,7 +747,7 @@ fun SettingsScreen(
                         icon = { Icon(ImageVector.vectorResource(R.drawable.arrow_outward), null) },
                     )
                 }
-                item(Key.NETWORK_STRATEGY, TYPE_LIST_PREFERENCE) {
+                item(Key.NETWORK_STRATEGY, PreferenceType.LIST_PREFERENCE) {
                     val values = listOf("", "prefer_ipv6", "prefer_ipv4", "ipv4_only", "ipv6_only")
                     fun networkStrategyTextRes(value: String): Int = when (value) {
                         "" -> R.string.auto
@@ -785,7 +782,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(context.getString(networkStrategyTextRes(it))) },
                     )
                 }
-                item(Key.NETWORK_INTERFACE_STRATEGY, TYPE_LIST_PREFERENCE) {
+                item(Key.NETWORK_INTERFACE_STRATEGY, PreferenceType.LIST_PREFERENCE) {
                     fun networkInterfaceStrategyTextRes(selection: Int): Int = when (selection) {
                         NetworkInterfaceStrategy.DEFAULT -> R.string.keep_default
                         NetworkInterfaceStrategy.HYBRID -> R.string.hybrid
@@ -827,7 +824,10 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.NETWORK_PREFERRED_INTERFACES, TYPE_MULTI_SELECT_LIST_PREFERENCE) {
+                item(
+                    Key.NETWORK_PREFERRED_INTERFACES,
+                    PreferenceType.MULTI_SELECT_LIST_PREFERENCE,
+                ) {
                     val values = listOf("wifi", "cellular", "ethernet", "other")
                     val selected by DataStore.configurationStore
                         .stringSetFlow(Key.NETWORK_PREFERRED_INTERFACES, emptySet())
@@ -855,7 +855,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(it) },
                     )
                 }
-                item(Key.FORCED_SEARCH_PROCESS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.FORCED_SEARCH_PROCESS, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.FORCED_SEARCH_PROCESS, false)
                         .collectAsStateWithLifecycle(false)
@@ -874,7 +874,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.RULES_PROVIDER, TYPE_LIST_PREFERENCE) {
+                item(Key.RULES_PROVIDER, PreferenceType.LIST_PREFERENCE) {
                     val context = LocalContext.current
                     fun rulesProviderText(index: Int): String = when (index) {
                         RuleProvider.OFFICIAL -> context.getString(R.string.route_rules_official)
@@ -911,7 +911,7 @@ fun SettingsScreen(
                 }
                 if (rulesProviderState == RuleProvider.CUSTOM) item(
                     Key.CUSTOM_RULE_PROVIDER,
-                    TYPE_TEXT_FIELD_PREFERENCE,
+                    PreferenceType.TEXT_FIELD_PREFERENCE,
                 ) {
                     val defaultUrl =
                         "https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set"
@@ -937,10 +937,10 @@ fun SettingsScreen(
                     }
                 }
 
-                item(Key.PROTOCOL_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.PROTOCOL_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.protocol_settings)) })
                 }
-                item(Key.UPLOAD_SPEED, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.UPLOAD_SPEED, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.UPLOAD_SPEED, 0)
                         .collectAsStateWithLifecycle(0)
@@ -964,7 +964,7 @@ fun SettingsScreen(
                         UIntegerTextField(value, onValueChange, onOk)
                     }
                 }
-                item(Key.DOWNLOAD_SPEED, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.DOWNLOAD_SPEED, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.DOWNLOAD_SPEED, 0)
                         .collectAsStateWithLifecycle(0)
@@ -988,7 +988,7 @@ fun SettingsScreen(
                         UIntegerTextField(value, onValueChange, onOk)
                     }
                 }
-                item(Key.PROVIDER_HYSTERIA2, TYPE_LIST_PREFERENCE) {
+                item(Key.PROVIDER_HYSTERIA2, PreferenceType.LIST_PREFERENCE) {
                     val context = LocalContext.current
                     fun pluginProviderText(index: Int): String = when (index) {
                         ProtocolProvider.CORE -> "sing-box"
@@ -1019,7 +1019,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(pluginProviderText(it)) },
                     )
                 }
-                item(Key.PROVIDER_JUICITY, TYPE_LIST_PREFERENCE) {
+                item(Key.PROVIDER_JUICITY, PreferenceType.LIST_PREFERENCE) {
                     val context = LocalContext.current
                     fun pluginProviderText(index: Int): String = when (index) {
                         ProtocolProvider.CORE -> "sing-box"
@@ -1050,7 +1050,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(pluginProviderText(it)) },
                     )
                 }
-                item(Key.CUSTOM_PLUGIN_PREFIX, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.CUSTOM_PLUGIN_PREFIX, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.CUSTOM_PLUGIN_PREFIX, "")
                         .collectAsStateWithLifecycle("")
@@ -1073,10 +1073,10 @@ fun SettingsScreen(
                     )
                 }
 
-                item(Key.DNS_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.DNS_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.cag_dns)) })
                 }
-                item(Key.REMOTE_DNS, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.REMOTE_DNS, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.REMOTE_DNS, "tcp://dns.google")
                         .collectAsStateWithLifecycle("tcp://dns.google")
@@ -1098,7 +1098,7 @@ fun SettingsScreen(
                         valueToText = { it },
                     )
                 }
-                item(Key.DIRECT_DNS, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.DIRECT_DNS, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.DIRECT_DNS, "local")
                         .collectAsStateWithLifecycle("local")
@@ -1120,7 +1120,7 @@ fun SettingsScreen(
                         valueToText = { it },
                     )
                 }
-                item(Key.DOMAIN_STRATEGY_FOR_DIRECT, TYPE_LIST_PREFERENCE) {
+                item(Key.DOMAIN_STRATEGY_FOR_DIRECT, PreferenceType.LIST_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.DOMAIN_STRATEGY_FOR_DIRECT, "auto")
                         .collectAsStateWithLifecycle("auto")
@@ -1156,7 +1156,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.DOMAIN_STRATEGY_FOR_SERVER, TYPE_LIST_PREFERENCE) {
+                item(Key.DOMAIN_STRATEGY_FOR_SERVER, PreferenceType.LIST_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.DOMAIN_STRATEGY_FOR_SERVER, "auto")
                         .collectAsStateWithLifecycle("auto")
@@ -1192,7 +1192,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.ENABLE_FAKE_DNS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.ENABLE_FAKE_DNS, PreferenceType.SWITCH_PREFERENCE) {
                     SwitchPreference(
                         value = fakeDNSState,
                         onValueChange = {
@@ -1209,7 +1209,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.fakedns_message)) },
                     )
                 }
-                item(Key.FAKE_DNS_FOR_ALL, TYPE_SWITCH_PREFERENCE) {
+                item(Key.FAKE_DNS_FOR_ALL, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.FAKE_DNS_FOR_ALL, false)
                         .collectAsStateWithLifecycle(false)
@@ -1230,7 +1230,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.fake_dns_for_all_sum)) },
                     )
                 }
-                item(Key.FAKE_DNS_RANGE_4, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.FAKE_DNS_RANGE_4, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.FAKE_DNS_RANGE_4, "198.51.100.0/24")
                         .collectAsStateWithLifecycle("198.51.100.0/24")
@@ -1253,7 +1253,7 @@ fun SettingsScreen(
                         valueToText = { it },
                     )
                 }
-                item(Key.FAKE_DNS_RANGE_6, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.FAKE_DNS_RANGE_6, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.FAKE_DNS_RANGE_6, "2001:2::/48")
                         .collectAsStateWithLifecycle("2001:2::/48")
@@ -1276,7 +1276,7 @@ fun SettingsScreen(
                         valueToText = { it },
                     )
                 }
-                item(Key.DNS_HOSTS, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.DNS_HOSTS, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.DNS_HOSTS, "")
                         .collectAsStateWithLifecycle("")
@@ -1301,10 +1301,10 @@ fun SettingsScreen(
                     }
                 }
 
-                item(Key.INBOUND_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.INBOUND_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.inbound_settings)) })
                 }
-                item(Key.MIXED_PORT, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.MIXED_PORT, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.MIXED_PORT, "2080")
                         .collectAsStateWithLifecycle("2080")
@@ -1329,7 +1329,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.LOCAL_DNS_PORT, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.LOCAL_DNS_PORT, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.LOCAL_DNS_PORT, "0")
                         .collectAsStateWithLifecycle("0")
@@ -1354,7 +1354,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.APPEND_HTTP_PROXY, TYPE_SWITCH_PREFERENCE) {
+                item(Key.APPEND_HTTP_PROXY, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.APPEND_HTTP_PROXY, false)
                         .collectAsStateWithLifecycle(false)
@@ -1374,7 +1374,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.append_http_proxy_sum)) },
                     )
                 }
-                item(Key.HTTP_PROXY_BYPASS, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.HTTP_PROXY_BYPASS, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.HTTP_PROXY_BYPASS, DEFAULT_HTTP_BYPASS)
                         .collectAsStateWithLifecycle(DEFAULT_HTTP_BYPASS)
@@ -1398,7 +1398,7 @@ fun SettingsScreen(
                         HostTextField(value, onValueChange, onOk)
                     }
                 }
-                item(Key.ALLOW_ACCESS, TYPE_SWITCH_PREFERENCE) {
+                item(Key.ALLOW_ACCESS, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.ALLOW_ACCESS, false)
                         .collectAsStateWithLifecycle(false)
@@ -1418,7 +1418,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.allow_access_sum)) },
                     )
                 }
-                item(Key.INBOUND_USERNAME, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.INBOUND_USERNAME, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.INBOUND_USERNAME, "")
                         .collectAsStateWithLifecycle("")
@@ -1440,7 +1440,7 @@ fun SettingsScreen(
                         valueToText = { it },
                     )
                 }
-                item(Key.INBOUND_PASSWORD, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.INBOUND_PASSWORD, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.INBOUND_PASSWORD, "")
                         .collectAsStateWithLifecycle("")
@@ -1455,7 +1455,7 @@ fun SettingsScreen(
                 }
                 if (isExpert) item(
                     Key.ANCHOR_SSID,
-                    TYPE_TEXT_FIELD_PREFERENCE,
+                    PreferenceType.TEXT_FIELD_PREFERENCE,
                 ) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.ANCHOR_SSID, "")
@@ -1479,10 +1479,10 @@ fun SettingsScreen(
                     )
                 }
 
-                item(Key.MISC_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.MISC_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.cag_misc)) })
                 }
-                item(Key.CONNECTION_TEST_URL, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.CONNECTION_TEST_URL, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.CONNECTION_TEST_URL, CONNECTION_TEST_URL)
                         .collectAsStateWithLifecycle(CONNECTION_TEST_URL)
@@ -1503,7 +1503,7 @@ fun SettingsScreen(
                         LinkOrContentTextField(value, onValueChange, onOk)
                     }
                 }
-                item(Key.CONNECTION_TEST_CONCURRENT, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.CONNECTION_TEST_CONCURRENT, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.CONNECTION_TEST_CONCURRENT, 5)
                         .collectAsStateWithLifecycle(5)
@@ -1525,7 +1525,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.CONNECTION_TEST_TIMEOUT, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.CONNECTION_TEST_TIMEOUT, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.CONNECTION_TEST_TIMEOUT, 3000)
                         .collectAsStateWithLifecycle(3000)
@@ -1553,7 +1553,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.ACQUIRE_WAKE_LOCK, TYPE_SWITCH_PREFERENCE) {
+                item(Key.ACQUIRE_WAKE_LOCK, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.ACQUIRE_WAKE_LOCK, true)
                         .collectAsStateWithLifecycle(true)
@@ -1573,7 +1573,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.acquire_wake_lock_summary)) },
                     )
                 }
-                item(Key.CERT_PROVIDER, TYPE_LIST_PREFERENCE) {
+                item(Key.CERT_PROVIDER, PreferenceType.LIST_PREFERENCE) {
                     fun certProviderTextRes(index: Int): Int = when (index) {
                         CertProvider.SYSTEM -> R.string.follow_system
                         CertProvider.MOZILLA -> R.string.mozilla
@@ -1609,7 +1609,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(context.getString(certProviderTextRes(it))) },
                     )
                 }
-                item(Key.DISABLE_PROCESS_TEXT, TYPE_SWITCH_PREFERENCE) {
+                item(Key.DISABLE_PROCESS_TEXT, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.DISABLE_PROCESS_TEXT, false)
                         .collectAsStateWithLifecycle(false)
@@ -1640,10 +1640,10 @@ fun SettingsScreen(
                     )
                 }
 
-                item(Key.NTP_SETTINGS, TYPE_PREFERENCE_CATEGORY) {
+                item(Key.NTP_SETTINGS, PreferenceType.PREFERENCE_CATEGORY) {
                     PreferenceCategory(text = { Text(stringResource(R.string.ntp_category)) })
                 }
-                item(Key.ENABLE_NTP, TYPE_SWITCH_PREFERENCE) {
+                item(Key.ENABLE_NTP, PreferenceType.SWITCH_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.ENABLE_NTP, false)
                         .collectAsStateWithLifecycle(false)
@@ -1663,7 +1663,7 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.ntp_sum)) },
                     )
                 }
-                item(Key.NTP_SERVER, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.NTP_SERVER, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.NTP_SERVER, "time.apple.com")
                         .collectAsStateWithLifecycle("time.apple.com")
@@ -1686,7 +1686,7 @@ fun SettingsScreen(
                         enabled = ntpEnableState,
                     )
                 }
-                item(Key.NTP_PORT, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.NTP_PORT, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.NTP_PORT, 123)
                         .collectAsStateWithLifecycle(123)
@@ -1712,7 +1712,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                item(Key.NTP_INTERVAL, TYPE_TEXT_FIELD_PREFERENCE) {
+                item(Key.NTP_INTERVAL, PreferenceType.TEXT_FIELD_PREFERENCE) {
                     val value by DataStore.configurationStore
                         .stringFlow(Key.NTP_INTERVAL, "30m")
                         .collectAsStateWithLifecycle("30m")
@@ -1773,7 +1773,7 @@ private inline fun LazyListScope.colorPickerPreference(
     crossinline title: @Composable () -> Unit,
     enabled: Boolean = true,
 ) {
-    item(key, TYPE_COLOR_PICKER_PREFERENCE) {
+    item(key, PreferenceType.COLOR_PICKER_PREFERENCE) {
         val resources = LocalResources.current
         var showDialog by remember { mutableStateOf(false) }
         Preference(

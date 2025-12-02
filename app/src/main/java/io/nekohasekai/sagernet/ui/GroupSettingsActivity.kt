@@ -8,24 +8,19 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,11 +38,12 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.compose.LinkOrContentTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
+import io.nekohasekai.sagernet.compose.PreferenceType
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
+import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.USER_AGENT
@@ -85,7 +81,7 @@ class GroupSettingsActivity : ComposeActivity() {
 
             val windowInsets = WindowInsets.safeDrawing
             val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-            val scrollState = rememberScrollState()
+            val uiState by viewModel.uiState.collectAsState()
 
             AppTheme {
                 Scaffold(
@@ -125,14 +121,13 @@ class GroupSettingsActivity : ComposeActivity() {
                         )
                     },
                 ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .paddingExceptBottom(innerPadding)
-                            .verticalScroll(scrollState),
-                    ) {
-                        GroupSettings()
-
-                        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    ProvidePreferenceLocals {
+                        LazyColumn(
+                            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                            contentPadding = innerPadding.withNavigation(),
+                        ) {
+                            groupSettings(uiState)
+                        }
                     }
                 }
 
@@ -173,10 +168,8 @@ class GroupSettingsActivity : ComposeActivity() {
 
     }
 
-    @Composable
-    private fun GroupSettings() {
-        val uiState by viewModel.uiState.collectAsState()
-        ProvidePreferenceLocals {
+    private fun LazyListScope.groupSettings(uiState: GroupSettingsUiState) {
+        item("name", PreferenceType.TEXT_FIELD_PREFERENCE) {
             TextFieldPreference(
                 value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
@@ -186,12 +179,14 @@ class GroupSettingsActivity : ComposeActivity() {
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.name)) },
                 valueToText = { it },
             )
+        }
 
-            fun groupType(type: Int) = when (type) {
-                GroupType.BASIC -> R.string.group_basic
-                GroupType.SUBSCRIPTION -> R.string.subscription
-                else -> error("impossible")
-            }
+        fun groupType(type: Int) = when (type) {
+            GroupType.BASIC -> R.string.group_basic
+            GroupType.SUBSCRIPTION -> R.string.subscription
+            else -> error("impossible")
+        }
+        item("type", PreferenceType.LIST_PREFERENCE) {
             ListPreference(
                 value = uiState.type,
                 onValueChange = { viewModel.setType(it) },
@@ -202,13 +197,15 @@ class GroupSettingsActivity : ComposeActivity() {
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(groupType(it))) },
             )
+        }
 
-            fun groupOrder(order: Int) = when (order) {
-                GroupOrder.ORIGIN -> R.string.group_order_origin
-                GroupOrder.BY_NAME -> R.string.group_order_by_name
-                GroupOrder.BY_DELAY -> R.string.group_order_by_delay
-                else -> error("impossible")
-            }
+        fun groupOrder(order: Int) = when (order) {
+            GroupOrder.ORIGIN -> R.string.group_order_origin
+            GroupOrder.BY_NAME -> R.string.group_order_by_name
+            GroupOrder.BY_DELAY -> R.string.group_order_by_delay
+            else -> error("impossible")
+        }
+        item("order", PreferenceType.LIST_PREFERENCE) {
             ListPreference(
                 value = uiState.order,
                 onValueChange = { viewModel.setOrder(it) },
@@ -219,9 +216,13 @@ class GroupSettingsActivity : ComposeActivity() {
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { AnnotatedString(getString(groupOrder(it))) },
             )
+        }
 
+        item("category_chain", PreferenceType.PREFERENCE_CATEGORY) {
             PreferenceCategory(text = { Text(stringResource(R.string.proxy_chain)) })
-            fun chainName(id: Long) = SagerDatabase.proxyDao.getById(id)?.displayName()
+        }
+        fun chainName(id: Long) = SagerDatabase.proxyDao.getById(id)?.displayName()
+        item("font", PreferenceType.LIST_PREFERENCE) {
             ListPreference(
                 value = uiState.frontProxy,
                 onValueChange = {
@@ -229,7 +230,7 @@ class GroupSettingsActivity : ComposeActivity() {
                         viewModel.setFrontProxy(it)
                     } else {
                         selectProfileForAddFront.launch(
-                            Intent(this, ProfileSelectActivity::class.java)
+                            Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
                                 .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.frontProxy),
                         )
                     }
@@ -252,6 +253,8 @@ class GroupSettingsActivity : ComposeActivity() {
                     AnnotatedString(getString(id))
                 },
             )
+        }
+        item("landing", PreferenceType.LIST_PREFERENCE) {
             ListPreference(
                 value = uiState.landingProxy,
                 onValueChange = {
@@ -259,7 +262,7 @@ class GroupSettingsActivity : ComposeActivity() {
                         viewModel.setLandingProxy(it)
                     } else {
                         selectProfileForAddLanding.launch(
-                            Intent(this, ProfileSelectActivity::class.java)
+                            Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
                                 .putExtra(
                                     ProfileSelectActivity.EXTRA_SELECTED,
                                     uiState.landingProxy,
@@ -285,15 +288,19 @@ class GroupSettingsActivity : ComposeActivity() {
                     AnnotatedString(getString(id))
                 },
             )
+        }
 
-            if (uiState.type == GroupType.SUBSCRIPTION) {
+        if (uiState.type == GroupType.SUBSCRIPTION) {
+            item("category_subscription", PreferenceType.PREFERENCE_CATEGORY) {
                 PreferenceCategory(text = { Text(stringResource(R.string.subscription_settings)) })
-                fun subType(type: Int) = when (type) {
-                    SubscriptionType.RAW -> R.string.raw
-                    SubscriptionType.OOCv1 -> R.string.oocv1
-                    SubscriptionType.SIP008 -> R.string.sip008
-                    else -> error("impossible")
-                }
+            }
+            fun subType(type: Int) = when (type) {
+                SubscriptionType.RAW -> R.string.raw
+                SubscriptionType.OOCv1 -> R.string.oocv1
+                SubscriptionType.SIP008 -> R.string.sip008
+                else -> error("impossible")
+            }
+            item("subscription_type", PreferenceType.LIST_PREFERENCE) {
                 ListPreference(
                     value = uiState.subscriptionType,
                     onValueChange = { viewModel.setSubscriptionType(it) },
@@ -304,7 +311,9 @@ class GroupSettingsActivity : ComposeActivity() {
                     type = ListPreferenceType.DROPDOWN_MENU,
                     valueToText = { AnnotatedString(getString(subType(it))) },
                 )
+            }
 
+            item("subscription_link", PreferenceType.TEXT_FIELD_PREFERENCE) {
                 TextFieldPreference(
                     value = uiState.subscriptionLink,
                     onValueChange = { viewModel.setSubscriptionLink(it) },
@@ -317,8 +326,10 @@ class GroupSettingsActivity : ComposeActivity() {
                         LinkOrContentTextField(value, onValueChange, onOk)
                     },
                 )
-                val isOOCv1 = uiState.subscriptionType == SubscriptionType.OOCv1
-                if (isOOCv1) TextFieldPreference(
+            }
+            val isOOCv1 = uiState.subscriptionType == SubscriptionType.OOCv1
+            if (isOOCv1)  item("subscription_token", PreferenceType.TEXT_FIELD_PREFERENCE) {
+                TextFieldPreference(
                     value = uiState.subscriptionToken,
                     onValueChange = { viewModel.setSubscriptionToken(it) },
                     title = { Text(stringResource(R.string.ooc_subscription_token)) },
@@ -327,7 +338,9 @@ class GroupSettingsActivity : ComposeActivity() {
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.subscriptionToken)) },
                     valueToText = { it },
                 )
+            }
 
+            item("subscription_force_resolve", PreferenceType.SWITCH_PREFERENCE) {
                 SwitchPreference(
                     value = uiState.subscriptionForceResolve,
                     onValueChange = { viewModel.setSubscriptionForceResolve(it) },
@@ -335,6 +348,8 @@ class GroupSettingsActivity : ComposeActivity() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.manage_search), null) },
                     summary = { Text(stringResource(R.string.force_resolve_sum)) },
                 )
+            }
+            item("subscription_deduplication", PreferenceType.SWITCH_PREFERENCE) {
                 SwitchPreference(
                     value = uiState.subscriptionDeduplication,
                     onValueChange = { viewModel.setSubscriptionDeduplication(it) },
@@ -342,6 +357,8 @@ class GroupSettingsActivity : ComposeActivity() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.import_contacts), null) },
                     summary = { Text(stringResource(R.string.deduplication_sum)) },
                 )
+            }
+            item("subscription_filter_not_regex", PreferenceType.TEXT_FIELD_PREFERENCE) {
                 TextFieldPreference(
                     value = uiState.subscriptionFilterNotRegex,
                     onValueChange = { viewModel.setSubscriptionFilterNotRegex(it) },
@@ -351,8 +368,12 @@ class GroupSettingsActivity : ComposeActivity() {
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.subscriptionFilterNotRegex)) },
                     valueToText = { it },
                 )
+            }
 
+            item("category_update", PreferenceType.PREFERENCE_CATEGORY) {
                 PreferenceCategory(text = { Text(stringResource(R.string.update_settings)) })
+            }
+            item("subscription_update_when_connected_only", PreferenceType.SWITCH_PREFERENCE) {
                 SwitchPreference(
                     value = uiState.subscriptionUpdateWhenConnectedOnly,
                     onValueChange = { viewModel.setSubscriptionUpdateWhenConnectedOnly(it) },
@@ -360,6 +381,8 @@ class GroupSettingsActivity : ComposeActivity() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
                     summary = { Text(stringResource(R.string.update_when_connected_only_sum)) },
                 )
+            }
+            item("subscription_user_agent", PreferenceType.TEXT_FIELD_PREFERENCE) {
                 TextFieldPreference(
                     value = uiState.subscriptionUserAgent,
                     onValueChange = { viewModel.setSubscriptionUserAgent(it) },
@@ -372,6 +395,8 @@ class GroupSettingsActivity : ComposeActivity() {
                     },
                     valueToText = { it },
                 )
+            }
+            item("subscription_auto_update", PreferenceType.SWITCH_PREFERENCE) {
                 SwitchPreference(
                     value = uiState.subscriptionAutoUpdate,
                     onValueChange = { viewModel.setSubscriptionAutoUpdate(it) },
@@ -383,6 +408,8 @@ class GroupSettingsActivity : ComposeActivity() {
                         )
                     },
                 )
+            }
+            item("subscription_update_delay", PreferenceType.TEXT_FIELD_PREFERENCE) {
                 TextFieldPreference(
                     value = uiState.subscriptionUpdateDelay,
                     onValueChange = { viewModel.setSubscriptionUpdateDelay(it) },

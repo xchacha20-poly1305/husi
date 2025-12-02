@@ -79,6 +79,7 @@ import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollba
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.first
@@ -392,6 +393,7 @@ private fun AppList(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = scrollState,
+            contentPadding = extraBottomPadding(),
         ) {
             items(
                 items = uiState.apps,

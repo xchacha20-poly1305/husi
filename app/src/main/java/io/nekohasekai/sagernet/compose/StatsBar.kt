@@ -1,12 +1,18 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package io.nekohasekai.sagernet.compose
 
 import android.text.format.Formatter
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -70,7 +76,13 @@ fun StatsBar(
         tonalElevation = 4.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            modifier = Modifier
+                .padding(
+                    bottom = WindowInsets.navigationBarsIgnoringVisibility
+                        .asPaddingValues()
+                        .calculateBottomPadding(),
+                )
+                .padding(horizontal = 16.dp, vertical = 10.dp),
         ) {
             Text(
                 text = "▲ " + stringResource(

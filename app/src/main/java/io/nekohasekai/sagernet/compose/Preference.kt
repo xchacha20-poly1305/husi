@@ -42,6 +42,15 @@ import me.zhanghai.compose.preference.TextFieldPreference
 import me.zhanghai.compose.preference.PreferenceCategory
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 
+object PreferenceType {
+    const val PREFERENCE_CATEGORY = 0
+    const val SWITCH_PREFERENCE = 1
+    const val LIST_PREFERENCE = 2
+    const val TEXT_FIELD_PREFERENCE = 3
+    const val MULTI_SELECT_LIST_PREFERENCE = 4
+    const val COLOR_PICKER_PREFERENCE = 5
+}
+
 /**
  * Not only support icon, but also use spacer as icon if not set.
  * */

@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedCard
@@ -73,7 +77,7 @@ import io.nekohasekai.sagernet.compose.SheetSectionTitle
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.StatsBar
 import io.nekohasekai.sagernet.compose.TextButton
-import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.showAndDismissOld
@@ -155,6 +159,7 @@ fun GroupScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val windowInsets = WindowInsets.safeDrawing
     val dragDropListState = rememberDragDropSwipeLazyColumnState()
     val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
 
@@ -191,6 +196,8 @@ fun GroupScreen(
                         },
                     )
                 },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SnackbarHost(snackbarState) },
@@ -229,7 +236,7 @@ fun GroupScreen(
                 key = { it.group.id },
                 contentType = { 0 },
                 userScrollEnabled = true,
-                contentPadding = innerPadding.paddingWithNavigation(),
+                contentPadding = innerPadding.withNavigation(),
                 onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
             ) { _, groupState ->
                 val swipeState = rememberSwipeToDismissBoxState()

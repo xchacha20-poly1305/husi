@@ -67,7 +67,7 @@ import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleTopAppBar
 import io.nekohasekai.sagernet.compose.StatsBar
-import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.database.DataStore
@@ -198,7 +198,7 @@ fun AboutScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = innerPadding.paddingWithNavigation(),
+            contentPadding = innerPadding.withNavigation(),
         ) {
             item("info_card") {
                 OutlinedCard(
