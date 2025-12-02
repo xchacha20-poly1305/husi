@@ -76,6 +76,7 @@ import io.nekohasekai.sagernet.compose.SheetActionRow
 import io.nekohasekai.sagernet.compose.SheetSectionTitle
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.colorForUrlTestDelay
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.startFilesForResult
@@ -324,7 +325,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
             stringResource(
                 R.string.available,
                 entity.ping,
-            ) to Color(context.getColour(R.color.material_green_500))
+            ) to colorForUrlTestDelay(entity.ping)
         }
 
         ProxyEntity.STATUS_UNAVAILABLE -> {

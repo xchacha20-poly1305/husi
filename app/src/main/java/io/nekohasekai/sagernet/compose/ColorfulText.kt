@@ -144,7 +144,7 @@ private fun Color.dim(factor: Float): Color {
 }
 
 @Composable
-fun colorForUrlTestDelay(urlTestDelay: Short): Color {
+fun colorForUrlTestDelay(urlTestDelay: Number): Color {
     val base = when (urlTestDelay) {
         in Short.MIN_VALUE..0 -> Color.Gray
         in 1..800 -> Color.Green
