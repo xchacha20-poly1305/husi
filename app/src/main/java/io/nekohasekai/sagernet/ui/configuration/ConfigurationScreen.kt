@@ -197,6 +197,7 @@ fun ConfigurationScreen(
             .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
         pageCount = { uiState.groups.size },
     )
+    var isInitialized by remember { mutableStateOf(false) }
     LaunchedEffect(selectedGroup, hasGroups) {
         if (!hasGroups) return@LaunchedEffect
         val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
@@ -204,13 +205,16 @@ fun ConfigurationScreen(
         if (target != pagerState.currentPage) {
             pagerState.scrollToPage(target)
         }
+        isInitialized = true
     }
     LaunchedEffect(pagerState.currentPage, hasGroups) {
         if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
             return@LaunchedEffect
         }
         val groupID = uiState.groups[pagerState.currentPage].id
-        DataStore.selectedGroup = groupID
+        if (isInitialized) {
+            DataStore.selectedGroup = groupID
+        }
         vm.requestFocusIfNotHave(groupID)
     }
 
