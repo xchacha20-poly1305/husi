@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -55,7 +54,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -90,7 +88,6 @@ import io.nekohasekai.sagernet.compose.theme.DEFAULT
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.contentOrUnset
-import io.nekohasekai.sagernet.ktx.findActivity
 import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
@@ -333,8 +330,6 @@ fun SettingsScreen(
                             AppCompatDelegate.setApplicationLocales(
                                 LocaleListCompat.forLanguageTags(newValue),
                             )
-                            needRestart()
-                            ActivityCompat.recreate(context.findActivity<Activity>()!!)
                         },
                         values = values,
                         title = { Text(stringResource(R.string.language)) },
