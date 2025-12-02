@@ -59,6 +59,7 @@ import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
+import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ui.ComposeActivity
@@ -116,7 +117,7 @@ class TaskerActivity : ComposeActivity() {
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,
                         )
-                    }
+                    },
                 ) { innerPadding ->
                     Column(modifier = Modifier.paddingExceptBottom(innerPadding)) {
                         TaskerPreference()
@@ -158,7 +159,7 @@ class TaskerActivity : ComposeActivity() {
     }
 
     private val selectProfileForTasker = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) { (resultCode, data) ->
         if (resultCode == RESULT_OK) {
             val id = data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
@@ -182,7 +183,7 @@ class TaskerActivity : ComposeActivity() {
                     val entity = ProfileManager.getProfile(profileId)
                     if (entity != null) {
                         blurb = getString(
-                            R.string.tasker_blurb_start_profile, entity.displayName()
+                            R.string.tasker_blurb_start_profile, entity.displayName(),
                         )
                     }
                 }
@@ -219,7 +220,7 @@ class TaskerActivity : ComposeActivity() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(stringResource(actionText(uiState.action))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(getString(actionText(it))) },
+                item = ListPreferenceMenuItem { AnnotatedString(getString(actionText(it))) },
             )
 
             ListPreference(
@@ -230,7 +231,7 @@ class TaskerActivity : ComposeActivity() {
                     } else {
                         selectProfileForTasker.launch(
                             Intent(this@TaskerActivity, ProfileSelectActivity::class.java)
-                                .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.profileID)
+                                .putExtra(ProfileSelectActivity.EXTRA_SELECTED, uiState.profileID),
                         )
                     }
                 },
@@ -244,7 +245,7 @@ class TaskerActivity : ComposeActivity() {
                     Text(summary)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = {
+                item = ListPreferenceMenuItem {
                     val id = if (it == -1L) {
                         R.string.tasker_start_current_profile
                     } else {

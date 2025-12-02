@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
+import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -70,7 +71,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
-                }
+                },
             )
         }
         item("uuid") {
@@ -138,7 +139,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.add_road), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.udpRelayMode)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(it) },
+                item = ListPreferenceMenuItem { AnnotatedString(it) },
             )
         }
         item("congestion_controller") {
@@ -150,7 +151,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.congestionController)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(it) },
+                item = ListPreferenceMenuItem { AnnotatedString(it) },
             )
         }
         item("disable_sni") {

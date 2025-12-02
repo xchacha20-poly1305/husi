@@ -44,6 +44,7 @@ import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.compose.withNavigation
+import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.USER_AGENT
@@ -195,7 +196,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(stringResource(groupType(uiState.type))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(getString(groupType(it))) },
+                item = ListPreferenceMenuItem { AnnotatedString(getString(groupType(it))) },
             )
         }
 
@@ -214,7 +215,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.low_priority), null) },
                 summary = { Text(stringResource(groupOrder(uiState.order))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(getString(groupOrder(it))) },
+                item = ListPreferenceMenuItem { AnnotatedString(getString(groupOrder(it))) },
             )
         }
 
@@ -244,7 +245,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = {
+                item = ListPreferenceMenuItem {
                     val id = if (it == -1L) {
                         R.string.ssh_auth_type_none
                     } else {
@@ -279,7 +280,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = {
+                item = ListPreferenceMenuItem {
                     val id = if (it == -1L) {
                         R.string.ssh_auth_type_none
                     } else {
@@ -309,7 +310,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                     summary = { Text(stringResource(subType(uiState.subscriptionType))) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    valueToText = { AnnotatedString(getString(subType(it))) },
+                    item = ListPreferenceMenuItem { AnnotatedString(getString(subType(it))) },
                 )
             }
 
@@ -328,7 +329,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 )
             }
             val isOOCv1 = uiState.subscriptionType == SubscriptionType.OOCv1
-            if (isOOCv1)  item("subscription_token", PreferenceType.TEXT_FIELD_PREFERENCE) {
+            if (isOOCv1) item("subscription_token", PreferenceType.TEXT_FIELD_PREFERENCE) {
                 TextFieldPreference(
                     value = uiState.subscriptionToken,
                     onValueChange = { viewModel.setSubscriptionToken(it) },

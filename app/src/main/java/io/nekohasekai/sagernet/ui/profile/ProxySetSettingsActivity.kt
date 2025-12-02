@@ -74,6 +74,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
 import io.nekohasekai.sagernet.compose.TooltipIconButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
+import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
@@ -125,7 +126,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.widgets), null) },
                 summary = { Text(stringResource(managementName(uiState.management))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(getString(managementName(it))) },
+                item = ListPreferenceMenuItem { AnnotatedString(getString(managementName(it))) },
             )
         }
         item("interrupt_exist_connections") {
@@ -154,7 +155,12 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     onValueChange = { viewModel.setTestInterval(it) },
                     title = { Text(stringResource(R.string.urltest_interval)) },
                     textToValue = { it },
-                    icon = { Icon(ImageVector.vectorResource(R.drawable.flip_camera_android), null) },
+                    icon = {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.flip_camera_android),
+                            null,
+                        )
+                    },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.testInterval)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
@@ -205,7 +211,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 summary = { Text(stringResource(typeName(uiState.collectType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { AnnotatedString(getString(typeName(it))) },
+                item = ListPreferenceMenuItem { AnnotatedString(getString(typeName(it))) },
             )
         }
         item("group") {
@@ -221,10 +227,8 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = { id ->
-                    val text =
-                        uiState.groups[id]?.displayName()
-                            ?: getString(R.string.not_set)
+                item = ListPreferenceMenuItem { id ->
+                    val text = uiState.groups[id]?.displayName() ?: getString(R.string.not_set)
                     AnnotatedString(text)
                 },
             )
@@ -258,12 +262,12 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                             Intent(
                                 this@ProxySetSettingsActivity,
                                 ProfileSelectActivity::class.java,
-                            )
+                            ),
                         )
                     },
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
             ) {
                 Text(
@@ -271,7 +275,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     modifier = Modifier.padding(16.dp),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     ),
                 )
             }
@@ -315,7 +319,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .padding(horizontal = 16.dp),
-                                    contentAlignment = Alignment.CenterEnd
+                                    contentAlignment = Alignment.CenterEnd,
                                 ) {
                                     Icon(ImageVector.vectorResource(R.drawable.delete), null)
                                 }
