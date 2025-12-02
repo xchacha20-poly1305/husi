@@ -4,9 +4,13 @@ import android.text.format.Formatter
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.CardDefaults
@@ -15,6 +19,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,8 +36,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.SagerConnection
-import io.nekohasekai.sagernet.compose.SimpleTopAppBar
-import io.nekohasekai.sagernet.compose.paddingWithNavigation
+import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.withNavigation
 
 @Composable
 fun ConnectionDetailScreen(
@@ -50,17 +55,33 @@ fun ConnectionDetailScreen(
     val connection by viewModel.connection.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val windowInsets = WindowInsets.safeDrawing
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            SimpleTopAppBar(
+            TopAppBar(
                 title = {
                     Text(uuid)
                 },
-                navigationIcon = ImageVector.vectorResource(R.drawable.arrow_back),
-                navigationDescription = stringResource(R.string.back),
+                navigationIcon = {
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
+                        contentDescription = stringResource(R.string.back),
+                        onClick = popup,
+                    )
+                },
+                actions = {
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.delete_forever),
+                        contentDescription = stringResource(R.string.close),
+                        onClick = {
+                            viewModel.closeConnection(uuid)
+                            popup()
+                        },
+                    )
+                },
+                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,
-                onNavigationClick = popup,
             )
         },
     ) { innerPadding ->
@@ -68,7 +89,7 @@ fun ConnectionDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = innerPadding.paddingWithNavigation(),
+            contentPadding = innerPadding.withNavigation(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item("status", 0) {

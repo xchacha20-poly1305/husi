@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.app.Activity
@@ -10,9 +12,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -197,6 +204,11 @@ internal fun GroupHolderScreen(
             items = uiState.profiles.toImmutableList(),
             key = { it.profile.id },
             contentType = { 0 },
+            contentPadding = PaddingValues(
+                bottom = WindowInsets.navigationBarsIgnoringVisibility
+                    .asPaddingValues()
+                    .calculateBottomPadding(),
+            ),
             userScrollEnabled = true,
             onIndicesChangedViaDragAndDrop = { viewModel.submitReordered(it) },
         ) { index, item ->

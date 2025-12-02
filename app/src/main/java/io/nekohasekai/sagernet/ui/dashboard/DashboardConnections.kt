@@ -4,7 +4,6 @@ import android.text.format.Formatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
+import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 
 @Composable
@@ -54,10 +54,7 @@ internal fun DashboardConnectionsScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         state = listState,
-        contentPadding = PaddingValues(
-            horizontal = 16.dp,
-            vertical = 8.dp,
-        ),
+        contentPadding = extraBottomPadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(
