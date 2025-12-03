@@ -54,6 +54,7 @@ class GroupProfilesHolderViewModel(
 
     val alwaysShowAddress = DataStore.configurationStore.booleanFlow(Key.ALWAYS_SHOW_ADDRESS)
     val blurredAddress = DataStore.configurationStore.booleanFlow(Key.BLURRED_ADDRESS)
+    val trafficStatistics = DataStore.configurationStore.booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS)
     val securityAdvisory = DataStore.configurationStore.booleanFlow(Key.SECURITY_ADVISORY)
     val selectedProxy = DataStore.configurationStore.longFlow(Key.PROFILE_ID)
 
