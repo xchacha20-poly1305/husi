@@ -290,7 +290,11 @@ fun SettingsScreen(
                         summary = { Text(stringResource(nightString(value))) },
                         type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            AnnotatedString(context.getString(nightString(it)))
+                            AnnotatedString(
+                                context.getString(
+                                    nightString(it),
+                                ),
+                            )
                         },
                     )
                 }
@@ -343,8 +347,13 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(stringResource(getLanguageDisplayName(selectedValue))) },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            AnnotatedString(context.getString(getLanguageDisplayName(it)))
+                            AnnotatedString(
+                                context.getString(
+                                    getLanguageDisplayName(it),
+                                ),
+                            )
                         },
                     )
                 }
@@ -376,8 +385,13 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(stringResource(serviceModeText(stored))) },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            AnnotatedString(context.getString(serviceModeText(it)))
+                            AnnotatedString(
+                                context.getString(
+                                    serviceModeText(it),
+                                ),
+                            )
                         },
                     )
                 }
@@ -434,9 +448,8 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(tunImplText(value)) },
-                        item = ListPreferenceMenuItem {
-                            AnnotatedString(tunImplText(it))
-                        },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = ListPreferenceMenuItem { AnnotatedString(tunImplText(it)) },
                     )
                 }
                 item(Key.MTU, PreferenceType.TEXT_FIELD_PREFERENCE) {
@@ -507,9 +520,8 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(speedIntervalText(value)) },
-                        item = ListPreferenceMenuItem {
-                            AnnotatedString(speedIntervalText(it))
-                        },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = ListPreferenceMenuItem { AnnotatedString(speedIntervalText(it)) },
                     )
                 }
                 item(Key.PROFILE_TRAFFIC_STATISTICS, PreferenceType.SWITCH_PREFERENCE) {
@@ -649,9 +661,8 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(logLevelString(value)) },
-                        item = ListPreferenceMenuItem {
-                            AnnotatedString(logLevelString(it))
-                        },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = ListPreferenceMenuItem { AnnotatedString(logLevelString(it)) },
                     )
                 }
                 item(Key.LOG_MAX_SIZE, PreferenceType.TEXT_FIELD_PREFERENCE) {
@@ -781,8 +792,13 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(stringResource(networkStrategyTextRes(stored))) },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            AnnotatedString(context.getString(networkStrategyTextRes(it)))
+                            AnnotatedString(
+                                context.getString(
+                                    networkStrategyTextRes(it),
+                                ),
+                            )
                         },
                     )
                 }
@@ -818,11 +834,10 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(stringResource(networkInterfaceStrategyTextRes(value))) },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
                             AnnotatedString(
-                                context.getString(
-                                    networkInterfaceStrategyTextRes(it),
-                                ),
+                                context.getString(networkInterfaceStrategyTextRes(it)),
                             )
                         },
                     )
@@ -908,9 +923,8 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(rulesProviderText(value)) },
-                        item = ListPreferenceMenuItem {
-                            AnnotatedString(rulesProviderText(it))
-                        },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = ListPreferenceMenuItem { AnnotatedString(rulesProviderText(it)) },
                     )
                 }
                 if (rulesProviderState == RuleProvider.CUSTOM) item(
@@ -1019,9 +1033,8 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(pluginProviderText(value)) },
-                        item = ListPreferenceMenuItem {
-                            AnnotatedString(pluginProviderText(it))
-                        },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = ListPreferenceMenuItem { AnnotatedString(pluginProviderText(it)) },
                     )
                 }
                 item(Key.PROVIDER_JUICITY, PreferenceType.LIST_PREFERENCE) {
@@ -1051,9 +1064,8 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(pluginProviderText(value)) },
-                        item = ListPreferenceMenuItem {
-                            AnnotatedString(pluginProviderText(it))
-                        },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = ListPreferenceMenuItem { AnnotatedString(pluginProviderText(it)) },
                     )
                 }
                 item(Key.CUSTOM_PLUGIN_PREFIX, PreferenceType.TEXT_FIELD_PREFERENCE) {
@@ -1154,9 +1166,11 @@ fun SettingsScreen(
                                 values.indexOf(value).takeIf { index -> index >= 0 } ?: 0
                             Text(entries[selectedIndex])
                         },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            val selectedIndex =
-                                values.indexOf(it).takeIf { index -> index >= 0 } ?: 0
+                            val selectedIndex = values.indexOf(it).takeIf { index ->
+                                index >= 0
+                            } ?: 0
                             AnnotatedString(entries[selectedIndex])
                         },
                     )
@@ -1189,9 +1203,11 @@ fun SettingsScreen(
                                 values.indexOf(value).takeIf { index -> index >= 0 } ?: 0
                             Text(entries[selectedIndex])
                         },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            val selectedIndex =
-                                values.indexOf(it).takeIf { index -> index >= 0 } ?: 0
+                            val selectedIndex = values.indexOf(it).takeIf { index ->
+                                index >= 0
+                            } ?: 0
                             AnnotatedString(entries[selectedIndex])
                         },
                     )
@@ -1609,8 +1625,11 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(stringResource(certProviderTextRes(value))) },
+                        type = ListPreferenceType.DROPDOWN_MENU,
                         item = ListPreferenceMenuItem {
-                            AnnotatedString(context.getString(certProviderTextRes(it)))
+                            AnnotatedString(
+                                context.getString(certProviderTextRes(it)),
+                            )
                         },
                     )
                 }
