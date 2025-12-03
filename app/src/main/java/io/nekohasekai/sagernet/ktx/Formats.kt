@@ -140,6 +140,10 @@ fun ByteArray.b64EncodeOneLine(): String {
     return String(Base64.encode(this, Base64.NO_WRAP))
 }
 
+fun String.b64EncodeOneLine(): String {
+    return toByteArray().b64EncodeOneLine()
+}
+
 fun ByteArray.b64EncodeDefault(): String {
     return String(Base64.encode(this, Base64.DEFAULT))
 }

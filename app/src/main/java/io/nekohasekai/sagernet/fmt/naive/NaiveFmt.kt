@@ -18,10 +18,7 @@ fun parseNaive(link: String): NaiveBean {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
         username = url.username
-        try {
-            password = url.password
-        } catch (_: Exception) {
-        }
+        password = url.password
         sni = url.queryParameterNotBlank("sni")
         extraHeaders =
             url.queryParameterNotBlank("extra-headers")?.unUrlSafe()?.replace("\r\n", "\n")

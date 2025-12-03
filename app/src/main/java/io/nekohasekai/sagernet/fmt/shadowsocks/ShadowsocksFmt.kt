@@ -6,11 +6,13 @@ import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxUot
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.b64DecodeToString
+import io.nekohasekai.sagernet.ktx.b64EncodeOneLine
 import io.nekohasekai.sagernet.ktx.b64EncodeUrlSafe
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.getIntOrNull
 import io.nekohasekai.sagernet.ktx.getStr
 import io.nekohasekai.sagernet.ktx.substringBetween
-import io.nekohasekai.sagernet.ktx.unUrlSafe
+import io.nekohasekai.sagernet.ktx.urlSafe
 import libcore.Libcore
 import libcore.URL
 import org.json.JSONObject
@@ -29,77 +31,62 @@ fun pluginToStandard(plugin: String): String {
     return plugin
 }
 
+/**
+ * https://shadowsocks.org/doc/sip002.html
+ */
 fun parseShadowsocks(rawUrl: String): ShadowsocksBean {
     val fixedURL = try {
         // https://shadowsocks.org/doc/configs.html#uri-and-qr-code
         // ss://BASE64-ENCODED-STRING-WITHOUT-PADDING#TAG
+        // ss://YmYtY2ZiOnRlc3QvIUAjOkAxOTIuMTY4LjEwMC4xOjg4ODg#example-server
         // Legacy shadosocks-android format
-        val fragment = rawUrl.substringAfter("#")
-        val decoded = rawUrl.substringBetween("ss://", "#").b64DecodeToString()
-        "ss://$decoded#$fragment"
+
+        val content = rawUrl.substringBetween("ss://", "#")
+        if (content.contains("@")) {
+            // Break: this is not legacy format
+            throw IllegalArgumentException()
+        }
+        val fragment = rawUrl.substringAfter("#", "").blankAsNull()
+        val decoded = content.b64DecodeToString()
+        // **last** @
+        val lastAtIndex = decoded.lastIndexOf('@')
+        if (lastAtIndex < 0) throw IllegalArgumentException()
+        val userInfo = decoded.take(lastAtIndex)
+        val rest = decoded.substring(lastAtIndex + 1)
+        val encodedUserInfo = userInfo.b64EncodeOneLine() // Adapt strange char
+        var noFragment = "ss://$encodedUserInfo@$rest"
+        fragment?.let {
+            noFragment += "#$it"
+        }
+        noFragment
     } catch (_: Exception) {
         rawUrl
     }
 
-    if (fixedURL.substringBefore("#").contains("@")) {
-        // ss-android style
-        var url = Libcore.parseURL(fixedURL)
+    var url = Libcore.parseURL(fixedURL)
+    if (url.username.isBlank()) { // fix justmysocks' non-standard link
+        url = Libcore.parseURL(fixedURL.substringBefore("#").b64DecodeToString())
+        url.fragment = fixedURL.substringAfter("#", "")
+    }
 
-        if (url.username.isBlank()) { // fix justmysocks' non-standard link
-            url = Libcore.parseURL(fixedURL.substringBefore("#").b64DecodeToString())
-            url.fragment = fixedURL.substringAfter("#")
-        }
-
-        val pass = try {
-            url.password
-        } catch (_: Exception) {
-            null
-        }
-        // not base64 user info
-        if (!pass.isNullOrEmpty()) {
-            return ShadowsocksBean().apply {
-                serverAddress = url.host
-                serverPort = url.ports.toIntOrNull() ?: 8388
-                method = url.username
-                password = pass
-                plugin = url.queryParameter("plugin")
-                name = url.fragment
-                pluginToLocal()
-            }
-        }
-
-        // base64 user info
-        return ShadowsocksBean().apply {
+    val pass = url.password
+    return ShadowsocksBean().apply {
+        if (pass.isEmpty()) {
+            // ss://cmM0LW1kNTpwYXNzd2Q@192.168.100.1:8888/?plugin=obfs-local%3Bobfs%3Dhttp#Example2
             url.username.b64DecodeToString().let {
                 method = it.substringBefore(":")
                 password = it.substringAfter(":")
             }
-            serverAddress = url.host
-            serverPort = url.ports.toIntOrNull() ?: 8388
-            plugin = url.queryParameter("plugin")
-            name = url.fragment
-            pluginToLocal()
-        }
-    } else {
-        // v2rayN style
-        var v2Url = rawUrl
-
-        if (v2Url.contains("#")) v2Url = v2Url.substringBefore("#")
-
-        val url = Libcore.parseURL(v2Url)
-
-        return ShadowsocksBean().apply {
-            serverAddress = url.host
-            serverPort = url.ports.toIntOrNull() ?: 8388
+        } else {
+            // ss://2022-blake3-aes-256-gcm:YctPZ6U7xPPcU%2Bgp3u%2B0tx%2FtRizJN9K8y%2BuKlW2qjlI%3D@192.168.100.1:8888/?plugin=v2ray-plugin%3Bserver#Example3
             method = url.username
-            try {
-                password = url.password
-            } catch (_: Exception) {
-            }
-            plugin = ""
-            val remarks = rawUrl.substringAfter("#").unUrlSafe()
-            if (remarks.isNotBlank()) name = remarks
+            password = pass
         }
+        serverAddress = url.host
+        serverPort = url.ports.toIntOrNull() ?: 8388
+        plugin = url.queryParameter("plugin")
+        name = url.fragment
+        pluginToLocal()
     }
 
 }
@@ -162,7 +149,7 @@ fun buildSingBoxOutboundShadowsocksBean(bean: ShadowsocksBean): SingBoxOptions.O
  * But for AEAD-2022 (SIP022), userinfo MUST NOT be encoded with Base64URL.
  * When userinfo is not encoded, method and password MUST be percent encoded.
  */
-fun URL.encodeShadowsocksUserInfo(pass: String, method: String) {
+private fun URL.encodeShadowsocksUserInfo(pass: String, method: String) {
     if (method.startsWith("2022-")) {
         username = method
         password = pass
