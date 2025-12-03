@@ -16,10 +16,7 @@ fun parseHttp(link: String): HttpBean = HttpBean().apply {
     serverAddress = url.host
     serverPort = url.ports.toIntOrNull() ?: if (url.scheme == "https") 443 else 80
     username = url.username
-    try {
-        password = url.password
-    } catch (_: Exception) {
-    }
+    password = url.password
     sni = url.queryParameter("sni")
     name = url.fragment
     setTLS(url.scheme == "https")

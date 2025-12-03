@@ -16,10 +16,7 @@ fun parseTuic(link: String): TuicBean {
     return TuicBean().apply {
         name = url.fragment
         uuid = url.username
-        try {
-            token = url.password
-        } catch (_: Exception) {
-        }
+        token = url.password
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 443
 

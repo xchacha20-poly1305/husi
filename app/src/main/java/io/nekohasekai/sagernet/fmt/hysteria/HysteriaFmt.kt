@@ -61,11 +61,7 @@ fun parseHysteria2(link: String): HysteriaBean {
         serverAddress = url.host
         serverPorts = url.ports
 
-        var pwd: String? = null
-        try {
-            pwd = url.password
-        } catch (_: Exception) {
-        }
+        val pwd = url.password
         authPayload = if (pwd.isNullOrBlank()) {
             url.username
         } else {

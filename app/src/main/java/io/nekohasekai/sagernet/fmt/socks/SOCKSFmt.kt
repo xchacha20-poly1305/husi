@@ -19,10 +19,7 @@ fun parseSOCKS(link: String): SOCKSBean {
         serverAddress = url.host
         serverPort = url.ports.toIntOrNull() ?: 1080
         username = url.username
-        try {
-            password = url.password
-        } catch (_: Exception) {
-        }
+        password = url.password
         // v2rayN fmt
         if (password.isNullOrBlank() && !username.isNullOrBlank()) {
             try {

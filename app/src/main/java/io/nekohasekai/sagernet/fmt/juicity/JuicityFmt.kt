@@ -37,7 +37,7 @@ fun JuicityBean.toUri(): String {
         addQueryParameter("congestion_control", "bbr")
         if (sni.isNotBlank()) addQueryParameter("sni", sni)
         if (allowInsecure) addQueryParameter("allow_insecure", "1")
-        if (password.isNotBlank()) addQueryParameter("pinned_certchain_sha256", pinSHA256)
+        if (pinSHA256.isNotBlank()) addQueryParameter("pinned_certchain_sha256", pinSHA256)
     }.string
 }
 
