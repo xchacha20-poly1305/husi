@@ -258,7 +258,6 @@
 
         <activity
             android:name=".ui.SwitchActivity"
-            android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.Dialog" />
 
