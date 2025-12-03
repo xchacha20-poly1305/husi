@@ -57,14 +57,14 @@ class TrafficLooper(
 
     private suspend fun loop() {
         val speedInterval = DataStore.configurationStore
-            .intFlow(Key.SPEED_INTERVAL)
+            .intFlow(Key.SPEED_INTERVAL, 1000)
             .map { it.toLong() }
             .stateIn(scope, SharingStarted.Eagerly, 1000L)
         val showDirectSpeed = DataStore.configurationStore
-            .booleanFlow(Key.SHOW_DIRECT_SPEED)
+            .booleanFlow(Key.SHOW_DIRECT_SPEED, true)
             .stateIn(scope, SharingStarted.Eagerly, true)
         val profileTrafficStatistics = DataStore.configurationStore
-            .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS)
+            .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
             .stateIn(scope, SharingStarted.Eagerly, true)
         // update database / 10s
         val persistEveryMs = 10_000L
@@ -104,7 +104,10 @@ class TrafficLooper(
             }
 
             if (trafficUpdater == null) {
-                if (!proxy.isInitialized()) continue
+                if (!proxy.isInitialized()) {
+                    delay(delayMs)
+                    continue
+                }
                 idMap.clear()
                 idMap[-1] = itemBypass
                 val tags = hashSetOf(proxy.config.mainTag, TAG_DIRECT)

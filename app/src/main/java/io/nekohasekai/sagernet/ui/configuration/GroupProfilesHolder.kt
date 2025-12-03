@@ -129,7 +129,8 @@ internal fun GroupHolderScreen(
     }
     val showAddress by viewModel.alwaysShowAddress.collectAsStateWithLifecycle(false)
     val blurAddress by viewModel.blurredAddress.collectAsStateWithLifecycle(false)
-    val securityAdvisory by viewModel.securityAdvisory.collectAsStateWithLifecycle(false)
+    val trafficStatistics by viewModel.trafficStatistics.collectAsStateWithLifecycle(true)
+    val securityAdvisory by viewModel.securityAdvisory.collectAsStateWithLifecycle(true)
 
     val dragDropListState = rememberDragDropSwipeLazyColumnState()
     val focusRequester = remember { FocusRequester() }
@@ -247,7 +248,8 @@ internal fun GroupHolderScreen(
                     onCopySuccess = onCopySuccess,
                     showAddress = showAddress,
                     blurAddress = blurAddress,
-                    showTraffic = securityAdvisory,
+                    trafficStatistic = trafficStatistics,
+                    securityAdvice = securityAdvisory,
                 )
             }
         }
@@ -290,7 +292,8 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     showErrorAlert: (String) -> Unit,
     showAddress: Boolean,
     blurAddress: Boolean,
-    showTraffic: Boolean,
+    trafficStatistic: Boolean,
+    securityAdvice: Boolean,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -308,7 +311,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     }
 
     val hasTraffic = entity.tx + entity.rx > 0L
-    val trafficText = hasTraffic.takeIf { showTraffic }?.let {
+    val trafficText = hasTraffic.takeIf { trafficStatistic }?.let {
         stringResource(
             R.string.traffic,
             Formatter.formatFileSize(context, entity.tx),
@@ -401,7 +404,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                         onClick = edit,
                     )
 
-                    val validateResult = if (showTraffic) {
+                    val validateResult = if (securityAdvice) {
                         validateResult
                     } else {
                         ValidateResult.Secure
