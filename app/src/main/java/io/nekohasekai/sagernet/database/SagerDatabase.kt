@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import dev.matrix.roomigrant.GenerateRoomMigrations
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.gson.GsonConverters
@@ -34,7 +33,6 @@ import kotlinx.coroutines.asExecutor
     ],
 )
 @TypeConverters(value = [KryoConverters::class, GsonConverters::class])
-@GenerateRoomMigrations
 abstract class SagerDatabase : RoomDatabase() {
 
     companion object {
