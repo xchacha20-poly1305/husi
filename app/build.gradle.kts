@@ -101,7 +101,7 @@ dependencies {
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
     implementation(project(":library:compose-code-editor:codeeditor"))
 
-    implementation("androidx.camera:camera-core:1.5.1")
+    implementation("androidx.camera:camera-core:1.5.2")
     implementation("androidx.camera:camera-lifecycle:1.5.1")
     implementation("androidx.camera:camera-camera2:1.5.1")
     implementation("androidx.camera:camera-compose:1.5.1")
