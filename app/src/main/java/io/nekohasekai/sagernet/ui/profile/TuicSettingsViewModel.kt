@@ -39,7 +39,7 @@ internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
     private val _uiState = MutableStateFlow(TuicUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun TuicBean.writeToUiState() {
+    override suspend fun TuicBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

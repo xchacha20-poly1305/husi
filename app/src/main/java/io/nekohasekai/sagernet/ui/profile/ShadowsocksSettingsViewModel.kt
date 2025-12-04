@@ -40,7 +40,7 @@ internal class ShadowsocksSettingsViewModel : ProfileSettingsViewModel<Shadowsoc
     private val _uiState = MutableStateFlow(ShadowsocksUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun ShadowsocksBean.writeToUiState() {
+    override suspend fun ShadowsocksBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

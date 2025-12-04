@@ -21,6 +21,7 @@ import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -51,10 +52,12 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
         _uiEvent.emit(ProfileSettingsUiEvent.Alert(title, message))
     }
 
-    private lateinit var initialState: ProfileSettingsUiState
+    private val _initialState = MutableStateFlow<ProfileSettingsUiState?>(null)
     val isDirty by lazy(LazyThreadSafetyMode.NONE) {
         uiState.map { currentState ->
-            initialState != currentState
+            _initialState.value?.let { initialState ->
+                initialState != currentState
+            } ?: false
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -63,7 +66,7 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     }
 
     protected abstract fun createBean(): T
-    protected abstract fun T.writeToUiState()
+    protected abstract suspend fun T.writeToUiState()
     protected abstract fun T.loadFromUiState()
 
     protected var editingId = -1L
@@ -72,7 +75,7 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     lateinit var bean: T
     var isSubscription = false
 
-    fun initialize(editingId: Long, isSubscription: Boolean) {
+    suspend fun initialize(editingId: Long, isSubscription: Boolean) {
         this.editingId = editingId
         this.isSubscription = isSubscription
 
@@ -83,7 +86,7 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
             (proxyEntity.requireBean() as T)
         }
         bean.writeToUiState()
-        initialState = uiState.value
+        _initialState.value = uiState.value
     }
 
     fun delete() = runOnIoDispatcher {

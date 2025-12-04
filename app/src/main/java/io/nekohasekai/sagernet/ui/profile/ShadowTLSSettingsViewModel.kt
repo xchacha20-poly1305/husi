@@ -32,7 +32,7 @@ internal class ShadowTLSSettingsViewModel : ProfileSettingsViewModel<ShadowTLSBe
     private val _uiState = MutableStateFlow(ShadowTLSUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun ShadowTLSBean.writeToUiState() {
+    override suspend fun ShadowTLSBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

@@ -28,7 +28,7 @@ internal class SocksSettingsViewModel : ProfileSettingsViewModel<SOCKSBean>() {
     private val _uiState = MutableStateFlow(SocksUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun SOCKSBean.writeToUiState() {
+    override suspend fun SOCKSBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

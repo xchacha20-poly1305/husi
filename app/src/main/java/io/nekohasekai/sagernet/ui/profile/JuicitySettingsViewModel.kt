@@ -29,7 +29,7 @@ internal class JuicitySettingsViewModel : ProfileSettingsViewModel<JuicityBean>(
     private val _uiState = MutableStateFlow(JuicityUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun JuicityBean.writeToUiState() {
+    override suspend fun JuicityBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

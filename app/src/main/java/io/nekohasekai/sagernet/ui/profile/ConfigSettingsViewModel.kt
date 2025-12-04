@@ -24,7 +24,7 @@ internal class ConfigSettingsViewModel : ProfileSettingsViewModel<ConfigBean>() 
     override val uiState = _uiState.asStateFlow()
 
 
-    override fun ConfigBean.writeToUiState() {
+    override suspend fun ConfigBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,

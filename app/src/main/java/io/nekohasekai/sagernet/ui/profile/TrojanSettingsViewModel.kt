@@ -61,7 +61,7 @@ internal class TrojanSettingsViewModel : StandardV2RaySettingsViewModel<TrojanBe
     private val _uiState = MutableStateFlow(TrojanUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun TrojanBean.writeToUiState() {
+    override suspend fun TrojanBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,

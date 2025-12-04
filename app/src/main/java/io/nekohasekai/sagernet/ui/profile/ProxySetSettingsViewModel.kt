@@ -49,7 +49,7 @@ internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean
 
     override fun createBean() = ProxySetBean().applyDefaultValues()
 
-    override fun ProxySetBean.writeToUiState() {
+    override suspend fun ProxySetBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,
@@ -87,7 +87,7 @@ internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean
         proxies = state.profiles.map { it.id }
     }
 
-    private fun load(ids: List<Long>) = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun load(ids: List<Long>) {
         val groups = SagerDatabase.groupDao.allGroups().first()
         val groupMap = LinkedHashMap<Long, ProxyGroup>(groups.size)
         groups.associateByTo(groupMap) { it.id }
@@ -99,10 +99,10 @@ internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean
         onDefaultDispatcher {
             for (id in ids) {
                 proxyList.add(profiles[id] ?: continue)
-                _uiState.update {
-                    it.copy(profiles = proxyList.toList())
-                }
             }
+        }
+        _uiState.update {
+            it.copy(profiles = proxyList)
         }
     }
 
