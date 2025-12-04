@@ -805,7 +805,7 @@ fun ConfigurationScreen(
         ) {
             if (hasGroups) {
                 if (uiState.groups.size > 1) PrimaryScrollableTabRow(
-                    selectedTabIndex = pagerState.currentPage,
+                    selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
                     edgePadding = 0.dp,
                     containerColor = appBarContainerColor,
                 ) {
