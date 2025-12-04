@@ -52,10 +52,10 @@ class GroupProfilesHolderViewModel(
     private val _uiState = MutableStateFlow(GroupProfilesHolderUiState())
     val uiState = _uiState.asStateFlow()
 
-    val alwaysShowAddress = DataStore.configurationStore.booleanFlow(Key.ALWAYS_SHOW_ADDRESS)
-    val blurredAddress = DataStore.configurationStore.booleanFlow(Key.BLURRED_ADDRESS)
-    val trafficStatistics = DataStore.configurationStore.booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS)
-    val securityAdvisory = DataStore.configurationStore.booleanFlow(Key.SECURITY_ADVISORY)
+    val alwaysShowAddress = DataStore.configurationStore.booleanFlow(Key.ALWAYS_SHOW_ADDRESS, false)
+    val blurredAddress = DataStore.configurationStore.booleanFlow(Key.BLURRED_ADDRESS, false)
+    val trafficStatistics = DataStore.configurationStore.booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
+    val securityAdvisory = DataStore.configurationStore.booleanFlow(Key.SECURITY_ADVISORY, true)
     val selectedProxy = DataStore.configurationStore.longFlow(Key.PROFILE_ID)
 
     private var isFirstLoad = true
