@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,7 +26,7 @@ import libcore.CopyCallback
 import libcore.HTTPResponse
 import libcore.Libcore
 
-@Stable
+@Immutable
 internal data class SpeedTestActivityUiState(
     val progress: Float? = null,
     val speed: Long = 0L,
@@ -40,7 +41,7 @@ internal data class SpeedTestActivityUiState(
     val uploadLengthError: StringOrRes? = null,
 )
 
-@Stable
+@Immutable
 internal sealed interface SpeedTestActivityUiEvent {
     class Snackbar(val message: StringOrRes) : SpeedTestActivityUiEvent
     class ErrorAlert(val message: StringOrRes) : SpeedTestActivityUiEvent

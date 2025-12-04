@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class TuicUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -29,6 +32,7 @@ internal data class TuicUiState(
     val clientKey: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
     override fun createBean() = TuicBean().applyDefaultValues()
 

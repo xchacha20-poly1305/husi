@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.configuration
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
@@ -48,7 +49,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipInputStream
 
-@Stable
+@Immutable
 data class ConfigurationFragmentUiState(
     val groups: List<ProxyGroup> = emptyList(),
     val selectedGroupIndex: Int = 0,
@@ -56,21 +57,21 @@ data class ConfigurationFragmentUiState(
     val alertForDelete: AlertForDelete? = null,
 )
 
-@Stable
+@Immutable
 data class AlertForDelete(
     val size: Int,
     val summary: String,
     val confirm: () -> Unit,
 )
 
-@Stable
+@Immutable
 data class ConfigurationTestUiState(
     val latestResult: ProfileTestResult? = null,
     val processedCount: Int = 0,
     val total: Int = 0,
 )
 
-@Stable
+@Immutable
 data class ProfileTestResult(
     val profile: ProxyEntity,
     val result: TestResult,

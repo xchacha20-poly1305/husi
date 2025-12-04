@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
@@ -19,7 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@Stable
+@Immutable
 internal data class ProxySetUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",

@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class WireGuardUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -22,6 +25,7 @@ internal data class WireGuardUiState(
     val persistentKeepaliveInterval: Int = 0,
 ) : ProfileSettingsUiState
 
+@Stable
 internal class WireGuardSettingsViewModel : ProfileSettingsViewModel<WireGuardBean>() {
     override fun createBean() = WireGuardBean().applyDefaultValues()
 

@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class NaiveUiState(
     val name: String = "",
     val address: String = "127.0.0.1",
@@ -22,6 +25,7 @@ internal data class NaiveUiState(
     override val customOutbound: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
     override fun createBean() = NaiveBean().applyDefaultValues()
 

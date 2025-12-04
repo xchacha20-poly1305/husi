@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.anytls.AnyTLSBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class AnyTLSUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -32,6 +35,7 @@ internal data class AnyTLSUiState(
     val clientKey: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() {
     override fun createBean() = AnyTLSBean().applyDefaultValues()
 

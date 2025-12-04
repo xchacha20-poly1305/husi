@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.fmt.http.HttpBean
@@ -8,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class HttpUiState(
     override val name: String = "",
     override val address: String = "127.0.0.1",
@@ -53,6 +56,7 @@ internal data class HttpUiState(
     val udpOverTcp: Boolean = false,
 ) : StandardV2RayUiState
 
+@Stable
 internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>() {
     override fun createBean() = HttpBean().applyDefaultValues()
 

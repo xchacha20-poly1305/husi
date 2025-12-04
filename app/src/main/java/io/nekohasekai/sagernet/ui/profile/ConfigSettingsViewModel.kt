@@ -1,10 +1,13 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.config.ConfigBean
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class ConfigUiState(
     val name: String = "",
     val type: Int = ConfigBean.TYPE_OUTBOUND,
@@ -12,6 +15,7 @@ internal data class ConfigUiState(
     override val customOutbound: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class ConfigSettingsViewModel : ProfileSettingsViewModel<ConfigBean>() {
 
     override fun createBean() = ConfigBean()

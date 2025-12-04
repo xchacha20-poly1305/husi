@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.tools
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,14 +17,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
-@Stable
+@Immutable
 internal data class RuleSetMatchUiState(
     val keyword: String = "google.com",
     val matched: List<String> = emptyList(),
     val isDoing: Boolean = false,
 )
 
-@Stable
+@Immutable
 internal sealed interface RuleSetMatchUiEvent {
     class Alert(val message: StringOrRes) : RuleSetMatchUiEvent
 }

@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.configuration
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-@Stable
+@Immutable
 data class GroupProfilesHolderUiState(
     val profiles: List<ProfileItem> = emptyList(),
     val hiddenProfiles: Int = 0,
@@ -33,7 +34,7 @@ data class GroupProfilesHolderUiState(
     val shouldRequestFocus: Boolean = false,
 )
 
-@Stable
+@Immutable
 data class ProfileItem(
     val profile: ProxyEntity,
     val isSelected: Boolean,

@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class ShadowQUICUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -23,6 +26,7 @@ internal data class ShadowQUICUiState(
     val udpOverStream: Boolean = false,
 ) : ProfileSettingsUiState
 
+@Stable
 internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUICBean>() {
     override fun createBean() = ShadowQUICBean().applyDefaultValues()
 

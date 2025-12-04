@@ -1,7 +1,10 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 
+@Immutable
 internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
     val name: String
     val address: String
@@ -40,6 +43,7 @@ internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
     val muxPadding: Boolean
 }
 
+@Stable
 internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
     ProfileSettingsViewModel<T>() {
 
