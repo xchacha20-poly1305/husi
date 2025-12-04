@@ -66,9 +66,9 @@ object GroupManager {
         SubscriptionUpdater.reconfigureUpdater()
     }
 
-    suspend fun deleteGroup(group: List<ProxyGroup>) {
-        SagerDatabase.groupDao.deleteGroup(group)
-        SagerDatabase.proxyDao.deleteByGroup(LongArray(group.size) { group[it].id })
+    suspend fun deleteGroup(group: List<Long>) {
+        SagerDatabase.groupDao.deleteByIds(group)
+        SagerDatabase.proxyDao.deleteByGroup(group.toLongArray())
         SubscriptionUpdater.reconfigureUpdater()
     }
 

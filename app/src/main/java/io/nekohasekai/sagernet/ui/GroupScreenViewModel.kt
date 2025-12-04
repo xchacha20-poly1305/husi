@@ -185,7 +185,7 @@ class GroupScreenViewModel : ViewModel() {
             toDelete
         }
         onIoDispatcher {
-            SagerDatabase.groupDao.deleteByIds(toDelete)
+            GroupManager.deleteGroup(toDelete)
         }
     }
 
