@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class MieruUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -19,6 +22,7 @@ internal data class MieruUiState(
     val muxNumber: Int = 0,
 ) : ProfileSettingsUiState
 
+@Stable
 internal class MieruSettingsViewModel : ProfileSettingsViewModel<MieruBean>() {
     override fun createBean() = MieruBean().applyDefaultValues()
 

@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
-@Stable
+@Immutable
 internal sealed interface ConfigEditActivityUiEvent {
     class Finish(val text: String) : ConfigEditActivityUiEvent
     class Alert(val message: String) : ConfigEditActivityUiEvent

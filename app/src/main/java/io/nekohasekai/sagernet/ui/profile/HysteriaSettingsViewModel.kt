@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class HysteriaUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -33,6 +36,7 @@ internal data class HysteriaUiState(
     val echConfig: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean>() {
     override fun createBean() = HysteriaBean().applyDefaultValues()
 

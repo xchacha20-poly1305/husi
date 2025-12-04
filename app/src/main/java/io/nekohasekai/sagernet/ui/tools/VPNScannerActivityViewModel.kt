@@ -5,6 +5,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
@@ -21,11 +23,13 @@ import java.io.File
 import java.util.zip.ZipFile
 import kotlin.collections.iterator
 
+@Immutable
 internal data class VPNScannerUiState(
     val appInfos: List<AppInfo> = emptyList(),
     val progress: Float? = null,
 )
 
+@Immutable
 internal data class AppInfo(
     val packageInfo: PackageInfo,
     val label: String,
@@ -33,17 +37,20 @@ internal data class AppInfo(
     val vpnType: VPNType,
 )
 
+@Immutable
 internal data class VPNType(
     val appType: String?,
     val coreType: VPNCoreType?,
 )
 
+@Immutable
 internal data class VPNCoreType(
     val coreType: String,
     val corePath: String,
     val goVersion: String,
 )
 
+@Stable
 internal class VPNScannerActivityViewModel : ViewModel() {
     companion object {
 

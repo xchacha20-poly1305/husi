@@ -1,17 +1,21 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.direct.DirectBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class DirectUiState(
     val name: String = "",
     override val customConfig: String = "",
     override val customOutbound: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class DirectSettingsViewModel : ProfileSettingsViewModel<DirectBean>() {
     override fun createBean() = DirectBean().applyDefaultValues()
 

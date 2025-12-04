@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.MuxStrategy
 import io.nekohasekai.sagernet.MuxType
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
@@ -8,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class ShadowsocksUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -30,6 +33,7 @@ internal data class ShadowsocksUiState(
     val udpOverTcp: Boolean = false,
 ) : ProfileSettingsUiState
 
+@Stable
 internal class ShadowsocksSettingsViewModel : ProfileSettingsViewModel<ShadowsocksBean>() {
     override fun createBean() = ShadowsocksBean().applyDefaultValues()
 

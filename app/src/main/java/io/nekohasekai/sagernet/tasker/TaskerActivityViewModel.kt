@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.tasker
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,11 +12,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 internal data class TaskerActivityUiState(
     val action: Int = 0,
     val profileID: Long = -1,
 )
 
+@Stable
 internal class TaskerActivityViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(TaskerActivityUiState())

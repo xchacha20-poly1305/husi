@@ -5,6 +5,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
@@ -31,13 +32,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@Stable
+@Immutable
 internal data class ScannerUiState(
     val isFlashlightOn: Boolean = false,
     val hasFlashUnit: Boolean = false,
 )
 
-@Stable
+@Immutable
 internal sealed interface ScannerUiEvent {
     class ImportSubscription(val uri: Uri) : ScannerUiEvent
     class Snakebar(val message: StringOrRes) : ScannerUiEvent

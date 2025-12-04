@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class JuicityUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -19,6 +22,7 @@ internal data class JuicityUiState(
     val pinSha256: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class JuicitySettingsViewModel : ProfileSettingsViewModel<JuicityBean>() {
     override fun createBean() = JuicityBean().applyDefaultValues()
 

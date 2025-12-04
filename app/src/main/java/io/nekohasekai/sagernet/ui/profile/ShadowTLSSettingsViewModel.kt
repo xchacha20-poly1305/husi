@@ -1,11 +1,14 @@
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@Immutable
 internal data class ShadowTLSUiState(
     override val customConfig: String = "",
     override val customOutbound: String = "",
@@ -22,6 +25,7 @@ internal data class ShadowTLSUiState(
     val utlsFingerprint: String = "",
 ) : ProfileSettingsUiState
 
+@Stable
 internal class ShadowTLSSettingsViewModel : ProfileSettingsViewModel<ShadowTLSBean>() {
     override fun createBean() = ShadowTLSBean().applyDefaultValues()
 

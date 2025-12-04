@@ -43,7 +43,7 @@ data class GroupItemUiState(
     val updateProgress: GroupUpdateProgress? = null,
 )
 
-@Stable
+@Immutable
 data class GroupUpdateProgress(
     val progress: Float,
     val isIndeterminate: Boolean,

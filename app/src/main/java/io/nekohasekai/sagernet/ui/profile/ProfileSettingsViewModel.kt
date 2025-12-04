@@ -2,6 +2,8 @@
 
 package io.nekohasekai.sagernet.ui.profile
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.GroupType
@@ -26,15 +28,18 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@Immutable
 internal sealed interface ProfileSettingsUiEvent {
     data class Alert(val title: StringOrRes, val message: StringOrRes) : ProfileSettingsUiEvent
 }
 
+@Immutable
 internal sealed interface ProfileSettingsUiState {
     val customConfig: String
     val customOutbound: String
 }
 
+@Stable
 internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel() {
 
     abstract val uiState: StateFlow<ProfileSettingsUiState>

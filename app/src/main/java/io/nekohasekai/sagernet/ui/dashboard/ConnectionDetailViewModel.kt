@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.aidl.Connection
@@ -13,6 +14,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import libcore.Libcore
 
+@Stable
 class ConnectionDetailViewModel : ViewModel() {
 
     private lateinit var sagerConnection: SagerConnection

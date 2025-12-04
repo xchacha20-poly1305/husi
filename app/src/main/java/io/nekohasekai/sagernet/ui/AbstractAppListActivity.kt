@@ -2,7 +2,9 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
+import androidx.compose.runtime.Immutable
 
+@Immutable
 internal data class ProxiedApp(
     private val appInfo: ApplicationInfo,
     val packageName: String,
