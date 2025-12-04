@@ -10,7 +10,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -191,14 +190,13 @@ fun ConfigurationScreen(
 
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val hasGroups = uiState.groups.isNotEmpty()
-    val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(0L)
+    val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(DataStore.selectedGroup)
     val pagerState = rememberPagerState(
         initialPage = uiState.groups
             .indexOfFirst { it.id == selectedGroup }
             .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
         pageCount = { uiState.groups.size },
     )
-    var isInitialized by remember { mutableStateOf(false) }
     LaunchedEffect(selectedGroup, hasGroups) {
         if (!hasGroups) return@LaunchedEffect
         val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
@@ -206,16 +204,13 @@ fun ConfigurationScreen(
         if (target != pagerState.currentPage) {
             pagerState.scrollToPage(target)
         }
-        isInitialized = true
     }
     LaunchedEffect(pagerState.currentPage, hasGroups) {
         if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
             return@LaunchedEffect
         }
         val groupID = uiState.groups[pagerState.currentPage].id
-        if (isInitialized) {
-            DataStore.selectedGroup = groupID
-        }
+        DataStore.selectedGroup = groupID
         vm.requestFocusIfNotHave(groupID)
     }
 

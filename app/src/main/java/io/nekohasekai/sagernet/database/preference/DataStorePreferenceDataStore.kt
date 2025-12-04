@@ -27,13 +27,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import java.io.InputStream
@@ -102,9 +99,6 @@ class DataStorePreferenceDataStore private constructor(
 
     private val flowScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    val preferencesFlow: StateFlow<Preferences> =
-        dataStore.data.stateIn(flowScope, SharingStarted.WhileSubscribed(5_000), emptyPreferences())
-
     fun getBoolean(key: String): Boolean? = runBlocking {
         dataStore.data.first()[booleanPreferencesKey(key)]
     }
@@ -130,28 +124,28 @@ class DataStorePreferenceDataStore private constructor(
     }
 
     fun booleanFlow(key: String, default: Boolean = false): Flow<Boolean> =
-        preferencesFlow.map { it[booleanPreferencesKey(key)] ?: default }.distinctUntilChanged()
+        dataStore.data.map { it[booleanPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun floatFlow(key: String, default: Float = 0f): Flow<Float> =
-        preferencesFlow.map { it[floatPreferencesKey(key)] ?: default }.distinctUntilChanged()
+        dataStore.data.map { it[floatPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun intFlow(key: String, default: Int = 0): Flow<Int> =
-        preferencesFlow.map { (it[longPreferencesKey(key)] ?: default.toLong()).toInt() }
+        dataStore.data.map { (it[longPreferencesKey(key)] ?: default.toLong()).toInt() }
             .distinctUntilChanged()
 
     fun longFlow(key: String, default: Long = 0L): Flow<Long> =
-        preferencesFlow.map { it[longPreferencesKey(key)] ?: default }.distinctUntilChanged()
+        dataStore.data.map { it[longPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun stringFlow(key: String, default: String = ""): Flow<String> =
-        preferencesFlow.map { it[stringPreferencesKey(key)] ?: default }.distinctUntilChanged()
+        dataStore.data.map { it[stringPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun stringSetFlow(key: String, default: Set<String> = emptySet()): Flow<Set<String>> =
-        preferencesFlow.map { it[stringSetPreferencesKey(key)] ?: default }.distinctUntilChanged()
+        dataStore.data.map { it[stringSetPreferencesKey(key)] ?: default }.distinctUntilChanged()
 
     fun keysFlow(vararg keys: String, emitInitialState: Boolean = false): Flow<Unit> {
         val keysToWatch = keys.toSet()
 
-        val flow = preferencesFlow
+        val flow = dataStore.data
             .map { prefs ->
                 prefs.asMap()
                     .filter { (key, _) -> key.name in keysToWatch }
