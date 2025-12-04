@@ -90,13 +90,16 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
 
         val editingId = intent.getLongExtra(EXTRA_PROFILE_ID, -1L)
         val isSubscription = intent.getBooleanExtra(EXTRA_IS_SUBSCRIPTION, false)
-        viewModel.initialize(editingId, isSubscription)
 
         setContent {
             val isDirty by viewModel.isDirty.collectAsState()
             var showBackAlert by remember { mutableStateOf(false) }
             var showGenericAlert by remember { mutableStateOf<ProfileSettingsUiEvent.Alert?>(null) }
             var showMoveDialog by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                viewModel.initialize(editingId, isSubscription)
+            }
 
             LaunchedEffect(Unit) {
                 viewModel.uiEvent.collect { event ->

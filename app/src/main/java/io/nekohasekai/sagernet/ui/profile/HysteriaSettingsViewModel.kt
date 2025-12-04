@@ -43,7 +43,7 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
     private val _uiState = MutableStateFlow(HysteriaUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun HysteriaBean.writeToUiState() {
+    override suspend fun HysteriaBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

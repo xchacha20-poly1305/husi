@@ -22,7 +22,7 @@ internal class DirectSettingsViewModel : ProfileSettingsViewModel<DirectBean>() 
     private val _uiState = MutableStateFlow(DirectUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun DirectBean.writeToUiState() {
+    override suspend fun DirectBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

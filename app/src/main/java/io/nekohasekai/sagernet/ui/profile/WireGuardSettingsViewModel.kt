@@ -32,7 +32,7 @@ internal class WireGuardSettingsViewModel : ProfileSettingsViewModel<WireGuardBe
     private val _uiState = MutableStateFlow(WireGuardUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun WireGuardBean.writeToUiState() {
+    override suspend fun WireGuardBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

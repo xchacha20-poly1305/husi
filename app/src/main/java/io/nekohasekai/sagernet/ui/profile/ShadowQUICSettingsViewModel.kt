@@ -33,7 +33,7 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
     private val _uiState = MutableStateFlow(ShadowQUICUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun ShadowQUICBean.writeToUiState() {
+    override suspend fun ShadowQUICBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

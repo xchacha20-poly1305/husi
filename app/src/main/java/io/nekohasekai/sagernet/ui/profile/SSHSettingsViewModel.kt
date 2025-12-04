@@ -30,7 +30,7 @@ internal class SSHSettingsViewModel : ProfileSettingsViewModel<SSHBean>() {
     private val _uiState = MutableStateFlow(SshUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun SSHBean.writeToUiState() {
+    override suspend fun SSHBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

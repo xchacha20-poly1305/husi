@@ -63,7 +63,7 @@ internal class HttpSettingsViewModel : StandardV2RaySettingsViewModel<HttpBean>(
     private val _uiState = MutableStateFlow(HttpUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun HttpBean.writeToUiState() {
+    override suspend fun HttpBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,

@@ -29,7 +29,7 @@ internal class MieruSettingsViewModel : ProfileSettingsViewModel<MieruBean>() {
     private val _uiState = MutableStateFlow(MieruUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun MieruBean.writeToUiState() {
+    override suspend fun MieruBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

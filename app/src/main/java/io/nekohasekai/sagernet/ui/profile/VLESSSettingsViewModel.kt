@@ -65,7 +65,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
     private val _uiState = MutableStateFlow(VLESSUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun VLESSBean.writeToUiState() {
+    override suspend fun VLESSBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,

@@ -32,7 +32,7 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
     private val _uiState = MutableStateFlow(NaiveUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun NaiveBean.writeToUiState() {
+    override suspend fun NaiveBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,

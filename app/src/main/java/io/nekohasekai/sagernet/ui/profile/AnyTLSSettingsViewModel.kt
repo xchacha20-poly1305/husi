@@ -42,7 +42,7 @@ internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() 
     private val _uiState = MutableStateFlow(AnyTLSUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun AnyTLSBean.writeToUiState() {
+    override suspend fun AnyTLSBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 customConfig = customConfigJson,

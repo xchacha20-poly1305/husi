@@ -66,7 +66,7 @@ internal class VMessSettingsViewModel : StandardV2RaySettingsViewModel<VMessBean
     private val _uiState = MutableStateFlow(VMessUiState())
     override val uiState = _uiState.asStateFlow()
 
-    override fun VMessBean.writeToUiState() {
+    override suspend fun VMessBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,

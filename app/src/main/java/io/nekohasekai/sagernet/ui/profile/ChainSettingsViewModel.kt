@@ -32,7 +32,7 @@ internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
 
     override fun createBean() = ChainBean()
 
-    override fun ChainBean.writeToUiState() {
+    override suspend fun ChainBean.writeToUiState() {
         _uiState.update {
             it.copy(
                 name = name,
@@ -53,16 +53,16 @@ internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
         proxies = state.profiles.map { it.id }
     }
 
-    private fun load(ids: List<Long>) = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun load(ids: List<Long>) {
         val proxyList = ArrayList<ProxyEntity>(ids.size)
         val profiles = ProfileManager.getProfiles(ids).associateBy { it.id }
         onDefaultDispatcher {
             for (id in ids) {
                 proxyList.add(profiles[id] ?: continue)
-                _uiState.update {
-                    it.copy(profiles = proxyList.toList())
-                }
             }
+        }
+        _uiState.update {
+            it.copy(profiles = proxyList)
         }
     }
 
