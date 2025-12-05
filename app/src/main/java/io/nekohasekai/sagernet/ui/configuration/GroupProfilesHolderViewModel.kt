@@ -20,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -83,7 +84,7 @@ class GroupProfilesHolderViewModel(
         }
 
         viewModelScope.launch {
-            SagerDatabase.groupDao.getById(group.id).collect { updated ->
+            SagerDatabase.groupDao.getById(group.id).collectLatest { updated ->
                 if (updated != null && updated != group) {
                     group = updated
                     reloadProfiles(null, false)

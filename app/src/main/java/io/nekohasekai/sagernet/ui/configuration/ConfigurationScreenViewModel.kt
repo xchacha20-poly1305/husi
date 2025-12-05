@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.content.ContentResolver
@@ -35,10 +37,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -252,7 +258,10 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
                             val displayedError = displayedErrors[it.profile.id]
                             it.profile.error = when (result.reason) {
                                 is FailureReason.Generic -> displayedError ?: result.reason.message
-                                is FailureReason.PluginNotFound -> displayedError ?: result.reason.message
+                                is FailureReason.PluginNotFound -> {
+                                    displayedError ?: result.reason.message
+                                }
+
                                 else -> displayedError
                             }
                         }
@@ -388,9 +397,18 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
     init {
         viewModelScope.launch {
-            ProfileManager.getGroups().collect { groups ->
-                reloadGroups(groups)
-            }
+            ProfileManager.getGroups()
+                .flatMapLatest { groups ->
+                    val ungroupedGroup = groups.find { it.ungrouped }
+                    if (ungroupedGroup != null) {
+                        SagerDatabase.proxyDao.countByGroup(ungroupedGroup.id).map { groups }
+                    } else {
+                        flowOf(groups)
+                    }
+                }
+                .collectLatest { groups ->
+                    reloadGroups(groups)
+                }
         }
     }
 
