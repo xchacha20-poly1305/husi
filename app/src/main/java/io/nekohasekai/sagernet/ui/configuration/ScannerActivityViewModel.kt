@@ -16,12 +16,21 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.qrcode.QRCodeReader
+import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.SubscriptionType
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.SubscriptionBean
+import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
+import io.nekohasekai.sagernet.ktx.blankAsNull
+import io.nekohasekai.sagernet.ktx.defaultOr
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.StringOrRes
@@ -42,6 +51,7 @@ internal data class ScannerUiState(
 internal sealed interface ScannerUiEvent {
     class ImportSubscription(val uri: Uri) : ScannerUiEvent
     class Snakebar(val message: StringOrRes) : ScannerUiEvent
+    class AskSubscriptionOrProfile(val url: String) : ScannerUiEvent
     object Finish : ScannerUiEvent
 }
 
@@ -60,7 +70,7 @@ internal class ScannerActivityViewModel : ViewModel() {
     suspend fun importFromUri(uri: Uri, contentResolver: ContentResolver) {
         val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             ImageDecoder.decodeBitmap(
-                ImageDecoder.createSource(contentResolver, uri)
+                ImageDecoder.createSource(contentResolver, uri),
             ) { decoder, _, _ ->
                 decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 decoder.isMutableRequired = true
@@ -86,12 +96,12 @@ internal class ScannerActivityViewModel : ViewModel() {
             val result = try {
                 qrReader.decode(
                     BinaryBitmap(GlobalHistogramBinarizer(source)),
-                    mapOf(DecodeHintType.TRY_HARDER to true)
+                    mapOf(DecodeHintType.TRY_HARDER to true),
                 )
             } catch (_: NotFoundException) {
                 qrReader.decode(
                     BinaryBitmap(GlobalHistogramBinarizer(source.invert())),
-                    mapOf(DecodeHintType.TRY_HARDER to true)
+                    mapOf(DecodeHintType.TRY_HARDER to true),
                 )
             }
 
@@ -109,32 +119,105 @@ internal class ScannerActivityViewModel : ViewModel() {
         if (isProcessing) return
         isProcessing = true
 
-        runOnDefaultDispatcher {
-            try {
-                val results = RawUpdater.parseRaw(value)
-                if (results.isNullOrEmpty()) {
-                    isProcessing = false
-                    onFailure(null)
-                } else {
-                    val currentGroupId = DataStore.selectedGroupForImport()
+        val uri = try {
+            value.toUri()
+        } catch (_: Exception) {
+            null
+        }
+
+        when (uri?.scheme) {
+            "http", "https" -> viewModelScope.launch {
+                _uiEvent.emit(ScannerUiEvent.AskSubscriptionOrProfile(value))
+            }
+
+            else -> parseAndImportProfile(value)
+        }
+    }
+
+    fun parseAndImportProfile(text: String) = runOnDefaultDispatcher {
+        try {
+            val results = RawUpdater.parseRaw(text)
+            if (results.isNullOrEmpty()) {
+                isProcessing = false
+                onFailure(null)
+            } else {
+                _uiEvent.emit(ScannerUiEvent.Finish)
+                val currentGroupId = DataStore.selectedGroupForImport()
+                onIoDispatcher {
                     if (DataStore.selectedGroup != currentGroupId) {
                         DataStore.selectedGroup = currentGroupId
                     }
-
                     for (profile in results) {
                         ProfileManager.createProfile(currentGroupId, profile)
                     }
-
-                    _uiEvent.emit(ScannerUiEvent.Finish)
                 }
-            } catch (e: SubscriptionFoundException) {
-                _uiEvent.emit(ScannerUiEvent.ImportSubscription(e.link.toUri()))
-                _uiEvent.emit(ScannerUiEvent.Finish)
-            } catch (e: Exception) {
-                isProcessing = false
-                onFailure(e)
             }
+        } catch (e: SubscriptionFoundException) {
+            _uiEvent.emit(ScannerUiEvent.ImportSubscription(e.link.toUri()))
+            _uiEvent.emit(ScannerUiEvent.Finish)
+        } catch (e: Exception) {
+            isProcessing = false
+            onFailure(e)
         }
+    }
+
+    fun importSubscription(url: String) = runOnDefaultDispatcher {
+        try {
+            val uri = url.toUri()
+            val group: ProxyGroup
+            val link = defaultOr(
+                "",
+                { uri.getQueryParameter("url") },
+                {
+                    when (uri.scheme) {
+                        "http", "https" -> uri.toString()
+                        else -> null
+                    }
+                },
+            )
+            if (link.isNotBlank()) {
+                group = ProxyGroup(type = GroupType.SUBSCRIPTION)
+                group.subscription = SubscriptionBean().apply {
+                    this.link = link
+                    type = when (uri.getQueryParameter("type")?.lowercase()) {
+                        "oocv1" -> SubscriptionType.OOCv1
+                        "sip008" -> SubscriptionType.SIP008
+                        else -> SubscriptionType.RAW
+                    }
+                }
+
+                group.name = defaultOr(
+                    "",
+                    { uri.getQueryParameter("name") },
+                    { uri.fragment },
+                )
+            } else {
+                isProcessing = false
+                viewModelScope.launch {
+                    _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(R.string.action_import_err)))
+                }
+                return@runOnDefaultDispatcher
+            }
+
+            if (group.name.isNullOrBlank() && group.subscription?.link.isNullOrBlank()) {
+                isProcessing = false
+                return@runOnDefaultDispatcher
+            }
+            group.name = group.name.blankAsNull() ?: ("Subscription #" + System.currentTimeMillis())
+
+            _uiEvent.emit(ScannerUiEvent.Finish)
+            onIoDispatcher {
+                GroupManager.createGroup(group)
+                GroupUpdater.startUpdate(group, true)
+            }
+        } catch (e: Exception) {
+            isProcessing = false
+            onFailure(e)
+        }
+    }
+
+    fun resetProcessing() {
+        isProcessing = false
     }
 
     fun onFailure(e: Exception?) {
@@ -151,7 +234,7 @@ internal class ScannerActivityViewModel : ViewModel() {
     fun toggleFlashlight() {
         _uiState.update {
             it.copy(
-                isFlashlightOn = !it.isFlashlightOn
+                isFlashlightOn = !it.isFlashlightOn,
             )
         }
     }

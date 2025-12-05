@@ -47,6 +47,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -58,14 +59,19 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,6 +99,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
+import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ktx.forEachTry
@@ -159,6 +166,7 @@ private fun ScannerScreen(
 
     var surfaceRequest by remember { mutableStateOf<SurfaceRequest?>(null) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showAskDialog by remember { mutableStateOf<String?>(null) }
 
     val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
     DisposableEffect(Unit) {
@@ -218,6 +226,10 @@ private fun ScannerScreen(
                         actionLabel = context.getString(android.R.string.ok),
                         duration = SnackbarDuration.Short,
                     )
+                }
+
+                is ScannerUiEvent.AskSubscriptionOrProfile -> {
+                    showAskDialog = event.url
                 }
 
                 ScannerUiEvent.Finish -> {
@@ -339,6 +351,39 @@ private fun ScannerScreen(
                 }
             }
         }
+    }
+
+    if (showAskDialog != null) {
+        val url = showAskDialog!!
+        AlertDialog(
+            onDismissRequest = {
+                showAskDialog = null
+                viewModel.resetProcessing()
+            },
+            confirmButton = {
+                TextButton(stringResource(R.string.subscription_import)) {
+                    viewModel.importSubscription(url)
+                    showAskDialog = null
+                }
+            },
+            dismissButton = {
+                TextButton(stringResource(R.string.profile_import)) {
+                    viewModel.parseAndImportProfile(url)
+                    showAskDialog = null
+                }
+            },
+            icon = {
+                Icon(ImageVector.vectorResource(R.drawable.question_mark), null)
+            },
+            title = { Text(stringResource(R.string.profile_import)) },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                ) {
+                    Text(url)
+                }
+            },
+        )
     }
 }
 
