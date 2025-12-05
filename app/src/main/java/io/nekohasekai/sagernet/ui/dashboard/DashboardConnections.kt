@@ -105,7 +105,9 @@ private fun ConnectionCard(
 
     ElevatedCard(
         onClick = { openDetail(connection.uuid) },
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
