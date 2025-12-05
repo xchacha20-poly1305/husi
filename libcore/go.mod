@@ -14,7 +14,7 @@ require (
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
-	github.com/xchacha20-poly1305/cazilla v1.0.2
+	github.com/xchacha20-poly1305/cazilla v1.1.0
 	github.com/xchacha20-poly1305/libping v0.10.1
 	golang.org/x/sync v0.17.0
 	golang.org/x/sys v0.37.0
