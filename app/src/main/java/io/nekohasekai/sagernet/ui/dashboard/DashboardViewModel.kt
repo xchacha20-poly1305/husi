@@ -24,6 +24,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -76,27 +78,22 @@ class DashboardViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            DataStore.configurationStore.intFlow(Key.TRAFFIC_SORT_MODE).collect {
+            DataStore.configurationStore.intFlow(Key.TRAFFIC_SORT_MODE).combine(
+                DataStore.configurationStore.booleanFlow(Key.TRAFFIC_DESCENDING),
+            ) { mode, isDescending ->
+                mode to isDescending
+            }.collectLatest { (mode, isDescending) ->
+                comparator = buildComparator(mode, isDescending)
                 _uiState.update { state ->
-                    comparator = buildComparator(it, state.isDescending)
                     state.copy(
-                        sortMode = it,
+                        sortMode = mode,
+                        isDescending = isDescending,
                     )
                 }
             }
         }
         viewModelScope.launch {
-            DataStore.configurationStore.booleanFlow(Key.TRAFFIC_DESCENDING).collect {
-                _uiState.update { state ->
-                    comparator = buildComparator(state.sortMode, it)
-                    state.copy(
-                        isDescending = it,
-                    )
-                }
-            }
-        }
-        viewModelScope.launch {
-            DataStore.configurationStore.intFlow(Key.TRAFFIC_CONNECTION_QUERY).collect {
+            DataStore.configurationStore.intFlow(Key.TRAFFIC_CONNECTION_QUERY).collectLatest {
                 _uiState.update { state ->
                     state.copy(
                         queryOptions = it,
@@ -156,7 +153,7 @@ class DashboardViewModel : ViewModel() {
         DataStore.trafficSortMode = mode
     }
 
-    private lateinit var comparator: Comparator<Connection>
+    private var comparator = buildComparator(TrafficSortMode.START, false)
 
     private fun buildComparator(mode: Int, descending: Boolean): Comparator<Connection> {
         val primarySelector: (Connection) -> Comparable<*> = when (mode) {

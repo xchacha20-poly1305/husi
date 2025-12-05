@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -119,7 +116,7 @@ fun DashboardScreen(
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
     val service by connection.service.collectAsStateWithLifecycle()
-    LaunchedEffect(service) {
+    LaunchedEffect(System.identityHashCode(service)) {
         viewModel.initialize(service)
     }
 
