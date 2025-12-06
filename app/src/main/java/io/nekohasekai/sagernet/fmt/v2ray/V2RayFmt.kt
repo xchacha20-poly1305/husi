@@ -592,7 +592,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         }
         tls = buildSingBoxOutboundTLS(bean)
         transport = buildSingBoxOutboundStreamSettings(bean)
-        if (flow == null && bean.shouldMux()) multiplex = buildSingBoxMux(bean)
+        if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
     }
 
     is TrojanBean -> Outbound_TrojanOptions().apply {
