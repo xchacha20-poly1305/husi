@@ -145,7 +145,7 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
     fun scrollToProxy(proxyId: Long) = viewModelScope.launch {
         val group = onIoDispatcher {
-            ProfileManager.getProfile(proxyId)?.id
+            ProfileManager.getProfile(proxyId)?.groupId
         } ?: return@launch
         childViewModels[group]?.scrollToProxy(proxyId, true)
     }
