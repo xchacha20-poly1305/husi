@@ -455,7 +455,6 @@
     <string name="utls_fingerprint">Huella digital uTLS</string>
     <string name="domain_strategy_for_direct">Estrategia de dominio para directo</string>
     <string name="domain_strategy_for_server">Est. de dominio para direc. del servidor</string>
-    <string name="bypass_lan_in_core">Omitir LAN en el núcleo</string>
     <string name="need_restart">Reiniciar app para aplicar los cambios</string>
     <string name="protocol_version">Versión del protocolo</string>
     <string name="reset_connections">Restablecer conexiones</string>

@@ -166,9 +166,6 @@ fun SettingsScreen(
     val appendHttpProxyState by DataStore.configurationStore
         .booleanFlow(Key.APPEND_HTTP_PROXY, false)
         .collectAsStateWithLifecycle(false)
-    val bypassLanState by DataStore.configurationStore
-        .booleanFlow(Key.BYPASS_LAN, true)
-        .collectAsStateWithLifecycle(true)
     val rulesProviderState by DataStore.configurationStore
         .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
         .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
@@ -744,21 +741,6 @@ fun SettingsScreen(
                                 null,
                             )
                         },
-                    )
-                }
-                item(Key.BYPASS_LAN_IN_CORE, PreferenceType.SWITCH_PREFERENCE) {
-                    val value by DataStore.configurationStore
-                        .booleanFlow(Key.BYPASS_LAN_IN_CORE, false)
-                        .collectAsStateWithLifecycle(false)
-                    SwitchPreference(
-                        value = value,
-                        onValueChange = {
-                            DataStore.bypassLanInCore = it
-                            needReload()
-                        },
-                        title = { Text(stringResource(R.string.bypass_lan_in_core)) },
-                        enabled = bypassLanState,
-                        icon = { Icon(ImageVector.vectorResource(R.drawable.arrow_outward), null) },
                     )
                 }
                 item(Key.NETWORK_STRATEGY, PreferenceType.LIST_PREFERENCE) {

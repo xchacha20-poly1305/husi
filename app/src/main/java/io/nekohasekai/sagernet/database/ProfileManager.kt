@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.database
 import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.RuleItem
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_ROUTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_HIJACK_DNS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.ACTION_REJECT
@@ -133,7 +134,7 @@ object ProfileManager {
                         enabled = true,
                         name = repo.getString(R.string.sniff),
                         action = ACTION_SNIFF,
-                    )
+                    ),
                 )
                 createRule(
                     RuleEntity(
@@ -141,7 +142,7 @@ object ProfileManager {
                         name = repo.getString(R.string.hijack_dns),
                         protocol = setOf("dns"),
                         action = ACTION_HIJACK_DNS,
-                    )
+                    ),
                 )
                 createRule(
                     RuleEntity(
@@ -150,7 +151,7 @@ object ProfileManager {
                         name = repo.getString(R.string.bypass_icmp),
                         network = setOf(NetworkICMP),
                         outbound = RuleEntity.OUTBOUND_DIRECT,
-                    )
+                    ),
                 )
                 createRule(
                     RuleEntity(
@@ -158,14 +159,14 @@ object ProfileManager {
                         action = ACTION_REJECT,
                         protocol = setOf("quic"),
                         network = setOf(NetworkUDP),
-                    )
+                    ),
                 )
                 createRule(
                     RuleEntity(
                         name = repo.getString(R.string.route_opt_block_ads),
                         action = ACTION_REJECT,
                         domains = "set+dns:geosite-category-ads-all",
-                    )
+                    ),
                 )
                 val walledCountry = mutableListOf("cn:中国")
                 if (Locale.getDefault().country == Locale.US.country) {
@@ -181,7 +182,8 @@ object ProfileManager {
                             action = ACTION_ROUTE,
                             domains = "set+dns:geosite-google-play",
                             outbound = RuleEntity.OUTBOUND_PROXY,
-                        ), false
+                        ),
+                        false,
                     )
                     createRule(
                         RuleEntity(
@@ -189,7 +191,8 @@ object ProfileManager {
                             action = ACTION_ROUTE,
                             domains = "set+dns:geosite-$country",
                             outbound = RuleEntity.OUTBOUND_DIRECT,
-                        ), false
+                        ),
+                        false,
                     )
                     createRule(
                         RuleEntity(
@@ -197,9 +200,19 @@ object ProfileManager {
                             action = ACTION_ROUTE,
                             ip = "set-dns:geoip-$country",
                             outbound = RuleEntity.OUTBOUND_DIRECT,
-                        ), false
+                        ),
+                        false,
                     )
                 }
+                createRule(
+                    RuleEntity(
+                        name = repo.getString(R.string.route_opt_bypass_lan),
+                        action = ACTION_ROUTE,
+                        ip = RuleItem.CONTENT_PRIVATE,
+                        outbound = RuleEntity.OUTBOUND_DIRECT,
+                    ),
+                    false,
+                )
             }
         }
     }

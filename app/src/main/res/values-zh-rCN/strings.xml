@@ -234,7 +234,6 @@
     <string name="connection_test_url">连接测试链接</string>
     <string name="connection_test_available_http">连接成功: HTTP 握手耗时 %dms</string>
     <string name="certificates">证书 (链)</string>
-    <string name="bypass_lan_in_core">在核心中绕过 LAN</string>
     <string name="ignore_battery_optimizations">忽略电池优化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
     <string name="document">文档</string>
