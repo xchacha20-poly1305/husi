@@ -212,6 +212,7 @@ fun ConfigurationScreen(
         val groupID = uiState.groups[pagerState.currentPage].id
         DataStore.selectedGroup = groupID
         vm.requestFocusIfNotHave(groupID)
+        scrollHideVisible = true
     }
 
     var qrCodeInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
