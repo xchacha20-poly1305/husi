@@ -1011,15 +1011,6 @@ fun buildConfig(
             }
             route.rules.add(0, builtInDNSRule.asMap())
 
-            if (DataStore.bypassLanInCore) {
-                route.rules.add(
-                    Rule_Default().apply {
-                        outbound = TAG_DIRECT
-                        ip_is_private = true
-                    }.asMap(),
-                )
-            }
-
             // FakeDNS obj
             if (useFakeDns) {
                 val fakeRange4 = if (networkStrategy == SingBoxOptions.STRATEGY_IPV6_ONLY) {

@@ -110,8 +110,7 @@ object DataStore {
     var mtu by configurationStore.int(Key.MTU) { 9000 }
     var allowAppsBypassVpn by configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
 
-    var bypassLan by configurationStore.boolean(Key.BYPASS_LAN)
-    var bypassLanInCore by configurationStore.boolean(Key.BYPASS_LAN_IN_CORE)
+    var bypassLan by configurationStore.boolean(Key.BYPASS_LAN) { true }
     var inboundUsername by configurationStore.string(Key.INBOUND_USERNAME) { "" }
     var inboundPassword by configurationStore.string(Key.INBOUND_PASSWORD) { "" }
 

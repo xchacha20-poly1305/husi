@@ -56,7 +56,6 @@ object Key {
     const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
 
     const val BYPASS_LAN = "bypassLan"
-    const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
 
     const val APPEND_HTTP_PROXY = "appendHttpProxy"
     const val HTTP_PROXY_BYPASS = "httpProxyBypass"

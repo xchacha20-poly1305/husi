@@ -122,7 +122,7 @@ class VpnService : BaseVpnService(),
         }
 
         // route
-        if (DataStore.bypassLan && !DataStore.bypassLanInCore) {
+        if (DataStore.bypassLan) {
             resources.getStringArray(R.array.bypass_private_route).forEach {
                 val subnet = Subnet.fromString(it)
                 builder.addRoute(subnet.address.hostAddress!!, subnet.prefixSize)
