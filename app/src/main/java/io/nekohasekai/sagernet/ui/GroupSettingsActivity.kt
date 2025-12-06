@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,6 +46,7 @@ import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.USER_AGENT
@@ -73,6 +75,8 @@ class GroupSettingsActivity : ComposeActivity() {
         viewModel.initialize(editingId)
 
         setContent {
+            val context = LocalContext.current
+
             val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
             var showBackAlert by remember { mutableStateOf(false) }
             BackHandler(enabled = isDirty) {
@@ -101,21 +105,33 @@ class GroupSettingsActivity : ComposeActivity() {
                                 }
                             },
                             actions = {
-                                SimpleIconButton(
-                                    imageVector = ImageVector.vectorResource(R.drawable.delete),
-                                    contentDescription = stringResource(R.string.delete),
+                                AppBarRow(
+                                    overflowIndicator = ::MoreOverIcon,
                                 ) {
-                                    if (viewModel.isNew) {
-                                        finish()
-                                    } else {
-                                        showDeleteAlert = true
-                                    }
+                                    clickableItem(
+                                        onClick = {
+                                            if (viewModel.isNew) {
+                                                finish()
+                                            } else {
+                                                showDeleteAlert = true
+                                            }
+                                        },
+                                        icon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.delete),
+                                                null,
+                                            )
+                                        },
+                                        label = context.getString(R.string.delete),
+                                    )
+                                    clickableItem(
+                                        onClick = ::saveAndExit,
+                                        icon = {
+                                            Icon(ImageVector.vectorResource(R.drawable.done), null)
+                                        },
+                                        label = context.getString(R.string.apply),
+                                    )
                                 }
-                                SimpleIconButton(
-                                    imageVector = ImageVector.vectorResource(R.drawable.done),
-                                    contentDescription = stringResource(R.string.apply),
-                                    onClick = ::saveAndExit,
-                                )
                             },
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,

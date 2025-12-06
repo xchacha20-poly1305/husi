@@ -1,13 +1,14 @@
 package io.nekohasekai.sagernet.compose
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.material3.AppBarMenuState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import io.nekohasekai.sagernet.R
 
 @Composable
@@ -26,5 +27,14 @@ fun ExpandableDropdownMenuItem(
                 contentDescription = stringResource(R.string.expand),
             )
         },
+    )
+}
+
+@Composable
+fun MoreOverIcon(menuState: AppBarMenuState) {
+    SimpleIconButton(
+        imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+        contentDescription = stringResource(R.string.more),
+        onClick = menuState::show,
     )
 }

@@ -22,9 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,6 +73,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.StatsBar
@@ -116,8 +116,6 @@ fun RouteScreen(
     val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    var menuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
 
     fun needReload() = scope.launch {
@@ -170,39 +168,38 @@ fun RouteScreen(
                     )
                 },
                 actions = {
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.add_road),
-                        contentDescription = stringResource(R.string.route_add),
+                    AppBarRow(
+                        overflowIndicator = ::MoreOverIcon,
+                        maxItemCount = 2,
                     ) {
-                        context.startActivity(
-                            Intent(context, RouteSettingsActivity::class.java),
-                        )
-                    }
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.more_vert),
-                        contentDescription = stringResource(R.string.more),
-                        onClick = { menuExpanded = true },
-                    )
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.route_reset)) },
+                        clickableItem(
                             onClick = {
-                                menuExpanded = false
-                                showResetAlert = true
+                                context.startActivity(
+                                    Intent(context, RouteSettingsActivity::class.java),
+                                )
                             },
+                            icon = {
+                                Icon(ImageVector.vectorResource(R.drawable.add_road), null)
+                            },
+                            label = context.getString(R.string.route_add),
                         )
-
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.route_manage_assets)) },
+                        clickableItem(
+                            onClick = { showResetAlert = true },
+                            icon = {
+                                Icon(ImageVector.vectorResource(R.drawable.replay), null)
+                            },
+                            label = context.getString(R.string.route_reset),
+                        )
+                        clickableItem(
                             onClick = {
-                                menuExpanded = false
                                 context.startActivity(
                                     Intent(context, AssetsActivity::class.java),
                                 )
                             },
+                            icon = {
+                                Icon(ImageVector.vectorResource(R.drawable.layers), null)
+                            },
+                            label = context.getString(R.string.route_manage_assets),
                         )
                     }
                 },

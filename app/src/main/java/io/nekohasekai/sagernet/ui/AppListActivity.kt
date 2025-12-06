@@ -30,10 +30,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -68,6 +68,7 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
@@ -124,6 +125,7 @@ private fun AppListScreen(
     onBackPress: () -> Unit,
 ) {
     val context = LocalContext.current
+    val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -142,8 +144,6 @@ private fun AppListScreen(
 
     var searchActivate by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-
-    var showOverflowMenu by remember { mutableStateOf(false) }
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -196,65 +196,62 @@ private fun AppListScreen(
                         searchActivate = false
                         viewModel.setSearchQuery("")
                     } else {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.search),
-                            contentDescription = stringResource(android.R.string.search_go),
-                            onClick = { searchActivate = true },
-                        )
-
-                        val clipboard = LocalClipboard.current
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.copy_all),
-                            contentDescription = stringResource(R.string.action_copy),
+                        AppBarRow(
+                            overflowIndicator = ::MoreOverIcon,
+                            maxItemCount = 4,
                         ) {
-                            val toExport = viewModel.export()
-                            scope.launch {
-                                clipboard.setPlainText(toExport)
-                                snackbarHostState.showSnackbar(
-                                    message = context.getString(R.string.copy_success),
-                                    actionLabel = context.getString(android.R.string.ok),
-                                    duration = SnackbarDuration.Short,
-                                )
-                            }
-                        }
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.content_paste),
-                            contentDescription = stringResource(R.string.action_import),
-                            onClick = {
-                                scope.launch {
-                                    val text = clipboard.getClipEntry()?.clipData
-                                        ?.getItemAt(0)?.text
-                                        ?.toString()
-                                    viewModel.import(text)
-                                }
-                            },
-                        )
-
-                        Box {
-                            SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
-                                contentDescription = stringResource(R.string.more),
-                                onClick = { showOverflowMenu = true },
+                            clickableItem(
+                                onClick = { searchActivate = true },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.search), null)
+                                },
+                                label = context.getString(android.R.string.search_go),
                             )
-                            DropdownMenu(
-                                expanded = showOverflowMenu,
-                                onDismissRequest = { showOverflowMenu = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.invert_selections)) },
-                                    onClick = {
-                                        viewModel.invertSections()
-                                        showOverflowMenu = false
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.clear_selections)) },
-                                    onClick = {
-                                        viewModel.clearSections()
-                                        showOverflowMenu = false
-                                    },
-                                )
-                            }
+                            clickableItem(
+                                onClick = {
+                                    val toExport = viewModel.export()
+                                    scope.launch {
+                                        clipboard.setPlainText(toExport)
+                                        snackbarHostState.showSnackbar(
+                                            message = context.getString(R.string.copy_success),
+                                            actionLabel = context.getString(android.R.string.ok),
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
+                                },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.copy_all), null)
+                                },
+                                label = context.getString(R.string.action_copy),
+                            )
+                            clickableItem(
+                                onClick = {
+                                    scope.launch {
+                                        val text = clipboard.getClipEntry()?.clipData
+                                            ?.getItemAt(0)?.text
+                                            ?.toString()
+                                        viewModel.import(text)
+                                    }
+                                },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.content_paste), null)
+                                },
+                                label = context.getString(R.string.action_import),
+                            )
+                            clickableItem(
+                                onClick = { viewModel.invertSections() },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null)
+                                },
+                                label = context.getString(R.string.invert_selections),
+                            )
+                            clickableItem(
+                                onClick = { viewModel.clearSections() },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.cleaning_services), null)
+                                },
+                                label = context.getString(R.string.clear_selections),
+                            )
                         }
                     }
                 },
