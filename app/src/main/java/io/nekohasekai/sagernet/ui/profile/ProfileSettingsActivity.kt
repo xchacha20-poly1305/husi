@@ -156,12 +156,16 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                         expanded = showExtendMenu,
                                         onDismissRequest = { showExtendMenu = false },
                                     ) {
+                                        var hasDevider = false
                                         if (!viewModel.isNew // May cancel crating
                                             && !viewModel.isSubscription // Updating may make profile lost
-                                        ) DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.create_shortcut)) },
-                                            onClick = ::buildShortCut,
-                                        )
+                                        ) {
+                                            hasDevider = true
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.create_shortcut)) },
+                                                onClick = ::buildShortCut,
+                                            )
+                                        }
                                         if (!viewModel.isNew // Uncreated
                                             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                                             && runBlocking {
@@ -170,12 +174,15 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                                         it.type == GroupType.BASIC
                                                     }.size > 1 // Movable
                                             }
-                                        ) DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.move)) },
-                                            onClick = { showMoveDialog = true },
-                                        )
+                                        ) {
+                                            hasDevider = true
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.move)) },
+                                                onClick = { showMoveDialog = true },
+                                            )
+                                        }
 
-                                        HorizontalDivider()
+                                        if (hasDevider) HorizontalDivider()
                                         Text(
                                             text = stringResource(R.string.custom_config),
                                             modifier = Modifier.padding(

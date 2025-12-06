@@ -28,10 +28,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -56,10 +55,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -72,6 +69,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.showAndDismissOld
@@ -196,8 +194,6 @@ private fun AssetsScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            var showImportMenu by remember { mutableStateOf(false) }
-
             Box(
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -211,52 +207,51 @@ private fun AssetsScreen(
                         )
                     },
                     actions = {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.update),
-                            contentDescription = stringResource(R.string.assets_update),
-                            enabled = uiState.process == null && uiState.assets.all { it.progress == null },
-                            onClick = {
-                                viewModel.updateAsset(
-                                    destinationDir = geoDir,
-                                    cacheDir = cacheDir,
-                                )
-                            },
-                        )
-                        Box {
-                            SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.note_add),
-                                contentDescription = stringResource(R.string.import_asset),
-                                onClick = { showImportMenu = true },
+                        AppBarRow(
+                            overflowIndicator = ::MoreOverIcon,
+                            maxItemCount = 2,
+                        ) {
+                            clickableItem(
+                                onClick = {
+                                    viewModel.updateAsset(
+                                        destinationDir = geoDir,
+                                        cacheDir = cacheDir,
+                                    )
+                                },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.update), null)
+                                },
+                                label = context.getString(R.string.assets_update),
+                                enabled = uiState.process == null && uiState.assets.all { it.progress == null },
                             )
-                            DropdownMenu(
-                                expanded = showImportMenu,
-                                onDismissRequest = { showImportMenu = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_import_file)) },
-                                    onClick = {
-                                        showImportMenu = false
-                                        startFilesForResult(importFile, "*/*") { id ->
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = context.getString(id),
-                                                    actionLabel = context.getString(android.R.string.ok),
-                                                    duration = SnackbarDuration.Short,
-                                                )
-                                            }
+                            clickableItem(
+                                onClick = {
+                                    startFilesForResult(importFile, "*/*") { id ->
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = context.getString(id),
+                                                actionLabel = context.getString(android.R.string.ok),
+                                                duration = SnackbarDuration.Short,
+                                            )
                                         }
                                     }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.import_url)) },
-                                    onClick = {
-                                        showImportMenu = false
-                                        importUrl.launch(
-                                            Intent(context, AssetEditActivity::class.java)
-                                        )
-                                    }
-                                )
-                            }
+                                },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.note_add), null)
+                                },
+                                label = context.getString(R.string.action_import_file),
+                            )
+                            clickableItem(
+                                onClick = {
+                                    importUrl.launch(
+                                        Intent(context, AssetEditActivity::class.java),
+                                    )
+                                },
+                                icon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.link), null)
+                                },
+                                label = context.getString(R.string.import_url),
+                            )
                         }
                     },
                     windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -317,7 +312,7 @@ private fun AssetsScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterEnd
+                                contentAlignment = Alignment.CenterEnd,
                             ) {
                                 Icon(ImageVector.vectorResource(R.drawable.delete), null)
                             }
@@ -360,7 +355,7 @@ private fun AssetCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             asset.progress?.let {
                 LinearProgressIndicator(
@@ -388,7 +383,7 @@ private fun AssetCard(
                     Text(
                         text = stringResource(
                             R.string.route_asset_status,
-                            asset.version
+                            asset.version,
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
@@ -413,8 +408,8 @@ private fun AssetCard(
                                             Intent(context, AssetEditActivity::class.java)
                                                 .putExtra(
                                                     AssetEditActivity.EXTRA_ASSET_NAME,
-                                                    asset.file.name
-                                                )
+                                                    asset.file.name,
+                                                ),
                                         )
                                     },
                                 )

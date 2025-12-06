@@ -605,7 +605,6 @@
     <string name="invalid_filename">無效檔名</string>
     <string name="add_route_asset">新增路由資源</string>
     <string name="assets_settings">資源設定</string>
-    <string name="import_asset">匯入資源</string>
     <string name="import_url">匯入 URL</string>
     <string name="duplicate_name">重複名稱</string>
     <string name="expect_srs">檔名預期以「.srs」為副檔名</string>

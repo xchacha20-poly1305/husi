@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.LinkOrContentTextField
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.PreferenceType
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
@@ -61,6 +63,8 @@ class AssetEditActivity : ComposeActivity() {
 
         setContent {
             AppTheme {
+                val context = LocalContext.current
+
                 val isDirty by viewModel.isDirty.collectAsState()
                 var showBackAlert by remember { mutableStateOf(false) }
                 BackHandler(enabled = isDirty) {
@@ -91,22 +95,34 @@ class AssetEditActivity : ComposeActivity() {
                                 }
                             },
                             actions = {
-                                SimpleIconButton(
-                                    imageVector = ImageVector.vectorResource(R.drawable.delete),
-                                    contentDescription = stringResource(R.string.delete),
+                                AppBarRow(
+                                    overflowIndicator = ::MoreOverIcon,
                                 ) {
-                                    val editingAssetName = viewModel.editingName
-                                    if (editingAssetName.isEmpty()) {
-                                        finish()
-                                    } else {
-                                        showDeleteConfirm = true
-                                    }
+                                    clickableItem(
+                                        onClick = {
+                                            val editingAssetName = viewModel.editingName
+                                            if (editingAssetName.isEmpty()) {
+                                                finish()
+                                            } else {
+                                                showDeleteConfirm = true
+                                            }
+                                        },
+                                        icon = {
+                                            Icon(
+                                                ImageVector.vectorResource(R.drawable.delete),
+                                                null,
+                                            )
+                                        },
+                                        label = context.getString(R.string.delete),
+                                    )
+                                    clickableItem(
+                                        onClick = ::saveAndExit,
+                                        icon = {
+                                            Icon(ImageVector.vectorResource(R.drawable.done), null)
+                                        },
+                                        label = context.getString(R.string.apply),
+                                    )
                                 }
-                                SimpleIconButton(
-                                    imageVector = ImageVector.vectorResource(R.drawable.done),
-                                    contentDescription = stringResource(R.string.apply),
-                                    onClick = ::saveAndExit,
-                                )
                             },
                             windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                             scrollBehavior = scrollBehavior,

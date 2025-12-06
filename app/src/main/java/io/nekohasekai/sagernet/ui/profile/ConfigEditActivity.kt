@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -70,6 +71,7 @@ import com.wakaztahir.codeeditor.theme.CodeTheme
 import com.wakaztahir.codeeditor.theme.SyntaxColors
 import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.theme.AppTheme
@@ -141,7 +143,7 @@ private fun RepeatableIconButton(
                     }
                 }
             },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = imageVector,
@@ -277,11 +279,16 @@ private fun ConfigEditScreenContent(
                     }
                 },
                 actions = {
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.done),
-                        contentDescription = stringResource(R.string.apply),
+                    AppBarRow(
+                        overflowIndicator = ::MoreOverIcon,
                     ) {
-                        viewModel.saveAndExit(uiState.textFieldValue.text)
+                        clickableItem(
+                            onClick = { viewModel.saveAndExit(uiState.textFieldValue.text) },
+                            icon = {
+                                Icon(ImageVector.vectorResource(R.drawable.done), null)
+                            },
+                            label = context.getString(R.string.apply),
+                        )
                     }
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -292,8 +299,8 @@ private fun ConfigEditScreenContent(
             BottomAppBar(
                 windowInsets = WindowInsets.ime.union(
                     windowInsets.only(
-                        WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-                    )
+                        WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal,
+                    ),
                 ),
             ) {
                 Column(
@@ -316,13 +323,15 @@ private fun ConfigEditScreenContent(
 
                         val firstRowKeys = remember { listOf("{", "}", "[", "]") }
                         firstRowKeys.forEach { key ->
-                            IconButton(onClick = {
-                                viewModel.insertText(key)
-                            }) {
+                            IconButton(
+                                onClick = {
+                                    viewModel.insertText(key)
+                                },
+                            ) {
                                 Text(
                                     text = key,
                                     style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
                                     ),
                                 )
                             }
@@ -354,13 +363,15 @@ private fun ConfigEditScreenContent(
                     ) {
                         val secondRowKeys = remember { listOf(":", "-", "_", "\"") }
                         secondRowKeys.forEach { key ->
-                            IconButton(onClick = {
-                                viewModel.insertText(key)
-                            }) {
+                            IconButton(
+                                onClick = {
+                                    viewModel.insertText(key)
+                                },
+                            ) {
                                 Text(
                                     text = key,
                                     style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
                                     ),
                                 )
                             }

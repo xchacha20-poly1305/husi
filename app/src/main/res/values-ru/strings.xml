@@ -634,7 +634,6 @@
     <string name="invalid_filename">Неверное имя файла</string>
     <string name="add_route_asset">Добавить ресурсы маршрута</string>
     <string name="assets_settings">Данные ресурса</string>
-    <string name="import_asset">Импорт ресурсов</string>
     <string name="import_url">Импорт из URL</string>
     <string name="expect_srs">Ожидается, что имя файла заканчивается на \".srs\"</string>
     <string name="warn_starte_with_geo">Файлы, имя которых начинается с \"geosite-\" или \"geoip-\", могут быть удалены.</string>

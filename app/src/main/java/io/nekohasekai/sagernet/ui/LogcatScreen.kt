@@ -11,7 +11,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -36,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.StatsBar
@@ -98,37 +101,51 @@ fun LogcatScreen(
                     )
                 },
                 actions = {
-                    SimpleIconButton(
-                        imageVector = if (uiState.pinScroll) {
-                            ImageVector.vectorResource(R.drawable.sailing)
-                        } else {
-                            ImageVector.vectorResource(R.drawable.push_pin)
-                        },
-                        contentDescription = stringResource(R.string.pin_log),
-                        onClick = { viewModel.togglePinScroll() },
-                    )
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.send),
-                        contentDescription = stringResource(R.string.logcat),
+                    AppBarRow(
+                        overflowIndicator = ::MoreOverIcon,
                     ) {
-                        scope.launch {
-                            try {
-                                SendLog.sendLog(context, "husi")
-                            } catch (e: Exception) {
-                                Logs.e(e)
-                                snackbarState.showAndDismissOld(
-                                    message = e.readableMessage,
-                                    actionLabel = context.getString(android.R.string.ok),
-                                    duration = SnackbarDuration.Short,
+                        clickableItem(
+                            onClick = viewModel::togglePinScroll,
+                            icon = {
+                                Icon(
+                                    imageVector = if (uiState.pinScroll) {
+                                        ImageVector.vectorResource(R.drawable.sailing)
+                                    } else {
+                                        ImageVector.vectorResource(R.drawable.push_pin)
+                                    },
+                                    contentDescription = null,
                                 )
-                            }
-                        }
+                            },
+                            label = context.getString(R.string.pin_log),
+                        )
+                        clickableItem(
+                            onClick = {
+                                scope.launch {
+                                    try {
+                                        SendLog.sendLog(context, "husi")
+                                    } catch (e: Exception) {
+                                        Logs.e(e)
+                                        snackbarState.showAndDismissOld(
+                                            message = e.readableMessage,
+                                            actionLabel = context.getString(android.R.string.ok),
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
+                                }
+                            },
+                            icon = {
+                                Icon(ImageVector.vectorResource(R.drawable.send), null)
+                            },
+                            label = context.getString(R.string.logcat),
+                        )
+                        clickableItem(
+                            onClick = viewModel::clearLog,
+                            icon = {
+                                Icon(ImageVector.vectorResource(R.drawable.delete_sweep), null)
+                            },
+                            label = context.getString(R.string.clear_logcat),
+                        )
                     }
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.delete_sweep),
-                        contentDescription = stringResource(R.string.clear_logcat),
-                        onClick = { viewModel.clearLog() },
-                    )
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior,

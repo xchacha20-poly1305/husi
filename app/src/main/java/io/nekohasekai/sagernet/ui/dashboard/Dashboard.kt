@@ -170,6 +170,7 @@ fun DashboardScreen(
                         isSearchActive = false
                         viewModel.setSearchQuery("")
                     } else {
+                        if (pagerState.currentPage != PAGE_CONNECTIONS) return@TopAppBar
                         SimpleIconButton(
                             imageVector = ImageVector.vectorResource(R.drawable.search),
                             contentDescription = stringResource(android.R.string.search_go),
@@ -333,7 +334,7 @@ fun DashboardScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .paddingExceptBottom(innerPadding)
+                .paddingExceptBottom(innerPadding),
         ) {
             PrimaryTabRow(
                 selectedTabIndex = pagerState.currentPage,
