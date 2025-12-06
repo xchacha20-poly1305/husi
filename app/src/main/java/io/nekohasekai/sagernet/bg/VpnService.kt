@@ -139,6 +139,7 @@ class VpnService : BaseVpnService(),
             }
             when (networkStrategy) {
                 SingBoxOptions.STRATEGY_IPV4_ONLY -> {
+                    Logs.d("IPv4 Only, fake DNS: $fakeDNSRange4")
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
                     fakeDNSRange4?.let {
                         builder.addRoute(it.address.hostAddress!!, it.prefixSize)
@@ -146,6 +147,7 @@ class VpnService : BaseVpnService(),
                 }
 
                 SingBoxOptions.STRATEGY_IPV6_ONLY -> {
+                    Logs.d("IPv6 Only, fake DNS: $fakeDNSRange6")
                     // https://issuetracker.google.com/issues/149636790
                     builder.addRoute("2000::", 3)
                     fakeDNSRange6?.let {
@@ -154,6 +156,7 @@ class VpnService : BaseVpnService(),
                 }
 
                 else -> {
+                    Logs.d("Dual stack, fake DNS: $fakeDNSRange4, $fakeDNSRange6")
                     builder.addRoute(PRIVATE_VLAN4_ROUTER, 32)
                     fakeDNSRange4?.let {
                         builder.addRoute(it.address.hostAddress!!, it.prefixSize)
