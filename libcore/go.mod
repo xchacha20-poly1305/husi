@@ -22,7 +22,7 @@ require (
 
 // replace github.com/sagernet/sing-box => ../../sing-box
 
-replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251124141208-a193c473ca61
+replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251206154549-ffe038342a81
 
 // cmd
 require (
