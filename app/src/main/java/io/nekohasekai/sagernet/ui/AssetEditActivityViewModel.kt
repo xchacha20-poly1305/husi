@@ -34,7 +34,7 @@ internal class AssetEditActivityViewModel : ViewModel() {
     private val initialState = MutableStateFlow<AssetEditActivityUiState?>(null)
     val isDirty = uiState.map { currentState ->
         initialState.value?.let {
-            it == currentState
+            it != currentState
         } ?: false
     }.stateIn(
         scope = viewModelScope,
