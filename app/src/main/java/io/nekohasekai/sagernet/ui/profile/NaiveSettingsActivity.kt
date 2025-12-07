@@ -21,7 +21,7 @@ import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.HostTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -110,7 +110,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.https), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.proto)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(it) },
+                item = listPreferenceMenuItem { AnnotatedString(it) },
             )
         }
         item("sni") {

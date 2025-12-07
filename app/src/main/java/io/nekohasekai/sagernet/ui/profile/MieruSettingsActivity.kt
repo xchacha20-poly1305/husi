@@ -14,7 +14,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -84,7 +84,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.protocol.uppercase())) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(it) },
+                item = listPreferenceMenuItem { AnnotatedString(it) },
             )
         }
         item("username") {
@@ -138,7 +138,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem {
+                item = listPreferenceMenuItem {
                     AnnotatedString(
                         when (it) {
                             0 -> getString(R.string.off)

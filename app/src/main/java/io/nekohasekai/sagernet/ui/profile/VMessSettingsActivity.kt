@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -72,7 +72,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.encryption)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(it) },
+                item = listPreferenceMenuItem { AnnotatedString(it) },
             )
         }
         item("packet_encoding") {
@@ -90,7 +90,7 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity<VMessBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.outbox), null) },
                 summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(uiState.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
             )
         }
 

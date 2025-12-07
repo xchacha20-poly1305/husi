@@ -59,7 +59,7 @@ import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ui.ComposeActivity
@@ -220,7 +220,7 @@ class TaskerActivity : ComposeActivity() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(stringResource(actionText(uiState.action))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(getString(actionText(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(getString(actionText(it))) },
             )
 
             ListPreference(
@@ -245,7 +245,7 @@ class TaskerActivity : ComposeActivity() {
                     Text(summary)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem {
+                item = listPreferenceMenuItem {
                     val id = if (it == -1L) {
                         R.string.tasker_start_current_profile
                     } else {
