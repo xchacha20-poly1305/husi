@@ -31,10 +31,11 @@ internal class AssetEditActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AssetEditActivityUiState())
     val uiState = _uiState.asStateFlow()
 
-    private lateinit var initialState: AssetEditActivityUiState
-
+    private val initialState = MutableStateFlow<AssetEditActivityUiState?>(null)
     val isDirty = uiState.map { currentState ->
-        initialState != currentState
+        initialState.value?.let {
+            it == currentState
+        } ?: false
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -49,12 +50,12 @@ internal class AssetEditActivityViewModel : ViewModel() {
             isNew = true
         }
         editingName = name
-        _uiState.update {
-            it.copy(
+        _uiState.update { state->
+            state.copy(
                 name = asset.name,
                 link = asset.url,
             ).also {
-                initialState = it
+                initialState.value = it
             }
         }
     }
@@ -67,10 +68,7 @@ internal class AssetEditActivityViewModel : ViewModel() {
             entity.loadFromUiState(_uiState.value)
             SagerDatabase.assetDao.create(entity)
         } else if (isDirty.value) {
-            val entity = SagerDatabase.assetDao.get(editingName)
-            if (entity == null) {
-                return@runOnIoDispatcher
-            }
+            val entity = SagerDatabase.assetDao.get(editingName) ?: return@runOnIoDispatcher
             entity.loadFromUiState(_uiState.value)
             SagerDatabase.assetDao.update(entity)
         }

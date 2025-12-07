@@ -66,8 +66,11 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
     private var editingId = -1L
     val isNew get() = editingId < 0L
 
+    private val initialState = MutableStateFlow<RouteSettingsActivityUiState?>(null)
     val isDirty = uiState.map { currentState ->
-        initialState != currentState
+        initialState.value?.let {
+            it == currentState
+        } ?: false
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -81,8 +84,8 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         } else {
             SagerDatabase.rulesDao.getById(id)!!
         }
-        _uiState.update {
-            it.copy(
+        _uiState.update { state ->
+            state.copy(
                 name = entity.name,
                 action = entity.action,
 
@@ -120,12 +123,10 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
                 customConfig = entity.customConfig,
                 customDnsConfig = entity.customDnsConfig,
             ).also {
-                initialState = it
+                initialState.value = it
             }
         }
     }
-
-    private lateinit var initialState: RouteSettingsActivityUiState
 
     private fun RuleEntity.loadFromUiState(state: RouteSettingsActivityUiState) {
         name = state.name
@@ -172,10 +173,7 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
                 loadFromUiState(_uiState.value)
             })
         } else {
-            val entity = SagerDatabase.rulesDao.getById(editingId)
-            if (entity == null) {
-                return@runOnIoDispatcher
-            }
+            val entity = SagerDatabase.rulesDao.getById(editingId) ?: return@runOnIoDispatcher
             ProfileManager.updateRule(entity.apply {
                 loadFromUiState(_uiState.value)
             })
