@@ -88,7 +88,6 @@ import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.ValidateResult
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.isInsecure
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -334,13 +333,13 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
         ProxyEntity.STATUS_UNAVAILABLE -> {
             val text = readableUrlTestError(entity.error)?.let { stringResource(it) }
                 ?: stringResource(R.string.unavailable)
-            text to Color(context.getColour(R.color.material_red_500))
+            text to Color.Red
         }
 
         ProxyEntity.STATUS_UNREACHABLE -> {
             val text = readableUrlTestError(entity.error)?.let { stringResource(it) }
                 ?: stringResource(R.string.connection_test_unreachable)
-            text to Color(context.getColour(R.color.material_red_500))
+            text to Color.Red
         }
 
         else -> "" to MaterialTheme.colorScheme.onSurfaceVariant

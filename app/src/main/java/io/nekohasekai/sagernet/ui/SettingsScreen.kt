@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
@@ -87,9 +86,11 @@ import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.DEFAULT
+import io.nekohasekai.sagernet.compose.theme.themes
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.contentOrUnset
+import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ktx.isExpert
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
@@ -97,7 +98,6 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -1778,7 +1778,7 @@ private inline fun LazyListScope.colorPickerPreference(
     enabled: Boolean = true,
 ) {
     item(key, PreferenceType.COLOR_PICKER) {
-        val resources = LocalResources.current
+        val context = LocalContext.current
         var showDialog by remember { mutableStateOf(false) }
         Preference(
             title = { title() },
@@ -1802,7 +1802,11 @@ private inline fun LazyListScope.colorPickerPreference(
         )
 
         if (showDialog) {
-            val colors = resources.getIntArray(R.array.material_colors)
+            val colors = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                themes + Color(context.getColour(android.R.color.system_accent1_600))
+            } else {
+                themes
+            }
             val currentTheme by DataStore.configurationStore
                 .intFlow(key, DEFAULT)
                 .collectAsStateWithLifecycle(DEFAULT)
@@ -1848,7 +1852,7 @@ private inline fun LazyListScope.colorPickerPreference(
                                 ) {
                                     Circle(
                                         modifier = Modifier.size(48.dp),
-                                        color = Color(colors[index]),
+                                        color = colors[index],
                                         selected = currentTheme == theme,
                                     )
                                 }
