@@ -53,10 +53,11 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
     private var editingID: Long = 0L
     val isNew get() = editingID == 0L
 
-    private lateinit var initialState: GroupSettingsUiState
-
+    private val initialState = MutableStateFlow<GroupSettingsUiState?>(null)
     val isDirty = uiState.map { currentState ->
-        initialState != currentState
+        initialState.value?.let {
+            it == currentState
+        } ?: false
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -70,9 +71,9 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
         } else {
             SagerDatabase.groupDao.getById(id).first()!!
         }
-        _uiState.update {
+        _uiState.update { state ->
             val subscription = group.subscription ?: SubscriptionBean().applyDefaultValues()
-            it.copy(
+            state.copy(
                 name = group.name ?: "",
                 type = group.type,
                 order = group.order,
@@ -90,7 +91,7 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
                 subscriptionAutoUpdate = subscription.autoUpdate,
                 subscriptionUpdateDelay = subscription.autoUpdateDelay,
             ).also {
-                initialState = it
+                initialState.value = it
             }
         }
     }
@@ -108,7 +109,7 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
         val entity = SagerDatabase.groupDao.getById(editingID).firstOrNull() ?: return@runOnIoDispatcher
         val state = _uiState.value
         val keepUserInfo = entity.type == GroupType.SUBSCRIPTION
-                && initialState.type == GroupType.SUBSCRIPTION
+                && initialState.value?.type == GroupType.SUBSCRIPTION
                 && entity.subscription?.link == state.subscriptionLink
         if (!keepUserInfo) entity.subscription?.apply {
             bytesUsed = -1L

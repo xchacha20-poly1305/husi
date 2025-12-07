@@ -24,9 +24,11 @@ internal class TaskerActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TaskerActivityUiState())
     val uiState = _uiState.asStateFlow()
 
-    private lateinit var initialState: TaskerActivityUiState
+    private val initialState = MutableStateFlow<TaskerActivityUiState?>(null)
     val isDirty = uiState.map { currentState ->
-        initialState != currentState
+        initialState.value?.let {
+            initialState != currentState
+        } ?: false
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -39,7 +41,7 @@ internal class TaskerActivityViewModel : ViewModel() {
                 action = action,
                 profileID = profileID,
             ).also {
-                initialState = it
+                initialState.value = it
             }
         }
     }
