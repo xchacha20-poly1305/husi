@@ -152,7 +152,7 @@ class AssetEditActivity : ComposeActivity() {
                     },
                     dismissButton = {
                         TextButton(stringResource(R.string.no)) {
-                            showBackAlert = false
+                            finish()
                         }
                     },
                     icon = { Icon(ImageVector.vectorResource(R.drawable.question_mark), null) },

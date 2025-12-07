@@ -56,7 +56,7 @@ internal class GroupSettingsActivityViewModel : ViewModel() {
     private val initialState = MutableStateFlow<GroupSettingsUiState?>(null)
     val isDirty = uiState.map { currentState ->
         initialState.value?.let {
-            it == currentState
+            it != currentState
         } ?: false
     }.stateIn(
         scope = viewModelScope,
