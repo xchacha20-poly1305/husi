@@ -4,14 +4,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.theme.LogColors
 
 private val ansiRegex = Regex("\u001B\\[[;\\d]*m")
 
@@ -108,13 +107,13 @@ private fun getStyleForCode(code: String?): SpanStyle? = when (code) {
     "3" -> SpanStyle(fontStyle = FontStyle.Italic)
     "4" -> SpanStyle(textDecoration = TextDecoration.Underline)
     "30" -> SpanStyle(color = Color.Gray)
-    "31" -> SpanStyle(color = colorResource(R.color.log_red))
-    "32" -> SpanStyle(color = colorResource(R.color.log_green))
-    "33" -> SpanStyle(color = colorResource(R.color.log_yellow))
-    "34" -> SpanStyle(color = colorResource(R.color.log_blue))
-    "35" -> SpanStyle(color = colorResource(R.color.log_purple))
-    "36" -> SpanStyle(color = colorResource(R.color.log_blue_light))
-    "37" -> SpanStyle(color = colorResource(R.color.log_white))
+    "31" -> SpanStyle(color = LogColors.red)
+    "32" -> SpanStyle(color = LogColors.green)
+    "33" -> SpanStyle(color = LogColors.yellow)
+    "34" -> SpanStyle(color = LogColors.blue)
+    "35" -> SpanStyle(color = LogColors.purple)
+    "36" -> SpanStyle(color = LogColors.blueLight)
+    "37" -> SpanStyle(color = LogColors.white)
     else -> {
         val codeInt = code.toIntOrNull()
         if (codeInt != null) {

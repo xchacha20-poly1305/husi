@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +34,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
+import io.nekohasekai.sagernet.compose.theme.LogColors
 
 @Composable
 internal fun DashboardConnectionsScreen(
@@ -120,19 +120,19 @@ private fun ConnectionCard(
                 },
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.log_green),
+                color = LogColors.green,
             )
             Text(
                 text = connection.dst,
                 fontSize = 16.sp,
-                color = colorResource(id = R.color.color_pink_ssr),
+                color = Color(0xFFFB7299), // Pink
             )
             val host = connection.host
             val showHost = host.isNotBlank() && !connection.dst.startsWith(host)
             if (showHost) Text(
                 text = host,
                 fontSize = 16.sp,
-                color = colorResource(id = R.color.log_red_light),
+                color = LogColors.redLight,
             )
             Text(
                 text = connection.inbound,
@@ -143,7 +143,7 @@ private fun ConnectionCard(
             Text(
                 text = connection.chain,
                 fontSize = 14.sp,
-                color = colorResource(id = R.color.log_blue),
+                color = LogColors.blue,
             )
 
             Text(
