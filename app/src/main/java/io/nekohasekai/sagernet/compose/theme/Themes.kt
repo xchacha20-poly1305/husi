@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.compose.theme
 
 import android.content.Context
-import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import androidx.annotation.ColorInt
@@ -14,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.tooling.preview.AndroidUiModes
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.Key
@@ -51,7 +51,7 @@ val DEFAULT = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 fun Resources.isDarkMode(mode: Int) = when (mode) {
     1 -> true
     2 -> false
-    else -> (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    else -> (configuration.uiMode and AndroidUiModes.UI_MODE_NIGHT_MASK) == AndroidUiModes.UI_MODE_NIGHT_YES
 }
 
 @Composable
