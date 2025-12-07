@@ -212,7 +212,7 @@ class AssetEditActivity : ComposeActivity() {
     }
 
     private fun LazyListScope.assetEditSettings(uiState: AssetEditActivityUiState) {
-        item("name", PreferenceType.TEXT_FIELD_PREFERENCE) {
+        item("name", PreferenceType.TEXT_FIELD) {
             TextFieldPreference(
                 value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
@@ -223,7 +223,7 @@ class AssetEditActivity : ComposeActivity() {
                 valueToText = { it },
             )
         }
-        item("link", PreferenceType.TEXT_FIELD_PREFERENCE) {
+        item("link", PreferenceType.TEXT_FIELD) {
             TextFieldPreference(
                 value = uiState.link,
                 onValueChange = { viewModel.setLink(it) },

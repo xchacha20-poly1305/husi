@@ -16,7 +16,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -70,7 +70,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem {
+                item = listPreferenceMenuItem {
                     AnnotatedString(
                         when (it) {
                             SOCKSBean.PROTOCOL_SOCKS4 -> "SOCKS4"

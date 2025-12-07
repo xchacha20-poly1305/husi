@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -49,12 +48,12 @@ import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.TextFieldPreference
 
 object PreferenceType {
-    const val PREFERENCE_CATEGORY = 0
-    const val SWITCH_PREFERENCE = 1
-    const val LIST_PREFERENCE = 2
-    const val TEXT_FIELD_PREFERENCE = 3
-    const val MULTI_SELECT_LIST_PREFERENCE = 4
-    const val COLOR_PICKER_PREFERENCE = 5
+    const val CATEGORY = 0
+    const val SWITCH = 1
+    const val LIST = 2
+    const val TEXT_FIELD = 3
+    const val MULTI_SELECT_LIST = 4
+    const val COLOR_PICKER = 5
 }
 
 /**
@@ -291,7 +290,7 @@ private fun PreviewCustomPreference() {
  * Fix selected color
  */
 @Composable
-fun <T> ListPreferenceMenuItem(
+fun <T> listPreferenceMenuItem(
     valueToText: (T) -> AnnotatedString = { AnnotatedString(it.toString()) },
 ): @Composable (value: T, currentValue: T, onClick: () -> Unit) -> Unit {
     return { value, currentValue, onClick ->
@@ -300,21 +299,14 @@ fun <T> ListPreferenceMenuItem(
             text = {
                 Text(
                     text = valueToText(value),
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    } else {
-                        Color.Unspecified
-                    },
                 )
             },
             onClick = onClick,
-            modifier = Modifier.background(
-                if (selected) {
-                    MaterialTheme.colorScheme.secondaryContainer
-                } else {
-                    Color.Transparent
-                },
-            ),
+            modifier = if (selected) {
+                Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            } else {
+                Modifier
+            },
             colors = MenuDefaults.itemColors(),
         )
     }

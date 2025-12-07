@@ -45,7 +45,7 @@ import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.compose.withNavigation
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -186,7 +186,7 @@ class GroupSettingsActivity : ComposeActivity() {
     }
 
     private fun LazyListScope.groupSettings(uiState: GroupSettingsUiState) {
-        item("name", PreferenceType.TEXT_FIELD_PREFERENCE) {
+        item("name", PreferenceType.TEXT_FIELD) {
             TextFieldPreference(
                 value = uiState.name,
                 onValueChange = { viewModel.setName(it) },
@@ -203,7 +203,7 @@ class GroupSettingsActivity : ComposeActivity() {
             GroupType.SUBSCRIPTION -> R.string.subscription
             else -> error("impossible")
         }
-        item("type", PreferenceType.LIST_PREFERENCE) {
+        item("type", PreferenceType.LIST) {
             ListPreference(
                 value = uiState.type,
                 onValueChange = { viewModel.setType(it) },
@@ -212,7 +212,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(stringResource(groupType(uiState.type))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(getString(groupType(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(getString(groupType(it))) },
             )
         }
 
@@ -222,7 +222,7 @@ class GroupSettingsActivity : ComposeActivity() {
             GroupOrder.BY_DELAY -> R.string.group_order_by_delay
             else -> error("impossible")
         }
-        item("order", PreferenceType.LIST_PREFERENCE) {
+        item("order", PreferenceType.LIST) {
             ListPreference(
                 value = uiState.order,
                 onValueChange = { viewModel.setOrder(it) },
@@ -231,15 +231,15 @@ class GroupSettingsActivity : ComposeActivity() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.low_priority), null) },
                 summary = { Text(stringResource(groupOrder(uiState.order))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(getString(groupOrder(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(getString(groupOrder(it))) },
             )
         }
 
-        item("category_chain", PreferenceType.PREFERENCE_CATEGORY) {
+        item("category_chain", PreferenceType.CATEGORY) {
             PreferenceCategory(text = { Text(stringResource(R.string.proxy_chain)) })
         }
         fun chainName(id: Long) = SagerDatabase.proxyDao.getById(id)?.displayName()
-        item("font", PreferenceType.LIST_PREFERENCE) {
+        item("font", PreferenceType.LIST) {
             ListPreference(
                 value = uiState.frontProxy,
                 onValueChange = {
@@ -261,7 +261,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem {
+                item = listPreferenceMenuItem {
                     val id = if (it == -1L) {
                         R.string.ssh_auth_type_none
                     } else {
@@ -271,7 +271,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 },
             )
         }
-        item("landing", PreferenceType.LIST_PREFERENCE) {
+        item("landing", PreferenceType.LIST) {
             ListPreference(
                 value = uiState.landingProxy,
                 onValueChange = {
@@ -296,7 +296,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem {
+                item = listPreferenceMenuItem {
                     val id = if (it == -1L) {
                         R.string.ssh_auth_type_none
                     } else {
@@ -308,7 +308,7 @@ class GroupSettingsActivity : ComposeActivity() {
         }
 
         if (uiState.type == GroupType.SUBSCRIPTION) {
-            item("category_subscription", PreferenceType.PREFERENCE_CATEGORY) {
+            item("category_subscription", PreferenceType.CATEGORY) {
                 PreferenceCategory(text = { Text(stringResource(R.string.subscription_settings)) })
             }
             fun subType(type: Int) = when (type) {
@@ -317,7 +317,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 SubscriptionType.SIP008 -> R.string.sip008
                 else -> error("impossible")
             }
-            item("subscription_type", PreferenceType.LIST_PREFERENCE) {
+            item("subscription_type", PreferenceType.LIST) {
                 ListPreference(
                     value = uiState.subscriptionType,
                     onValueChange = { viewModel.setSubscriptionType(it) },
@@ -326,11 +326,11 @@ class GroupSettingsActivity : ComposeActivity() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                     summary = { Text(stringResource(subType(uiState.subscriptionType))) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    item = ListPreferenceMenuItem { AnnotatedString(getString(subType(it))) },
+                    item = listPreferenceMenuItem { AnnotatedString(getString(subType(it))) },
                 )
             }
 
-            item("subscription_link", PreferenceType.TEXT_FIELD_PREFERENCE) {
+            item("subscription_link", PreferenceType.TEXT_FIELD) {
                 TextFieldPreference(
                     value = uiState.subscriptionLink,
                     onValueChange = { viewModel.setSubscriptionLink(it) },
@@ -345,7 +345,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 )
             }
             val isOOCv1 = uiState.subscriptionType == SubscriptionType.OOCv1
-            if (isOOCv1) item("subscription_token", PreferenceType.TEXT_FIELD_PREFERENCE) {
+            if (isOOCv1) item("subscription_token", PreferenceType.TEXT_FIELD) {
                 TextFieldPreference(
                     value = uiState.subscriptionToken,
                     onValueChange = { viewModel.setSubscriptionToken(it) },
@@ -357,7 +357,7 @@ class GroupSettingsActivity : ComposeActivity() {
                 )
             }
 
-            item("subscription_force_resolve", PreferenceType.SWITCH_PREFERENCE) {
+            item("subscription_force_resolve", PreferenceType.SWITCH) {
                 SwitchPreference(
                     value = uiState.subscriptionForceResolve,
                     onValueChange = { viewModel.setSubscriptionForceResolve(it) },
@@ -366,7 +366,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     summary = { Text(stringResource(R.string.force_resolve_sum)) },
                 )
             }
-            item("subscription_deduplication", PreferenceType.SWITCH_PREFERENCE) {
+            item("subscription_deduplication", PreferenceType.SWITCH) {
                 SwitchPreference(
                     value = uiState.subscriptionDeduplication,
                     onValueChange = { viewModel.setSubscriptionDeduplication(it) },
@@ -375,7 +375,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     summary = { Text(stringResource(R.string.deduplication_sum)) },
                 )
             }
-            item("subscription_filter_not_regex", PreferenceType.TEXT_FIELD_PREFERENCE) {
+            item("subscription_filter_not_regex", PreferenceType.TEXT_FIELD) {
                 TextFieldPreference(
                     value = uiState.subscriptionFilterNotRegex,
                     onValueChange = { viewModel.setSubscriptionFilterNotRegex(it) },
@@ -387,10 +387,10 @@ class GroupSettingsActivity : ComposeActivity() {
                 )
             }
 
-            item("category_update", PreferenceType.PREFERENCE_CATEGORY) {
+            item("category_update", PreferenceType.CATEGORY) {
                 PreferenceCategory(text = { Text(stringResource(R.string.update_settings)) })
             }
-            item("subscription_update_when_connected_only", PreferenceType.SWITCH_PREFERENCE) {
+            item("subscription_update_when_connected_only", PreferenceType.SWITCH) {
                 SwitchPreference(
                     value = uiState.subscriptionUpdateWhenConnectedOnly,
                     onValueChange = { viewModel.setSubscriptionUpdateWhenConnectedOnly(it) },
@@ -399,7 +399,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     summary = { Text(stringResource(R.string.update_when_connected_only_sum)) },
                 )
             }
-            item("subscription_user_agent", PreferenceType.TEXT_FIELD_PREFERENCE) {
+            item("subscription_user_agent", PreferenceType.TEXT_FIELD) {
                 TextFieldPreference(
                     value = uiState.subscriptionUserAgent,
                     onValueChange = { viewModel.setSubscriptionUserAgent(it) },
@@ -413,7 +413,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     valueToText = { it },
                 )
             }
-            item("subscription_auto_update", PreferenceType.SWITCH_PREFERENCE) {
+            item("subscription_auto_update", PreferenceType.SWITCH) {
                 SwitchPreference(
                     value = uiState.subscriptionAutoUpdate,
                     onValueChange = { viewModel.setSubscriptionAutoUpdate(it) },
@@ -426,7 +426,7 @@ class GroupSettingsActivity : ComposeActivity() {
                     },
                 )
             }
-            item("subscription_update_delay", PreferenceType.TEXT_FIELD_PREFERENCE) {
+            item("subscription_update_delay", PreferenceType.TEXT_FIELD) {
                 TextFieldPreference(
                     value = uiState.subscriptionUpdateDelay,
                     onValueChange = { viewModel.setSubscriptionUpdateDelay(it) },

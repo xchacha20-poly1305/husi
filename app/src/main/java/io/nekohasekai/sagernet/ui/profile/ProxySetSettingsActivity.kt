@@ -74,7 +74,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
 import io.nekohasekai.sagernet.compose.TooltipIconButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.ListPreferenceMenuItem
+import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.displayType
 import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
@@ -126,7 +126,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.widgets), null) },
                 summary = { Text(stringResource(managementName(uiState.management))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(getString(managementName(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(getString(managementName(it))) },
             )
         }
         item("interrupt_exist_connections") {
@@ -211,7 +211,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 summary = { Text(stringResource(typeName(uiState.collectType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { AnnotatedString(getString(typeName(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(getString(typeName(it))) },
             )
         }
         item("group") {
@@ -227,7 +227,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = ListPreferenceMenuItem { id ->
+                item = listPreferenceMenuItem { id ->
                     val text = uiState.groups[id]?.displayName() ?: getString(R.string.not_set)
                     AnnotatedString(text)
                 },
