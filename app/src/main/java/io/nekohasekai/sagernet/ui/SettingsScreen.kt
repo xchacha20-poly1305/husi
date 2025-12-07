@@ -40,6 +40,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -96,12 +97,14 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.logLevelString
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.MultiSelectListPreference
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
+import me.zhanghai.compose.preference.SliderPreference
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 
@@ -665,12 +668,16 @@ fun SettingsScreen(
                 item(Key.LOG_MAX_SIZE, PreferenceType.TEXT_FIELD) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.LOG_MAX_SIZE, 50)
-                        .collectAsStateWithLifecycle(50)
-                    TextFieldPreference(
-                        value = value,
-                        onValueChange = { DataStore.logMaxSize = it },
+                        .collectAsStateWithLifecycle(50f)
+                    var previewValue by remember { mutableFloatStateOf(value.toFloat()) }
+                    SliderPreference(
+                        value = value.toFloat(),
+                        onValueChange = { DataStore.logMaxSize = it.toInt() },
+                        sliderValue = previewValue,
+                        onSliderValueChange = { previewValue = it },
                         title = { Text(stringResource(R.string.max_log_size)) },
-                        textToValue = { it.toIntOrNull() ?: 50 },
+                        valueRange = 50f..1024f,
+                        valueSteps = 15,
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.description),
@@ -678,10 +685,7 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(value.toString()) },
-                        valueToText = { it.toString() },
-                        textField = { value, onValueChange, onOk ->
-                            UIntegerTextField(value, onValueChange, onOk)
-                        },
+                        valueText = { Text(previewValue.toInt().toString()) },
                     )
                 }
 
@@ -777,9 +781,7 @@ fun SettingsScreen(
                         type = ListPreferenceType.DROPDOWN_MENU,
                         item = listPreferenceMenuItem {
                             AnnotatedString(
-                                context.getString(
-                                    networkStrategyTextRes(it),
-                                ),
+                                context.getString(networkStrategyTextRes(it)),
                             )
                         },
                     )
@@ -1509,11 +1511,15 @@ fun SettingsScreen(
                     val value by DataStore.configurationStore
                         .intFlow(Key.CONNECTION_TEST_CONCURRENT, 5)
                         .collectAsStateWithLifecycle(5)
-                    TextFieldPreference(
-                        value = value,
-                        onValueChange = { DataStore.connectionTestConcurrent = it },
+                    var previewValue by remember { mutableFloatStateOf(value.toFloat()) }
+                    SliderPreference(
+                        value = value.toFloat(),
+                        onValueChange = { DataStore.connectionTestConcurrent = it.toInt() },
+                        sliderValue = previewValue,
+                        onSliderValueChange = { previewValue = it },
                         title = { Text(stringResource(R.string.test_concurrency)) },
-                        textToValue = { it.toIntOrNull() ?: 5 },
+                        valueRange = 1f..32f,
+                        valueSteps = 32,
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.fast_forward),
@@ -1521,21 +1527,22 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(value.toString()) },
-                        valueToText = { it.toString() },
-                        textField = { value, onValueChange, onOk ->
-                            UIntegerTextField(value, onValueChange, onOk, minValue = 5)
-                        },
+                        valueText = { Text(previewValue.toInt().toString()) },
                     )
                 }
                 item(Key.CONNECTION_TEST_TIMEOUT, PreferenceType.TEXT_FIELD) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.CONNECTION_TEST_TIMEOUT, 3000)
                         .collectAsStateWithLifecycle(3000)
-                    TextFieldPreference(
-                        value = value,
-                        onValueChange = { DataStore.connectionTestTimeout = it },
+                    var previewValue by remember { mutableFloatStateOf(value.toFloat()) }
+                    SliderPreference(
+                        value = value.toFloat(),
+                        onValueChange = { DataStore.connectionTestTimeout = it.toInt() },
+                        sliderValue = previewValue,
+                        onSliderValueChange = { previewValue = it },
                         title = { Text(stringResource(R.string.test_timeout)) },
-                        textToValue = { it.toIntOrNull() ?: 3000 },
+                        valueRange = 1024f..8192f,
+                        valueSteps = 20,
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.apps),
@@ -1543,16 +1550,7 @@ fun SettingsScreen(
                             )
                         },
                         summary = { Text(value.toString()) },
-                        valueToText = { it.toString() },
-                        textField = { value, onValueChange, onOk ->
-                            UIntegerTextField(
-                                value,
-                                onValueChange,
-                                onOk,
-                                minValue = 1000,
-                                maxValue = 10000,
-                            )
-                        },
+                        valueText = { Text(previewValue.toInt().toString()) },
                     )
                 }
                 item(Key.ACQUIRE_WAKE_LOCK, PreferenceType.SWITCH) {
