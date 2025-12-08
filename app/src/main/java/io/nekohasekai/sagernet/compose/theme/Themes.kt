@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.os.Build
 import androidx.annotation.ColorInt
+import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -18,6 +19,7 @@ import androidx.compose.ui.tooling.preview.AndroidUiModes
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.Key
+import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 
 const val RED = 1
@@ -178,4 +180,31 @@ fun Context.getPrimaryColor(): Int {
         else -> if (isDark) Red.primaryDark else Red.primaryLight
     }
     return color.toArgb()
+}
+
+@StringRes
+fun themeString(theme: Int): Int = when (theme) {
+    RED -> R.string.themes_red
+    PINK_SSR -> R.string.themes_pink_ssr
+    PINK -> R.string.themes_pink
+    PURPLE -> R.string.themes_purple
+    DEEP_PURPLE -> R.string.themes_deep_purple
+    INDIGO -> R.string.themes_indigo
+    BLUE -> R.string.themes_blue
+    LIGHT_BLUE -> R.string.themes_light_blue
+    CYAN -> R.string.themes_cyan
+    TEAL -> R.string.themes_teal
+    GREEN -> R.string.themes_green
+    LIGHT_GREEN -> R.string.themes_light_green
+    LIME -> R.string.themes_lime
+    YELLOW -> R.string.themes_yellow
+    AMBER -> R.string.themes_amber
+    ORANGE -> R.string.themes_orange
+    DEEP_ORANGE -> R.string.themes_deep_orange
+    BROWN -> R.string.themes_brown
+    GREY -> R.string.themes_grey
+    BLUE_GREY -> R.string.themes_blue_grey
+    BLACK -> R.string.themes_black
+    DYNAMIC -> R.string.themes_dynamic
+    else -> error("Unknown theme $theme")
 }

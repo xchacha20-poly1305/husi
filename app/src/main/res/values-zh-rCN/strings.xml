@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name">虎兕</string>
     <string name="app_name_long">匪兕匪虎 率彼旷野</string>
     <string name="app_desc">适用于 Android 的代理工具, 使用 Kotlin 编写。</string>
@@ -226,7 +226,32 @@
         Files.
     </string>
     <string name="need_reload">重载代理服务以应用修改</string>
+
+    <!-- themes -->
     <string name="theme">主题颜色</string>
+    <string name="themes_amber">寒松凝液</string>
+    <string name="themes_black">飞鸿踏雪</string>
+    <string name="themes_blue">雨浥轻尘</string>
+    <string name="themes_blue_grey">粗缯大布</string>
+    <string name="themes_brown">终岁端正</string>
+    <string name="themes_cyan">碧玉妆成</string>
+    <string name="themes_deep_orange">落日熔金</string>
+    <string name="themes_deep_purple">龙盘紫金</string>
+    <string name="themes_dynamic">形随心动</string>
+    <string name="themes_green">绿绮独吟</string>
+    <string name="themes_grey">何处染尘</string>
+    <string name="themes_indigo">星垂月涌</string>
+    <string name="themes_light_blue">镜揉蓝浅</string>
+    <string name="themes_light_green">草色遥看</string>
+    <string name="themes_lime">鹅黄鸭眺</string>
+    <string name="themes_orange">旭日东升</string>
+    <string name="themes_pink">醉卧沙场</string>
+    <string name="themes_pink_ssr">樱林花落</string>
+    <string name="themes_purple">向风笑艳</string>
+    <string name="themes_red">铁血丹心</string>
+    <string name="themes_teal">温润而泽</string>
+    <string name="themes_yellow">其道大光</string>
+
     <string name="extra_headers">附加标头</string>
     <string name="username">用户名</string>
     <string name="key_opt">密码 (可选)</string>
@@ -646,4 +671,5 @@
     <string name="fake_dns_for_all_sum">统一各个应用的网络偏好行为。</string>
     <string name="fake_ip_range_4">Fake IP 范围（IPv4）</string>
     <string name="fake_ip_range_6">Fake IP 范围（IPv6）</string>
+    <string name="long_click_to_see_name">长按以显示名称</string>
 </resources>

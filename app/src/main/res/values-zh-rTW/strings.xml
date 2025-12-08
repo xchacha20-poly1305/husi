@@ -198,7 +198,32 @@
     <string name="version_x">版本 (%s)</string>
     <string name="extra_headers">額外標頭</string>
     <string name="config_type">配置類型</string>
-    <string name="theme">主題</string>
+
+    <!-- themes -->
+    <string name="theme">主題顏色</string>
+    <string name="themes_amber">寒松凝液</string>
+    <string name="themes_black">飛鴻踏雪</string>
+    <string name="themes_blue">雨浥輕塵</string>
+    <string name="themes_blue_grey">粗繒大布</string>
+    <string name="themes_brown">終歲端正</string>
+    <string name="themes_cyan">碧玉妝成</string>
+    <string name="themes_deep_orange">落日熔金</string>
+    <string name="themes_deep_purple">龍盤紫金</string>
+    <string name="themes_dynamic">形隨心動</string>
+    <string name="themes_green">綠綺獨吟</string>
+    <string name="themes_grey">何處染塵</string>
+    <string name="themes_indigo">星垂月涌</string>
+    <string name="themes_light_blue">鏡揉藍淺</string>
+    <string name="themes_light_green">草色遙看</string>
+    <string name="themes_lime">鵝黃鴨眺</string>
+    <string name="themes_orange">旭日東升</string>
+    <string name="themes_pink">醉臥沙場</string>
+    <string name="themes_pink_ssr">櫻林花落</string>
+    <string name="themes_purple">向風笑艷</string>
+    <string name="themes_red">鐵血丹心</string>
+    <string name="themes_teal">溫潤而澤</string>
+    <string name="themes_yellow">其道大光</string>
+
     <string name="edit_config">編輯配置</string>
     <string name="route_add">建立路由規則</string>
     <string name="delete_route_prompt">您真的希望移除此路由規則嗎？</string>
