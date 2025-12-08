@@ -13,7 +13,32 @@
     <string name="menu_configuration">Configuration</string>
     <string name="menu_group">Group</string>
     <string name="menu_about">About</string>
+
+    <!-- themes -->
     <string name="theme">Theme</string>
+    <string name="themes_amber">Pine Tears</string>
+    <string name="themes_black">Traces in Snow</string>
+    <string name="themes_blue">Misty Rain</string>
+    <string name="themes_blue_grey">Humble Weave</string>
+    <string name="themes_brown">Steadfast Earth</string>
+    <string name="themes_cyan">Willow Jade</string>
+    <string name="themes_deep_orange">Molten Dusk</string>
+    <string name="themes_deep_purple">Violet Peak</string>
+    <string name="themes_dynamic">Whatever I like</string>
+    <string name="themes_green">Verdant Guqin</string>
+    <string name="themes_grey">Dustless Void</string>
+    <string name="themes_indigo">Astral Tide</string>
+    <string name="themes_light_blue">Azure Mirror</string>
+    <string name="themes_light_green">Distant Verdure</string>
+    <string name="themes_lime">Gazing Yellow Duck</string>
+    <string name="themes_orange">Rising Dawn</string>
+    <string name="themes_pink">Drunken Sands</string>
+    <string name="themes_pink_ssr">Sakura Drift</string>
+    <string name="themes_purple">Violet Breeze</string>
+    <string name="themes_red">Crimson Valor</string>
+    <string name="themes_teal">Gentle Luster</string>
+    <string name="themes_yellow">Radiant Path</string>
+
     <string name="document">Document</string>
     <string name="group_default">Ungrouped</string>
     <string name="quick_toggle">Toggle</string>
@@ -721,5 +746,6 @@
     <string name="fake_dns_for_all_sum">Unify applications network strategy behavior.</string>
     <string name="fake_ip_range_4">Fake IP Range (IPv4)</string>
     <string name="fake_ip_range_6">Fake IP Range (IPv6)</string>
+    <string name="long_click_to_see_name">Long click to see the name</string>
 
 </resources>

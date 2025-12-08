@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package io.nekohasekai.sagernet.ui
 
 import android.content.ComponentName
@@ -27,6 +29,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,7 +39,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +53,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -86,6 +95,7 @@ import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.theme.DEFAULT
+import io.nekohasekai.sagernet.compose.theme.themeString
 import io.nekohasekai.sagernet.compose.theme.themes
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -1779,6 +1789,9 @@ private inline fun LazyListScope.colorPickerPreference(
 ) {
     item(key, PreferenceType.COLOR_PICKER) {
         val context = LocalContext.current
+        val currentTheme by DataStore.configurationStore
+            .intFlow(key, DEFAULT)
+            .collectAsStateWithLifecycle(DEFAULT)
         var showDialog by remember { mutableStateOf(false) }
         Preference(
             title = { title() },
@@ -1790,6 +1803,7 @@ private inline fun LazyListScope.colorPickerPreference(
                     null,
                 )
             },
+            summary = { Text(stringResource(themeString(currentTheme))) },
             widgetContainer = {
                 Box(modifier = Modifier.padding(end = 8.dp)) {
                     Circle(
@@ -1807,9 +1821,6 @@ private inline fun LazyListScope.colorPickerPreference(
             } else {
                 themes
             }
-            val currentTheme by DataStore.configurationStore
-                .intFlow(key, DEFAULT)
-                .collectAsStateWithLifecycle(DEFAULT)
 
             BasicAlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -1826,7 +1837,11 @@ private inline fun LazyListScope.colorPickerPreference(
                         Text(
                             text = stringResource(R.string.theme),
                             style = MaterialTheme.typography.headlineSmall,
+                        )
+                        Text(
+                            text = stringResource(R.string.long_click_to_see_name),
                             modifier = Modifier.padding(bottom = 16.dp),
+                            style = MaterialTheme.typography.labelSmallEmphasized,
                         )
 
                         LazyVerticalGrid(
@@ -1848,13 +1863,25 @@ private inline fun LazyListScope.colorPickerPreference(
                                             DataStore.configurationStore.putInt(key, theme)
                                             showDialog = false
                                         },
-                                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                                    contentAlignment = Alignment.Center,
                                 ) {
-                                    Circle(
-                                        modifier = Modifier.size(48.dp),
-                                        color = colors[index],
-                                        selected = currentTheme == theme,
-                                    )
+                                    TooltipBox(
+                                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                            TooltipAnchorPosition.Above,
+                                        ),
+                                        tooltip = {
+                                            PlainTooltip {
+                                                Text(stringResource(themeString(theme)))
+                                            }
+                                        },
+                                        state = rememberTooltipState(),
+                                    ) {
+                                        Circle(
+                                            modifier = Modifier.size(48.dp),
+                                            color = colors[index],
+                                            selected = currentTheme == theme,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1884,7 +1911,7 @@ private fun Circle(
 ) {
     Box(
         modifier = modifier.background(color, CircleShape),
-        contentAlignment = androidx.compose.ui.Alignment.Center,
+        contentAlignment = Alignment.Center,
     ) {
         if (selected) {
             Icon(
