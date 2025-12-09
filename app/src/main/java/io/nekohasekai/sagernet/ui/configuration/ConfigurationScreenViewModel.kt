@@ -58,7 +58,6 @@ import java.util.zip.ZipInputStream
 @Immutable
 data class ConfigurationFragmentUiState(
     val groups: List<ProxyGroup> = emptyList(),
-    val selectedGroupIndex: Int = 0,
     val testState: ConfigurationTestUiState? = null,
     val alertForDelete: AlertForDelete? = null,
 )
@@ -120,16 +119,6 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
     private val childViewModels = mutableMapOf<Long, GroupProfilesHolderViewModel>()
     private val testErrorMessages = ConcurrentHashMap<Long, String>()
-
-    init {
-        viewModelScope.launch {
-            DataStore.configurationStore.longFlow(Key.PROFILE_GROUP).collect { selectedGroup ->
-                _uiState.update { state ->
-                    state.copy(selectedGroupIndex = state.groups.indexOfFirst { it.id == selectedGroup })
-                }
-            }
-        }
-    }
 
     fun registerChild(groupId: Long, vm: GroupProfilesHolderViewModel) {
         childViewModels[groupId] = vm
@@ -420,17 +409,16 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
             it.ungrouped && SagerDatabase.proxyDao.countByGroup(it.id).first() == 0L
         }
 
-        val selectedId = DataStore.currentGroupId()
-        var selectIndex = groups.indexOfFirst { it.id == selectedId }
-
-        if (selectIndex < 0) {
-            selectIndex = 0
-            DataStore.selectedGroup = groups[0].id
+        if (groups.isNotEmpty()) {
+            val selectedId = DataStore.currentGroupId()
+            val selectIndex = groups.indexOfFirst { it.id == selectedId }
+            if (selectIndex < 0) {
+                DataStore.selectedGroup = groups[0].id
+            }
         }
         _uiState.emit(
             _uiState.value.copy(
                 groups = groups,
-                selectedGroupIndex = selectIndex,
             ),
         )
     }
