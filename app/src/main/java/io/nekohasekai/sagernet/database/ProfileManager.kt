@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import java.io.IOException
 import java.sql.SQLException
@@ -214,6 +215,12 @@ object ProfileManager {
                     false,
                 )
             }
+        }
+    }
+
+    fun enabledRules(): Flow<List<RuleEntity>> {
+        return getRules().map {
+            it.filter { it.enabled }
         }
     }
 
