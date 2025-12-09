@@ -852,6 +852,7 @@ fun ConfigurationScreen(
 
                     GroupHolderScreen(
                         viewModel = pageViewModel,
+                        showActions = selectCallback == null,
                         onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
                         needReload = {
                             scope.launch {
