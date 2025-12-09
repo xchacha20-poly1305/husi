@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN4_ROUTER
 import io.nekohasekai.sagernet.bg.VpnService.Companion.PRIVATE_VLAN6_ROUTER
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -198,7 +199,11 @@ fun buildConfig(
     }
 
     val logLevel = DataStore.logLevel
-    val extraRules = if (forTest) listOf() else SagerDatabase.rulesDao.enabledRules()
+    val extraRules = if (forTest) {
+        emptyList()
+    } else runBlocking {
+        ProfileManager.enabledRules().first()
+    }
     val extraProxies =
         if (forTest) mapOf() else SagerDatabase.proxyDao.getEntities(
             extraRules.mapNotNull { rule ->

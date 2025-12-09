@@ -99,9 +99,6 @@ data class RuleEntity(
         @Query("SELECT * FROM rules ORDER BY userOrder")
         fun allRules(): Flow<List<RuleEntity>>
 
-        @Query("SELECT * FROM rules WHERE enabled = :enabled ORDER BY userOrder")
-        fun enabledRules(enabled: Boolean = true): List<RuleEntity>
-
         @Query("SELECT MAX(userOrder) + 1 FROM rules")
         fun nextOrder(): Long?
 
