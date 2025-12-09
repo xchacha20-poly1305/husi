@@ -54,6 +54,10 @@ func (p platformInterfaceStub) IncludeAllNetworks() bool {
 func (p platformInterfaceStub) ClearDNSCache() {
 }
 
+func (p platformInterfaceStub) UsePlatformWIFIMonitor() bool {
+	return false
+}
+
 func (p platformInterfaceStub) ReadWIFIState() adapter.WIFIState {
 	return adapter.WIFIState{}
 }

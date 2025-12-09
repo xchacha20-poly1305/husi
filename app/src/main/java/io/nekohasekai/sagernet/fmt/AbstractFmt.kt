@@ -13,6 +13,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_ANYTLS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_HTTP
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_HYSTERIA
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_HYSTERIA2
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_NAIVE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_SHADOWSOCKS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_SOCKS
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.TYPE_SSH
@@ -32,6 +33,9 @@ import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildSingBoxOutboundHysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Outbound
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2Outbound
+import io.nekohasekai.sagernet.fmt.naive.NaiveBean
+import io.nekohasekai.sagernet.fmt.naive.buildSingBoxOutboundNaiveBean
+import io.nekohasekai.sagernet.fmt.naive.parseNaiveOutbound
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocksOutbound
@@ -72,6 +76,7 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
         is TuicBean -> buildSingBoxOutboundTuicBean(bean)
         is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean) // is it outbound?
         is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean)
+        is NaiveBean -> buildSingBoxOutboundNaiveBean(bean)
         else -> error("invalid bean: ${bean.javaClass.simpleName}")
     }
     map.type = bean.outboundType()
@@ -107,6 +112,17 @@ fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
     }
 }
 
+fun buildHeader(raw: String): Map<String, List<String>> {
+    return raw.lines().mapNotNull { line ->
+        val pair = line.split(":", limit = 2)
+        if (pair.size == 2) {
+            pair[0].trim() to listOf(pair[1].trim())
+        } else {
+            null
+        }
+    }.toMap()
+}
+
 fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString()) {
     TYPE_SOCKS -> parseSocksOutbound(json)
 
@@ -127,6 +143,8 @@ fun parseOutbound(json: JSONMap): AbstractBean? = when (json["type"].toString())
     TYPE_SSH -> parseSSHOutbound(json)
 
     TYPE_ANYTLS -> parseAnyTLSOutbound(json)
+
+    TYPE_NAIVE -> parseNaiveOutbound(json)
 
     else -> null
 }
@@ -186,6 +204,33 @@ fun AbstractBean.parseBoxOutbound(json: JSONMap, unmatched: (key: String, value:
             else -> unmatched(key, value)
         }
     }
+}
+
+fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
+    val builder = LinkedHashMap<String, List<String>>(header.size)
+    for (entry in header) {
+        // http headers are case-insensitive, so we lowercase the key.
+        val key = entry.key.toString().lowercase()
+        val value = when (val entryValue = entry.value) {
+            is List<*> -> {
+                entryValue.map { it.toString() }
+            }
+
+            is JSONArray -> {
+                val list = ArrayList<String>(entryValue.length())
+                entryValue.forEach {
+                    list.add(it.toString())
+                }
+                list
+            }
+
+            else -> {
+                listOf(entryValue.toString())
+            }
+        }
+        builder[key] = value
+    }
+    return builder
 }
 
 /**

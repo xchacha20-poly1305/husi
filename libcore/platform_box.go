@@ -165,6 +165,10 @@ func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network
 	return &process.Info{UserId: uid, PackageName: packageName}, nil
 }
 
+func (w *boxPlatformInterfaceWrapper) UsePlatformWIFIMonitor() bool {
+	return true
+}
+
 // Android not using
 
 func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {

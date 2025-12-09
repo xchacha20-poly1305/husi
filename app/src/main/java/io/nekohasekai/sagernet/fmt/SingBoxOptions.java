@@ -35,6 +35,7 @@ public class SingBoxOptions {
     public static final String TYPE_WIREGUARD = "wireguard";
     public static final String TYPE_SHADOWTLS = "shadowtls";
     public static final String TYPE_ANYTLS = "anytls";
+    public static final String TYPE_NAIVE = "naive";
 
     public static final String TRANSPORT_WS = "ws";
     public static final String TRANSPORT_HTTPUPGRADE = "httpupgrade";
@@ -2420,6 +2421,69 @@ public class SingBoxOptions {
         public OutboundTLSOptions tls;
 
         public String pin_cert_sha256;
+
+    }
+
+    public static class Outbound_NaiveOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String netns;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        public String username;
+
+        public String password;
+
+        public Integer insecure_concurrency;
+
+        public Map<String, List<String>> extra_headers;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
 
     }
 

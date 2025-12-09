@@ -23,18 +23,19 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayHTT
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayHTTPUpgradeOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayQUICOptions
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.V2RayTransportOptions_V2RayWebsocketOptions
+import io.nekohasekai.sagernet.fmt.buildHeader
 import io.nekohasekai.sagernet.fmt.buildSingBoxMux
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.listable
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.fmt.parseHeader
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.b64Decode
 import io.nekohasekai.sagernet.ktx.b64DecodeToString
 import io.nekohasekai.sagernet.ktx.blankAsNull
-import io.nekohasekai.sagernet.ktx.forEach
 import io.nekohasekai.sagernet.ktx.gson
 import io.nekohasekai.sagernet.ktx.listByLineOrComma
 import io.nekohasekai.sagernet.ktx.map
@@ -43,7 +44,6 @@ import io.nekohasekai.sagernet.ktx.queryParameterUnescapeNotBlank
 import io.nekohasekai.sagernet.ktx.readableMessage
 import libcore.Libcore
 import libcore.URL
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -415,13 +415,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         "ws" -> {
             return V2RayTransportOptions_V2RayWebsocketOptions().apply {
                 type = TRANSPORT_WS
-                headers = mutableMapOf()
-                for (line in bean.headers.lines()) {
-                    val pair = line.split(":", limit = 2)
-                    if (pair.size == 2) {
-                        headers[pair[0].trim()] = listOf(pair[1].trim())
-                    }
-                }
+                headers = bean.headers.blankAsNull()?.let(::buildHeader)
 
                 if (bean.host.isNotBlank()) {
                     headers["Host"] = bean.host.listByLineOrComma()
@@ -454,13 +448,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 }
                 path = bean.path.takeIf { it.isNotBlank() } ?: "/"
 
-                headers = mutableMapOf()
-                for (line in bean.headers.lines()) {
-                    val pair = line.split(":", limit = 2)
-                    if (pair.size == 2) {
-                        headers[pair[0].trim()] = listOf(pair[1].trim())
-                    }
-                }
+                headers = bean.headers.blankAsNull()?.let(::buildHeader)
             }
         }
 
@@ -483,13 +471,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 host = bean.host.listByLineOrComma().firstOrNull()
                 path = bean.path
 
-                headers = mutableMapOf()
-                for (line in bean.headers.lines()) {
-                    val pair = line.split(":", limit = 2)
-                    if (pair.size == 2) {
-                        headers[pair[0].trim()] = listOf(pair[1].trim())
-                    }
-                }
+                headers = bean.headers.blankAsNull()?.let(::buildHeader)
             }
         }
     }
@@ -549,13 +531,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         path = bean.path
         tls = buildSingBoxOutboundTLS(bean)
 
-        headers = mutableMapOf()
-        for (line in bean.headers.lines()) {
-            val pair = line.split(":", limit = 2)
-            if (pair.size == 2) {
-                headers[pair[0].trim()] = listOf(pair[1].trim())
-            }
-        }
+        headers = bean.headers.blankAsNull()?.let(::buildHeader)
     }
 
     is VMessBean -> Outbound_VMessOptions().apply {
@@ -760,32 +736,4 @@ fun parseTransport(json: JSONMap): V2RayTransportOptions? = when (json["type"]?.
     }
 
     else -> null
-}
-
-/** Aimed at parsing listable option. */
-fun parseHeader(header: Map<*, *>): Map<String, List<String>> {
-    val builder = LinkedHashMap<String, List<String>>(header.size)
-    for (entry in header) {
-        // http headers are case-insensitive, so we lowercase the key.
-        val key = entry.key.toString().lowercase()
-        val value = when (val entryValue = entry.value) {
-            is List<*> -> {
-                entryValue.map { it.toString() }
-            }
-
-            is JSONArray -> {
-                val list = ArrayList<String>(entryValue.length())
-                entryValue.forEach {
-                    list.add(it.toString())
-                }
-                list
-            }
-
-            else -> {
-                listOf(entryValue.toString())
-            }
-        }
-        builder[key] = value
-    }
-    return builder
 }

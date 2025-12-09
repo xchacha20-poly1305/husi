@@ -644,7 +644,7 @@
     <string name="connection_status_closed">已關閉</string>
     <string name="upload_size">上傳大小</string>
     <string name="can_not_be_empty">不可為空</string>
-    <string name="juicity_provider">Juicity 提供者</string>
+    <string name="juicity_provider">Juicity 提供程式</string>
     <plurals name="delete_confirm_detail">
         <item quantity="other">您確定要移除以下設定檔嗎？\n\n%s</item>
     </plurals>
