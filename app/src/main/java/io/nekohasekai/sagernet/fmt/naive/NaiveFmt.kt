@@ -2,7 +2,15 @@ package io.nekohasekai.sagernet.fmt.naive
 
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
+import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.fmt.buildHeader
+import io.nekohasekai.sagernet.fmt.parseBoxOutbound
+import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.fmt.parseHeader
+import io.nekohasekai.sagernet.ktx.JSONMap
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.isIpAddress
+import io.nekohasekai.sagernet.ktx.map
 import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.unUrlSafe
@@ -92,4 +100,44 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
         }
         put("no-post-quantum", noPostQuantum)
     }.toStringPretty()
+}
+
+fun buildSingBoxOutboundNaiveBean(bean: NaiveBean): SingBoxOptions.Outbound_NaiveOptions {
+    return SingBoxOptions.Outbound_NaiveOptions().apply {
+        type = bean.outboundType()
+        server = bean.serverAddress
+        server_port = bean.serverPort
+        username = bean.username
+        password = bean.password
+        extra_headers = bean.extraHeaders.blankAsNull()?.let(::buildHeader)
+        bean.insecureConcurrency.takeIf { it > 0 }?.let {
+            insecure_concurrency = it
+        }
+        tls = SingBoxOptions.OutboundTLSOptions().apply {
+            enabled = true
+            server_name = bean.sni
+        }
+    }
+}
+
+fun parseNaiveOutbound(json: JSONMap): NaiveBean = NaiveBean().apply {
+    parseBoxOutbound(json) { key, value ->
+        when (key) {
+            "username" -> username = value.toString()
+            "password" -> password = value.toString()
+            "insecure_concurrency" -> insecureConcurrency = value.toString().toIntOrNull()
+
+            "extra_headers" -> (value as? JSONObject)?.map?.let(::parseHeader)?.let {
+                extraHeaders = it.mapNotNull { entry ->
+                    entry.value.firstOrNull()?.let { value ->
+                        entry.key + ":" + value
+                    }
+                }.joinToString("\n")
+            }
+
+            "tls" -> (value as? JSONObject)?.map?.let(::parseBoxTLS)?.let {
+                sni = it.server_name
+            }
+        }
+    }
 }

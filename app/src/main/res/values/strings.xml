@@ -747,5 +747,6 @@
     <string name="fake_ip_range_4">Fake IP Range (IPv4)</string>
     <string name="fake_ip_range_6">Fake IP Range (IPv6)</string>
     <string name="long_click_to_see_name">Long click to see the name</string>
+    <string name="provider_naive">NaïveProxy Provider</string>
 
 </resources>

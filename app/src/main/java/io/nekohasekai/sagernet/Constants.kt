@@ -94,6 +94,7 @@ object Key {
     const val DOWNLOAD_SPEED = "downloadSpeed"
     const val PROVIDER_HYSTERIA2 = "providerHysteria2"
     const val PROVIDER_JUICITY = "providerJuicity"
+    const val PROVIDER_NAIVE = "providerNaive"
     const val CUSTOM_PLUGIN_PREFIX = "customPluginPrefix"
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"

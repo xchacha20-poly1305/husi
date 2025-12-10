@@ -49,6 +49,8 @@ import io.nekohasekai.sagernet.fmt.internal.ProxySetBean
 import io.nekohasekai.sagernet.fmt.internal.buildSingBoxOutboundProxySetBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.juicity.buildSingBoxOutboundJuicityBean
+import io.nekohasekai.sagernet.fmt.naive.NaiveBean
+import io.nekohasekai.sagernet.fmt.naive.buildSingBoxOutboundNaiveBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
@@ -466,6 +468,8 @@ fun buildConfig(
                         is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean).asMap()
 
                         is JuicityBean -> buildSingBoxOutboundJuicityBean(bean).asMap()
+
+                        is NaiveBean -> buildSingBoxOutboundNaiveBean(bean).asMap()
 
                         is ProxySetBean -> {
                             val tags = proxySetChildren!!.toList().filterNot { it == tagOut }

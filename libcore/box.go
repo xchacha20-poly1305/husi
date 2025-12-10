@@ -175,7 +175,7 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 }
 
 func (b *BoxInstance) NeedWIFIState() bool {
-	return b.anchor != nil || b.Box.Router().NeedWIFIState()
+	return b.anchor != nil || b.Box.Network().NeedWIFIState()
 }
 
 func (b *BoxInstance) QueryStats(tag string, isUpload bool) int64 {

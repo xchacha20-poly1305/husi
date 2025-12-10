@@ -1000,14 +1000,12 @@ fun SettingsScreen(
                         UIntegerTextField(value, onValueChange, onOk)
                     }
                 }
+                fun pluginProviderText(index: Int): String = when (index) {
+                    ProtocolProvider.CORE -> "sing-box"
+                    ProtocolProvider.PLUGIN -> context.getString(R.string.plugin)
+                    else -> "sing-box"
+                }
                 item(Key.PROVIDER_HYSTERIA2, PreferenceType.LIST) {
-                    val context = LocalContext.current
-                    fun pluginProviderText(index: Int): String = when (index) {
-                        ProtocolProvider.CORE -> "sing-box"
-                        ProtocolProvider.PLUGIN -> context.getString(R.string.plugin)
-                        else -> "sing-box"
-                    }
-
                     val value by DataStore.configurationStore
                         .intFlow(Key.PROVIDER_HYSTERIA2, ProtocolProvider.CORE)
                         .collectAsStateWithLifecycle(ProtocolProvider.CORE)
@@ -1032,13 +1030,6 @@ fun SettingsScreen(
                     )
                 }
                 item(Key.PROVIDER_JUICITY, PreferenceType.LIST) {
-                    val context = LocalContext.current
-                    fun pluginProviderText(index: Int): String = when (index) {
-                        ProtocolProvider.CORE -> "sing-box"
-                        ProtocolProvider.PLUGIN -> context.getString(R.string.plugin)
-                        else -> "sing-box"
-                    }
-
                     val value by DataStore.configurationStore
                         .intFlow(Key.PROVIDER_JUICITY, ProtocolProvider.PLUGIN)
                         .collectAsStateWithLifecycle(ProtocolProvider.PLUGIN)
@@ -1051,6 +1042,30 @@ fun SettingsScreen(
                         },
                         values = listOf(ProtocolProvider.CORE, ProtocolProvider.PLUGIN),
                         title = { Text(stringResource(R.string.juicity_provider)) },
+                        icon = {
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.flight_takeoff),
+                                null,
+                            )
+                        },
+                        summary = { Text(pluginProviderText(value)) },
+                        type = ListPreferenceType.DROPDOWN_MENU,
+                        item = listPreferenceMenuItem { AnnotatedString(pluginProviderText(it)) },
+                    )
+                }
+                item(Key.PROVIDER_NAIVE, PreferenceType.LIST) {
+                    val value by DataStore.configurationStore
+                        .intFlow(Key.PROVIDER_NAIVE, ProtocolProvider.CORE)
+                        .collectAsStateWithLifecycle(ProtocolProvider.CORE)
+
+                    ListPreference(
+                        value = value,
+                        onValueChange = {
+                            DataStore.providerNaive = it
+                            needReload()
+                        },
+                        values = listOf(ProtocolProvider.CORE, ProtocolProvider.PLUGIN),
+                        title = { Text(stringResource(R.string.provider_naive)) },
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.flight_takeoff),

@@ -304,7 +304,6 @@ data class ProxyEntity(
 
     fun mustUsePlugin(): Boolean = when (type) {
         TYPE_MIERU -> true
-        TYPE_NAIVE -> true
         TYPE_JUICITY -> true
         TYPE_SHADOWQUIC -> true
         else -> false
@@ -362,14 +361,23 @@ data class ProxyEntity(
     fun needExternal(): Boolean {
         return when (type) {
             TYPE_MIERU -> true
-            TYPE_NAIVE -> true
+            TYPE_SHADOWQUIC -> true
+
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
+
             TYPE_JUICITY -> {
                 // https://github.com/juicity/juicity/issues/140
                 !DataStore.enableFakeDns && DataStore.providerJuicity != ProtocolProvider.CORE
             }
 
-            TYPE_SHADOWQUIC -> true
+            TYPE_NAIVE -> {
+                val bean = naiveBean!!
+                bean.noPostQuantum
+                        || bean.proto != "https"
+                        || bean.udpOverTcp
+                        || DataStore.providerNaive == ProtocolProvider.PLUGIN
+            }
+
             else -> false
         }
     }

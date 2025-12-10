@@ -3,13 +3,18 @@ module libcore
 go 1.24.7
 
 require (
-	github.com/dyhkwong/sing-juicity v0.1.0-beta.2
-	github.com/gofrs/uuid/v5 v5.3.2
+	github.com/dyhkwong/sing-juicity v0.1.0-beta.3
+	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.68
+	github.com/sagernet/cronet-go v0.0.0-20251210132647-15dd6a9ee4bc
+	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20251210132647-15dd6a9ee4bc
+	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251210132647-15dd6a9ee4bc
+	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251210132647-15dd6a9ee4bc
+	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251210132647-15dd6a9ee4bc
 	github.com/sagernet/gomobile v0.1.8
-	github.com/sagernet/sing v0.8.0-beta.6
-	github.com/sagernet/sing-box v1.13.0-alpha.27
+	github.com/sagernet/sing v0.8.0-beta.6.0.20251207063731-56fd482ce1c6
+	github.com/sagernet/sing-box v1.12.13-0.20251210134747-16ad84c0f837
 	github.com/sagernet/sing-tun v0.8.0-beta.11
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -61,15 +66,15 @@ require (
 	github.com/metacubex/utls v1.8.3 // indirect
 	github.com/mholt/acmez/v3 v3.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
-	github.com/quic-go/qpack v0.5.1 // indirect
+	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/fswatch v0.1.1 // indirect
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/quic-go v0.55.0-sing-box-mod.2 // indirect
+	github.com/sagernet/quic-go v0.57.1-sing-box-mod.1 // indirect
 	github.com/sagernet/sing-mux v0.3.3 // indirect
-	github.com/sagernet/sing-quic v0.6.0-beta.4 // indirect
+	github.com/sagernet/sing-quic v0.6.0-beta.5 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
