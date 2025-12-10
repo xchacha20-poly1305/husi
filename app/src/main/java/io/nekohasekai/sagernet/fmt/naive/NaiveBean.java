@@ -5,6 +5,8 @@ import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.KryoConverters;
+import io.nekohasekai.sagernet.fmt.SingBoxOptions;
+
 import org.jetbrains.annotations.NotNull;
 
 public class NaiveBean extends AbstractBean {
@@ -88,6 +90,11 @@ public class NaiveBean extends AbstractBean {
     @Override
     public NaiveBean clone() {
         return KryoConverters.deserialize(new NaiveBean(), KryoConverters.serialize(this));
+    }
+
+    @Override
+    public @NotNull String outboundType() throws Throwable {
+        return SingBoxOptions.TYPE_NAIVE;
     }
 
     @Override

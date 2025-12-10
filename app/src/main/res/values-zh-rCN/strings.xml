@@ -647,7 +647,7 @@
     <string name="connection_status_closed">已关闭</string>
     <string name="upload_size">上传大小</string>
     <string name="can_not_be_empty">不能为空</string>
-    <string name="juicity_provider">Juicity 提供者</string>
+    <string name="juicity_provider">Juicity 提供程序</string>
     <plurals name="delete_confirm_detail">
         <item quantity="other">您确定要移除以下配置吗？\n\n%s</item>
     </plurals>
@@ -672,4 +672,5 @@
     <string name="fake_ip_range_4">Fake IP 范围（IPv4）</string>
     <string name="fake_ip_range_6">Fake IP 范围（IPv6）</string>
     <string name="long_click_to_see_name">长按以显示名称</string>
+    <string name="provider_naive">NaïveProxy 提供程序</string>
 </resources>
