@@ -21,7 +21,7 @@ jobs:
         run: git submodule status 'plugin/hysteria2/*' > hysteria2_status
       - name: Hysteria 2 Cache
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/hysteria2/src/main/jniLibs
@@ -61,7 +61,7 @@ jobs:
       - name: Fetch Status
         run: git submodule status 'plugin/hysteria2/*' > hysteria2_status
       - name: Hysteria 2 Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/hysteria2/src/main/jniLibs

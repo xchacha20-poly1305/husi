@@ -21,7 +21,7 @@ jobs:
         run: git submodule status 'plugin/shadowquic/*' > shadowquic_status
       - name: Shadowquic Cache
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/shadowquic/src/main/jniLibs
@@ -56,7 +56,7 @@ jobs:
       - name: Fetch Status
         run: git submodule status 'plugin/shadowquic/*' > shadowquic_status
       - name: Shadowquic Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/shadowquic/src/main/jniLibs
