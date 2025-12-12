@@ -684,4 +684,6 @@
     <string name="internal_link">Внутренняя ссылка</string>
     <string name="fake_ip_range_4">Диапазон поддельных IP (IPv4)</string>
     <string name="fake_ip_range_6">Диапазон поддельных IP (IPv6)</string>
+    <string name="provider_naive">Провайдер NaïveProxy</string>
+    <string name="long_click_to_see_name">Удерживайте, чтобы увидеть название</string>
 </resources>
