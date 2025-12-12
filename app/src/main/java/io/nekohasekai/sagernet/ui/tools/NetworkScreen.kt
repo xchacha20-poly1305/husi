@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 
 @Composable
@@ -42,6 +43,7 @@ internal fun NetworkScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .padding(extraBottomPadding())
             .padding(horizontal = 16.dp),
     ) {
         Spacer(modifier = Modifier.height(16.dp))
