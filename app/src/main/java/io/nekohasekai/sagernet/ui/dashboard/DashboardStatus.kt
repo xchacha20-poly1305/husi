@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.setPlainText
 import kotlinx.coroutines.launch
@@ -63,6 +64,7 @@ internal fun DashboardStatusScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .padding(extraBottomPadding())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
