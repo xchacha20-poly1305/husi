@@ -77,7 +77,7 @@ jobs:
           APK=$(find plugin/shadowquic/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname "$APK")
           echo "APK=$APK" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: APKs
           path: ${{ env.APK }}
@@ -92,7 +92,7 @@ jobs:
         with:
           submodules: recursive
       - name: Download Artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: APKs
           path: artifacts/

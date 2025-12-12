@@ -61,7 +61,7 @@ jobs:
         run: |
           ./run lib core
       - name: Upload libcore
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           path: app/libs/libcore.aar
           name: "libcore"
@@ -76,7 +76,7 @@ jobs:
         with:
           submodules: recursive
       - name: LibCore Artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: "libcore"
           path: app/libs/libcore.aar
@@ -110,11 +110,11 @@ jobs:
           rm $APK/output-metadata.json
           echo "APK=$APK" >> $GITHUB_ENV
           echo "MAPPING_FILE=app/build/outputs/mapping/fossRelease/mapping.txt" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: APKs
           path: ${{ env.APK }}
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: r8-mapping
           path: ${{ env.MAPPING_FILE }}
@@ -129,12 +129,12 @@ jobs:
         with:
           submodules: recursive
       - name: Download Artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: APKs
           path: artifacts/
       - name: Download R8 Mapping
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: r8-mapping
           path: mapping/
