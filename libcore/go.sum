@@ -98,8 +98,8 @@ github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251212022311-629f90088d
 github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251212022311-629f90088dc7/go.mod h1:JxzGyQf94Cr6sBShKqODGDyRUlESfJK/Njcz9Lz6qMQ=
 github.com/sagernet/fswatch v0.1.1 h1:YqID+93B7VRfqIH3PArW/XpJv5H4OLEVWDfProGoRQs=
 github.com/sagernet/fswatch v0.1.1/go.mod h1:nz85laH0mkQqJfaOrqPpkwtU1znMFNVTpT/5oRsVz/o=
-github.com/sagernet/gomobile v0.1.8 h1:vXgoN0pjsMONAaYCTdsKBX2T1kxuS7sbT/mZ7PElGoo=
-github.com/sagernet/gomobile v0.1.8/go.mod h1:A8l3FlHi2D/+mfcd4HHvk5DGFPW/ShFb9jHP5VmSiDY=
+github.com/sagernet/gomobile v0.1.9 h1:mD1ykgZO5tmgcV+RE0+bZ2SLRHiwb7Ju2YKBepgNL9I=
+github.com/sagernet/gomobile v0.1.9/go.mod h1:A8l3FlHi2D/+mfcd4HHvk5DGFPW/ShFb9jHP5VmSiDY=
 github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506 h1:x/t3XqWshOlWqRuumpvbUvjtEr/6mJuBXAVovPefbUg=
 github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506/go.mod h1:QkkPEJLw59/tfxgapHta14UL5qMUah5NXhO0Kw2Kan4=
 github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a h1:ObwtHN2VpqE0ZNjr6sGeT00J8uU7JF4cNUdb44/Duis=

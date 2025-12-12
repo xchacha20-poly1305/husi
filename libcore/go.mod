@@ -12,7 +12,7 @@ require (
 	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251212022311-629f90088dc7
 	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251212022311-629f90088dc7
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251212022311-629f90088dc7
-	github.com/sagernet/gomobile v0.1.8
+	github.com/sagernet/gomobile v0.1.9
 	github.com/sagernet/sing v0.8.0-beta.6.0.20251207063731-56fd482ce1c6
 	github.com/sagernet/sing-box v1.12.13-0.20251211080045-b2316b5c9d93
 	github.com/sagernet/sing-tun v0.8.0-beta.11
