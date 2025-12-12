@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jakewharton.processphoenix.ProcessPhoenix
+import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.CertProvider
 import io.nekohasekai.sagernet.DEFAULT_HTTP_BYPASS
@@ -1053,7 +1054,7 @@ fun SettingsScreen(
                         item = listPreferenceMenuItem { AnnotatedString(pluginProviderText(it)) },
                     )
                 }
-                item(Key.PROVIDER_NAIVE, PreferenceType.LIST) {
+                if (!BuildConfig.IS_LEGACY) item(Key.PROVIDER_NAIVE, PreferenceType.LIST) {
                     val value by DataStore.configurationStore
                         .intFlow(Key.PROVIDER_NAIVE, ProtocolProvider.CORE)
                         .collectAsStateWithLifecycle(ProtocolProvider.CORE)

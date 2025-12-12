@@ -89,7 +89,7 @@ fun Project.setupCommon() {
         buildToolsVersion = "36.1.0"
         compileSdk = 36
         defaultConfig {
-            minSdk = 23
+            minSdk = 24
         }
         buildTypes {
             getByName("release") {
@@ -235,8 +235,18 @@ fun Project.setupApp() {
 
         flavorDimensions += "vendor"
         productFlavors {
-            create("foss")
-            create("play")
+            // Normal build: SDK 24 with built in cronet-go
+            // Legacy: without cronet
+            create("foss") {
+                buildConfigField("boolean", "IS_LEGACY", "false")
+            }
+            create("fossLegacy") {
+                minSdk = 23
+                buildConfigField("boolean", "IS_LEGACY", "true")
+            }
+            create("play") {
+                buildConfigField("boolean", "IS_LEGACY", "false")
+            }
         }
 
         applicationVariants.all {
@@ -245,6 +255,7 @@ fun Project.setupApp() {
                 outputFileName = outputFileName.replace(project.name, "husi-$versionName")
                     .replace("-release", "")
                     .replace("-foss", "")
+                    .replace("-fossLegacy", "-legacy")
             }
         }
 

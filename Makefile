@@ -5,15 +5,24 @@ CLIP = sh -c 'if [ -n "$$WAYLAND_DISPLAY" ]; then exec wl-copy; \
               elif [ -n "$$DISPLAY" ]; then exec xclip -selection clipboard; \
               else echo "No display detected (WAYLAND_DISPLAY/DISPLAY missing)"; exit 1; fi'
 
-.PHONY: update libcore apk apk_debug assets lint_go test_go plugin generate_option
+.PHONY: update libcore libcore_legacy apk apk_foss apk_legacy apk_debug assets lint_go test_go plugin generate_option
 
 build: libcore assets apk
 
 libcore:
 	./run lib core
 
-apk:
+libcore_legacy:
+	DISABLE_NAIVE=1 ./run lib core
+
+apk_foss:
 	BUILD_PLUGIN=none ./gradlew app:assembleFossRelease
+
+apk_legacy:
+	BUILD_PLUGIN=none ./gradlew app:assembleFossLegacyRelease
+
+apk:
+	BUILD_PLUGIN=none ./gradlew clean app:assembleFossRelease app:assembleFossLegacyRelease
 
 apk_debug:
 	BUILD_PLUGIN=none ./gradlew app:assembleFossDebug

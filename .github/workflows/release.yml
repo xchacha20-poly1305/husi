@@ -12,6 +12,13 @@ jobs:
   libcore:
     name: Native Build (LibCore)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - variant: default
+            disable_naive: ""
+          - variant: legacy
+            disable_naive: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -27,7 +34,7 @@ jobs:
         with:
           path: |
             app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+          key: ${{ matrix.variant }}-${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Golang Version
         if: steps.cache.outputs.cache-hit != 'true'
         id: version
@@ -58,18 +65,25 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          DISABLE_NAIVE: ${{ matrix.disable_naive }}
         run: |
           ./run lib core
       - name: Upload libcore
         uses: actions/upload-artifact@v5
         with:
           path: app/libs/libcore.aar
-          name: "libcore"
+          name: "libcore-${{ matrix.variant }}"
   build:
-    name: Build FOSS APK
+    name: Build APK
     runs-on: ubuntu-latest
-    needs:
-      - libcore
+    needs: libcore
+    strategy:
+      matrix:
+        include:
+          - flavor: Foss
+            libcore_variant: default
+          - flavor: FossLegacy
+            libcore_variant: legacy
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -78,8 +92,8 @@ jobs:
       - name: LibCore Artifact
         uses: actions/download-artifact@v6
         with:
-          name: "libcore"
-          path: app/libs/libcore.aar
+          name: "libcore-${{ matrix.libcore_variant }}"
+          path: app/libs
       - uses: actions/setup-java@v5
         with:
           java-version: "21"
@@ -104,19 +118,19 @@ jobs:
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "${{ secrets.LOCAL_PROPERTIES }}" >> local.properties
           ./run init action gradle
-          ./gradlew clean app:assembleFossRelease
+          ./gradlew clean app:assemble${{ matrix.flavor }}Release
           APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname $APK)
           rm $APK/output-metadata.json
           echo "APK=$APK" >> $GITHUB_ENV
-          echo "MAPPING_FILE=app/build/outputs/mapping/fossRelease/mapping.txt" >> $GITHUB_ENV
+          echo "MAPPING_FILE=app/build/outputs/mapping/${{ matrix.flavor }}Release/mapping.txt" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v5
         with:
-          name: APKs
+          name: APKs-${{ matrix.flavor }}
           path: ${{ env.APK }}
       - uses: actions/upload-artifact@v5
         with:
-          name: r8-mapping
+          name: r8-mapping-${{ matrix.flavor }}
           path: ${{ env.MAPPING_FILE }}
   release:
     name: Publish Release
@@ -131,19 +145,21 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v6
         with:
-          name: APKs
+          pattern: APKs-*
           path: artifacts/
+          merge-multiple: true
       - name: Download R8 Mapping
         uses: actions/download-artifact@v6
         with:
-          name: r8-mapping
+          pattern: r8-mapping-*
           path: mapping/
+          merge-multiple: true
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir apks
           find artifacts -name "*.apk" -exec cp {} apks \;
-          cp mapping/mapping.txt apks/mapping.txt
+          cp mapping/*.txt apks/ 2>/dev/null || true
           gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --prerelease ./apks/* \
             --notes $'# :memo: Release Notes\n\n* Fixes and improvements.'

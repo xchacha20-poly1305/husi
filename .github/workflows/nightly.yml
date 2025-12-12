@@ -30,7 +30,7 @@ jobs:
         with:
           path: |
             app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+          key: default-${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Golang Version
         if: steps.cache.outputs.cache-hit != 'true'
         id: version
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           path: app/libs/libcore.aar
-          name: "libcore"
+          name: "libcore-default"
   build:
     name: Build FOSS APK
     runs-on: ubuntu-latest
@@ -81,8 +81,8 @@ jobs:
       - name: LibCore Artifact
         uses: actions/download-artifact@v6
         with:
-          name: "libcore"
-          path: app/libs/libcore.aar
+          name: "libcore-default"
+          path: app/libs
       - uses: actions/setup-java@v5
         with:
           java-version: "21"
@@ -117,35 +117,3 @@ jobs:
           name: APKs
           path: ${{ env.APK }}
 
-  # f-droid:
-  #   name: F-Droid Test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Golang Status
-  #       run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
-  #     - name: Libcore Status
-  #       run: git ls-files libcore | xargs cat | sha1sum > libcore_status
-  #     - name: LibCore Cache
-  #       id: cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           app/libs/libcore.aar
-  #         key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
-  #     - name: Golang Cache
-  #       if: steps.cache.outputs.cache-hit != 'true'
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: build/golang
-  #         key: go-${{ hashFiles('.github/workflows/*', 'golang_status') }}
-  #     - name: Get Source
-  #       run: |
-  #         ./run lib source
-  #     - name: Native Build
-  #       if: steps.cache.outputs.cache-hit != 'true'
-  #       run: ./run fdroid prebuild
-  #     - name: Build APK
-  #       run: |
-  #         ./gradlew app:assembleFdroidDebug

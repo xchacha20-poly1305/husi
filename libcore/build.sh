@@ -26,8 +26,11 @@ TAGS=(
     "with_quic"
     "with_wireguard"
     "with_utls"
-    "with_naive_outbound"
 )
+
+if [ "$DISABLE_NAIVE" != "1" ]; then
+    TAGS+=("with_naive_outbound")
+fi
 
 IFS="," BUILD_TAGS="${TAGS[*]}"
 

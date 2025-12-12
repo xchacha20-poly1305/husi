@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.fmt.naive
 
+import io.nekohasekai.sagernet.BuildConfig
+import io.nekohasekai.sagernet.ProtocolProvider
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST4
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
@@ -17,6 +19,14 @@ import io.nekohasekai.sagernet.ktx.unUrlSafe
 import io.nekohasekai.sagernet.ktx.wrapIPV6Host
 import libcore.Libcore
 import org.json.JSONObject
+
+fun NaiveBean.canUseCronetGo(): Boolean {
+    return !BuildConfig.IS_LEGACY
+            && !noPostQuantum
+            && !udpOverTcp
+            && proto != "https"
+            && DataStore.providerNaive == ProtocolProvider.CORE
+}
 
 fun parseNaive(link: String): NaiveBean {
     val url = Libcore.parseURL(link)

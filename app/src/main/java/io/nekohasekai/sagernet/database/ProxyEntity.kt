@@ -38,6 +38,7 @@ import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.mieru.toUri
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
+import io.nekohasekai.sagernet.fmt.naive.canUseCronetGo
 import io.nekohasekai.sagernet.fmt.naive.toUri
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.fmt.shadowquic.buildShadowQUICConfig
@@ -370,13 +371,7 @@ data class ProxyEntity(
                 !DataStore.enableFakeDns && DataStore.providerJuicity != ProtocolProvider.CORE
             }
 
-            TYPE_NAIVE -> {
-                val bean = naiveBean!!
-                bean.noPostQuantum
-                        || bean.proto != "https"
-                        || bean.udpOverTcp
-                        || DataStore.providerNaive == ProtocolProvider.PLUGIN
-            }
+            TYPE_NAIVE -> !naiveBean!!.canUseCronetGo()
 
             else -> false
         }

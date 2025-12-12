@@ -56,7 +56,7 @@ jobs:
         with:
           path: |
             app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+          key: default-${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - uses: actions/setup-java@v5
         with:
           java-version: "21"

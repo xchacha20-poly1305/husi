@@ -66,9 +66,15 @@ Run:
 make libcore
 ```
 
-This will generate `app/libs/libcore.aar`.
+This will generate `app/libs/libcore.aar` with Naive protocol support enabled.
 
 If gomobile is not in the GOPATH, it will be automatically downloaded and compiled.
+
+To build libcore without Naive protocol support, use:
+
+```shell
+DISABLE_NAIVE=1 make libcore
+```
 
 If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
@@ -82,6 +88,11 @@ Environment:
 
 * jdk-21
 * ndk 29.0.14206865
+
+Available flavors:
+
+* `foss`: Standard version with Naive protocol support (minSdk 24)
+* `fossLegacy`: Legacy version without Naive protocol (minSdk 23, for Android 6.0+)
 
 If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script
 `buildScript/init/env_ndk.sh`:
@@ -111,7 +122,14 @@ Compile the release version:
 make apk
 ```
 
-The APK file will be located in `app/build/outputs/apk`.
+This builds all flavors: `foss` and `fossLegacy`. The APK files will be located in `app/build/outputs/apk`.
+
+To build a specific flavor:
+
+```shell
+make apk_foss      # Build standard version with Naive
+make apk_legacy    # Build legacy version without Naive for Android 6.0+
+```
 
 #### 🌈 Plugins
 
