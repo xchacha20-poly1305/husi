@@ -53,6 +53,7 @@ fun Project.requireMetadata(): Properties {
     return metadata
 }
 
+@Suppress("NewApi")
 fun Project.requireLocalProperties(): Properties {
     if (!::localProperties.isInitialized) {
         localProperties = Properties()
@@ -83,13 +84,12 @@ fun Project.requireTargetAbi(): String {
     return targetAbi
 }
 
-@Suppress("UnstableApiUsage")
 fun Project.setupCommon() {
     android.apply {
         buildToolsVersion = "36.1.0"
         compileSdk = 36
         defaultConfig {
-            minSdk = 23
+            minSdk = 24
         }
         buildTypes {
             getByName("release") {
