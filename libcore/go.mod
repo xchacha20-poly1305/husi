@@ -7,14 +7,14 @@ require (
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.68
-	github.com/sagernet/cronet-go v0.0.0-20251212022311-629f90088dc7
+	github.com/sagernet/cronet-go v0.0.1-140.0.7339.123-1
 	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/gomobile v0.1.9
 	github.com/sagernet/sing v0.8.0-beta.6.0.20251207063731-56fd482ce1c6
-	github.com/sagernet/sing-box v1.12.13-0.20251212132234-51e067e320f6
+	github.com/sagernet/sing-box v1.12.13-0.20251212143303-5ea761873544
 	github.com/sagernet/sing-tun v0.8.0-beta.11
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1

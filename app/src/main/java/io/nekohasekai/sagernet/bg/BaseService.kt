@@ -18,6 +18,8 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connections
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
+import io.nekohasekai.sagernet.aidl.LogItem
+import io.nekohasekai.sagernet.aidl.LogItemList
 import io.nekohasekai.sagernet.aidl.ProxySet
 import io.nekohasekai.sagernet.aidl.URLTestResult
 import io.nekohasekai.sagernet.aidl.toList
@@ -47,6 +49,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import libcore.Libcore
+import libcore.LogItemIterator
+import libcore.LogWatcher
 import java.net.UnknownHostException
 
 class BaseService {
@@ -129,8 +133,10 @@ class BaseService {
         }
     }
 
-    class Binder(private var data: Data? = null) : ISagerNetService.Stub(), CoroutineScope,
-        AutoCloseable {
+    class Binder(private var data: Data? = null) : ISagerNetService.Stub(),
+        CoroutineScope,
+        AutoCloseable,
+        LogWatcher {
         private val callbacks = object : RemoteCallbackList<ISagerNetServiceCallback>() {
             override fun onCallbackDied(callback: ISagerNetServiceCallback?, cookie: Any?) {
                 super.onCallbackDied(callback, cookie)
@@ -254,6 +260,20 @@ class BaseService {
             return URLTestResult(emptyMap())
         }
 
+        override fun startLogWatching(enable: Boolean) {
+            Libcore.registerLogWatcher(
+                if (enable) {
+                    this
+                } else {
+                    null
+                }
+            )
+        }
+
+        override fun clearLog() {
+            Libcore.logClear()
+        }
+
         fun stateChanged(s: State, msg: String?) = launch {
             val profileName = profileName
             broadcast { it.stateChanged(s.ordinal, profileName, msg) }
@@ -268,6 +288,18 @@ class BaseService {
             callbacks.kill()
             cancel()
             data = null
+        }
+
+        override fun addAll(logs: LogItemIterator) {
+            callbackIdMap.keys.forEach { callback ->
+                callback.newLogs(logs.toList())
+            }
+        }
+
+        override fun append(item: libcore.LogItem) {
+            callbackIdMap.keys.forEach { callback ->
+                callback.newLogs(LogItemList(listOf(LogItem(item))))
+            }
         }
     }
 

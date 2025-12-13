@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
@@ -64,7 +65,11 @@ fun SagerFab(
                 positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
                     TooltipAnchorPosition.Above,
                 ),
-                tooltip = { Text(stringResource(R.string.connect)) },
+                tooltip = {
+                    PlainTooltip {
+                        Text(stringResource(R.string.connect))
+                    }
+                },
                 state = rememberTooltipState(),
             ) {
                 if (state == BaseService.State.Connected) {

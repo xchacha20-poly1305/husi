@@ -26,4 +26,7 @@ interface ISagerNetService {
   List<ProxySet> queryProxySet();
   boolean groupSelect(in String group, in String proxy);
   URLTestResult groupURLTest(in String tag, in int timeout);
+
+  oneway void startLogWatching(in boolean enable);
+  oneway void clearLog();
 }

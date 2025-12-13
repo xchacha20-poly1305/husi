@@ -52,7 +52,6 @@ class RoomToDataStoreMigration(
                 Key.SPEED_INTERVAL,
                 Key.RULES_PROVIDER,
                 Key.LOG_LEVEL,
-                Key.LOG_MAX_SIZE,
                 Key.PROVIDER_HYSTERIA2,
                 Key.PROVIDER_JUICITY,
                 Key.TUN_IMPLEMENTATION,
@@ -65,9 +64,13 @@ class RoomToDataStoreMigration(
                 Key.CONNECTION_TEST_CONCURRENT,
                 Key.CONNECTION_TEST_TIMEOUT,
             )
+            val deletedKeys = setOf(
+                "LOG_MAX_SIZE",
+            )
 
             var successCount = 0
             kvPairs.forEach { pair ->
+                if (pair.key in deletedKeys) return@forEach
                 try {
                     @Suppress("DEPRECATION")
                     when (pair.valueType) {

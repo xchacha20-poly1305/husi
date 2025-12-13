@@ -178,7 +178,6 @@
     <string name="plugin_disabled">Вимкнено</string>
     <string name="plugin_auto_connect_unlock_only">Цей плагін може не працювати з автопідключенням</string>
     <string name="auto">Авто</string>
-    <string name="enable_log_sum">Для налагодження</string>
     <string name="random">Випадковий</string>
     <string name="unavailable">Недоступний</string>
     <string name="always_show_address">Завжди показувати адресу</string>
@@ -498,7 +497,6 @@
     <string name="outbound">Вихідне підключення</string>
     <string name="chain">Ланцюг</string>
     <string name="close">Закрити</string>
-    <string name="pin_log">Закріпити лог</string>
     <string name="client_type">Тип клієнта</string>
     <string name="custom_rule_provider">Користувацький постачальник ресурсів правил</string>
     <string name="padding">Відступ</string>

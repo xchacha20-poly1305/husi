@@ -1,188 +1,149 @@
 package io.nekohasekai.sagernet.ui
 
-import android.os.Build
-import android.os.FileObserver
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.closeQuietly
-import io.nekohasekai.sagernet.ktx.readableMessage
-import io.nekohasekai.sagernet.utils.SendLog
+import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.aidl.LogItem
+import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import libcore.Libcore
-import java.io.BufferedReader
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.RandomAccessFile
-import kotlin.coroutines.cancellation.CancellationException
 
 @Immutable
 data class LogcatUiState(
-    val pinScroll: Boolean = false,
-    val logs: PersistentList<String> = persistentListOf(),
+    val pause: Boolean = false,
+    val searchQuery: String? = null,
+    val logLevel: LogLevel = LogLevel.WARN,
+    val logs: PersistentList<LogItem> = persistentListOf(),
     val errorMessage: String? = null,
 )
+
+@Immutable
+enum class LogLevel() {
+    PANIC,
+    FATAL,
+    ERROR,
+    WARN,
+    INFO,
+    DEBUG,
+    TRACE,
+}
 
 @Stable
 class LogcatScreenViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LogcatUiState())
+    private var allLogs: PersistentList<LogItem> = persistentListOf()
+    private val _uiState = MutableStateFlow(
+        LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
+    )
     val uiState = _uiState.asStateFlow()
 
-    companion object {
-        private const val SPLIT_FLAG_LENGTH = Libcore.LogSplitFlag.length
+    private var connection: SagerConnection? = null
+    private var job: Job? = null
+
+    private fun refilterLogs(logLevel: LogLevel, query: String?): PersistentList<LogItem> {
+        return allLogs.filter { item ->
+            item.level <= logLevel.ordinal
+                    && query?.let { item.message.contains(it, ignoreCase = true) } ?: true
+        }.toPersistentList()
     }
 
-    private val logFile = SendLog.logFile
-
-    private var lastPosition = 0L
-
-    private val fileChange = Channel<Unit>(Channel.CONFLATED)
-    private val fileObserver = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        object : FileObserver(logFile) {
-            override fun onEvent(event: Int, path: String?) {
-                if (event != MODIFY) return
-                runBlocking { runCatching { fileChange.send(Unit) } }
-            }
-        }
-    } else @Suppress("DEPRECATION")
-    object : FileObserver(logFile.absolutePath) {
-        override fun onEvent(event: Int, path: String?) {
-            if (event != MODIFY) return
-            runBlocking { runCatching { fileChange.send(Unit) } }
-        }
-    }
-
-    init {
-        loadAndObserveLog()
-    }
-
-    fun togglePinScroll() {
+    private fun appendLogs(newLogs: List<LogItem>) {
+        allLogs = allLogs.addAll(newLogs)
         _uiState.update { state ->
-            state.copy(pinScroll = !state.pinScroll)
+            if (state.pause) return
+            val level = state.logLevel.ordinal
+            val filtered = newLogs.filter { item ->
+                item.level <= level && state.searchQuery?.let {
+                    item.message.contains(
+                        it,
+                        ignoreCase = true,
+                    )
+                } ?: true
+            }
+            if (filtered.isEmpty()) return
+            state.copy(logs = state.logs.addAll(filtered))
         }
     }
 
-    fun clearLog() {
-        viewModelScope.launch {
-            try {
-                lastPosition = 0L
-
-                Libcore.logClear()
-                Runtime.getRuntime().exec("/system/bin/logcat -c").waitFor()
-
-                _uiState.update { state ->
-                    state.copy(logs = state.logs.clear())
+    fun initialize(service: ISagerNetService, connection: SagerConnection) {
+        clearJob()
+        this.connection = connection
+        connection.clearLogBuffer()
+        job = viewModelScope.launch {
+            connection.logLine
+                .onStart {
+                    service.startLogWatching(true)
                 }
-            } catch (e: Exception) {
-                Logs.e(e)
-                _uiState.update { state ->
-                    state.copy(errorMessage = e.readableMessage)
+                .collect { lines ->
+                    appendLogs(lines)
                 }
-            }
-        }
-    }
-
-    private fun loadAndObserveLog() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val initialLogs = logFile.inputStream().bufferedReader().use { reader ->
-                val linesList = ArrayList<String>(256)
-                while (true) {
-                    val line = reader.readLogLine() ?: break
-                    linesList.add(line)
-                }
-                linesList
-            }
-            _uiState.update { state ->
-                state.copy(
-                    logs = state.logs.addAll(initialLogs),
-                )
-            }
-            lastPosition = logFile.length()
-
-            fileObserver.startWatching()
-            updateLogOnChange(RandomAccessFile(logFile, "r"))
-        }
-    }
-
-    private suspend fun updateLogOnChange(file: RandomAccessFile) {
-        try {
-            while (true) {
-                if (file.length() <= lastPosition) {
-                    fileChange.receive()
-                    continue
-                }
-
-                file.seek(lastPosition)
-                val currentFileSize = file.length()
-                val bytesToRead = (currentFileSize - lastPosition).toInt()
-                val buffer = ByteArrayOutputStream(bytesToRead.coerceAtLeast(1024))
-                val chunk = ByteArray(8 * 1024)
-                var read: Int
-                while (file.read(chunk).also { read = it } != -1) {
-                    buffer.write(chunk, 0, read)
-                    if (buffer.size() >= bytesToRead) break
-                }
-
-                val newBytes = buffer.toByteArray()
-                if (newBytes.isNotEmpty()) {
-                    val lines = newBytes.toString(Charsets.UTF_8)
-                        .split(Libcore.LogSplitFlag)
-                        .filterNot { it.isBlank() }
-
-                    if (lines.isNotEmpty()) {
-                        _uiState.update { state ->
-                            state.copy(
-                                logs = state.logs.addAll(lines),
-                            )
-                        }
-                    }
-                }
-                lastPosition = file.filePointer
-            }
-        } catch (_: IOException) {
-            // Coroutine scope cancelled or file closed
-        } catch (_: CancellationException) {
-            // Coroutine cancelled
-        } catch (e: Exception) {
-            Logs.w(e)
-            _uiState.update { state ->
-                state.copy(errorMessage = e.readableMessage)
-            }
-        } finally {
-            file.closeQuietly()
-        }
-    }
-
-    private fun BufferedReader.readLogLine(): String? {
-        val line = StringBuilder()
-        while (true) {
-            val charCode = this.read()
-            if (charCode == -1) { // End of stream
-                return if (line.isNotEmpty()) line.toString() else null
-            }
-            val char = charCode.toChar()
-            line.append(char)
-            if (line.endsWith(Libcore.LogSplitFlag)) {
-                line.setLength(line.length - SPLIT_FLAG_LENGTH) // remove split flag
-                return line.toString()
-            }
         }
     }
 
     override fun onCleared() {
+        clearJob()
         super.onCleared()
-        fileObserver.stopWatching()
-        fileChange.close()
     }
+
+    private fun clearJob() {
+        job?.cancel()
+        connection?.service?.value?.startLogWatching(false)
+    }
+
+    fun togglePause() {
+        _uiState.update { state ->
+            val newPause = !state.pause
+            state.copy(
+                pause = newPause,
+                logs = if (newPause) {
+                    state.logs
+                } else {
+                    refilterLogs(state.logLevel, state.searchQuery)
+                },
+            )
+        }
+    }
+
+    fun clearLog() {
+        connection?.service?.value?.clearLog()
+        allLogs = persistentListOf()
+        _uiState.update { it.copy(logs = persistentListOf()) }
+    }
+
+    fun setLogLevel(level: LogLevel) {
+        _uiState.update { state ->
+            state.copy(
+                logLevel = level,
+                logs = if (state.pause) {
+                    state.logs
+                } else {
+                    refilterLogs(level, state.searchQuery)
+                },
+            )
+        }
+    }
+
+    fun setSearchQuery(query: String?) {
+        _uiState.update { state ->
+            state.copy(
+                searchQuery = query,
+                logs = if (state.pause) {
+                    state.logs
+                } else {
+                    refilterLogs(state.logLevel, query)
+                },
+            )
+        }
+    }
+
 }

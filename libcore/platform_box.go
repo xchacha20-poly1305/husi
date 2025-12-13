@@ -1,21 +1,17 @@
 package libcore
 
 import (
-	"context"
 	"net/netip"
 	"sync"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/process"
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
-	N "github.com/sagernet/sing/common/network"
 
 	"libcore/procfs"
 	"libcore/protect"
@@ -37,22 +33,11 @@ type boxPlatformInterfaceWrapper struct {
 	isConstrained          bool*/
 }
 
-var _ platform.Interface = (*boxPlatformInterfaceWrapper)(nil)
+var _ adapter.PlatformInterface = (*boxPlatformInterfaceWrapper)(nil)
 
 type WIFIState interface {
 	GetSSID() string
 	GetBSSID() string
-}
-
-func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
-	wifiState := w.iif.ReadWIFIState()
-	if wifiState == nil {
-		return adapter.WIFIState{}
-	}
-	return adapter.WIFIState{
-		SSID:  wifiState.GetSSID(),
-		BSSID: wifiState.GetBSSID(),
-	}
 }
 
 func (w *boxPlatformInterfaceWrapper) Initialize(networkManager adapter.NetworkManager) error {
@@ -73,7 +58,11 @@ func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl(fd int) error {
 	return nil
 }
 
-func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
+func (w *boxPlatformInterfaceWrapper) UsePlatformInterface() bool {
+	return true
+}
+
+func (w *boxPlatformInterfaceWrapper) OpenInterface(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
 	if len(options.IncludeUID) > 0 || len(options.ExcludeUID) > 0 {
 		return nil, E.New("android: unsupported uid options")
 	}
@@ -98,6 +87,10 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	return tun.New(*options)
 }
 
+func (w *boxPlatformInterfaceWrapper) UsePlatformDefaultInterfaceMonitor() bool {
+	return true
+}
+
 func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(logger logger.Logger) tun.DefaultInterfaceMonitor {
 	return &interfaceMonitor{
 		boxPlatformInterfaceWrapper: w,
@@ -105,7 +98,11 @@ func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(logger logge
 	}
 }
 
-func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, error) {
+func (w *boxPlatformInterfaceWrapper) UsePlatformNetworkInterfaces() bool {
+	return true
+}
+
+func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInterface, error) {
 	interfaceIterator, err := w.iif.GetInterfaces()
 	if err != nil {
 		return nil, err
@@ -136,33 +133,64 @@ func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, 
 	return interfaces, nil
 }
 
-// process.Searcher
+func (w *boxPlatformInterfaceWrapper) RequestPermissionForWIFIState() error {
+	// TODO implement me
+	panic("implement me")
+}
 
-func (w *boxPlatformInterfaceWrapper) FindProcessInfo(_ context.Context, network string, source netip.AddrPort, destination netip.AddrPort) (*process.Info, error) {
+func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
+	wifiState := w.iif.ReadWIFIState()
+	if wifiState == nil {
+		return adapter.WIFIState{}
+	}
+	return adapter.WIFIState{
+		SSID:  wifiState.GetSSID(),
+		BSSID: wifiState.GetBSSID(),
+	}
+}
+
+// Process Searcher
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformConnectionOwnerFinder() bool {
+	return true
+}
+
+func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindConnectionOwnerRequest) (*adapter.ConnectionOwner, error) {
 	var uid int32
 	if w.useProcFS {
+		var source netip.AddrPort
+		var destination netip.AddrPort
+		sourceAddr, _ := netip.ParseAddr(request.SourceAddress)
+		source = netip.AddrPortFrom(sourceAddr, uint16(request.SourcePort))
+		destAddr, _ := netip.ParseAddr(request.DestinationAddress)
+		destination = netip.AddrPortFrom(destAddr, uint16(request.DestinationPort))
+
+		var network string
+		switch request.IpProtocol {
+		case int32(unix.IPPROTO_TCP):
+			network = "tcp"
+		case int32(unix.IPPROTO_UDP):
+			network = "udp"
+		default:
+			return nil, E.New("unknown protocol: ", request.IpProtocol)
+		}
+
 		uid = procfs.ResolveSocketByProcSearch(network, source, destination)
 		if uid == -1 {
 			return nil, E.New("procfs: not found")
 		}
 	} else {
-		var ipProtocol int32
-		switch N.NetworkName(network) {
-		case N.NetworkTCP:
-			ipProtocol = unix.IPPROTO_TCP
-		case N.NetworkUDP:
-			ipProtocol = unix.IPPROTO_UDP
-		default:
-			return nil, E.New("unknown network: ", network)
-		}
 		var err error
-		uid, err = w.iif.FindConnectionOwner(ipProtocol, source.Addr().String(), int32(source.Port()), destination.Addr().String(), int32(destination.Port()))
+		uid, err = w.iif.FindConnectionOwner(request.IpProtocol, request.SourceAddress, request.SourcePort, request.DestinationAddress, request.DestinationPort)
 		if err != nil {
 			return nil, err
 		}
 	}
 	packageName, _ := w.iif.PackageNameByUid(uid)
-	return &process.Info{UserId: uid, PackageName: packageName}, nil
+	return &adapter.ConnectionOwner{
+		UserId:             uid,
+		AndroidPackageName: packageName,
+	}, nil
 }
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformWIFIMonitor() bool {
@@ -175,7 +203,7 @@ func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {
 	return false
 }
 
-func (w *boxPlatformInterfaceWrapper) IncludeAllNetworks() bool {
+func (w *boxPlatformInterfaceWrapper) NetworkExtensionIncludeAllNetworks() bool {
 	// https://sing-box.sagernet.org/manual/misc/tunnelvision/#android
 	return false
 }
@@ -183,7 +211,11 @@ func (w *boxPlatformInterfaceWrapper) IncludeAllNetworks() bool {
 func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 }
 
-func (w *boxPlatformInterfaceWrapper) SendNotification(_ *platform.Notification) error {
+func (w *boxPlatformInterfaceWrapper) UsePlatformNotification() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) SendNotification(_ *adapter.Notification) error {
 	return nil
 }
 

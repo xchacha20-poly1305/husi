@@ -282,7 +282,6 @@
     <string name="route_assets">资源</string>
     <string name="route_manage_assets">管理路由资源</string>
     <string name="enable_log">启用日志</string>
-    <string name="enable_log_sum">调试用途</string>
     <string name="route_rules_official">官方</string>
     <string name="balancer">负载均衡</string>
     <string name="balancer_settings">负载均衡设置</string>
@@ -547,7 +546,6 @@
     <string name="speed_test">速度测试</string>
     <string name="padding">填充</string>
     <string name="custom_rule_provider">自定义规则提供者</string>
-    <string name="pin_log">固定日志</string>
     <string name="client_type">客户端类型</string>
     <string name="done">已完成</string>
     <string name="custom_plugin_prefix">自定义插件前缀</string>
@@ -624,7 +622,6 @@
     <string name="tasker_action_stop_service">停止服务</string>
     <string name="tasker_start_current_profile">当前配置</string>
     <string name="tasker_blurb_start_profile">启动配置 %s</string>
-    <string name="max_log_size">最大日志大小 (kb)</string>
     <string name="process">进程</string>
     <string name="forced_search_process">强制搜索进程</string>
     <string name="disable_process_text">禁用 Process Text</string>
@@ -673,4 +670,6 @@
     <string name="fake_ip_range_6">Fake IP 范围（IPv6）</string>
     <string name="long_click_to_see_name">长按以显示名称</string>
     <string name="provider_naive">NaïveProxy 提供程序</string>
+    <string name="max_log_line">最大日志行数</string>
+    <string name="scroll_to_bottom">滚动到底部</string>
 </resources>

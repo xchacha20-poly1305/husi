@@ -15,7 +15,9 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Properties
+import java.util.TimeZone
 import java.util.regex.Pattern
 
 object CrashHandler : Thread.UncaughtExceptionHandler {
@@ -35,7 +37,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         ProcessPhoenix.triggerRebirth(
             repo.context,
             Intent(repo.context, BlankActivity::class.java)
-                .putExtra("sendLog", "husi Crash"),
+                .putExtra(BlankActivity.EXTRA_LOG_TITLE, "husi Crash"),
         )
     }
 

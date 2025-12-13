@@ -139,7 +139,7 @@ object DataStore {
     var rulesProvider by configurationStore.int(Key.RULES_PROVIDER)
     var customRuleProvider by configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
     var logLevel by configurationStore.int(Key.LOG_LEVEL)
-    var logMaxSize by configurationStore.int(Key.LOG_MAX_SIZE) { 50 }
+    var logMaxLine by configurationStore.int(Key.LOG_MAX_LINE) { 1024 }
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat

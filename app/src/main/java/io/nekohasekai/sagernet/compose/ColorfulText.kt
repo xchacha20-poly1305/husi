@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.compose
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
@@ -15,7 +16,7 @@ import io.nekohasekai.sagernet.compose.theme.LogColors
 private val ansiRegex = Regex("\u001B\\[[;\\d]*m")
 
 @Composable
-fun String.ansiEscape(): AnnotatedString {
+fun String.ansiEscape(highlightQuery: String? = null): AnnotatedString {
     val plainText = replace(ansiRegex, "")
 
     return buildAnnotatedString {
@@ -59,6 +60,21 @@ fun String.ansiEscape(): AnnotatedString {
                     start = ansiSpan.start,
                     end = ansiSpan.end,
                 )
+            }
+        }
+
+        if (!highlightQuery.isNullOrEmpty()) {
+            val highlightStyle = SpanStyle(
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                background = MaterialTheme.colorScheme.tertiaryContainer,
+            )
+            val lowerText = plainText.lowercase()
+            var searchStart = 0
+            while (true) {
+                val index = lowerText.indexOf(highlightQuery, searchStart)
+                if (index < 0) break
+                addStyle(highlightStyle, index, index + highlightQuery.length)
+                searchStart = index + highlightQuery.length
             }
         }
     }

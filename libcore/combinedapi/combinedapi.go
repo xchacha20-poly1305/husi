@@ -17,6 +17,7 @@ import (
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	N "github.com/sagernet/sing/common/network"
+	"github.com/sagernet/sing/common/observable"
 	"github.com/sagernet/sing/service"
 )
 
@@ -33,6 +34,7 @@ type CombinedAPI struct {
 	trafficManager *trafficcontrol.Manager
 	mode           string
 	modeList       []string
+	modeUpdateHook *observable.Subscriber[struct{}]
 	urlTestHistory adapter.URLTestHistoryStorage
 }
 
@@ -122,6 +124,9 @@ func (c *CombinedAPI) SetMode(newMode string) {
 		return
 	}
 	c.mode = newMode
+	if c.modeUpdateHook != nil {
+		c.modeUpdateHook.Emit(struct{}{})
+	}
 	cacheFile := service.FromContext[adapter.CacheFile](c.ctx)
 	if cacheFile != nil {
 		err := cacheFile.StoreMode(newMode)
@@ -130,6 +135,10 @@ func (c *CombinedAPI) SetMode(newMode string) {
 		}
 	}
 	c.logger.Info("updated mode: ", newMode)
+}
+
+func (c *CombinedAPI) SetModeUpdateHook(hook *observable.Subscriber[struct{}]) {
+	c.modeUpdateHook = hook
 }
 
 func (c *CombinedAPI) ModeList() []string {

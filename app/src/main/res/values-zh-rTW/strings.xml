@@ -281,7 +281,6 @@
     <string name="disable">停用</string>
     <string name="auto">自動</string>
     <string name="enable_log">啟用記錄檔</string>
-    <string name="enable_log_sum">用於除錯用途</string>
     <string name="list">列表</string>
     <string name="random">隨機</string>
     <string name="probe_interval">負載平衡器觀測間隔</string>
@@ -542,7 +541,6 @@
     <string name="chain">鏈</string>
     <string name="close">關閉</string>
     <string name="custom_rule_provider">自定義規則提供者</string>
-    <string name="pin_log">固定日誌</string>
     <string name="speed_test">測速</string>
     <string name="client_type">客戶端型別</string>
     <string name="traffic_status">狀態</string>
@@ -621,7 +619,6 @@
     <string name="tasker_action_stop_service">停止服務</string>
     <string name="tasker_start_current_profile">當前設定檔</string>
     <string name="tasker_blurb_start_profile">啟動設定檔 %s</string>
-    <string name="max_log_size">最大日誌大小（KB）</string>
     <string name="process">程序</string>
     <string name="forced_search_process">強制搜尋程序</string>
     <string name="disable_process_text">停用 Process Text</string>
