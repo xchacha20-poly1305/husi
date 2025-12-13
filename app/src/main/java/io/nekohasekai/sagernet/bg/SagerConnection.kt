@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.update
 data class ServiceStatus(
     val state: BaseService.State = BaseService.State.Idle,
     val profileName: String? = null,
-    val message: String? = null,
     val speed: SpeedDisplayData? = null,
 )
 
@@ -67,6 +66,12 @@ class SagerConnection(
     )
     val missingPlugin: SharedFlow<MissingPlugin> = _missingPlugin.asSharedFlow()
 
+    private val _errorMessage = MutableSharedFlow<String>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val errorMessage: SharedFlow<String> = _errorMessage.asSharedFlow()
+
     private val _binderDied = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -81,7 +86,8 @@ class SagerConnection(
             if (state < 0) return // skip private
             val s = BaseService.State.entries[state]
             DataStore.serviceState = s
-            _status.value = ServiceStatus(s, profileName, msg)
+            _status.value = ServiceStatus(s, profileName)
+            if (msg != null) _errorMessage.tryEmit(msg)
         }
 
         override fun cbSpeedUpdate(stats: SpeedDisplayData) {

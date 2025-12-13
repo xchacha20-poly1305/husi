@@ -167,6 +167,12 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        connection.errorMessage.collect { message ->
+            viewModel.showSnackbar(StringOrRes.Direct(message))
+        }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
