@@ -140,10 +140,8 @@ fun ConfigurationScreen(
         },
     ),
     preSelected: Long?,
-    fillMaxSize: Boolean = true,
 ) {
     val context = LocalContext.current
-    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
     var scrollHideVisible by remember { mutableStateOf(true) }
@@ -215,8 +213,6 @@ fun ConfigurationScreen(
         scrollHideVisible = true
     }
 
-    var qrCodeInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
-
     var showAddMenu by remember { mutableStateOf(false) }
     var showAddManualMenu by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
@@ -257,10 +253,10 @@ fun ConfigurationScreen(
 
     Scaffold(
         modifier = modifier
-            .then(if (fillMaxSize) Modifier.fillMaxSize() else Modifier)
+            .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            if (fillMaxSize) TopAppBar(
+            TopAppBar(
                 title = {
                     if (isSearchActive) {
                         OutlinedTextField(
@@ -799,122 +795,184 @@ fun ConfigurationScreen(
             }
         },
     ) { innerPadding ->
-        Column(
+        ConfigurationContent(
             modifier = Modifier
                 .fillMaxSize()
                 .paddingExceptBottom(innerPadding),
-        ) {
-            if (hasGroups) {
-                if (uiState.groups.size > 1) PrimaryScrollableTabRow(
-                    selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
-                    edgePadding = 0.dp,
-                    containerColor = appBarContainerColor,
-                ) {
-                    uiState.groups.forEachIndexed { index, group ->
-                        Tab(
-                            text = { Text(group.displayName()) },
-                            selected = pagerState.currentPage == index,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            },
-                        )
-                    }
+            vm = vm,
+            snackbarState = snackbarState,
+            pagerState = pagerState,
+            appBarContainerColor = appBarContainerColor,
+            preSelected = preSelected,
+            selectCallback = selectCallback,
+            onScrollHideChange = { scrollHideVisible = it },
+        )
+    }
+
+    ConfigurationDialogs(
+        context = context,
+        vm = vm,
+        uiState = uiState,
+    )
+
+    LaunchedEffect(Unit) {
+        mainViewModel.uiEvent.collect { event ->
+            when (event) {
+                is MainViewModelUiEvent.Snackbar -> scope.launch {
+                    snackbarState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
+                    )
                 }
 
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    beyondViewportPageCount = 1,
-                ) { page ->
-                    val group = uiState.groups[page]
-                    val pageViewModel = viewModel<GroupProfilesHolderViewModel>(
-                        key = "group-holder-${group.id}",
-                        factory = object : ViewModelProvider.Factory {
-                            @Suppress("UNCHECKED_CAST")
-                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                return GroupProfilesHolderViewModel(group, preSelected) as T
-                            }
-                        },
+                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
+                    val result = snackbarState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getStringOrRes(event.actionLabel),
+                        duration = SnackbarDuration.Short,
                     )
+                    event.callback(result)
+                }
 
-                    DisposableEffect(group.id) {
-                        vm.registerChild(group.id, pageViewModel)
-                        onDispose {
-                            vm.unregisterChild(group.id)
-                        }
-                    }
+                else -> {}
+            }
+        }
+    }
+}
 
-                    LaunchedEffect(searchQuery) {
-                        pageViewModel.query = searchQuery
-                    }
+@Composable
+fun ConfigurationContent(
+    modifier: Modifier = Modifier,
+    vm: ConfigurationScreenViewModel,
+    snackbarState: SnackbarHostState,
+    pagerState: androidx.compose.foundation.pager.PagerState,
+    appBarContainerColor: androidx.compose.ui.graphics.Color,
+    preSelected: Long?,
+    selectCallback: ((id: Long) -> Unit)?,
+    onScrollHideChange: (Boolean) -> Unit = {},
+) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
 
-                    GroupHolderScreen(
-                        viewModel = pageViewModel,
-                        showActions = selectCallback == null,
-                        onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
-                        needReload = {
+    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val hasGroups = uiState.groups.isNotEmpty()
+    val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
+
+    var qrCodeInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
+
+    Column(modifier = modifier) {
+        if (hasGroups) {
+            if (uiState.groups.size > 1) PrimaryScrollableTabRow(
+                selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
+                edgePadding = 0.dp,
+                containerColor = appBarContainerColor,
+            ) {
+                uiState.groups.forEachIndexed { index, group ->
+                    Tab(
+                        text = { Text(group.displayName()) },
+                        selected = pagerState.currentPage == index,
+                        onClick = {
                             scope.launch {
-                                if (!DataStore.serviceState.started) return@launch
-                                val result = snackbarState.showSnackbar(
-                                    message = context.getString(R.string.need_reload),
-                                    actionLabel = context.getString(R.string.apply),
-                                    duration = SnackbarDuration.Short,
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    repo.reloadService()
-                                }
-                            }
-                        },
-                        showQR = { name, url ->
-                            qrCodeInfo = name to url
-                        },
-                        onCopySuccess = {
-                            scope.launch {
-                                snackbarState.showSnackbar(
-                                    message = context.getString(R.string.copy_success),
-                                    actionLabel = context.getString(android.R.string.ok),
-                                    duration = SnackbarDuration.Short,
-                                )
-                            }
-                        },
-                        showSnackbar = { message ->
-                            scope.launch {
-                                snackbarState.showSnackbar(
-                                    message = context.getStringOrRes(message),
-                                    actionLabel = context.getString(android.R.string.ok),
-                                    duration = SnackbarDuration.Short,
-                                )
-                            }
-                        },
-                        showUndoSnackbar = { count, onUndo ->
-                            scope.launch {
-                                val result = snackbarState.showAndDismissOld(
-                                    message = resources.getQuantityString(
-                                        R.plurals.removed,
-                                        count,
-                                        count,
-                                    ),
-                                    actionLabel = context.getString(R.string.undo),
-                                    duration = SnackbarDuration.Short,
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    onUndo()
-                                }
-                            }
-                        },
-                        onScrollHideChange = { visible ->
-                            if (pagerState.currentPage == page) {
-                                scrollHideVisible = visible
+                                pagerState.animateScrollToPage(index)
                             }
                         },
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                beyondViewportPageCount = 1,
+            ) { page ->
+                val group = uiState.groups[page]
+                val pageViewModel = viewModel<GroupProfilesHolderViewModel>(
+                    key = "group-holder-${group.id}",
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return GroupProfilesHolderViewModel(group, preSelected) as T
+                        }
+                    },
+                )
+
+                DisposableEffect(group.id) {
+                    vm.registerChild(group.id, pageViewModel)
+                    onDispose {
+                        vm.unregisterChild(group.id)
+                    }
+                }
+
+                LaunchedEffect(searchQuery) {
+                    pageViewModel.query = searchQuery
+                }
+
+                GroupHolderScreen(
+                    viewModel = pageViewModel,
+                    showActions = selectCallback == null,
+                    onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
+                    needReload = {
+                        scope.launch {
+                            if (!DataStore.serviceState.started) return@launch
+                            val result = snackbarState.showSnackbar(
+                                message = context.getString(R.string.need_reload),
+                                actionLabel = context.getString(R.string.apply),
+                                duration = SnackbarDuration.Short,
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                repo.reloadService()
+                            }
+                        }
+                    },
+                    showQR = { name, url ->
+                        qrCodeInfo = name to url
+                    },
+                    onCopySuccess = {
+                        scope.launch {
+                            snackbarState.showSnackbar(
+                                message = context.getString(R.string.copy_success),
+                                actionLabel = context.getString(android.R.string.ok),
+                                duration = SnackbarDuration.Short,
+                            )
+                        }
+                    },
+                    showSnackbar = { message ->
+                        scope.launch {
+                            snackbarState.showSnackbar(
+                                message = context.getStringOrRes(message),
+                                actionLabel = context.getString(android.R.string.ok),
+                                duration = SnackbarDuration.Short,
+                            )
+                        }
+                    },
+                    showUndoSnackbar = { count, onUndo ->
+                        scope.launch {
+                            val result = snackbarState.showAndDismissOld(
+                                message = resources.getQuantityString(
+                                    R.plurals.removed,
+                                    count,
+                                    count,
+                                ),
+                                actionLabel = context.getString(R.string.undo),
+                                duration = SnackbarDuration.Short,
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                onUndo()
+                            }
+                        }
+                    },
+                    onScrollHideChange = { visible ->
+                        if (pagerState.currentPage == page) {
+                            onScrollHideChange(visible)
+                        }
+                    },
+                )
+            }
         }
+
+        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
     }
 
     qrCodeInfo?.let {
@@ -931,7 +989,14 @@ fun ConfigurationScreen(
             },
         )
     }
+}
 
+@Composable
+private fun ConfigurationDialogs(
+    context: android.content.Context,
+    vm: ConfigurationScreenViewModel,
+    uiState: ConfigurationUiState,
+) {
     uiState.alertForDelete?.let { alert ->
         AlertDialog(
             onDismissRequest = { vm.dismissAlert() },
@@ -1059,30 +1124,5 @@ fun ConfigurationScreen(
                 }
             },
         )
-    }
-
-    LaunchedEffect(Unit) {
-        mainViewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.Snackbar -> scope.launch {
-                    snackbarState.showSnackbar(
-                        message = context.getStringOrRes(event.message),
-                        actionLabel = context.getString(android.R.string.ok),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is MainViewModelUiEvent.SnackbarWithAction -> scope.launch {
-                    val result = snackbarState.showSnackbar(
-                        message = context.getStringOrRes(event.message),
-                        actionLabel = context.getStringOrRes(event.actionLabel),
-                        duration = SnackbarDuration.Short,
-                    )
-                    event.callback(result)
-                }
-
-                else -> {}
-            }
-        }
     }
 }

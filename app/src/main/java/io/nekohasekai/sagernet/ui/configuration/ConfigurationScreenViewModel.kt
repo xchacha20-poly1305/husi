@@ -56,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipInputStream
 
 @Immutable
-data class ConfigurationFragmentUiState(
+data class ConfigurationUiState(
     val groups: List<ProxyGroup> = emptyList(),
     val testState: ConfigurationTestUiState? = null,
     val alertForDelete: AlertForDelete? = null,
@@ -112,7 +112,7 @@ enum class TestType {
 class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : ViewModel() {
 
 
-    private val _uiState = MutableStateFlow(ConfigurationFragmentUiState())
+    private val _uiState = MutableStateFlow(ConfigurationUiState())
     val uiState = _uiState.asStateFlow()
 
     val selectedGroup = DataStore.configurationStore.longFlow(Key.PROFILE_GROUP)
