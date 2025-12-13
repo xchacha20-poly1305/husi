@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +26,9 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -92,6 +93,7 @@ class SwitchActivity : ComposeActivity() {
                         .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
                     pageCount = { uiState.groups.size },
                 )
+                var isPageRestored by remember { mutableStateOf(false) }
 
                 LaunchedEffect(selectedGroup, hasGroups) {
                     if (!hasGroups) return@LaunchedEffect
@@ -100,13 +102,16 @@ class SwitchActivity : ComposeActivity() {
                     if (target != pagerState.currentPage) {
                         pagerState.scrollToPage(target)
                     }
+                    isPageRestored = true
                 }
-                LaunchedEffect(pagerState.currentPage, hasGroups) {
+                LaunchedEffect(pagerState.currentPage, hasGroups, isPageRestored) {
                     if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
                         return@LaunchedEffect
                     }
                     val groupID = uiState.groups[pagerState.currentPage].id
-                    DataStore.selectedGroup = groupID
+                    if (isPageRestored) {
+                        DataStore.selectedGroup = groupID
+                    }
                     vm.requestFocusIfNotHave(groupID)
                 }
 
