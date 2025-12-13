@@ -295,7 +295,6 @@
     <string name="probe_interval">الفاصل الزمني لرصد الموازن</string>
     <string name="random">عشوائي</string>
     <string name="list">قائمة</string>
-    <string name="enable_log_sum">من أجل إصلاح الخلل</string>
     <string name="enable_log">تمكين التقارير</string>
     <string name="auto">تلقائي</string>
     <string name="disable">إلغاء</string>

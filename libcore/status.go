@@ -8,7 +8,7 @@ import (
 
 	"libcore/combinedapi/trafficcontrol"
 
-	"github.com/sagernet/sing-box/common/process"
+	"github.com/sagernet/sing-box/adapter"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
 	M "github.com/sagernet/sing/common/metadata"
@@ -130,11 +130,11 @@ func generateBound(bound, boundType string) string {
 	return bound + "/" + boundType
 }
 
-func processToString(info *process.Info) string {
-	if info == nil {
+func processToString(owner *adapter.ConnectionOwner) string {
+	if owner == nil {
 		return ""
 	}
-	return F.ToString("[", info.UserId, "] ", info.PackageName)
+	return F.ToString("[", owner.UserId, "] ", owner.AndroidPackageName)
 }
 
 // GetMemory returns memory status.

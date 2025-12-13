@@ -270,7 +270,6 @@
     <string name="disable">غیرفعال کردن</string>
     <string name="auto">خودکار</string>
     <string name="enable_log">فعال کردن لاگ</string>
-    <string name="enable_log_sum">برای اهداف اشکال زدایی</string>
     <string name="list">فهرست</string>
     <string name="random">تصادفی</string>
     <string name="probe_interval">فاصله مشاهده متعادل کننده</string>
@@ -533,7 +532,6 @@
     <string name="chain">زنجیره</string>
     <string name="close">بستن</string>
     <string name="have_reset_network">تمام شبکه‌ها بازنشانی شده‌اند</string>
-    <string name="pin_log">پین کردن لاگ</string>
     <string name="client_type">نوع کاربر</string>
     <string name="done">تکمیل</string>
     <string name="custom_plugin_prefix">پیشوند افزونه سفارشی</string>

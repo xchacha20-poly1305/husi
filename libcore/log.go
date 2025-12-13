@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"libcore/ringqueue"
+
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -32,7 +34,29 @@ func LogError(l string) {
 }
 
 func LogClear() {
-	platformLogWrapper.truncate()
+	if platformLogWrapper == nil {
+		return
+	}
+	platformLogWrapper.Clear()
+}
+
+func SetLogLevel(level string) {
+	if logFactory == nil {
+		return
+	}
+	logLevel, err := log.ParseLevel(level)
+	if err != nil {
+		log.Error(E.Cause(err, "parse log level"))
+		return
+	}
+	logFactory.SetLevel(logLevel)
+}
+
+func RegisterLogWatcher(watcher LogWatcher) {
+	if platformLogWrapper == nil {
+		return
+	}
+	platformLogWrapper.RegisterWatcher(watcher)
 }
 
 var (
@@ -41,44 +65,28 @@ var (
 	logFactory log.Factory
 )
 
-func setupLog(maxSize int64, path string, level log.Level, notTruncateOnStart bool) (err error) {
+func setupLog(capacity int, path string, level log.Level, notTruncateOnStart bool) (err error) {
 	if platformLogWrapper != nil {
 		return
 	}
 
 	var file *os.File
-	file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0o644)
-	if err == nil {
-		fd := int(file.Fd())
-		if !notTruncateOnStart {
-			_ = unix.Flock(fd, unix.LOCK_EX)
-			// Check whether log need truncate
-			if size, _ := file.Seek(0, io.SeekEnd); size > maxSize {
-				// read oldBytes for maxSize
-				_, _ = file.Seek(-maxSize, io.SeekCurrent)
-				oldBytes, err := io.ReadAll(file)
-				if err == nil {
-					// truncate file
-					err = file.Truncate(0)
-					// write oldBytes
-					if err == nil {
-						_, _ = file.Write(oldBytes)
-					}
-				}
-			}
-			_ = unix.Flock(fd, unix.LOCK_UN)
-		}
-		// redirect stderr
-		_ = unix.Dup3(fd, int(os.Stderr.Fd()), 0)
+	flags := os.O_CREATE | os.O_WRONLY
+	if notTruncateOnStart {
+		flags |= os.O_APPEND
+	} else {
+		flags |= os.O_TRUNC
 	}
-
+	file, err = os.OpenFile(path, flags, 0o644)
 	if err != nil {
 		_, _ = os.Stderr.WriteString(E.Cause(err, "open log").Error())
+		return
 	}
+	fd := int(file.Fd())
+	// redirect stderr
+	_ = unix.Dup3(fd, int(os.Stderr.Fd()), 0)
 
-	platformLogWrapper = &logWriter{
-		writer: file,
-	}
+	platformLogWrapper = newLogWriter(file, capacity)
 	logFactory = log.NewDefaultFactory(
 		context.Background(),
 		log.Formatter{
@@ -126,20 +134,55 @@ func cleanLogCache(cacheDir string) {
 	}
 }
 
+type LogItem struct {
+	level   log.Level
+	Message string
+}
+
+func (l *LogItem) GetLevel() int16 {
+	return int16(l.level)
+}
+
+type LogItemIterator interface {
+	Next() *LogItem
+	HasNext() bool
+	Length() int32
+}
+
+type LogWatcher interface {
+	AddAll(LogItemIterator)
+	Append(*LogItem)
+}
+
 var _ log.PlatformWriter = (*logWriter)(nil)
 
 type logWriter struct {
-	writer io.Writer
+	writer  io.Writer
+	buffer  *ringqueue.RingQueue[*LogItem]
+	watcher LogWatcher
+}
+
+func newLogWriter(writer io.Writer, capacity int) *logWriter {
+	return &logWriter{
+		writer: writer,
+		buffer: ringqueue.New[*LogItem](capacity),
+	}
 }
 
 func (w *logWriter) DisableColors() bool {
 	return false
 }
 
-const LogSplitFlag = "\n\n"
-
-func (w *logWriter) WriteMessage(_ log.Level, message string) {
-	_, _ = io.WriteString(w.writer, LogSplitFlag+message)
+func (w *logWriter) WriteMessage(level log.Level, message string) {
+	item := &LogItem{
+		level:   level,
+		Message: message,
+	}
+	w.buffer.Add(item)
+	if w.watcher != nil {
+		w.watcher.Append(item)
+	}
+	_, _ = io.WriteString(w.writer, message+"\n")
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -165,5 +208,20 @@ func (w *logWriter) truncate() {
 }
 
 func (w *logWriter) Close() error {
+	w.buffer.Clear()
 	return common.Close(w.writer)
+}
+
+func (w *logWriter) RegisterWatcher(watcher LogWatcher) {
+	if w.watcher != nil {
+		w.watcher = nil
+		return
+	}
+	w.watcher = watcher
+	watcher.AddAll(newIterator(w.buffer.All()))
+}
+
+func (w *logWriter) Clear() {
+	w.truncate()
+	w.buffer.Clear()
 }

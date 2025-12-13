@@ -4,6 +4,7 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/observable"
 
 	"libcore/plugin/pluginoption"
 )
@@ -51,19 +52,23 @@ func (b *BoxInstance) watchGroupChange(urlTests []*group.URLTest) {
 		tagCache[urlTest.Tag()] = urlTest.Now()
 	}
 
-	hook := make(chan struct{}, 1) // Prevent not receive notify when checking
+	hook := observable.NewSubscriber[struct{}](1) // Prevent not receive notification when checking
 	b.api.HistoryStorage().SetHook(hook)
+	subscription, done := hook.Subscription()
 	go func() {
 		for {
 			select {
 			case <-b.ctx.Done():
+				_ = hook.Close()
 				return
-			case <-hook:
+			case <-done:
+				return
+			case <-subscription:
 			drainLoop:
 				// clean up hook channel
 				for {
 					select {
-					case <-hook:
+					case <-subscription:
 					default:
 						break drainLoop
 					}

@@ -675,26 +675,25 @@ fun SettingsScreen(
                         item = listPreferenceMenuItem { AnnotatedString(logLevelString(it)) },
                     )
                 }
-                item(Key.LOG_MAX_SIZE, PreferenceType.TEXT_FIELD) {
+                item(Key.LOG_MAX_LINE, PreferenceType.TEXT_FIELD) {
                     val value by DataStore.configurationStore
-                        .intFlow(Key.LOG_MAX_SIZE, 50)
-                        .collectAsStateWithLifecycle(50f)
+                        .intFlow(Key.LOG_MAX_LINE, 1024)
+                        .collectAsStateWithLifecycle(1024)
                     var previewValue by remember { mutableFloatStateOf(value.toFloat()) }
                     SliderPreference(
                         value = value.toFloat(),
-                        onValueChange = { DataStore.logMaxSize = it.toInt() },
+                        onValueChange = { DataStore.logMaxLine = it.toInt() },
                         sliderValue = previewValue,
                         onSliderValueChange = { previewValue = it },
-                        title = { Text(stringResource(R.string.max_log_size)) },
-                        valueRange = 50f..1024f,
-                        valueSteps = 15,
+                        title = { Text(stringResource(R.string.max_log_line)) },
+                        valueRange = 1024f..1024f*64f,
+                        valueSteps = 128,
                         icon = {
                             Icon(
                                 ImageVector.vectorResource(R.drawable.description),
                                 null,
                             )
                         },
-                        summary = { Text(value.toString()) },
                         valueText = { Text(previewValue.toInt().toString()) },
                     )
                 }
@@ -1551,7 +1550,6 @@ fun SettingsScreen(
                                 null,
                             )
                         },
-                        summary = { Text(value.toString()) },
                         valueText = { Text(previewValue.toInt().toString()) },
                     )
                 }
@@ -1574,7 +1572,6 @@ fun SettingsScreen(
                                 null,
                             )
                         },
-                        summary = { Text(value.toString()) },
                         valueText = { Text(previewValue.toInt().toString()) },
                     )
                 }

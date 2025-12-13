@@ -1,13 +1,9 @@
 package libcore
 
 import (
-	"context"
-	"net/netip"
 	"os"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/process"
-	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
@@ -15,7 +11,7 @@ import (
 	"github.com/sagernet/sing/common/x/list"
 )
 
-var _ platform.Interface = platformInterfaceStub{}
+var _ adapter.PlatformInterface = platformInterfaceStub{}
 
 type platformInterfaceStub struct{}
 
@@ -31,23 +27,39 @@ func (p platformInterfaceStub) AutoDetectInterfaceControl(_ int) error {
 	return nil
 }
 
-func (p platformInterfaceStub) OpenTun(_ *tun.Options, _ option.TunPlatformOptions) (tun.Tun, error) {
+func (p platformInterfaceStub) UsePlatformInterface() bool {
+	return false
+}
+
+func (p platformInterfaceStub) OpenInterface(_ *tun.Options, _ option.TunPlatformOptions) (tun.Tun, error) {
 	return nil, os.ErrInvalid
+}
+
+func (p platformInterfaceStub) UsePlatformDefaultInterfaceMonitor() bool {
+	return true
 }
 
 func (p platformInterfaceStub) CreateDefaultInterfaceMonitor(_ logger.Logger) tun.DefaultInterfaceMonitor {
 	return interfaceMonitorStub{}
 }
 
-func (p platformInterfaceStub) Interfaces() ([]adapter.NetworkInterface, error) {
+func (p platformInterfaceStub) UsePlatformNetworkInterfaces() bool {
+	return false
+}
+
+func (p platformInterfaceStub) NetworkInterfaces() ([]adapter.NetworkInterface, error) {
 	return nil, os.ErrInvalid
+}
+
+func (p platformInterfaceStub) RequestPermissionForWIFIState() error {
+	return os.ErrInvalid
 }
 
 func (p platformInterfaceStub) UnderNetworkExtension() bool {
 	return false
 }
 
-func (p platformInterfaceStub) IncludeAllNetworks() bool {
+func (p platformInterfaceStub) NetworkExtensionIncludeAllNetworks() bool {
 	return false
 }
 
@@ -62,11 +74,19 @@ func (p platformInterfaceStub) ReadWIFIState() adapter.WIFIState {
 	return adapter.WIFIState{}
 }
 
-func (p platformInterfaceStub) FindProcessInfo(_ context.Context, _ string, _ netip.AddrPort, _ netip.AddrPort) (*process.Info, error) {
-	return &process.Info{}, nil
+func (p platformInterfaceStub) UsePlatformConnectionOwnerFinder() bool {
+	return true
 }
 
-func (p platformInterfaceStub) SendNotification(_ *platform.Notification) error {
+func (p platformInterfaceStub) FindConnectionOwner(_ *adapter.FindConnectionOwnerRequest) (*adapter.ConnectionOwner, error) {
+	return nil, os.ErrInvalid
+}
+
+func (p platformInterfaceStub) UsePlatformNotification() bool {
+	return false
+}
+
+func (p platformInterfaceStub) SendNotification(_ *adapter.Notification) error {
 	return nil
 }
 

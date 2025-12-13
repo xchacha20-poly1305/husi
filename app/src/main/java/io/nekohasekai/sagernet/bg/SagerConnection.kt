@@ -11,15 +11,18 @@ import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
+import io.nekohasekai.sagernet.aidl.LogItem
+import io.nekohasekai.sagernet.aidl.LogItemList
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 
 @Immutable
@@ -55,28 +58,29 @@ class SagerConnection(
     }
 
     private val _status = MutableStateFlow(ServiceStatus())
-    val status: StateFlow<ServiceStatus> = _status.asStateFlow()
+    val status = _status.asStateFlow()
 
     private val _service = MutableStateFlow<ISagerNetService?>(null)
-    val service: StateFlow<ISagerNetService?> = _service.asStateFlow()
+    val service = _service.asStateFlow()
+
+    private val _logChannel = Channel<List<LogItem>>(capacity = 1)
+    val logLine = _logChannel.receiveAsFlow()
+
+    fun clearLogBuffer() {
+        while (_logChannel.tryReceive().isSuccess) { }
+    }
 
     private val _missingPlugin = MutableSharedFlow<MissingPlugin>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val missingPlugin: SharedFlow<MissingPlugin> = _missingPlugin.asSharedFlow()
+    val missingPlugin = _missingPlugin.asSharedFlow()
 
     private val _errorMessage = MutableSharedFlow<String>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     val errorMessage: SharedFlow<String> = _errorMessage.asSharedFlow()
-
-    private val _binderDied = MutableSharedFlow<Unit>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    val binderDied: SharedFlow<Unit> = _binderDied.asSharedFlow()
 
     private var connectionActive = false
     private var callbackRegistered = false
@@ -94,6 +98,10 @@ class SagerConnection(
             _status.update {
                 it.copy(speed = stats)
             }
+        }
+
+        override fun newLogs(lines: LogItemList) {
+            _logChannel.trySend(lines.list)
         }
 
         override fun missingPlugin(profileName: String, pluginName: String) {
@@ -138,7 +146,6 @@ class SagerConnection(
     override fun binderDied() {
         _service.value = null
         callbackRegistered = false
-        _binderDied.tryEmit(Unit)
     }
 
     private fun unregisterCallback() {

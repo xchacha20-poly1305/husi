@@ -274,7 +274,6 @@
     <string name="disable">Desactivar</string>
     <string name="auto">Automático</string>
     <string name="enable_log">Activar registro</string>
-    <string name="enable_log_sum">Para propósitos de depuración</string>
     <string name="list">Lista</string>
     <string name="random">Aleatorio</string>
     <string name="leastPing" translatable="false">Ping</string>
@@ -536,7 +535,6 @@
     <string name="ensure_close_all">¿Estás seguro de cerrar %s conexiones?</string>
     <string name="padding">Relleno</string>
     <string name="custom_rule_provider">Proveedor de reglas personalizadas</string>
-    <string name="pin_log">Fijar registro</string>
     <string name="client_type">Tipo de cliente</string>
     <string name="done">Hecho</string>
     <string name="custom_plugin_prefix">Prefijo de plugin personalizado</string>

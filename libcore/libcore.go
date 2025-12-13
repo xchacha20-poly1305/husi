@@ -12,7 +12,7 @@ import (
 const ProtectPath = "protect_path"
 
 func InitCore(process, cachePath, internalAssets, externalAssets string,
-	maxLogSizeKb int32, logLevel int32,
+	maxLogLines int32, logLevel int32,
 	useOfficialAssets bool,
 	debugMode bool,
 ) {
@@ -26,10 +26,10 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	internalAssetsPath = internalAssets
 
 	// Set up log
-	if maxLogSizeKb < 50 {
-		maxLogSizeKb = 50
+	if maxLogLines < 50 {
+		maxLogLines = 50
 	}
-	_ = setupLog(int64(maxLogSizeKb)*1024, filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), isBgProcess)
+	_ = setupLog(int(maxLogLines), filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), isBgProcess)
 
 	if isBgProcess {
 		if debugMode {

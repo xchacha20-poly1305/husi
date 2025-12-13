@@ -82,7 +82,7 @@ func CheckConfig(configContent string) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	service.MustRegister[platformInterfaceStub](ctx, platformInterfaceStub{})
+	service.MustRegister[adapter.PlatformInterface](ctx, platformInterfaceStub{})
 	instance, err := box.New(box.Options{
 		Options: options,
 		Context: ctx,

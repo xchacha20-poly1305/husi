@@ -10,7 +10,6 @@ import (
 	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/deprecated"
-	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -62,7 +61,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		iif:       platformInterface,
 		forTest:   forTest,
 	}
-	service.MustRegister[platform.Interface](ctx, interfaceWrapper)
+	service.MustRegister[adapter.PlatformInterface](ctx, interfaceWrapper)
 
 	if !forTest {
 		service.MustRegister[deprecated.Manager](ctx, deprecated.NewStderrManager(log.StdLogger()))

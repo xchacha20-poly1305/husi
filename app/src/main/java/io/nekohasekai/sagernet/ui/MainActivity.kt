@@ -5,8 +5,11 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.theme.AppTheme
+import io.nekohasekai.sagernet.database.DataStore
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 class MainActivity : ComposeActivity() {
@@ -18,9 +21,11 @@ class MainActivity : ComposeActivity() {
 
         connection.connect(this)
         lifecycleScope.launch {
-            connection.binderDied.collect {
-                connection.reconnect(this@MainActivity)
-            }
+            DataStore.configurationStore.stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                .drop(1)
+                .collect {
+                    connection.reconnect(this@MainActivity)
+                }
         }
 
         when (intent.action) {
