@@ -23,7 +23,7 @@ jobs:
         run: git submodule status 'plugin/naive/*' > naive_status
       - name: Naive Cache
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/naive/src/main/jniLibs/${{ matrix.arch }}
@@ -51,25 +51,25 @@ jobs:
           distribution: 'temurin'
           java-version: 21
       - name: Naive Cache (armeabi-v7a)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/naive/src/main/jniLibs/armeabi-v7a
           key: naive-armeabi-v7a-${{ hashFiles('bin/plugin/naive/*', 'naive_status') }}
       - name: Naive Cache (arm64-v8a)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/naive/src/main/jniLibs/arm64-v8a
           key: naive-arm64-v8a-${{ hashFiles('bin/plugin/naive/*', 'naive_status') }}
       - name: Naive Cache (x86)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/naive/src/main/jniLibs/x86
           key: naive-x86-${{ hashFiles('bin/plugin/naive/*', 'naive_status') }}
       - name: Naive Cache (x86_64)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             plugin/naive/src/main/jniLibs/x86_64
@@ -86,7 +86,7 @@ jobs:
           APK=$(find plugin/naive/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname "$APK")
           echo "APK=$APK" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: APKs
           path: ${{ env.APK }}
@@ -99,7 +99,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Download Artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: APKs
           path: artifacts/

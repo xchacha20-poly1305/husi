@@ -10,6 +10,7 @@ import (
 
 	// Use it to download binary library of Android only
 	_ "libcore/plugin/naive/android"
+	"libcore/plugin/pluginoption"
 
 	"github.com/sagernet/cronet-go"
 	"github.com/sagernet/sing-box/adapter"
@@ -17,7 +18,6 @@ import (
 	"github.com/sagernet/sing-box/common/dialer"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
-	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 	M "github.com/sagernet/sing/common/metadata"
@@ -25,7 +25,7 @@ import (
 )
 
 func RegisterOutbound(registry *outbound.Registry) {
-	outbound.Register[option.NaiveOutboundOptions](registry, C.TypeNaive, NewOutbound)
+	outbound.Register[pluginoption.NaiveOutboundOptions](registry, C.TypeNaive, NewOutbound)
 }
 
 type Outbound struct {
@@ -35,7 +35,7 @@ type Outbound struct {
 	client *cronet.NaiveClient
 }
 
-func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options option.NaiveOutboundOptions) (adapter.Outbound, error) {
+func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options pluginoption.NaiveOutboundOptions) (adapter.Outbound, error) {
 	if options.TLS == nil || !options.TLS.Enabled {
 		return nil, C.ErrTLSRequired
 	}
