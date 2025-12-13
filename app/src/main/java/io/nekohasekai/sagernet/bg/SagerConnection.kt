@@ -172,4 +172,9 @@ class SagerConnection(
         _service.value = null
         _status.value = ServiceStatus()
     }
+
+    fun reconnect(context: Context) {
+        disconnect(context)
+        connect(context)
+    }
 }
