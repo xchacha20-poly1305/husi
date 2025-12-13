@@ -84,7 +84,7 @@ type HTTPResponse interface {
 	GetHeader(key string) string
 
 	// GetContentString returns server content string in response.
-	GetContentString() (*StringWrapper, error)
+	GetContentString() (string, error)
 
 	// WriteTo writes content to the file of `path`.
 	// callback could be nil
@@ -275,26 +275,25 @@ func (h *httpResponse) errorString() string {
 	if err != nil {
 		return F.ToString("HTTP ", h.Response.Status)
 	}
-	httpValue := content.Value
-	if len(httpValue) > 100 {
-		httpValue = httpValue[:100] + " ..."
+	if len(content) > 100 {
+		content = content[:100] + " ..."
 	}
-	return F.ToString("HTTP ", h.Response.Status, ": ", httpValue)
+	return F.ToString("HTTP ", h.Response.Status, ": ", content)
 }
 
 func (h *httpResponse) GetHeader(key string) string {
 	return h.Response.Header.Get(key)
 }
 
-func (h *httpResponse) GetContentString() (*StringWrapper, error) {
+func (h *httpResponse) GetContentString() (string, error) {
 	h.getContentOnce.Do(func() {
 		defer h.Body.Close()
 		h.content, h.contentError = io.ReadAll(h.Body)
 	})
 	if h.contentError != nil {
-		return nil, h.contentError
+		return "", h.contentError
 	}
-	return wrapString(string(h.content)), nil
+	return string(h.content), nil
 }
 
 func (h *httpResponse) WriteTo(path string, callback CopyCallback) error {

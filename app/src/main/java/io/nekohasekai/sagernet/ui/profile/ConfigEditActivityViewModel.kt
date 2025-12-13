@@ -159,7 +159,7 @@ internal class ConfigEditActivityViewModel : ViewModel() {
         if (origin.isNullOrBlank()) {
             return ""
         }
-        return Libcore.formatConfig(origin.toString()).value
+        return Libcore.formatConfig(origin.toString())
     }
 
     suspend fun checkConfig(text: String) {
