@@ -14,7 +14,7 @@ require (
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/gomobile v0.1.9
 	github.com/sagernet/sing v0.8.0-beta.6.0.20251207063731-56fd482ce1c6
-	github.com/sagernet/sing-box v1.12.13-0.20251212132234-51e067e320f6
+	github.com/sagernet/sing-box v1.13.0-alpha.28
 	github.com/sagernet/sing-tun v0.8.0-beta.11
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
