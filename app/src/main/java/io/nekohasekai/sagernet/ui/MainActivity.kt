@@ -4,8 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.theme.AppTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComposeActivity() {
 
@@ -15,6 +17,11 @@ class MainActivity : ComposeActivity() {
         super.onCreate(savedInstanceState)
 
         connection.connect(this)
+        lifecycleScope.launch {
+            connection.binderDied.collect {
+                connection.reconnect(this@MainActivity)
+            }
+        }
 
         when (intent.action) {
             Intent.ACTION_VIEW -> onNewIntent(intent)
