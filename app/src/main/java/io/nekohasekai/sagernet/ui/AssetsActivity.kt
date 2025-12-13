@@ -191,6 +191,20 @@ private fun AssetsScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AssetsActivityUiEvent.Snackbar -> scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = context.getStringOrRes(event.message),
+                        actionLabel = context.getString(android.R.string.ok),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
