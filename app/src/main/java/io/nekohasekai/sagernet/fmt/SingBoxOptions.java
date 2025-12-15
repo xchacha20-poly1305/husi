@@ -435,6 +435,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -994,6 +1000,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -1078,6 +1090,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -1352,6 +1370,8 @@ public class SingBoxOptions {
 
         public String netns;
 
+        public Boolean disable_tcp_keep_alive;
+
         public String tcp_keep_alive;
 
         public String tcp_keep_alive_interval;
@@ -1517,6 +1537,8 @@ public class SingBoxOptions {
 
         public String netns;
 
+        public Boolean disable_tcp_keep_alive;
+
         public String tcp_keep_alive;
 
         public String tcp_keep_alive_interval;
@@ -1579,6 +1601,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -1625,6 +1653,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -1685,6 +1719,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -1766,6 +1806,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -1822,6 +1868,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -1881,6 +1933,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -1944,6 +2002,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -2000,6 +2064,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2076,6 +2146,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -2140,6 +2216,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2207,6 +2289,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -2269,6 +2357,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2337,6 +2431,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -2393,6 +2493,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2482,6 +2588,8 @@ public class SingBoxOptions {
 
         public Map<String, List<String>> extra_headers;
 
+        public UDPOverTCPOptions udp_over_tcp;
+
         // Generate note: nested type OutboundTLSOptionsContainer
         public OutboundTLSOptions tls;
 
@@ -2529,6 +2637,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2580,6 +2694,12 @@ public class SingBoxOptions {
 
         public Boolean tcp_multi_path;
 
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
         public Boolean udp_fragment;
 
         public DomainResolveOptions domain_resolver;
@@ -2623,6 +2743,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2671,6 +2797,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2721,6 +2853,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 
@@ -2773,6 +2911,12 @@ public class SingBoxOptions {
         public Boolean tcp_fast_open;
 
         public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
 
         public Boolean udp_fragment;
 

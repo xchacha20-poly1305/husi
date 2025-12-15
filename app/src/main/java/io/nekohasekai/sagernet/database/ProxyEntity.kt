@@ -374,7 +374,6 @@ data class ProxyEntity(
                 val bean = naiveBean!!
                 bean.noPostQuantum
                         || bean.proto != "https"
-                        || bean.udpOverTcp
                         || DataStore.providerNaive == ProtocolProvider.PLUGIN
             }
 
