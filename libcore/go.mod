@@ -8,7 +8,7 @@ require (
 	github.com/klauspost/compress v1.18.0
 	github.com/miekg/dns v1.1.68
 	github.com/sagernet/cronet-go v0.0.0-20251212022311-629f90088dc7
-	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20251212141048-e53eb0672e59
+	github.com/sagernet/cronet-go/lib/android_386 v0.0.1-140.0.7339.123-2
 	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251212141048-e53eb0672e59
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251212141048-e53eb0672e59
