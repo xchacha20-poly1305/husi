@@ -683,4 +683,6 @@
     <string name="fake_ip_range_6">Диапазон поддельных IP (IPv6)</string>
     <string name="provider_naive">Провайдер NaïveProxy</string>
     <string name="long_click_to_see_name">Удерживайте, чтобы увидеть название</string>
+    <string name="max_log_line">Максимум строк в журнале</string>
+    <string name="scroll_to_bottom">Прокрутить вниз</string>
 </resources>
