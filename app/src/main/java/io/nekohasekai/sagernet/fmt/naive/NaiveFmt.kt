@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.buildHeader
 import io.nekohasekai.sagernet.fmt.parseBoxOutbound
 import io.nekohasekai.sagernet.fmt.parseBoxTLS
+import io.nekohasekai.sagernet.fmt.parseBoxUot
 import io.nekohasekai.sagernet.fmt.parseHeader
 import io.nekohasekai.sagernet.ktx.JSONMap
 import io.nekohasekai.sagernet.ktx.blankAsNull
@@ -126,6 +127,7 @@ fun parseNaiveOutbound(json: JSONMap): NaiveBean = NaiveBean().apply {
             "username" -> username = value.toString()
             "password" -> password = value.toString()
             "insecure_concurrency" -> insecureConcurrency = value.toString().toIntOrNull()
+            "udp_over_tcp" -> udpOverTcp = parseBoxUot(value)
 
             "extra_headers" -> (value as? JSONObject)?.map?.let(::parseHeader)?.let {
                 extraHeaders = it.mapNotNull { entry ->
