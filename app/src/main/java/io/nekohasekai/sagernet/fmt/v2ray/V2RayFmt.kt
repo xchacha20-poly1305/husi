@@ -415,7 +415,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         "ws" -> {
             return V2RayTransportOptions_V2RayWebsocketOptions().apply {
                 type = TRANSPORT_WS
-                headers = bean.headers.blankAsNull()?.let(::buildHeader)
+                headers = bean.headers.blankAsNull()?.let(::buildHeader) ?: mutableMapOf()
 
                 if (bean.host.isNotBlank()) {
                     headers["Host"] = bean.host.listByLineOrComma()
