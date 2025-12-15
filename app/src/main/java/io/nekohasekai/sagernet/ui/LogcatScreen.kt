@@ -25,8 +25,10 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -133,7 +135,7 @@ fun LogcatScreen(
                 title = {
                     if (searchMode) {
                         OutlinedTextField(
-                            value = uiState.searchQuery ?: "",
+                            value = uiState.searchQuery.orEmpty(),
                             onValueChange = { viewModel.setSearchQuery(it.ifEmpty { null }) },
                             placeholder = { Text(stringResource(android.R.string.search_go)) },
                             modifier = Modifier.fillMaxWidth(),
@@ -171,59 +173,63 @@ fun LogcatScreen(
                     }
                 },
                 actions = {
-                    if (searchMode) {
+                    if (searchMode) return@TopAppBar
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.search),
+                        contentDescription = stringResource(android.R.string.search_go),
+                        onClick = { searchMode = true },
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(
+                            if (uiState.pause) {
+                                R.drawable.play_arrow
+                            } else {
+                                R.drawable.pause
+                            },
+                        ),
+                        contentDescription = stringResource(R.string.pause),
+                        onClick = viewModel::togglePause,
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.share),
+                        contentDescription = stringResource(R.string.logcat),
+                        onClick = { showBottomSheet = true },
+                    )
+                    Box {
                         SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.search),
-                            contentDescription = stringResource(android.R.string.search_go),
-                            onClick = { searchMode = true },
+                            imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                            contentDescription = stringResource(R.string.more),
+                            onClick = { expandMenu = true },
                         )
-                    } else {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(
-                                if (uiState.pause) {
-                                    R.drawable.play_arrow
-                                } else {
-                                    R.drawable.pause
+                        DropdownMenu(
+                            expanded = expandMenu,
+                            onDismissRequest = { expandMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clear_logcat)) },
+                                onClick = viewModel::clearLog,
+                                leadingIcon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.delete_sweep), null)
                                 },
-                            ),
-                            contentDescription = stringResource(R.string.pause),
-                            onClick = viewModel::togglePause,
-                        )
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.share),
-                            contentDescription = stringResource(R.string.logcat),
-                            onClick = { showBottomSheet = true },
-                        )
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.delete_sweep),
-                            contentDescription = stringResource(R.string.clear_logcat),
-                            onClick = viewModel::clearLog,
-                        )
-                        Box {
-                            SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
-                                contentDescription = stringResource(R.string.more),
-                                onClick = { expandMenu = true },
+                                colors = MenuDefaults.itemColors().copy(
+                                    leadingIconColor = MaterialTheme.colorScheme.error,
+                                ),
                             )
-                            DropdownMenu(
-                                expanded = expandMenu,
-                                onDismissRequest = { expandMenu = false },
-                            ) {
-                                LogLevel.entries.forEach { level ->
-                                    DropdownMenuItem(
-                                        text = { Text(level.name) },
-                                        onClick = {
-                                            viewModel.setLogLevel(level)
-                                            expandMenu = false
-                                        },
-                                        trailingIcon = {
-                                            RadioButton(
-                                                selected = uiState.logLevel == level,
-                                                onClick = null,
-                                            )
-                                        },
-                                    )
-                                }
+                            HorizontalDivider()
+                            LogLevel.entries.forEach { level ->
+                                DropdownMenuItem(
+                                    text = { Text(level.name) },
+                                    onClick = {
+                                        viewModel.setLogLevel(level)
+                                        expandMenu = false
+                                    },
+                                    trailingIcon = {
+                                        RadioButton(
+                                            selected = uiState.logLevel == level,
+                                            onClick = null,
+                                        )
+                                    },
+                                )
                             }
                         }
                     }
@@ -336,7 +342,7 @@ fun LogcatScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.6f),
+                .padding(16.dp),
         ) {
             SheetActionRow(
                 text = stringResource(R.string.action_copy),
@@ -344,8 +350,8 @@ fun LogcatScreen(
                     Icon(ImageVector.vectorResource(R.drawable.copy_all), null)
                 },
                 onClick = {
-                    val log = SendLog.buildLog(repo.externalAssetsDir)
                     scope.launch {
+                        val log = SendLog.buildLog(repo.externalAssetsDir)
                         clipboard.setPlainText(log)
                     }
                 },
