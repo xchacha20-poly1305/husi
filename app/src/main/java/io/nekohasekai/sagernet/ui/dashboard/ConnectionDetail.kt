@@ -194,7 +194,10 @@ fun ConnectionDetailScreen(
             if (connection.process != null) item("process", 1) {
                 ConnectionDataCard(
                     field = R.string.process,
-                    value = { Text(connection.process!!) },
+                    value = {
+                        val text = "[${connection.uid}] ${connection.process}"
+                        Text(text)
+                    },
                 )
             }
         }

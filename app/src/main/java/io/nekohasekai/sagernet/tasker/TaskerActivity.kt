@@ -76,7 +76,9 @@ class TaskerActivity : ComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        reloadIntent(intent)
+        if (savedInstanceState == null) {
+            reloadIntent(intent)
+        }
 
         setContent {
             val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()

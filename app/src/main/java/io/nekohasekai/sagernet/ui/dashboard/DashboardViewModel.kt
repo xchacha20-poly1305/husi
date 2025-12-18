@@ -384,6 +384,7 @@ class DashboardViewModel : ViewModel() {
             || chain.contains(query)
             || protocol?.contains(query) == true
             || process?.contains(query) == true
+            || uid.toString().contains(query)
 
     private suspend fun loadProxySets(
         service: ISagerNetService,
