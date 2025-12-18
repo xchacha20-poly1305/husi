@@ -672,4 +672,5 @@
     <string name="provider_naive">NaïveProxy 提供程序</string>
     <string name="max_log_line">最大日志行数</string>
     <string name="scroll_to_bottom">滚动到底部</string>
+    <string name="ech_query_server_name">用于查询的服务名称</string>
 </resources>

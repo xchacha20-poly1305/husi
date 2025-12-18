@@ -32,6 +32,7 @@ internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
     val realityShortID: String
     val ech: Boolean
     val echConfig: String
+    val echQueryServerName: String
     val clientCert: String
     val clientKey: String
 
@@ -71,6 +72,7 @@ internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
     abstract fun setRealityShortID(shortID: String)
     abstract fun setEch(enable: Boolean)
     abstract fun setEchConfig(config: String)
+    abstract fun setEchQueryServerName(queryServerName: String)
     abstract fun setClientCert(cert: String)
     abstract fun setClientKey(key: String)
     abstract fun setEnableMux(enable: Boolean)

@@ -41,6 +41,7 @@ public class HysteriaBean extends AbstractBean {
     public String serverPorts;
     public Boolean ech;
     public String echConfig;
+    public String echQueryServerName;
     public String authPayload;
     public String obfuscation;
     public String sni;
@@ -91,6 +92,7 @@ public class HysteriaBean extends AbstractBean {
 
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
+        if (echQueryServerName == null) echQueryServerName = "";
 
         if (clientCert == null) clientCert = "";
         if (clientKey == null) clientKey = "";
@@ -98,7 +100,7 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(4);
+        output.writeInt(5);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -130,6 +132,9 @@ public class HysteriaBean extends AbstractBean {
 
         // version 4
         output.writeString(certPublicKeySha256);
+
+        // version 5
+        output.writeString(echQueryServerName);
     }
 
     @Override
@@ -171,6 +176,10 @@ public class HysteriaBean extends AbstractBean {
 
         if (version >= 4) {
             certPublicKeySha256 = input.readString();
+        }
+
+        if (version >= 5) {
+            echQueryServerName = input.readString();
         }
     }
 

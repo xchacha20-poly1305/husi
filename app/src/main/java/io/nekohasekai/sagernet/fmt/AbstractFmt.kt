@@ -303,6 +303,7 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
                 ech = OutboundECHOptions().also {
                     it.enabled = echField.getBool("enabled")
                     it.config = listable<String>(echField.opt("config"))
+                    it.query_server_name = echField.getStr("query_server_name")
                 }
             }
 

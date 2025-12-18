@@ -355,15 +355,14 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     server_name = bean.sni
                 }
                 alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
-                certificate = bean.certificates.blankAsNull()?.split("\n")
-                certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.split("\n")
+                certificate = bean.certificates.blankAsNull()?.lines()
+                certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.lines()
                 if (bean.disableSNI) disable_sni = true
                 if (bean.ech) {
-                    val echConfig =
-                        bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                     ech = SingBoxOptions.OutboundECHOptions().apply {
                         enabled = true
-                        config = echConfig
+                        config = bean.echConfig.blankAsNull()?.lines()
+                        query_server_name = bean.echQueryServerName.blankAsNull()
                     }
                 }
                 insecure = bean.allowInsecure
@@ -406,7 +405,8 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                 certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.lines()
                 if (bean.ech) ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
-                    config = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
+                    config = bean.echConfig.blankAsNull()?.lines()
+                    query_server_name = bean.echQueryServerName.blankAsNull()
                 }
                 if (bean.allowInsecure) insecure = true
                 if (bean.disableSNI) disable_sni = true
@@ -560,5 +560,6 @@ private fun HysteriaBean.loadTLS(tls: SingBoxOptions.OutboundTLSOptions) {
     tls.ech?.let {
         ech = it.enabled
         echConfig = it.config?.joinToString("\n")
+        echQueryServerName = it.query_server_name
     }
 }

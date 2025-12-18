@@ -775,6 +775,8 @@ public class SingBoxOptions {
 
         public String config_path;
 
+        public String query_server_name;
+
         public Boolean pq_signature_schemes_enabled;
 
         public Boolean dynamic_record_sizing_disabled;

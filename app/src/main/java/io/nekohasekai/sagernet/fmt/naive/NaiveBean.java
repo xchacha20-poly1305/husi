@@ -38,6 +38,10 @@ public class NaiveBean extends AbstractBean {
     // https://tldr.fail/
     public Boolean noPostQuantum;
 
+    public Boolean enableEch;
+    public String echConfig;
+    public String echQueryServerName;
+
     @Override
     public void initializeDefaultValues() {
         if (serverPort == null) serverPort = 443;
@@ -50,12 +54,17 @@ public class NaiveBean extends AbstractBean {
         if (insecureConcurrency == null) insecureConcurrency = 0;
         if (udpOverTcp == null) udpOverTcp = false;
         if (noPostQuantum == null) noPostQuantum = false;
+        if (enableEch == null) enableEch = false;
+        if (echConfig == null) echConfig = "";
+        if (echQueryServerName == null) echQueryServerName = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
         super.serialize(output);
+
+        // version 0
         output.writeString(proto);
         output.writeString(username);
         output.writeString(password);
@@ -63,7 +72,14 @@ public class NaiveBean extends AbstractBean {
         output.writeString(sni);
         output.writeInt(insecureConcurrency);
         output.writeBoolean(udpOverTcp);
+
+        // version 1
         output.writeBoolean(noPostQuantum);
+
+        // version 2
+        output.writeBoolean(enableEch);
+        output.writeString(echConfig);
+        output.writeString(echQueryServerName);
     }
 
     @Override
@@ -82,8 +98,16 @@ public class NaiveBean extends AbstractBean {
         sni = input.readString();
         insecureConcurrency = input.readInt();
         udpOverTcp = input.readBoolean();
-        if (version < 1) return;
-        noPostQuantum = input.readBoolean();
+
+        if (version >= 1) {
+            noPostQuantum = input.readBoolean();
+        }
+
+        if (version >= 2) {
+            enableEch = input.readBoolean();
+            echConfig = input.readString();
+            echQueryServerName = input.readString();
+        }
     }
 
     @NotNull

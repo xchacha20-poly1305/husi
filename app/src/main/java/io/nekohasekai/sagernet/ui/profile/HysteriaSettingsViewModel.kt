@@ -34,6 +34,7 @@ internal data class HysteriaUiState(
     val clientKey: String = "",
     val ech: Boolean = false,
     val echConfig: String = "",
+    val echQueryServerName: String = "",
 ) : ProfileSettingsUiState
 
 @Stable
@@ -196,5 +197,9 @@ internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean
 
     fun setEchConfig(config: String) {
         _uiState.update { it.copy(echConfig = config) }
+    }
+
+    fun setEchQueryServerName(name: String) {
+        _uiState.update { it.copy(echQueryServerName = name) }
     }
 }
