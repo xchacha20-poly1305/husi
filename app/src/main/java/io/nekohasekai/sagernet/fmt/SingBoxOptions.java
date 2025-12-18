@@ -2592,6 +2592,10 @@ public class SingBoxOptions {
 
         public UDPOverTCPOptions udp_over_tcp;
 
+        public Boolean quic;
+
+        public String quic_congestion_control;
+
         // Generate note: nested type OutboundTLSOptionsContainer
         public OutboundTLSOptions tls;
 

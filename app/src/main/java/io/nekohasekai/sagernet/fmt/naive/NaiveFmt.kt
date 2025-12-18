@@ -110,6 +110,10 @@ fun buildSingBoxOutboundNaiveBean(bean: NaiveBean): SingBoxOptions.Outbound_Naiv
         server_port = bean.serverPort
         username = bean.username
         password = bean.password
+        if (bean.proto == "quic") {
+            quic = true
+            quic_congestion_control = bean.quicCongestionControl.blankAsNull()
+        }
         extra_headers = bean.extraHeaders.blankAsNull()?.let(::buildHeader)
         bean.insecureConcurrency.takeIf { it > 0 }?.let {
             insecure_concurrency = it
@@ -134,6 +138,8 @@ fun parseNaiveOutbound(json: JSONMap): NaiveBean = NaiveBean().apply {
             "password" -> password = value.toString()
             "insecure_concurrency" -> insecureConcurrency = value.toString().toIntOrNull()
             "udp_over_tcp" -> udpOverTcp = parseBoxUot(value)
+            "quic" -> if (value.toString().toBoolean()) proto = "quic"
+            "quic_congestion_control" -> quicCongestionControl = value.toString()
 
             "extra_headers" -> (value as? JSONObject)?.map?.let(::parseHeader)?.let {
                 extraHeaders = it.mapNotNull { entry ->

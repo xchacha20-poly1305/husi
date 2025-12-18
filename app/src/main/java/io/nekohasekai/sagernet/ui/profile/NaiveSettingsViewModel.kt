@@ -16,6 +16,7 @@ internal data class NaiveUiState(
     val username: String = "",
     val password: String = "",
     val proto: String = "",
+    val quicCongestionControl: String = "",
     val sni: String = "",
     val extraHeaders: String = "",
     val insecureConcurrency: Int = 0,
@@ -44,6 +45,7 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
                 username = username,
                 password = password,
                 proto = proto,
+                quicCongestionControl = quicCongestionControl,
                 sni = sni,
                 extraHeaders = extraHeaders,
                 insecureConcurrency = insecureConcurrency,
@@ -68,6 +70,7 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
         username = state.username
         password = state.password
         proto = state.proto
+        quicCongestionControl = state.quicCongestionControl
         sni = state.sni
         extraHeaders = state.extraHeaders
         insecureConcurrency = state.insecureConcurrency
@@ -111,6 +114,10 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
 
     fun setProto(proto: String) {
         _uiState.update { it.copy(proto = proto) }
+    }
+
+    fun setQuicCongestionControl(quicCongestionControl: String) {
+        _uiState.update { it.copy(quicCongestionControl = quicCongestionControl) }
     }
 
     fun setSni(sni: String) {

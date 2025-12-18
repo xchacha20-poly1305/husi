@@ -375,7 +375,7 @@ data class ProxyEntity(
                 if (bean.enableEch) {
                     return false
                 }
-                if (bean.noPostQuantum || bean.proto != "https") {
+                if (bean.noPostQuantum) {
                     return true
                 }
                 DataStore.providerNaive == ProtocolProvider.PLUGIN

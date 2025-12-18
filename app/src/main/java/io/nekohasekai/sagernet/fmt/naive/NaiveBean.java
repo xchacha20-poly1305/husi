@@ -37,6 +37,7 @@ public class NaiveBean extends AbstractBean {
     // https://github.com/klzgrad/naiveproxy/blob/76e7bbed0fdd349fb8a8890cd082e90072dab734/USAGE.txt#L110
     // https://tldr.fail/
     public Boolean noPostQuantum;
+    public String quicCongestionControl;
 
     public Boolean enableEch;
     public String echConfig;
@@ -54,6 +55,7 @@ public class NaiveBean extends AbstractBean {
         if (insecureConcurrency == null) insecureConcurrency = 0;
         if (udpOverTcp == null) udpOverTcp = false;
         if (noPostQuantum == null) noPostQuantum = false;
+        if (quicCongestionControl == null) quicCongestionControl = "";
         if (enableEch == null) enableEch = false;
         if (echConfig == null) echConfig = "";
         if (echQueryServerName == null) echQueryServerName = "";
@@ -61,7 +63,7 @@ public class NaiveBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(3);
         super.serialize(output);
 
         // version 0
@@ -80,6 +82,9 @@ public class NaiveBean extends AbstractBean {
         output.writeBoolean(enableEch);
         output.writeString(echConfig);
         output.writeString(echQueryServerName);
+
+        // version 3
+        output.writeString(quicCongestionControl);
     }
 
     @Override
@@ -107,6 +112,10 @@ public class NaiveBean extends AbstractBean {
             enableEch = input.readBoolean();
             echConfig = input.readString();
             echQueryServerName = input.readString();
+        }
+
+        if (version >= 3) {
+            quicCongestionControl = input.readString();
         }
     }
 
