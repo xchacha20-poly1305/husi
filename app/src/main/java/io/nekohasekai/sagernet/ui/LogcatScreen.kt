@@ -367,7 +367,7 @@ fun LogcatScreen(
                             val logFile = SendLog.buildLog(
                                 context.cacheDir,
                                 context.getExternalFilesDir(null) ?: context.filesDir,
-                                context.getString(R.string.app_name),
+                                BuildConfig.APPLICATION_ID,
                             )
                             context.startActivity(
                                 Intent.createChooser(

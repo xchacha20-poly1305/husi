@@ -10,6 +10,8 @@ import java.io.IOException
 object SendLog {
 
     fun buildLog(cacheDir: File, externalAssetsDir: File, title: String): File {
+        // https://developer.android.com/reference/java/io/File.html#createTempFile(java.lang.String,%20java.lang.String,%20java.io.File)
+        // Java stupid limit: prefix must at least three characters long
         val logFile = File.createTempFile(
             title,
             ".log",

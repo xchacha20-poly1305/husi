@@ -37,7 +37,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         ProcessPhoenix.triggerRebirth(
             repo.context,
             Intent(repo.context, BlankActivity::class.java)
-                .putExtra(BlankActivity.EXTRA_LOG_TITLE, "husi Crash"),
+                .putExtra(BlankActivity.EXTRA_LOG_TITLE, "husi_crash"),
         )
     }
 
