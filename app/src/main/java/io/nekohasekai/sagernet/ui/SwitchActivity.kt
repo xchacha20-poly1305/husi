@@ -5,25 +5,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,25 +42,11 @@ class SwitchActivity : ComposeActivity() {
 
         setContent {
             AppTheme {
-                val sheetState = rememberStandardBottomSheetState(
-                    initialValue = SheetValue.PartiallyExpanded,
-                    confirmValueChange = {
-                        if (it == SheetValue.Hidden) {
-                            finish()
-                            false
-                        } else {
-                            true
-                        }
-                    },
-                )
-                val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
+                val sheetState = rememberModalBottomSheetState()
 
                 val density = LocalDensity.current
                 val windowHeight = with(density) {
                     LocalWindowInfo.current.containerSize.height.toDp()
-                }
-                val statusBarHeight = with(density) {
-                    WindowInsets.statusBars.getTop(this).toDp()
                 }
 
                 val vm: ConfigurationScreenViewModel = viewModel(
@@ -130,43 +105,21 @@ class SwitchActivity : ComposeActivity() {
                     vm.scrollToProxy(DataStore.selectedProxy)
                 }
 
-                BottomSheetScaffold(
-                    scaffoldState = scaffoldState,
-                    sheetPeekHeight = windowHeight * 0.6f,
-                    containerColor = Color.Transparent,
-                    sheetDragHandle = {
-                        val topPadding = if (sheetState.currentValue == SheetValue.Expanded) {
-                            statusBarHeight
-                        } else {
-                            0.dp
-                        }
-                        Box(modifier = Modifier.padding(top = topPadding)) {
-                            BottomSheetDefaults.DragHandle()
-                        }
-                    },
-                    sheetContent = {
-                        ConfigurationContent(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(windowHeight),
-                            vm = vm,
-                            snackbarState = snackbarState,
-                            pagerState = pagerState,
-                            appBarContainerColor = appBarContainerColor,
-                            preSelected = null,
-                            selectCallback = ::returnProfile,
-                        )
-                    },
+                ModalBottomSheet(
+                    onDismissRequest = ::finish,
+                    sheetState = sheetState,
+                    scrimColor = Color.Black.copy(alpha = 0.5f),
                 ) {
-                    Box(
+                    ConfigurationContent(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.5f))
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = ::finish,
-                            ),
+                            .fillMaxWidth()
+                            .height(windowHeight * 0.6f),
+                        vm = vm,
+                        snackbarState = snackbarState,
+                        pagerState = pagerState,
+                        appBarContainerColor = appBarContainerColor,
+                        preSelected = null,
+                        selectCallback = ::returnProfile,
                     )
                 }
             }
