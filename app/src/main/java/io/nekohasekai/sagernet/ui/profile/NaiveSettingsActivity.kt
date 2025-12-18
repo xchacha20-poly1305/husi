@@ -36,6 +36,13 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
     override val viewModel by viewModels<NaiveSettingsViewModel>()
 
     private val protos = listOf("https", "quic")
+    private val quicCongestionControls = listOf(
+        "",
+        "bbr",
+        "bbr2",
+        "cubic",
+        "reno",
+    )
 
     override fun LazyListScope.settings(
         uiState: ProfileSettingsUiState,
@@ -110,6 +117,19 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 title = { Text(stringResource(R.string.protocol)) },
                 icon = { Icon(ImageVector.vectorResource(R.drawable.https), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.proto)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                item = listPreferenceMenuItem { AnnotatedString(it) },
+            )
+        }
+        item("quic_congestion_control") {
+            ListPreference(
+                value = uiState.quicCongestionControl,
+                values = quicCongestionControls,
+                onValueChange = { viewModel.setQuicCongestionControl(it) },
+                title = { Text(stringResource(R.string.tuic_congestion_controller)) },
+                enabled = uiState.proto == "quic",
+                icon = { Icon(ImageVector.vectorResource(R.drawable.traffic), null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.quicCongestionControl)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 item = listPreferenceMenuItem { AnnotatedString(it) },
             )
