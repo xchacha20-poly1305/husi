@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import android.os.Parcelable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -15,9 +16,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 
 @Immutable
-internal data class RouteSettingsActivityUiState(
+@Parcelize
+data class RouteSettingsActivityUiState(
     val name: String = "",
     val action: String = "",
 
@@ -55,7 +58,7 @@ internal data class RouteSettingsActivityUiState(
 
     val customConfig: String = "",
     val customDnsConfig: String = "",
-)
+) : Parcelable
 
 @Stable
 internal class RouteSettingsActivityViewModel : ViewModel() {
@@ -128,6 +131,12 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         }
     }
 
+    fun createFromIntent(state: RouteSettingsActivityUiState) {
+        editingId = -1L
+        initialState.value = RouteSettingsActivityUiState()
+        _uiState.value = state
+    }
+
     private fun RuleEntity.loadFromUiState(state: RouteSettingsActivityUiState) {
         name = state.name
         action = state.action
@@ -170,6 +179,7 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
     fun save() = runOnIoDispatcher {
         if (isNew) {
             ProfileManager.createRule(RuleEntity().apply {
+                enabled = true
                 loadFromUiState(_uiState.value)
             })
         } else {

@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.DurationTextField
@@ -71,7 +72,11 @@ import me.zhanghai.compose.preference.TextFieldPreference
 class RouteSettingsActivity : ComposeActivity() {
 
     companion object {
+        // Choose one:
+        // EXTRA_ROUTE_ID: load from database / create new
+        // EXTRA_ROUTE: create from given data
         const val EXTRA_ROUTE_ID = "id"
+        const val EXTRA_ROUTE = "route"
         private const val KEY_ACTION_OPTIONS = "action_options"
     }
 
@@ -80,8 +85,15 @@ class RouteSettingsActivity : ComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val editingId = intent.getLongExtra(EXTRA_ROUTE_ID, -1L)
-        viewModel.loadRule(editingId)
+        if (savedInstanceState == null) IntentCompat.getParcelableExtra(
+            intent,
+            EXTRA_ROUTE, RouteSettingsActivityUiState::class.java,
+        )?.let {
+            viewModel.createFromIntent(it)
+        } ?: run {
+            val editingId = intent.getLongExtra(EXTRA_ROUTE_ID, -1L)
+            viewModel.loadRule(editingId)
+        }
 
         setContent {
             val isDirty by viewModel.isDirty.collectAsState()

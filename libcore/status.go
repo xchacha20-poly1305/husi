@@ -8,7 +8,6 @@ import (
 
 	"libcore/combinedapi/trafficcontrol"
 
-	"github.com/sagernet/sing-box/adapter"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
 	M "github.com/sagernet/sing/common/metadata"
@@ -47,6 +46,14 @@ func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata, closed bool) *Tra
 	} else {
 		rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
 	}
+	var (
+		process string
+		uid     int32 = -1
+	)
+	if processInfo := metadata.Metadata.ProcessInfo; processInfo != nil {
+		process = processInfo.AndroidPackageName
+		uid = processInfo.UserId
+	}
 	return &TrackerInfo{
 		uuid:          metadata.ID,
 		Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
@@ -62,7 +69,8 @@ func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata, closed bool) *Tra
 		Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
 		Chain:         strings.Join(metadata.Chain, " => "),
 		Protocol:      metadata.Metadata.Protocol,
-		Process:       processToString(metadata.Metadata.ProcessInfo),
+		Process:       process,
+		UID:           uid,
 		Closed:        closed,
 	}
 }
@@ -100,6 +108,7 @@ type TrackerInfo struct {
 	Chain         string
 	Protocol      string
 	Process       string
+	UID           int32
 	Closed        bool
 }
 
@@ -128,13 +137,6 @@ func generateBound(bound, boundType string) string {
 		return boundType
 	}
 	return bound + "/" + boundType
-}
-
-func processToString(owner *adapter.ConnectionOwner) string {
-	if owner == nil {
-		return ""
-	}
-	return F.ToString("[", owner.UserId, "] ", owner.AndroidPackageName)
 }
 
 // GetMemory returns memory status.

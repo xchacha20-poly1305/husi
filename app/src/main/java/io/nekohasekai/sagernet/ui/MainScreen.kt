@@ -354,6 +354,7 @@ fun MainScreen(
                     uuid = uuid,
                     connection = connection,
                     popup = { navController.navigateUp() },
+                    navigateToRoutes = { navController.navigate(NavRoutes.ROUTE) },
                 )
             }
             composable(NavRoutes.TOOLS) {
