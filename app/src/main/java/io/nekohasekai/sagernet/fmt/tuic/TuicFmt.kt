@@ -78,11 +78,10 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             client_certificate = bean.clientCert.blankAsNull()?.lines()
             client_key = bean.clientKey.blankAsNull()?.lines()
             if (bean.ech) {
-                val echConfig =
-                    bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
                 ech = OutboundECHOptions().apply {
                     enabled = true
-                    config = echConfig
+                    config = bean.echConfig.blankAsNull()?.lines()
+                    query_server_name = bean.echQueryServerName.blankAsNull()
                 }
             }
             disable_sni = bean.disableSNI
@@ -121,6 +120,7 @@ fun parseTuicOutbound(json: JSONMap): TuicBean = TuicBean().apply {
                 tls.ech?.let {
                     ech = it.enabled
                     echConfig = it.config.joinToString("\n")
+                    echQueryServerName = it.query_server_name
                 }
             }
         }

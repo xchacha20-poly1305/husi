@@ -217,6 +217,18 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 },
             )
         }
+        item("ech_query_server_name") {
+            TextFieldPreference(
+                value = uiState.echQueryServerName,
+                onValueChange = { viewModel.setEchQueryServerName(it) },
+                title = { Text(stringResource(R.string.ech_query_server_name)) },
+                textToValue = { it },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.search), null) },
+                enabled = uiState.ech,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.echQueryServerName)) },
+                valueToText = { it },
+            )
+        }
 
         item("category_mtls") {
             PreferenceCategory(text = { Text(stringResource(R.string.mutual_tls)) })

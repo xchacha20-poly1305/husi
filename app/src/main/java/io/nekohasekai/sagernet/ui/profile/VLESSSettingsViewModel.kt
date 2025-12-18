@@ -38,6 +38,7 @@ internal data class VLESSUiState(
     override val realityShortID: String = "",
     override val ech: Boolean = false,
     override val echConfig: String = "",
+    override val echQueryServerName: String = "",
     override val clientCert: String = "",
     override val clientKey: String = "",
 
@@ -94,6 +95,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
                 realityShortID = realityShortID,
                 ech = ech,
                 echConfig = echConfig,
+                echQueryServerName = echQueryServerName,
                 clientCert = clientCert,
                 clientKey = clientKey,
 
@@ -144,6 +146,7 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
         realityShortID = state.realityShortID
         ech = state.ech
         echConfig = state.echConfig
+        echQueryServerName = state.echQueryServerName
         clientCert = state.clientCert
         clientKey = state.clientKey
 
@@ -265,6 +268,10 @@ internal class VLESSSettingsViewModel : StandardV2RaySettingsViewModel<VLESSBean
 
     override fun setEchConfig(config: String) {
         _uiState.update { it.copy(echConfig = config) }
+    }
+
+    override fun setEchQueryServerName(queryServerName: String) {
+        _uiState.update { it.copy(echQueryServerName = queryServerName) }
     }
 
     override fun setClientCert(cert: String) {

@@ -117,6 +117,12 @@ fun buildSingBoxOutboundNaiveBean(bean: NaiveBean): SingBoxOptions.Outbound_Naiv
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             enabled = true
             server_name = bean.sni
+
+            if (bean.enableEch) SingBoxOptions.OutboundECHOptions().apply {
+                enabled = true
+                config = bean.echConfig.blankAsNull()?.lines()
+                query_server_name = bean.echQueryServerName.blankAsNull()
+            }
         }
     }
 }
@@ -137,8 +143,13 @@ fun parseNaiveOutbound(json: JSONMap): NaiveBean = NaiveBean().apply {
                 }.joinToString("\n")
             }
 
-            "tls" -> (value as? JSONObject)?.map?.let(::parseBoxTLS)?.let {
-                sni = it.server_name
+            "tls" -> (value as? JSONObject)?.map?.let(::parseBoxTLS)?.let { tlsField ->
+                sni = tlsField.server_name
+                tlsField.ech?.let { echField->
+                    enableEch = echField.enabled
+                    echConfig = echField.config?.joinToString("\n")
+                    echQueryServerName = echField.query_server_name
+                }
             }
         }
     }

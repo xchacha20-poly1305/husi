@@ -372,9 +372,13 @@ data class ProxyEntity(
 
             TYPE_NAIVE -> {
                 val bean = naiveBean!!
-                bean.noPostQuantum
-                        || bean.proto != "https"
-                        || DataStore.providerNaive == ProtocolProvider.PLUGIN
+                if (bean.enableEch) {
+                    return false
+                }
+                if (bean.noPostQuantum || bean.proto != "https") {
+                    return true
+                }
+                DataStore.providerNaive == ProtocolProvider.PLUGIN
             }
 
             else -> false

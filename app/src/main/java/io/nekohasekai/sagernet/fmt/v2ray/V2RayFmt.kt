@@ -512,10 +512,10 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
             }
         }
         if (bean.ech) {
-            val echConfig = bean.echConfig.blankAsNull()?.split("\n")?.takeIf { it.isNotEmpty() }
             ech = OutboundECHOptions().apply {
                 enabled = true
-                config = echConfig
+                config = bean.echConfig.blankAsNull()?.lines()
+                query_server_name = bean.echQueryServerName.blankAsNull()
             }
         }
     }
@@ -685,6 +685,7 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 tls.ech?.let {
                     bean.ech = it.enabled
                     bean.echConfig = it.config?.joinToString("\n")
+                    bean.echQueryServerName = it.query_server_name
                 }
                 tls.reality?.let {
                     bean.realityPublicKey = it.public_key

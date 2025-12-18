@@ -46,6 +46,7 @@ public class AnyTLSBean extends AbstractBean {
 
     public Boolean ech;
     public String echConfig;
+    public String echQueryServerName;
 
     public String clientCert;
     public String clientKey;
@@ -69,13 +70,14 @@ public class AnyTLSBean extends AbstractBean {
         if (tlsRecordFragment == null) tlsRecordFragment = false;
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
+        if (echQueryServerName == null) echQueryServerName = "";
         if (clientCert == null) clientCert = "";
         if (clientKey == null) clientKey = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(6);
+        output.writeInt(7);
 
         // version 0
         super.serialize(output);
@@ -109,6 +111,9 @@ public class AnyTLSBean extends AbstractBean {
         // version 6
         output.writeString(clientCert);
         output.writeString(clientKey);
+
+        // version 7
+        output.writeString(echQueryServerName);
     }
 
     @Override
@@ -150,6 +155,10 @@ public class AnyTLSBean extends AbstractBean {
         if (version >= 6) {
             clientCert = input.readString();
             clientKey = input.readString();
+        }
+
+        if (version >= 7) {
+            echQueryServerName = input.readString();
         }
     }
 

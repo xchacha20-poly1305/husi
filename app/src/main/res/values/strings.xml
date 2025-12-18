@@ -747,5 +747,6 @@
     <string name="provider_naive">NaïveProxy Provider</string>
     <string name="max_log_line">Max Log Line</string>
     <string name="scroll_to_bottom">Scroll to bottom</string>
+    <string name="ech_query_server_name">Server Name to Query</string>
 
 </resources>

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.HostTextField
+import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
@@ -186,6 +187,45 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 onValueChange = { viewModel.setNoPostQuantum(it) },
                 title = { Text(stringResource(R.string.disable_post_quantum)) },
                 icon = { Icon(ImageVector.vectorResource(R.drawable.grain), null) },
+            )
+        }
+
+        item("category_ech") {
+            PreferenceCategory(text = { Text(stringResource(R.string.ech)) })
+        }
+        item("ech") {
+            SwitchPreference(
+                value = uiState.enableEch,
+                onValueChange = { viewModel.setEnableEch(it) },
+                title = { Text(stringResource(R.string.enable)) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
+            )
+        }
+        item("ech_config") {
+            TextFieldPreference(
+                value = uiState.echConfig,
+                onValueChange = { viewModel.setEchConfig(it) },
+                title = { Text(stringResource(R.string.ech_config)) },
+                textToValue = { it },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
+                enabled = uiState.enableEch,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.echConfig)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("ech_query_server_name") {
+            TextFieldPreference(
+                value = uiState.echQueryServerName,
+                onValueChange = { viewModel.setEchQueryServerName(it) },
+                title = { Text(stringResource(R.string.ech_query_server_name)) },
+                textToValue = { it },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.search), null) },
+                enabled = uiState.enableEch,
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.echQueryServerName)) },
+                valueToText = { it },
             )
         }
     }

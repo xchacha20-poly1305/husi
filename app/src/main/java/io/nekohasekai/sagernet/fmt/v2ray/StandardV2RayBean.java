@@ -62,6 +62,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public String echConfig;
 
+    public String echQueryServerName;
+
 
     // --------------------------------------- //
 
@@ -113,11 +115,12 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (ech == null) ech = false;
         if (echConfig == null) echConfig = "";
+        if (echQueryServerName == null) echQueryServerName = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(10);
+        output.writeInt(11);
         super.serialize(output);
 
         output.writeString(uuid);
@@ -178,6 +181,8 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
             output.writeString(clientCert);
             output.writeString(clientKey);
+
+            output.writeString(echQueryServerName);
         }
 
         output.writeInt(packetEncoding);
@@ -265,6 +270,10 @@ public abstract class StandardV2RayBean extends AbstractBean {
             if (version >= 10) {
                 clientCert = input.readString();
                 clientKey = input.readString();
+            }
+
+            if (version >= 11) {
+                echQueryServerName = input.readString();
             }
         }
 

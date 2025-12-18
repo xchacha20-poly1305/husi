@@ -21,6 +21,9 @@ internal data class NaiveUiState(
     val insecureConcurrency: Int = 0,
     val udpOverTcp: Boolean = false,
     val noPostQuantum: Boolean = false,
+    val enableEch: Boolean = false,
+    val echConfig: String = "",
+    val echQueryServerName: String = "",
     override val customConfig: String = "",
     override val customOutbound: String = "",
 ) : ProfileSettingsUiState
@@ -46,6 +49,9 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
                 insecureConcurrency = insecureConcurrency,
                 udpOverTcp = udpOverTcp,
                 noPostQuantum = noPostQuantum,
+                enableEch = enableEch,
+                echConfig = echConfig,
+                echQueryServerName = echQueryServerName,
 
                 customConfig = customConfigJson,
                 customOutbound = customOutboundJson,
@@ -67,6 +73,9 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
         insecureConcurrency = state.insecureConcurrency
         udpOverTcp = state.udpOverTcp
         noPostQuantum = state.noPostQuantum
+        enableEch = state.enableEch
+        echConfig = state.echConfig
+        echQueryServerName = state.echQueryServerName
 
         customConfigJson = state.customConfig
         customOutboundJson = state.customOutbound
@@ -122,6 +131,18 @@ internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
 
     fun setNoPostQuantum(noPostQuantum: Boolean) {
         _uiState.update { it.copy(noPostQuantum = noPostQuantum) }
+    }
+
+    fun setEnableEch(enableEch: Boolean) {
+        _uiState.update { it.copy(enableEch = enableEch) }
+    }
+
+    fun setEchConfig(echConfig: String) {
+        _uiState.update { it.copy(echConfig = echConfig) }
+    }
+
+    fun setEchQueryServerName(echQueryServerName: String) {
+        _uiState.update { it.copy(echQueryServerName = echQueryServerName) }
     }
 
 }

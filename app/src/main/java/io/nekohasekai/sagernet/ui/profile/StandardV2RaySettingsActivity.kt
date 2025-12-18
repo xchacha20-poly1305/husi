@@ -250,6 +250,16 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                             MultilineTextField(value, onValueChange, onOk)
                         },
                     )
+                    TextFieldPreference(
+                        value = state.echQueryServerName,
+                        onValueChange = { viewModel.setEchQueryServerName(it) },
+                        title = { Text(stringResource(R.string.ech_query_server_name)) },
+                        textToValue = { it },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.search), null) },
+                        enabled = state.ech,
+                        summary = { Text(LocalContext.current.contentOrUnset(state.echQueryServerName)) },
+                        valueToText = { it },
+                    )
 
                     PreferenceCategory(text = { Text(stringResource(R.string.mutual_tls)) })
                     TextFieldPreference(
