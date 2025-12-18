@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @Immutable
 internal sealed interface ProfileSettingsUiEvent {
@@ -74,14 +75,14 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     lateinit var bean: T
     var isSubscription = false
 
-    suspend fun initialize(editingId: Long, isSubscription: Boolean) {
-        this.editingId = editingId
-        this.isSubscription = isSubscription
+    fun initialize(editingId: Long, isSubscription: Boolean) = viewModelScope.launch {
+        this@ProfileSettingsViewModel.editingId = editingId
+        this@ProfileSettingsViewModel.isSubscription = isSubscription
 
         bean = if (isNew) {
             createBean().applyDefaultValues()
         } else {
-            proxyEntity = SagerDatabase.proxyDao.getById(editingId)!!
+            proxyEntity = onIoDispatcher { SagerDatabase.proxyDao.getById(editingId)!! }
             (proxyEntity.requireBean() as T)
         }
         bean.writeToUiState()

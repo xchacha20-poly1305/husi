@@ -71,8 +71,10 @@ class GroupSettingsActivity : ComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val editingId = intent.getLongExtra(EXTRA_GROUP_ID, 0L)
-        viewModel.initialize(editingId)
+        if (savedInstanceState == null) {
+            val editingId = intent.getLongExtra(EXTRA_GROUP_ID, 0L)
+            viewModel.initialize(editingId)
+        }
 
         setContent {
             val context = LocalContext.current

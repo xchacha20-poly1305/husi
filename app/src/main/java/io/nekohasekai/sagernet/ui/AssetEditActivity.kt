@@ -58,8 +58,10 @@ class AssetEditActivity : ComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val editingAssetName = intent.getStringExtra(EXTRA_ASSET_NAME) ?: ""
-        viewModel.initialize(editingAssetName)
+        if (savedInstanceState == null) {
+            val editingAssetName = intent.getStringExtra(EXTRA_ASSET_NAME) ?: ""
+            viewModel.initialize(editingAssetName)
+        }
 
         setContent {
             AppTheme {
