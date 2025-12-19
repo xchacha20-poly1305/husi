@@ -354,7 +354,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
     var showShareSheet by remember { mutableStateOf(false) }
     var showSecurityAlert by remember { mutableStateOf(false) }
     val shareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val validateResult = if (showActions && !securityAdvice) {
+    val validateResult = if (showActions && securityAdvice) {
         bean.isInsecure()
     } else {
         ValidateResult.Secure

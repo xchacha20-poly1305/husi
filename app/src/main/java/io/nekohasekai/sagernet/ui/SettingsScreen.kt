@@ -629,7 +629,7 @@ fun SettingsScreen(
                         },
                     )
                 }
-                if (Build.VERSION.SDK_INT >= 28) item(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) item(
                     Key.METERED_NETWORK,
                     PreferenceType.SWITCH,
                 ) {
