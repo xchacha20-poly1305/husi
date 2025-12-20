@@ -79,6 +79,7 @@ internal fun DashboardConnectionsScreen(
                         )
                     }
                 },
+                enableDismissFromStartToEnd = false,
                 modifier = Modifier.fillMaxWidth(),
                 onDismiss = { swipeToDismissBoxValue ->
                     if (swipeToDismissBoxValue == SwipeToDismissBoxValue.EndToStart) {

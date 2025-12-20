@@ -215,10 +215,15 @@ internal fun GroupHolderScreen(
             onIndicesChangedViaDragAndDrop = { viewModel.submitReordered(it) },
         ) { index, item ->
             DraggableSwipeableItem(
-                modifier = Modifier.animateDraggableSwipeableItem(),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .animateDraggableSwipeableItem(),
                 colors = DraggableSwipeableItemColors.createRemembered(
                     containerBackgroundColor = Color.Transparent,
                     containerBackgroundColorWhileDragged = Color.Transparent,
+                    clickIndicationColor = Color.Transparent,
+                    behindSwipeContainerBackgroundColor = Color.Transparent,
+                    behindSwipeIconColor = Color.Transparent,
                 ),
             ) {
                 val context = LocalContext.current
@@ -362,7 +367,7 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
 
     OutlinedCard(
         onClick = select,
-        modifier = modifier.padding(4.dp),
+        modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(),
         border = if (profile.isSelected) {
             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
