@@ -88,6 +88,7 @@ fun buildSingBoxMux(bean: AbstractBean): OutboundMultiplexOptions? {
     if (!bean.serverMux) return null
 
     return OutboundMultiplexOptions().apply {
+        enabled = true
         padding = bean.serverMuxPadding
         protocol = when (bean.serverMuxType) {
             MuxType.H2MUX -> "h2mux"
