@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.utils.SendLog
+import java.io.File
 
 class BlankActivity : AppCompatActivity() {
 
@@ -18,11 +19,13 @@ class BlankActivity : AppCompatActivity() {
 
         // process crash log
         intent?.getStringExtra(EXTRA_LOG_TITLE)?.let { title ->
-            val logFile = SendLog.buildLog(
-                cacheDir,
-                getExternalFilesDir(null) ?: filesDir,
+            val logFile = File.createTempFile(
                 title,
-            )
+                ".log",
+                File(cacheDir, "log").also { it.mkdirs() },
+            ).apply {
+                writeText(SendLog.buildLog(getExternalFilesDir(null) ?: filesDir))
+            }
             startActivity(
                 Intent.createChooser(
                     Intent(Intent.ACTION_SEND)
