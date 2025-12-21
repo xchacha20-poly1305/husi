@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package io.nekohasekai.sagernet.ui.profile
 
 import android.content.Intent
@@ -9,25 +11,38 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.OutputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AppBarRow
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
+import androidx.compose.material3.FloatingToolbarExitDirection
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -37,7 +52,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,19 +66,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.wakaztahir.codeeditor.model.CodeLang
 import com.wakaztahir.codeeditor.prettify.PrettifyParser
 import com.wakaztahir.codeeditor.theme.CodeTheme
@@ -215,10 +234,15 @@ private fun ConfigEditScreenContent(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+    val currentText = viewModel.textFieldState.text
 
     var showBackDialog by remember { mutableStateOf(false) }
-    BackHandler(enabled = uiState.textFieldValue.text != initialText) {
+    BackHandler(enabled = currentText.toString() != initialText) {
         showBackDialog = true
+    }
+
+    LaunchedEffect(currentText) {
+        viewModel.onTextChange()
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -248,19 +272,14 @@ private fun ConfigEditScreenContent(
         ) {}
     }
 
-    val highlightedText = remember(
-        uiState.textFieldValue.text,
-        theme,
-    ) {
-        parseCodeAsAnnotatedString(parser, theme, CodeLang.JSON, uiState.textFieldValue.text)
-    }
-
-    val displayValue = remember(
-        highlightedText,
-        uiState.textFieldValue.selection,
-        uiState.textFieldValue.composition,
-    ) {
-        uiState.textFieldValue.copy(annotatedString = highlightedText)
+    val outputTransformation = remember(parser, theme) {
+        OutputTransformation {
+            val text = asCharSequence().toString()
+            val highlighted = parseCodeAsAnnotatedString(parser, theme, CodeLang.JSON, text)
+            highlighted.spanStyles.forEach { spanStyle ->
+                addStyle(spanStyle.item, spanStyle.start, spanStyle.end)
+            }
+        }
     }
 
     Scaffold(
@@ -283,7 +302,7 @@ private fun ConfigEditScreenContent(
                         overflowIndicator = ::MoreOverIcon,
                     ) {
                         clickableItem(
-                            onClick = { viewModel.saveAndExit(uiState.textFieldValue.text) },
+                            onClick = { viewModel.saveAndExit(currentText.toString()) },
                             icon = {
                                 Icon(ImageVector.vectorResource(R.drawable.done), null)
                             },
@@ -295,137 +314,124 @@ private fun ConfigEditScreenContent(
                 scrollBehavior = scrollBehavior,
             )
         },
-        bottomBar = {
-            BottomAppBar(
-                windowInsets = WindowInsets.ime.union(
-                    windowInsets.only(
-                        WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal,
-                    ),
-                ),
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_tab),
-                            contentDescription = stringResource(R.string.indent),
-                        ) {
-                            // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
-                            viewModel.insertText(" ".repeat(2))
-                        }
-
-                        val firstRowKeys = remember { listOf("{", "}", "[", "]") }
-                        firstRowKeys.forEach { key ->
-                            IconButton(
-                                onClick = {
-                                    viewModel.insertText(key)
-                                },
-                            ) {
-                                Text(
-                                    text = key,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                )
-                            }
-                        }
-
-                        SimpleIconButton(
-                            ImageVector.vectorResource(R.drawable.undo),
-                            contentDescription = stringResource(R.string.undo),
-                            enabled = uiState.canUndo,
-                        ) {
-                            viewModel.undo()
-                        }
-
-                        SimpleIconButton(
-                            ImageVector.vectorResource(R.drawable.redo),
-                            contentDescription = stringResource(R.string.redo),
-                            enabled = uiState.canRedo,
-                        ) {
-                            viewModel.redo()
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val secondRowKeys = remember { listOf(":", "-", "_", "\"") }
-                        secondRowKeys.forEach { key ->
-                            IconButton(
-                                onClick = {
-                                    viewModel.insertText(key)
-                                },
-                            ) {
-                                Text(
-                                    text = key,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                )
-                            }
-                        }
-
-                        RepeatableIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_left),
-                            contentDescription = "<-",
-                            onClick = { viewModel.moveCursor(-1) },
-                        )
-
-                        RepeatableIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
-                            contentDescription = "->",
-                            onClick = { viewModel.moveCursor(1) },
-                        )
-
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.format_align_left),
-                            contentDescription = stringResource(R.string.action_format),
-                        ) {
-                            viewModel.formatCurrentText()
-                        }
-
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.info),
-                            contentDescription = stringResource(R.string.action_test_config),
-                        ) {
-                            coroutineScope.launch {
-                                viewModel.checkConfig(uiState.textFieldValue.text)
-                            }
-                        }
-                    }
-                }
-            }
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
-        Column {
-            TextField(
-                value = displayValue,
-                onValueChange = { newValue ->
-                    viewModel.onTextChange(
-                        TextFieldValue(
-                            text = newValue.text,
-                            selection = newValue.selection,
-                            composition = newValue.composition,
-                        ),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            val density = LocalDensity.current
+            val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+            var toolbarHeightPx by remember { mutableStateOf(0) }
+            HorizontalFloatingToolbar(
+                expanded = true,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = -(ScreenOffset + imePadding))
+                    .zIndex(1f)
+                    .onSizeChanged { toolbarHeightPx = it.height },
+                scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
+                    FloatingToolbarExitDirection.Bottom,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                ) {
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.keyboard_tab),
+                        contentDescription = stringResource(R.string.indent),
+                        onClick = {
+                            // https://github.com/SagerNet/sing-box/blob/43a3beb98851ad5e27e60042ea353b63c7d77448/experimental/libbox/config.go#L169
+                            viewModel.insertText(" ".repeat(2))
+                        },
                     )
-                },
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.undo),
+                        contentDescription = stringResource(R.string.undo),
+                        enabled = uiState.canUndo,
+                        onClick = viewModel::undo,
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.redo),
+                        contentDescription = stringResource(R.string.redo),
+                        enabled = uiState.canRedo,
+                        onClick = viewModel::redo,
+                    )
+                    RepeatableIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_left),
+                        contentDescription = "<-",
+                        onClick = { viewModel.moveCursor(-1) },
+                    )
+
+                    RepeatableIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_right),
+                        contentDescription = "->",
+                        onClick = { viewModel.moveCursor(1) },
+                    )
+
+                    val keys = listOf("{", "}", "[", "]", ":", "\"", "_", "-")
+                    keys.forEach { key ->
+                        IconButton(
+                            onClick = {
+                                viewModel.insertText(key)
+                            },
+                        ) {
+                            Text(
+                                text = key,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                            )
+                        }
+                    }
+
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.format_align_left),
+                        contentDescription = stringResource(R.string.action_format),
+                        onClick = { viewModel.formatCurrentText() },
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.info),
+                        contentDescription = stringResource(R.string.action_test_config),
+                        onClick = {
+                            coroutineScope.launch {
+                                viewModel.checkConfig(currentText.toString())
+                            }
+                        },
+                    )
+                }
+            }
+            val extraHeight = with(density) { toolbarHeightPx.toDp() } + ScreenOffset + imePadding
+            val focusRequester = remember { FocusRequester() }
+            val verticalScrollState = rememberScrollState()
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-            )
+                    .horizontalScroll(rememberScrollState())
+                    .verticalScroll(verticalScrollState)
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { focusRequester.requestFocus() },
+            ) {
+                BasicTextField(
+                    state = viewModel.textFieldState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    lineLimits = TextFieldLineLimits.MultiLine(),
+                    outputTransformation = outputTransformation,
+                )
+                Spacer(modifier = Modifier.height(extraHeight))
+            }
         }
     }
 
@@ -449,7 +455,7 @@ private fun ConfigEditScreenContent(
         },
         confirmButton = {
             TextButton(stringResource(android.R.string.ok)) {
-                viewModel.saveAndExit(uiState.textFieldValue.text)
+                viewModel.saveAndExit(currentText.toString())
             }
         },
         dismissButton = {
