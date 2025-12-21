@@ -113,7 +113,7 @@ func DNSTransportRegistry() *dns.TransportRegistry {
 
 	// transport.RegisterTCP(registry) // Move to plugin
 	transport.RegisterUDP(registry)
-	transport.RegisterTLS(registry)
+	// transport.RegisterTLS(registry) // Move to plugin
 	transport.RegisterHTTPS(registry)
 	hosts.RegisterTransport(registry)
 	local.RegisterTransport(registry)

@@ -20,4 +20,5 @@ func registerPluginsOutbound(registry *outbound.Registry) {
 
 func registerPluginsDNSTransport(registry *dns.TransportRegistry) {
 	plugindns.RegisterTCP(registry)
+	plugindns.RegisterTLS(registry)
 }

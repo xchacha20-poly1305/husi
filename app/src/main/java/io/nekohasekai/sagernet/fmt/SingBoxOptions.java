@@ -2831,6 +2831,10 @@ public class SingBoxOptions {
 
         public Boolean reuse;
 
+        public Boolean pipeline;
+
+        public Integer max_queries;
+
     }
 
     public static class NewDNSServerOptions_RemoteTLSDNSServerOptions extends NewDNSServerOptions {
@@ -2887,6 +2891,10 @@ public class SingBoxOptions {
 
         // Generate note: nested type OutboundTLSOptionsContainer
         public OutboundTLSOptions tls;
+
+        public Boolean pipeline;
+
+        public Integer max_queries;
 
     }
 

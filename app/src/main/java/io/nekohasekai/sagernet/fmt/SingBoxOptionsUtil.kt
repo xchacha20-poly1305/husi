@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
 import io.nekohasekai.sagernet.ktx.parseBoolean
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
 import libcore.Libcore
 
 fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
@@ -185,20 +186,24 @@ fun MyOptions.buildRuleSets(
 
     val isRemote = ipURL != null
     for (name in names.sorted()) {
-        if (isRemote) list.add(RuleSet_Remote().apply {
-            tag = name
-            type = SingBoxOptions.RULE_SET_TYPE_REMOTE
-            val isIP = name.startsWith("geoip-")
-            url = if (isIP) {
-                "${ipURL}/${name}.srs"
-            } else {
-                "${domainURL}/${name}.srs"
-            }
-        }) else list.add(RuleSet_Local().apply {
-            tag = name
-            type = SingBoxOptions.RULE_SET_TYPE_LOCAL
-            path = "$localPath/$name.srs"
-        })
+        if (isRemote) list.add(
+            RuleSet_Remote().apply {
+                tag = name
+                type = SingBoxOptions.RULE_SET_TYPE_REMOTE
+                val isIP = name.startsWith("geoip-")
+                url = if (isIP) {
+                    "${ipURL}/${name}.srs"
+                } else {
+                    "${domainURL}/${name}.srs"
+                }
+            },
+        ) else list.add(
+            RuleSet_Local().apply {
+                tag = name
+                type = SingBoxOptions.RULE_SET_TYPE_LOCAL
+                path = "$localPath/$name.srs"
+            },
+        )
     }
 
     route.rule_set = list
@@ -259,7 +264,20 @@ fun buildDNSServer(
     }
 
     return when (val scheme = url.scheme) {
-        SingBoxOptions.DNS_TYPE_TLS, SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
+        SingBoxOptions.DNS_TYPE_TLS -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
+            type = scheme
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            tls = OutboundTLSOptions().apply {
+                enabled = true
+            }
+            detour = out
+            if (url.parseBoolean("pipeline")) pipeline = true
+            max_queries = url.queryParameterNotBlank("maxqueries")?.toIntOrNull()
+        }
+
+        SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
             type = scheme
             server = url.host
             server_port = url.ports.toIntOrNull()
@@ -294,6 +312,8 @@ fun buildDNSServer(
                 domain_resolver = domainResolver
                 detour = out
                 if (url.parseBoolean("reuse")) reuse = true
+                if (url.parseBoolean("pipeline")) pipeline = true
+                max_queries = url.queryParameterNotBlank("maxqueries")?.toIntOrNull()
             }
 
         // "", SingBoxOptions.DNS_TYPE_UDP ->

@@ -1,0 +1,1 @@
+Copied from <https://github.com/reF1nd/sing-box/commit/16d79eae3d45fbdc430fc216380d3cf8b7293421>
