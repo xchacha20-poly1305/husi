@@ -168,7 +168,8 @@ var newDNSServerList = []any{
 	option.LocalDNSServerOptions{},
 	option.RemoteDNSServerOptions{},
 	pluginoption.RemoteTCPDNSServerOptions{},
-	option.RemoteTLSDNSServerOptions{},
+	// option.RemoteTLSDNSServerOptions{},
+	pluginoption.RemoteTLSDNSServerOptions{},
 	option.RemoteHTTPSDNSServerOptions{},
 	option.FakeIPDNSServerOptions{},
 }
