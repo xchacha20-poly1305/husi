@@ -210,18 +210,24 @@ fun ConnectionDetailScreen(
                             },
                         )
                     },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("inbound", 1) {
                 ConnectionDataCard(
                     field = R.string.inbound,
                     value = { Text(connection.inbound) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             if (connection.ipVersion != null) item("ip_version", 1) {
                 ConnectionDataCard(
                     field = R.string.ip_version,
                     value = { Text(connection.ipVersion.toString()) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("network", 1) {
@@ -245,18 +251,24 @@ fun ConnectionDetailScreen(
                 ConnectionDataCard(
                     field = R.string.upload,
                     value = { Text(Formatter.formatFileSize(context, connection.uploadTotal)) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("download_total", 1) {
                 ConnectionDataCard(
                     field = R.string.download,
                     value = { Text(Formatter.formatFileSize(context, connection.downloadTotal)) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("start", 1) {
                 ConnectionDataCard(
                     field = R.string.start,
                     value = { Text(connection.start) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("source", 1) {
@@ -316,18 +328,24 @@ fun ConnectionDetailScreen(
                 ConnectionDataCard(
                     field = R.string.outbound_rule,
                     value = { Text(connection.matchedRule) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("outbound", 1) {
                 ConnectionDataCard(
                     field = R.string.outbound,
                     value = { Text(connection.outbound) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             item("chain", 1) {
                 ConnectionDataCard(
                     field = R.string.chain,
                     value = { Text(connection.chain) },
+                    isSelecting = isSelecting,
+                    isSelectable = false,
                 )
             }
             if (connection.protocol != null) item("protocol", 1) {
@@ -378,6 +396,7 @@ private fun ConnectionDataCard(
     value: @Composable () -> Unit,
     isSelecting: Boolean = false,
     isSelected: Boolean = false,
+    isSelectable: Boolean = true,
     onSelectedChange: (Boolean) -> Unit = {},
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "shake")
@@ -399,7 +418,11 @@ private fun ConnectionDataCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .graphicsLayer {
-                rotationZ = if (isSelecting) rotation else 0f
+                rotationZ = if (isSelecting && isSelectable) {
+                    rotation
+                } else {
+                    0f
+                }
             },
         colors = CardDefaults.outlinedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
@@ -413,6 +436,7 @@ private fun ConnectionDataCard(
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = onSelectedChange,
+                    enabled = isSelectable,
                 )
             }
             Column(
