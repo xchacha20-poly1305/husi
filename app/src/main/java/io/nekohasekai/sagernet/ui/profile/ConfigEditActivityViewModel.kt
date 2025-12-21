@@ -1,10 +1,12 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.delete
+import androidx.compose.foundation.text.input.insert
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonArray
@@ -29,9 +31,8 @@ internal sealed interface ConfigEditActivityUiEvent {
     class SnackBar(@param:StringRes val id: Int) : ConfigEditActivityUiEvent
 }
 
-@Stable
+@Immutable
 internal data class ConfigEditUiState(
-    val textFieldValue: TextFieldValue = TextFieldValue(),
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
 )
@@ -45,6 +46,8 @@ internal class ConfigEditActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ConfigEditUiState())
     val uiState: StateFlow<ConfigEditUiState> = _uiState.asStateFlow()
 
+    val textFieldState = TextFieldState()
+
     private val historyStack = mutableListOf<String>()
     private var historyPointer = -1
     private val maxHistorySize = 25
@@ -52,51 +55,43 @@ internal class ConfigEditActivityViewModel : ViewModel() {
     private var debounceJob: Job? = null
     private val debounceDelay = 500L
 
+    private var lastText: String = ""
+
     fun initialize(initialText: String) {
-        updateText(initialText)
+        textFieldState.setTextAndPlaceCursorAtEnd(initialText)
+        lastText = initialText
         addToHistory(initialText)
     }
 
-    fun onTextChange(newValue: TextFieldValue) {
-        _uiState.value = _uiState.value.copy(textFieldValue = newValue)
+    fun onTextChange() {
+        val newText = textFieldState.text.toString()
+        if (newText == lastText) return
+        lastText = newText
 
         debounceJob?.cancel()
         debounceJob = viewModelScope.launch {
             delay(debounceDelay)
-            addToHistory(newValue.text)
+            addToHistory(newText)
         }
     }
 
     fun insertText(insertion: String) {
-        val current = _uiState.value.textFieldValue
-        val selection = current.selection
-        val newText = current.text.substring(0, selection.start) +
-                insertion +
-                current.text.substring(selection.end)
-
-        updateText(newText, TextRange(selection.start + insertion.length))
-        addToHistory(newText)
-    }
-
-    fun updateText(text: String, selection: TextRange? = null) {
-        _uiState.value = _uiState.value.copy(
-            textFieldValue = TextFieldValue(
-                text = text,
-                selection = selection ?: TextRange(text.length),
-            ),
-        )
+        textFieldState.edit {
+            val start = selection.start
+            val end = selection.end
+            delete(start, end)
+            insert(start, insertion)
+            selection = androidx.compose.ui.text.TextRange(start + insertion.length)
+        }
+        addToHistory(textFieldState.text.toString())
     }
 
     fun moveCursor(offset: Int) {
-        val current = _uiState.value.textFieldValue
-        val currentPos = current.selection.start
-        val newPos = (currentPos + offset).coerceIn(0, current.text.length)
-
-        _uiState.value = _uiState.value.copy(
-            textFieldValue = current.copy(
-                selection = TextRange(newPos)
-            )
-        )
+        textFieldState.edit {
+            val currentPos = selection.start
+            val newPos = (currentPos + offset).coerceIn(0, length)
+            selection = androidx.compose.ui.text.TextRange(newPos)
+        }
     }
 
     private fun addToHistory(text: String) {
@@ -123,7 +118,8 @@ internal class ConfigEditActivityViewModel : ViewModel() {
             historyPointer--
             updateUndoRedoState()
             val text = historyStack[historyPointer]
-            updateText(text)
+            textFieldState.setTextAndPlaceCursorAtEnd(text)
+            lastText = text
         }
     }
 
@@ -132,7 +128,8 @@ internal class ConfigEditActivityViewModel : ViewModel() {
             historyPointer++
             updateUndoRedoState()
             val text = historyStack[historyPointer]
-            updateText(text)
+            textFieldState.setTextAndPlaceCursorAtEnd(text)
+            lastText = text
         }
     }
 
@@ -145,8 +142,9 @@ internal class ConfigEditActivityViewModel : ViewModel() {
 
     fun formatCurrentText() {
         try {
-            val formatted = formatJson(_uiState.value.textFieldValue.text)
-            updateText(formatted)
+            val formatted = formatJson(textFieldState.text)
+            textFieldState.setTextAndPlaceCursorAtEnd(formatted)
+            lastText = formatted
             addToHistory(formatted)
         } catch (e: Exception) {
             viewModelScope.launch {
