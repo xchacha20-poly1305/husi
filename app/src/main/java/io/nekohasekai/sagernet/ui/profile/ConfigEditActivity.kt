@@ -26,10 +26,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -59,6 +59,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -93,6 +94,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.TextButton
+import io.nekohasekai.sagernet.compose.paddingExceptBottom
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ui.ComposeActivity
 import kotlinx.coroutines.coroutineScope
@@ -112,6 +114,9 @@ class ConfigEditActivity : ComposeActivity() {
         super.onCreate(savedInstanceState)
 
         val initialText = intent?.extras?.getString(EXTRA_CUSTOM_CONFIG) ?: "{}"
+        if (savedInstanceState == null) {
+            viewModel.initialize(initialText)
+        }
 
         setContent {
             AppTheme {
@@ -210,10 +215,6 @@ private fun ConfigEditScreenContent(
     val context = LocalContext.current
     var alert by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(Unit) {
-        viewModel.initialize(initialText)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { uiEvent ->
@@ -319,18 +320,30 @@ private fun ConfigEditScreenContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .paddingExceptBottom(innerPadding),
         ) {
             val density = LocalDensity.current
             val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-            var toolbarHeightPx by remember { mutableStateOf(0) }
+            val navigationPadding =
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val toolbarYOffset = ScreenOffset + imePadding + navigationPadding
+            var toolbarHeightPx by remember { mutableIntStateOf(0) }
             HorizontalFloatingToolbar(
                 expanded = true,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .offset(y = -(ScreenOffset + imePadding))
+                    .offset(y = -toolbarYOffset)
                     .zIndex(1f)
                     .onSizeChanged { toolbarHeightPx = it.height },
+                // Fake liquid glass
+                colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                    toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(
+                        alpha = 0.9f,
+                    ),
+                    toolbarContentColor = MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.8f,
+                    ),
+                ),
                 scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
                     FloatingToolbarExitDirection.Bottom,
                 ),
@@ -404,7 +417,7 @@ private fun ConfigEditScreenContent(
                     )
                 }
             }
-            val extraHeight = with(density) { toolbarHeightPx.toDp() } + ScreenOffset + imePadding
+            val extraHeight = with(density) { toolbarHeightPx.toDp() } + toolbarYOffset
             val focusRequester = remember { FocusRequester() }
             val verticalScrollState = rememberScrollState()
             Column(
