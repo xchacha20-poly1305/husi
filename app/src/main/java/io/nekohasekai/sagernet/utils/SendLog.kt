@@ -21,7 +21,7 @@ object SendLog {
         val content = buildString {
             appendLine(CrashHandler.buildReportHeader())
             appendLine("Logcat: \n")
-            appendLine(getCoreLog(externalAssetsDir, 0))
+            appendLine(getCoreLog(externalAssetsDir, 0).toString(Charsets.UTF_8))
         }
 
         try {
@@ -41,7 +41,7 @@ object SendLog {
         append(CrashHandler.buildReportHeader())
         appendLine("Logcat: ")
         appendLine()
-        appendLine(getCoreLog(externalAssetsDir, 0))
+        appendLine(getCoreLog(externalAssetsDir, 0).toString(Charsets.UTF_8))
     }
 
     private fun getCoreLog(externalAssetsDir: File, max: Long): ByteArray {
