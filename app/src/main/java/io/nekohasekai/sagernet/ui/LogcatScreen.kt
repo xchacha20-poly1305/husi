@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -79,6 +78,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.SendLog
 import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun LogcatScreen(
@@ -364,11 +364,17 @@ fun LogcatScreen(
                 onClick = {
                     scope.launch {
                         try {
-                            val logFile = SendLog.buildLog(
-                                context.cacheDir,
-                                context.getExternalFilesDir(null) ?: context.filesDir,
+                            val logFile = File.createTempFile(
                                 BuildConfig.APPLICATION_ID,
-                            )
+                                ".log",
+                                File(context.cacheDir, "log").also { it.mkdirs() },
+                            ).apply {
+                                writeText(
+                                    SendLog.buildLog(
+                                        context.getExternalFilesDir(null) ?: context.filesDir,
+                                    ),
+                                )
+                            }
                             context.startActivity(
                                 Intent.createChooser(
                                     Intent(Intent.ACTION_SEND)
