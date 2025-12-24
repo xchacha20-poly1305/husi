@@ -1,7 +1,7 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package io.nekohasekai.sagernet.ui.profile
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -28,13 +29,15 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -48,8 +51,10 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -151,73 +156,89 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                                     ) {
                                         showExtendMenu = true
                                     }
-                                    DropdownMenu(
+                                    DropdownMenuPopup(
                                         expanded = showExtendMenu,
                                         onDismissRequest = { showExtendMenu = false },
                                     ) {
-                                        var hasDevider = false
-                                        if (!viewModel.isNew // May cancel crating
-                                            && !viewModel.isSubscription // Updating may make profile lost
-                                        ) {
-                                            hasDevider = true
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.create_shortcut)) },
-                                                onClick = ::buildShortCut,
-                                            )
+                                        val showCreateShortCut =
+                                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                                                    && !viewModel.isNew // May cancel crating
+                                                    && !viewModel.isSubscription // Updating may make profile lost
+                                        val showMove = !viewModel.isNew // Uncreated
+                                                && runBlocking {
+                                            SagerDatabase.groupDao.allGroups().first()
+                                                .filter {
+                                                    it.type == GroupType.BASIC
+                                                }.size > 1 // Movable
                                         }
-                                        if (!viewModel.isNew // Uncreated
-                                            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                                            && runBlocking {
-                                                SagerDatabase.groupDao.allGroups().first()
-                                                    .filter {
-                                                        it.type == GroupType.BASIC
-                                                    }.size > 1 // Movable
+                                        val hasFirstGroup = showCreateShortCut || showMove
+                                        if (hasFirstGroup) {
+                                            DropdownMenuGroup(
+                                                shapes = MenuDefaults.groupShape(0, 2),
+                                            ) {
+                                                if (showCreateShortCut) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.create_shortcut)) },
+                                                        onClick = ::buildShortCut,
+                                                    )
+                                                }
+                                                if (showMoveDialog) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.move)) },
+                                                        onClick = { showMoveDialog = true },
+                                                    )
+                                                }
                                             }
-                                        ) {
-                                            hasDevider = true
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.move)) },
-                                                onClick = { showMoveDialog = true },
-                                            )
+                                            Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
                                         }
 
-                                        if (hasDevider) HorizontalDivider()
-                                        Text(
-                                            text = stringResource(R.string.custom_config),
-                                            modifier = Modifier.padding(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp,
-                                            ),
-                                            style = MaterialTheme.typography.titleSmall,
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.outbound)) },
-                                            onClick = {
-                                                resultCallbackCustomOutbound.launch(
-                                                    Intent(
-                                                        baseContext,
-                                                        ConfigEditActivity::class.java,
-                                                    ).putExtra(
-                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
-                                                        viewModel.uiState.value.customOutbound,
-                                                    )
-                                                )
+                                        DropdownMenuGroup(
+                                            shapes = if (hasFirstGroup) {
+                                                MenuDefaults.groupShape(1, 2)
+                                            } else {
+                                                MenuDefaults.groupShapes()
                                             },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.full)) },
-                                            onClick = {
-                                                resultCallbackCustomConfig.launch(
-                                                    Intent(
-                                                        baseContext,
-                                                        ConfigEditActivity::class.java,
-                                                    ).putExtra(
-                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
-                                                        viewModel.uiState.value.customConfig,
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    MenuDefaults.Label {
+                                                        Text(
+                                                            text = stringResource(R.string.custom_config),
+                                                            style = MaterialTheme.typography.titleSmall,
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {},
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.outbound)) },
+                                                onClick = {
+                                                    resultCallbackCustomOutbound.launch(
+                                                        Intent(
+                                                            this@ProfileSettingsActivity,
+                                                            ConfigEditActivity::class.java,
+                                                        ).putExtra(
+                                                            ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                            viewModel.uiState.value.customOutbound,
+                                                        ),
                                                     )
-                                                )
-                                            },
-                                        )
+                                                },
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.full)) },
+                                                onClick = {
+                                                    resultCallbackCustomConfig.launch(
+                                                        Intent(
+                                                            this@ProfileSettingsActivity,
+                                                            ConfigEditActivity::class.java,
+                                                        ).putExtra(
+                                                            ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                            viewModel.uiState.value.customConfig,
+                                                        ),
+                                                    )
+                                                },
+                                            )
+                                        }
                                     }
                                 }
                             },
@@ -279,7 +300,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                         },
                         icon = { Icon(ImageVector.vectorResource(R.drawable.warning), null) },
                         title = { Text(stringResource(alert.title)) },
-                        text = { Text(stringResource(alert.message)) }
+                        text = { Text(stringResource(alert.message)) },
                     )
                 }
             }
@@ -294,7 +315,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
     }
 
     private val resultCallbackCustomConfig = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
         if (it.resultCode == RESULT_OK) {
             viewModel.setCustomConfig(it.data!!.getStringExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG)!!)
@@ -302,7 +323,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
     }
 
     private val resultCallbackCustomOutbound = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
         if (it.resultCode == RESULT_OK) {
             viewModel.setCustomOutbound(it.data!!.getStringExtra(ConfigEditActivity.EXTRA_CUSTOM_CONFIG)!!)
@@ -353,12 +374,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
             .setShortLabel(name)
             .setLongLabel(name)
             .setIcon(
-                IconCompat.createWithResource(this, R.drawable.ic_qu_shadowsocks_launcher)
+                IconCompat.createWithResource(this, R.drawable.ic_qu_shadowsocks_launcher),
             )
             .setIntent(
                 Intent(baseContext, QuickToggleShortcut::class.java)
                     .setAction(Intent.ACTION_MAIN)
-                    .putExtra(QuickToggleShortcut.EXTRA_PROFILE_ID, entity.id)
+                    .putExtra(QuickToggleShortcut.EXTRA_PROFILE_ID, entity.id),
             )
             .build()
         ShortcutManagerCompat.requestPinShortcut(this, shortcut, null)
@@ -410,7 +431,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean> : ComposeActivity() {
                 TextButton(stringResource(android.R.string.cancel)) {
                     onDismiss()
                 }
-            }
+            },
         )
     }
 

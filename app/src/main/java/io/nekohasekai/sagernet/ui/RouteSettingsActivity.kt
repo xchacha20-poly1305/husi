@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package io.nekohasekai.sagernet.ui
 
 import android.content.Intent
@@ -12,15 +14,16 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
@@ -152,14 +154,19 @@ class RouteSettingsActivity : ComposeActivity() {
                                     DropdownMenu(
                                         expanded = showExpandedMenu,
                                         onDismissRequest = { showExpandedMenu = false },
+                                        containerColor = MenuDefaults.groupStandardContainerColor,
+                                        shape = MenuDefaults.standaloneGroupShape,
                                     ) {
-                                        Text(
-                                            text = stringResource(R.string.custom_config),
-                                            modifier = Modifier.padding(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp,
-                                            ),
-                                            style = MaterialTheme.typography.titleSmall,
+                                        DropdownMenuItem(
+                                            text = {
+                                                MenuDefaults.Label {
+                                                    Text(
+                                                        text = stringResource(R.string.custom_config),
+                                                        style = MaterialTheme.typography.titleSmall,
+                                                    )
+                                                }
+                                            },
+                                            onClick = {},
                                         )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.menu_route)) },
