@@ -107,6 +107,7 @@ internal class GetCertActivityViewModel() : ViewModel() {
     }
 
     private fun formatCert(cert: String, format: Format): String {
+        if (cert.isBlank()) return ""
         return when (format) {
             Format.Raw -> ""
             Format.V2RayPem -> Libcore.toV2RayPemHash(cert)
