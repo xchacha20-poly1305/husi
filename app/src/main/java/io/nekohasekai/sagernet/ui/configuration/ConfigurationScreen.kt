@@ -12,7 +12,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -37,9 +36,9 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -349,21 +348,19 @@ fun ConfigurationScreen(
                             SimpleIconButton(
                                 imageVector = ImageVector.vectorResource(R.drawable.note_add),
                                 contentDescription = stringResource(R.string.add_profile),
-                            ) {
-                                showAddMenu = true
-                            }
+                                onClick = { showAddMenu = true },
+                            )
                             DropdownMenu(
                                 expanded = showAddMenu,
                                 onDismissRequest = { showAddMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
                             ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
                                     onClick = {
                                         context.startActivity(
-                                            Intent(
-                                                context,
-                                                ScannerActivity::class.java,
-                                            ),
+                                            Intent(context, ScannerActivity::class.java),
                                         )
                                     },
                                 )
@@ -396,14 +393,19 @@ fun ConfigurationScreen(
                                         }
                                     },
                                 )
-                                ExpandableDropdownMenuItem(stringResource(R.string.add_profile_methods_manual_settings)) {
-                                    showAddMenu = false
-                                    showAddManualMenu = true
-                                }
+                                ExpandableDropdownMenuItem(
+                                    text = stringResource(R.string.add_profile_methods_manual_settings),
+                                    onClick = {
+                                        showAddMenu = false
+                                        showAddManualMenu = true
+                                    },
+                                )
                             }
                             DropdownMenu(
                                 expanded = showAddManualMenu,
                                 onDismissRequest = { showAddManualMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
                             ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.action_socks)) },
@@ -652,12 +654,13 @@ fun ConfigurationScreen(
                             SimpleIconButton(
                                 imageVector = ImageVector.vectorResource(R.drawable.more_vert),
                                 contentDescription = stringResource(R.string.more),
-                            ) {
-                                showOverflowMenu = true
-                            }
+                                onClick = { showOverflowMenu = true },
+                            )
                             DropdownMenu(
                                 expanded = showOverflowMenu,
                                 onDismissRequest = { showOverflowMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
                             ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.clear_traffic_statistics)) },
@@ -685,6 +688,8 @@ fun ConfigurationScreen(
                             DropdownMenu(
                                 expanded = showConnectionTestMenu,
                                 onDismissRequest = { showConnectionTestMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
                             ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.connection_test_icmp_ping)) },
@@ -734,6 +739,8 @@ fun ConfigurationScreen(
                             DropdownMenu(
                                 expanded = showOrderMenu,
                                 onDismissRequest = { showOrderMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
                             ) {
                                 val orders = listOf(
                                     stringResource(R.string.group_order_origin),
@@ -742,20 +749,13 @@ fun ConfigurationScreen(
                                 )
                                 orders.forEachIndexed { i, option ->
                                     DropdownMenuItem(
-                                        text = {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                RadioButton(
-                                                    selected = (currentOrder == i),
-                                                    onClick = null,
-                                                )
-                                                Spacer(Modifier.width(8.dp))
-                                                Text(text = option)
-                                            }
-                                        },
+                                        selected = currentOrder == i,
                                         onClick = {
                                             showOrderMenu = false
                                             vm.updateOrder(DataStore.selectedGroup, i)
                                         },
+                                        text = { Text(text = option) },
+                                        shapes = MenuDefaults.itemShape(i, orders.size),
                                     )
                                 }
                             }

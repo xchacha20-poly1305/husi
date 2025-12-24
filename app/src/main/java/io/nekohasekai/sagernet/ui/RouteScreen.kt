@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package io.nekohasekai.sagernet.ui
 
@@ -22,12 +22,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -73,7 +76,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
-import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SagerFab
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.StatsBar
@@ -116,6 +118,7 @@ fun RouteScreen(
     val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showMoreAction by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
 
     fun needReload() = scope.launch {
@@ -168,39 +171,48 @@ fun RouteScreen(
                     )
                 },
                 actions = {
-                    AppBarRow(
-                        overflowIndicator = ::MoreOverIcon,
-                        maxItemCount = 2,
-                    ) {
-                        clickableItem(
-                            onClick = {
-                                context.startActivity(
-                                    Intent(context, RouteSettingsActivity::class.java),
-                                )
-                            },
-                            icon = {
-                                Icon(ImageVector.vectorResource(R.drawable.add_road), null)
-                            },
-                            label = context.getString(R.string.route_add),
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.add_road),
+                        contentDescription = stringResource(R.string.route_add),
+                        onClick = {
+                            context.startActivity(
+                                Intent(context, RouteSettingsActivity::class.java),
+                            )
+                        },
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.replay),
+                        contentDescription = stringResource(R.string.route_reset),
+                        onClick = { showResetAlert = true },
+                    )
+                    Box {
+                        SimpleIconButton(
+                            imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                            contentDescription = stringResource(R.string.more),
+                            onClick = { showMoreAction = true },
                         )
-                        clickableItem(
-                            onClick = { showResetAlert = true },
-                            icon = {
-                                Icon(ImageVector.vectorResource(R.drawable.replay), null)
-                            },
-                            label = context.getString(R.string.route_reset),
-                        )
-                        clickableItem(
-                            onClick = {
-                                context.startActivity(
-                                    Intent(context, AssetsActivity::class.java),
-                                )
-                            },
-                            icon = {
-                                Icon(ImageVector.vectorResource(R.drawable.layers), null)
-                            },
-                            label = context.getString(R.string.route_manage_assets),
-                        )
+                        DropdownMenu(
+                            expanded = showMoreAction,
+                            onDismissRequest = { showMoreAction = false },
+                            shape = MenuDefaults.standaloneGroupShape,
+                            containerColor = MenuDefaults.groupStandardContainerColor,
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.route_manage_assets)) },
+                                onClick = {
+                                    showMoreAction = false
+                                    context.startActivity(
+                                        Intent(context, AssetsActivity::class.java),
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.layers),
+                                        contentDescription = null,
+                                    )
+                                },
+                            )
+                        }
                     }
                 },
                 windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),

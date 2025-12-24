@@ -1,96 +1,82 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package io.nekohasekai.sagernet.compose
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun <T> DropDownSelector(
     modifier: Modifier = Modifier,
-    label: @Composable () -> Unit,
+    label: @Composable TextFieldLabelScope.() -> Unit,
     value: T,
     values: List<T>,
     onValueChange: (T) -> Unit,
     displayValue: (T) -> String = { it.toString() },
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val textFieldState = rememberTextFieldState()
+    LaunchedEffect(value) {
+        textFieldState.setTextAndPlaceCursorAtEnd(displayValue(value))
+    }
 
-    Column(
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            OutlinedTextField(
-                value = displayValue(value),
-                onValueChange = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                readOnly = true,
-                label = label,
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            )
+        OutlinedTextField(
+            state = textFieldState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            readOnly = true,
+            label = label,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        )
 
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                for (item in values) {
-                    val isSelected = item == value
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                displayValue(item),
-                                color = if (isSelected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                },
-                                fontWeight = if (isSelected) {
-                                    FontWeight.Bold
-                                } else {
-                                    FontWeight.Normal
-                                },
-                            )
-                        },
-                        onClick = {
-                            onValueChange(item)
-                            expanded = false
-                        },
-                        modifier = Modifier
-                            .background(
-                                if (isSelected) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                } else {
-                                    Color.Transparent
-                                },
-                            ),
-                    )
-                }
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = MenuDefaults.groupStandardContainerColor,
+            shape = MenuDefaults.standaloneGroupShape,
+        ) {
+            for ((i, item) in values.withIndex()) {
+                val isSelected = item == value
+                DropdownMenuItem(
+                    selected = isSelected,
+                    text = {
+                        Text(displayValue(item))
+                    },
+                    onClick = {
+                        onValueChange(item)
+                        expanded = false
+                    },
+                    shapes = MenuDefaults.itemShape(i, values.size),
+                    colors = MenuDefaults.selectableItemColors(),
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
             }
         }
     }
