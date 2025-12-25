@@ -14,15 +14,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,8 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -150,56 +148,46 @@ private fun SpeedtestScreen(
                 .paddingExceptBottom(innerPadding),
         ) {
             Card(modifier = Modifier.padding(16.dp)) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 64.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .selectable(
-                                    selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Download,
-                                    enabled = uiState.progress == null,
-                                    onClick = { viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Download) },
-                                    role = Role.RadioButton,
-                                ),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            RadioButton(
-                                selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Download,
-                                onClick = null,
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.download))
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .selectable(
-                                    selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Upload,
-                                    enabled = uiState.progress == null,
-                                    onClick = { viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Upload) },
-                                    role = Role.RadioButton,
-                                ),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            RadioButton(
-                                selected = uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Upload,
-                                onClick = null,
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.upload))
-                        }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    SingleChoiceSegmentedButtonRow {
+                        val isDownload =
+                            uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Download
+                        SegmentedButton(
+                            selected = isDownload,
+                            onClick = { viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Download) },
+                            shape = SegmentedButtonDefaults.itemShape(0, 2),
+                            icon = {
+                                SegmentedButtonDefaults.Icon(
+                                    active = isDownload,
+                                    inactiveContent = {
+                                        Icon(ImageVector.vectorResource(R.drawable.download), null)
+                                    },
+                                )
+                            },
+                            label = { Text(stringResource(R.string.download)) },
+                        )
+                        val isUpload =
+                            uiState.mode == SpeedTestActivityViewModel.SpeedTestMode.Upload
+                        SegmentedButton(
+                            selected = isUpload,
+                            onClick = { viewModel.setMode(SpeedTestActivityViewModel.SpeedTestMode.Upload) },
+                            shape = SegmentedButtonDefaults.itemShape(1, 2),
+                            icon = {
+                                SegmentedButtonDefaults.Icon(
+                                    active = isUpload,
+                                    inactiveContent = {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.file_upload),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                )
+                            },
+                            label = { Text(stringResource(R.string.upload)) },
+                        )
                     }
-                    Spacer(Modifier.padding(vertical = 16.dp))
 
                     OutlinedTextField(
                         value = when (uiState.mode) {
@@ -275,7 +263,7 @@ private fun SpeedtestScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 Button(
