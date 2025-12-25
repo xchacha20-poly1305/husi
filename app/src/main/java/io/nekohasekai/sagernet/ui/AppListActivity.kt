@@ -2,8 +2,6 @@
 
 package io.nekohasekai.sagernet.ui
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -30,12 +28,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -55,11 +55,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,7 +70,6 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
-import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
@@ -143,6 +144,7 @@ private fun AppListScreen(
     }
 
     var searchActivate by remember { mutableStateOf(false) }
+    var showMoreActions by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
     val windowInsets = WindowInsets.safeDrawing
@@ -196,62 +198,78 @@ private fun AppListScreen(
                         searchActivate = false
                         viewModel.setSearchQuery("")
                     } else {
-                        AppBarRow(
-                            overflowIndicator = ::MoreOverIcon,
-                            maxItemCount = 4,
-                        ) {
-                            clickableItem(
-                                onClick = { searchActivate = true },
-                                icon = {
-                                    Icon(ImageVector.vectorResource(R.drawable.search), null)
-                                },
-                                label = context.getString(android.R.string.search_go),
+                        SimpleIconButton(
+                            imageVector = ImageVector.vectorResource(R.drawable.search),
+                            contentDescription = stringResource(android.R.string.search_go),
+                            onClick = { searchActivate = true },
+                        )
+                        SimpleIconButton(
+                            imageVector = ImageVector.vectorResource(R.drawable.copy_all),
+                            contentDescription = stringResource(R.string.action_copy),
+                            onClick = {
+                                val toExport = viewModel.export()
+                                scope.launch {
+                                    clipboard.setPlainText(toExport)
+                                    snackbarHostState.showSnackbar(
+                                        message = context.getString(R.string.copy_success),
+                                        actionLabel = context.getString(android.R.string.ok),
+                                        duration = SnackbarDuration.Short,
+                                    )
+                                }
+                            },
+                        )
+                        SimpleIconButton(
+                            imageVector = ImageVector.vectorResource(R.drawable.content_paste),
+                            contentDescription = stringResource(R.string.action_import),
+                            onClick = {
+                                scope.launch {
+                                    val text = clipboard.getClipEntry()?.clipData
+                                        ?.getItemAt(0)?.text
+                                        ?.toString()
+                                    viewModel.import(text)
+                                }
+                            },
+                        )
+                        Box {
+                            SimpleIconButton(
+                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                                contentDescription = stringResource(R.string.more),
+                                onClick = { showMoreActions = true },
                             )
-                            clickableItem(
-                                onClick = {
-                                    val toExport = viewModel.export()
-                                    scope.launch {
-                                        clipboard.setPlainText(toExport)
-                                        snackbarHostState.showSnackbar(
-                                            message = context.getString(R.string.copy_success),
-                                            actionLabel = context.getString(android.R.string.ok),
-                                            duration = SnackbarDuration.Short,
+
+                            DropdownMenu(
+                                expanded = showMoreActions,
+                                onDismissRequest = { showMoreActions = false },
+                                shape = MenuDefaults.standaloneGroupShape,
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.invert_selections)) },
+                                    onClick = {
+                                        viewModel.invertSections()
+                                        showMoreActions = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.fiber_smart_record),
+                                            null,
                                         )
-                                    }
-                                },
-                                icon = {
-                                    Icon(ImageVector.vectorResource(R.drawable.copy_all), null)
-                                },
-                                label = context.getString(R.string.action_copy),
-                            )
-                            clickableItem(
-                                onClick = {
-                                    scope.launch {
-                                        val text = clipboard.getClipEntry()?.clipData
-                                            ?.getItemAt(0)?.text
-                                            ?.toString()
-                                        viewModel.import(text)
-                                    }
-                                },
-                                icon = {
-                                    Icon(ImageVector.vectorResource(R.drawable.content_paste), null)
-                                },
-                                label = context.getString(R.string.action_import),
-                            )
-                            clickableItem(
-                                onClick = { viewModel.invertSections() },
-                                icon = {
-                                    Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null)
-                                },
-                                label = context.getString(R.string.invert_selections),
-                            )
-                            clickableItem(
-                                onClick = { viewModel.clearSections() },
-                                icon = {
-                                    Icon(ImageVector.vectorResource(R.drawable.cleaning_services), null)
-                                },
-                                label = context.getString(R.string.clear_selections),
-                            )
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.clear_selections)) },
+                                    onClick = {
+                                        viewModel.clearSections()
+                                        showMoreActions = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
+                                            null,
+                                        )
+                                    },
+                                )
+                            }
                         }
                     }
                 },
