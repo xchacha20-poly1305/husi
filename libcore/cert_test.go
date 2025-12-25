@@ -87,12 +87,12 @@ func Test_UpdateRootCACerts(t *testing.T) {
 	testConnect(husi, listen, true, "normal local")
 
 	// Load local cert and Mozilla CA
-	UpdateRootCACerts(true, nil)
+	UpdateRootCACerts(CertMozilla, nil)
 	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
 	testConnect(husi, listen, false, "loaded custom")
 
 	// Set back but load local
-	UpdateRootCACerts(false, nil)
+	UpdateRootCACerts(CertGoOrigin, nil)
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
 	testConnect(husi, listen, false, "loaded custom 2")
 }

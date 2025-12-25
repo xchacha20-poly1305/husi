@@ -24,19 +24,22 @@ import (
 	"libcore/plugin/raybridge"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
-	"github.com/xchacha20-poly1305/cazilla"
 )
-
-func init() {
-	// Smaller than do nothing and override with nil.
-	boxMozillaCert = x509.NewCertPool()
-}
 
 //go:linkname systemRoots crypto/x509.systemRoots
 //go:linkname boxMozillaCert github.com/sagernet/sing-box/common/certificate.mozillaIncluded
+//go:linkname boxChromeCert github.com/sagernet/sing-box/common/certificate.chromeIncluded
 var (
 	systemRoots    *x509.CertPool
 	boxMozillaCert *x509.CertPool
+	boxChromeCert  *x509.CertPool
+)
+
+const (
+	CertGoOrigin int32 = iota
+	CertWithUserTrust
+	CertMozilla
+	CertChrome
 )
 
 const customCaFile = "ca.pem"
@@ -45,7 +48,7 @@ const customCaFile = "ca.pem"
 // Set certFromJava to get cert with user trusted. ( workaround for: https://github.com/golang/go/issues/71258 )
 //
 // In each time, this appends externalAssetsPath/ca.pem to root CA.
-func UpdateRootCACerts(enableCazilla bool, certFromJava StringIterator) {
+func UpdateRootCACerts(certOption int32, certFromJava StringIterator) {
 	// https://github.com/golang/go/blob/30b6fd60a63c738c2736e83b6a6886a032e6f269/src/crypto/x509/root.go#L31
 	// Make sure initialize system cert pool.
 	// If system cert has not been initialized,
@@ -54,21 +57,24 @@ func UpdateRootCACerts(enableCazilla bool, certFromJava StringIterator) {
 	sysRoots, _ := x509.SystemCertPool()
 
 	var roots *x509.CertPool
-	if enableCazilla {
-		roots = cazilla.CA.Clone()
-	} else {
-		if certFromJava == nil {
-			roots = sysRoots
-		} else {
-			roots = x509.NewCertPool()
-			for certFromJava.HasNext() {
-				cert := certFromJava.Next()
-				// Unsupported: CatCert(SHA1WithRSA) since Go 1.24
-				if !tryAddCert(roots, []byte(cert)) {
-					log.Warn("failed to load java cert: ", cert)
-				}
+	switch certOption {
+	case CertGoOrigin:
+		roots = sysRoots
+	case CertWithUserTrust:
+		roots = x509.NewCertPool()
+		for certFromJava.HasNext() {
+			cert := certFromJava.Next()
+			// Unsupported: CatCert(SHA1WithRSA) since Go 1.24
+			if !tryAddCert(roots, []byte(cert)) {
+				log.Warn("failed to load java cert: ", cert)
 			}
 		}
+	case CertMozilla:
+		roots = boxMozillaCert.Clone()
+	case CertChrome:
+		roots = boxChromeCert.Clone()
+	default:
+		panic("unknown cert option")
 	}
 
 	externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, customCaFile))

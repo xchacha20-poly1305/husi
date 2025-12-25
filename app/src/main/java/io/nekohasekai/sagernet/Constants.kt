@@ -232,6 +232,7 @@ object CertProvider {
     const val SYSTEM = 0
     const val MOZILLA = 1
     const val SYSTEM_AND_USER = 2 // Put it last because Go may fix the bug one day.
+    const val CHROME = 3
 }
 
 object ProtocolProvider {
