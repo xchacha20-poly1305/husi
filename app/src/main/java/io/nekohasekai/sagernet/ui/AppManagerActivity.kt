@@ -1,15 +1,13 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package io.nekohasekai.sagernet.ui
 
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
-import android.content.ClipboardManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,26 +31,30 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,27 +66,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.AutoFadeVerticalScrollbar
-import io.nekohasekai.sagernet.compose.MoreOverIcon
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.paddingExceptBottom
+import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.ktx.first
-import io.nekohasekai.sagernet.ktx.trySetPrimaryClip
 import io.nekohasekai.sagernet.repository.TempRepository
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.launch
@@ -139,8 +140,9 @@ private fun AppManagerScreen(
     }
 
     var searchActivate by remember { mutableStateOf(false) }
+    var showMoreActions by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    val clipboardManager = remember(context) { context.getSystemService<ClipboardManager>() }
+    val clipboard = LocalClipboard.current
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -205,71 +207,91 @@ private fun AppManagerScreen(
                                     },
                                 )
                             } else {
-                                AppBarRow(
-                                    overflowIndicator = ::MoreOverIcon,
-                                    maxItemCount = 4,
-                                ) {
-                                    clickableItem(
-                                        onClick = { searchActivate = true },
-                                        icon = {
-                                            Icon(ImageVector.vectorResource(R.drawable.search), null)
-                                        },
-                                        label = context.getString(android.R.string.search_go),
-                                    )
-                                    clickableItem(
-                                        onClick = {
-                                            val toExport = viewModel.export()
-                                            val success =
-                                                clipboardManager?.trySetPrimaryClip(toExport) ?: false
-                                            scope.launch {
-                                                val message = if (success) {
-                                                    context.getString(R.string.copy_success)
-                                                } else {
-                                                    context.getString(R.string.copy_failed)
-                                                }
-                                                snackbarHostState.showSnackbar(
-                                                    message = message,
-                                                    actionLabel = context.getString(android.R.string.ok),
-                                                    duration = SnackbarDuration.Short,
-                                                )
-                                            }
-                                        },
-                                        icon = {
-                                            Icon(ImageVector.vectorResource(R.drawable.copy_all), null)
-                                        },
-                                        label = context.getString(R.string.action_copy),
-                                    )
-                                    clickableItem(
-                                        onClick = {
-                                            val text = clipboardManager?.first()
+                                SimpleIconButton(
+                                    imageVector = ImageVector.vectorResource(R.drawable.search),
+                                    contentDescription = stringResource(android.R.string.search_go),
+                                    onClick = { searchActivate = true },
+                                )
+                                SimpleIconButton(
+                                    imageVector = ImageVector.vectorResource(R.drawable.copy_all),
+                                    contentDescription = stringResource(R.string.action_copy),
+                                    onClick = {
+                                        val toExport = viewModel.export()
+                                        scope.launch {
+                                            clipboard.setPlainText(toExport)
+                                            snackbarHostState.showSnackbar(
+                                                message = context.getString(R.string.copy_success),
+                                                actionLabel = context.getString(android.R.string.ok),
+                                                duration = SnackbarDuration.Short,
+                                            )
+                                        }
+                                    },
+                                )
+                                SimpleIconButton(
+                                    imageVector = ImageVector.vectorResource(R.drawable.content_paste),
+                                    contentDescription = stringResource(R.string.action_import),
+                                    onClick = {
+                                        scope.launch {
+                                            val text = clipboard.getClipEntry()?.clipData
+                                                ?.getItemAt(0)?.text
+                                                ?.toString()
                                             viewModel.import(text)
-                                        },
-                                        icon = {
-                                            Icon(ImageVector.vectorResource(R.drawable.content_paste), null)
-                                        },
-                                        label = context.getString(R.string.action_import),
+                                        }
+                                    },
+                                )
+                                Box {
+                                    SimpleIconButton(
+                                        imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                                        contentDescription = stringResource(R.string.more),
+                                        onClick = { showMoreActions = true },
                                     )
-                                    clickableItem(
-                                        onClick = { viewModel.scanChinaApps() },
-                                        icon = {
-                                            Icon(ImageVector.vectorResource(R.drawable.document_scanner), null)
-                                        },
-                                        label = context.getString(R.string.action_scan_china_apps),
-                                    )
-                                    clickableItem(
-                                        onClick = { viewModel.invertSections() },
-                                        icon = {
-                                            Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null)
-                                        },
-                                        label = context.getString(R.string.invert_selections),
-                                    )
-                                    clickableItem(
-                                        onClick = { viewModel.clearSections() },
-                                        icon = {
-                                            Icon(ImageVector.vectorResource(R.drawable.cleaning_services), null)
-                                        },
-                                        label = context.getString(R.string.clear_selections),
-                                    )
+
+                                    DropdownMenu(
+                                        expanded = showMoreActions,
+                                        onDismissRequest = { showMoreActions = false },
+                                        shape = MenuDefaults.standaloneGroupShape,
+                                        containerColor = MenuDefaults.groupStandardContainerColor,
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.action_scan_china_apps)) },
+                                            onClick = {
+                                                viewModel.scanChinaApps()
+                                                showMoreActions = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = ImageVector.vectorResource(R.drawable.document_scanner),
+                                                    contentDescription = null,
+                                                )
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.invert_selections)) },
+                                            onClick = {
+                                                viewModel.invertSections()
+                                                showMoreActions = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = ImageVector.vectorResource(R.drawable.compare_arrows),
+                                                    contentDescription = null,
+                                                )
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.clear_selections)) },
+                                            onClick = {
+                                                viewModel.clearSections()
+                                                showMoreActions = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
+                                                    contentDescription = null,
+                                                )
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         },
@@ -334,48 +356,58 @@ private fun AppManagerScreen(
 private fun ProxyModeSelector(
     selectedMode: ProxyMode,
     onSelect: (ProxyMode) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.Center,
+    SingleChoiceSegmentedButtonRow(
+        modifier = modifier.fillMaxWidth(),
     ) {
-        FilterChip(
-            selected = selectedMode == ProxyMode.DISABLED,
+        val isDisabled = selectedMode == ProxyMode.DISABLED
+        SegmentedButton(
+            selected = isDisabled,
             onClick = { onSelect(ProxyMode.DISABLED) },
-            label = {
-                Text(
-                    text = stringResource(R.string.off),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
+            shape = SegmentedButtonDefaults.itemShape(0, 3),
+            icon = {
+                SegmentedButtonDefaults.Icon(
+                    active = isDisabled,
+                    activeContent = {
+                        Icon(ImageVector.vectorResource(R.drawable.question_mark), null)
+                    },
+                    inactiveContent = {
+                        Icon(ImageVector.vectorResource(R.drawable.close), null)
+                    },
                 )
             },
-            modifier = Modifier.weight(1f),
+            label = { Text(stringResource(R.string.off)) },
         )
-        FilterChip(
-            selected = selectedMode == ProxyMode.PROXY,
+        val isProxy = selectedMode == ProxyMode.PROXY
+        SegmentedButton(
+            selected = isProxy,
             onClick = { onSelect(ProxyMode.PROXY) },
-            label = {
-                Text(
-                    text = stringResource(R.string.route_proxy),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
+            shape = SegmentedButtonDefaults.itemShape(1, 3),
+            icon = {
+                SegmentedButtonDefaults.Icon(
+                    active = isProxy,
+                    inactiveContent = {
+                        Icon(ImageVector.vectorResource(R.drawable.flight_takeoff), null)
+                    },
                 )
             },
-            modifier = Modifier.weight(1f),
+            label = { Text(stringResource(R.string.route_proxy)) },
         )
-        FilterChip(
-            selected = selectedMode == ProxyMode.BYPASS,
+        val isBypass = selectedMode == ProxyMode.BYPASS
+        SegmentedButton(
+            selected = isBypass,
             onClick = { onSelect(ProxyMode.BYPASS) },
-            label = {
-                Text(
-                    text = stringResource(R.string.bypass_apps),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
+            shape = SegmentedButtonDefaults.itemShape(2, 3),
+            icon = {
+                SegmentedButtonDefaults.Icon(
+                    active = isBypass,
+                    inactiveContent = {
+                        Icon(ImageVector.vectorResource(R.drawable.shuffle), null)
+                    },
                 )
             },
-            modifier = Modifier.weight(1f),
+            label = { Text(stringResource(R.string.bypass_apps)) },
         )
     }
 }

@@ -45,8 +45,8 @@ internal data class AppManagerUiState(
 @Immutable
 internal enum class ProxyMode {
     DISABLED,
-    BYPASS,
     PROXY,
+    BYPASS,
 }
 
 @Stable
