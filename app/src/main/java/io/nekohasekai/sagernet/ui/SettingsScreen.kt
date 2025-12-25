@@ -1600,10 +1600,10 @@ fun SettingsScreen(
                         CertProvider.SYSTEM -> R.string.follow_system
                         CertProvider.MOZILLA -> R.string.mozilla
                         CertProvider.SYSTEM_AND_USER -> R.string.system_and_user
+                        CertProvider.CHROME -> R.string.cert_chrome
                         else -> R.string.mozilla
                     }
 
-                    val context = LocalContext.current
                     val value by DataStore.configurationStore
                         .intFlow(Key.CERT_PROVIDER, CertProvider.MOZILLA)
                         .collectAsStateWithLifecycle(CertProvider.MOZILLA)
@@ -1618,6 +1618,7 @@ fun SettingsScreen(
                             CertProvider.SYSTEM,
                             CertProvider.MOZILLA,
                             CertProvider.SYSTEM_AND_USER,
+                            CertProvider.CHROME,
                         ),
                         title = { Text(stringResource(R.string.certificate_authority)) },
                         icon = {
@@ -1630,7 +1631,7 @@ fun SettingsScreen(
                         type = ListPreferenceType.DROPDOWN_MENU,
                         item = listPreferenceMenuItem {
                             AnnotatedString(
-                                context.getString(certProviderTextRes(it)),
+                                stringResource(certProviderTextRes(it))
                             )
                         },
                     )

@@ -291,7 +291,7 @@ private fun PreviewCustomPreference() {
  */
 @Composable
 fun <T> listPreferenceMenuItem(
-    valueToText: (T) -> AnnotatedString = { AnnotatedString(it.toString()) },
+    valueToText: @Composable (T) -> AnnotatedString = { AnnotatedString(it.toString()) },
 ): @Composable (value: T, currentValue: T, onClick: () -> Unit) -> Unit {
     return { value, currentValue, onClick ->
         val selected = value == currentValue

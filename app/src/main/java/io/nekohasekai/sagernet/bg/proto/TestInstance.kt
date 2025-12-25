@@ -37,16 +37,27 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
                             delay(500)
                         }
 
-                        var enableCazilla = false
+                        var certOption = 0
                         var certList: StringIterator? = null
                         when (DataStore.certProvider) {
-                            CertProvider.SYSTEM -> {}
-                            CertProvider.MOZILLA -> enableCazilla = true
-                            CertProvider.SYSTEM_AND_USER -> certList = systemCertificates.let {
-                                it.toStringIterator(it.size)
+                            CertProvider.SYSTEM -> {
+                                certOption = Libcore.CertGoOrigin
+                            }
+                            CertProvider.MOZILLA -> {
+                                certOption = Libcore.CertMozilla
+                            }
+                            CertProvider.SYSTEM_AND_USER -> {
+                                certOption = Libcore.CertWithUserTrust
+                                certList = systemCertificates.let {
+                                    it.toStringIterator(it.size)
+                                }
+                            }
+
+                            CertProvider.CHROME -> {
+                                certOption = Libcore.CertChrome
                             }
                         }
-                        Libcore.updateRootCACerts(enableCazilla, certList)
+                        Libcore.updateRootCACerts(certOption, certList)
 
                         c.tryResume(box.urlTest(null, link, timeout))
                     } catch (e: Exception) {
