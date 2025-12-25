@@ -141,7 +141,7 @@ private fun StunScreen(
                         keyboardController?.hide()
                         viewModel.doTest()
                     },
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp),
                     enabled = !uiState.isDoing,
                 ) {
                     Text(stringResource(R.string.start))
