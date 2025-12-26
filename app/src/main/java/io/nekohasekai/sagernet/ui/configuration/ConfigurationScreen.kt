@@ -30,11 +30,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -1048,7 +1048,9 @@ private fun ConfigurationDialogs(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    LoadingIndicator()
+                    CircularWavyProgressIndicator(
+                        progress = { (testState.processedCount.toDouble() / testState.total.toDouble()).toFloat() },
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
 
                     testState.latestResult?.let { result ->
