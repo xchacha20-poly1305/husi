@@ -245,6 +245,17 @@ fun ConfigurationScreen(
     )
     val windowInsets = WindowInsets.safeDrawing
 
+    val searchIcon by remember { mutableStateOf(ImageVector.vectorResource(R.drawable.search)) }
+    val closeIcon by remember { mutableStateOf(ImageVector.vectorResource(R.drawable.close)) }
+    val noteAddIcon by remember { mutableStateOf(ImageVector.vectorResource(R.drawable.note_add)) }
+    val moreIcon by remember { mutableStateOf(ImageVector.vectorResource(R.drawable.more_vert)) }
+    val menuIcon by remember { mutableStateOf(ImageVector.vectorResource(R.drawable.menu)) }
+    val closeDrawable by remember { mutableStateOf(ImageVector.vectorResource(R.drawable.close)) }
+
+    val titleFontFamily = remember {
+        if (isChinese) FontFamily(Font(R.font.shuowenxiaozhuan_husi)) else null
+    }
+
     val serviceStatus by connection?.status?.collectAsStateWithLifecycle()
         ?: remember { mutableStateOf(null) }
     val service by connection?.service?.collectAsStateWithLifecycle()
@@ -252,6 +263,50 @@ fun ConfigurationScreen(
 
     LaunchedEffect(Unit) {
         vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
+    }
+
+    var heavyUiStage by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        delay(200)
+        heavyUiStage = 1
+    }
+
+    val manualMenuItems = remember {
+        listOf(
+            Pair(R.string.action_socks to SocksSettingsActivity::class.java),
+            Pair(R.string.action_http to HttpSettingsActivity::class.java),
+            Pair(R.string.action_shadowsocks to ShadowsocksSettingsActivity::class.java),
+            Pair(R.string.action_vmess to VMessSettingsActivity::class.java),
+            Pair(R.string.action_vless to VLESSSettingsActivity::class.java),
+            Pair(R.string.action_trojan to TrojanSettingsActivity::class.java),
+            Pair(R.string.action_mieru to MieruSettingsActivity::class.java),
+            Pair(R.string.action_naive to NaiveSettingsActivity::class.java),
+            Pair(R.string.action_hysteria to HysteriaSettingsActivity::class.java),
+            Pair(R.string.action_tuic to TuicSettingsActivity::class.java),
+            Pair(R.string.action_juicity to JuicitySettingsActivity::class.java),
+            Pair(R.string.action_direct to DirectSettingsActivity::class.java),
+            Pair(R.string.action_ssh to SSHSettingsActivity::class.java),
+            Pair(R.string.action_wireguard to WireGuardSettingsActivity::class.java),
+            Pair(R.string.action_shadowtls to ShadowTLSSettingsActivity::class.java),
+            Pair(R.string.action_anytls to AnyTLSSettingsActivity::class.java),
+            Pair(R.string.action_shadowquic to ShadowQUICSettingsActivity::class.java),
+            Pair(R.string.proxy_set to ProxySetSettingsActivity::class.java),
+            Pair(R.string.custom_config to ConfigSettingActivity::class.java),
+            Pair(R.string.proxy_chain to ChainSettingsActivity::class.java),
+        )
+    }
+
+    val startActivityByClass: (Class<*>) -> Unit = { clazz ->
+        try {
+            context.startActivity(Intent(context, clazz))
+        } catch (ex: Exception) {
+            scope.launch {
+                snackbarState.showSnackbar(
+                    message = context.getString(R.string.cannot_open_activity),
+                    actionLabel = context.getString(android.R.string.ok),
+                )
+            }
+        }
     }
 
     Scaffold(
@@ -305,12 +360,10 @@ fun ConfigurationScreen(
                                     vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
                                 },
                             ),
-                            style = if (isChinese) {
+                            style = if (titleFontFamily != null) {
                                 // 说文小篆（虎兕）
                                 // Copyright: https://www.zdic.net/aboutus/copyright/ (A copy of CC0 1.0 was embed in the font file)
-                                MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = remember { FontFamily(Font(R.font.shuowenxiaozhuan_husi)) },
-                                )
+                                MaterialTheme.typography.titleLarge.copy(fontFamily = titleFontFamily)
                             } else {
                                 MaterialTheme.typography.titleLarge
                             },
@@ -323,7 +376,7 @@ fun ConfigurationScreen(
                         contentDescription = stringResource(R.string.close),
                         onClick = onNavigationClick,
                     ) else SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.menu),
+                        imageVector = menuIcon,
                         contentDescription = stringResource(R.string.menu),
                         onClick = onNavigationClick,
                     )
@@ -331,14 +384,14 @@ fun ConfigurationScreen(
                 actions = {
                     if (selectCallback != null) return@TopAppBar
                     if (isSearchActive) SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.close),
+                        imageVector = closeIcon,
                         contentDescription = stringResource(R.string.close),
                     ) {
                         isSearchActive = false
                         vm.setSearchQuery("")
                     } else {
                         SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.search),
+                            imageVector = searchIcon,
                             contentDescription = stringResource(android.R.string.search_go),
                         ) {
                             isSearchActive = true
@@ -346,60 +399,64 @@ fun ConfigurationScreen(
 
                         Box {
                             SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.note_add),
+                                imageVector = noteAddIcon,
                                 contentDescription = stringResource(R.string.add_profile),
                                 onClick = { showAddMenu = true },
                             )
+                            val addMenuContentVisible = heavyUiStage > 0 || showAddMenu
                             DropdownMenu(
                                 expanded = showAddMenu,
                                 onDismissRequest = { showAddMenu = false },
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                                 shape = MenuDefaults.standaloneGroupShape,
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
-                                    onClick = {
-                                        context.startActivity(
-                                            Intent(context, ScannerActivity::class.java),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_import)) },
-                                    onClick = {
-                                        showAddMenu = false
-                                        lifecycleOwner.lifecycleScope.launch {
-                                            runOnDefaultDispatcher {
-                                                val text = clipboard.getClipEntry()
-                                                    ?.clipData?.getItemAt(0)
-                                                    ?.text?.toString().orEmpty()
-                                                mainViewModel.parseProxy(text)
+                                if (addMenuContentVisible) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
+                                        onClick = {
+                                            showAddMenu = false
+                                            context.startActivity(
+                                                Intent(context, ScannerActivity::class.java),
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_import)) },
+                                        onClick = {
+                                            showAddMenu = false
+                                            lifecycleOwner.lifecycleScope.launch {
+                                                runOnDefaultDispatcher {
+                                                    val text = clipboard.getClipEntry()
+                                                        ?.clipData?.getItemAt(0)
+                                                        ?.text?.toString().orEmpty()
+                                                    mainViewModel.parseProxy(text)
+                                                }
                                             }
-                                        }
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_import_file)) },
-                                    onClick = {
-                                        showAddMenu = false
-                                        startFilesForResult(importFile, "*/*") { message ->
-                                            scope.launch {
-                                                snackbarState.showSnackbar(
-                                                    message = context.getString(message),
-                                                    actionLabel = context.getString(android.R.string.ok),
-                                                    duration = SnackbarDuration.Short,
-                                                )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_import_file)) },
+                                        onClick = {
+                                            showAddMenu = false
+                                            startFilesForResult(importFile, "*/*") { message ->
+                                                scope.launch {
+                                                    snackbarState.showSnackbar(
+                                                        message = context.getString(message),
+                                                        actionLabel = context.getString(android.R.string.ok),
+                                                        duration = SnackbarDuration.Short,
+                                                    )
+                                                }
                                             }
-                                        }
-                                    },
-                                )
-                                ExpandableDropdownMenuItem(
-                                    text = stringResource(R.string.add_profile_methods_manual_settings),
-                                    onClick = {
-                                        showAddMenu = false
-                                        showAddManualMenu = true
-                                    },
-                                )
+                                        },
+                                    )
+                                    ExpandableDropdownMenuItem(
+                                        text = stringResource(R.string.add_profile_methods_manual_settings),
+                                        onClick = {
+                                            showAddMenu = false
+                                            showAddManualMenu = true
+                                        },
+                                    )
+                                }
                             }
                             DropdownMenu(
                                 expanded = showAddManualMenu,
@@ -407,252 +464,117 @@ fun ConfigurationScreen(
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                                 shape = MenuDefaults.standaloneGroupShape,
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_socks)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                SocksSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_http)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                HttpSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_shadowsocks)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                ShadowsocksSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_vmess)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                VMessSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_vless)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                VLESSSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_trojan)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                TrojanSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_mieru)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                MieruSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_naive)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                NaiveSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_hysteria)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                HysteriaSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_tuic)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                TuicSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_juicity)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                JuicitySettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_direct)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                DirectSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_ssh)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                SSHSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_wireguard)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                WireGuardSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_shadowtls)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                ShadowTLSSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_anytls)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                AnyTLSSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_shadowquic)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                ShadowQUICSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.proxy_set)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                ProxySetSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.custom_config)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                ConfigSettingActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.proxy_chain)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                ChainSettingsActivity::class.java,
-                                            ),
-                                        )
-                                    },
-                                )
+                                if (heavyUiStage > 0 || showAddManualMenu) {
+                                    val listModifier = Modifier
+                                        .heightIn(max = 320.dp)
+                                    LazyColumn(modifier = listModifier) {
+                                        items(manualMenuItems) { pair ->
+                                            val (resPair, clazz) = pair
+                                            val resId = pair.first
+                                            val targetClass = pair.second
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(resId)) },
+                                                onClick = {
+                                                    showAddManualMenu = false
+                                                    startActivityByClass(targetClass)
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Box {
+                            SimpleIconButton(
+                                imageVector = noteAddIcon,
+                                contentDescription = stringResource(R.string.add_profile),
+                                onClick = { showAddMenu = true },
+                            )
+                            val addMenuContentVisible = heavyUiStage > 0 || showAddMenu
+                            DropdownMenu(
+                                expanded = showAddMenu,
+                                onDismissRequest = { showAddMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
+                            ) {
+                                if (addMenuContentVisible) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.add_profile_methods_scan_qr_code)) },
+                                        onClick = {
+                                            showAddMenu = false
+                                            context.startActivity(
+                                                Intent(context, ScannerActivity::class.java),
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_import)) },
+                                        onClick = {
+                                            showAddMenu = false
+                                            lifecycleOwner.lifecycleScope.launch {
+                                                runOnDefaultDispatcher {
+                                                    val text = clipboard.getClipEntry()
+                                                        ?.clipData?.getItemAt(0)
+                                                        ?.text?.toString().orEmpty()
+                                                    mainViewModel.parseProxy(text)
+                                                }
+                                            }
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.action_import_file)) },
+                                        onClick = {
+                                            showAddMenu = false
+                                            startFilesForResult(importFile, "*/*") { message ->
+                                                scope.launch {
+                                                    snackbarState.showSnackbar(
+                                                        message = context.getString(message),
+                                                        actionLabel = context.getString(android.R.string.ok),
+                                                        duration = SnackbarDuration.Short,
+                                                    )
+                                                }
+                                            }
+                                        },
+                                    )
+                                    ExpandableDropdownMenuItem(
+                                        text = stringResource(R.string.add_profile_methods_manual_settings),
+                                        onClick = {
+                                            showAddMenu = false
+                                            showAddManualMenu = true
+                                        },
+                                    )
+                                }
+                            }
+                            DropdownMenu(
+                                expanded = showAddManualMenu,
+                                onDismissRequest = { showAddManualMenu = false },
+                                containerColor = MenuDefaults.groupStandardContainerColor,
+                                shape = MenuDefaults.standaloneGroupShape,
+                            ) {
+                                if (heavyUiStage > 0 || showAddManualMenu) {
+                                    val listModifier = Modifier
+                                        .heightIn(max = 320.dp)
+                                    LazyColumn(modifier = listModifier) {
+                                        items(manualMenuItems) { pair ->
+                                            val (resPair, clazz) = pair
+                                            val resId = pair.first
+                                            val targetClass = pair.second
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(resId)) },
+                                                onClick = {
+                                                    showAddManualMenu = false
+                                                    startActivityByClass(targetClass)
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
 
                         Box {
                             SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                                imageVector = moreIcon,
                                 contentDescription = stringResource(R.string.more),
                                 onClick = { showOverflowMenu = true },
                             )
@@ -662,79 +584,83 @@ fun ConfigurationScreen(
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                                 shape = MenuDefaults.standaloneGroupShape,
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.clear_traffic_statistics)) },
-                                    onClick = {
+                                if (heavyUiStage > 0 || showOverflowMenu) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.clear_traffic_statistics)) },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            vm.clearTrafficStatistics(DataStore.selectedGroup)
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.remove_duplicate)) },
+                                        onClick = {
+                                            showOverflowMenu = false
+                                            vm.removeDuplicate(DataStore.selectedGroup)
+                                        },
+                                    )
+                                    ExpandableDropdownMenuItem(stringResource(R.string.connection_test)) {
                                         showOverflowMenu = false
-                                        vm.clearTrafficStatistics(DataStore.selectedGroup)
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.remove_duplicate)) },
-                                    onClick = {
+                                        showConnectionTestMenu = true
+                                    }
+                                    ExpandableDropdownMenuItem(stringResource(R.string.sort_mode)) {
                                         showOverflowMenu = false
-                                        vm.removeDuplicate(DataStore.selectedGroup)
-                                    },
-                                )
-                                ExpandableDropdownMenuItem(stringResource(R.string.connection_test)) {
-                                    showOverflowMenu = false
-                                    showConnectionTestMenu = true
-                                }
-                                ExpandableDropdownMenuItem(stringResource(R.string.sort_mode)) {
-                                    showOverflowMenu = false
-                                    showOrderMenu = true
+                                        showOrderMenu = true
+                                    }
                                 }
                             }
-                            DropdownMenu(
+DropdownMenu(
                                 expanded = showConnectionTestMenu,
                                 onDismissRequest = { showConnectionTestMenu = false },
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                                 shape = MenuDefaults.standaloneGroupShape,
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.connection_test_icmp_ping)) },
-                                    onClick = {
-                                        showConnectionTestMenu = false
-                                        vm.doTest(
-                                            DataStore.currentGroupId(),
-                                            TestType.ICMPPing,
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.connection_test_tcp_ping)) },
-                                    onClick = {
-                                        showConnectionTestMenu = false
-                                        vm.doTest(
-                                            DataStore.currentGroupId(),
-                                            TestType.TCPPing,
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.connection_test_url_test)) },
-                                    onClick = {
-                                        showConnectionTestMenu = false
-                                        vm.doTest(
-                                            DataStore.currentGroupId(),
-                                            TestType.URLTest,
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.connection_test_delete_unavailable)) },
-                                    onClick = {
-                                        showConnectionTestMenu = false
-                                        vm.deleteUnavailable(DataStore.selectedGroup)
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.connection_test_clear_results)) },
-                                    onClick = {
-                                        showConnectionTestMenu = false
-                                        vm.clearResults(DataStore.selectedGroup)
-                                    },
-                                )
+                                if (heavyUiStage > 0 || showConnectionTestMenu) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_test_icmp_ping)) },
+                                        onClick = {
+                                            showConnectionTestMenu = false
+                                            vm.doTest(
+                                                DataStore.currentGroupId(),
+                                                TestType.ICMPPing,
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_test_tcp_ping)) },
+                                        onClick = {
+                                            showConnectionTestMenu = false
+                                            vm.doTest(
+                                                DataStore.currentGroupId(),
+                                                TestType.TCPPing,
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_test_url_test)) },
+                                        onClick = {
+                                            showConnectionTestMenu = false
+                                            vm.doTest(
+                                                DataStore.currentGroupId(),
+                                                TestType.URLTest,
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_test_delete_unavailable)) },
+                                        onClick = {
+                                            showConnectionTestMenu = false
+                                            vm.deleteUnavailable(DataStore.selectedGroup)
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.connection_test_clear_results)) },
+                                        onClick = {
+                                            showConnectionTestMenu = false
+                                            vm.clearResults(DataStore.selectedGroup)
+                                        },
+                                    )
+                                }
                             }
                             DropdownMenu(
                                 expanded = showOrderMenu,
@@ -742,21 +668,23 @@ fun ConfigurationScreen(
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                                 shape = MenuDefaults.standaloneGroupShape,
                             ) {
-                                val orders = listOf(
-                                    stringResource(R.string.group_order_origin),
-                                    stringResource(R.string.group_order_by_name),
-                                    stringResource(R.string.group_order_by_delay),
-                                )
-                                orders.forEachIndexed { i, option ->
-                                    DropdownMenuItem(
-                                        selected = currentOrder == i,
-                                        onClick = {
-                                            showOrderMenu = false
-                                            vm.updateOrder(DataStore.selectedGroup, i)
-                                        },
-                                        text = { Text(text = option) },
-                                        shapes = MenuDefaults.itemShape(i, orders.size),
+                                if (heavyUiStage > 0 || showOrderMenu) {
+                                    val orders = listOf(
+                                        stringResource(R.string.group_order_origin),
+                                        stringResource(R.string.group_order_by_name),
+                                        stringResource(R.string.group_order_by_delay),
                                     )
+                                    orders.forEachIndexed { i, option ->
+                                        DropdownMenuItem(
+                                            selected = currentOrder == i,
+                                            onClick = {
+                                                showOrderMenu = false
+                                                vm.updateOrder(DataStore.selectedGroup, i)
+                                            },
+                                            text = { Text(text = option) },
+                                            shapes = MenuDefaults.itemShape(i, orders.size),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -846,156 +774,6 @@ fun ConfigurationScreen(
 }
 
 @Composable
-fun ConfigurationContent(
-    modifier: Modifier = Modifier,
-    vm: ConfigurationScreenViewModel,
-    snackbarState: SnackbarHostState,
-    pagerState: androidx.compose.foundation.pager.PagerState,
-    appBarContainerColor: androidx.compose.ui.graphics.Color,
-    preSelected: Long?,
-    selectCallback: ((id: Long) -> Unit)?,
-    onScrollHideChange: (Boolean) -> Unit = {},
-) {
-    val context = LocalContext.current
-    val resources = LocalResources.current
-    val scope = rememberCoroutineScope()
-
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
-    val hasGroups = uiState.groups.isNotEmpty()
-    val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
-
-    var qrCodeInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
-
-    Column(modifier = modifier) {
-        if (hasGroups) {
-            if (uiState.groups.size > 1) PrimaryScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
-                edgePadding = 0.dp,
-                containerColor = appBarContainerColor,
-            ) {
-                uiState.groups.forEachIndexed { index, group ->
-                    Tab(
-                        text = { Text(group.displayName()) },
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
-                        },
-                    )
-                }
-            }
-
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                beyondViewportPageCount = 1,
-            ) { page ->
-                val group = uiState.groups[page]
-                val pageViewModel = viewModel<GroupProfilesHolderViewModel>(
-                    key = "group-holder-${group.id}",
-                    factory = object : ViewModelProvider.Factory {
-                        @Suppress("UNCHECKED_CAST")
-                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            return GroupProfilesHolderViewModel(group, preSelected) as T
-                        }
-                    },
-                )
-
-                DisposableEffect(group.id) {
-                    vm.registerChild(group.id, pageViewModel)
-                    onDispose {
-                        vm.unregisterChild(group.id)
-                    }
-                }
-
-                LaunchedEffect(searchQuery) {
-                    pageViewModel.query = searchQuery
-                }
-
-                GroupHolderScreen(
-                    viewModel = pageViewModel,
-                    showActions = selectCallback == null,
-                    onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
-                    needReload = {
-                        scope.launch {
-                            if (!DataStore.serviceState.started) return@launch
-                            val result = snackbarState.showSnackbar(
-                                message = context.getString(R.string.need_reload),
-                                actionLabel = context.getString(R.string.apply),
-                                duration = SnackbarDuration.Short,
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                repo.reloadService()
-                            }
-                        }
-                    },
-                    showQR = { name, url ->
-                        qrCodeInfo = name to url
-                    },
-                    onCopySuccess = {
-                        scope.launch {
-                            snackbarState.showSnackbar(
-                                message = context.getString(R.string.copy_success),
-                                actionLabel = context.getString(android.R.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    showSnackbar = { message ->
-                        scope.launch {
-                            snackbarState.showSnackbar(
-                                message = context.getStringOrRes(message),
-                                actionLabel = context.getString(android.R.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    showUndoSnackbar = { count, onUndo ->
-                        scope.launch {
-                            val result = snackbarState.showAndDismissOld(
-                                message = resources.getQuantityString(
-                                    R.plurals.removed,
-                                    count,
-                                    count,
-                                ),
-                                actionLabel = context.getString(R.string.undo),
-                                duration = SnackbarDuration.Short,
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                onUndo()
-                            }
-                        }
-                    },
-                    onScrollHideChange = { visible ->
-                        if (pagerState.currentPage == page) {
-                            onScrollHideChange(visible)
-                        }
-                    },
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-    }
-
-    qrCodeInfo?.let {
-        QRCodeDialog(
-            url = it.second,
-            name = it.first,
-            onDismiss = { qrCodeInfo = null },
-            showSnackbar = { message ->
-                snackbarState.showSnackbar(
-                    message = message,
-                    actionLabel = context.getString(android.R.string.ok),
-                    duration = SnackbarDuration.Short,
-                )
-            },
-        )
-    }
-}
-
-@Composable
 private fun ConfigurationDialogs(
     context: android.content.Context,
     vm: ConfigurationScreenViewModel,
@@ -1004,70 +782,51 @@ private fun ConfigurationDialogs(
     uiState.alertForDelete?.let { alert ->
         AlertDialog(
             onDismissRequest = { vm.dismissAlert() },
-            title = {
-                Text(
-                    stringResource(
-                        R.string.delete_confirm_prompt,
-                        alert.size,
-                    ),
-                )
-            },
+            title = { Text(stringResource(R.string.delete_confirm_prompt, alert.size)) },
             text = {
                 val scrollState = rememberScrollState()
                 Text(
                     text = alert.summary,
-                    modifier = Modifier.verticalScroll(scrollState),
+                    modifier = Modifier.verticalScroll(scrollState)
                 )
             },
-            confirmButton = {
-                TextButton(stringResource(android.R.string.ok)) {
-                    alert.confirm()
-                }
-            },
-            dismissButton = {
-                TextButton(stringResource(android.R.string.cancel)) {
-                    vm.dismissAlert()
-                }
-            },
+            confirmButton = { TextButton(stringResource(android.R.string.ok)) { alert.confirm() } },
+            dismissButton = { TextButton(stringResource(android.R.string.cancel)) { vm.dismissAlert() } }
         )
     }
 
     uiState.testState?.let { testState ->
+        var heavyUiStage by remember { mutableStateOf(false) }
+
+        LaunchedEffect(testState) {
+            heavyUiStage = true
+        }
+
         AlertDialog(
             onDismissRequest = {},
-            confirmButton = {
-                TextButton(stringResource(android.R.string.cancel)) {
-                    vm.cancelTest()
-                }
-            },
-            icon = {
-                Icon(ImageVector.vectorResource(R.drawable.ecg), null)
+            confirmButton = { TextButton(stringResource(android.R.string.cancel)) { vm.cancelTest() } },
+            icon = { 
+                val ecgIcon = remember { ImageVector.vectorResource(R.drawable.ecg) }
+                Icon(ecgIcon, contentDescription = null)
             },
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularWavyProgressIndicator(
-                        progress = { (testState.processedCount.toDouble() / testState.total.toDouble()).toFloat() },
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    if (heavyUiStage) {
+                        CircularWavyProgressIndicator(
+                            progress = { (testState.processedCount.toDouble() / testState.total).toFloat() }
+                        )
+                        Spacer(Modifier.height(16.dp))
 
-                    testState.latestResult?.let { result ->
-                        val profile = result.profile
-                        val (statusText, statusColor) = when (val testResult = result.result) {
-                            is TestResult.Success -> {
-                                "${testResult.ping}ms" to colorForUrlTestDelay(testResult.ping)
-                            }
-
-                            is TestResult.Failure -> {
-                                val text = when (val reason = testResult.reason) {
-                                    FailureReason.InvalidConfig ->
-                                        stringResource(
-                                            R.string.connection_test_error,
-                                            "Invalid Config",
-                                        )
-
+                        testState.latestResult?.let { result ->
+                            val profile = result.profile
+                            val (statusText, statusColor) = when (val testResult = result.result) {
+                                is TestResult.Success -> "${testResult.ping}ms" to colorForUrlTestDelay(testResult.ping)
+                                is TestResult.Failure -> {
+                                    val text = when (val reason = testResult.reason) {
+                                        FailureReason.InvalidConfig -> stringResource(R.string.connection_test_error, "Invalid Config")
                                     FailureReason.DomainNotFound -> {
                                         stringResource(R.string.connection_test_domain_not_found)
                                     }
@@ -1091,44 +850,43 @@ private fun ConfigurationDialogs(
                                     FailureReason.Timeout -> {
                                         stringResource(R.string.connection_test_timeout)
                                     }
-
-                                    is FailureReason.Generic -> reason.message ?: "Unknown"
-
-                                    is FailureReason.PluginNotFound -> reason.message
+                                        is FailureReason.Generic -> reason.message ?: "Unknown"
+                                        is FailureReason.PluginNotFound -> reason.message
+                                    }
+                                    text to MaterialTheme.colorScheme.error
                                 }
-                                text to MaterialTheme.colorScheme.error
                             }
-                        }
 
-                        LaunchedEffect(profile.id, statusText, result.result) {
-                            vm.rememberDisplayedError(
-                                profile.id,
-                                statusText.takeIf { result.result is TestResult.Failure },
+                            LaunchedEffect(profile.id, result.result) {
+                                vm.rememberDisplayedError(
+                                    profile.id,
+                                    statusText.takeIf { result.result is TestResult.Failure }
+                                )
+                            }
+
+                            Text(profile.displayName())
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = profile.displayType(context),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = statusText,
+                                color = statusColor,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
 
-                        Text(profile.displayName())
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(
-                            text = profile.displayType(context),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = statusText,
-                            color = statusColor,
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "${testState.processedCount} / ${testState.total}",
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "${testState.processedCount} / ${testState.total}",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
                 }
-            },
+            }
         )
     }
 }
