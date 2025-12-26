@@ -13,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -26,8 +27,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,16 +35,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,17 +56,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.nekohasekai.sagernet.R
@@ -143,9 +144,10 @@ private fun AppListScreen(
         }
     }
 
-    var searchActivate by remember { mutableStateOf(false) }
+    val searchBarState = rememberSearchBarState()
+    val textFieldState = viewModel.textFieldState
+
     var showMoreActions by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
 
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -155,147 +157,146 @@ private fun AppListScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    if (searchActivate) {
-                        OutlinedTextField(
-                            value = uiState.searchQuery,
-                            onValueChange = { viewModel.setSearchQuery(it) },
-                            placeholder = { Text(stringResource(android.R.string.search_go)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(
-                                onSearch = {
-                                    focusManager.clearFocus()
+            val colors = TopAppBarDefaults.topAppBarColors()
+            val isScrolled = scrollBehavior.state.overlappedFraction > 0
+            val containerColor = if (isScrolled) {
+                colors.scrolledContainerColor
+            } else {
+                colors.containerColor
+            }
+
+            Surface(
+                color = containerColor,
+            ) {
+                Column {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.select_apps)) },
+                        navigationIcon = {
+                            SimpleIconButton(
+                                imageVector = ImageVector.vectorResource(R.drawable.close),
+                                contentDescription = stringResource(R.string.close),
+                                onClick = onBackPress,
+                            )
+                        },
+                        actions = {
+                            SimpleIconButton(
+                                imageVector = ImageVector.vectorResource(R.drawable.copy_all),
+                                contentDescription = stringResource(R.string.action_copy),
+                                onClick = {
+                                    val toExport = viewModel.export()
+                                    scope.launch {
+                                        clipboard.setPlainText(toExport)
+                                        snackbarHostState.showSnackbar(
+                                            message = context.getString(R.string.copy_success),
+                                            actionLabel = context.getString(android.R.string.ok),
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
                                 },
-                            ),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.5f,
-                                ),
-                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.2f,
-                                ),
-                            ),
-                        )
-                    } else {
-                        Text(stringResource(R.string.select_apps))
-                    }
-                },
-                navigationIcon = {
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.close),
-                        contentDescription = stringResource(R.string.close),
-                        onClick = onBackPress,
-                    )
-                },
-                actions = {
-                    if (searchActivate) SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.search_off),
-                        contentDescription = stringResource(R.string.close),
-                    ) {
-                        searchActivate = false
-                        viewModel.setSearchQuery("")
-                    } else {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.search),
-                            contentDescription = stringResource(android.R.string.search_go),
-                            onClick = { searchActivate = true },
-                        )
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.copy_all),
-                            contentDescription = stringResource(R.string.action_copy),
-                            onClick = {
-                                val toExport = viewModel.export()
-                                scope.launch {
-                                    clipboard.setPlainText(toExport)
-                                    snackbarHostState.showSnackbar(
-                                        message = context.getString(R.string.copy_success),
-                                        actionLabel = context.getString(android.R.string.ok),
-                                        duration = SnackbarDuration.Short,
+                            )
+                            SimpleIconButton(
+                                imageVector = ImageVector.vectorResource(R.drawable.content_paste),
+                                contentDescription = stringResource(R.string.action_import),
+                                onClick = {
+                                    scope.launch {
+                                        val text = clipboard.getClipEntry()?.clipData
+                                            ?.getItemAt(0)?.text
+                                            ?.toString()
+                                        viewModel.import(text)
+                                    }
+                                },
+                            )
+                            Box {
+                                SimpleIconButton(
+                                    imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                                    contentDescription = stringResource(R.string.more),
+                                    onClick = { showMoreActions = true },
+                                )
+
+                                DropdownMenu(
+                                    expanded = showMoreActions,
+                                    onDismissRequest = { showMoreActions = false },
+                                    shape = MenuDefaults.standaloneGroupShape,
+                                    containerColor = MenuDefaults.groupStandardContainerColor,
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.invert_selections)) },
+                                        onClick = {
+                                            viewModel.invertSections()
+                                            showMoreActions = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(R.drawable.fiber_smart_record),
+                                                contentDescription = null,
+                                            )
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.clear_selections)) },
+                                        onClick = {
+                                            viewModel.clearSections()
+                                            showMoreActions = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
+                                                contentDescription = null,
+                                            )
+                                        },
                                     )
                                 }
-                            },
-                        )
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.content_paste),
-                            contentDescription = stringResource(R.string.action_import),
-                            onClick = {
-                                scope.launch {
-                                    val text = clipboard.getClipEntry()?.clipData
-                                        ?.getItemAt(0)?.text
-                                        ?.toString()
-                                    viewModel.import(text)
-                                }
-                            },
-                        )
-                        Box {
-                            SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
-                                contentDescription = stringResource(R.string.more),
-                                onClick = { showMoreActions = true },
-                            )
-
-                            DropdownMenu(
-                                expanded = showMoreActions,
-                                onDismissRequest = { showMoreActions = false },
-                                shape = MenuDefaults.standaloneGroupShape,
-                                containerColor = MenuDefaults.groupStandardContainerColor,
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.invert_selections)) },
-                                    onClick = {
-                                        viewModel.invertSections()
-                                        showMoreActions = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.fiber_smart_record),
-                                            null,
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.clear_selections)) },
-                                    onClick = {
-                                        viewModel.clearSections()
-                                        showMoreActions = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
-                                            null,
-                                        )
-                                    },
-                                )
                             }
-                        }
-                    }
-                },
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                scrollBehavior = scrollBehavior,
-            )
+                        },
+                        windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            scrolledContainerColor = Color.Transparent,
+                        ),
+                        scrollBehavior = scrollBehavior,
+                    )
+
+                    SearchBar(
+                        state = searchBarState,
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                textFieldState = textFieldState,
+                                searchBarState = searchBarState,
+                                onSearch = {
+                                    scope.launch {
+                                        searchBarState.animateToCollapsed()
+                                    }
+                                },
+                                leadingIcon = {
+                                    Icon(ImageVector.vectorResource(R.drawable.search), null)
+                                },
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
-        val modifier = Modifier
-            .fillMaxSize()
-            .paddingExceptBottom(innerPadding)
         Crossfade(
             targetState = uiState.isLoading,
             animationSpec = tween(durationMillis = 300),
         ) { isLoading ->
             if (isLoading) {
-                Box(modifier = modifier) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                ) {
                     LoadingIndicator(
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
             } else {
                 List(
-                    modifier = modifier,
                     uiState = uiState,
+                    innerPadding = innerPadding,
                     onClick = { viewModel.onItemClick(it) },
                 )
             }
@@ -305,14 +306,16 @@ private fun AppListScreen(
 
 @Composable
 private fun List(
-    modifier: Modifier,
     uiState: AppListActivityUiState,
+    innerPadding: PaddingValues,
     onClick: (ProxiedApp) -> Unit,
 ) {
     val scrollState = rememberLazyListState()
-    Box {
+    Box(
+        modifier = Modifier.paddingExceptBottom(innerPadding),
+    ) {
         LazyColumn(
-            modifier = modifier,
+            modifier = Modifier,
             state = scrollState,
             contentPadding = extraBottomPadding(),
         ) {
@@ -375,11 +378,12 @@ private fun List(
 @Preview
 @Composable
 private fun PreviewAppListScreen() {
+    val viewModel = viewModel<AppListActivityViewModel>()
     val context = LocalContext.current
     repo = TempRepository(context)
 
     AppListScreen(
-        viewModel = AppListActivityViewModel(),
+        viewModel = viewModel,
         onBackPress = {},
     )
 }

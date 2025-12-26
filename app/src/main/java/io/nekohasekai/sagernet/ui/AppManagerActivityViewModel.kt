@@ -4,8 +4,10 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.BuildConfig
@@ -23,6 +25,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -32,12 +36,11 @@ import kotlin.collections.iterator
 
 @Immutable
 internal data class AppManagerUiState(
-    val searchQuery: String = "",
     val mode: ProxyMode = ProxyMode.DISABLED,
     val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted
     val scanned: List<String>? = null,
-    val scanProcess: Int? = null,
+    val scanProcess: Float? = null,
     val snackbarMessage: StringOrRes? = null,
     val shouldFinish: Boolean = false,
 )
@@ -54,6 +57,8 @@ internal class AppManagerActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppManagerUiState())
     val uiState = _uiState.asStateFlow()
 
+    val textFieldState = TextFieldState()
+
     private var scanJob: Job? = null
 
     fun scanChinaApps() {
@@ -63,7 +68,7 @@ internal class AppManagerActivityViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     scanned = emptyList(),
-                    scanProcess = 0,
+                    scanProcess = null,
                 )
             }
             for ((packageName, packageInfo) in cachedApps) {
@@ -82,7 +87,7 @@ internal class AppManagerActivityViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         scanned = scanned,
-                        scanProcess = (scanned.size.toDouble() / cachedApps.size.toDouble() * 100).toInt(),
+                        scanProcess = (scanned.size.toDouble() / cachedApps.size.toDouble()).toFloat(),
                     )
                 }
 
@@ -143,6 +148,12 @@ internal class AppManagerActivityViewModel : ViewModel() {
                 }
             }
         }
+        viewModelScope.launch {
+            snapshotFlow { textFieldState.text.toString() }
+                .drop(1)
+                .distinctUntilChanged()
+                .collect { reload() }
+        }
     }
 
     private val iconCache = mutableMapOf<String, Drawable>()
@@ -154,7 +165,7 @@ internal class AppManagerActivityViewModel : ViewModel() {
 
     suspend fun reload(cachedApps: Map<String, PackageInfo> = this.cachedApps) {
         val apps = mutableListOf<ProxiedApp>()
-        val query = _uiState.value.searchQuery
+        val query = textFieldState.text.toString()
         for ((packageName, packageInfo) in cachedApps) {
             currentCoroutineContext()[Job]!!.ensureActive()
 
@@ -184,11 +195,6 @@ internal class AppManagerActivityViewModel : ViewModel() {
                 apps = apps,
             )
         }
-    }
-
-    fun setSearchQuery(query: String) = viewModelScope.launch {
-        _uiState.update { it.copy(searchQuery = query) }
-        reload()
     }
 
     fun invertSections() = viewModelScope.launch {
