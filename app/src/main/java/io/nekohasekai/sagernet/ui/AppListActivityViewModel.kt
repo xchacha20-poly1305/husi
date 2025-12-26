@@ -4,8 +4,10 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.collection.ArraySet
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.BuildConfig
@@ -18,13 +20,14 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.collections.iterator
 
 @Immutable
 internal data class AppListActivityUiState(
-    val searchQuery: String = "",
     val isLoading: Boolean = false,
     val apps: List<ProxiedApp> = emptyList(), // sorted, for show
     val snackbarMessage: StringOrRes? = null,
@@ -34,6 +37,8 @@ internal data class AppListActivityUiState(
 internal class AppListActivityViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppListActivityUiState())
     val uiState = _uiState.asStateFlow()
+
+    val textFieldState = TextFieldState()
 
     private lateinit var packageManager: PackageManager
 
@@ -59,6 +64,12 @@ internal class AppListActivityViewModel : ViewModel() {
             }
             reload(cachedApps)
         }
+        viewModelScope.launch {
+            snapshotFlow { textFieldState.text.toString() }
+                .drop(1)
+                .distinctUntilChanged()
+                .collect { reload() }
+        }
     }
 
     private val iconCache = mutableMapOf<String, Drawable>()
@@ -70,7 +81,7 @@ internal class AppListActivityViewModel : ViewModel() {
 
     suspend fun reload(cachedApps: Map<String, PackageInfo> = this.cachedApps) {
         val apps = mutableListOf<ProxiedApp>()
-        val query = _uiState.value.searchQuery
+        val query = textFieldState.text.toString()
         for ((packageName, packageInfo) in cachedApps) {
             currentCoroutineContext()[Job]!!.ensureActive()
 
@@ -100,11 +111,6 @@ internal class AppListActivityViewModel : ViewModel() {
                 apps = apps,
             )
         }
-    }
-
-    fun setSearchQuery(query: String) = viewModelScope.launch {
-        _uiState.update { it.copy(searchQuery = query) }
-        reload()
     }
 
     fun invertSections() = viewModelScope.launch {
