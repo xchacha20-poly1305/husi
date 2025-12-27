@@ -11,20 +11,16 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.AndroidUiModes
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
-import androidx.core.view.WindowCompat
-
 
 const val RED = 1
 const val PINK_SSR = 2
@@ -91,17 +87,13 @@ fun AppTheme(content: @Composable () -> Unit) {
     val nightModeValue by DataStore.configurationStore
         .intFlow(Key.NIGHT_THEME)
         .collectAsStateWithLifecycle(0)
-
     val isDarkMode = remember(nightModeValue, resources.configuration) {
         resources.isDarkMode(nightModeValue)
     }
-    
     val appTheme by DataStore.configurationStore
         .intFlow(Key.APP_THEME)
         .collectAsStateWithLifecycle(DEFAULT)
-    
     val context = LocalContext.current
-
     val colorScheme = remember(appTheme, isDarkMode, context) {
         when (appTheme) {
             RED -> if (isDarkMode) Red.darkScheme else Red.lightScheme
@@ -126,29 +118,24 @@ fun AppTheme(content: @Composable () -> Unit) {
             BLUE_GREY -> if (isDarkMode) BlueGrey.darkScheme else BlueGrey.lightScheme
             BLACK -> if (isDarkMode) Black.darkScheme else Black.lightScheme
             DYNAMIC -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (isDarkMode) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                if (isDarkMode) {
+                    dynamicDarkColorScheme(context)
+                } else {
+                    dynamicLightColorScheme(context)
+                }
             } else {
                 if (isDarkMode) Red.darkScheme else Red.lightScheme
             }
+
             else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (isDarkMode) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                if (isDarkMode) {
+                    dynamicDarkColorScheme(context)
+                } else {
+                    dynamicLightColorScheme(context)
+                }
             } else {
                 if (isDarkMode) Red.darkScheme else Red.lightScheme
             }
-        }
-    }
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as android.app.Activity).window
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-            window.navigationBarColor = android.graphics.Color.TRANSPARENT
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-
-            val insetsController = WindowCompat.getInsetsController(window, view)
-            insetsController.isAppearanceLightStatusBars = !isDarkMode
-            insetsController.isAppearanceLightNavigationBars = !isDarkMode
         }
     }
 

@@ -60,13 +60,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.MoreOverIcon
@@ -85,6 +89,7 @@ class AssetsActivity : ComposeActivity() {
     private val viewModel: AssetsActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         val assetsDir = assetsDir()
@@ -95,15 +100,21 @@ class AssetsActivity : ComposeActivity() {
         setContent {
             @Suppress("DEPRECATION")
             AppTheme {
+                val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f 
+                val view = LocalView.current
+                LaunchedEffect(isDarkMode) {
+                    val window = (view.context as android.app.Activity).window
+                    val controller = WindowCompat.getInsetsController(window, view)
+                    controller.isAppearanceLightStatusBars = !isDarkMode
+                    controller.isAppearanceLightNavigationBars = !isDarkMode
+                }
                 AssetsScreen(
                     viewModel = viewModel,
                     onBackPress = { onBackPressedDispatcher.onBackPressed() },
                 )
             }
         }
-
     }
-
 }
 
 private const val ASSET_BUILT_IN = 0
@@ -268,7 +279,11 @@ private fun AssetsScreen(
                             )
                         }
                     },
-                    windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                     scrollBehavior = scrollBehavior,
                 )
 
