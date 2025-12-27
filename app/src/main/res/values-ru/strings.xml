@@ -306,7 +306,7 @@
     <string name="invert_selections">Инвертировать выбор</string>
     <string name="scanning">Сканирование…</string>
     <string name="search_apps">Поиск…</string>
-    <string name="off">Выключенный</string>
+    <string name="off">ВЫКЛ.</string>
     <string name="on">Включено</string>
     <string name="proxied_apps_summary">Настроить режим VPN для выбранных приложений</string>
     <string name="proxied_apps">Режим VPN для приложений</string>
@@ -685,4 +685,5 @@
     <string name="long_click_to_see_name">Удерживайте, чтобы увидеть название</string>
     <string name="max_log_line">Максимум строк в журнале</string>
     <string name="scroll_to_bottom">Прокрутить вниз</string>
+    <string name="ech_query_server_name">Имя сервера для запроса</string>
 </resources>
