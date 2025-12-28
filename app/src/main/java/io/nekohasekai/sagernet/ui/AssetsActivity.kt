@@ -100,7 +100,7 @@ class AssetsActivity : ComposeActivity() {
         setContent {
             @Suppress("DEPRECATION")
             AppTheme {
-                val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f 
+                val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f
                 val view = LocalView.current
                 val window = this@AssetsActivity.window
                 LaunchedEffect(isDarkMode) {
