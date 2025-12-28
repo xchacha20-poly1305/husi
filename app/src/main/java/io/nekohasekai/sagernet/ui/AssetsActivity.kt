@@ -102,8 +102,8 @@ class AssetsActivity : ComposeActivity() {
             AppTheme {
                 val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f 
                 val view = LocalView.current
+                val window = this@AssetsActivity.window
                 LaunchedEffect(isDarkMode) {
-                    val window = (view.context as android.app.Activity).window
                     val controller = WindowCompat.getInsetsController(window, view)
                     controller.isAppearanceLightStatusBars = !isDarkMode
                     controller.isAppearanceLightNavigationBars = !isDarkMode
