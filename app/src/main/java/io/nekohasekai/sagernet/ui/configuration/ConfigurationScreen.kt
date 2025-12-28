@@ -236,11 +236,24 @@ fun ConfigurationScreen(
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-    val appBarContainerColor = if (scrollBehavior.state.overlappedFraction > 0.01f) {
-        topAppBarColors.scrolledContainerColor
-    } else {
-        MaterialTheme.colorScheme.background
+    var isInitialized by remember { mutableStateOf(false) }
+    val appBarContainerColor by animateColorAsState(
+        targetValue = if (!isInitialized) {
+            Color.Transparent
+        } else {
+            lerp(
+                topAppBarColors.containerColor,
+                topAppBarColors.scrolledContainerColor,
+                scrollBehavior.state.overlappedFraction.coerceIn(0f, 1f),
+            )
+        },
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "appBarContainerColor",
+    )
+    LaunchedEffect(Unit) {
+        isInitialized = true
     }
+
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by connection?.status?.collectAsStateWithLifecycle()
