@@ -7,6 +7,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.combinedClickable
@@ -58,6 +60,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
@@ -234,22 +237,38 @@ fun ConfigurationScreen(
             0
         }
 
+    val scrollColors = TopAppBarDefaults.topAppBarColors()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-    var isInitialized by remember { mutableStateOf(false) }
-    val appBarContainerColor by animateColorAsState(
+    val themeBgColor = MaterialTheme.colorScheme.background
+    val scrolledColor = scrollColors.scrolledContainerColor
+    var isInitialized by rememberSaveable { mutableStateOf(false) }
+    val stateFraction by animateFloatAsState(
         targetValue = if (!isInitialized) {
-            Color.Transparent
+            -1f
         } else {
-            lerp(
-                topAppBarColors.containerColor,
-                topAppBarColors.scrolledContainerColor,
-                scrollBehavior.state.overlappedFraction.coerceIn(0f, 1f),
-            )
+            scrollBehavior.state.overlappedFraction
         },
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "appBarContainerColor",
+        animationSpec = if (!isInitialized) {
+            snap()
+        } else {
+            spring(stiffness = Spring.StiffnessMediumLow)
+        },
+        label = "appBarContainerColor"
     )
+    val appBarContainerColor = remember(stateFraction, themeBgColor, scrolledColor) {
+        when {
+            stateFraction < 0f -> {
+                Color.Transparent 
+            }
+            else -> {
+                lerp(
+                    themeBgColor,
+                    scrolledColor,
+                    stateFraction.coerceIn(0f, 1f)
+                )
+            }
+        }
+    }
     LaunchedEffect(Unit) {
         isInitialized = true
     }
@@ -269,7 +288,11 @@ fun ConfigurationScreen(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = if (!isInitialized) {
+            Color.Transparent
+        } else {
+            themeBgColor
+        },
         topBar = {
             androidx.compose.material3.Surface(
                 color = appBarContainerColor,
@@ -418,12 +441,10 @@ fun ConfigurationScreen(
                                     )
                                 }
                                 //ManualProtocolsSettings
-                                if (showAddManualMenu) {
-                                    ManualProtocolMenu(
-                                        expanded = showAddManualMenu,
-                                        onDismissRequest = { showAddManualMenu = false }
-                                    )
-                                }
+                                ManualProtocolMenu(
+                                    expanded = showAddManualMenu,
+                                    onDismissRequest = { showAddManualMenu = false }
+                                )
                             }
 
                             Box {
@@ -582,7 +603,13 @@ fun ConfigurationScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(
+                    if (!isInitialized) {
+                        Color.Transparent
+                    } else {
+                        themeBgColor
+                    }
+                )
         ) {
             ConfigurationContent(
                 modifier = Modifier
