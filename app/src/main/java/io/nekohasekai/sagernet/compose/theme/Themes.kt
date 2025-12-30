@@ -84,15 +84,17 @@ fun Resources.isDarkMode(mode: Int) = when (mode) {
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     val resources = LocalResources.current
+    val initialNightTheme = remember { DataStore.nightTheme }
+    val initialAppTheme = remember { DataStore.appTheme }
     val nightModeValue by DataStore.configurationStore
-        .intFlow(Key.NIGHT_THEME)
-        .collectAsStateWithLifecycle(0)
+        .intFlow(Key.NIGHT_THEME, initialNightTheme)
+        .collectAsStateWithLifecycle(initialNightTheme)
     val isDarkMode = remember(nightModeValue, resources.configuration) {
         resources.isDarkMode(nightModeValue)
     }
     val appTheme by DataStore.configurationStore
-        .intFlow(Key.APP_THEME)
-        .collectAsStateWithLifecycle(DEFAULT)
+        .intFlow(Key.APP_THEME, initialAppTheme)
+        .collectAsStateWithLifecycle(initialAppTheme)
     val context = LocalContext.current
     val colorScheme = remember(appTheme, isDarkMode, context) {
         when (appTheme) {
