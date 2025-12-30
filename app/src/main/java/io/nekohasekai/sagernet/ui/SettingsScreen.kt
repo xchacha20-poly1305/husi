@@ -2,6 +2,7 @@
 
 package io.nekohasekai.sagernet.ui
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -100,6 +101,7 @@ import io.nekohasekai.sagernet.compose.theme.themes
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.contentOrUnset
+import io.nekohasekai.sagernet.ktx.findActivity
 import io.nekohasekai.sagernet.ktx.getColour
 import io.nekohasekai.sagernet.ktx.intListN
 import io.nekohasekai.sagernet.ktx.isExpert
@@ -288,6 +290,7 @@ fun SettingsScreen(
                                     else -> AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
                                 },
                             )
+                            context.findActivity<Activity>()!!.recreate()
                         },
                         values = intListN(4),
                         title = { Text(stringResource(R.string.night_mode)) },
