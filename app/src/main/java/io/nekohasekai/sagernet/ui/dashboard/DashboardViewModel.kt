@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.dashboard
 
 import android.net.Network
 import android.net.NetworkCapabilities
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -34,7 +35,6 @@ import libcore.Libcore
 @Immutable
 data class DashboardState(
     // toolbar
-    val searchQuery: String = "",
     val isPause: Boolean = false,
     val sortMode: Int = TrafficSortMode.START,
     val isDescending: Boolean = false,
@@ -66,6 +66,8 @@ data class NetworkInterfaceInfo(
 class DashboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
+
+    val searchTextFieldState = TextFieldState()
 
     companion object {
         private const val LOOP_INTERVAL = 1000L
@@ -127,14 +129,6 @@ class DashboardViewModel : ViewModel() {
             DefaultNetworkListener.stop(this@DashboardViewModel)
         }
         super.onCleared()
-    }
-
-    fun setSearchQuery(query: String) {
-        _uiState.update { state ->
-            state.copy(
-                searchQuery = query,
-            )
-        }
     }
 
     fun togglePause() {
@@ -346,7 +340,7 @@ class DashboardViewModel : ViewModel() {
             val connections = if (state.isPause) {
                 state.connections
             } else {
-                loadConnections(service, state.queryOptions, state.searchQuery)
+                loadConnections(service, state.queryOptions)
             }
             state.copy(
                 memory = service.queryMemory(),
@@ -362,11 +356,11 @@ class DashboardViewModel : ViewModel() {
     private suspend fun loadConnections(
         service: ISagerNetService,
         options: Int,
-        query: String?,
     ): List<Connection> {
+        val query = searchTextFieldState.text.toString()
         return service.queryConnections(options).connections
             .let {
-                if (query == null) {
+                if (query.isEmpty()) {
                     it
                 } else {
                     it.filter { it.match(query) }

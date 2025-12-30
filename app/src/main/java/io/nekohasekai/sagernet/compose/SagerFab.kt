@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,7 @@ fun SagerFab(
     visible: Boolean = true,
     state: BaseService.State,
     showSnackbar: (message: StringOrRes) -> Unit,
+    onSizeChanged: ((Int) -> Unit)? = null,
 ) {
     val connector = rememberLauncherForActivityResult(VpnRequestActivity.StartService()) { failed ->
         if (failed) showSnackbar(StringOrRes.Res(R.string.vpn_permission_denied))
@@ -50,6 +52,7 @@ fun SagerFab(
         visible = visible,
         enter = scaleIn(),
         exit = scaleOut(),
+        modifier = Modifier.onSizeChanged { onSizeChanged?.invoke(it.height) },
     ) {
         FloatingActionButton(
             onClick = {

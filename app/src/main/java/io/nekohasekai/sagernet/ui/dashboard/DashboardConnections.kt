@@ -1,38 +1,47 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
 import android.text.format.Formatter
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.theme.LogColors
 
@@ -40,58 +49,98 @@ import io.nekohasekai.sagernet.compose.theme.LogColors
 internal fun DashboardConnectionsScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
+    searchTextFieldState: TextFieldState,
+    bottomPadding: Dp,
     closeConnection: (uuid: String) -> Unit,
     openDetail: (uuid: String) -> Unit,
     onVisibleChange: (Boolean) -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
     val visible by rememberScrollHideState(listState)
-
-    LaunchedEffect(visible) {
-        onVisibleChange(visible)
+    val canScroll by remember {
+        derivedStateOf {
+            listState.canScrollForward || listState.canScrollBackward
+        }
     }
+    val searchBarVisible = visible && (canScroll || searchTextFieldState.text.isNotEmpty())
+    onVisibleChange(visible)
 
-    LazyColumn(
+    Box(
         modifier = modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = extraBottomPadding(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        items(
-            items = uiState.connections,
-            key = { it.uuid },
-            contentType = { 0 },
-        ) { connection ->
-            val swipState = rememberSwipeToDismissBoxState()
-            SwipeToDismissBox(
-                state = swipState,
-                backgroundContent = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.CenterEnd,
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.delete_forever),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onError,
-                        )
-                    }
-                },
-                enableDismissFromStartToEnd = false,
-                modifier = Modifier.fillMaxWidth(),
-                onDismiss = { swipeToDismissBoxValue ->
-                    if (swipeToDismissBoxValue == SwipeToDismissBoxValue.EndToStart) {
-                        closeConnection(connection.uuid)
-                    }
-                },
-            ) {
-                ConnectionCard(
-                    connection = connection,
-                    openDetail = openDetail,
-                )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = PaddingValues(bottom = bottomPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(
+                items = uiState.connections,
+                key = { it.uuid },
+                contentType = { 0 },
+            ) { connection ->
+                val swipState = rememberSwipeToDismissBoxState()
+                SwipeToDismissBox(
+                    state = swipState,
+                    backgroundContent = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            contentAlignment = Alignment.CenterEnd,
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.delete_forever),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onError,
+                            )
+                        }
+                    },
+                    enableDismissFromStartToEnd = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    onDismiss = { swipeToDismissBoxValue ->
+                        if (swipeToDismissBoxValue == SwipeToDismissBoxValue.EndToStart) {
+                            closeConnection(connection.uuid)
+                        }
+                    },
+                ) {
+                    ConnectionCard(
+                        connection = connection,
+                        openDetail = openDetail,
+                    )
+                }
             }
+        }
+
+        AnimatedVisibility(
+            visible = searchBarVisible,
+            enter = slideInVertically { -it },
+            exit = slideOutVertically { -it },
+            modifier = Modifier.align(Alignment.TopCenter),
+        ) {
+            DockedSearchBar(
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        state = searchTextFieldState,
+                        onSearch = { focusManager.clearFocus() },
+                        expanded = false,
+                        onExpandedChange = {},
+                        leadingIcon = {
+                            Icon(ImageVector.vectorResource(R.drawable.search), null)
+                        },
+                    )
+                },
+                expanded = false,
+                onExpandedChange = {},
+                modifier = Modifier.padding(top = 24.dp),
+                colors = SearchBarDefaults.colors().run {
+                    copy(
+                        containerColor = containerColor.copy(alpha = 0.9f),
+                    )
+                },
+                content = {},
+            )
         }
     }
 }

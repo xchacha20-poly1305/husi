@@ -12,14 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuGroup
@@ -29,7 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -37,12 +33,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,10 +48,9 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.R
@@ -95,12 +90,11 @@ fun DashboardScreen(
         pageCount = { 3 },
     )
 
-    var isSearchActive by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val focusManager = LocalFocusManager.current
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
     var bottomVisible by remember { mutableStateOf(true) }
+    var fabHeight by remember { mutableIntStateOf(0) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
@@ -127,35 +121,7 @@ fun DashboardScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = {
-                    if (isSearchActive) {
-                        OutlinedTextField(
-                            value = uiState.searchQuery,
-                            onValueChange = { viewModel.setSearchQuery(it) },
-                            placeholder = { Text(stringResource(android.R.string.search_go)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(
-                                onSearch = {
-                                    focusManager.clearFocus()
-                                },
-                            ),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor =
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                unfocusedIndicatorColor =
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                unfocusedContainerColor =
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0f),
-                                focusedContainerColor =
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0f),
-                            ),
-                        )
-                    } else {
-                        Text(stringResource(R.string.menu_dashboard))
-                    }
-                },
+                title = { Text(stringResource(R.string.menu_dashboard)) },
                 navigationIcon = {
                     SimpleIconButton(
                         imageVector = ImageVector.vectorResource(R.drawable.menu),
@@ -164,162 +130,148 @@ fun DashboardScreen(
                     )
                 },
                 actions = {
-                    if (isSearchActive) SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.close),
-                        contentDescription = stringResource(R.string.close),
-                    ) {
-                        isSearchActive = false
-                        viewModel.setSearchQuery("")
-                    } else {
-                        if (pagerState.currentPage != PAGE_CONNECTIONS) return@TopAppBar
+                    if (pagerState.currentPage != PAGE_CONNECTIONS) return@TopAppBar
+                    SimpleIconButton(
+                        imageVector = if (uiState.isPause) {
+                            ImageVector.vectorResource(R.drawable.play_arrow)
+                        } else {
+                            ImageVector.vectorResource(R.drawable.pause)
+                        },
+                        contentDescription = stringResource(R.string.pause),
+                        onClick = { viewModel.togglePause() },
+                    )
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
+                        contentDescription = stringResource(R.string.reset_connections),
+                        onClick = { showResetAlert = true },
+                    )
+
+                    Box {
                         SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.search),
-                            contentDescription = stringResource(android.R.string.search_go),
+                            imageVector = ImageVector.vectorResource(R.drawable.more_vert),
+                            contentDescription = stringResource(R.string.more),
+                            onClick = { isOverflowMenuExpanded = true },
+                        )
+
+                        DropdownMenuPopup(
+                            expanded = isOverflowMenuExpanded,
+                            onDismissRequest = { isOverflowMenuExpanded = false },
                         ) {
-                            isSearchActive = true
-                        }
-                        SimpleIconButton(
-                            imageVector = if (uiState.isPause) {
-                                ImageVector.vectorResource(R.drawable.play_arrow)
-                            } else {
-                                ImageVector.vectorResource(R.drawable.pause)
-                            },
-                            contentDescription = stringResource(R.string.pause),
-                            onClick = { viewModel.togglePause() },
-                        )
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.cleaning_services),
-                            contentDescription = stringResource(R.string.reset_connections),
-                            onClick = { showResetAlert = true },
-                        )
-
-                        Box {
-                            SimpleIconButton(
-                                imageVector = ImageVector.vectorResource(R.drawable.more_vert),
-                                contentDescription = stringResource(R.string.more),
-                                onClick = { isOverflowMenuExpanded = true },
-                            )
-
-                            DropdownMenuPopup(
-                                expanded = isOverflowMenuExpanded,
-                                onDismissRequest = { isOverflowMenuExpanded = false },
+                            DropdownMenuGroup(
+                                shapes = MenuDefaults.groupShape(0, 3),
                             ) {
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(0, 3),
-                                ) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            MenuDefaults.Label {
-                                                Text(
-                                                    text = stringResource(R.string.sort),
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                )
-                                            }
-                                        },
-                                        onClick = {},
-                                    )
-                                    DropdownMenuItem(
-                                        selected = !uiState.isDescending,
-                                        onClick = {
-                                            viewModel.setSortDescending(false)
-                                            isOverflowMenuExpanded = false
-                                        },
-                                        text = { Text(stringResource(R.string.ascending)) },
-                                        shapes = MenuDefaults.itemShape(0, 2),
-                                    )
-                                    DropdownMenuItem(
-                                        selected = uiState.isDescending,
-                                        onClick = {
-                                            viewModel.setSortDescending(true)
-                                            isOverflowMenuExpanded = false
-                                        },
-                                        text = { Text(stringResource(R.string.descending)) },
-                                        shapes = MenuDefaults.itemShape(1, 2),
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
-
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(1, 3),
-                                ) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            MenuDefaults.Label {
-                                                Text(
-                                                    text = stringResource(R.string.sort_mode),
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                )
-                                            }
-                                        },
-                                        onClick = {},
-                                    )
-                                    val sortModes = TrafficSortMode.values
-                                    for ((i, sortMode) in sortModes.withIndex()) {
-                                        val text = when (sortMode) {
-                                            TrafficSortMode.START -> R.string.by_time
-                                            TrafficSortMode.INBOUND -> R.string.by_inbound
-                                            TrafficSortMode.UPLOAD -> R.string.by_upload
-                                            TrafficSortMode.DOWNLOAD -> R.string.by_download
-                                            TrafficSortMode.SRC -> R.string.by_source
-                                            TrafficSortMode.DST -> R.string.by_destination
-                                            TrafficSortMode.MATCHED_RULE -> R.string.by_matched_rule
-                                            else -> throw IllegalArgumentException("$sortMode impossible")
+                                DropdownMenuItem(
+                                    text = {
+                                        MenuDefaults.Label {
+                                            Text(
+                                                text = stringResource(R.string.sort),
+                                                style = MaterialTheme.typography.titleSmall,
+                                            )
                                         }
-                                        DropdownMenuItem(
-                                            checked = sortMode == uiState.sortMode,
-                                            onCheckedChange = {
-                                                if (!it) return@DropdownMenuItem
-                                                isOverflowMenuExpanded = false
-                                                viewModel.setSortMode(sortMode)
-                                            },
-                                            text = { Text(stringResource(text)) },
-                                            shapes = MenuDefaults.itemShape(i, sortModes.size),
-                                        )
+                                    },
+                                    onClick = {},
+                                )
+                                DropdownMenuItem(
+                                    selected = !uiState.isDescending,
+                                    onClick = {
+                                        viewModel.setSortDescending(false)
+                                        isOverflowMenuExpanded = false
+                                    },
+                                    text = { Text(stringResource(R.string.ascending)) },
+                                    shapes = MenuDefaults.itemShape(0, 2),
+                                )
+                                DropdownMenuItem(
+                                    selected = uiState.isDescending,
+                                    onClick = {
+                                        viewModel.setSortDescending(true)
+                                        isOverflowMenuExpanded = false
+                                    },
+                                    text = { Text(stringResource(R.string.descending)) },
+                                    shapes = MenuDefaults.itemShape(1, 2),
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+
+                            DropdownMenuGroup(
+                                shapes = MenuDefaults.groupShape(1, 3),
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        MenuDefaults.Label {
+                                            Text(
+                                                text = stringResource(R.string.sort_mode),
+                                                style = MaterialTheme.typography.titleSmall,
+                                            )
+                                        }
+                                    },
+                                    onClick = {},
+                                )
+                                val sortModes = TrafficSortMode.values
+                                for ((i, sortMode) in sortModes.withIndex()) {
+                                    val text = when (sortMode) {
+                                        TrafficSortMode.START -> R.string.by_time
+                                        TrafficSortMode.INBOUND -> R.string.by_inbound
+                                        TrafficSortMode.UPLOAD -> R.string.by_upload
+                                        TrafficSortMode.DOWNLOAD -> R.string.by_download
+                                        TrafficSortMode.SRC -> R.string.by_source
+                                        TrafficSortMode.DST -> R.string.by_destination
+                                        TrafficSortMode.MATCHED_RULE -> R.string.by_matched_rule
+                                        else -> throw IllegalArgumentException("$sortMode impossible")
                                     }
-                                }
-
-                                Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
-
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShape(2, 3),
-                                ) {
                                     DropdownMenuItem(
-                                        text = {
-                                            MenuDefaults.Label {
-                                                Text(
-                                                    text = stringResource(R.string.connection_status),
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                )
-                                            }
+                                        checked = sortMode == uiState.sortMode,
+                                        onCheckedChange = {
+                                            if (!it) return@DropdownMenuItem
+                                            isOverflowMenuExpanded = false
+                                            viewModel.setSortMode(sortMode)
                                         },
-                                        onClick = {},
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.connection_status_active)) },
-                                        onClick = {
-                                            viewModel.setQueryActivate(!uiState.showActivate)
-                                        },
-                                        leadingIcon = {
-                                            Checkbox(
-                                                checked = uiState.showActivate,
-                                                onCheckedChange = null,
-                                            )
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.connection_status_closed)) },
-                                        onClick = {
-                                            viewModel.setQueryClosed(!uiState.showClosed)
-                                        },
-                                        leadingIcon = {
-                                            Checkbox(
-                                                checked = uiState.showClosed,
-                                                onCheckedChange = null,
-                                            )
-                                        },
+                                        text = { Text(stringResource(text)) },
+                                        shapes = MenuDefaults.itemShape(i, sortModes.size),
                                     )
                                 }
+                            }
+
+                            Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
+
+                            DropdownMenuGroup(
+                                shapes = MenuDefaults.groupShape(2, 3),
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        MenuDefaults.Label {
+                                            Text(
+                                                text = stringResource(R.string.connection_status),
+                                                style = MaterialTheme.typography.titleSmall,
+                                            )
+                                        }
+                                    },
+                                    onClick = {},
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.connection_status_active)) },
+                                    onClick = {
+                                        viewModel.setQueryActivate(!uiState.showActivate)
+                                    },
+                                    leadingIcon = {
+                                        Checkbox(
+                                            checked = uiState.showActivate,
+                                            onCheckedChange = null,
+                                        )
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.connection_status_closed)) },
+                                    onClick = {
+                                        viewModel.setQueryClosed(!uiState.showClosed)
+                                    },
+                                    leadingIcon = {
+                                        Checkbox(
+                                            checked = uiState.showClosed,
+                                            onCheckedChange = null,
+                                        )
+                                    },
+                                )
                             }
                         }
                     }
@@ -346,6 +298,7 @@ fun DashboardScreen(
                         )
                     }
                 },
+                onSizeChanged = { fabHeight = it },
             )
         },
         bottomBar = {
@@ -417,14 +370,19 @@ fun DashboardScreen(
                         onVisibleChange = { bottomVisible = it },
                     )
 
-                    PAGE_CONNECTIONS -> DashboardConnectionsScreen(
-                        uiState = uiState,
-                        closeConnection = { uuid ->
-                            connection.service.value?.closeConnection(uuid)
-                        },
-                        openDetail = openConnectionDetail,
-                        onVisibleChange = { bottomVisible = it },
-                    )
+                    PAGE_CONNECTIONS -> {
+                        val density = LocalDensity.current
+                        DashboardConnectionsScreen(
+                            uiState = uiState,
+                            searchTextFieldState = viewModel.searchTextFieldState,
+                            bottomPadding = innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() },
+                            closeConnection = { uuid ->
+                                connection.service.value?.closeConnection(uuid)
+                            },
+                            openDetail = openConnectionDetail,
+                            onVisibleChange = { bottomVisible = it },
+                        )
+                    }
 
                     PAGE_PROXY_SET -> DashboardProxySetScreen(
                         uiState = uiState,
