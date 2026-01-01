@@ -10,7 +10,7 @@ fun parseTrojan(link: String): TrojanBean {
     return TrojanBean().apply {
         parseDuckSoft(url)
         url.parseBoolean("allowInsecure")
-        url.queryParameterNotBlank("peer").let {
+        url.queryParameterNotBlank("peer")?.let {
             sni = it
         }
     }
