@@ -134,6 +134,9 @@ func (t *TCPTransport) Close() error {
 	return nil
 }
 
+func (t *TCPTransport) Reset() {
+}
+
 func (t *TCPTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {
 	if t.connections == nil {
 		return t.createNewConnection(ctx, message)
@@ -275,7 +278,7 @@ func (t *TCPTransport) getDetectionCounters() (*int32, *int32, *int32) {
 func (t *TCPTransport) createNewConnection(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {
 	rawConn, err := t.dialer.DialContext(ctx, N.NetworkTCP, t.serverAddr)
 	if err != nil {
-		return nil, err
+		return nil, E.Cause(err, "dial TCP connection")
 	}
 	var connIdleTimeout time.Duration
 	if t.connections != nil && t.disableKeepAlive {
@@ -326,6 +329,12 @@ func WriteMessage(writer io.Writer, messageId uint16, message *mDNS.Msg) error {
 	}
 	buffer.Truncate(2 + len(rawMessage))
 	return common.Error(writer.Write(buffer.Bytes()))
+}
+
+type dnsCallback struct {
+	access  sync.Mutex
+	message *mDNS.Msg
+	done    chan struct{}
 }
 
 type reuseableDNSConn struct {
@@ -545,10 +554,4 @@ func (c *reuseableDNSConn) closeWithError(err error) {
 
 func (c *reuseableDNSConn) Close() {
 	c.closeWithError(net.ErrClosed)
-}
-
-type dnsCallback struct {
-	access  sync.Mutex
-	message *mDNS.Msg
-	done    chan struct{}
 }
