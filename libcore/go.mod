@@ -7,15 +7,15 @@ require (
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.2
 	github.com/miekg/dns v1.1.69
-	github.com/sagernet/cronet-go v0.0.0-20251230094758-5aef2a9e7f0d
-	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20251230094225-9a5fe902f561
-	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251230094225-9a5fe902f561
-	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251230094225-9a5fe902f561
-	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251230094225-9a5fe902f561
+	github.com/sagernet/cronet-go v0.0.0-20251231120443-1d2d7341cbd8
+	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20251231115934-b87a9ae9bd80
+	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251231115934-b87a9ae9bd80
+	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251231115934-b87a9ae9bd80
+	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251231115934-b87a9ae9bd80
 	github.com/sagernet/gomobile v0.1.10
 	github.com/sagernet/sing v0.8.0-beta.8
-	github.com/sagernet/sing-box v1.13.0-alpha.35
-	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20251226064455-a850c4f8a1c8
+	github.com/sagernet/sing-box v1.13.0-alpha.36
+	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20251230194736-a5db80d71081
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
@@ -75,7 +75,7 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.58.0-sing-box-mod.1 // indirect
 	github.com/sagernet/sing-mux v0.3.3 // indirect
-	github.com/sagernet/sing-quic v0.6.0-beta.7 // indirect
+	github.com/sagernet/sing-quic v0.6.0-beta.8 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
