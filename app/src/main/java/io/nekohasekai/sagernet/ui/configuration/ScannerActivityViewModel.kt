@@ -26,12 +26,10 @@ import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
-import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.defaultOr
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
-import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -221,14 +219,15 @@ internal class ScannerActivityViewModel : ViewModel() {
     }
 
     fun onFailure(e: Exception?) {
-        viewModelScope.launch {
+        // Ignore it because they are too much and common.
+        /*viewModelScope.launch {
             if (e != null) {
                 Logs.w(e)
                 _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Direct(e.readableMessage)))
             } else {
                 _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(R.string.action_import_err)))
             }
-        }
+        }*/
     }
 
     fun toggleFlashlight() {
