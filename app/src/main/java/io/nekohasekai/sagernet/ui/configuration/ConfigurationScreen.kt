@@ -53,6 +53,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -73,6 +75,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -1001,6 +1005,20 @@ private fun ConfigurationDialogs(
     vm: ConfigurationScreenViewModel,
     uiState: ConfigurationUiState,
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var dialogKey by remember { mutableIntStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                dialogKey++
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     uiState.alertForDelete?.let { alert ->
         AlertDialog(
             onDismissRequest = { vm.dismissAlert() },
@@ -1033,102 +1051,104 @@ private fun ConfigurationDialogs(
     }
 
     uiState.testState?.let { testState ->
-        AlertDialog(
-            onDismissRequest = {},
-            confirmButton = {
-                TextButton(stringResource(android.R.string.cancel)) {
-                    vm.cancelTest()
-                }
-            },
-            icon = {
-                Icon(ImageVector.vectorResource(R.drawable.ecg), null)
-            },
-            text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    CircularWavyProgressIndicator(
-                        progress = { (testState.processedCount.toDouble() / testState.total.toDouble()).toFloat() },
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+        key(dialogKey) {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {
+                    TextButton(stringResource(android.R.string.cancel)) {
+                        vm.cancelTest()
+                    }
+                },
+                icon = {
+                    Icon(ImageVector.vectorResource(R.drawable.ecg), null)
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        CircularWavyProgressIndicator(
+                            progress = { (testState.processedCount.toDouble() / testState.total.toDouble()).toFloat() },
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    testState.latestResult?.let { result ->
-                        val profile = result.profile
-                        val (statusText, statusColor) = when (val testResult = result.result) {
-                            is TestResult.Success -> {
-                                "${testResult.ping}ms" to colorForUrlTestDelay(testResult.ping)
-                            }
-
-                            is TestResult.Failure -> {
-                                val text = when (val reason = testResult.reason) {
-                                    FailureReason.InvalidConfig ->
-                                        stringResource(
-                                            R.string.connection_test_error,
-                                            "Invalid Config",
-                                        )
-
-                                    FailureReason.DomainNotFound -> {
-                                        stringResource(R.string.connection_test_domain_not_found)
-                                    }
-
-                                    FailureReason.IcmpUnavailable -> {
-                                        stringResource(R.string.connection_test_icmp_ping_unavailable)
-                                    }
-
-                                    FailureReason.TcpUnavailable -> {
-                                        stringResource(R.string.connection_test_tcp_ping_unavailable)
-                                    }
-
-                                    FailureReason.ConnectionRefused -> {
-                                        stringResource(R.string.connection_test_refused)
-                                    }
-
-                                    FailureReason.NetworkUnreachable -> {
-                                        stringResource(R.string.connection_test_unreachable)
-                                    }
-
-                                    FailureReason.Timeout -> {
-                                        stringResource(R.string.connection_test_timeout)
-                                    }
-
-                                    is FailureReason.Generic -> reason.message ?: "Unknown"
-
-                                    is FailureReason.PluginNotFound -> reason.message
+                        testState.latestResult?.let { result ->
+                            val profile = result.profile
+                            val (statusText, statusColor) = when (val testResult = result.result) {
+                                is TestResult.Success -> {
+                                    "${testResult.ping}ms" to colorForUrlTestDelay(testResult.ping)
                                 }
-                                text to MaterialTheme.colorScheme.error
-                            }
-                        }
 
-                        LaunchedEffect(profile.id, statusText, result.result) {
-                            vm.rememberDisplayedError(
-                                profile.id,
-                                statusText.takeIf { result.result is TestResult.Failure },
+                                is TestResult.Failure -> {
+                                    val text = when (val reason = testResult.reason) {
+                                        FailureReason.InvalidConfig ->
+                                            stringResource(
+                                                R.string.connection_test_error,
+                                                "Invalid Config",
+                                            )
+
+                                        FailureReason.DomainNotFound -> {
+                                            stringResource(R.string.connection_test_domain_not_found)
+                                        }
+
+                                        FailureReason.IcmpUnavailable -> {
+                                            stringResource(R.string.connection_test_icmp_ping_unavailable)
+                                        }
+
+                                        FailureReason.TcpUnavailable -> {
+                                            stringResource(R.string.connection_test_tcp_ping_unavailable)
+                                        }
+
+                                        FailureReason.ConnectionRefused -> {
+                                            stringResource(R.string.connection_test_refused)
+                                        }
+
+                                        FailureReason.NetworkUnreachable -> {
+                                            stringResource(R.string.connection_test_unreachable)
+                                        }
+
+                                        FailureReason.Timeout -> {
+                                            stringResource(R.string.connection_test_timeout)
+                                        }
+
+                                        is FailureReason.Generic -> reason.message ?: "Unknown"
+
+                                        is FailureReason.PluginNotFound -> reason.message
+                                    }
+                                    text to MaterialTheme.colorScheme.error
+                                }
+                            }
+
+                            LaunchedEffect(profile.id, statusText, result.result) {
+                                vm.rememberDisplayedError(
+                                    profile.id,
+                                    statusText.takeIf { result.result is TestResult.Failure },
+                                )
+                            }
+
+                            Text(profile.displayName())
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = profile.displayType(context),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = statusText,
+                                color = statusColor,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                         }
 
-                        Text(profile.displayName())
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = profile.displayType(context),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = statusText,
-                            color = statusColor,
+                            text = "${testState.processedCount} / ${testState.total}",
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "${testState.processedCount} / ${testState.total}",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            },
-        )
+                },
+            )
+        }
     }
 }
