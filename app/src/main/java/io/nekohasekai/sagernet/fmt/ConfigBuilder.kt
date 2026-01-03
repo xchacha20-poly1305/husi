@@ -346,7 +346,9 @@ fun buildConfig(
             auto_detect_interface = true
             rules = mutableListOf()
             rule_set = mutableListOf()
-            if (!forTest && DataStore.forcedSearchProcess) find_process = true
+            // Forced
+            // https://github.com/SagerNet/sing-box/commit/4b1b00a4f6729a027a653f417cda0701c6a32934#diff-d66a2caeeac5651dd693f6c05456599c9896a5def2619a159e05a76786bb16c7
+            // if (!forTest && DataStore.forcedSearchProcess) find_process = true
         }
 
         // returns outbound tag

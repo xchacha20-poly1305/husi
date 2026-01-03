@@ -51,7 +51,7 @@ object Key {
     const val METERED_NETWORK = "meteredNetwork"
     const val NETWORK_INTERFACE_STRATEGY = "networkInterfaceStrategy"
     const val NETWORK_PREFERRED_INTERFACES = "networkPreferredInterfaces"
-    const val FORCED_SEARCH_PROCESS = "forcedSearchProcess"
+    // const val FORCED_SEARCH_PROCESS = "forcedSearchProcess"
     const val RULES_PROVIDER = "rulesProvider"
     const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
 

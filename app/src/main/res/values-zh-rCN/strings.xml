@@ -623,7 +623,6 @@
     <string name="tasker_start_current_profile">当前配置</string>
     <string name="tasker_blurb_start_profile">启动配置 %s</string>
     <string name="process">进程</string>
-    <string name="forced_search_process">强制搜索进程</string>
     <string name="disable_process_text">禁用 Process Text</string>
     <string name="refresh">刷新</string>
     <string name="route_asset_name">资源名称</string>

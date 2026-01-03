@@ -696,7 +696,6 @@
     <string name="tasker_start_current_profile">Current profile</string>
     <string name="tasker_blurb_start_profile">Start profile %s</string>
     <string name="process">Process</string>
-    <string name="forced_search_process">Forceed search process</string>
     <string name="disable_process_text">Disable Process Text</string>
     <string name="refresh">Refresh</string>
     <string name="url" translatable="false">URL</string>

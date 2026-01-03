@@ -624,7 +624,6 @@
     <string name="tasker_start_current_profile">Текущий профиль</string>
     <string name="tasker_blurb_start_profile">Запуск профиля %s</string>
     <string name="process">Процесс</string>
-    <string name="forced_search_process">Принудительный поиск процесса</string>
     <string name="disable_process_text">Отключить обработку выделенного текста с помощью внешних контекстных меню</string>
     <string name="refresh">Обновить</string>
     <string name="route_asset_name">Название ресурса (имя файла)</string>

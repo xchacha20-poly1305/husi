@@ -869,7 +869,7 @@ fun SettingsScreen(
                         valueToText = { AnnotatedString(it) },
                     )
                 }
-                item(Key.FORCED_SEARCH_PROCESS, PreferenceType.SWITCH) {
+                /*item(Key.FORCED_SEARCH_PROCESS, PreferenceType.SWITCH) {
                     val value by DataStore.configurationStore
                         .booleanFlow(Key.FORCED_SEARCH_PROCESS, false)
                         .collectAsStateWithLifecycle(false)
@@ -887,7 +887,7 @@ fun SettingsScreen(
                             )
                         },
                     )
-                }
+                }*/
                 item(Key.RULES_PROVIDER, PreferenceType.LIST) {
                     val context = LocalContext.current
                     fun rulesProviderText(index: Int): String = when (index) {
