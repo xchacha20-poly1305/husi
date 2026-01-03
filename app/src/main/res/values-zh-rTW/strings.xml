@@ -620,7 +620,6 @@
     <string name="tasker_start_current_profile">當前設定檔</string>
     <string name="tasker_blurb_start_profile">啟動設定檔 %s</string>
     <string name="process">程序</string>
-    <string name="forced_search_process">強制搜尋程序</string>
     <string name="disable_process_text">停用 Process Text</string>
     <string name="refresh">重新整理</string>
     <string name="route_asset_name">資源名稱</string>
