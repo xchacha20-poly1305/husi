@@ -50,6 +50,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -104,6 +105,12 @@ fun LogcatScreen(
             listState.canScrollForward || listState.canScrollBackward
         }
     }
+    var autoScroll by remember { mutableStateOf(true) }
+    val isAtBottom by remember {
+        derivedStateOf {
+            !listState.canScrollForward
+        }
+    }
     val searchBarVisible =
         scrollHideVisible && (canScroll || viewModel.searchTextFieldState.text.isNotEmpty())
 
@@ -111,9 +118,25 @@ fun LogcatScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val queryLowerCase = uiState.searchQuery?.lowercase()
+    LaunchedEffect(listState) {
+        var wasScrolling = false
+        snapshotFlow { listState.isScrollInProgress }
+            .collect { isScrolling ->
+                if (isScrolling) {
+                    wasScrolling = true
+                } else if (wasScrolling) {
+                    autoScroll = isAtBottom
+                    wasScrolling = false
+                }
+            }
+    }
     LaunchedEffect(uiState.logs.size) {
-        if (!uiState.pause && uiState.logs.isNotEmpty()) {
-            listState.scrollToItem(uiState.logs.size - 1)
+        if (uiState.logs.isEmpty()) {
+            autoScroll = true
+            return@LaunchedEffect
+        }
+        if (!uiState.pause && autoScroll) {
+            listState.scrollToItem(uiState.logs.lastIndex)
         }
     }
     LaunchedEffect(uiState.errorMessage) {
