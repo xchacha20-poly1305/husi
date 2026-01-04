@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SwipeToDismissBox
@@ -54,6 +55,7 @@ internal fun DashboardConnectionsScreen(
     closeConnection: (uuid: String) -> Unit,
     openDetail: (uuid: String) -> Unit,
     onVisibleChange: (Boolean) -> Unit,
+    onClearSearch: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
@@ -128,6 +130,20 @@ internal fun DashboardConnectionsScreen(
                         onExpandedChange = {},
                         leadingIcon = {
                             Icon(ImageVector.vectorResource(R.drawable.search), null)
+                        },
+                        trailingIcon = if (searchTextFieldState.text.isNotEmpty()) {
+                            {
+                                IconButton(
+                                    onClick = onClearSearch,
+                                ) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.close),
+                                        contentDescription = stringResource(android.R.string.cancel),
+                                    )
+                                }
+                            }
+                        } else {
+                            null
                         },
                     )
                 },
