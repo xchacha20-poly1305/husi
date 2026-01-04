@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.dashboard
 import android.net.Network
 import android.net.NetworkCapabilities
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -137,6 +138,10 @@ class DashboardViewModel : ViewModel() {
                 isPause = !state.isPause,
             )
         }
+    }
+
+    fun clearSearchQuery() {
+        searchTextFieldState.setTextAndPlaceCursorAtEnd("")
     }
 
     fun setSortDescending(descending: Boolean) = runOnIoDispatcher {

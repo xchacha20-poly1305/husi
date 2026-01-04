@@ -1,7 +1,10 @@
 package io.nekohasekai.sagernet.ui
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.aidl.ISagerNetService
@@ -14,6 +17,8 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,9 +51,19 @@ class LogcatScreenViewModel : ViewModel() {
         LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
     )
     val uiState = _uiState.asStateFlow()
+    val searchTextFieldState = TextFieldState()
 
     private var connection: SagerConnection? = null
     private var job: Job? = null
+
+    init {
+        viewModelScope.launch {
+            snapshotFlow { searchTextFieldState.text.toString() }
+                .drop(1)
+                .distinctUntilChanged()
+                .collect { setSearchQuery(it.ifEmpty { null }) }
+        }
+    }
 
     private fun refilterLogs(logLevel: LogLevel, query: String?): PersistentList<LogItem> {
         return allLogs.filter { item ->
@@ -144,6 +159,10 @@ class LogcatScreenViewModel : ViewModel() {
                 },
             )
         }
+    }
+
+    fun clearSearchQuery() {
+        searchTextFieldState.setTextAndPlaceCursorAtEnd("")
     }
 
 }

@@ -3,6 +3,9 @@
 package io.nekohasekai.sagernet.ui
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,9 +18,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -26,27 +28,29 @@ import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -55,7 +59,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,10 +99,16 @@ fun LogcatScreen(
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
+    val canScroll by remember {
+        derivedStateOf {
+            listState.canScrollForward || listState.canScrollBackward
+        }
+    }
+    val searchBarVisible =
+        scrollHideVisible && (canScroll || viewModel.searchTextFieldState.text.isNotEmpty())
 
     var expandMenu by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    var searchMode by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val queryLowerCase = uiState.searchQuery?.lowercase()
     LaunchedEffect(uiState.logs.size) {
@@ -133,52 +142,16 @@ fun LogcatScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    if (searchMode) {
-                        OutlinedTextField(
-                            value = uiState.searchQuery.orEmpty(),
-                            onValueChange = { viewModel.setSearchQuery(it.ifEmpty { null }) },
-                            placeholder = { Text(stringResource(android.R.string.search_go)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(
-                                onSearch = { focusManager.clearFocus() },
-                            ),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.5f,
-                                ),
-                            ),
-                        )
-                    } else {
-                        Text(stringResource(R.string.menu_log))
-                    }
+                    Text(stringResource(R.string.menu_log))
                 },
                 navigationIcon = {
-                    if (searchMode) {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.close),
-                            contentDescription = stringResource(android.R.string.cancel),
-                            onClick = {
-                                searchMode = false
-                                viewModel.setSearchQuery(null)
-                            },
-                        )
-                    } else {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.menu),
-                            contentDescription = stringResource(R.string.menu),
-                            onClick = onDrawerClick,
-                        )
-                    }
+                    SimpleIconButton(
+                        imageVector = ImageVector.vectorResource(R.drawable.menu),
+                        contentDescription = stringResource(R.string.menu),
+                        onClick = onDrawerClick,
+                    )
                 },
                 actions = {
-                    if (searchMode) return@TopAppBar
-                    SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.search),
-                        contentDescription = stringResource(android.R.string.search_go),
-                        onClick = { searchMode = true },
-                    )
                     SimpleIconButton(
                         imageVector = ImageVector.vectorResource(
                             if (uiState.pause) {
@@ -286,24 +259,74 @@ fun LogcatScreen(
             }
         },
     ) { innerPadding ->
-        SelectionContainer {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                state = listState,
-                contentPadding = innerPadding.withNavigation(),
-            ) {
-                itemsIndexed(
-                    items = uiState.logs,
-                    key = { index, _ -> index },
-                    contentType = { _, _ -> 0 },
-                ) { _, logLine ->
-                    LogCard(
-                        logLine = logLine.message,
-                        highlightQuery = queryLowerCase,
-                    )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            SelectionContainer {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    state = listState,
+                    contentPadding = innerPadding.withNavigation(),
+                ) {
+                    itemsIndexed(
+                        items = uiState.logs,
+                        key = { index, _ -> index },
+                        contentType = { _, _ -> 0 },
+                    ) { _, logLine ->
+                        LogCard(
+                            logLine = logLine.message,
+                            highlightQuery = queryLowerCase,
+                        )
+                    }
                 }
+            }
+
+            AnimatedVisibility(
+                visible = searchBarVisible,
+                enter = slideInVertically { -it },
+                exit = slideOutVertically { -it },
+                modifier = Modifier.align(Alignment.TopCenter),
+            ) {
+                DockedSearchBar(
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            state = viewModel.searchTextFieldState,
+                            onSearch = { focusManager.clearFocus() },
+                            expanded = false,
+                            onExpandedChange = {},
+                            leadingIcon = {
+                                Icon(ImageVector.vectorResource(R.drawable.search), null)
+                            },
+                            trailingIcon = if (viewModel.searchTextFieldState.text.isNotEmpty()) {
+                                {
+                                    IconButton(
+                                        onClick = viewModel::clearSearchQuery,
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.close),
+                                            contentDescription = stringResource(android.R.string.cancel),
+                                        )
+                                    }
+                                }
+                            } else {
+                                null
+                            },
+                        )
+                    },
+                    expanded = false,
+                    onExpandedChange = {},
+                    modifier = Modifier.padding(
+                        top = innerPadding.calculateTopPadding() + 24.dp,
+                    ),
+                    colors = SearchBarDefaults.colors().run {
+                        copy(
+                            containerColor = containerColor.copy(alpha = 0.9f),
+                        )
+                    },
+                    content = {},
+                )
             }
         }
     }

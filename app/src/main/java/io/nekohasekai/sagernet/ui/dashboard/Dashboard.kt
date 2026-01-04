@@ -381,6 +381,7 @@ fun DashboardScreen(
                             },
                             openDetail = openConnectionDetail,
                             onVisibleChange = { bottomVisible = it },
+                            onClearSearch = viewModel::clearSearchQuery,
                         )
                     }
 
