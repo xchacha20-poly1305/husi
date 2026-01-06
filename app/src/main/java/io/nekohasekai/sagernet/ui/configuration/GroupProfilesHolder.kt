@@ -15,11 +15,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -59,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -100,6 +98,7 @@ import kotlinx.coroutines.launch
 internal fun GroupHolderScreen(
     modifier: Modifier = Modifier,
     viewModel: GroupProfilesHolderViewModel,
+    bottomPadding: Dp,
     showActions: Boolean = true,
     onProfileSelect: (Long) -> Unit,
     needReload: () -> Unit,
@@ -207,9 +206,7 @@ internal fun GroupHolderScreen(
             key = { it.profile.id },
             contentType = { 0 },
             contentPadding = PaddingValues(
-                bottom = WindowInsets.navigationBarsIgnoringVisibility
-                    .asPaddingValues()
-                    .calculateBottomPadding(),
+                bottom = bottomPadding,
             ),
             userScrollEnabled = true,
             onIndicesChangedViaDragAndDrop = { viewModel.submitReordered(it) },

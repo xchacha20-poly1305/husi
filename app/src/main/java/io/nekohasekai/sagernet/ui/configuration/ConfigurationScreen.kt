@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -74,6 +75,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -148,6 +150,7 @@ fun ConfigurationScreen(
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
     var scrollHideVisible by remember { mutableStateOf(true) }
+    var fabHeight by remember { mutableIntStateOf(0) }
     val clipboard = LocalClipboard.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -789,6 +792,7 @@ fun ConfigurationScreen(
                             )
                         }
                     },
+                    onSizeChanged = { fabHeight = it },
                 )
             }
         },
@@ -803,6 +807,12 @@ fun ConfigurationScreen(
             }
         },
     ) { innerPadding ->
+        val density = LocalDensity.current
+        val bottomPadding = if (selectCallback == null && serviceStatus != null) {
+            innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() }
+        } else {
+            innerPadding.calculateBottomPadding()
+        }
         ConfigurationContent(
             modifier = Modifier
                 .fillMaxSize()
@@ -813,6 +823,7 @@ fun ConfigurationScreen(
             appBarContainerColor = appBarContainerColor,
             preSelected = preSelected,
             selectCallback = selectCallback,
+            bottomPadding = bottomPadding,
             onScrollHideChange = { scrollHideVisible = it },
         )
     }
@@ -858,6 +869,7 @@ fun ConfigurationContent(
     appBarContainerColor: androidx.compose.ui.graphics.Color,
     preSelected: Long?,
     selectCallback: ((id: Long) -> Unit)?,
+    bottomPadding: Dp,
     onScrollHideChange: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -920,6 +932,7 @@ fun ConfigurationContent(
                 GroupHolderScreen(
                     viewModel = pageViewModel,
                     showActions = selectCallback == null,
+                    bottomPadding = bottomPadding,
                     onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
                     needReload = {
                         scope.launch {

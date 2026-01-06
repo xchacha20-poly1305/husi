@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
@@ -5,8 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -23,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -110,6 +115,9 @@ class SwitchActivity : ComposeActivity() {
                     sheetState = sheetState,
                     scrimColor = Color.Black.copy(alpha = 0.5f),
                 ) {
+                    val bottomPadding = WindowInsets.navigationBarsIgnoringVisibility
+                        .asPaddingValues()
+                        .calculateBottomPadding()
                     ConfigurationContent(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -120,6 +128,7 @@ class SwitchActivity : ComposeActivity() {
                         appBarContainerColor = appBarContainerColor,
                         preSelected = null,
                         selectCallback = ::returnProfile,
+                        bottomPadding = bottomPadding,
                     )
                 }
             }
