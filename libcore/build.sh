@@ -32,7 +32,7 @@ TAGS=(
 IFS="," BUILD_TAGS="${TAGS[*]}"
 
 # Just install gomobile & gobind if not have or version not same
-GOMOBILE_VERSION="v0.1.10"
+GOMOBILE_VERSION="v0.1.11"
 if [ "$(compare_version "$(command -v gomobile)" "$GOMOBILE_VERSION")" == "0" ]; then
     echo ">> Installing gomobile"
     CGO_ENABLED=0 go install -v -trimpath -ldflags="-w -s" github.com/sagernet/gomobile/cmd/gomobile@$GOMOBILE_VERSION

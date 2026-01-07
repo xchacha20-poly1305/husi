@@ -12,6 +12,7 @@ import io.nekohasekai.sagernet.ktx.toPrefix
 import io.nekohasekai.sagernet.ktx.toStringIterator
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.PackageCache
+import libcore.ConnectionOwner
 import libcore.InterfaceUpdateListener
 import libcore.Libcore
 import libcore.LocalDNSTransport
@@ -59,7 +60,7 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
         sourcePort: Int,
         destinationAddress: String,
         destinationPort: Int,
-    ): Int {
+    ): ConnectionOwner {
         try {
             val uid = repo.connectivity.getConnectionOwnerUid(
                 ipProtocol,
@@ -67,26 +68,13 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
                 InetSocketAddress(destinationAddress, destinationPort),
             )
             if (uid == Process.INVALID_UID) error("android: connection owner not found")
-            return uid
+            PackageCache.awaitLoadSync()
+            val packages = PackageCache.uidMap[uid]
+            return ConnectionOwner(uid, packages?.firstOrNull().orEmpty())
         } catch (e: Exception) {
             Logs.e(e)
             throw e
         }
-    }
-
-    override fun packageNameByUid(uid: Int): String {
-        PackageCache.awaitLoadSync()
-
-        if (uid <= 1000L) {
-            return "android"
-        }
-
-        val packageNames = PackageCache.uidMap[uid]
-        if (!packageNames.isNullOrEmpty()) for (packageName in packageNames) {
-            return packageName
-        }
-
-        error("unknown uid $uid")
     }
 
     override fun readWIFIState(): WIFIState? {
@@ -178,7 +166,7 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
 
     }
 
-    private class WifiState(var mSSID: String, var mBSSID: String) : WIFIState {
+    private class WifiState(val mSSID: String, val mBSSID: String) : WIFIState {
         override fun getSSID(): String = mSSID
         override fun getBSSID(): String = mBSSID
     }
