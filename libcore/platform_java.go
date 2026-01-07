@@ -6,8 +6,7 @@ type PlatformInterface interface {
 	AutoDetectInterfaceControl(fd int32) bool
 	OpenTun() (int32, error)
 	UseProcFS() bool
-	FindConnectionOwner(ipProtocol int32, sourceAddress string, sourcePort int32, destinationAddress string, destinationPort int32) (int32, error)
-	PackageNameByUid(uid int32) (string, error)
+	FindConnectionOwner(ipProtocol int32, sourceAddress string, sourcePort int32, destinationAddress string, destinationPort int32) (*ConnectionOwner, error)
 	ReadWIFIState() WIFIState
 	StartDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	CloseDefaultInterfaceMonitor(listener InterfaceUpdateListener) error

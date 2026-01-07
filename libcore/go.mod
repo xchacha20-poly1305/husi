@@ -12,10 +12,10 @@ require (
 	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251231115934-b87a9ae9bd80
 	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251231115934-b87a9ae9bd80
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251231115934-b87a9ae9bd80
-	github.com/sagernet/gomobile v0.1.10
+	github.com/sagernet/gomobile v0.1.11
 	github.com/sagernet/sing v0.8.0-beta.8
-	github.com/sagernet/sing-box v1.13.0-alpha.36
-	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20251230194736-a5db80d71081
+	github.com/sagernet/sing-box v1.13.0-beta.1
+	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20260107060547-525f783d005b
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
@@ -32,7 +32,7 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.42.0
+	github.com/v2fly/v2ray-core/v5 v5.43.0
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -97,7 +97,7 @@ require (
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect
-	google.golang.org/grpc v1.77.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
+	google.golang.org/grpc v1.78.0 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )

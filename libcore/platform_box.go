@@ -12,6 +12,7 @@ import (
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
+	N "github.com/sagernet/sing/common/network"
 
 	"libcore/procfs"
 	"libcore/protect"
@@ -155,8 +156,19 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformConnectionOwnerFinder() bool {
 	return true
 }
 
+type ConnectionOwner struct {
+	UserId   int32
+	UserName string
+}
+
+func NewConnectionOwner(userId int32, userName string) *ConnectionOwner {
+	return &ConnectionOwner{
+		UserId:   userId,
+		UserName: userName,
+	}
+}
+
 func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindConnectionOwnerRequest) (*adapter.ConnectionOwner, error) {
-	var uid int32
 	if w.useProcFS {
 		var source netip.AddrPort
 		var destination netip.AddrPort
@@ -168,28 +180,30 @@ func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindC
 		var network string
 		switch request.IpProtocol {
 		case int32(unix.IPPROTO_TCP):
-			network = "tcp"
+			network = N.NetworkTCP
 		case int32(unix.IPPROTO_UDP):
-			network = "udp"
+			network = N.NetworkUDP
 		default:
 			return nil, E.New("unknown protocol: ", request.IpProtocol)
 		}
 
-		uid = procfs.ResolveSocketByProcSearch(network, source, destination)
+		uid := procfs.ResolveSocketByProcSearch(network, source, destination)
 		if uid == -1 {
 			return nil, E.New("procfs: not found")
 		}
-	} else {
-		var err error
-		uid, err = w.iif.FindConnectionOwner(request.IpProtocol, request.SourceAddress, request.SourcePort, request.DestinationAddress, request.DestinationPort)
-		if err != nil {
-			return nil, err
-		}
+		return &adapter.ConnectionOwner{
+			UserId: uid,
+		}, nil
 	}
-	packageName, _ := w.iif.PackageNameByUid(uid)
+
+	result, err := w.iif.FindConnectionOwner(request.IpProtocol, request.SourceAddress, request.SourcePort, request.DestinationAddress, request.DestinationPort)
+	if err != nil {
+		return nil, err
+	}
 	return &adapter.ConnectionOwner{
-		UserId:             uid,
-		AndroidPackageName: packageName,
+		UserId:   result.UserId,
+		UserName: result.UserName,
+		// ProcessPath: result.ProcessPath, // Not available in Android
 	}, nil
 }
 
