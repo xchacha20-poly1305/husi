@@ -24,6 +24,7 @@ import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.repository.repo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -62,11 +63,6 @@ abstract class GroupUpdater {
         }
 
         for (profile in profiles) {
-            when (profile) {
-                // SNI rewrite unsupported
-                is NaiveBean -> continue
-            }
-
             if (profile.serverAddress.isIpAddress()) continue
 
             lookupJobs.add(
@@ -144,7 +140,6 @@ abstract class GroupUpdater {
             var index = 0
             var name = proxy.displayName()
             while (proxiesMap.containsKey(name)) {
-                println("Exists name: $name")
                 index++
                 name = name.replace(" (${index - 1})", "")
                 name = "$name ($index)"
@@ -154,7 +149,16 @@ abstract class GroupUpdater {
         }
         newProxies = proxiesMap.values.toList()
 
-        if (subscription.forceResolve) forceResolve(newProxies, proxyGroup.id)
+        if (subscription.forceResolve) {
+            try {
+                forceResolve(newProxies, proxyGroup.id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logs.w(e)
+                userInterface?.onUpdateWarning(proxyGroup.displayName(), e.readableMessage)
+            }
+        }
 
         val exists = onIoDispatcher {
             SagerDatabase.proxyDao.getByGroup(proxyGroup.id).first()

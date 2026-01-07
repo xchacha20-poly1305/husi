@@ -672,4 +672,5 @@
     <string name="max_log_line">最大日志行数</string>
     <string name="scroll_to_bottom">滚动到底部</string>
     <string name="ech_query_server_name">用于查询的服务名称</string>
+    <string name="force_resolve_error">强制解析失败：%s</string>
 </resources>

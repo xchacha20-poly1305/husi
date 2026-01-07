@@ -748,5 +748,6 @@
     <string name="scroll_to_bottom">Scroll to bottom</string>
     <string name="ech_query_server_name">Server Name to Query</string>
     <string name="cert_chrome" translatable="false">Chrome</string>
+    <string name="force_resolve_error">Force resolve error: %s</string>
 
 </resources>
