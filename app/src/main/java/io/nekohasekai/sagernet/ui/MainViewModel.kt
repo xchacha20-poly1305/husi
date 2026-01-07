@@ -402,6 +402,20 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
         )
     }
 
+    override suspend fun onUpdateWarning(group: String, error: String) {
+        _uiEvent.emit(
+            MainViewModelUiEvent.Snackbar(
+                StringOrRes.Compound(
+                    parts = listOf(
+                        StringOrRes.Direct(group),
+                        StringOrRes.ResWithParams(R.string.force_resolve_error, error),
+                    ),
+                    separator = ": ",
+                ),
+            ),
+        )
+    }
+
     override suspend fun onUpdateFailure(group: ProxyGroup, message: String) {
         _uiEvent.emit(
             alertDialog(StringOrRes.Direct("${group.name}: $message")),

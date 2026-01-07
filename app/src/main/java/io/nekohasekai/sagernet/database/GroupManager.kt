@@ -4,6 +4,7 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.bg.SubscriptionUpdater
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 import io.nekohasekai.sagernet.ktx.onIoDispatcher
+import io.nekohasekai.sagernet.ui.StringOrRes
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -22,6 +23,7 @@ object GroupManager {
             byUser: Boolean,
         )
 
+        suspend fun onUpdateWarning(group: String, error: String)
         suspend fun onUpdateFailure(group: ProxyGroup, message: String)
     }
 
