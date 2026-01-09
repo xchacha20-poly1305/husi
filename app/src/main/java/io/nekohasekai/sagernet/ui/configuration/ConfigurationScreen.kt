@@ -1,15 +1,14 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package io.nekohasekai.sagernet.ui.configuration
 
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,36 +21,36 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -71,10 +70,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -133,7 +128,6 @@ fun ConfigurationScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     onNavigationClick: () -> Unit,
-    @StringRes titleRes: Int = R.string.app_name,
     selectCallback: ((id: Long) -> Unit)?,
     connection: SagerConnection? = null,
     vm: ConfigurationScreenViewModel = viewModel(
@@ -190,8 +184,6 @@ fun ConfigurationScreen(
             }
         }
 
-    val isChinese = Locale.current.language == "zh"
-
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val hasGroups = uiState.groups.isNotEmpty()
     val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(DataStore.selectedGroup)
@@ -228,9 +220,9 @@ fun ConfigurationScreen(
     var showOverflowMenu by remember { mutableStateOf(false) }
     var showConnectionTestMenu by remember { mutableStateOf(false) }
     var showOrderMenu by remember { mutableStateOf(false) }
-    var isSearchActive by remember { mutableStateOf(false) }
-    val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    val searchBarState = rememberSearchBarState()
+    val searchTextFieldState = vm.searchTextFieldState
 
     val currentOrder =
         if (pagerState.pageCount > 0 && pagerState.currentPage < uiState.groups.size) {
@@ -239,13 +231,27 @@ fun ConfigurationScreen(
             0
         }
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
+    val overlappedFraction by remember(scrollBehavior) {
+        derivedStateOf {
+            if (scrollBehavior.scrollOffsetLimit != 0f) {
+                1 -
+                        ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset)
+                            .coerceIn(
+                                scrollBehavior.scrollOffsetLimit,
+                                0f,
+                            ) / scrollBehavior.scrollOffsetLimit)
+            } else {
+                0f
+            }
+        }
+    }
     val appBarContainerColor by animateColorAsState(
         targetValue = lerp(
-            topAppBarColors.containerColor,
-            topAppBarColors.scrolledContainerColor,
-            scrollBehavior.state.overlappedFraction.coerceIn(0f, 1f),
+            appBarWithSearchColors.appBarContainerColor,
+            appBarWithSearchColors.scrolledAppBarContainerColor,
+            overlappedFraction.coerceIn(0f, 1f),
         ),
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "appBarContainerColor",
@@ -266,91 +272,52 @@ fun ConfigurationScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchActive) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { vm.setSearchQuery(it) },
+            Column(
+                modifier = Modifier
+                    .background(appBarContainerColor)
+                    .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Top)),
+            ) {
+                AppBarWithSearch(
+                    state = searchBarState,
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            textFieldState = searchTextFieldState,
+                            searchBarState = searchBarState,
+                            onSearch = { focusManager.clearFocus() },
                             placeholder = { Text(stringResource(android.R.string.search_go)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(
-                                onSearch = {
-                                    focusManager.clearFocus()
-                                    vm.setSearchQuery(searchQuery)
-                                },
-                            ),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.5f,
-                                ),
-                                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.2f,
-                                ),
-                            ),
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(
-                                if (selectCallback != null) {
-                                    titleRes
-                                } else {
-                                    R.string.app_name
-                                },
-                            ),
-                            modifier = Modifier.combinedClickable(
-                                onClick = {
-                                    vm.scrollToProxy(
-                                        selectedGroup,
-                                        preSelected ?: DataStore.selectedProxy,
-                                        fallbackToTop = true,
-                                    )
-                                },
-                                onLongClick = {
-                                    vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
-                                },
-                            ),
-                            style = if (isChinese) {
-                                // 说文小篆（虎兕）
-                                // Copyright: https://www.zdic.net/aboutus/copyright/ (A copy of CC0 1.0 was embed in the font file)
-                                MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = remember { FontFamily(Font(R.font.shuowenxiaozhuan_husi)) },
+                            leadingIcon = {
+                                Icon(
+                                    ImageVector.vectorResource(R.drawable.search),
+                                    null,
                                 )
-                            } else {
-                                MaterialTheme.typography.titleLarge
                             },
+                            trailingIcon = if (searchTextFieldState.text.isNotEmpty()) {
+                                {
+                                    SimpleIconButton(
+                                        imageVector = ImageVector.vectorResource(R.drawable.close),
+                                        contentDescription = stringResource(android.R.string.cancel),
+                                        onClick = vm::clearSearchQuery,
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            colors = appBarWithSearchColors.searchBarColors.inputFieldColors,
                         )
-                    }
-                },
-                navigationIcon = {
-                    if (selectCallback != null) SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.close),
-                        contentDescription = stringResource(R.string.close),
-                        onClick = onNavigationClick,
-                    ) else SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.menu),
-                        contentDescription = stringResource(R.string.menu),
-                        onClick = onNavigationClick,
-                    )
-                },
-                actions = {
-                    if (selectCallback != null) return@TopAppBar
-                    if (isSearchActive) SimpleIconButton(
-                        imageVector = ImageVector.vectorResource(R.drawable.close),
-                        contentDescription = stringResource(R.string.close),
-                    ) {
-                        isSearchActive = false
-                        vm.setSearchQuery("")
-                    } else {
-                        SimpleIconButton(
-                            imageVector = ImageVector.vectorResource(R.drawable.search),
-                            contentDescription = stringResource(android.R.string.search_go),
-                        ) {
-                            isSearchActive = true
-                        }
-
+                    },
+                    navigationIcon = {
+                        if (selectCallback != null) SimpleIconButton(
+                            imageVector = ImageVector.vectorResource(R.drawable.close),
+                            contentDescription = stringResource(R.string.close),
+                            onClick = onNavigationClick,
+                        ) else SimpleIconButton(
+                            imageVector = ImageVector.vectorResource(R.drawable.menu),
+                            contentDescription = stringResource(R.string.menu),
+                            onClick = onNavigationClick,
+                        )
+                    },
+                    actions = {
+                        if (selectCallback != null) return@AppBarWithSearch
                         Box {
                             SimpleIconButton(
                                 imageVector = ImageVector.vectorResource(R.drawable.note_add),
@@ -767,15 +734,30 @@ fun ConfigurationScreen(
                                 }
                             }
                         }
-                    }
-                },
-                colors = topAppBarColors.copy(
+                    },
+                    colors = appBarWithSearchColors,
+                    scrollBehavior = scrollBehavior,
+                    windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
+                )
+
+                if (hasGroups && uiState.groups.size > 1) PrimaryScrollableTabRow(
+                    selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
+                    edgePadding = 0.dp,
                     containerColor = appBarContainerColor,
-                    scrolledContainerColor = appBarContainerColor,
-                ),
-                scrollBehavior = scrollBehavior,
-                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-            )
+                ) {
+                    uiState.groups.forEachIndexed { index, group ->
+                        Tab(
+                            text = { Text(group.displayName()) },
+                            selected = pagerState.currentPage == index,
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarState) },
         floatingActionButton = {
@@ -820,7 +802,6 @@ fun ConfigurationScreen(
             vm = vm,
             snackbarState = snackbarState,
             pagerState = pagerState,
-            appBarContainerColor = appBarContainerColor,
             preSelected = preSelected,
             selectCallback = selectCallback,
             bottomPadding = bottomPadding,
@@ -866,7 +847,6 @@ fun ConfigurationContent(
     vm: ConfigurationScreenViewModel,
     snackbarState: SnackbarHostState,
     pagerState: androidx.compose.foundation.pager.PagerState,
-    appBarContainerColor: androidx.compose.ui.graphics.Color,
     preSelected: Long?,
     selectCallback: ((id: Long) -> Unit)?,
     bottomPadding: Dp,
@@ -878,30 +858,10 @@ fun ConfigurationContent(
 
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val hasGroups = uiState.groups.isNotEmpty()
-    val searchQuery by vm.searchQuery.collectAsStateWithLifecycle()
-
     var qrCodeInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     Column(modifier = modifier) {
         if (hasGroups) {
-            if (uiState.groups.size > 1) PrimaryScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
-                edgePadding = 0.dp,
-                containerColor = appBarContainerColor,
-            ) {
-                uiState.groups.forEachIndexed { index, group ->
-                    Tab(
-                        text = { Text(group.displayName()) },
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
-                        },
-                    )
-                }
-            }
-
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
@@ -923,10 +883,6 @@ fun ConfigurationContent(
                     onDispose {
                         vm.unregisterChild(group.id)
                     }
-                }
-
-                LaunchedEffect(searchQuery) {
-                    pageViewModel.query = searchQuery
                 }
 
                 GroupHolderScreen(

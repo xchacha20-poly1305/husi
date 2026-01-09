@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.ui.ComposeActivity
 import io.nekohasekai.sagernet.ui.MainViewModel
@@ -27,9 +26,8 @@ class ProfileSelectActivity : ComposeActivity() {
             AppTheme {
                 ConfigurationScreen(
                     mainViewModel = mainViewModel,
-                    selectCallback = this::returnProfile,
+                    selectCallback = ::returnProfile,
                     onNavigationClick = ::finish,
-                    titleRes = R.string.select_profile,
                     preSelected = selected,
                 )
             }

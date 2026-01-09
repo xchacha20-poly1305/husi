@@ -48,13 +48,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,6 +97,7 @@ fun AboutScreen(
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
+    val isChinese = Locale.current.language == "zh"
 
     val displayVersion = remember {
         var displayVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
@@ -243,6 +248,13 @@ fun AboutScreen(
                         CardItem(
                             icon = { Icon(ImageVector.vectorResource(R.drawable.android), null) },
                             title = stringResource(R.string.app_name),
+                            titleTextStyle = if (isChinese) {
+                                MaterialTheme.typography.titleMedium.copy(
+                                    fontFamily = remember { FontFamily(Font(R.font.shuowenxiaozhuan_husi)) },
+                                )
+                            } else {
+                                null
+                            },
                             description = displayVersion,
                             onCLick = {
                                 uriHandler.openUri(releaseLink)
@@ -441,6 +453,7 @@ private fun CardItem(
         )
     },
     title: String,
+    titleTextStyle: TextStyle? = null,
     description: String? = null,
     onCLick: () -> Unit = {},
     onLongClick: () -> Unit = {},
@@ -467,7 +480,7 @@ private fun CardItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
+                style = titleTextStyle ?: MaterialTheme.typography.titleMedium,
             )
             if (description != null) {
                 Spacer(Modifier.height(4.dp))
@@ -488,11 +501,13 @@ private fun CardItem(
 private fun PreviewAboutScreen() {
     val context = LocalContext.current
     repo = TempRepository(context)
+    val mainViewModel = viewModel<MainViewModel>()
+    val viewModel = viewModel<AboutScreenViewModel>()
 
     AppTheme {
         AboutScreen(
-            mainViewModel = MainViewModel(),
-            viewModel = AboutScreenViewModel(),
+            mainViewModel = mainViewModel,
+            viewModel = viewModel,
             onDrawerClick = {},
             connection = SagerConnection(0, false),
         )

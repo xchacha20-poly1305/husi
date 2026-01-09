@@ -5,8 +5,11 @@ package io.nekohasekai.sagernet.ui.configuration
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshotFlow
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,6 +40,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -122,12 +127,14 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
     fun registerChild(groupId: Long, vm: GroupProfilesHolderViewModel) {
         childViewModels[groupId] = vm
+        vm.query = searchTextFieldState.text.toString()
     }
 
     fun unregisterChild(groupId: Long) {
         childViewModels.remove(groupId)
     }
 
+    // TODO add back scroll to current
     fun scrollToProxy(groupId: Long, proxyId: Long, fallbackToTop: Boolean = false) {
         childViewModels[groupId]?.scrollToProxy(proxyId, fallbackToTop)
     }
@@ -145,11 +152,21 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
     private var testJob: Job? = null
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
+    val searchTextFieldState = TextFieldState()
 
-    fun setSearchQuery(query: String) = viewModelScope.launch {
-        _searchQuery.value = query
+    init {
+        viewModelScope.launch {
+            snapshotFlow { searchTextFieldState.text.toString() }
+                .drop(1)
+                .distinctUntilChanged()
+                .collect { query ->
+                    childViewModels.values.forEach { it.query = query }
+                }
+        }
+    }
+
+    fun clearSearchQuery() {
+        searchTextFieldState.setTextAndPlaceCursorAtEnd("")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
