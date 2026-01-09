@@ -113,7 +113,7 @@ fun DashboardScreen(
     val service by connection.service.collectAsStateWithLifecycle()
     val shouldPoll = service != null && serviceStatus.state.connected
     LaunchedEffect(service, shouldPoll) {
-        viewModel.initialize(service)
+        viewModel.initialize(if (shouldPoll) service else null)
     }
 
     Scaffold(
