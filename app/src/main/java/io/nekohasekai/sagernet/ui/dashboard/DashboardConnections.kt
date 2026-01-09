@@ -152,7 +152,7 @@ internal fun DashboardConnectionsScreen(
                 modifier = Modifier.padding(top = 24.dp),
                 colors = SearchBarDefaults.colors().run {
                     copy(
-                        containerColor = containerColor.copy(alpha = 0.9f),
+                        containerColor = containerColor.copy(alpha = 0.8f),
                     )
                 },
                 content = {},

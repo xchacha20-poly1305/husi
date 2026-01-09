@@ -345,7 +345,7 @@ fun LogcatScreen(
                     ),
                     colors = SearchBarDefaults.colors().run {
                         copy(
-                            containerColor = containerColor.copy(alpha = 0.9f),
+                            containerColor = containerColor.copy(alpha = 0.8f),
                         )
                     },
                     content = {},
