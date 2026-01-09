@@ -111,7 +111,8 @@ fun DashboardScreen(
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
     val service by connection.service.collectAsStateWithLifecycle()
-    LaunchedEffect(System.identityHashCode(service)) {
+    val shouldPoll = service != null && serviceStatus.state.connected
+    LaunchedEffect(service, shouldPoll) {
         viewModel.initialize(service)
     }
 

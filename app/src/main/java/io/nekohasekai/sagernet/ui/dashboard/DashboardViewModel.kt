@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui.dashboard
 
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.os.RemoteException
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
@@ -15,6 +16,7 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ProxySet
 import io.nekohasekai.sagernet.bg.DefaultNetworkListener
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.repository.repo
@@ -119,7 +121,7 @@ class DashboardViewModel : ViewModel() {
         if (service == null) return
         job = viewModelScope.launch {
             while (isActive) {
-                refreshStatus(service)
+                if (!refreshStatus(service)) break
                 delay(LOOP_INTERVAL)
             }
         }
@@ -340,21 +342,33 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    private suspend fun refreshStatus(service: ISagerNetService) {
-        _uiState.update { state ->
-            val connections = if (state.isPause) {
-                state.connections
-            } else {
-                loadConnections(service, state.queryOptions)
+    /**
+     * @return true to continue polling, false to stop (binder dead or service disconnected).
+     */
+    private suspend fun refreshStatus(service: ISagerNetService): Boolean {
+        if (!service.asBinder().isBinderAlive) return false
+        return try {
+            _uiState.update { state ->
+                val connections = if (state.isPause) {
+                    state.connections
+                } else {
+                    loadConnections(service, state.queryOptions)
+                }
+                state.copy(
+                    memory = service.queryMemory(),
+                    goroutines = service.queryGoroutines(),
+                    selectedClashMode = service.clashMode,
+                    clashModes = service.clashModes,
+                    connections = connections,
+                    proxySets = loadProxySets(service, state.proxySets),
+                )
             }
-            state.copy(
-                memory = service.queryMemory(),
-                goroutines = service.queryGoroutines(),
-                selectedClashMode = service.clashMode,
-                clashModes = service.clashModes,
-                connections = connections,
-                proxySets = loadProxySets(service, state.proxySets),
-            )
+            true
+        } catch (_: RemoteException) {
+            false
+        } catch (e: Exception) {
+            Logs.e(e)
+            throw e
         }
     }
 
