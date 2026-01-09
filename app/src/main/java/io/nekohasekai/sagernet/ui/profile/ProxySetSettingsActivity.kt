@@ -1,22 +1,3 @@
-/******************************************************************************
- *                                                                            *
- * Copyright (C) 2021 by nekohasekai <contact-sagernet@sekai.icu>             *
- *                                                                            *
- * This program is free software: you can redistribute it and/or modify       *
- * it under the terms of the GNU General Public License as published by       *
- * the Free Software Foundation, either version 3 of the License, or          *
- *  (at your option) any later version.                                       *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU General Public License          *
- * along with this program. If not, see <http://www.gnu.org/licenses/>.       *
- *                                                                            *
- ******************************************************************************/
-
 package io.nekohasekai.sagernet.ui.profile
 
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -126,7 +107,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.widgets), null) },
                 summary = { Text(stringResource(managementName(uiState.management))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(getString(managementName(it))) },
+                item = listPreferenceMenuItem { AnnotatedString(stringResource(managementName(it))) },
             )
         }
         item("interrupt_exist_connections") {
@@ -211,29 +192,29 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.nfc), null) },
                 summary = { Text(stringResource(typeName(uiState.collectType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(getString(typeName(it))) },
-            )
-        }
-        item("group") {
-            ListPreference(
-                value = uiState.groupID,
-                onValueChange = { viewModel.setGroupID(it) },
-                values = uiState.groups.keys.toList(),
-                title = { Text(stringResource(R.string.menu_group)) },
-                icon = { Icon(ImageVector.vectorResource(R.drawable.view_list), null) },
-                summary = {
-                    val text = uiState.groups[uiState.groupID]?.displayName()
-                        ?: stringResource(R.string.not_set)
-                    Text(text)
-                },
-                type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { id ->
-                    val text = uiState.groups[id]?.displayName() ?: getString(R.string.not_set)
-                    AnnotatedString(text)
-                },
+                item = listPreferenceMenuItem { AnnotatedString(stringResource(typeName(it))) },
             )
         }
         if (uiState.collectType == ProxySetBean.TYPE_GROUP) {
+            item("group") {
+                ListPreference(
+                    value = uiState.groupID,
+                    onValueChange = { viewModel.setGroupID(it) },
+                    values = uiState.groups.keys.toList(),
+                    title = { Text(stringResource(R.string.menu_group)) },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.view_list), null) },
+                    summary = {
+                        val text = uiState.groups[uiState.groupID]?.displayName()
+                            ?: stringResource(R.string.not_set)
+                        Text(text)
+                    },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    item = listPreferenceMenuItem { id ->
+                        val text = uiState.groups[id]?.displayName() ?: stringResource(R.string.not_set)
+                        AnnotatedString(text)
+                    },
+                )
+            }
             item("filter_not_regex") {
                 TextFieldPreference(
                     value = uiState.filterNotRegex,
@@ -245,6 +226,7 @@ class ProxySetSettingsActivity : ProfileSettingsActivity<ProxySetBean>() {
                     valueToText = { it },
                 )
             }
+            return
         }
 
         item("divider", 1) {
