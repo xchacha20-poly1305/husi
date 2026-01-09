@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ProxySet
+import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.DefaultNetworkListener
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
@@ -347,20 +348,25 @@ class DashboardViewModel : ViewModel() {
      */
     private suspend fun refreshStatus(service: ISagerNetService): Boolean {
         if (!service.asBinder().isBinderAlive) return false
+        val isConnected = service.state == BaseService.State.Connected.ordinal
         return try {
             _uiState.update { state ->
-                val connections = if (state.isPause) {
-                    state.connections
-                } else {
-                    loadConnections(service, state.queryOptions)
+                val connections = when {
+                    state.isPause -> state.connections
+                    isConnected -> loadConnections(service, state.queryOptions)
+                    else -> emptyList()
                 }
                 state.copy(
                     memory = service.queryMemory(),
                     goroutines = service.queryGoroutines(),
-                    selectedClashMode = service.clashMode,
-                    clashModes = service.clashModes,
+                    selectedClashMode = if (isConnected) service.clashMode else "",
+                    clashModes = if (isConnected) service.clashModes else emptyList(),
                     connections = connections,
-                    proxySets = loadProxySets(service, state.proxySets),
+                    proxySets = if (isConnected) {
+                        loadProxySets(service, state.proxySets)
+                    } else {
+                        emptyList()
+                    },
                 )
             }
             true

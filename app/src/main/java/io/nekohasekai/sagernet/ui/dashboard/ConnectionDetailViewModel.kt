@@ -42,6 +42,7 @@ class ConnectionDetailViewModel : ViewModel() {
     }
 
     private suspend inline fun findAndRefresh(uuid: String) {
+        if (!DataStore.serviceState.connected) return
         val connection = sagerConnection.service.value
             ?.queryConnections(Libcore.ShowTrackerActively or Libcore.ShowTrackerClosed)
             ?.connections

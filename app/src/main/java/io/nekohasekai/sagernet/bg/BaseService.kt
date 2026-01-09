@@ -84,10 +84,13 @@ class BaseService {
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
                     val powerManager = (service as Context).getSystemService<PowerManager>()!!
-                    if (powerManager.isDeviceIdleMode) {
-                        proxy?.box?.pause()
-                    } else {
-                        proxy?.box?.wake()
+                    val proxy = proxy
+                    if (proxy != null && proxy.isInitialized()) {
+                        if (powerManager.isDeviceIdleMode) {
+                            proxy.box.pause()
+                        } else {
+                            proxy.box.wake()
+                        }
                     }
                 }
 
@@ -129,7 +132,12 @@ class BaseService {
         }
 
         fun resetNetwork() {
-            proxy?.box?.resetNetwork() ?: Libcore.resetAllConnections()
+            val proxy = proxy
+            if (proxy != null && proxy.isInitialized()) {
+                proxy.box.resetNetwork()
+            } else {
+                Libcore.resetAllConnections()
+            }
         }
     }
 
@@ -187,11 +195,10 @@ class BaseService {
         }
 
         override fun urlTest(tag: String?): Int {
-            if (data?.proxy?.box == null) {
-                error("core not started")
-            }
+            val data = requireNotNull(data) { "service destroyed" }
+            val proxy = requireNotNull(data.proxy?.takeIf { it.isInitialized() }) { "core not started" }
             return try {
-                data!!.proxy!!.box.urlTest(
+                proxy.box.urlTest(
                     tag,
                     DataStore.connectionTestURL,
                     DataStore.connectionTestTimeout,
@@ -200,16 +207,20 @@ class BaseService {
                 Logs.e(e)
                 val readableMessage = e.readableMessage
                 val errorMessage = readableUrlTestError(readableMessage)?.let {
-                    (data!!.service as Context).getString(it)
+                    (data.service as Context).getString(it)
                 } ?: readableMessage
                 error(errorMessage)
             }
         }
 
         override fun queryConnections(options: Int): Connections {
+            val proxy = data?.proxy
             return Connections(
-                connections = data?.proxy?.box?.queryTrackerInfos(options)?.toConnectionList()
-                    ?: emptyList(),
+                connections = if (proxy != null && proxy.isInitialized()) {
+                    proxy.box.queryTrackerInfos(options)?.toConnectionList() ?: emptyList()
+                } else {
+                    emptyList()
+                },
             )
         }
 
@@ -222,7 +233,10 @@ class BaseService {
         }
 
         override fun closeConnection(id: String) {
-            data?.proxy?.box?.closeConnection(id)
+            val proxy = data?.proxy
+            if (proxy != null && proxy.isInitialized()) {
+                proxy.box.closeConnection(id)
+            }
         }
 
         override fun resetNetwork() {
@@ -230,29 +244,52 @@ class BaseService {
         }
 
         override fun getClashModes(): List<String> {
-            return data?.proxy?.box?.clashModeList?.toList() ?: emptyList()
+            val proxy = data?.proxy
+            return if (proxy != null && proxy.isInitialized()) {
+                proxy.box.clashModeList?.toList() ?: emptyList()
+            } else {
+                emptyList()
+            }
         }
 
         override fun getClashMode(): String {
-            return data?.proxy?.box?.clashMode.orEmpty()
+            val proxy = data?.proxy
+            return if (proxy != null && proxy.isInitialized()) {
+                proxy.box.clashMode.orEmpty()
+            } else {
+                ""
+            }
         }
 
         override fun setClashMode(mode: String?) {
-            data?.proxy?.box?.clashMode = mode
+            val proxy = data?.proxy
+            if (proxy != null && proxy.isInitialized()) {
+                proxy.box.clashMode = mode
+            }
         }
 
         override fun queryProxySet(): List<ProxySet> {
-            return data?.proxy?.box?.queryProxySets()?.toList() ?: emptyList()
+            val proxy = data?.proxy
+            return if (proxy != null && proxy.isInitialized()) {
+                proxy.box.queryProxySets()?.toList() ?: emptyList()
+            } else {
+                emptyList()
+            }
         }
 
         override fun groupSelect(group: String, proxy: String): Boolean {
-            return data?.proxy?.box?.selectOutbound(group, proxy) == true
+            val instance = data?.proxy
+            return instance != null && instance.isInitialized()
+                && instance.box.selectOutbound(group, proxy)
         }
 
         override fun groupURLTest(tag: String, timeout: Int): URLTestResult {
+            val proxy = data?.proxy
             try {
-                data?.proxy?.box?.groupTest(tag, DataStore.connectionTestURL, timeout)?.let {
-                    return URLTestResult(it)
+                if (proxy != null && proxy.isInitialized()) {
+                    proxy.box.groupTest(tag, DataStore.connectionTestURL, timeout)?.let {
+                        return URLTestResult(it)
+                    }
                 }
             } catch (e: Exception) {
                 Logs.e(e)
