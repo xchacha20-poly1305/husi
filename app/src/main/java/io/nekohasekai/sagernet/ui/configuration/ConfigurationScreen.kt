@@ -147,6 +147,7 @@ fun ConfigurationScreen(
     var fabHeight by remember { mutableIntStateOf(0) }
     val clipboard = LocalClipboard.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val focusManager = LocalFocusManager.current
 
     val importFile =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { file ->
@@ -194,6 +195,7 @@ fun ConfigurationScreen(
         pageCount = { uiState.groups.size },
     )
     var isPageRestored by remember { mutableStateOf(false) }
+    var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
     LaunchedEffect(selectedGroup, hasGroups) {
         if (!hasGroups) return@LaunchedEffect
         val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
@@ -207,7 +209,13 @@ fun ConfigurationScreen(
         if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
             return@LaunchedEffect
         }
-        val groupID = uiState.groups[pagerState.currentPage].id
+        val currentPage = pagerState.currentPage
+        if (lastPage != currentPage) {
+            vm.clearSearchQuery()
+            focusManager.clearFocus()
+            lastPage = currentPage
+        }
+        val groupID = uiState.groups[currentPage].id
         if (isPageRestored) {
             DataStore.selectedGroup = groupID
         }
@@ -220,7 +228,6 @@ fun ConfigurationScreen(
     var showOverflowMenu by remember { mutableStateOf(false) }
     var showConnectionTestMenu by remember { mutableStateOf(false) }
     var showOrderMenu by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
     val searchBarState = rememberSearchBarState()
     val searchTextFieldState = vm.searchTextFieldState
 
