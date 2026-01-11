@@ -14,7 +14,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -116,7 +115,7 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                 summary = { Text(uiState.congestionControl) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
         item("sni") {

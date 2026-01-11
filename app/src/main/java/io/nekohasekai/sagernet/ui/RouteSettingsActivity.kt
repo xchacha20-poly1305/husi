@@ -53,7 +53,6 @@ import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.compose.UIntegerTextField
 import io.nekohasekai.sagernet.compose.theme.AppTheme
 import io.nekohasekai.sagernet.compose.withNavigation
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -334,7 +333,7 @@ class RouteSettingsActivity : ComposeActivity() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.shuffle), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.action)) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    item = listPreferenceMenuItem { AnnotatedString(it) },
+                    valueToText = { AnnotatedString(it) },
                 )
             }
 
@@ -581,7 +580,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 Text(text)
                             },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            item = listPreferenceMenuItem {
+                            valueToText = {
                                 val id = when (it) {
                                     RuleEntity.OUTBOUND_PROXY -> R.string.route_proxy
                                     RuleEntity.OUTBOUND_DIRECT -> R.string.route_bypass
@@ -692,7 +691,7 @@ class RouteSettingsActivity : ComposeActivity() {
                                 Text(text)
                             },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            item = listPreferenceMenuItem { AnnotatedString(it) },
+                            valueToText = { AnnotatedString(it) },
                         )
                     }
                     item("disable_cache") {

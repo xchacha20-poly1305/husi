@@ -21,7 +21,6 @@ import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -115,7 +114,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.enhanced_encryption), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.method)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
         item("password") {
@@ -160,7 +159,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         icon = { Icon(ImageVector.vectorResource(R.drawable.type_specimen), null) },
                         summary = { Text(muxTypes[uiState.muxType]) },
                         type = ListPreferenceType.DROPDOWN_MENU,
-                        item = listPreferenceMenuItem { AnnotatedString(muxTypes[it]) },
+                        valueToText = { AnnotatedString(muxTypes[it]) },
                     )
                     ListPreference(
                         value = uiState.muxStrategy,
@@ -170,7 +169,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                         icon = { Icon(ImageVector.vectorResource(R.drawable.view_in_ar), null) },
                         summary = { Text(LocalContext.current.getString(muxStrategies[uiState.muxStrategy])) },
                         type = ListPreferenceType.DROPDOWN_MENU,
-                        item = listPreferenceMenuItem { AnnotatedString(getString(muxStrategies[it])) },
+                        valueToText = { AnnotatedString(getString(muxStrategies[it])) },
                         enabled = !uiState.brutal,
                     )
                     TextFieldPreference(
@@ -208,7 +207,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.build), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.pluginName)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
         item("plugin_config") {

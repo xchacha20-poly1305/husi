@@ -16,7 +16,6 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PortTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
@@ -100,7 +99,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.security)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
 
@@ -207,7 +206,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(ImageVector.vectorResource(R.drawable.security), null) },
                         summary = { Text(LocalContext.current.contentOrUnset(state.utlsFingerprint)) },
                         type = ListPreferenceType.DROPDOWN_MENU,
-                        item = listPreferenceMenuItem { AnnotatedString(it) },
+                        valueToText = { AnnotatedString(it) },
                     )
                     TextFieldPreference(
                         value = state.realityPublicKey,
@@ -320,7 +319,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(ImageVector.vectorResource(R.drawable.type_specimen), null) },
                         summary = { Text(muxTypes[state.muxType]) },
                         type = ListPreferenceType.DROPDOWN_MENU,
-                        item = listPreferenceMenuItem { AnnotatedString(muxTypes[it]) },
+                        valueToText = { AnnotatedString(muxTypes[it]) },
                     )
                     ListPreference(
                         value = state.muxStrategy,
@@ -330,7 +329,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                         icon = { Icon(ImageVector.vectorResource(R.drawable.view_in_ar), null) },
                         summary = { Text(stringResource(muxStrategies[state.muxStrategy])) },
                         type = ListPreferenceType.DROPDOWN_MENU,
-                        item = listPreferenceMenuItem { AnnotatedString(getString(muxStrategies[it])) },
+                        valueToText = { AnnotatedString(getString(muxStrategies[it])) },
                         enabled = !state.brutal,
                     )
                     TextFieldPreference(
@@ -375,7 +374,7 @@ abstract class StandardV2RaySettingsActivity<T : StandardV2RayBean> : ProfileSet
                 icon = { Icon(ImageVector.vectorResource(R.drawable.route), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(state.v2rayTransport)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(contentOrUnset(it)) },
+                valueToText = { AnnotatedString(contentOrUnset(it)) },
             )
         }
 

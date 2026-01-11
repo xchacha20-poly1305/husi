@@ -17,7 +17,6 @@ import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -72,7 +71,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                 valueToText = { it.toString() },
                 textField = { value, onValueChange, onOk ->
                     UIntegerTextField(value, onValueChange, onOk)
-                }
+                },
             )
         }
         item("username") {
@@ -108,9 +107,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
                     Text(text)
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem {
-                    AnnotatedString(getString(authType(it)))
-                },
+                valueToText = { AnnotatedString(getString(authType(it))) },
             )
         }
 
