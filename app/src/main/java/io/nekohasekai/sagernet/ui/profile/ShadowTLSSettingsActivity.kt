@@ -15,7 +15,6 @@ import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -83,7 +82,6 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.update), null) },
                 summary = { Text(uiState.protocolVersion.toString()) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it.toString()) },
             )
         }
         item("password") {
@@ -163,7 +161,7 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.fingerprint), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.utlsFingerprint)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
     }

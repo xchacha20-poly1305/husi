@@ -11,7 +11,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.MultilineTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -52,7 +51,7 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.stream), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.flow)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
         item("encryption") {
@@ -84,7 +83,7 @@ class VLESSSettingsActivity : StandardV2RaySettingsActivity<VLESSBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.outbox), null) },
                 summary = { Text(LocalContext.current.getStringOrRes(packetEncodingName(uiState.packetEncoding))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
+                valueToText = { AnnotatedString(getStringOrRes(packetEncodingName(it))) },
             )
         }
 

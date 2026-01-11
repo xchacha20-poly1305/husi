@@ -16,7 +16,6 @@ import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PasswordPreference
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import io.nekohasekai.sagernet.ktx.intListN
@@ -66,7 +65,6 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.update), null) },
                 summary = { Text(uiState.protocolVersion.toString()) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it.toString()) },
             )
         }
 
@@ -134,7 +132,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.compare_arrows), null) },
                     summary = { Text(stringResource(authTypeName(uiState.authType))) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    item = listPreferenceMenuItem { AnnotatedString(getStringOrRes(authTypeName(it))) },
+                    valueToText = { AnnotatedString(getStringOrRes(authTypeName(it))) },
                 )
             }
         }
@@ -164,7 +162,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.layers), null) },
                     summary = { Text(protocolNames[uiState.protocol]) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    item = listPreferenceMenuItem { AnnotatedString(protocolNames[it]) },
+                    valueToText = { AnnotatedString(protocolNames[it]) },
                 )
             }
         }

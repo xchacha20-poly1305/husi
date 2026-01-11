@@ -22,7 +22,6 @@ import io.nekohasekai.sagernet.compose.HostTextField
 import io.nekohasekai.sagernet.compose.MultilineTextField
 import io.nekohasekai.sagernet.compose.PreferenceCategory
 import io.nekohasekai.sagernet.compose.UIntegerTextField
-import io.nekohasekai.sagernet.compose.listPreferenceMenuItem
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
@@ -118,7 +117,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.https), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.proto)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
         item("quic_congestion_control") {
@@ -131,7 +130,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.traffic), null) },
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.quicCongestionControl)) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                item = listPreferenceMenuItem { AnnotatedString(it) },
+                valueToText = { AnnotatedString(it) },
             )
         }
         item("sni") {
