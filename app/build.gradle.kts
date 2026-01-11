@@ -95,7 +95,7 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
     implementation("com.google.accompanist:accompanist-permissions:0.37.3")
-    implementation("me.zhanghai.compose.preference:preference:2.1.0")
+    implementation("me.zhanghai.compose.preference:preference:2.1.1")
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-core:0.3.2")
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-material3:0.3.2")
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
