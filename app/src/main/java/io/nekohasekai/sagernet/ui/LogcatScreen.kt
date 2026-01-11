@@ -424,7 +424,7 @@ fun LogcatScreen(
                             context.startActivity(
                                 Intent.createChooser(
                                     Intent(Intent.ACTION_SEND)
-                                        .setType("text/x-log")
+                                        .setType("text/plain")
                                         .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                         .putExtra(
                                             Intent.EXTRA_STREAM,
