@@ -9,12 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,9 +31,9 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.setPlainText
 import kotlinx.coroutines.launch
@@ -47,6 +43,7 @@ import kotlinx.coroutines.launch
 internal fun DashboardStatusScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
+    bottomPadding: Dp,
     selectClashMode: (mode: String) -> Unit,
     onCopySuccess: () -> Unit,
     onVisibleChange: (Boolean) -> Unit,
@@ -64,8 +61,12 @@ internal fun DashboardStatusScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(extraBottomPadding())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(
+                start = 16.dp,
+                end = 16.dp,
+                top = 8.dp,
+                bottom = bottomPadding + 8.dp,
+            ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ElevatedCard(
@@ -235,12 +236,5 @@ internal fun DashboardStatusScreen(
             }
         }
 
-        Spacer(
-            modifier = Modifier.padding(
-                WindowInsets.navigationBarsIgnoringVisibility
-                    .asPaddingValues()
-                    .calculateBottomPadding(),
-            ),
-        )
     }
 }

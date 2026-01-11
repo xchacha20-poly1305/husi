@@ -191,6 +191,7 @@ fun MainScreen(
                     )
                 }
 
+                val dividerPadding = 4.dp
                 val items0 = remember {
                     persistentListOf(
                         DrawerItemInfo(
@@ -204,7 +205,7 @@ fun MainScreen(
                     )
                 }
                 for (info in items0) BuildDrawerItem(info)
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
                 val items1 = remember {
                     persistentListOf(
                         DrawerItemInfo(R.string.menu_log, R.drawable.bug_report, NavRoutes.LOG),
@@ -221,7 +222,7 @@ fun MainScreen(
                     )
                 }
                 for (info in items1) BuildDrawerItem(info)
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.document)) },
                     selected = false,
@@ -243,8 +244,7 @@ fun MainScreen(
                         NavRoutes.ABOUT,
                     ),
                 )
-                Spacer(Modifier.height(24.dp))
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

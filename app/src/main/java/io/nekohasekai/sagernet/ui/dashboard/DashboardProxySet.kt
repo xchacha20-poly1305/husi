@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -39,19 +40,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.ProxySet
 import io.nekohasekai.sagernet.aidl.ProxySetItem
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.colorForUrlTestDelay
-import io.nekohasekai.sagernet.compose.extraBottomPadding
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 
 @Composable
 internal fun DashboardProxySetScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
+    bottomPadding: Dp,
     selectProxy: (group: String, tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
     onVisibleChange: (Boolean) -> Unit,
@@ -66,7 +68,7 @@ internal fun DashboardProxySetScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         state = listState,
-        contentPadding = extraBottomPadding(),
+        contentPadding = PaddingValues(bottom = bottomPadding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(
@@ -93,7 +95,9 @@ private fun ProxySetCard(
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -172,7 +176,7 @@ private fun ProxySetCard(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -227,7 +231,7 @@ private fun ProxyCard(
         ),
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             if (selected) {
                 Box(

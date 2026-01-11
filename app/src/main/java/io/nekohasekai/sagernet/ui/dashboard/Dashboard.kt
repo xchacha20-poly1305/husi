@@ -318,6 +318,9 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .paddingExceptBottom(innerPadding),
         ) {
+            val density = LocalDensity.current
+            val bottomPadding =
+                innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() }
             PrimaryTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 containerColor = appBarContainerColor,
@@ -358,6 +361,7 @@ fun DashboardScreen(
                 when (page) {
                     PAGE_STATUS -> DashboardStatusScreen(
                         uiState = uiState,
+                        bottomPadding = bottomPadding,
                         selectClashMode = { service?.clashMode = it },
                         onCopySuccess = {
                             scope.launch {
@@ -371,23 +375,21 @@ fun DashboardScreen(
                         onVisibleChange = { bottomVisible = it },
                     )
 
-                    PAGE_CONNECTIONS -> {
-                        val density = LocalDensity.current
-                        DashboardConnectionsScreen(
-                            uiState = uiState,
-                            searchTextFieldState = viewModel.searchTextFieldState,
-                            bottomPadding = innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() },
-                            closeConnection = { uuid ->
-                                connection.service.value?.closeConnection(uuid)
-                            },
-                            openDetail = openConnectionDetail,
-                            onVisibleChange = { bottomVisible = it },
-                            onClearSearch = viewModel::clearSearchQuery,
-                        )
-                    }
+                    PAGE_CONNECTIONS -> DashboardConnectionsScreen(
+                        uiState = uiState,
+                        searchTextFieldState = viewModel.searchTextFieldState,
+                        bottomPadding = bottomPadding,
+                        closeConnection = { uuid ->
+                            connection.service.value?.closeConnection(uuid)
+                        },
+                        openDetail = openConnectionDetail,
+                        onVisibleChange = { bottomVisible = it },
+                        onClearSearch = viewModel::clearSearchQuery,
+                    )
 
                     PAGE_PROXY_SET -> DashboardProxySetScreen(
                         uiState = uiState,
+                        bottomPadding = bottomPadding,
                         selectProxy = { group, proxy ->
                             connection.service.value?.groupSelect(group, proxy)
                         },
