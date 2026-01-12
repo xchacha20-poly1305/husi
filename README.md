@@ -153,4 +153,4 @@ Developing
 
 - [![](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://www.jetbrains.com)
 
-    JetBrains' powerful IDE.
+  JetBrains' powerful IDE.
