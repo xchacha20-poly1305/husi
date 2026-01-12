@@ -138,8 +138,8 @@ func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInte
 }
 
 func (w *boxPlatformInterfaceWrapper) RequestPermissionForWIFIState() error {
-	// TODO implement me
-	panic("implement me")
+	// Even not be implemented or invoked in sing-box
+	return nil
 }
 
 func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
