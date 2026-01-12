@@ -131,6 +131,9 @@ func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInte
 			Constrained: false,                // Not for Android
 		})
 	}
+	interfaces = common.UniqBy(interfaces, func(it adapter.NetworkInterface) string {
+		return it.Name
+	})
 	return interfaces, nil
 }
 
