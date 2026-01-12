@@ -1,0 +1,6 @@
+component:
+  name: Husi
+  slug: husi
+  project: husi
+  filemask: app/src/main/res/values-*/strings.xml
+  template: app/src/main/res/values/strings.xml
