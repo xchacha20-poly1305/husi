@@ -13,8 +13,8 @@ require (
 	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251231115934-b87a9ae9bd80
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251231115934-b87a9ae9bd80
 	github.com/sagernet/gomobile v0.1.11
-	github.com/sagernet/sing v0.8.0-beta.8
-	github.com/sagernet/sing-box v1.13.0-beta.1
+	github.com/sagernet/sing v0.8.0-beta.10
+	github.com/sagernet/sing-box v1.13.0-beta.3
 	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20260107060547-525f783d005b
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -73,9 +73,9 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/quic-go v0.58.0-sing-box-mod.1 // indirect
+	github.com/sagernet/quic-go v0.59.0-sing-box-mod.1 // indirect
 	github.com/sagernet/sing-mux v0.3.3 // indirect
-	github.com/sagernet/sing-quic v0.6.0-beta.8 // indirect
+	github.com/sagernet/sing-quic v0.6.0-beta.9 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
