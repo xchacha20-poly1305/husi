@@ -142,6 +142,13 @@ internal val fingerprints
         SingBoxOptions.FINGERPRINT_RANDOMIZED,
     )
 
+internal val congestionControls
+    get() = listOf(
+        "bbr",
+        "cubic",
+        "new_reno",
+    )
+
 internal val muxTypes = listOf("h2mux", "smux", "yamux")
 
 internal val muxStrategies = listOf(

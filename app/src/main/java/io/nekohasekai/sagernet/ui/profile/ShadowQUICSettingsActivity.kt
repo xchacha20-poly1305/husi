@@ -26,12 +26,6 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
 
     override val viewModel by viewModels<ShadowQUICSettingsViewModel>()
 
-    private val congestionControls = listOf(
-        "bbr",
-        "cubic",
-        "new_reno",
-    )
-
     override fun LazyListScope.settings(
         uiState: ProfileSettingsUiState,
         scrollTo: (key: String) -> Unit,
