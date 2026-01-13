@@ -27,16 +27,6 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
 
     override val viewModel by viewModels<TuicSettingsViewModel>()
 
-    private val congestionControls = listOf(
-        // "bbr_meta_v1", // Legacy. Neither end user nor developer need it.
-        "bbr",
-        "bbr_quiche",
-        "bbr2",
-        "bbr2_aggressive",
-        "cubic",
-        "new_reno",
-    )
-
     override fun LazyListScope.settings(
         uiState: ProfileSettingsUiState,
         scrollTo: (key: String) -> Unit,
