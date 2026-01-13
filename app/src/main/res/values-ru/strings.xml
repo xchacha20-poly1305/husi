@@ -685,4 +685,5 @@
     <string name="max_log_line">Максимум строк в журнале</string>
     <string name="scroll_to_bottom">Прокрутить вниз</string>
     <string name="ech_query_server_name">Имя сервера для запроса</string>
+    <string name="force_resolve_error">Ошибка принудительного резолвинга: %s</string>
 </resources>
