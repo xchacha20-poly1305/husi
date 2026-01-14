@@ -154,7 +154,6 @@ fun RouteScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
@@ -241,7 +240,6 @@ fun RouteScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

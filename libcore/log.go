@@ -12,7 +12,10 @@ import (
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
+	"github.com/sagernet/sing/common/binary"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/observable"
+	"github.com/sagernet/sing/common/varbin"
 
 	"golang.org/x/sys/unix"
 )
@@ -52,20 +55,13 @@ func SetLogLevel(level string) {
 	logFactory.SetLevel(logLevel)
 }
 
-func RegisterLogWatcher(watcher LogWatcher) {
-	if platformLogWrapper == nil {
-		return
-	}
-	platformLogWrapper.RegisterWatcher(watcher)
-}
-
 var (
 	platformLogWrapper *logWriter
 
-	logFactory log.Factory
+	logFactory log.ObservableFactory
 )
 
-func setupLog(capacity int, path string, level log.Level, notTruncateOnStart bool) (err error) {
+func setupLog(maxLogLine int, path string, level log.Level, notTruncateOnStart bool) (err error) {
 	if platformLogWrapper != nil {
 		return
 	}
@@ -86,7 +82,7 @@ func setupLog(capacity int, path string, level log.Level, notTruncateOnStart boo
 	// redirect stderr
 	_ = unix.Dup3(fd, int(os.Stderr.Fd()), 0)
 
-	platformLogWrapper = newLogWriter(file, capacity)
+	platformLogWrapper = newLogWriter(file, maxLogLine)
 	logFactory = log.NewDefaultFactory(
 		context.Background(),
 		log.Formatter{
@@ -97,7 +93,7 @@ func setupLog(capacity int, path string, level log.Level, notTruncateOnStart boo
 		io.Discard,
 		"",
 		platformLogWrapper,
-		false,
+		true,
 	)
 	logFactory.SetLevel(level)
 	log.SetStdLogger(logFactory.Logger())
@@ -135,37 +131,31 @@ func cleanLogCache(cacheDir string) {
 }
 
 type LogItem struct {
-	level   log.Level
+	Level   log.Level
 	Message string
 }
 
-func (l *LogItem) GetLevel() int16 {
-	return int16(l.level)
+func (l *LogItem) GetLevel() int32 {
+	return int32(l.Level)
 }
 
-type LogItemIterator interface {
-	Next() *LogItem
-	HasNext() bool
-	Length() int32
-}
-
-type LogWatcher interface {
-	AddAll(LogItemIterator)
-	Append(*LogItem)
-}
-
-var _ log.PlatformWriter = (*logWriter)(nil)
+var (
+	_ log.PlatformWriter               = (*logWriter)(nil)
+	_ observable.Observable[log.Entry] = (*logWriter)(nil)
+)
 
 type logWriter struct {
-	writer  io.Writer
-	buffer  *ringqueue.RingQueue[*LogItem]
-	watcher LogWatcher
+	writer   io.Writer
+	buffer   *ringqueue.RingQueue[log.Entry]
+	observer *observable.Observer[log.Entry]
 }
 
 func newLogWriter(writer io.Writer, capacity int) *logWriter {
+	subscriber := observable.NewSubscriber[log.Entry](128)
 	return &logWriter{
-		writer: writer,
-		buffer: ringqueue.New[*LogItem](capacity),
+		writer:   writer,
+		buffer:   ringqueue.New[log.Entry](capacity),
+		observer: observable.NewObserver(subscriber, 64),
 	}
 }
 
@@ -174,15 +164,21 @@ func (w *logWriter) DisableColors() bool {
 }
 
 func (w *logWriter) WriteMessage(level log.Level, message string) {
-	item := &LogItem{
-		level:   level,
+	entry := log.Entry{
+		Level:   level,
 		Message: message,
 	}
-	w.buffer.Add(item)
-	if w.watcher != nil {
-		w.watcher.Append(item)
-	}
+	w.buffer.Add(entry)
+	w.observer.Emit(entry)
 	_, _ = io.WriteString(w.writer, message+"\n")
+}
+
+func (w *logWriter) Subscribe() (subscription observable.Subscription[log.Entry], done <-chan struct{}, err error) {
+	return w.observer.Subscribe()
+}
+
+func (w *logWriter) UnSubscribe(subscription observable.Subscription[log.Entry]) {
+	w.observer.UnSubscribe(subscription)
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -209,19 +205,69 @@ func (w *logWriter) truncate() {
 
 func (w *logWriter) Close() error {
 	w.buffer.Clear()
-	return common.Close(w.writer)
-}
-
-func (w *logWriter) RegisterWatcher(watcher LogWatcher) {
-	if w.watcher != nil {
-		w.watcher = nil
-		return
-	}
-	w.watcher = watcher
-	watcher.AddAll(newIterator(w.buffer.All()))
+	return common.Close(
+		w.writer,
+		w.observer,
+	)
 }
 
 func (w *logWriter) Clear() {
 	w.truncate()
 	w.buffer.Clear()
+}
+
+type LogItemFunc interface {
+	Invoke(*LogItem)
+}
+
+func (c *Client) SubscribeLogs(callback LogItemFunc) error {
+	err := varbin.Write(c.conn, binary.BigEndian, commandSubscribeLogs)
+	if err != nil {
+		return E.Cause(err, "write command")
+	}
+	for {
+		// Struct are same
+		item, err := varbin.ReadValue[LogItem](c.conn, binary.BigEndian)
+		if err != nil {
+			if E.IsClosed(err) {
+				return nil
+			}
+			return E.Cause(err, "read log entry")
+		}
+		callback.Invoke(&item)
+	}
+}
+
+func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
+	buffer := platformLogWrapper.buffer.All()
+	for i := range buffer {
+		err := varbin.Write(conn, binary.BigEndian, buffer[i])
+		if err != nil {
+			return E.Cause(err, "write log entry buffer ", i)
+		}
+	}
+	subscription, done, err := platformLogWrapper.Subscribe()
+	if err != nil {
+		return E.Cause(err, "subscribe log factory")
+	}
+	defer platformLogWrapper.UnSubscribe(subscription)
+	for {
+		select {
+		case entry := <-subscription:
+			err := varbin.Write(conn, binary.BigEndian, entry)
+			if err != nil {
+				return E.Cause(err, "write entry")
+			}
+		case <-done:
+			return nil
+		}
+	}
+}
+
+func (c *Client) ClearLog() error {
+	err := varbin.Write(c.conn, binary.BigEndian, commandClearLog)
+	if err != nil {
+		return E.Cause(err, "write command")
+	}
+	return nil
 }

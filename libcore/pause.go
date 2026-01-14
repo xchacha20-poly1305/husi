@@ -4,15 +4,15 @@ import (
 	"github.com/sagernet/sing-box/log"
 )
 
-func (b *BoxInstance) Pause() {
+func (b *boxInstance) Pause() {
 	b.pauseManager.DevicePause()
 }
 
-func (b *BoxInstance) Wake() {
+func (b *boxInstance) Wake() {
 	b.pauseManager.DeviceWake()
 }
 
-func (b *BoxInstance) ResetNetwork() {
+func (b *boxInstance) ResetNetwork() {
 	b.Box.Router().ResetNetwork()
 	log.Debug("Reset network.")
 }

@@ -267,8 +267,6 @@ fun ConfigurationScreen(
 
     val serviceStatus by connection?.status?.collectAsStateWithLifecycle()
         ?: remember { mutableStateOf(null) }
-    val service by connection?.service?.collectAsStateWithLifecycle()
-        ?: remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
         vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
@@ -791,7 +789,6 @@ fun ConfigurationScreen(
                     status = serviceStatus!!,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

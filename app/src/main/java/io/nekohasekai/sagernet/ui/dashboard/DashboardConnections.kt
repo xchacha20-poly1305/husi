@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.Connection
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.theme.LogColors
 
@@ -164,7 +163,7 @@ internal fun DashboardConnectionsScreen(
 @Composable
 private fun ConnectionCard(
     modifier: Modifier = Modifier,
-    connection: Connection,
+    connection: ConnectionDetailState,
     openDetail: (id: String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -223,14 +222,14 @@ private fun ConnectionCard(
 
             Text(
                 text = stringResource(
-                    if (connection.closed) {
+                    if (connection.isClosed) {
                         R.string.connection_status_closed
                     } else {
                         R.string.connection_status_active
                     },
                 ),
                 fontSize = 14.sp,
-                color = if (connection.closed) {
+                color = if (connection.isClosed) {
                     Color.Red
                 } else {
                     Color.Green

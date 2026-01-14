@@ -124,6 +124,8 @@ operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<
 
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
 
+fun String?.emptyAsNull(): String? = if (isNullOrEmpty()) null else this
+
 /**
  * Returns the first non-default value from the provided getters.
  *

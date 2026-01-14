@@ -110,10 +110,8 @@ fun DashboardScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
-    val shouldPoll = service != null && serviceStatus.state.connected
-    LaunchedEffect(service, shouldPoll) {
-        viewModel.initialize(if (shouldPoll) service else null)
+    LaunchedEffect(serviceStatus.state.connected) {
+        viewModel.initialize(serviceStatus.state.connected)
     }
 
     Scaffold(
@@ -308,7 +306,6 @@ fun DashboardScreen(
                     status = serviceStatus,
                     visible = bottomVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },
@@ -362,7 +359,7 @@ fun DashboardScreen(
                     PAGE_STATUS -> DashboardStatusScreen(
                         uiState = uiState,
                         bottomPadding = bottomPadding,
-                        selectClashMode = { service?.clashMode = it },
+                        selectClashMode = { viewModel.setClashMode(it) },
                         onCopySuccess = {
                             scope.launch {
                                 snackbarState.showSnackbar(
@@ -380,7 +377,7 @@ fun DashboardScreen(
                         searchTextFieldState = viewModel.searchTextFieldState,
                         bottomPadding = bottomPadding,
                         closeConnection = { uuid ->
-                            connection.service.value?.closeConnection(uuid)
+                            viewModel.closeConnection(uuid)
                         },
                         openDetail = openConnectionDetail,
                         onVisibleChange = { bottomVisible = it },
@@ -391,12 +388,12 @@ fun DashboardScreen(
                         uiState = uiState,
                         bottomPadding = bottomPadding,
                         selectProxy = { group, proxy ->
-                            connection.service.value?.groupSelect(group, proxy)
+                            viewModel.selectOutbound(group, proxy)
                         },
                         urlTestForGroup = { group ->
                             scope.launch {
                                 viewModel.setTesting(group, true)
-                                connection.service.value?.groupURLTest(
+                                viewModel.groupURLTest(
                                     group,
                                     DataStore.connectionTestTimeout,
                                 )
@@ -416,7 +413,7 @@ fun DashboardScreen(
         onDismissRequest = { showResetAlert = false },
         confirmButton = {
             TextButton(stringResource(android.R.string.ok)) {
-                connection.service.value?.resetNetwork()
+                viewModel.resetNetwork()
                 scope.launch {
                     snackbarState.showSnackbar(
                         message = context.getString(R.string.have_reset_network),

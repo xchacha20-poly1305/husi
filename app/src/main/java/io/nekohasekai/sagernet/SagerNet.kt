@@ -112,6 +112,7 @@ class SagerNet : Application(),
         }
 
         if (isBgProcess) {
+            repo.boxService?.start()
             if (DataStore.memoryLimit) Libcore.setMemoryLimit()
         }
 

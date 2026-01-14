@@ -3,22 +3,23 @@ package io.nekohasekai.sagernet.ui.dashboard
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.bg.SagerConnection
-import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.utils.LibcoreClientManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import libcore.ConnectionEvent
 import libcore.Libcore
+import kotlin.experimental.or
 
 @Stable
 class ConnectionDetailViewModel : ViewModel() {
 
-    private lateinit var sagerConnection: SagerConnection
-    private val connectionState = MutableStateFlow(Connection())
+    private val clientManager = LibcoreClientManager()
+    private val connectionState = MutableStateFlow(ConnectionDetailState())
     val connection = connectionState.asStateFlow()
 
     private var job: Job? = null
@@ -26,32 +27,80 @@ class ConnectionDetailViewModel : ViewModel() {
     override fun onCleared() {
         job?.cancel()
         job = null
+        runBlocking {
+            clientManager.close()
+        }
         super.onCleared()
     }
 
-    fun initialize(sagerConnection: SagerConnection, uuid: String)  {
+    fun initialize(uuid: String) = viewModelScope.launch {
+        if (connectionState.value.uuid == uuid) return@launch
         job?.cancel()
-        this.sagerConnection = sagerConnection
-        job = viewModelScope.launch {
-            val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
-            while (isActive) {
-                findAndRefresh(uuid)
-                delay(interval)
+        connectionState.value = queryConnection(uuid)
+        job = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
+            handleConnectionEvent(event)
+        }
+    }
+
+    private suspend fun queryConnection(uuid: String): ConnectionDetailState {
+        return try {
+            clientManager.withClient { client ->
+                val flag = Libcore.ShowTrackerActively or Libcore.ShowTrackerClosed
+                val iterator = client.queryConnections(flag)
+                    ?: return@withClient ConnectionDetailState(uuid = uuid)
+                while (iterator.hasNext()) {
+                    val info = iterator.next() ?: continue
+                    if (info.uuid == uuid) return@withClient info.toDetailState()
+                }
+                ConnectionDetailState(uuid = uuid)
+            }
+        } catch (e: Exception) {
+            Logs.w("query connection", e)
+            ConnectionDetailState(uuid = uuid)
+        }
+    }
+
+    private fun handleConnectionEvent(event: ConnectionEvent) {
+        if (event.id != connectionState.value.uuid) return
+        when (event.type) {
+            Libcore.ConnectionEventUpdate -> {
+                updateTraffic(event.uplinkDelta, event.downlinkDelta)
+            }
+
+            Libcore.ConnectionEventNew -> {
+                val trackerInfo = event.trackerInfo ?: return
+                connectionState.value = trackerInfo.toDetailState()
+            }
+
+            Libcore.ConnectionEventClosed -> {
+                if (event.closedAt.isBlank()) return
+                updateClosedAt(event.closedAt)
             }
         }
     }
 
-    private suspend inline fun findAndRefresh(uuid: String) {
-        if (!DataStore.serviceState.connected) return
-        val connection = sagerConnection.service.value
-            ?.queryConnections(Libcore.ShowTrackerActively or Libcore.ShowTrackerClosed)
-            ?.connections
-            ?.find { it.uuid == uuid }
-            ?: return
-        connectionState.value = connection
+    private fun updateTraffic(uplinkDelta: Long, downlinkDelta: Long) {
+        if (uplinkDelta == 0L && downlinkDelta == 0L) return
+        val current = connectionState.value
+        connectionState.value = current.copy(
+            uploadTotal = current.uploadTotal + uplinkDelta,
+            downloadTotal = current.downloadTotal + downlinkDelta,
+        )
     }
 
-    fun closeConnection(uuid: String) {
-        sagerConnection.service.value?.closeConnection(uuid)
+    private fun updateClosedAt(closedAt: String) {
+        val current = connectionState.value
+        if (current.closedAt == closedAt) return
+        connectionState.value = current.copy(closedAt = closedAt)
+    }
+
+    fun closeConnection(uuid: String) = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            clientManager.withClient { client ->
+                client.closeConnection(uuid)
+            }
+        } catch (e: Exception) {
+            Logs.w("close connection", e)
+        }
     }
 }

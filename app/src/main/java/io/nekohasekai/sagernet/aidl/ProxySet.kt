@@ -1,12 +1,9 @@
 package io.nekohasekai.sagernet.aidl
 
-import android.os.Parcelable
 import androidx.compose.runtime.Immutable
-import kotlinx.parcelize.Parcelize
 import libcore.GroupItemIterator
 
 @Immutable
-@Parcelize
 data class ProxySet(
     val tag: String = "",
     val type: String = "",
@@ -14,7 +11,7 @@ data class ProxySet(
     var selected: String = "",
     var items: List<ProxySetItem> = emptyList(),
     val isTesting: Boolean = false,
-) : Parcelable {
+) {
     constructor(set: libcore.ProxySet) : this(
         tag = set.tag,
         type = set.type,
@@ -33,12 +30,11 @@ fun libcore.ProxySetIterator.toList(): List<ProxySet> {
 }
 
 @Immutable
-@Parcelize
 data class ProxySetItem(
     val tag: String = "",
     val type: String = "",
     val urlTestDelay: Short = -1,
-) : Parcelable {
+) {
     constructor(item: libcore.GroupItem) : this(
         tag = item.tag,
         type = item.type,

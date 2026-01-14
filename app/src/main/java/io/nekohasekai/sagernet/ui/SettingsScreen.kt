@@ -191,7 +191,6 @@ fun SettingsScreen(
         .collectAsStateWithLifecycle(false)
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
@@ -229,7 +228,6 @@ fun SettingsScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

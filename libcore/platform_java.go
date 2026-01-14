@@ -14,6 +14,8 @@ type PlatformInterface interface {
 	DeviceName() string
 	AnchorSSID() string
 	OnGroupSelectedChange(group, old, now string)
+}
 
-	IsForTest() bool
+type StringFunc interface {
+	Invoke(string)
 }

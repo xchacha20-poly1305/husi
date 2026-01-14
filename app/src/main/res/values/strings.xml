@@ -582,6 +582,7 @@
     <string name="ntp_server_port">NTP Server Port</string>
     <string name="ntp_sync_interval">NTP Sync Interval</string>
     <string name="start_time">Started at</string>
+    <string name="closed_time">Closed at</string>
     <string name="outbound_rule">Outbound rule</string>
     <string name="detail">Detail</string>
     <string name="source_address">Source Address</string>

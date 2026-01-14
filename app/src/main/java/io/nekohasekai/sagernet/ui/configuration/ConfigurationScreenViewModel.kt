@@ -14,15 +14,17 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.bg.proto.TestInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.bg.GuardedProcessPool
+import io.nekohasekai.sagernet.bg.proto.BoxInstance
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Deduplication
+import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
@@ -32,11 +34,13 @@ import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
-import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.repository.repo
+import io.nekohasekai.sagernet.utils.closeQuietly
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,7 +58,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import libcore.Client
 import libcore.Libcore
+import java.io.File
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
@@ -358,15 +364,29 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
     private suspend fun urlTest(profile: ProxyEntity): TestResult {
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
-        val underVPN = DataStore.serviceMode == Key.MODE_VPN && DataStore.serviceState.started
+        var client: Client? = null
+        var processes: GuardedProcessPool? = null
+        val cacheFiles = ArrayList<File>()
 
         return try {
-            val result = TestInstance(profile, testURL, testTimeout).doTest(underVPN)
+            client = Libcore.newClient()
+            val config = buildConfig(profile, forTest = true)
+
+            if (config.externalIndex.any { it.chain.isNotEmpty() }) {
+                val pluginConfigs = BoxInstance.initPlugins(config, false, cacheFiles)
+                processes = GuardedProcessPool { throw it }
+                BoxInstance.launchPlugins(config, pluginConfigs, processes, cacheFiles)
+                delay(500L)
+            }
+
+            val result = client.newInstanceURLTest(config.config, "", testURL, testTimeout)
             TestResult.Success(result)
-        } catch (e: PluginManager.PluginNotFoundException) {
-            TestResult.Failure(FailureReason.PluginNotFound(e.readableMessage))
         } catch (e: Exception) {
             TestResult.Failure(FailureReason.Generic(e.readableMessage))
+        } finally {
+            client?.closeQuietly()
+            processes?.close(viewModelScope)
+            cacheFiles.forEach { it.delete() }
         }
     }
 
