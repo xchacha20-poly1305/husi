@@ -88,7 +88,6 @@ fun ToolsScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
@@ -134,7 +133,6 @@ fun ToolsScreen(
                     status = serviceStatus,
                     visible = bottomVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

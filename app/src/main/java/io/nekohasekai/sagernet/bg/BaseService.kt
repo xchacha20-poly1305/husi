@@ -8,21 +8,11 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import android.os.RemoteCallbackList
-import android.os.RemoteException
 import android.widget.Toast
 import androidx.core.content.getSystemService
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.Connections
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
-import io.nekohasekai.sagernet.aidl.LogItem
-import io.nekohasekai.sagernet.aidl.LogItemList
-import io.nekohasekai.sagernet.aidl.ProxySet
-import io.nekohasekai.sagernet.aidl.URLTestResult
-import io.nekohasekai.sagernet.aidl.toList
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -33,10 +23,8 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
-import io.nekohasekai.sagernet.ktx.toConnectionList
-import io.nekohasekai.sagernet.ktx.toList
-import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,13 +32,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import libcore.Libcore
-import libcore.LogItemIterator
-import libcore.LogWatcher
 import java.net.UnknownHostException
 
 class BaseService {
@@ -87,9 +70,9 @@ class BaseService {
                     val proxy = proxy
                     if (proxy != null && proxy.isInitialized()) {
                         if (powerManager.isDeviceIdleMode) {
-                            proxy.box.pause()
+                            repo.boxService?.pause()
                         } else {
-                            proxy.box.wake()
+                            repo.boxService?.wake()
                         }
                     }
                 }
@@ -134,209 +117,26 @@ class BaseService {
         fun resetNetwork() {
             val proxy = proxy
             if (proxy != null && proxy.isInitialized()) {
-                proxy.box.resetNetwork()
+                repo.boxService?.resetNetwork()
             } else {
                 Libcore.resetAllConnections()
             }
         }
     }
 
-    class Binder(private var data: Data? = null) : ISagerNetService.Stub(),
-        CoroutineScope,
-        AutoCloseable,
-        LogWatcher {
-        private val callbacks = object : RemoteCallbackList<ISagerNetServiceCallback>() {
-            override fun onCallbackDied(callback: ISagerNetServiceCallback?, cookie: Any?) {
-                super.onCallbackDied(callback, cookie)
-            }
-        }
-
-        val callbackIdMap = mutableMapOf<ISagerNetServiceCallback, Int>()
-
+    class Binder(private var data: Data? = null) : android.os.Binder(), CoroutineScope, AutoCloseable {
         override val coroutineContext = Dispatchers.Main.immediate + Job()
 
-        override fun getState(): Int = (data?.state ?: State.Idle).ordinal
-        override fun getProfileName(): String = data?.proxy?.displayProfileName ?: "Idle"
+        val state: Int get() = (data?.state ?: State.Idle).ordinal
+        val profileName: String get() = data?.proxy?.displayProfileName ?: "Idle"
 
-        override fun registerCallback(cb: ISagerNetServiceCallback, id: Int) {
-            if (!callbackIdMap.contains(cb)) {
-                callbacks.register(cb)
-            }
-            callbackIdMap[cb] = id
-            val currentState = data?.state
-            if (currentState != null) try {
-                cb.stateChanged(currentState.ordinal, getProfileName(), null)
-            } catch (_: RemoteException) {
-            }
-        }
-
-        private val broadcastMutex = Mutex()
-
-        suspend fun broadcast(work: (ISagerNetServiceCallback) -> Unit) {
-            broadcastMutex.withLock {
-                val count = callbacks.beginBroadcast()
-                try {
-                    repeat(count) {
-                        try {
-                            work(callbacks.getBroadcastItem(it))
-                        } catch (_: RemoteException) {
-                        } catch (_: Exception) {
-                        }
-                    }
-                } finally {
-                    callbacks.finishBroadcast()
-                }
-            }
-        }
-
-        override fun unregisterCallback(cb: ISagerNetServiceCallback) {
-            callbackIdMap.remove(cb)
-            callbacks.unregister(cb)
-        }
-
-        override fun urlTest(tag: String?): Int {
-            val data = requireNotNull(data) { "service destroyed" }
-            val proxy = requireNotNull(data.proxy?.takeIf { it.isInitialized() }) { "core not started" }
-            return try {
-                proxy.box.urlTest(
-                    tag,
-                    DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout,
-                )
-            } catch (e: Exception) {
-                Logs.e(e)
-                val readableMessage = e.readableMessage
-                val errorMessage = readableUrlTestError(readableMessage)?.let {
-                    (data.service as Context).getString(it)
-                } ?: readableMessage
-                error(errorMessage)
-            }
-        }
-
-        override fun queryConnections(options: Int): Connections {
-            val proxy = data?.proxy
-            return Connections(
-                connections = if (proxy != null && proxy.isInitialized()) {
-                    proxy.box.queryTrackerInfos(options)?.toConnectionList() ?: emptyList()
-                } else {
-                    emptyList()
-                },
-            )
-        }
-
-        override fun queryMemory(): Long {
-            return Libcore.getMemory()
-        }
-
-        override fun queryGoroutines(): Int {
-            return Libcore.getGoroutines()
-        }
-
-        override fun closeConnection(id: String) {
-            val proxy = data?.proxy
-            if (proxy != null && proxy.isInitialized()) {
-                proxy.box.closeConnection(id)
-            }
-        }
-
-        override fun resetNetwork() {
-            data?.resetNetwork()
-        }
-
-        override fun getClashModes(): List<String> {
-            val proxy = data?.proxy
-            return if (proxy != null && proxy.isInitialized()) {
-                proxy.box.clashModeList?.toList() ?: emptyList()
-            } else {
-                emptyList()
-            }
-        }
-
-        override fun getClashMode(): String {
-            val proxy = data?.proxy
-            return if (proxy != null && proxy.isInitialized()) {
-                proxy.box.clashMode.orEmpty()
-            } else {
-                ""
-            }
-        }
-
-        override fun setClashMode(mode: String?) {
-            val proxy = data?.proxy
-            if (proxy != null && proxy.isInitialized()) {
-                proxy.box.clashMode = mode
-            }
-        }
-
-        override fun queryProxySet(): List<ProxySet> {
-            val proxy = data?.proxy
-            return if (proxy != null && proxy.isInitialized()) {
-                proxy.box.queryProxySets()?.toList() ?: emptyList()
-            } else {
-                emptyList()
-            }
-        }
-
-        override fun groupSelect(group: String, proxy: String): Boolean {
-            val instance = data?.proxy
-            return instance != null && instance.isInitialized()
-                && instance.box.selectOutbound(group, proxy)
-        }
-
-        override fun groupURLTest(tag: String, timeout: Int): URLTestResult {
-            val proxy = data?.proxy
-            try {
-                if (proxy != null && proxy.isInitialized()) {
-                    proxy.box.groupTest(tag, DataStore.connectionTestURL, timeout)?.let {
-                        return URLTestResult(it)
-                    }
-                }
-            } catch (e: Exception) {
-                Logs.e(e)
-            }
-            return URLTestResult(emptyMap())
-        }
-
-        override fun startLogWatching(enable: Boolean) {
-            Libcore.registerLogWatcher(
-                if (enable) {
-                    this
-                } else {
-                    null
-                }
-            )
-        }
-
-        override fun clearLog() {
-            Libcore.logClear()
-        }
-
-        fun stateChanged(s: State, msg: String?) = launch {
-            val profileName = profileName
-            broadcast { it.stateChanged(s.ordinal, profileName, msg) }
-        }
-
-        fun missingPlugin(pluginName: String) = launch {
-            val profileName = profileName
-            broadcast { it.missingPlugin(profileName, pluginName) }
+        fun stateChanged(s: State, msg: String?) {
+            // State changes are now handled via DataStore.serviceState
         }
 
         override fun close() {
-            callbacks.kill()
             cancel()
             data = null
-        }
-
-        override fun addAll(logs: LogItemIterator) {
-            callbackIdMap.keys.forEach { callback ->
-                callback.newLogs(logs.toList())
-            }
-        }
-
-        override fun append(item: libcore.LogItem) {
-            callbackIdMap.keys.forEach { callback ->
-                callback.newLogs(LogItemList(listOf(LogItem(item))))
-            }
         }
     }
 
@@ -347,8 +147,11 @@ class BaseService {
         val tag: String
         fun createNotification(profileName: String): ServiceNotification
 
-        fun onBind(intent: Intent): IBinder? =
-            if (intent.action == Action.SERVICE) data.binder else null
+        fun onBind(intent: Intent): IBinder? = if (intent.action == Action.SERVICE) {
+            data.binder
+        } else {
+            null
+        }
 
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
@@ -365,7 +168,7 @@ class BaseService {
 
         suspend fun startProcesses() {
             data.proxy!!.launch()
-            if (data.proxy!!.box.needWIFIState()) {
+            if (repo.boxService?.needWIFIState() == true) {
                 val wifiPermission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     android.Manifest.permission.ACCESS_FINE_LOCATION
                 } else {
@@ -526,8 +329,7 @@ class BaseService {
                 } catch (e: PluginManager.PluginNotFoundException) {
                     Toast.makeText(this@Interface, e.readableMessage, Toast.LENGTH_SHORT).show()
                     Logs.w(e)
-                    data.binder.missingPlugin(e.plugin)
-                    stopRunner(false, null)
+                    stopRunner(false, e.readableMessage)
                 } catch (exc: Throwable) {
                     if (exc.javaClass.name.endsWith("proxyerror")) {
                         // error from golang

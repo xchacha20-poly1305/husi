@@ -4,20 +4,22 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.toConnectionList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import libcore.Client
 import libcore.Libcore
 
 @Stable
 class ConnectionDetailViewModel : ViewModel() {
 
-    private lateinit var sagerConnection: SagerConnection
+    private var client: Client? = null
     private val connectionState = MutableStateFlow(Connection())
     val connection = connectionState.asStateFlow()
 
@@ -26,12 +28,20 @@ class ConnectionDetailViewModel : ViewModel() {
     override fun onCleared() {
         job?.cancel()
         job = null
+        client?.close()
+        client = null
         super.onCleared()
     }
 
-    fun initialize(sagerConnection: SagerConnection, uuid: String)  {
+    fun initialize(uuid: String) {
         job?.cancel()
-        this.sagerConnection = sagerConnection
+        client?.close()
+        client = try {
+            Libcore.newClient()
+        } catch (e: Exception) {
+            Logs.w("Failed to create client: ${e.message}")
+            null
+        }
         job = viewModelScope.launch {
             val interval = DataStore.speedInterval.takeIf { it > 0 }?.toLong() ?: 1000L
             while (isActive) {
@@ -43,15 +53,23 @@ class ConnectionDetailViewModel : ViewModel() {
 
     private suspend inline fun findAndRefresh(uuid: String) {
         if (!DataStore.serviceState.connected) return
-        val connection = sagerConnection.service.value
-            ?.queryConnections(Libcore.ShowTrackerActively or Libcore.ShowTrackerClosed)
-            ?.connections
-            ?.find { it.uuid == uuid }
-            ?: return
+        val c = client ?: return
+        val connection = try {
+            c.queryConnections((Libcore.ShowTrackerActively.toInt() or Libcore.ShowTrackerClosed.toInt()).toByte())
+                ?.toConnectionList()
+                ?.find { it.uuid == uuid }
+        } catch (e: Exception) {
+            Logs.w("queryConnections error: ${e.message}")
+            null
+        } ?: return
         connectionState.value = connection
     }
 
     fun closeConnection(uuid: String) {
-        sagerConnection.service.value?.closeConnection(uuid)
+        try {
+            client?.closeConnection(uuid)
+        } catch (e: Exception) {
+            Logs.w("closeConnection error: ${e.message}")
+        }
     }
 }

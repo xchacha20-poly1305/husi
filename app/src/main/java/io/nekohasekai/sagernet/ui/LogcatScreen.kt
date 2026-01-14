@@ -153,11 +153,9 @@ fun LogcatScreen(
     val windowInsets = WindowInsets.safeDrawing
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
-    LaunchedEffect(service) {
-        if (service != null) {
-            viewModel.initialize(service!!, connection)
-        }
+    val isConnected by connection.connected.collectAsStateWithLifecycle()
+    LaunchedEffect(isConnected) {
+        viewModel.initialize(isConnected)
     }
 
     Scaffold(
@@ -277,7 +275,6 @@ fun LogcatScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

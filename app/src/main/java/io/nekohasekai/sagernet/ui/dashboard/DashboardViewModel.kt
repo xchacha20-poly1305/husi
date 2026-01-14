@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.ui.dashboard
 
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.os.RemoteException
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
@@ -12,14 +11,16 @@ import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ProxySet
+import io.nekohasekai.sagernet.aidl.toList
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.DefaultNetworkListener
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.ktx.toConnectionList
+import io.nekohasekai.sagernet.ktx.toList
 import io.nekohasekai.sagernet.repository.repo
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import libcore.Client
 import libcore.Libcore
 
 @Immutable
@@ -42,7 +44,7 @@ data class DashboardState(
     val isPause: Boolean = false,
     val sortMode: Int = TrafficSortMode.START,
     val isDescending: Boolean = false,
-    val queryOptions: Int = Libcore.ShowTrackerActively,
+    val queryOptions: Int = Libcore.ShowTrackerActively.toInt(),
 
     val memory: Long = 0,
     val goroutines: Int = 0,
@@ -56,8 +58,8 @@ data class DashboardState(
 
     val proxySets: List<ProxySet> = emptyList(),
 ) {
-    val showActivate = queryOptions and Libcore.ShowTrackerActively != 0
-    val showClosed = queryOptions and Libcore.ShowTrackerClosed != 0
+    val showActivate = queryOptions and Libcore.ShowTrackerActively.toInt() != 0
+    val showClosed = queryOptions and Libcore.ShowTrackerClosed.toInt() != 0
 }
 
 @Immutable
@@ -116,19 +118,32 @@ class DashboardViewModel : ViewModel() {
     }
 
     private var job: Job? = null
+    private var client: Client? = null
 
-    fun initialize(service: ISagerNetService?) {
+    fun initialize(isConnected: Boolean) {
         job?.cancel()
-        if (service == null) return
+        client?.close()
+        client = null
+        if (!isConnected) return
+
+        client = try {
+            Libcore.newClient()
+        } catch (e: Exception) {
+            Logs.w("Failed to create client: ${e.message}")
+            null
+        }
+
         job = viewModelScope.launch {
             while (isActive) {
-                if (!refreshStatus(service)) break
+                if (!refreshStatus()) break
                 delay(LOOP_INTERVAL)
             }
         }
     }
 
     override fun onCleared() {
+        client?.close()
+        client = null
         runOnDefaultDispatcher {
             DefaultNetworkListener.stop(this@DashboardViewModel)
         }
@@ -179,18 +194,18 @@ class DashboardViewModel : ViewModel() {
     fun setQueryActivate(queryActivate: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
         DataStore.trafficConnectionQuery = if (queryActivate) {
-            old or Libcore.ShowTrackerActively
+            old or Libcore.ShowTrackerActively.toInt()
         } else {
-            old and Libcore.ShowTrackerActively.inv()
+            old and Libcore.ShowTrackerActively.toInt().inv()
         }
     }
 
     fun setQueryClosed(queryClosed: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
         DataStore.trafficConnectionQuery = if (queryClosed) {
-            old or Libcore.ShowTrackerClosed
+            old or Libcore.ShowTrackerClosed.toInt()
         } else {
-            old and Libcore.ShowTrackerClosed.inv()
+            old and Libcore.ShowTrackerClosed.toInt().inv()
         }
     }
 
@@ -344,46 +359,44 @@ class DashboardViewModel : ViewModel() {
     }
 
     /**
-     * @return true to continue polling, false to stop (binder dead or service disconnected).
+     * @return true to continue polling, false to stop.
      */
-    private suspend fun refreshStatus(service: ISagerNetService): Boolean {
-        if (!service.asBinder().isBinderAlive) return false
-        val isConnected = service.state == BaseService.State.Connected.ordinal
+    private suspend fun refreshStatus(): Boolean {
+        val c = client ?: return false
+        val isConnected = DataStore.serviceState == BaseService.State.Connected
         return try {
             _uiState.update { state ->
                 val connections = when {
                     state.isPause -> state.connections
-                    isConnected -> loadConnections(service, state.queryOptions)
+                    isConnected -> loadConnections(c, state.queryOptions)
                     else -> emptyList()
                 }
                 state.copy(
-                    memory = service.queryMemory(),
-                    goroutines = service.queryGoroutines(),
-                    selectedClashMode = if (isConnected) service.clashMode else "",
-                    clashModes = if (isConnected) service.clashModes else emptyList(),
+                    memory = c.queryMemory(),
+                    goroutines = c.queryGoroutines(),
+                    selectedClashMode = if (isConnected) c.querySelectedClashMode() else "",
+                    clashModes = if (isConnected) c.queryClashModes()?.toList() ?: emptyList() else emptyList(),
                     connections = connections,
                     proxySets = if (isConnected) {
-                        loadProxySets(service, state.proxySets)
+                        loadProxySets(c, state.proxySets)
                     } else {
                         emptyList()
                     },
                 )
             }
             true
-        } catch (_: RemoteException) {
-            false
         } catch (e: Exception) {
-            Logs.e(e)
-            throw e
+            Logs.w("refreshStatus error: ${e.message}")
+            false
         }
     }
 
     private suspend fun loadConnections(
-        service: ISagerNetService,
+        client: Client,
         options: Int,
     ): List<Connection> {
         val query = searchTextFieldState.text.toString()
-        return service.queryConnections(options).connections
+        return (client.queryConnections(options.toByte())?.toConnectionList() ?: emptyList())
             .let {
                 if (query.isEmpty()) {
                     it
@@ -406,10 +419,10 @@ class DashboardViewModel : ViewModel() {
             || uid.toString().contains(query)
 
     private suspend fun loadProxySets(
-        service: ISagerNetService,
+        client: Client,
         olds: List<ProxySet>,
     ): List<ProxySet> {
-        return service.queryProxySet()
+        return (client.queryProxySets()?.toList() ?: emptyList())
             .map {
                 olds.find { old ->
                     old.tag == it.tag
@@ -419,5 +432,46 @@ class DashboardViewModel : ViewModel() {
                     )
                 } ?: it
             }
+    }
+
+    fun closeConnection(uuid: String) {
+        try {
+            client?.closeConnection(uuid)
+        } catch (e: Exception) {
+            Logs.w("closeConnection error: ${e.message}")
+        }
+    }
+
+    fun selectOutbound(groupName: String, tag: String) {
+        try {
+            client?.selectOutbound(groupName, tag)
+        } catch (e: Exception) {
+            Logs.w("selectOutbound error: ${e.message}")
+        }
+    }
+
+    suspend fun groupURLTest(tag: String, timeout: Int) {
+        try {
+            val link = DataStore.connectionTestURL
+            client?.groupTest(tag, link, timeout)
+        } catch (e: Exception) {
+            Logs.w("groupURLTest error: ${e.message}")
+        }
+    }
+
+    fun resetNetwork() {
+        try {
+            client?.resetNetwork()
+        } catch (e: Exception) {
+            Logs.w("resetNetwork error: ${e.message}")
+        }
+    }
+
+    fun setClashMode(mode: String) {
+        try {
+            client?.setClashMode(mode)
+        } catch (e: Exception) {
+            Logs.w("setClashMode error: ${e.message}")
+        }
     }
 }

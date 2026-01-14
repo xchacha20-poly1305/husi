@@ -164,7 +164,6 @@ fun GroupScreen(
     val scrollHideVisible by rememberScrollHideState(dragDropListState.lazyListState)
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
@@ -222,7 +221,6 @@ fun GroupScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

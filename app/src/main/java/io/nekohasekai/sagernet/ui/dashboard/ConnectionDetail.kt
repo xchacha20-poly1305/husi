@@ -94,7 +94,7 @@ fun ConnectionDetailScreen(
     val context = LocalContext.current
 
     LaunchedEffect(uuid) {
-        viewModel.initialize(connection, uuid)
+        viewModel.initialize(uuid)
     }
     val routeSettingsLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),

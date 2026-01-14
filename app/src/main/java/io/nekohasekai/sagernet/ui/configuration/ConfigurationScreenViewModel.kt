@@ -14,7 +14,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.bg.proto.TestInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -23,6 +22,7 @@ import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Deduplication
+import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
@@ -32,7 +32,6 @@ import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
-import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -358,13 +357,16 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
     private suspend fun urlTest(profile: ProxyEntity): TestResult {
         val testURL = DataStore.connectionTestURL
         val testTimeout = DataStore.connectionTestTimeout
-        val underVPN = DataStore.serviceMode == Key.MODE_VPN && DataStore.serviceState.started
 
         return try {
-            val result = TestInstance(profile, testURL, testTimeout).doTest(underVPN)
-            TestResult.Success(result)
-        } catch (e: PluginManager.PluginNotFoundException) {
-            TestResult.Failure(FailureReason.PluginNotFound(e.readableMessage))
+            val config = buildConfig(profile, forTest = true).config
+            val client = Libcore.newClient()
+            try {
+                val result = client.newInstanceURLTest(config, "", testURL, testTimeout)
+                TestResult.Success(result)
+            } finally {
+                client.close()
+            }
         } catch (e: Exception) {
             TestResult.Failure(FailureReason.Generic(e.readableMessage))
         }

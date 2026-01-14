@@ -7,21 +7,25 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.LogItem
-import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.aidl.toList
+import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.Logs
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import libcore.Client
+import libcore.Libcore
 
 @Immutable
 data class LogcatUiState(
@@ -46,6 +50,10 @@ enum class LogLevel() {
 @Stable
 class LogcatScreenViewModel : ViewModel() {
 
+    companion object {
+        private const val POLL_INTERVAL = 500L
+    }
+
     private var allLogs: PersistentList<LogItem> = persistentListOf()
     private val _uiState = MutableStateFlow(
         LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
@@ -53,8 +61,9 @@ class LogcatScreenViewModel : ViewModel() {
     val uiState = _uiState.asStateFlow()
     val searchTextFieldState = TextFieldState()
 
-    private var connection: SagerConnection? = null
     private var job: Job? = null
+    private var client: Client? = null
+    private var lastLogCount = 0
 
     init {
         viewModelScope.launch {
@@ -73,6 +82,7 @@ class LogcatScreenViewModel : ViewModel() {
     }
 
     private fun appendLogs(newLogs: List<LogItem>) {
+        if (newLogs.isEmpty()) return
         allLogs = allLogs.addAll(newLogs)
         _uiState.update { state ->
             if (state.pause) return
@@ -90,29 +100,53 @@ class LogcatScreenViewModel : ViewModel() {
         }
     }
 
-    fun initialize(service: ISagerNetService, connection: SagerConnection) {
-        clearJob()
-        this.connection = connection
-        connection.clearLogBuffer()
+    fun initialize(isConnected: Boolean) {
+        job?.cancel()
+        client?.close()
+        client = null
+        allLogs = persistentListOf()
+        lastLogCount = 0
+        _uiState.update { it.copy(logs = persistentListOf()) }
+
+        if (!isConnected) return
+
+        client = try {
+            Libcore.newClient()
+        } catch (e: Exception) {
+            Logs.w("Failed to create client: ${e.message}")
+            null
+        }
+
         job = viewModelScope.launch {
-            connection.logLine
-                .onStart {
-                    service.startLogWatching(true)
-                }
-                .collect { lines ->
-                    appendLogs(lines)
-                }
+            while (isActive) {
+                pollLogs()
+                delay(POLL_INTERVAL)
+            }
+        }
+    }
+
+    private fun pollLogs() {
+        if (DataStore.serviceState != BaseService.State.Connected) return
+        val c = client ?: return
+        try {
+            val iterator = c.queryLogs() ?: return
+            val logList = iterator.toList()
+            val totalCount = logList.list.size
+            if (totalCount > lastLogCount) {
+                val newLogs = logList.list.drop(lastLogCount)
+                lastLogCount = totalCount
+                appendLogs(newLogs)
+            }
+        } catch (e: Exception) {
+            Logs.w("pollLogs error: ${e.message}")
         }
     }
 
     override fun onCleared() {
-        clearJob()
-        super.onCleared()
-    }
-
-    private fun clearJob() {
         job?.cancel()
-        connection?.service?.value?.startLogWatching(false)
+        client?.close()
+        client = null
+        super.onCleared()
     }
 
     fun togglePause() {
@@ -130,8 +164,13 @@ class LogcatScreenViewModel : ViewModel() {
     }
 
     fun clearLog() {
-        connection?.service?.value?.clearLog()
+        try {
+            client?.clearLog()
+        } catch (e: Exception) {
+            Logs.w("clearLog error: ${e.message}")
+        }
         allLogs = persistentListOf()
+        lastLogCount = 0
         _uiState.update { it.copy(logs = persistentListOf()) }
     }
 

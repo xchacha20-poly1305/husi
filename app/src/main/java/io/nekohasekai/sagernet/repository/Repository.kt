@@ -22,6 +22,8 @@ interface Repository {
     val isMainProcess: Boolean
     val isBgProcess: Boolean
 
+    val boxService: libcore.Service?
+
     /* https://developer.android.com/reference/android/content/Context#getSystemService(java.lang.String)
     * Note: System services obtained via this API may be closely associated
     * with the Context in which they are obtained from. In general, do not share

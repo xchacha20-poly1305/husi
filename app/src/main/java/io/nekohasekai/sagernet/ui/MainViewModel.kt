@@ -13,7 +13,6 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionType
-import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -33,6 +32,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ktx.zlibDecompress
 import io.nekohasekai.sagernet.repository.repo
+import libcore.Libcore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -132,7 +132,7 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
         _urlTestStatus.value = URLTestStatus.Initial
     }
 
-    fun urlTest(service: ISagerNetService?) = viewModelScope.launch(Dispatchers.IO) {
+    fun urlTest() = viewModelScope.launch(Dispatchers.IO) {
         _urlTestStatus.update { status ->
             if (status == URLTestStatus.Testing) {
                 return@launch
@@ -140,11 +140,16 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
             URLTestStatus.Testing
         }
         try {
-            if (!DataStore.serviceState.connected || service == null) {
+            if (!DataStore.serviceState.connected) {
                 error("not started")
             }
-            val result = service.urlTest(null)
-            _urlTestStatus.update { URLTestStatus.Success(result) }
+            val client = Libcore.newClient()
+            try {
+                val result = client.urlTest("")
+                _urlTestStatus.update { URLTestStatus.Success(result) }
+            } finally {
+                client.close()
+            }
         } catch (e: Exception) {
             _urlTestStatus.update { URLTestStatus.Exception(e.readableMessage) }
         }

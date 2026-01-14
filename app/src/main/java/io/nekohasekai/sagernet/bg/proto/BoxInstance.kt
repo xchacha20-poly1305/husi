@@ -3,7 +3,6 @@ package io.nekohasekai.sagernet.bg.proto
 import android.os.SystemClock
 import io.nekohasekai.sagernet.bg.AbstractInstance
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
-import io.nekohasekai.sagernet.bg.NativeInterface
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult
@@ -27,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.plus
-import libcore.BoxInstance
 import libcore.Libcore
 import java.io.File
 import kotlin.system.exitProcess
@@ -37,7 +35,6 @@ abstract class BoxInstance(
 ) : AbstractInstance {
 
     lateinit var config: ConfigBuildResult
-    lateinit var box: BoxInstance
 
     private val pluginPath = hashMapOf<String, PluginManager.InitResult>()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
@@ -45,7 +42,7 @@ abstract class BoxInstance(
     open lateinit var processes: GuardedProcessPool
     private var cacheFiles = ArrayList<File>()
     fun isInitialized(): Boolean {
-        return ::config.isInitialized && ::box.isInitialized
+        return ::config.isInitialized && repo.boxService?.hasInstance() == true
     }
 
     protected fun initPlugin(name: String): PluginManager.InitResult {
@@ -57,7 +54,7 @@ abstract class BoxInstance(
     }
 
     protected open suspend fun loadConfig() {
-        box = BoxInstance(config.config, NativeInterface(false))
+        repo.boxService!!.newInstance(config.config)
     }
 
     open suspend fun init(isVPN: Boolean) {
@@ -244,7 +241,7 @@ abstract class BoxInstance(
             }
         }
 
-        box.start()
+        repo.boxService!!.startInstance()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -260,9 +257,9 @@ abstract class BoxInstance(
 
         if (::processes.isInitialized) processes.close(GlobalScope + Dispatchers.IO)
 
-        if (::box.isInitialized) {
+        if (repo.boxService?.hasInstance() == true) {
             try {
-                box.close()
+                repo.boxService!!.stopInstance()
             } catch (e: Exception) {
                 Logs.w(e)
                 // Kill the process if it is not closed properly to clean exist inbound listeners.

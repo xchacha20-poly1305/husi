@@ -1,9 +1,5 @@
 package io.nekohasekai.sagernet.aidl
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
 data class Connection(
     val uuid: String = "",
     val inbound: String = "",
@@ -22,4 +18,4 @@ data class Connection(
     val process: String? = null,
     val uid: Int = -1,
     var closed: Boolean = false,
-) : Parcelable
+)
