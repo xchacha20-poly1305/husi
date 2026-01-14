@@ -3,7 +3,7 @@ module libcore
 go 1.24.7
 
 require (
-	github.com/dyhkwong/sing-juicity v0.1.0-beta.3
+	github.com/dyhkwong/sing-juicity v0.1.0-beta.6
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.2
 	github.com/miekg/dns v1.1.69
