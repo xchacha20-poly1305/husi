@@ -1,18 +1,23 @@
-import com.android.build.api.dsl.*
-import com.android.build.gradle.AbstractAppExtension
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import com.android.build.api.artifact.SingleArtifact
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
-import org.gradle.kotlin.dsl.*
-import java.util.*
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.register
+import java.io.File
+import java.util.Base64
+import java.util.Locale
+import java.util.Properties
 import kotlin.system.exitProcess
 
-private val Project.android
-    get() = extensions.getByName<CommonExtension<BuildFeatures, BuildType, DefaultConfig, ProductFlavor, AndroidResources, Installation>>(
-        "android"
-    )
-private val Project.androidApp get() = android as ApplicationExtension
+private val Project.android: CommonExtension
+    get() = extensions.getByName("android") as CommonExtension
+
+private val Project.androidApp: ApplicationExtension
+    get() = extensions.getByType<ApplicationExtension>()
 
 private lateinit var metadata: Properties
 private lateinit var localProperties: Properties
@@ -61,8 +66,11 @@ fun Project.requireLocalProperties(): Properties {
         val base64 = System.getenv("LOCAL_PROPERTIES")
         if (!base64.isNullOrBlank()) {
             localProperties.load(Base64.getDecoder().decode(base64).inputStream())
-        } else if (project.rootProject.file("local.properties").exists()) {
-            localProperties.load(rootProject.file("local.properties").inputStream())
+        } else {
+            val localPropertiesFile = project.rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                localProperties.load(localPropertiesFile.inputStream())
+            }
         }
     }
     return localProperties
@@ -88,20 +96,18 @@ fun Project.setupCommon() {
     android.apply {
         buildToolsVersion = "36.1.0"
         compileSdk = 36
-        defaultConfig {
+        defaultConfig.apply {
             minSdk = 24
         }
-        buildTypes {
-            getByName("release") {
-                isMinifyEnabled = true
-                vcsInfo.include = false
-            }
+        buildTypes.getByName("release").apply {
+            isMinifyEnabled = true
+            vcsInfo.include = false
         }
-        compileOptions {
+        compileOptions.apply {
             sourceCompatibility = JavaVersion.VERSION_21
             targetCompatibility = JavaVersion.VERSION_21
         }
-        lint {
+        lint.apply {
             showAll = true
             checkAllWarnings = true
             checkReleaseBuilds = false
@@ -109,7 +115,7 @@ fun Project.setupCommon() {
             textOutput = project.file("build/lint.txt")
             htmlOutput = project.file("build/lint.html")
         }
-        packaging {
+        packaging.apply {
             resources.excludes.addAll(
                 listOf(
                     "**/*.kotlin_*",
@@ -122,36 +128,14 @@ fun Project.setupCommon() {
                     "org/**",
                     "**/*.java",
                     "**/*.proto",
-                    "okhttp3/**"
-                )
+                    "okhttp3/**",
+                ),
             )
             jniLibs.useLegacyPackaging = true
         }
-        (this as? AbstractAppExtension)?.apply {
-            buildTypes {
-                getByName("release") {
-                    isMinifyEnabled = true
-                    isShrinkResources = true
-                    vcsInfo.include = false
-                }
-                getByName("debug") {
-                    applicationIdSuffix = "debug"
-                    debuggable(true)
-                    jniDebuggable(true)
-                }
-            }
-            applicationVariants.forEach { variant ->
-                variant.outputs.forEach {
-                    it as BaseVariantOutputImpl
-                    it.outputFileName = it.outputFileName.replace(
-                        "app", "${project.name}-" + variant.versionName
-                    ).replace("-release", "").replace("-foss", "")
-                }
-            }
-        }
     }
     (android as? ApplicationExtension)?.apply {
-        defaultConfig {
+        defaultConfig.apply {
             targetSdk = 36
         }
     }
@@ -200,7 +184,7 @@ fun Project.setupAppCommon() {
 fun Project.setupApp() {
     val pkgName = requireMetadata().getProperty("PACKAGE_NAME")
     val verName = requireMetadata().getProperty("VERSION_NAME")
-    val verCode = (requireMetadata().getProperty("VERSION_CODE").toInt())
+    val verCode = requireMetadata().getProperty("VERSION_CODE").toInt()
     androidApp.apply {
         defaultConfig {
             applicationId = pkgName
@@ -213,13 +197,11 @@ fun Project.setupApp() {
     val targetAbi = requireTargetAbi()
 
     androidApp.apply {
-        this as AbstractAppExtension
-
         buildTypes {
             getByName("release") {
                 proguardFiles(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
-                    file("proguard-rules.pro")
+                    file("proguard-rules.pro"),
                 )
             }
         }
@@ -239,17 +221,14 @@ fun Project.setupApp() {
             create("play")
         }
 
-        applicationVariants.all {
-            outputs.all {
-                this as BaseVariantOutputImpl
-                outputFileName = outputFileName.replace(project.name, "husi-$versionName")
-                    .replace("-release", "")
-                    .replace("-foss", "")
-            }
-        }
+        registerApkRenamer(
+            replaceFrom = project.name,
+            replaceToTemplate = "husi-%VERSION_NAME%",
+            stripTokens = listOf("-release", "-foss"),
+        )
 
         sourceSets.getByName("main").apply {
-            jniLibs.srcDir("executableSo")
+            jniLibs.directories.add("executableSo")
         }
     }
 }
@@ -267,20 +246,16 @@ fun Project.setupPlugin(projectName: String) {
         }
     }
 
-    apply(plugin = "kotlin-android")
-
     setupAppCommon()
 
     val targetAbi = requireTargetAbi()
 
     androidApp.apply {
-        this as AbstractAppExtension
-
         buildTypes {
             getByName("release") {
                 proguardFiles(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
-                    project(":plugin:api").file("proguard-rules.pro")
+                    project(":plugin:api").file("proguard-rules.pro"),
                 )
             }
         }
@@ -342,18 +317,58 @@ fun Project.setupPlugin(projectName: String) {
             }
         }
 
-        applicationVariants.all {
-
-            outputs.all {
-                this as BaseVariantOutputImpl
-                outputFileName = outputFileName.replace(
-                    project.name, "${project.name}-plugin-$versionName"
-                ).replace("-release", "").replace("-foss", "")
-
-            }
-        }
+        registerApkRenamer(
+            replaceFrom = project.name,
+            replaceToTemplate = "${project.name}-plugin-%VERSION_NAME%",
+            stripTokens = listOf("-release", "-foss"),
+        )
     }
 
     dependencies.add("implementation", project(":plugin:api"))
 
+}
+
+private fun String.cap(): String = replaceFirstChar {
+    if (it.isLowerCase()) {
+        it.titlecase(Locale.ROOT)
+    } else {
+        it.toString()
+    }
+}
+
+private fun Project.registerApkRenamer(
+    replaceFrom: String,
+    replaceToTemplate: String,
+    stripTokens: List<String> = listOf("-release", "-foss"),
+) {
+    val androidComponents = extensions.getByType<ApplicationAndroidComponentsExtension>()
+
+    androidComponents.onVariants { variant ->
+        val loader = variant.artifacts.getBuiltArtifactsLoader()
+        val apkDir = variant.artifacts.get(SingleArtifact.APK)
+
+        tasks.matching { it.name == "assemble${variant.name.cap()}" }.configureEach {
+            doLast {
+                val built = requireNotNull(loader.load(apkDir.get())) {
+                    "Cannot load APK artifacts from ${apkDir.get()}"
+                }
+
+                for (artifact in built.elements) {
+                    val srcFile = File(artifact.outputFile)
+                    val versionName = artifact.versionName.orEmpty()
+                    val replaceTo = replaceToTemplate.replace("%VERSION_NAME%", versionName)
+
+                    var newName = srcFile.name.replace(replaceFrom, replaceTo)
+                    for (stripToken in stripTokens) {
+                        newName = newName.replace(stripToken, "")
+                    }
+
+                    val dstFile = File(srcFile.parentFile, newName)
+                    if (srcFile != dstFile) {
+                        srcFile.renameTo(dstFile)
+                    }
+                }
+            }
+        }
+    }
 }
