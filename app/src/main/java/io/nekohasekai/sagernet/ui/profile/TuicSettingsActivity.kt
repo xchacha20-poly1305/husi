@@ -168,7 +168,6 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
                 title = { Text(stringResource(R.string.sni)) },
                 textToValue = { it },
                 icon = { Icon(ImageVector.vectorResource(R.drawable.copyright), null) },
-                enabled = !uiState.disableSNI,
                 summary = { Text(LocalContext.current.contentOrUnset(uiState.sni)) },
                 valueToText = { it },
             )
