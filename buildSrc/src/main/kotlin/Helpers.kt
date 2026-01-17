@@ -138,6 +138,16 @@ fun Project.setupCommon() {
         defaultConfig.apply {
             targetSdk = 36
         }
+        buildTypes {
+            getByName("release") {
+                isShrinkResources = true
+            }
+            getByName("debug") {
+                applicationIdSuffix = "debug"
+                isDebuggable = true
+                isJniDebuggable = true
+            }
+        }
     }
 }
 
