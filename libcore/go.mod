@@ -7,14 +7,14 @@ require (
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.2
 	github.com/miekg/dns v1.1.69
-	github.com/sagernet/cronet-go v0.0.0-20251231120443-1d2d7341cbd8
-	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20251231115934-b87a9ae9bd80
-	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20251231115934-b87a9ae9bd80
-	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20251231115934-b87a9ae9bd80
-	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20251231115934-b87a9ae9bd80
+	github.com/sagernet/cronet-go v0.0.0-20260116194121-2f4dd12c0e3c
+	github.com/sagernet/cronet-go/lib/android_386 v0.0.0-20260116193621-3736b84671a9
+	github.com/sagernet/cronet-go/lib/android_amd64 v0.0.0-20260116193621-3736b84671a9
+	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20260116193621-3736b84671a9
+	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20260116193621-3736b84671a9
 	github.com/sagernet/gomobile v0.1.11
 	github.com/sagernet/sing v0.8.0-beta.10
-	github.com/sagernet/sing-box v1.13.0-beta.4
+	github.com/sagernet/sing-box v1.13.0-beta.6
 	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20260107060547-525f783d005b
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
@@ -64,7 +64,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mdlayher/netlink v1.7.3-0.20250113171957-fbb4dce95f42 // indirect
 	github.com/mdlayher/socket v0.5.1 // indirect
-	github.com/metacubex/utls v1.8.3 // indirect
+	github.com/metacubex/utls v1.8.4 // indirect
 	github.com/mholt/acmez/v3 v3.1.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
@@ -74,12 +74,12 @@ require (
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.2 // indirect
-	github.com/sagernet/sing-mux v0.3.3 // indirect
-	github.com/sagernet/sing-quic v0.6.0-beta.10 // indirect
+	github.com/sagernet/sing-mux v0.3.4 // indirect
+	github.com/sagernet/sing-quic v0.6.0-beta.11 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
-	github.com/sagernet/smux v1.5.34-mod.2 // indirect
+	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
 	github.com/sagernet/wireguard-go v0.0.2-beta.1.0.20250917110311-16510ac47288 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
