@@ -1,13 +1,12 @@
-import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.api.variant.impl.VariantOutputImpl
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import java.io.File
 import java.util.Base64
 import java.util.Locale
 import java.util.Properties
@@ -354,30 +353,17 @@ private fun Project.registerApkRenamer(
     val androidComponents = extensions.getByType<ApplicationAndroidComponentsExtension>()
 
     androidComponents.onVariants { variant ->
-        val loader = variant.artifacts.getBuiltArtifactsLoader()
-        val apkDir = variant.artifacts.get(SingleArtifact.APK)
-
-        tasks.matching { it.name == "assemble${variant.name.cap()}" }.configureEach {
-            doLast {
-                val built = requireNotNull(loader.load(apkDir.get())) {
-                    "Cannot load APK artifacts from ${apkDir.get()}"
-                }
-
-                for (artifact in built.elements) {
-                    val srcFile = File(artifact.outputFile)
-                    val versionName = artifact.versionName.orEmpty()
-                    val replaceTo = replaceToTemplate.replace("%VERSION_NAME%", versionName)
-
-                    var newName = srcFile.name.replace(replaceFrom, replaceTo)
-                    for (stripToken in stripTokens) {
-                        newName = newName.replace(stripToken, "")
-                    }
-
-                    val dstFile = File(srcFile.parentFile, newName)
-                    if (srcFile != dstFile) {
-                        srcFile.renameTo(dstFile)
-                    }
-                }
+        variant.outputs.forEach { output ->
+            val outputImpl = output as? VariantOutputImpl ?: return@forEach
+            val versionName = output.versionName.orNull.orEmpty()
+            val replaceTo = replaceToTemplate.replace("%VERSION_NAME%", versionName)
+            val originalFileName = outputImpl.outputFileName.get()
+            var newName = originalFileName.replace(replaceFrom, replaceTo)
+            for (stripToken in stripTokens) {
+                newName = newName.replace(stripToken, "")
+            }
+            if (newName != originalFileName) {
+                outputImpl.outputFileName.set(newName)
             }
         }
     }
