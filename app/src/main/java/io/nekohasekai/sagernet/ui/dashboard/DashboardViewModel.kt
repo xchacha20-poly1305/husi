@@ -246,9 +246,9 @@ class DashboardViewModel : ViewModel() {
             val hosts = addressPairs.map { it.first }
             val addresses = addressPairs.map { (address, prefix) -> address.toPrefix(prefix) }
             val priority = when {
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> PRIORITY_VPN
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> PRIORITY_WIFI
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> PRIORITY_CELLULAR
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> PRIORITY_VPN
                 else -> PRIORITY_OTHER
             }
             interfaces += priority to (NetworkInterfaceInfo(
