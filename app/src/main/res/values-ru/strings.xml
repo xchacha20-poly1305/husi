@@ -602,7 +602,7 @@
     <string name="selected">Выбрано</string>
     <string name="management">Управление</string>
     <string name="proxy_set">Набор прокси</string>
-    <string name="interrupt_exist_connections">Прерывание существующих соединений</string>
+    <string name="interrupt_exist_connections">Прерывать активные соединения</string>
     <string name="urltest_interval">Интервал URL-теста</string>
     <string name="idle_timeout">Тайм-аут до IDLE (прекращения цикла тестирования)</string>
     <string name="urltest_tolerance">Допустимое отклонение от сервера с лучшим откликом (мс)</string>
@@ -628,7 +628,7 @@
     <string name="refresh">Обновить</string>
     <string name="route_asset_name">Название ресурса (имя файла)</string>
     <string name="invalid_filename">Неверное имя файла</string>
-    <string name="add_route_asset">Добавить ресурсы маршрута</string>
+    <string name="add_route_asset">Добавить ресурс маршрута</string>
     <string name="assets_settings">Данные ресурса</string>
     <string name="import_url">Импорт из URL</string>
     <string name="expect_srs">Ожидается, что имя файла заканчивается на \".srs\"</string>
@@ -686,4 +686,25 @@
     <string name="scroll_to_bottom">Прокрутить вниз</string>
     <string name="ech_query_server_name">Имя сервера для запроса</string>
     <string name="force_resolve_error">Ошибка принудительного резолвинга: %s</string>
+    <string name="themes_black">Следы на снегу</string>
+    <string name="themes_blue">Туманный дождь</string>
+    <string name="themes_blue_grey">Серое полотно</string>
+    <string name="themes_brown">Стойкая почва</string>
+    <string name="themes_cyan">Ивовый нефрит</string>
+    <string name="themes_deep_orange">Пылающий закат</string>
+    <string name="themes_deep_purple">Лиловая вершина</string>
+    <string name="themes_dynamic">Как мне нравится</string>
+    <string name="themes_green">Зеленеющий гуцинь</string>
+    <string name="themes_grey">Беспыльная пустота</string>
+    <string name="themes_indigo">Астральный прилив</string>
+    <string name="themes_light_blue">Лазурное зеркало</string>
+    <string name="themes_light_green">Далекая зелень</string>
+    <string name="themes_lime">Жёлтая уточка</string>
+    <string name="themes_orange">Восходящий рассвет</string>
+    <string name="themes_pink">Розовые дюны</string>
+    <string name="themes_pink_ssr">Лепестки сакуры</string>
+    <string name="themes_purple">Фиолетовый бриз</string>
+    <string name="themes_red">Алая доблесть</string>
+    <string name="themes_teal">Нежное сияние</string>
+    <string name="themes_yellow">Солнечный путь</string>
 </resources>
