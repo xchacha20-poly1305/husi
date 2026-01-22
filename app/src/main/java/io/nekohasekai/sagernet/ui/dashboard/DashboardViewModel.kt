@@ -11,8 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.TrafficSortMode
-import io.nekohasekai.sagernet.aidl.ProxySet
-import io.nekohasekai.sagernet.aidl.toList
 import io.nekohasekai.sagernet.bg.DefaultNetworkListener
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
@@ -36,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import libcore.Client
 import libcore.ConnectionEvent
+import libcore.GroupItemIterator
 import libcore.Libcore
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -74,6 +73,70 @@ data class NetworkInterfaceInfo(
     val name: String,
     val addresses: List<String>,
 )
+
+@Immutable
+data class ProxySet(
+    val tag: String = "",
+    val type: String = "",
+    val selectable: Boolean = false,
+    var selected: String = "",
+    var items: List<ProxySetItem> = emptyList(),
+    val isTesting: Boolean = false,
+) {
+    constructor(set: libcore.ProxySet) : this(
+        tag = set.tag,
+        type = set.type,
+        selectable = set.selectable,
+        selected = set.selected,
+        items = set.items.toList(),
+    )
+}
+
+fun libcore.ProxySetIterator.toList(): List<ProxySet> {
+    return ArrayList<ProxySet>(length()).apply {
+        while (hasNext()) {
+            add(ProxySet(next()))
+        }
+    }
+}
+
+@Immutable
+data class ProxySetItem(
+    val tag: String = "",
+    val type: String = "",
+    val urlTestDelay: Short = -1,
+) {
+    constructor(item: libcore.GroupItem) : this(
+        tag = item.tag,
+        type = item.type,
+    )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ProxySetItem
+
+        if (tag != other.tag) return false
+        if (type != other.type) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = tag.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
+}
+
+fun GroupItemIterator.toList(): List<ProxySetItem> {
+    return ArrayList<ProxySetItem>(length()).apply {
+        while (hasNext()) {
+            add(ProxySetItem(next()))
+        }
+    }
+}
 
 @Stable
 class DashboardViewModel : ViewModel() {

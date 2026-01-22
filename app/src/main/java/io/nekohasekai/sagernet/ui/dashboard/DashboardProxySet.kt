@@ -43,8 +43,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.ProxySet
-import io.nekohasekai.sagernet.aidl.ProxySetItem
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.colorForUrlTestDelay
 import io.nekohasekai.sagernet.compose.rememberScrollHideState

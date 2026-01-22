@@ -52,7 +52,7 @@ data class LogEntry(
 
 fun LogItem.toLogEntry(): LogEntry {
     return LogEntry(
-        level = LogLevel.entries[level.toInt()],
+        level = LogLevel.entries[level],
         message = message,
     )
 }
