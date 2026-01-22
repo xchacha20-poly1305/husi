@@ -38,7 +38,7 @@ class TileService : BaseTileService() {
         observeJob = scope.launch {
             connection.status.collectLatest { status ->
                 updateTile(status.state, status.profileName)
-                if (connection.connected.value && tapPending) {
+                if (status.state.connected && tapPending) {
                     tapPending = false
                     onClick()
                 }
@@ -49,6 +49,7 @@ class TileService : BaseTileService() {
     override fun onStopListening() {
         observeJob?.cancel()
         observeJob = null
+        tapPending = false
         connection.disconnect(this)
         super.onStopListening()
     }
@@ -96,7 +97,10 @@ class TileService : BaseTileService() {
             } else {
                 val state = DataStore.serviceState
                 when {
-                    state.canStop -> repo.stopService()
+                    state.canStop -> {
+                        tapPending = false
+                        repo.stopService()
+                    }
                     state == BaseService.State.Stopped -> repo.startService()
                 }
             }

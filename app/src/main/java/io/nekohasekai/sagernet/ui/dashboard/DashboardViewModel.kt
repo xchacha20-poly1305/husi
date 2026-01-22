@@ -140,7 +140,7 @@ class DashboardViewModel : ViewModel() {
     private var clashModeSubscriptionJob: Job? = null
     private val clientManager = LibcoreClientManager()
 
-    fun initialize(isConnected: Boolean) = viewModelScope.launch {
+    suspend fun initialize(isConnected: Boolean) {
         job?.cancel()
         subscriptionJob?.cancel()
         clashModeSubscriptionJob?.cancel()
@@ -153,7 +153,7 @@ class DashboardViewModel : ViewModel() {
                 clashModes = emptyList(),
             )
         }
-        if (!isConnected) return@launch
+        if (!isConnected) return
 
         subscriptionJob = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
             viewModelScope.launch {

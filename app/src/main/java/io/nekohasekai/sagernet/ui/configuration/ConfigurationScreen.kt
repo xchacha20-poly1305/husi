@@ -1086,7 +1086,9 @@ private fun ConfigurationDialogs(
 
                                         is FailureReason.Generic -> reason.message ?: "Unknown"
 
-                                        is FailureReason.PluginNotFound -> reason.message
+                                        is FailureReason.PluginNotFound -> {
+                                            stringResource(R.string.plugin_unknown, reason.plugin)
+                                        }
                                     }
                                     text to MaterialTheme.colorScheme.error
                                 }

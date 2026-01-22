@@ -450,6 +450,7 @@ fun MainScreen(
                 val pluginName = alert.message
                 val plugin = PluginEntry.find(pluginName)
                 if (plugin == null) {
+                    showServiceAlert = null
                     viewModel.showSnackbar(
                         StringOrRes.ResWithParams(R.string.plugin_unknown, pluginName),
                     )

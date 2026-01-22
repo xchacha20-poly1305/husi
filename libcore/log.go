@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"libcore/ringqueue"
@@ -146,6 +147,7 @@ var (
 
 type logWriter struct {
 	writer   io.Writer
+	bufferAccess sync.RWMutex
 	buffer   *ringqueue.RingQueue[log.Entry]
 	observer *observable.Observer[log.Entry]
 }
@@ -168,7 +170,9 @@ func (w *logWriter) WriteMessage(level log.Level, message string) {
 		Level:   level,
 		Message: message,
 	}
+	w.bufferAccess.Lock()
 	w.buffer.Add(entry)
+	w.bufferAccess.Unlock()
 	w.observer.Emit(entry)
 	_, _ = io.WriteString(w.writer, message+"\n")
 }
@@ -179,6 +183,12 @@ func (w *logWriter) Subscribe() (subscription observable.Subscription[log.Entry]
 
 func (w *logWriter) UnSubscribe(subscription observable.Subscription[log.Entry]) {
 	w.observer.UnSubscribe(subscription)
+}
+
+func (w *logWriter) All() []log.Entry {
+	w.bufferAccess.RLock()
+	defer w.bufferAccess.RUnlock()
+	return w.buffer.All()
 }
 
 var _ io.Writer = (*logWriter)(nil)
@@ -213,6 +223,8 @@ func (w *logWriter) Close() error {
 
 func (w *logWriter) Clear() {
 	w.truncate()
+	w.bufferAccess.Lock()
+	defer w.bufferAccess.Unlock()
 	w.buffer.Clear()
 }
 
@@ -239,7 +251,7 @@ func (c *Client) SubscribeLogs(callback LogItemFunc) error {
 }
 
 func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
-	buffer := platformLogWrapper.buffer.All()
+	buffer := platformLogWrapper.All()
 	for i := range buffer {
 		err := varbin.Write(conn, binary.BigEndian, buffer[i])
 		if err != nil {

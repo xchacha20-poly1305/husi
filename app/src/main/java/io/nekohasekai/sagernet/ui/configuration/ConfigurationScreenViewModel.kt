@@ -34,6 +34,7 @@ import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.removeFirstMatched
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
+import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.closeQuietly
 import kotlinx.coroutines.Dispatchers
@@ -109,7 +110,7 @@ sealed interface FailureReason {
     object NetworkUnreachable : FailureReason
     object Timeout : FailureReason
     data class Generic(val message: String?) : FailureReason
-    data class PluginNotFound(val message: String) : FailureReason
+    data class PluginNotFound(val plugin: String) : FailureReason
 }
 
 @Stable
@@ -271,7 +272,7 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
                             it.profile.error = when (result.reason) {
                                 is FailureReason.Generic -> displayedError ?: result.reason.message
                                 is FailureReason.PluginNotFound -> {
-                                    displayedError ?: result.reason.message
+                                    displayedError ?: result.reason.plugin
                                 }
 
                                 else -> displayedError
@@ -381,6 +382,8 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
 
             val result = client.newInstanceURLTest(config.config, "", testURL, testTimeout)
             TestResult.Success(result)
+        } catch (e: PluginManager.PluginNotFoundException) {
+            TestResult.Failure(FailureReason.PluginNotFound(e.plugin))
         } catch (e: Exception) {
             TestResult.Failure(FailureReason.Generic(e.readableMessage))
         } finally {

@@ -103,6 +103,7 @@ class SagerConnection(
 
     override fun binderDied() {
         _connected.value = false
+        connectionActive = false
         unregisterObserver()
         binder = null
         service = null

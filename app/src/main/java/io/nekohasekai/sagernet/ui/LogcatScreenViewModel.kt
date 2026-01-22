@@ -96,11 +96,9 @@ class LogcatScreenViewModel : ViewModel() {
         }
     }
 
-    fun initialize() {
+    suspend fun initialize() {
         job?.cancel()
-        runBlocking {
-            clientManager.close()
-        }
+        clientManager.close()
         allLogs = persistentListOf()
         lastLogCount = 0
         _uiState.update { it.copy(logs = persistentListOf()) }

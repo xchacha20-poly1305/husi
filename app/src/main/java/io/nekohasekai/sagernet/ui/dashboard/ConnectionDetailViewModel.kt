@@ -33,8 +33,8 @@ class ConnectionDetailViewModel : ViewModel() {
         super.onCleared()
     }
 
-    fun initialize(uuid: String) = viewModelScope.launch {
-        if (connectionState.value.uuid == uuid) return@launch
+    suspend fun initialize(uuid: String) {
+        if (connectionState.value.uuid == uuid)
         job?.cancel()
         connectionState.value = queryConnection(uuid)
         job = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
