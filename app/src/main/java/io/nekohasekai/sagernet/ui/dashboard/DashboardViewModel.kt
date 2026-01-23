@@ -50,7 +50,7 @@ data class DashboardState(
     val isPause: Boolean = false,
     val sortMode: Int = TrafficSortMode.START,
     val isDescending: Boolean = false,
-    val queryOptions: Byte = Libcore.ShowTrackerActively,
+    val queryOptions: Byte = SHOW_TRACKER_ACTIVELY,
 
     val memory: Long = 0,
     val goroutines: Int = 0,
@@ -64,8 +64,13 @@ data class DashboardState(
 
     val proxySets: List<ProxySet> = emptyList(),
 ) {
-    val showActivate = queryOptions and Libcore.ShowTrackerActively != 0.toByte()
-    val showClosed = queryOptions and Libcore.ShowTrackerClosed != 0.toByte()
+    companion object {
+        const val SHOW_TRACKER_ACTIVELY: Byte = 1
+        const val SHOW_TRACKER_CLOSED: Byte = 2
+    }
+
+    val showActivate = queryOptions and SHOW_TRACKER_ACTIVELY != 0.toByte()
+    val showClosed = queryOptions and SHOW_TRACKER_CLOSED != 0.toByte()
 }
 
 @Immutable
@@ -225,7 +230,7 @@ class DashboardViewModel : ViewModel() {
         }
         try {
             clientManager.withClient { client ->
-                val iterator = client.queryConnections(_uiState.value.queryOptions)
+                val iterator = client.queryConnections()
                     ?: return@withClient
                 while (iterator.hasNext()) {
                     val info = iterator.next() ?: continue
@@ -325,18 +330,18 @@ class DashboardViewModel : ViewModel() {
     fun setQueryActivate(queryActivate: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
         DataStore.trafficConnectionQuery = if (queryActivate) {
-            old or Libcore.ShowTrackerActively
+            old or DashboardState.SHOW_TRACKER_ACTIVELY
         } else {
-            old and Libcore.ShowTrackerActively.inv()
+            old and DashboardState.SHOW_TRACKER_ACTIVELY.inv()
         }.toInt()
     }
 
     fun setQueryClosed(queryClosed: Boolean) = runOnIoDispatcher {
         val old = uiState.value.queryOptions
         DataStore.trafficConnectionQuery = if (queryClosed) {
-            old or Libcore.ShowTrackerClosed
+            old or DashboardState.SHOW_TRACKER_CLOSED
         } else {
-            old and Libcore.ShowTrackerClosed.inv()
+            old and DashboardState.SHOW_TRACKER_CLOSED.inv()
         }.toInt()
     }
 

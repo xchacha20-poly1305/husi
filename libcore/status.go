@@ -20,19 +20,10 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
-const (
-	ShowTrackerActively uint8 = 1 << 0
-	ShowTrackerClosed   uint8 = 1 << 1
-)
-
-func (c *Client) QueryConnections(filterFlag uint8) (TrackerInfoIterator, error) {
+func (c *Client) QueryConnections() (TrackerInfoIterator, error) {
 	err := varbin.Write(c.conn, binary.BigEndian, commandQueryConnections)
 	if err != nil {
 		return nil, E.Cause(err, "write command")
-	}
-	err = varbin.Write(c.conn, binary.BigEndian, filterFlag)
-	if err != nil {
-		return nil, E.Cause(err, "write filter flag")
 	}
 	trackerInfos, err := varbin.ReadValue[[]*TrackerInfo](c.conn, binary.BigEndian)
 	if err != nil {
@@ -42,25 +33,16 @@ func (c *Client) QueryConnections(filterFlag uint8) (TrackerInfoIterator, error)
 }
 
 func (s *Service) handleQueryConnections(conn io.ReadWriter, instance *boxInstance) error {
-	filterFlag, err := varbin.ReadValue[uint8](conn, binary.BigEndian)
-	if err != nil {
-		return E.Cause(err, "read filter flag")
+	metadatas := instance.api.TrafficManager().ClosedConnections()
+	trackerInfos := make([]*TrackerInfo, 0, len(metadatas))
+	for _, metadata := range metadatas {
+		trackerInfos = append(trackerInfos, buildTrackerInfo(metadata))
 	}
-	var trackerInfos []*TrackerInfo
-	if filterFlag&ShowTrackerClosed != 0 {
-		metadatas := instance.api.TrafficManager().ClosedConnections()
-		trackerInfos = make([]*TrackerInfo, 0, len(metadatas))
-		for _, metadata := range metadatas {
-			trackerInfos = append(trackerInfos, buildTrackerInfo(metadata))
-		}
-	}
-	if filterFlag&ShowTrackerActively != 0 {
-		instance.api.TrafficManager().Range(func(_ uuid.UUID, tracker trafficcontrol.Tracker) bool {
-			trackerInfos = append(trackerInfos, buildTrackerInfo(tracker.Metadata()))
-			return true
-		})
-	}
-	err = varbin.Write(conn, binary.BigEndian, trackerInfos)
+	instance.api.TrafficManager().Range(func(_ uuid.UUID, tracker trafficcontrol.Tracker) bool {
+		trackerInfos = append(trackerInfos, buildTrackerInfo(tracker.Metadata()))
+		return true
+	})
+	err := varbin.Write(conn, binary.BigEndian, trackerInfos)
 	if err != nil {
 		return E.Cause(err, "write tracker infos")
 	}

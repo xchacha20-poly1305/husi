@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import libcore.ConnectionEvent
 import libcore.Libcore
-import kotlin.experimental.or
 
 @Stable
 class ConnectionDetailViewModel : ViewModel() {
@@ -45,8 +44,7 @@ class ConnectionDetailViewModel : ViewModel() {
     private suspend fun queryConnection(uuid: String): ConnectionDetailState {
         return try {
             clientManager.withClient { client ->
-                val flag = Libcore.ShowTrackerActively or Libcore.ShowTrackerClosed
-                val iterator = client.queryConnections(flag)
+                val iterator = client.queryConnections()
                     ?: return@withClient ConnectionDetailState(uuid = uuid)
                 while (iterator.hasNext()) {
                     val info = iterator.next() ?: continue
