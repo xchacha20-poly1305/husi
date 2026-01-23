@@ -13,7 +13,6 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
-	M "github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/common/observable"
 	"github.com/sagernet/sing/common/varbin"
 
@@ -64,19 +63,23 @@ func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata) *TrackerInfo {
 		process = processInfo.AndroidPackageName
 		uid = processInfo.UserId
 	}
+	var destination string
+	if dest := metadata.Metadata.Destination; dest.IsValid() {
+		destination = dest.String()
+	}
 	return &TrackerInfo{
 		UUID:          metadata.ID,
 		Inbound:       generateBound(metadata.Metadata.Inbound, metadata.Metadata.InboundType),
 		IPVersion:     int16(metadata.Metadata.IPVersion),
 		Network:       metadata.Metadata.Network,
-		Src:           metadata.Metadata.Source,
-		Dst:           metadata.Metadata.Destination,
+		Src:           metadata.Metadata.Source.String(),
+		Dst:           destination,
 		Host:          cmp.Or(metadata.Metadata.Domain, metadata.Metadata.Destination.Fqdn),
 		MatchedRule:   rule,
 		UploadTotal:   metadata.Upload.Load(),
 		DownloadTotal: metadata.Download.Load(),
-		startedAt:     metadata.CreatedAt,
-		closedAt:      metadata.ClosedAt,
+		StartedAtUnix: unixSeconds(metadata.CreatedAt),
+		ClosedAtUnix:  unixSeconds(metadata.ClosedAt),
 		Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
 		Chain:         strings.Join(metadata.Chain, " => "),
 		Protocol:      metadata.Metadata.Protocol,
@@ -99,13 +102,14 @@ type TrackerInfo struct {
 	Inbound       string
 	IPVersion     int16
 	Network       string
-	Src, Dst      M.Socksaddr
+	Src           string
+	Dst           string
 	Host          string
 	MatchedRule   string
 	UploadTotal   int64
 	DownloadTotal int64
-	startedAt     time.Time
-	closedAt      time.Time
+	StartedAtUnix int64
+	ClosedAtUnix  int64
 	Outbound      string
 	Chain         string
 	Protocol      string
@@ -113,30 +117,22 @@ type TrackerInfo struct {
 	UID           int32
 }
 
-func (t *TrackerInfo) GetSrc() string {
-	return t.Src.String()
-}
-
-func (t *TrackerInfo) GetDst() string {
-	if !t.Dst.IsValid() {
-		return ""
-	}
-	return t.Dst.String()
-}
-
 func (t *TrackerInfo) GetUUID() string {
 	return t.UUID.String()
 }
 
 func (t *TrackerInfo) GetStartedAt() string {
-	return t.startedAt.Format(time.DateTime)
+	if t.StartedAtUnix == 0 {
+		return ""
+	}
+	return time.Unix(t.StartedAtUnix, 0).Local().Format(time.DateTime)
 }
 
 func (t *TrackerInfo) GetClosedAt() string {
-	if t.closedAt.IsZero() {
+	if t.ClosedAtUnix == 0 {
 		return ""
 	}
-	return t.closedAt.Format(time.DateTime)
+	return time.Unix(t.ClosedAtUnix, 0).Local().Format(time.DateTime)
 }
 
 // generateBound formats inbound/outbound's name.
@@ -162,6 +158,30 @@ type ConnectionEvent struct {
 	ClosedAt      string
 }
 
+func unixSeconds(value time.Time) int64 {
+	if value.IsZero() {
+		return 0
+	}
+	return value.Unix()
+}
+
+func toConnectionEvent(event trafficcontrol.ConnectionEvent) ConnectionEvent {
+	converted := ConnectionEvent{
+		Type: int16(event.Type),
+		ID:   event.ID.String(),
+	}
+	switch event.Type {
+	case trafficcontrol.ConnectionEventNew:
+		converted.TrackerInfo = buildTrackerInfo(event.Metadata)
+	case trafficcontrol.ConnectionEventUpdate:
+		converted.UplinkDelta = event.UplinkDelta
+		converted.DownlinkDelta = event.DownlinkDelta
+	case trafficcontrol.ConnectionEventClosed:
+		converted.ClosedAt = event.ClosedAt.Format(time.DateTime)
+	}
+	return converted
+}
+
 type ConnectionEventCallback interface {
 	OnConnectionEvent(*ConnectionEvent)
 }
@@ -172,24 +192,11 @@ func (c *Client) SubscribeConnectionEvent(callback ConnectionEventCallback) erro
 		return E.Cause(err, "write command")
 	}
 	for {
-		event, err := varbin.ReadValue[trafficcontrol.ConnectionEvent](c.conn, binary.BigEndian)
+		event, err := varbin.ReadValue[ConnectionEvent](c.conn, binary.BigEndian)
 		if err != nil {
-			return err
+			return E.Cause(err, "read event")
 		}
-		callbackEvent := &ConnectionEvent{
-			Type: int16(event.Type),
-			ID:   event.ID.String(),
-		}
-		switch event.Type {
-		case trafficcontrol.ConnectionEventNew:
-			callbackEvent.TrackerInfo = buildTrackerInfo(event.Metadata)
-		case trafficcontrol.ConnectionEventUpdate:
-			callbackEvent.UplinkDelta = event.UplinkDelta
-			callbackEvent.DownlinkDelta = event.DownlinkDelta
-		case trafficcontrol.ConnectionEventClosed:
-			callbackEvent.ClosedAt = event.ClosedAt.Format(time.DateTime)
-		}
-		callback.OnConnectionEvent(callbackEvent)
+		callback.OnConnectionEvent(&event)
 	}
 }
 
@@ -203,7 +210,7 @@ func (s *Service) handleSubscribeConnections(conn io.ReadWriter, instance *boxIn
 	for {
 		select {
 		case event := <-subscription:
-			err := varbin.Write(conn, binary.BigEndian, event)
+			err := varbin.Write(conn, binary.BigEndian, toConnectionEvent(event))
 			if err != nil {
 				if E.IsClosed(err) {
 					return nil

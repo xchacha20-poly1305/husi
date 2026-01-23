@@ -180,7 +180,10 @@ class DashboardViewModel : ViewModel() {
             }
         }
         viewModelScope.launch {
-            DataStore.configurationStore.intFlow(Key.TRAFFIC_CONNECTION_QUERY).collectLatest {
+            DataStore.configurationStore.intFlow(
+                Key.TRAFFIC_CONNECTION_QUERY,
+                DashboardState.SHOW_TRACKER_ACTIVELY.toInt(),
+            ).collectLatest {
                 _uiState.update { state ->
                     state.copy(
                         queryOptions = it.toByte(),
@@ -544,8 +547,7 @@ class DashboardViewModel : ViewModel() {
     private fun handleConnectionEvent(event: ConnectionEvent) {
         when (event.type) {
             Libcore.ConnectionEventNew -> {
-                val trackerInfo = event.trackerInfo ?: return
-                connections[trackerInfo.uuid] = trackerInfo.toDetailState()
+                connections[event.id] = event.trackerInfo!!.toDetailState()
                 updateConnectionsSnapshot()
             }
 
