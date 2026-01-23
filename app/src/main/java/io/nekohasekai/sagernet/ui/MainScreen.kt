@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,9 +15,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -64,15 +63,18 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jakewharton.processphoenix.ProcessPhoenix
+import io.nekohasekai.sagernet.AlertType
 import io.nekohasekai.sagernet.LICENSE
 import io.nekohasekai.sagernet.NavRoutes
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.bg.Alert
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.TextButton
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.ktx.hasPermission
 import io.nekohasekai.sagernet.ktx.openPermissionSettings
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -167,9 +169,22 @@ fun MainScreen(
         }
     }
 
+    var showServiceAlert by remember { mutableStateOf<Alert?>(null) }
+    var showBackgroundLocationDialog by remember { mutableStateOf(false) }
+    val backgroundPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { }
+    val finePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            showBackgroundLocationDialog = true
+        }
+    }
+
     LaunchedEffect(Unit) {
-        connection.errorMessage.collect { message ->
-            viewModel.showSnackbar(StringOrRes.Direct(message))
+        connection.alert.collect { alert ->
+            showServiceAlert = alert
         }
     }
 
@@ -352,7 +367,6 @@ fun MainScreen(
                 val uuid = entry.arguments!!.getString("uuid")!!
                 ConnectionDetailScreen(
                     uuid = uuid,
-                    connection = connection,
                     popup = { navController.navigateUp() },
                     navigateToRoutes = { navController.navigate(NavRoutes.ROUTE) },
                 )
@@ -428,6 +442,87 @@ fun MainScreen(
             }
         },
     )
+
+    if (showServiceAlert != null) {
+        val alert = showServiceAlert!!
+        when (alert.type) {
+            AlertType.MISSING_PLUGIN -> {
+                val pluginName = alert.message
+                val plugin = PluginEntry.find(pluginName)
+                if (plugin == null) {
+                    showServiceAlert = null
+                    viewModel.showSnackbar(
+                        StringOrRes.ResWithParams(R.string.plugin_unknown, pluginName),
+                    )
+                } else {
+                    AlertDialog(
+                        onDismissRequest = { showServiceAlert = null },
+                        confirmButton = {
+                            TextButton(stringResource(R.string.action_download)) {
+                                showServiceAlert = null
+                                uriHandler.openUri(plugin.downloadSource.downloadLink)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(stringResource(android.R.string.cancel)) {
+                                showServiceAlert = null
+                            }
+                        },
+                        icon = { Icon(ImageVector.vectorResource(R.drawable.error), null) },
+                        title = { Text(plugin.displayName) },
+                        text = { Text(stringResource(R.string.missing_plugin)) },
+                    )
+                }
+            }
+
+            AlertType.NEED_WIFI_PERMISSION -> {
+                AlertDialog(
+                    onDismissRequest = { showServiceAlert = null },
+                    confirmButton = {
+                        TextButton(stringResource(android.R.string.ok)) {
+                            showServiceAlert = null
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                                context.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                            ) {
+                                showBackgroundLocationDialog = true
+                            } else {
+                                finePermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(stringResource(R.string.no_thanks)) {
+                            showServiceAlert = null
+                        }
+                    },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.warning_amber), null) },
+                    title = { Text(stringResource(R.string.location_permission_title)) },
+                    text = { Text(stringResource(R.string.location_permission_description)) },
+                )
+            }
+        }
+    }
+
+    if (showBackgroundLocationDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackgroundLocationDialog = false },
+            confirmButton = {
+                TextButton(stringResource(android.R.string.ok)) {
+                    showBackgroundLocationDialog = false
+                    @SuppressLint("InlinedApi")
+                    backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                }
+            },
+            dismissButton = {
+                TextButton(stringResource(R.string.no_thanks)) {
+                    showBackgroundLocationDialog = false
+                }
+            },
+            icon = { Icon(ImageVector.vectorResource(R.drawable.warning_amber), null) },
+            title = { Text(stringResource(R.string.location_permission_title)) },
+            text = { Text(stringResource(R.string.location_permission_background_description)) },
+        )
+    }
 
     var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
     LaunchedEffect(Unit) {

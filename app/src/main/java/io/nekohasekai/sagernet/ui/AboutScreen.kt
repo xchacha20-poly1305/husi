@@ -122,7 +122,6 @@ fun AboutScreen(
     }
 
     val serviceStatus by connection.status.collectAsStateWithLifecycle()
-    val service by connection.service.collectAsStateWithLifecycle()
 
     val annotatedLicense = buildAnnotatedString {
         val links = listOf(
@@ -191,7 +190,6 @@ fun AboutScreen(
                     status = serviceStatus,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },

@@ -7,28 +7,29 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.aidl.LogItem
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.utils.LibcoreClientManager
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import libcore.LogItem
 
 @Immutable
 data class LogcatUiState(
     val pause: Boolean = false,
     val searchQuery: String? = null,
     val logLevel: LogLevel = LogLevel.WARN,
-    val logs: PersistentList<LogItem> = persistentListOf(),
+    val logs: PersistentList<LogEntry> = persistentListOf(),
     val errorMessage: String? = null,
 )
 
@@ -43,18 +44,32 @@ enum class LogLevel() {
     TRACE,
 }
 
+@Immutable
+data class LogEntry(
+    val level: LogLevel,
+    val message: String,
+)
+
+fun LogItem.toLogEntry(): LogEntry {
+    return LogEntry(
+        level = LogLevel.entries[level],
+        message = message,
+    )
+}
+
 @Stable
 class LogcatScreenViewModel : ViewModel() {
 
-    private var allLogs: PersistentList<LogItem> = persistentListOf()
+    private var allLogs: PersistentList<LogEntry> = persistentListOf()
     private val _uiState = MutableStateFlow(
         LogcatUiState(logLevel = LogLevel.entries.getOrNull(DataStore.logLevel) ?: LogLevel.WARN),
     )
     val uiState = _uiState.asStateFlow()
     val searchTextFieldState = TextFieldState()
 
-    private var connection: SagerConnection? = null
     private var job: Job? = null
+    private val clientManager = LibcoreClientManager()
+    private var lastLogCount = 0
 
     init {
         viewModelScope.launch {
@@ -65,54 +80,40 @@ class LogcatScreenViewModel : ViewModel() {
         }
     }
 
-    private fun refilterLogs(logLevel: LogLevel, query: String?): PersistentList<LogItem> {
+    private fun refilterLogs(logLevel: LogLevel, query: String?): PersistentList<LogEntry> {
         return allLogs.filter { item ->
-            item.level <= logLevel.ordinal
+            item.level.ordinal <= logLevel.ordinal
                     && query?.let { item.message.contains(it, ignoreCase = true) } ?: true
         }.toPersistentList()
     }
 
-    private fun appendLogs(newLogs: List<LogItem>) {
-        allLogs = allLogs.addAll(newLogs)
+    private fun appendLogs(item: LogEntry) {
+        allLogs = allLogs.add(item)
         _uiState.update { state ->
             if (state.pause) return
-            val level = state.logLevel.ordinal
-            val filtered = newLogs.filter { item ->
-                item.level <= level && state.searchQuery?.let {
-                    item.message.contains(
-                        it,
-                        ignoreCase = true,
-                    )
-                } ?: true
-            }
-            if (filtered.isEmpty()) return
-            state.copy(logs = state.logs.addAll(filtered))
+            if (item.level.ordinal > state.logLevel.ordinal) return
+            state.copy(logs = state.logs.add(item))
         }
     }
 
-    fun initialize(service: ISagerNetService, connection: SagerConnection) {
-        clearJob()
-        this.connection = connection
-        connection.clearLogBuffer()
-        job = viewModelScope.launch {
-            connection.logLine
-                .onStart {
-                    service.startLogWatching(true)
-                }
-                .collect { lines ->
-                    appendLogs(lines)
-                }
+    suspend fun initialize() {
+        job?.cancel()
+        clientManager.close()
+        allLogs = persistentListOf()
+        lastLogCount = 0
+        _uiState.update { it.copy(logs = persistentListOf()) }
+
+        job = clientManager.subscribeLogs(viewModelScope) { item ->
+            appendLogs(item.toLogEntry())
         }
     }
 
     override fun onCleared() {
-        clearJob()
-        super.onCleared()
-    }
-
-    private fun clearJob() {
         job?.cancel()
-        connection?.service?.value?.startLogWatching(false)
+        runBlocking {
+            clientManager.close()
+        }
+        super.onCleared()
     }
 
     fun togglePause() {
@@ -129,9 +130,16 @@ class LogcatScreenViewModel : ViewModel() {
         }
     }
 
-    fun clearLog() {
-        connection?.service?.value?.clearLog()
+    fun clearLog() = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            clientManager.withClient { client ->
+                client.clearLog()
+            }
+        } catch (e: Exception) {
+            Logs.w("clear log", e)
+        }
         allLogs = persistentListOf()
+        lastLogCount = 0
         _uiState.update { it.copy(logs = persistentListOf()) }
     }
 

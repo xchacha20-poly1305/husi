@@ -17,8 +17,10 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import io.nekohasekai.sagernet.Action
+import io.nekohasekai.sagernet.bg.NativeInterface
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.ui.MainActivity
+import libcore.Libcore
 import java.io.File
 
 open class SagerRepository(
@@ -26,6 +28,10 @@ open class SagerRepository(
     override val isMainProcess: Boolean,
     override val isBgProcess: Boolean,
 ) : Repository {
+
+    override val boxService: libcore.Service? by lazy {
+        if (isBgProcess) Libcore.newService(NativeInterface(false)) else null
+    }
 
     protected val serviceContext = context.applicationContext ?: context
 

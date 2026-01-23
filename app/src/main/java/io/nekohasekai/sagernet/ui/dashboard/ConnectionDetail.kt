@@ -54,11 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.Connection
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.ktx.emptyAsNull
 import io.nekohasekai.sagernet.ui.RouteSettingsActivity
 import io.nekohasekai.sagernet.ui.RouteSettingsActivityUiState
 
@@ -87,14 +86,13 @@ fun ConnectionDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: ConnectionDetailViewModel = viewModel(),
     uuid: String,
-    connection: SagerConnection,
     popup: () -> Unit,
     navigateToRoutes: () -> Unit,
 ) {
     val context = LocalContext.current
 
     LaunchedEffect(uuid) {
-        viewModel.initialize(connection, uuid)
+        viewModel.initialize(uuid)
     }
     val routeSettingsLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -198,12 +196,12 @@ fun ConnectionDetailScreen(
                     field = R.string.connection_status,
                     value = {
                         Text(
-                            text = if (connection.closed) {
+                            text = if (connection.isClosed) {
                                 stringResource(R.string.connection_status_closed)
                             } else {
                                 stringResource(R.string.connection_status_active)
                             },
-                            color = if (connection.closed) {
+                            color = if (connection.isClosed) {
                                 Color.Red
                             } else {
                                 Color.Green
@@ -265,11 +263,21 @@ fun ConnectionDetailScreen(
             }
             item("start", 1) {
                 ConnectionDataCard(
-                    field = R.string.start,
-                    value = { Text(connection.start) },
+                    field = R.string.start_time,
+                    value = { Text(connection.startedAt) },
                     isSelecting = isSelecting,
                     isSelectable = false,
                 )
+            }
+            connection.closedAt.emptyAsNull()?.let { closedAt ->
+                item("closed", 1) {
+                    ConnectionDataCard(
+                        field = R.string.closed_time,
+                        value = { Text(closedAt) },
+                        isSelecting = isSelecting,
+                        isSelectable = false,
+                    )
+                }
             }
             item("source", 1) {
                 ConnectionDataCard(
@@ -365,13 +373,11 @@ fun ConnectionDetailScreen(
                     },
                 )
             }
-            if (connection.process != null) item("process", 1) {
+            val processText = buildProcessText(connection.uid, connection.process)
+            if (processText.isNotEmpty()) item("process", 1) {
                 ConnectionDataCard(
                     field = R.string.process,
-                    value = {
-                        val text = "[${connection.uid}] ${connection.process}"
-                        Text(text)
-                    },
+                    value = { Text(processText) },
                     isSelecting = isSelecting,
                     isSelected = ConnectionFields.PROCESS in selectedField,
                     onSelectedChange = { checked ->
@@ -387,6 +393,14 @@ fun ConnectionDetailScreen(
             }
         }
     }
+}
+
+private fun buildProcessText(uid: Int, process: String?): String {
+    var text = process.orEmpty()
+    if (uid >= 0) {
+        text = "[$uid] $text"
+    }
+    return text
 }
 
 @Composable
@@ -463,7 +477,7 @@ private fun ConnectionDataCard(
 private fun createIntent(
     context: Context,
     fields: Set<ConnectionFields>,
-    connection: Connection,
+    connection: ConnectionDetailState,
 ): Intent {
     var domains = ""
     var ip = ""

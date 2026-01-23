@@ -267,8 +267,6 @@ fun ConfigurationScreen(
 
     val serviceStatus by connection?.status?.collectAsStateWithLifecycle()
         ?: remember { mutableStateOf(null) }
-    val service by connection?.service?.collectAsStateWithLifecycle()
-        ?: remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
         vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
@@ -791,7 +789,6 @@ fun ConfigurationScreen(
                     status = serviceStatus!!,
                     visible = scrollHideVisible,
                     mainViewModel = mainViewModel,
-                    service = service,
                 )
             }
         },
@@ -1089,7 +1086,9 @@ private fun ConfigurationDialogs(
 
                                         is FailureReason.Generic -> reason.message ?: "Unknown"
 
-                                        is FailureReason.PluginNotFound -> reason.message
+                                        is FailureReason.PluginNotFound -> {
+                                            stringResource(R.string.plugin_unknown, reason.plugin)
+                                        }
                                     }
                                     text to MaterialTheme.colorScheme.error
                                 }

@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.plugin
 
 import android.content.pm.ComponentInfo
 import android.content.pm.ProviderInfo
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.repository.repo
@@ -12,10 +11,7 @@ import java.io.FileNotFoundException
 object PluginManager {
 
     class PluginNotFoundException(val plugin: String) : FileNotFoundException(plugin),
-        BaseService.ExpectedException {
-        override fun getLocalizedMessage() =
-            repo.getString(R.string.plugin_unknown, plugin)
-    }
+        BaseService.ExpectedException
 
     data class InitResult(
         val path: String,

@@ -2,10 +2,10 @@ package trafficcontrol
 
 import (
 	"net"
+	"sync/atomic"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing/common/atomic"
 	"github.com/sagernet/sing/common/bufio"
 	N "github.com/sagernet/sing/common/network"
 
@@ -13,15 +13,13 @@ import (
 )
 
 type outboundCounter struct {
+	upload, download atomic.Int64
 	tag              string
-	upload, download *atomic.Int64
 }
 
 func newOutboundCounter(tag string) *outboundCounter {
 	return &outboundCounter{
-		tag:      tag,
-		upload:   new(atomic.Int64),
-		download: new(atomic.Int64),
+		tag: tag,
 	}
 }
 
@@ -81,7 +79,7 @@ func NewTCPTracker(conn net.Conn, manager *Manager, metadata adapter.InboundCont
 	)
 	if matchOutbound != nil {
 		next = matchOutbound.Tag()
-		counter = manager.loadOrCreateTraffic(next)
+		counter = manager.loadOrCreateCounter(next)
 	} else {
 		next = outboundManager.Default().Tag()
 	}
@@ -107,13 +105,13 @@ func NewTCPTracker(conn net.Conn, manager *Manager, metadata adapter.InboundCont
 			if counter != nil {
 				counter.upload.Add(n)
 			}
-			// manager.PushUploaded(n)
+			manager.PushUploaded(id, n)
 		}}, []N.CountFunc{func(n int64) {
 			download.Add(n)
 			if counter != nil {
 				counter.download.Add(n)
 			}
-			// manager.PushDownloaded(n)
+			manager.PushDownloaded(id, n)
 		}}),
 		metadata: TrackerMetadata{
 			ID:           id,
@@ -170,7 +168,7 @@ func NewUDPTracker(conn N.PacketConn, manager *Manager, metadata adapter.Inbound
 	)
 	if matchOutbound != nil {
 		next = matchOutbound.Tag()
-		counter = manager.loadOrCreateTraffic(next)
+		counter = manager.loadOrCreateCounter(next)
 	} else {
 		next = outboundManager.Default().Tag()
 	}
@@ -196,13 +194,13 @@ func NewUDPTracker(conn N.PacketConn, manager *Manager, metadata adapter.Inbound
 			if counter != nil {
 				counter.upload.Add(n)
 			}
-			// manager.PushUploaded(n)
+			manager.PushUploaded(id, n)
 		}}, []N.CountFunc{func(n int64) {
 			download.Add(n)
 			if counter != nil {
 				counter.download.Add(n)
 			}
-			// manager.PushDownloaded(n)
+			manager.PushDownloaded(id, n)
 		}}),
 		metadata: TrackerMetadata{
 			ID:           id,

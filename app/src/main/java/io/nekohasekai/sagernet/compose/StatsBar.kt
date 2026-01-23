@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.ServiceStatus
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.readableUrlTestError
@@ -45,7 +44,6 @@ fun StatsBar(
     status: ServiceStatus,
     visible: Boolean = true,
     mainViewModel: MainViewModel,
-    service: ISagerNetService?,
 ) {
     val context = LocalContext.current
     val urlTestStatus by mainViewModel.urlTestStatus.collectAsStateWithLifecycle()
@@ -67,7 +65,7 @@ fun StatsBar(
             .graphicsLayer { translationY = offsetY.toFloat() }
             .then(
                 if (visible) {
-                    Modifier.clickable { mainViewModel.urlTest(service) }
+                    Modifier.clickable { mainViewModel.urlTest() }
                 } else {
                     Modifier
                 },

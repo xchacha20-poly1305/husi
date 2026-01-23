@@ -13,7 +13,6 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionType
-import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -33,6 +32,7 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ktx.zlibDecompress
 import io.nekohasekai.sagernet.repository.repo
+import io.nekohasekai.sagernet.utils.LibcoreClientManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @Immutable
@@ -121,6 +122,9 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
 
     override fun onCleared() {
         GroupManager.userInterface = null
+        runBlocking {
+            urlTestClient.close()
+        }
         super.onCleared()
     }
 
@@ -132,18 +136,28 @@ class MainViewModel() : ViewModel(), GroupManager.Interface {
         _urlTestStatus.value = URLTestStatus.Initial
     }
 
-    fun urlTest(service: ISagerNetService?) = viewModelScope.launch(Dispatchers.IO) {
+    private val urlTestClient = LibcoreClientManager()
+
+    fun urlTest() = viewModelScope.launch(Dispatchers.IO) {
         _urlTestStatus.update { status ->
             if (status == URLTestStatus.Testing) {
                 return@launch
             }
             URLTestStatus.Testing
         }
+        if (!DataStore.serviceState.connected) {
+            _urlTestStatus.update { URLTestStatus.Exception("not started") }
+            return@launch
+        }
         try {
-            if (!DataStore.serviceState.connected || service == null) {
-                error("not started")
+            var result = -1
+            urlTestClient.withClient { client ->
+                result = client.urlTest(
+                    "",
+                    DataStore.connectionTestURL,
+                    DataStore.connectionTestTimeout,
+                )
             }
-            val result = service.urlTest(null)
             _urlTestStatus.update { URLTestStatus.Success(result) }
         } catch (e: Exception) {
             _urlTestStatus.update { URLTestStatus.Exception(e.readableMessage) }

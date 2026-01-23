@@ -135,6 +135,13 @@ object NavRoutes {
     const val CONNECTIONS_DETAIL_TEMPLE = "connections/{uuid}"
 }
 
+object AlertType {
+    // message: none
+    const val MISSING_PLUGIN = 0
+    // message: plugin name
+    const val NEED_WIFI_PERMISSION = 1
+}
+
 fun logLevelString(level: Int): String = when (level) {
     0 -> "panic"
     1 -> "fatal"
