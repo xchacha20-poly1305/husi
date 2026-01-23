@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
@@ -13,16 +14,13 @@ import android.os.RemoteException
 import android.widget.Toast
 import androidx.core.content.getSystemService
 import io.nekohasekai.sagernet.Action
+import io.nekohasekai.sagernet.AlertType
 import io.nekohasekai.sagernet.BootReceiver
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.aidl.Connections
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
-import io.nekohasekai.sagernet.aidl.LogItem
-import io.nekohasekai.sagernet.aidl.LogItemList
-import io.nekohasekai.sagernet.aidl.ProxySet
-import io.nekohasekai.sagernet.aidl.URLTestResult
-import io.nekohasekai.sagernet.aidl.toList
+import io.nekohasekai.sagernet.aidl.SpeedDisplayData
+import io.nekohasekai.sagernet.aidl.IServiceControl
+import io.nekohasekai.sagernet.aidl.IServiceObserver
+import io.nekohasekai.sagernet.aidl.ServiceStatus
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
@@ -33,10 +31,8 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
-import io.nekohasekai.sagernet.ktx.toConnectionList
-import io.nekohasekai.sagernet.ktx.toList
-import io.nekohasekai.sagernet.ktx.readableUrlTestError
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,13 +40,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import libcore.Libcore
-import libcore.LogItemIterator
-import libcore.LogWatcher
 import java.net.UnknownHostException
 
 class BaseService {
@@ -68,7 +59,6 @@ class BaseService {
         Connected(true, true, true),
         Stopping,
         Stopped,
-        RequiredLocation
     }
 
     interface ExpectedException
@@ -87,9 +77,9 @@ class BaseService {
                     val proxy = proxy
                     if (proxy != null && proxy.isInitialized()) {
                         if (powerManager.isDeviceIdleMode) {
-                            proxy.box.pause()
+                            repo.boxService?.pause()
                         } else {
-                            proxy.box.wake()
+                            repo.boxService?.wake()
                         }
                     }
                 }
@@ -124,231 +114,97 @@ class BaseService {
         val binder = Binder(this)
         var connectingJob: Job? = null
 
-        fun changeState(s: State, msg: String? = null) {
-            if (state == s && msg == null) return
+        fun changeState(s: State, message: String? = null) {
+            if (state == s && message == null) return
             state = s
             DataStore.serviceState = s
-            binder.stateChanged(s, msg)
+            binder.notifyState()
         }
 
         fun resetNetwork() {
             val proxy = proxy
             if (proxy != null && proxy.isInitialized()) {
-                proxy.box.resetNetwork()
+                repo.boxService?.resetNetwork()
             } else {
                 Libcore.resetAllConnections()
             }
         }
     }
 
-    class Binder(private var data: Data? = null) : ISagerNetService.Stub(),
-        CoroutineScope,
-        AutoCloseable,
-        LogWatcher {
-        private val callbacks = object : RemoteCallbackList<ISagerNetServiceCallback>() {
-            override fun onCallbackDied(callback: ISagerNetServiceCallback?, cookie: Any?) {
-                super.onCallbackDied(callback, cookie)
-            }
+    class Binder(private var data: Data? = null) : IServiceControl.Stub(), CoroutineScope, AutoCloseable {
+        override val coroutineContext = Dispatchers.Main.immediate + Job()
+        private val observers = RemoteCallbackList<IServiceObserver>()
+
+        override fun getStatus(): ServiceStatus {
+            return currentStatus()
         }
 
-        val callbackIdMap = mutableMapOf<ISagerNetServiceCallback, Int>()
-
-        override val coroutineContext = Dispatchers.Main.immediate + Job()
-
-        override fun getState(): Int = (data?.state ?: State.Idle).ordinal
-        override fun getProfileName(): String = data?.proxy?.displayProfileName ?: "Idle"
-
-        override fun registerCallback(cb: ISagerNetServiceCallback, id: Int) {
-            if (!callbackIdMap.contains(cb)) {
-                callbacks.register(cb)
-            }
-            callbackIdMap[cb] = id
-            val currentState = data?.state
-            if (currentState != null) try {
-                cb.stateChanged(currentState.ordinal, getProfileName(), null)
+        override fun registerObserver(observer: IServiceObserver?) {
+            if (observer == null) return
+            observers.register(observer)
+            try {
+                observer.onState(currentStatus())
             } catch (_: RemoteException) {
             }
         }
 
-        private val broadcastMutex = Mutex()
-
-        suspend fun broadcast(work: (ISagerNetServiceCallback) -> Unit) {
-            broadcastMutex.withLock {
-                val count = callbacks.beginBroadcast()
-                try {
-                    repeat(count) {
-                        try {
-                            work(callbacks.getBroadcastItem(it))
-                        } catch (_: RemoteException) {
-                        } catch (_: Exception) {
-                        }
-                    }
-                } finally {
-                    callbacks.finishBroadcast()
-                }
-            }
+        override fun unregisterObserver(observer: IServiceObserver?) {
+            if (observer == null) return
+            observers.unregister(observer)
         }
 
-        override fun unregisterCallback(cb: ISagerNetServiceCallback) {
-            callbackIdMap.remove(cb)
-            callbacks.unregister(cb)
+        fun notifyState() {
+            val status = currentStatus()
+            notifyObservers { it.onState(status) }
         }
 
-        override fun urlTest(tag: String?): Int {
-            val data = requireNotNull(data) { "service destroyed" }
-            val proxy = requireNotNull(data.proxy?.takeIf { it.isInitialized() }) { "core not started" }
-            return try {
-                proxy.box.urlTest(
-                    tag,
-                    DataStore.connectionTestURL,
-                    DataStore.connectionTestTimeout,
-                )
-            } catch (e: Exception) {
-                Logs.e(e)
-                val readableMessage = e.readableMessage
-                val errorMessage = readableUrlTestError(readableMessage)?.let {
-                    (data.service as Context).getString(it)
-                } ?: readableMessage
-                error(errorMessage)
-            }
+        fun notifyAlert(type: Int, message: String) {
+            notifyObservers { it.onAlert(type, message) }
         }
 
-        override fun queryConnections(options: Int): Connections {
-            val proxy = data?.proxy
-            return Connections(
-                connections = if (proxy != null && proxy.isInitialized()) {
-                    proxy.box.queryTrackerInfos(options)?.toConnectionList() ?: emptyList()
-                } else {
-                    emptyList()
-                },
-            )
-        }
-
-        override fun queryMemory(): Long {
-            return Libcore.getMemory()
-        }
-
-        override fun queryGoroutines(): Int {
-            return Libcore.getGoroutines()
-        }
-
-        override fun closeConnection(id: String) {
-            val proxy = data?.proxy
-            if (proxy != null && proxy.isInitialized()) {
-                proxy.box.closeConnection(id)
-            }
-        }
-
-        override fun resetNetwork() {
-            data?.resetNetwork()
-        }
-
-        override fun getClashModes(): List<String> {
-            val proxy = data?.proxy
-            return if (proxy != null && proxy.isInitialized()) {
-                proxy.box.clashModeList?.toList() ?: emptyList()
-            } else {
-                emptyList()
-            }
-        }
-
-        override fun getClashMode(): String {
-            val proxy = data?.proxy
-            return if (proxy != null && proxy.isInitialized()) {
-                proxy.box.clashMode.orEmpty()
-            } else {
-                ""
-            }
-        }
-
-        override fun setClashMode(mode: String?) {
-            val proxy = data?.proxy
-            if (proxy != null && proxy.isInitialized()) {
-                proxy.box.clashMode = mode
-            }
-        }
-
-        override fun queryProxySet(): List<ProxySet> {
-            val proxy = data?.proxy
-            return if (proxy != null && proxy.isInitialized()) {
-                proxy.box.queryProxySets()?.toList() ?: emptyList()
-            } else {
-                emptyList()
-            }
-        }
-
-        override fun groupSelect(group: String, proxy: String): Boolean {
-            val instance = data?.proxy
-            return instance != null && instance.isInitialized()
-                && instance.box.selectOutbound(group, proxy)
-        }
-
-        override fun groupURLTest(tag: String, timeout: Int): URLTestResult {
-            val proxy = data?.proxy
-            try {
-                if (proxy != null && proxy.isInitialized()) {
-                    proxy.box.groupTest(tag, DataStore.connectionTestURL, timeout)?.let {
-                        return URLTestResult(it)
-                    }
-                }
-            } catch (e: Exception) {
-                Logs.e(e)
-            }
-            return URLTestResult(emptyMap())
-        }
-
-        override fun startLogWatching(enable: Boolean) {
-            Libcore.registerLogWatcher(
-                if (enable) {
-                    this
-                } else {
-                    null
-                }
-            )
-        }
-
-        override fun clearLog() {
-            Libcore.logClear()
-        }
-
-        fun stateChanged(s: State, msg: String?) = launch {
-            val profileName = profileName
-            broadcast { it.stateChanged(s.ordinal, profileName, msg) }
-        }
-
-        fun missingPlugin(pluginName: String) = launch {
-            val profileName = profileName
-            broadcast { it.missingPlugin(profileName, pluginName) }
+        fun notifySpeed(speed: SpeedDisplayData) {
+            notifyObservers { it.onSpeed(speed) }
         }
 
         override fun close() {
-            callbacks.kill()
+            observers.kill()
             cancel()
             data = null
         }
 
-        override fun addAll(logs: LogItemIterator) {
-            callbackIdMap.keys.forEach { callback ->
-                callback.newLogs(logs.toList())
-            }
+        private fun currentStatus(): ServiceStatus {
+            val data = data ?: return ServiceStatus()
+            val state = data.state
+            return ServiceStatus(
+                state = state.ordinal,
+                profileName = data.proxy?.displayProfileName,
+                started = state.started,
+                connected = state.connected,
+            )
         }
 
-        override fun append(item: libcore.LogItem) {
-            callbackIdMap.keys.forEach { callback ->
-                callback.newLogs(LogItemList(listOf(LogItem(item))))
+        private fun notifyObservers(block: (IServiceObserver) -> Unit) {
+            val count = observers.beginBroadcast()
+            for (index in 0 until count) {
+                try {
+                    block(observers.getBroadcastItem(index))
+                } catch (_: RemoteException) {
+                }
             }
+            observers.finishBroadcast()
         }
     }
-
-    public class LocationException(message: String) : Exception(message)
 
     interface Interface {
         val data: Data
         val tag: String
         fun createNotification(profileName: String): ServiceNotification
 
-        fun onBind(intent: Intent): IBinder? =
-            if (intent.action == Action.SERVICE) data.binder else null
+        fun onBind(intent: Intent): IBinder? = if (intent.action == Action.SERVICE) {
+            data.binder
+        } else {
+            null
+        }
 
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
@@ -365,23 +221,26 @@ class BaseService {
 
         suspend fun startProcesses() {
             data.proxy!!.launch()
-            if (data.proxy!!.box.needWIFIState()) {
+            if (repo.boxService?.needWIFIState() == true) {
                 val wifiPermission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                    Manifest.permission.ACCESS_FINE_LOCATION
                 } else {
-                    android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 }
-                if (!(this as Context).hasPermission(wifiPermission)) {
-                    data.proxy!!.close()
-                    throw LocationException("not have location permission")
+                this as Context
+                if (!hasPermission(wifiPermission)) {
+                    data.binder.notifyAlert(AlertType.NEED_WIFI_PERMISSION, "")
                 }
             }
         }
 
         fun startRunner() {
             this as Context
-            if (Build.VERSION.SDK_INT >= 26) startForegroundService(Intent(this, javaClass))
-            else startService(Intent(this, javaClass))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(Intent(this, javaClass))
+            } else {
+                startService(Intent(this, javaClass))
+            }
         }
 
         fun killProcesses() {
@@ -516,18 +375,14 @@ class BaseService {
                     data.changeState(State.Connected)
 
                     lateInit()
-                } catch (e: LocationException) {
-                    Logs.e(e.readableMessage)
-                    stopRunner(false, e.readableMessage)
-                    data.changeState(State.RequiredLocation)
                 } catch (_: CancellationException) { // if the job was cancelled, it is canceller's responsibility to call stopRunner
                 } catch (_: UnknownHostException) {
                     stopRunner(false, getString(R.string.invalid_server))
                 } catch (e: PluginManager.PluginNotFoundException) {
                     Toast.makeText(this@Interface, e.readableMessage, Toast.LENGTH_SHORT).show()
                     Logs.w(e)
-                    data.binder.missingPlugin(e.plugin)
-                    stopRunner(false, null)
+                    stopRunner(false, e.readableMessage)
+                    data.binder.notifyAlert(AlertType.MISSING_PLUGIN, e.plugin)
                 } catch (exc: Throwable) {
                     if (exc.javaClass.name.endsWith("proxyerror")) {
                         // error from golang

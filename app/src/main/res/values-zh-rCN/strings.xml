@@ -519,6 +519,7 @@
     <string name="ntp_server_port">NTP 服务器端口</string>
     <string name="ntp_sync_interval">NTP 同步间隔</string>
     <string name="start_time">开始于</string>
+    <string name="closed_time">关闭时间</string>
     <string name="outbound_rule">出站规则</string>
     <string name="detail">详细</string>
     <string name="source_address">源地址</string>

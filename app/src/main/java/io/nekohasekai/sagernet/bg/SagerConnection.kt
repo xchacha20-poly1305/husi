@@ -9,21 +9,17 @@ import android.os.RemoteException
 import androidx.compose.runtime.Immutable
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.Key
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
-import io.nekohasekai.sagernet.aidl.LogItem
-import io.nekohasekai.sagernet.aidl.LogItemList
+import io.nekohasekai.sagernet.aidl.IServiceControl
+import io.nekohasekai.sagernet.aidl.IServiceObserver
+import io.nekohasekai.sagernet.aidl.ServiceStatus as RemoteServiceStatus
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 
 @Immutable
 data class ServiceStatus(
@@ -33,9 +29,9 @@ data class ServiceStatus(
 )
 
 @Immutable
-data class MissingPlugin(
-    val profileName: String,
-    val pluginName: String,
+data class Alert(
+    val type: Int,
+    val message: String,
 )
 
 class SagerConnection(
@@ -60,101 +56,61 @@ class SagerConnection(
     private val _status = MutableStateFlow(ServiceStatus())
     val status = _status.asStateFlow()
 
-    private val _service = MutableStateFlow<ISagerNetService?>(null)
-    val service = _service.asStateFlow()
+    private val _connected = MutableStateFlow(false)
+    val connected = _connected.asStateFlow()
 
-    private val _logChannel = Channel<List<LogItem>>(capacity = 1)
-    val logLine = _logChannel.receiveAsFlow()
-
-    fun clearLogBuffer() {
-        while (_logChannel.tryReceive().isSuccess) { }
-    }
-
-    private val _missingPlugin = MutableSharedFlow<MissingPlugin>(
+    private val _alert = MutableSharedFlow<Alert>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    val missingPlugin = _missingPlugin.asSharedFlow()
-
-    private val _errorMessage = MutableSharedFlow<String>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    val errorMessage: SharedFlow<String> = _errorMessage.asSharedFlow()
+    val alert: SharedFlow<Alert> = _alert.asSharedFlow()
 
     private var connectionActive = false
-    private var callbackRegistered = false
-
-    private val serviceCallback = object : ISagerNetServiceCallback.Stub() {
-        override fun stateChanged(state: Int, profileName: String?, msg: String?) {
-            if (state < 0) return // skip private
-            val s = BaseService.State.entries[state]
-            DataStore.serviceState = s
-            _status.value = ServiceStatus(s, profileName)
-            if (msg != null) _errorMessage.tryEmit(msg)
+    private var binder: IBinder? = null
+    private var service: IServiceControl? = null
+    private val observer = object : IServiceObserver.Stub() {
+        override fun onState(status: RemoteServiceStatus) {
+            handleStatus(status)
         }
 
-        override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-            _status.update {
-                it.copy(speed = stats)
-            }
+        override fun onSpeed(speed: SpeedDisplayData) {
+            updateSpeed(speed)
         }
 
-        override fun newLogs(lines: LogItemList) {
-            _logChannel.trySend(lines.list)
-        }
-
-        override fun missingPlugin(profileName: String, pluginName: String) {
-            _missingPlugin.tryEmit(MissingPlugin(profileName, pluginName))
+        override fun onAlert(type: Int, message: String) {
+            _alert.tryEmit(Alert(type, message))
         }
     }
-
-    private var binder: IBinder? = null
 
     fun updateConnectionId(id: Int) {
         connectionId = id
-        try {
-            _service.value?.registerCallback(serviceCallback, id)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     override fun onServiceConnected(name: ComponentName?, binder: IBinder) {
         this.binder = binder
-        val service = ISagerNetService.Stub.asInterface(binder)!!
+        if (listenForDeath) binder.linkToDeath(this, 0)
+        service = IServiceControl.Stub.asInterface(binder)
         try {
-            if (listenForDeath) binder.linkToDeath(this, 0)
-            check(!callbackRegistered)
-            service.registerCallback(serviceCallback, connectionId)
-            callbackRegistered = true
-        } catch (e: RemoteException) {
-            e.printStackTrace()
+            service?.registerObserver(observer)
+            service?.getStatus()?.let { handleStatus(it) }
+        } catch (_: RemoteException) {
         }
-        _service.value = service
-        _status.update {
-            it.copy(speed = null)
-        }
+        _connected.value = true
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
-        unregisterCallback()
-        _service.value = null
+        _connected.value = false
+        unregisterObserver()
         binder = null
+        service = null
     }
 
     override fun binderDied() {
-        _service.value = null
-        callbackRegistered = false
-    }
-
-    private fun unregisterCallback() {
-        val service = _service.value
-        if (service != null && callbackRegistered) try {
-            service.unregisterCallback(serviceCallback)
-        } catch (_: RemoteException) {
-        }
-        callbackRegistered = false
+        _connected.value = false
+        connectionActive = false
+        unregisterObserver()
+        binder = null
+        service = null
     }
 
     fun connect(context: Context) {
@@ -165,23 +121,47 @@ class SagerConnection(
     }
 
     fun disconnect(context: Context) {
-        unregisterCallback()
         if (connectionActive) try {
             context.unbindService(this)
         } catch (_: IllegalArgumentException) {
-        }   // ignore
+        }
         connectionActive = false
         if (listenForDeath) try {
             binder?.unlinkToDeath(this, 0)
         } catch (_: NoSuchElementException) {
         }
+        unregisterObserver()
         binder = null
-        _service.value = null
+        service = null
+        _connected.value = false
         _status.value = ServiceStatus()
     }
 
     fun reconnect(context: Context) {
         disconnect(context)
         connect(context)
+    }
+
+    fun updateSpeed(speed: SpeedDisplayData?) {
+        _status.value = _status.value.copy(speed = speed)
+    }
+
+    fun updateState(state: BaseService.State, profileName: String? = null) {
+        DataStore.serviceState = state
+        _status.value = ServiceStatus(state, profileName, _status.value.speed)
+    }
+
+    private fun handleStatus(status: RemoteServiceStatus) {
+        val state = BaseService.State.entries.getOrNull(status.state) ?: BaseService.State.Idle
+        DataStore.serviceState = state
+        _status.value = ServiceStatus(state, status.profileName, _status.value.speed)
+    }
+
+    private fun unregisterObserver() {
+        val service = service ?: return
+        try {
+            service.unregisterObserver(observer)
+        } catch (_: RemoteException) {
+        }
     }
 }

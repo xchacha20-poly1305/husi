@@ -36,7 +36,7 @@ import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -83,8 +83,8 @@ class QuickToggleShortcut : Activity() {
                 getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
             }
             job = scope.launch {
-                val service = connection.service.filterNotNull().first()
-                val state = BaseService.State.entries[service.state]
+                connection.connected.filter { it }.first()
+                val state = DataStore.serviceState
                 when {
                     state.canStop -> {
                         if (profileId == DataStore.selectedProxy || profileId == -1L) {

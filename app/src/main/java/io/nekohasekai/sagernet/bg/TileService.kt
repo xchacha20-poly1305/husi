@@ -6,12 +6,12 @@ import android.service.quicksettings.Tile
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import android.service.quicksettings.TileService as BaseTileService
 
@@ -36,15 +36,11 @@ class TileService : BaseTileService() {
         super.onStartListening()
         connection.connect(this)
         observeJob = scope.launch {
-            combine(connection.status, connection.service) { status, service ->
-                status to service
-            }.collectLatest { (status, service) ->
-                if (service != null) {
-                    updateTile(status.state, status.profileName)
-                    if (tapPending) {
-                        tapPending = false
-                        onClick()
-                    }
+            connection.status.collectLatest { status ->
+                updateTile(status.state, status.profileName)
+                if (status.state.connected && tapPending) {
+                    tapPending = false
+                    onClick()
                 }
             }
         }
@@ -53,6 +49,7 @@ class TileService : BaseTileService() {
     override fun onStopListening() {
         observeJob?.cancel()
         observeJob = null
+        tapPending = false
         connection.disconnect(this)
         super.onStopListening()
     }
@@ -94,13 +91,16 @@ class TileService : BaseTileService() {
 
     private fun toggle() {
         scope.launch {
-            val service = connection.service.value
-            if (service == null) {
+            val isConnected = connection.connected.value
+            if (!isConnected) {
                 tapPending = true
             } else {
-                val state = BaseService.State.entries[service.state]
+                val state = DataStore.serviceState
                 when {
-                    state.canStop -> repo.stopService()
+                    state.canStop -> {
+                        tapPending = false
+                        repo.stopService()
+                    }
                     state == BaseService.State.Stopped -> repo.startService()
                 }
             }

@@ -140,8 +140,6 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
         return InterfaceArray(interfaces.iterator(), interfaces.size)
     }
 
-    override fun isForTest(): Boolean = forTest
-
     override fun localDNSTransport(): LocalDNSTransport = LocalResolver
 
     override fun onGroupSelectedChange(group: String, old: String, now: String) {

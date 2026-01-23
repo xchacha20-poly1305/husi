@@ -29,6 +29,12 @@ See [README](./README.md)
 - **Pride in neither humble nor arrogant, shame in saying "You are absolutely right!"** Acknowledge
   your error is good, but don't wag your tail like a dog. Just improve yourself silently. There is a
   Chinese saying goes "千夫诺诺，不如一士谔谔".
+- **Pride in root-cause clarity, shame in workaround bias.** Fix the root cause by default. Use
+  workaround only when the root cause is proven risky or blocked, and state why.
+- **Pride in precision, shame in speculative patches.** Do not add nil guards, fallback branches,
+  logging-only changes, or "temporary" fixes before identifying the root cause.
+- **Pride in upstream alignment, shame in local divergence.** If an upstream fix exists, prefer
+  updating dependencies to the referenced commit/version instead of local patches.
 
 # Technical best practices
 

@@ -36,7 +36,7 @@ func sharedPublicPort(inbounds []option.Inbound) (socksPort, dnsPort uint16) {
 	return
 }
 
-func (b *BoxInstance) createAnchor(socksPort, dnsPort uint16) (*anchorservice.Anchor, error) {
+func (b *boxInstance) createAnchor(socksPort, dnsPort uint16) (*anchorservice.Anchor, error) {
 	ssid := b.platformInterface.AnchorSSID()
 	if ssid == "" {
 		// Not set any rule, unnecessary to start service.
@@ -67,11 +67,11 @@ func (b *BoxInstance) createAnchor(socksPort, dnsPort uint16) (*anchorservice.An
 	), nil
 }
 
-func (b *BoxInstance) shouldRejectAnchorRequest(rules []*regexp.Regexp) bool {
+func (b *boxInstance) shouldRejectAnchorRequest(rules []*regexp.Regexp) bool {
 	networkManager := b.Network()
 	switch networkManager.DefaultNetworkInterface().Type {
 	case C.InterfaceTypeWIFI:
-		// Just allow connections from trusted Wi-Fi
+		// Only allow connections from trusted Wi-Fi
 		ssid := networkManager.WIFIState().SSID
 		if common.Any(rules, func(it *regexp.Regexp) bool {
 			return it.MatchString(ssid)

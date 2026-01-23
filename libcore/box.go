@@ -28,7 +28,7 @@ func ResetAllConnections() {
 	log.Debug("Reset system connections done.")
 }
 
-type BoxInstance struct {
+type boxInstance struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	*box.Box
@@ -42,10 +42,9 @@ type BoxInstance struct {
 	pauseManager pause.Manager
 }
 
-// NewBoxInstance creates a new BoxInstance.
-func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxInstance, err error) {
+// newBoxInstance creates a new boxInstance.
+func newBoxInstance(config string, platformInterface PlatformInterface, forTest bool) (b *boxInstance, err error) {
 	defer catchPanic("NewSingBoxInstance", func(panicErr error) { err = panicErr })
-	forTest := platformInterface.IsForTest()
 
 	ctx := baseContext(platformInterface)
 	options, err := parseConfig(ctx, config)
@@ -82,7 +81,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 		return nil, E.Cause(err, "create service")
 	}
 
-	b = &BoxInstance{
+	b = &boxInstance{
 		ctx:               ctx,
 		Box:               instance,
 		forTest:           forTest,
@@ -117,7 +116,7 @@ func NewBoxInstance(config string, platformInterface PlatformInterface) (b *BoxI
 	return b, nil
 }
 
-func (b *BoxInstance) Start() (err error) {
+func (b *boxInstance) Start() (err error) {
 	defer catchPanic("box.Start", func(panicErr error) { err = panicErr })
 
 	err = b.Box.Start()
@@ -143,12 +142,12 @@ func (b *BoxInstance) Start() (err error) {
 	return nil
 }
 
-func (b *BoxInstance) Close() (err error) {
+func (b *boxInstance) Close() (err error) {
 	return b.CloseTimeout(C.FatalStopTimeout)
 }
 
-func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
-	defer catchPanic("BoxInstance.Close", func(panicErr error) { err = panicErr })
+func (b *boxInstance) CloseTimeout(timeout time.Duration) (err error) {
+	defer catchPanic("boxInstance.Close", func(panicErr error) { err = panicErr })
 
 	_ = common.Close(
 		common.PtrOrNil(b.protect),
@@ -173,10 +172,10 @@ func (b *BoxInstance) CloseTimeout(timeout time.Duration) (err error) {
 	}
 }
 
-func (b *BoxInstance) NeedWIFIState() bool {
+func (b *boxInstance) NeedWIFIState() bool {
 	return b.anchor != nil || b.Box.Network().NeedWIFIState()
 }
 
-func (b *BoxInstance) QueryStats(tag string, isUpload bool) int64 {
+func (b *boxInstance) QueryStats(tag string, isUpload bool) int64 {
 	return b.api.QueryStats(tag, isUpload)
 }

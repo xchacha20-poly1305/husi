@@ -3,15 +3,17 @@ package io.nekohasekai.sagernet.bg.proto
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.bg.BaseService
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.TAG_DIRECT
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +25,11 @@ import kotlinx.coroutines.launch
 class TrafficLooper(
     val data: BaseService.Data, private val scope: CoroutineScope,
 ) {
+
+    companion object {
+        private val _speed = MutableStateFlow<SpeedDisplayData?>(null)
+        val speed = _speed.asStateFlow()
+    }
 
     private var job: Job? = null
     private val idMap = mutableMapOf<Long, TrafficUpdater.TrafficLooperData>() // id to 1 data
@@ -130,9 +137,9 @@ class TrafficLooper(
                     }
                 }
                 trafficUpdater = TrafficUpdater(
-                    box = proxy.box, items = idMap.values.toList()
+                    box = repo.boxService!!, items = idMap.values.toList()
                 )
-                proxy.box.initializeProxySet()
+                repo.boxService!!.initializeProxySet()
             }
 
             trafficUpdater.updateAll()
@@ -162,15 +169,10 @@ class TrafficLooper(
                 mainRx,
             )
 
-            // broadcast (MainActivity)
-            if (data.state == BaseService.State.Connected
-                && data.binder.callbackIdMap.containsValue(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
-            ) {
-                data.binder.broadcast { b ->
-                    if (data.binder.callbackIdMap[b] == SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND) {
-                        b.cbSpeedUpdate(speed)
-                    }
-                }
+            // Update shared speed state
+            if (data.state == BaseService.State.Connected) {
+                _speed.value = speed
+                data.binder.notifySpeed(speed)
             }
 
             // ServiceNotification
