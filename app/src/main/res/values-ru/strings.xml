@@ -163,7 +163,7 @@
     </string>
     <string name="raw">Обычный</string>
     <string name="deduplication_sum">Удалить повторяющиеся конфигурации при обновлении</string>
-    <string name="force_resolve">Принудительно разрешать доменные имена</string>
+    <string name="force_resolve">Принудительный резолвинг</string>
     <string name="delete_group_prompt">Вы уверены, что хотите удалить эту группу\?</string>
     <string name="subscription_type">Тип подписки</string>
     <string name="group_type">Тип группы</string>
@@ -708,4 +708,5 @@
     <string name="themes_teal">Нежное сияние</string>
     <string name="themes_yellow">Солнечный путь</string>
     <string name="themes_amber">Сосновая смола</string>
+    <string name="closed_time">Время закрытия</string>
 </resources>
