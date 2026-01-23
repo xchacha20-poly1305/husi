@@ -172,6 +172,7 @@ class TrafficLooper(
             // Update shared speed state
             if (data.state == BaseService.State.Connected) {
                 _speed.value = speed
+                data.binder.notifySpeed(speed)
             }
 
             // ServiceNotification

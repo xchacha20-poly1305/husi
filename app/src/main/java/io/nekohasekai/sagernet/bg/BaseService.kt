@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.AlertType
 import io.nekohasekai.sagernet.BootReceiver
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.IServiceControl
 import io.nekohasekai.sagernet.aidl.IServiceObserver
 import io.nekohasekai.sagernet.aidl.ServiceStatus
@@ -159,6 +160,10 @@ class BaseService {
 
         fun notifyAlert(type: Int, message: String) {
             notifyObservers { it.onAlert(type, message) }
+        }
+
+        fun notifySpeed(speed: SpeedDisplayData) {
+            notifyObservers { it.onSpeed(speed) }
         }
 
         override fun close() {

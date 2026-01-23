@@ -73,6 +73,10 @@ class SagerConnection(
             handleStatus(status)
         }
 
+        override fun onSpeed(speed: SpeedDisplayData) {
+            updateSpeed(speed)
+        }
+
         override fun onAlert(type: Int, message: String) {
             _alert.tryEmit(Alert(type, message))
         }
