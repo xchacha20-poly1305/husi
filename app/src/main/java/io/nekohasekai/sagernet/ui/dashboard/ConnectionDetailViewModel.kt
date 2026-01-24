@@ -4,7 +4,11 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.emptyAsNull
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
+import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.LibcoreClientManager
+import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -34,7 +38,7 @@ class ConnectionDetailViewModel : ViewModel() {
 
     suspend fun initialize(uuid: String) {
         if (connectionState.value.uuid == uuid)
-        job?.cancel()
+            job?.cancel()
         connectionState.value = queryConnection(uuid)
         job = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
             handleConnectionEvent(event)
@@ -90,6 +94,35 @@ class ConnectionDetailViewModel : ViewModel() {
         val current = connectionState.value
         if (current.closedAt == closedAt) return
         connectionState.value = current.copy(closedAt = closedAt)
+    }
+
+    internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
+        return onIoDispatcher {
+            if (process.isNullOrBlank() && uid < 0) return@onIoDispatcher null
+            PackageCache.awaitLoad()
+            val packageName = resolvePackageName(process, uid) ?: return@onIoDispatcher null
+            val applicationInfo = PackageCache.installedApps[packageName]
+                ?: return@onIoDispatcher null
+            val label = applicationInfo.loadLabel(repo.packageManager).toString()
+            val icon = applicationInfo.loadIcon(repo.packageManager)
+            ProcessInfo(
+                packageName = packageName,
+                label = label,
+                icon = icon,
+            )
+        }
+    }
+
+    private fun resolvePackageName(process: String?, uid: Int): String? {
+        process.emptyAsNull()?.let { packageName ->
+            if (PackageCache.installedApps.containsKey(packageName)) {
+                return packageName
+            }
+        }
+        if (uid >= 0) {
+            return PackageCache.uidMap[uid]?.firstOrNull()
+        }
+        return null
     }
 
     fun closeConnection(uuid: String) = viewModelScope.launch(Dispatchers.IO) {
