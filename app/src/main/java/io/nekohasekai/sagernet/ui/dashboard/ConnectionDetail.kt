@@ -3,6 +3,8 @@ package io.nekohasekai.sagernet.ui.dashboard
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,6 +14,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Checkbox
@@ -51,12 +56,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.compose.SimpleIconButton
 import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
+import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.emptyAsNull
 import io.nekohasekai.sagernet.ui.RouteSettingsActivity
 import io.nekohasekai.sagernet.ui.RouteSettingsActivityUiState
@@ -375,11 +382,52 @@ fun ConnectionDetailScreen(
             }
             val processText = buildProcessText(connection.uid, connection.process)
             if (processText.isNotEmpty()) item("process", 1) {
+                val process = connection.process
+                val uid = connection.uid
+                var processInfo by remember { mutableStateOf<ProcessInfo?>(null) }
+                LaunchedEffect(Unit) {
+                    processInfo = viewModel.resolveProcessInfo(process, uid)
+                }
+                val processLabel = processInfo?.label.blankAsNull()
+                val openProcessAppInfo = processInfo?.packageName?.let { packageName ->
+                    {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                .setData(Uri.fromParts("package", packageName, null)),
+                        )
+                    }
+                }
                 ConnectionDataCard(
                     field = R.string.process,
-                    value = { Text(processText) },
+                    value = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                if (processLabel != null) {
+                                    Text(
+                                        text = processLabel,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                                Text(processText)
+                            }
+                            processInfo?.icon?.let { icon ->
+                                Image(
+                                    painter = rememberDrawablePainter(icon),
+                                    contentDescription = processLabel ?: processInfo?.packageName,
+                                    modifier = Modifier.size(40.dp),
+                                )
+                            }
+                        }
+                    },
                     isSelecting = isSelecting,
                     isSelected = ConnectionFields.PROCESS in selectedField,
+                    onLongClick = openProcessAppInfo,
                     onSelectedChange = { checked ->
                         selectedField = selectedField.toMutableSet().apply {
                             if (checked) {
@@ -411,6 +459,7 @@ private fun ConnectionDataCard(
     isSelecting: Boolean = false,
     isSelected: Boolean = false,
     isSelectable: Boolean = true,
+    onLongClick: (() -> Unit)? = null,
     onSelectedChange: (Boolean) -> Unit = {},
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "shake")
@@ -423,25 +472,26 @@ private fun ConnectionDataCard(
         ),
         label = "rotation",
     )
+    val onClick = {
+        if (isSelecting) {
+            onSelectedChange(!isSelected)
+        }
+    }
+    val cardModifier = modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+        .graphicsLayer {
+            rotationZ = if (isSelecting && isSelectable) {
+                rotation
+            } else {
+                0f
+            }
+        }
 
-    OutlinedCard(
-        onClick = {
-            if (isSelecting) onSelectedChange(!isSelected)
-        },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .graphicsLayer {
-                rotationZ = if (isSelecting && isSelectable) {
-                    rotation
-                } else {
-                    0f
-                }
-            },
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-        ),
-    ) {
+    val cardColors = CardDefaults.outlinedCardColors(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+    )
+    val cardContent: @Composable () -> Unit = {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -470,6 +520,25 @@ private fun ConnectionDataCard(
                     }
                 }
             }
+        }
+    }
+    if (onLongClick == null) {
+        OutlinedCard(
+            onClick = onClick,
+            modifier = cardModifier,
+            colors = cardColors,
+        ) {
+            cardContent()
+        }
+    } else {
+        OutlinedCard(
+            modifier = cardModifier.combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+            colors = cardColors,
+        ) {
+            cardContent()
         }
     }
 }

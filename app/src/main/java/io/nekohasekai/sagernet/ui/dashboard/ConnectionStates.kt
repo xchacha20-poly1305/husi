@@ -28,7 +28,7 @@ data class ConnectionDetailState(
         get() = closedAt.isNotEmpty()
 }
 
-internal fun TrackerInfo.toDetailState(): ConnectionDetailState {
+fun TrackerInfo.toDetailState(): ConnectionDetailState {
     return ConnectionDetailState(
         uuid = uuid,
         inbound = inbound,

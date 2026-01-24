@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.dashboard
 
+import android.graphics.drawable.Drawable
 import android.net.Network
 import android.net.NetworkCapabilities
 import androidx.compose.foundation.text.input.TextFieldState
@@ -14,11 +15,14 @@ import io.nekohasekai.sagernet.TrafficSortMode
 import io.nekohasekai.sagernet.bg.DefaultNetworkListener
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.emptyAsNull
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
 import io.nekohasekai.sagernet.ktx.toList
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.LibcoreClientManager
+import io.nekohasekai.sagernet.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -32,6 +36,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import libcore.Client
 import libcore.ConnectionEvent
 import libcore.GroupItemIterator
@@ -135,6 +141,12 @@ data class ProxySetItem(
     }
 }
 
+internal data class ProcessInfo(
+    val packageName: String,
+    val label: String,
+    val icon: Drawable,
+)
+
 fun GroupItemIterator.toList(): List<ProxySetItem> {
     return ArrayList<ProxySetItem>(length()).apply {
         while (hasNext()) {
@@ -210,6 +222,10 @@ class DashboardViewModel : ViewModel() {
     private var subscriptionJob: Job? = null
     private var clashModeSubscriptionJob: Job? = null
     private val clientManager = LibcoreClientManager()
+    private val processLabelAccess = Mutex()
+    private val processLabelCache = mutableMapOf<String, String>()
+    private val processIconCache = mutableMapOf<String, Drawable>()
+    private val processIconAccess = Mutex()
 
     suspend fun initialize(isConnected: Boolean) {
         job?.cancel()
@@ -281,6 +297,14 @@ class DashboardViewModel : ViewModel() {
             DefaultNetworkListener.stop(this@DashboardViewModel)
         }
         super.onCleared()
+        runBlocking {
+            processLabelAccess.withLock {
+                processLabelCache.clear()
+            }
+            processIconAccess.withLock {
+                processIconCache.clear()
+            }
+        }
     }
 
     fun togglePause() {
@@ -542,6 +566,47 @@ class DashboardViewModel : ViewModel() {
             if (state.isPause) return
             state.copy(connections = buildConnections(state))
         }
+    }
+
+    internal suspend fun resolveProcessInfo(process: String?, uid: Int): ProcessInfo? {
+        return onIoDispatcher {
+            if (process.isNullOrBlank() && uid < 0) return@onIoDispatcher null
+            PackageCache.awaitLoad()
+            val packageName = resolvePackageName(process, uid) ?: return@onIoDispatcher null
+            val applicationInfo = PackageCache.installedApps[packageName]
+                ?: return@onIoDispatcher null
+            val label = processLabelAccess.withLock {
+                processLabelCache[packageName]
+                    ?: applicationInfo.loadLabel(repo.packageManager)
+                        .toString()
+                        .also { processLabelCache[packageName] = it }
+            }
+            val icon = processIconAccess.withLock {
+                processIconCache[packageName]
+                    ?: applicationInfo
+                        .loadIcon(repo.packageManager)
+                        .also {
+                            processIconCache[packageName] = it
+                        }
+            }
+            ProcessInfo(
+                packageName = packageName,
+                label = label,
+                icon = icon,
+            )
+        }
+    }
+
+    private fun resolvePackageName(process: String?, uid: Int): String? {
+        process.emptyAsNull()?.let { packageName ->
+            if (packageName in PackageCache.installedApps) {
+                return packageName
+            }
+        }
+        if (uid >= 0) {
+            return PackageCache.uidMap[uid]?.firstOrNull()
+        }
+        return null
     }
 
     private fun handleConnectionEvent(event: ConnectionEvent) {

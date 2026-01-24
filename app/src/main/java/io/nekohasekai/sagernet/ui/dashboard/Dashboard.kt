@@ -376,6 +376,7 @@ fun DashboardScreen(
                         uiState = uiState,
                         searchTextFieldState = viewModel.searchTextFieldState,
                         bottomPadding = bottomPadding,
+                        resolveProcessInfo = viewModel::resolveProcessInfo,
                         closeConnection = { uuid ->
                             viewModel.closeConnection(uuid)
                         },
