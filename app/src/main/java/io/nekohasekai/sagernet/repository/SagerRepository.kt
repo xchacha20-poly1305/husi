@@ -30,7 +30,11 @@ open class SagerRepository(
 ) : Repository {
 
     override val boxService: libcore.Service? by lazy {
-        if (isBgProcess) Libcore.newService(NativeInterface(false)) else null
+        if (isBgProcess) {
+            Libcore.newService(NativeInterface())
+        } else {
+            null
+        }
     }
 
     protected val serviceContext = context.applicationContext ?: context
