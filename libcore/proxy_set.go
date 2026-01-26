@@ -121,11 +121,11 @@ type ProxySet struct {
 	Type       string
 	Selected   string
 	Selectable bool
-	items      []*GroupItem
+	Items      []*GroupItem
 }
 
 func (p *ProxySet) GetItems() GroupItemIterator {
-	return newIterator(p.items)
+	return newIterator(p.Items)
 }
 
 type ProxySetIterator interface {
@@ -170,7 +170,7 @@ func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapte
 		Type:       pluginoption.ProxyDisplayName(outboundGroup.Type()),
 		Selected:   outboundGroup.Now(),
 		Selectable: isSelector,
-		items: common.Map(outboundGroup.All(), func(it string) *GroupItem {
+		Items: common.Map(outboundGroup.All(), func(it string) *GroupItem {
 			outbound, _ := outboundManager.Outbound(it)
 			return buildGroupItem(outbound)
 		}),
