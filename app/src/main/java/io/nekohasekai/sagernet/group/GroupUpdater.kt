@@ -15,7 +15,6 @@ import io.nekohasekai.sagernet.fmt.Deduplication
 import io.nekohasekai.sagernet.fmt.SingBoxOptions
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
-import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.ktx.Logs
@@ -190,34 +189,20 @@ abstract class GroupUpdater {
 
         Logs.d("New profiles: ${newProxies.size}")
 
-        val nameMap = newProxies.associateBy { bean ->
-            bean.displayName()
-        }
+        Logs.d("Unique profiles: ${newProxies.size}")
 
-        Logs.d("Unique profiles: ${nameMap.size}")
-
-        val toDelete = ArrayList<ProxyEntity>()
-        val toReplace = exists.mapNotNull { entity ->
-            val name = entity.displayName()
-            if (nameMap.contains(name)) name to entity else let {
-                toDelete.add(entity)
-                null
-            }
-        }.toMap()
-
-        Logs.d("toDelete profiles: ${toDelete.size}")
-        Logs.d("toReplace profiles: ${toReplace.size}")
+        val existingByName = exists.associateBy { it.displayName() }.toMutableMap()
 
         val toUpdate = ArrayList<ProxyEntity>()
-        val added = mutableListOf<String>()
+        val toInsert = ArrayList<ProxyEntity>()
         val updated = mutableMapOf<String, String>()
-        val deleted = toDelete.map { it.displayName() }
 
         var userOrder = 1L
-        var changed = toDelete.size
-        for ((name, bean) in nameMap.entries) {
-            if (toReplace.contains(name)) {
-                val entity = toReplace[name]!!
+        var changed = 0
+        for (bean in newProxies) {
+            val name = bean.displayName()
+            val entity = existingByName.remove(name)
+            if (entity != null) {
                 val existsBean = entity.requireBean()
                 existsBean.applyFeatureSettings(bean)
                 when {
@@ -244,25 +229,38 @@ abstract class GroupUpdater {
                 }
             } else {
                 changed++
-                SagerDatabase.proxyDao.addProxy(
+                toInsert.add(
                     ProxyEntity(
                         groupId = proxyGroup.id, userOrder = userOrder,
                     ).apply {
                         putBean(bean)
                     },
                 )
-                added.add(name)
                 Logs.d("Inserted profile: $name")
             }
             userOrder++
         }
 
-        SagerDatabase.proxyDao.updateProxy(toUpdate).also {
-            Logs.d("Updated profiles: $it")
-        }
+        val toDelete = existingByName.values.toList()
+        changed += toDelete.size
+        val deleted = toDelete.map { it.displayName() }
+        val added = toInsert.map { it.displayName() }
 
-        SagerDatabase.proxyDao.deleteProxy(toDelete).also {
-            Logs.d("Deleted profiles: $it")
+        Logs.d("toDelete profiles: ${toDelete.size}")
+        Logs.d("toReplace profiles: ${exists.size - toDelete.size}")
+
+        SagerDatabase.instance.runInTransaction {
+            if (toInsert.isNotEmpty()) {
+                SagerDatabase.proxyDao.insert(toInsert).also {
+                    Logs.d("Inserted profiles: ${toInsert.size}")
+                }
+            }
+            SagerDatabase.proxyDao.updateProxy(toUpdate).also {
+                Logs.d("Updated profiles: $it")
+            }
+            SagerDatabase.proxyDao.deleteProxy(toDelete).also {
+                Logs.d("Deleted profiles: $it")
+            }
         }
 
         val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).first().toInt()
