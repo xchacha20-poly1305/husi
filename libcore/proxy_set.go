@@ -78,13 +78,15 @@ func (b *boxInstance) watchGroupChange(urlTests []*group.URLTest) {
 	}
 
 	hook := observable.NewSubscriber[struct{}](1) // Prevent not receive notification when checking
-	b.api.HistoryStorage().SetHook(hook)
+	historyStorage := b.api.HistoryStorage()
+	historyStorage.SetHook(hook)
 	subscription, done := hook.Subscription()
 	go func() {
+		defer hook.Close()
+		defer historyStorage.SetHook(nil)
 		for {
 			select {
 			case <-b.ctx.Done():
-				_ = hook.Close()
 				return
 			case <-done:
 				return
