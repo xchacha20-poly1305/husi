@@ -23,7 +23,7 @@ import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import libcore.NetworkInterface as LibcoreNetworkInterface
 
-class NativeInterface(val forTest: Boolean) : PlatformInterface {
+class NativeInterface() : PlatformInterface {
 
     //  libbox interface
 
@@ -34,19 +34,16 @@ class NativeInterface(val forTest: Boolean) : PlatformInterface {
     }
 
     override fun startDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        if (forTest) throw IllegalArgumentException()
         DefaultNetworkMonitor.setListener(listener)
     }
 
     override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
-        if (forTest) throw IllegalArgumentException()
         DefaultNetworkMonitor.setListener(null)
     }
 
     override fun deviceName(): String = Build.MODEL
 
     override fun openTun(): Int {
-        if (forTest) throw IllegalArgumentException()
         if (DataStore.vpnService == null) throw NullPointerException("no vpnService")
         return DataStore.vpnService!!.startVpn()
     }
