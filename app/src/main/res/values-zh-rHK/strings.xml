@@ -111,6 +111,7 @@
     <string name="cag_dns">DNS 設定</string>
     <string name="direct_dns">直連 DNS</string>
     <string name="dns_hosts">域名重寫</string>
+    <string name="dns_only">僅 DNS</string>
     <string name="encryption">加密</string>
     <string name="route_rules_official">官方</string>
     <string name="route_opt_block_ads">封鎖廣告</string>

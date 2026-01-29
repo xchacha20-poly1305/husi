@@ -115,6 +115,7 @@
     </string>
     <string name="dns_hosts">Domain rewrite</string>
     <string name="port_local_dns">Local DNS Port</string>
+    <string name="dns_only">DNS Only</string>
     <string name="connection_test_url">Connection Test URL</string>
     <!-- proxy category -->
     <string name="profile_name">Profile Name</string>

@@ -811,11 +811,11 @@ fun buildConfig(
                     else -> error("unsupported action: $ruleAction")
                 }
 
-                rule.customDnsConfig.blankAsNull()?.toJsonMap()?.let {
+                rule.customDnsConfig.blankAsNull()?.toJsonMap()?.let { customDns ->
                     if (dnsRuleJson == null) {
-                        dnsRuleJson = it
+                        dnsRuleJson = customDns
                     } else {
-                        mergeJson(it, dnsRuleJson)
+                        mergeJson(customDns, dnsRuleJson)
                     }
                 }
                 dnsRuleJson?.let {
@@ -831,25 +831,27 @@ fun buildConfig(
                 }
                 route.rules.add(ruleMap)
             }
-            if (!ruleObj.checkEmpty()) {
-                // Empty or "route"
-                val needOutbound = when (ruleObj.action) {
-                    null, "", SingBoxOptions.ACTION_ROUTE -> true
-                    else -> false
-                }
-                if (needOutbound && ruleObj.outbound.isNullOrBlank()) {
-                    Toast.makeText(
-                        repo.context,
-                        "Warning: " + rule.displayName() + ": A non-existent outbound was specified.",
-                        Toast.LENGTH_LONG,
-                    ).show()
-                } else {
+            if (!rule.dnsOnly) {
+                if (!ruleObj.checkEmpty()) {
+                    // Empty or "route"
+                    val needOutbound = when (ruleObj.action) {
+                        null, "", SingBoxOptions.ACTION_ROUTE -> true
+                        else -> false
+                    }
+                    if (needOutbound && ruleObj.outbound.isNullOrBlank()) {
+                        Toast.makeText(
+                            repo.context,
+                            "Warning: " + rule.displayName() + ": A non-existent outbound was specified.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    } else {
+                        addRule()
+                    }
+                } else if (ruleObj.action != SingBoxOptions.ACTION_ROUTE) {
+                    addRule()
+                } else if (rule.domains.isBlank() && rule.ip.isBlank()) {
                     addRule()
                 }
-            } else if (ruleObj.action != SingBoxOptions.ACTION_ROUTE) {
-                addRule()
-            } else if (rule.domains.isBlank() && rule.ip.isBlank()) {
-                addRule()
             }
         }
 

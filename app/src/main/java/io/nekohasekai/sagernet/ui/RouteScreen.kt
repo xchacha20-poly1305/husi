@@ -511,6 +511,8 @@ private fun DraggableSwipeableItemScope<RuleEntity>.RuleCard(
 }
 
 private fun RuleEntity.summary(context: Context): String {
+    if (dnsOnly) return context.getString(R.string.dns_only)
+
     var summary = ""
     if (domains.isNotBlank()) summary += "$domains\n"
     if (ip.isNotBlank()) summary += "$ip\n"
