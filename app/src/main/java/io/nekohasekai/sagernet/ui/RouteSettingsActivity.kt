@@ -10,15 +10,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -150,51 +153,69 @@ class RouteSettingsActivity : ComposeActivity() {
                                     ) {
                                         showExpandedMenu = true
                                     }
-                                    DropdownMenu(
+                                    DropdownMenuPopup(
                                         expanded = showExpandedMenu,
                                         onDismissRequest = { showExpandedMenu = false },
-                                        containerColor = MenuDefaults.groupStandardContainerColor,
-                                        shape = MenuDefaults.standaloneGroupShape,
                                     ) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                MenuDefaults.Label {
-                                                    Text(
-                                                        text = stringResource(R.string.custom_config),
-                                                        style = MaterialTheme.typography.titleSmall,
+                                        DropdownMenuGroup(
+                                            shapes = MenuDefaults.groupShape(0, 2),
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    MenuDefaults.Label {
+                                                        Text(
+                                                            text = stringResource(R.string.custom_config),
+                                                            style = MaterialTheme.typography.titleSmall,
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {},
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.menu_route)) },
+                                                onClick = {
+                                                    showExpandedMenu = false
+                                                    editCustomConfig.launch(
+                                                        Intent(
+                                                            this@RouteSettingsActivity,
+                                                            ConfigEditActivity::class.java,
+                                                        ).putExtra(
+                                                            ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                            uiState.customConfig,
+                                                        ),
                                                     )
-                                                }
-                                            },
-                                            onClick = {},
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.menu_route)) },
-                                            onClick = {
-                                                editCustomConfig.launch(
-                                                    Intent(
-                                                        this@RouteSettingsActivity,
-                                                        ConfigEditActivity::class.java,
-                                                    ).putExtra(
-                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
-                                                        uiState.customConfig,
-                                                    ),
-                                                )
-                                            },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.cag_dns)) },
-                                            onClick = {
-                                                editCustomDnsConfig.launch(
-                                                    Intent(
-                                                        this@RouteSettingsActivity,
-                                                        ConfigEditActivity::class.java,
-                                                    ).putExtra(
-                                                        ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
-                                                        uiState.customDnsConfig,
-                                                    ),
-                                                )
-                                            },
-                                        )
+                                                },
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.cag_dns)) },
+                                                onClick = {
+                                                    showExpandedMenu = false
+                                                    editCustomDnsConfig.launch(
+                                                        Intent(
+                                                            this@RouteSettingsActivity,
+                                                            ConfigEditActivity::class.java,
+                                                        ).putExtra(
+                                                            ConfigEditActivity.EXTRA_CUSTOM_CONFIG,
+                                                            uiState.customDnsConfig,
+                                                        ),
+                                                    )
+                                                },
+                                            )
+                                        }
+                                        Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                                        DropdownMenuGroup(
+                                            shapes = MenuDefaults.groupShape(1, 2),
+                                        ) {
+                                            DropdownMenuItem(
+                                                selected = uiState.dnsOnly,
+                                                onClick = {
+                                                    showExpandedMenu = false
+                                                    viewModel.setDnsOnly(!uiState.dnsOnly)
+                                                },
+                                                text = { Text(stringResource(R.string.dns_only)) },
+                                                shapes = MenuDefaults.itemShape(0, 1),
+                                            )
+                                        }
                                     }
                                 }
                             },

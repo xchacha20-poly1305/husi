@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 16,
-    "identityHash": "832887f13b2cb826aeb03560f61ff366",
+    "identityHash": "2aabd92d7843b9c6573e3508972f1e3b",
     "entities": [
       {
         "tableName": "proxy_groups",
@@ -251,7 +251,7 @@
       },
       {
         "tableName": "rules",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `userOrder` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, `domains` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` TEXT NOT NULL, `sourcePort` TEXT NOT NULL, `network` TEXT NOT NULL, `source` TEXT NOT NULL, `protocol` TEXT NOT NULL, `clientType` TEXT NOT NULL DEFAULT '', `packages` TEXT NOT NULL, `ssid` TEXT NOT NULL, `bssid` TEXT NOT NULL, `clashMode` TEXT NOT NULL DEFAULT '', `networkType` TEXT NOT NULL DEFAULT '', `networkIsExpensive` INTEGER NOT NULL DEFAULT 0, `networkInterfaceAddress` TEXT NOT NULL DEFAULT '', `action` TEXT NOT NULL DEFAULT '', `outbound` INTEGER NOT NULL, `overrideAddress` TEXT NOT NULL DEFAULT '', `overridePort` INTEGER NOT NULL DEFAULT 0, `tlsFragment` INTEGER NOT NULL DEFAULT 0, `tlsRecordFragment` INTEGER NOT NULL DEFAULT 0, `tlsFragmentFallbackDelay` TEXT NOT NULL DEFAULT '', `resolveStrategy` TEXT NOT NULL DEFAULT '', `resolveDisableCache` INTEGER NOT NULL DEFAULT 0, `resolveRewriteTTL` INTEGER NOT NULL DEFAULT -1, `resolveClientSubnet` TEXT NOT NULL DEFAULT '', `sniffTimeout` TEXT NOT NULL DEFAULT '', `sniffers` TEXT NOT NULL DEFAULT '', `customConfig` TEXT NOT NULL DEFAULT '', `customDnsConfig` TEXT NOT NULL DEFAULT '')",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `userOrder` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, `domains` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` TEXT NOT NULL, `sourcePort` TEXT NOT NULL, `network` TEXT NOT NULL, `source` TEXT NOT NULL, `protocol` TEXT NOT NULL, `clientType` TEXT NOT NULL DEFAULT '', `packages` TEXT NOT NULL, `ssid` TEXT NOT NULL, `bssid` TEXT NOT NULL, `clashMode` TEXT NOT NULL DEFAULT '', `networkType` TEXT NOT NULL DEFAULT '', `networkIsExpensive` INTEGER NOT NULL DEFAULT 0, `networkInterfaceAddress` TEXT NOT NULL DEFAULT '', `action` TEXT NOT NULL DEFAULT '', `dnsOnly` INTEGER NOT NULL DEFAULT 0, `outbound` INTEGER NOT NULL, `overrideAddress` TEXT NOT NULL DEFAULT '', `overridePort` INTEGER NOT NULL DEFAULT 0, `tlsFragment` INTEGER NOT NULL DEFAULT 0, `tlsRecordFragment` INTEGER NOT NULL DEFAULT 0, `tlsFragmentFallbackDelay` TEXT NOT NULL DEFAULT '', `resolveStrategy` TEXT NOT NULL DEFAULT '', `resolveDisableCache` INTEGER NOT NULL DEFAULT 0, `resolveRewriteTTL` INTEGER NOT NULL DEFAULT -1, `resolveClientSubnet` TEXT NOT NULL DEFAULT '', `sniffTimeout` TEXT NOT NULL DEFAULT '', `sniffers` TEXT NOT NULL DEFAULT '', `customConfig` TEXT NOT NULL DEFAULT '', `customDnsConfig` TEXT NOT NULL DEFAULT '')",
         "fields": [
           {
             "fieldPath": "id",
@@ -378,6 +378,13 @@
             "affinity": "TEXT",
             "notNull": true,
             "defaultValue": "''"
+          },
+          {
+            "fieldPath": "dnsOnly",
+            "columnName": "dnsOnly",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           },
           {
             "fieldPath": "outbound",
@@ -517,7 +524,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '832887f13b2cb826aeb03560f61ff366')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2aabd92d7843b9c6573e3508972f1e3b')"
     ]
   }
 }

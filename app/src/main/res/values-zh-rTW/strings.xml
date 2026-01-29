@@ -178,6 +178,7 @@
     <string name="username">使用者名稱</string>
     <string name="connection_test_url">連線測試 URL</string>
     <string name="dns_hosts">網域重寫</string>
+    <string name="dns_only">僅 DNS</string>
     <string name="direct_dns">直連 DNS</string>
     <string name="remote_dns">遠端 DNS</string>
     <string name="connection_test_available_http">成功：HTTP 握手花費 %d 毫秒</string>

@@ -56,6 +56,7 @@ data class RouteSettingsActivityUiState(
     val outbound: Long = RuleEntity.OUTBOUND_PROXY,
     val packages: Set<String> = emptySet(),
 
+    val dnsOnly: Boolean = false,
     val customConfig: String = "",
     val customDnsConfig: String = "",
 ) : Parcelable
@@ -106,6 +107,8 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
                 networkType = entity.networkType,
                 networkIsExpensive = entity.networkIsExpensive,
 
+                dnsOnly = entity.dnsOnly,
+
                 outbound = entity.outbound,
                 packages = entity.packages,
 
@@ -154,6 +157,8 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         clashMode = state.clashMode
         networkType = state.networkType
         networkIsExpensive = state.networkIsExpensive
+
+        dnsOnly = state.dnsOnly
 
         outbound = state.outbound
         packages = state.packages
@@ -260,6 +265,10 @@ internal class RouteSettingsActivityViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(networkInterfaceAddress = networkInterfaceAddress) }
         }
+    }
+
+    fun setDnsOnly(dnsOnly: Boolean) = viewModelScope.launch {
+        _uiState.update { it.copy(dnsOnly = dnsOnly) }
     }
 
     fun setOverrideAddress(overrideAddress: String) = viewModelScope.launch {

@@ -42,6 +42,7 @@ data class RuleEntity(
     // Rule action
 
     @ColumnInfo(defaultValue = "") var action: String = SingBoxOptions.ACTION_ROUTE,
+    @ColumnInfo(defaultValue = "0") var dnsOnly: Boolean = false,
 
     // action: route
     var outbound: Long = 0,
@@ -136,5 +137,4 @@ data class RuleEntity(
 
 
 }
-
 
