@@ -710,4 +710,6 @@
     <string name="themes_amber">Сосновая смола</string>
     <string name="closed_time">Время закрытия</string>
     <string name="quic">QUIC</string>
+    <string name="dns_only">Только DNS</string>
+    <string name="health_check">Проверка работоспособности</string>
 </resources>
