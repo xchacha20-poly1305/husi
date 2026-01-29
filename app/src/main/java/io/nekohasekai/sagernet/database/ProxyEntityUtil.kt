@@ -18,6 +18,7 @@ import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_SOCKS
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_SS
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_SSH
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_TROJAN
+import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_TRUST_TUNNEL
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_TUIC
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_VLESS
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_VMESS
@@ -43,6 +44,7 @@ fun ProxyEntity.displayType(context: Context): String = when (type) {
     TYPE_ANYTLS -> "AnyTLS"
     TYPE_SHADOWQUIC -> "Shadow QUIC"
     TYPE_PROXY_SET -> proxySetBean!!.displayType()
+    TYPE_TRUST_TUNNEL -> "Trust Tunnel"
     TYPE_CHAIN -> context.getString(R.string.proxy_chain)
     TYPE_CONFIG -> configBean!!.displayType()
     else -> "Undefined type $type"

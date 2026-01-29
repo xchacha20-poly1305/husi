@@ -13,7 +13,6 @@
     <string name="menu_configuration">Configuration</string>
     <string name="menu_group">Group</string>
     <string name="menu_about">About</string>
-
     <!-- themes -->
     <string name="theme">Theme</string>
     <string name="themes_amber">Pine Tears</string>
@@ -38,7 +37,6 @@
     <string name="themes_red">Crimson Valor</string>
     <string name="themes_teal">Gentle Luster</string>
     <string name="themes_yellow">Radiant Path</string>
-
     <string name="document">Document</string>
     <string name="group_default">Ungrouped</string>
     <string name="quick_toggle">Toggle</string>
@@ -240,6 +238,7 @@
     <string name="action_anytls" translatable="false">AnyTLS</string>
     <string name="action_shadowtls" translatable="false">ShadowTLS</string>
     <string name="action_shadowquic" translatable="false">Shadow QUIC</string>
+    <string name="action_trusttunnel" translatable="false">TrustTunnel</string>
     <string name="action_urltest" translatable="false">URLTest</string>
     <string name="action_selector" translatable="false">Selector</string>
     <string name="proxy_chain">Proxy Chain</string>
@@ -750,5 +749,6 @@
     <string name="ech_query_server_name">Server Name to Query</string>
     <string name="cert_chrome" translatable="false">Chrome</string>
     <string name="force_resolve_error">Force resolve error: %s</string>
-
+    <string name="quic">QUIC</string>
+    <string name="health_check">Health Check</string>
 </resources>

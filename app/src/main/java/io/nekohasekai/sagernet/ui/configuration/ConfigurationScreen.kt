@@ -117,6 +117,7 @@ import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.TrustTunnelSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VLESSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
@@ -586,6 +587,18 @@ fun ConfigurationScreen(
                                             Intent(
                                                 context,
                                                 ShadowQUICSettingsActivity::class.java,
+                                            ),
+                                        )
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.action_trusttunnel)) },
+                                    onClick = {
+                                        showAddManualMenu = false
+                                        context.startActivity(
+                                            Intent(
+                                                context,
+                                                TrustTunnelSettingsActivity::class.java,
                                             ),
                                         )
                                     },

@@ -552,4 +552,5 @@
     <string name="network_interface_strategy">استراتژی رابط شبکه</string>
     <string name="pause">مکث کنید</string>
     <string name="network_interface_preference">استراتژی رابط شبکه</string>
+    <string name="quic">QUIC</string>
 </resources>

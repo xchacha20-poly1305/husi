@@ -198,7 +198,6 @@
     <string name="version_x">版本 (%s)</string>
     <string name="extra_headers">額外標頭</string>
     <string name="config_type">配置類型</string>
-
     <!-- themes -->
     <string name="theme">主題顏色</string>
     <string name="themes_amber">寒松凝液</string>
@@ -223,7 +222,6 @@
     <string name="themes_red">鐵血丹心</string>
     <string name="themes_teal">溫潤而澤</string>
     <string name="themes_yellow">其道大光</string>
-
     <string name="edit_config">編輯配置</string>
     <string name="route_add">建立路由規則</string>
     <string name="delete_route_prompt">您真的希望移除此路由規則嗎？</string>
@@ -655,4 +653,5 @@
     <string name="more">更多</string>
     <string name="internal_link">內部連結</string>
     <string name="back">返回</string>
+    <string name="quic">QUIC</string>
 </resources>

@@ -6,13 +6,16 @@ import (
 )
 
 const (
-	TypeJuicity = "juicity"
+	TypeJuicity     = "juicity"
+	TypeTrustTunnel = "trusttunnel"
 )
 
 func ProxyDisplayName(proxyType string) string {
 	switch proxyType {
 	case TypeJuicity:
 		return "Juicity"
+	case TypeTrustTunnel:
+		return "TrustTunnel"
 	default:
 		return C.ProxyDisplayName(proxyType)
 	}

@@ -142,6 +142,8 @@ github.com/xchacha20-poly1305/anchor v0.7.1 h1:eNGdCeaqGX+Gghy5grhzV53uDaxVwHgs7
 github.com/xchacha20-poly1305/anchor v0.7.1/go.mod h1:EFLk1U04Kdc6tHgL7VCp1PQ9S1bhUU5Gn+nd9W8NTjs=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.0.3 h1:5QUddzduP+VR/d/5fa09EPfkfHKfpKPxRDK+U2GDJLM=
+github.com/xchacha20-poly1305/sing-trusttunnel v0.0.3/go.mod h1:CN7+gE3tN+pkYRiG0FkW+XylqBTudb0AGOyo07NQLPc=
 github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251206154549-ffe038342a81 h1:VGGsrbMwJfbr8z1Z5ICUF7dRRUq5EKcgvYpsWU4EcGc=
 github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251206154549-ffe038342a81/go.mod h1:J9KdaudLrphXQtyp/lnb/8hhmjM0DZ++FU91HhcDZUM=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=

@@ -521,4 +521,5 @@
     <string name="network_type">Тип мережі</string>
     <string name="network_ethernet">Дротове підключення</string>
     <string name="network_cellular">Стільниковий зв\'язок</string>
+    <string name="quic">QUIC</string>
 </resources>

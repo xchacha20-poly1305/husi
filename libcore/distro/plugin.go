@@ -5,6 +5,8 @@ import (
 	"libcore/plugin/juicity"
 	"libcore/plugin/naive"
 	"libcore/plugin/plugindns"
+	"libcore/plugin/trusttunnel"
+	_ "libcore/plugin/trusttunnel/quic"
 	"libcore/plugin/vless"
 
 	"github.com/sagernet/sing-box/adapter/outbound"
@@ -16,6 +18,7 @@ func registerPluginsOutbound(registry *outbound.Registry) {
 	juicity.RegisterOutbound(registry)
 	vless.RegisterOutbound(registry)
 	naive.RegisterOutbound(registry)
+	trusttunnel.RegisterOutbound(registry)
 }
 
 func registerPluginsDNSTransport(registry *dns.TransportRegistry) {

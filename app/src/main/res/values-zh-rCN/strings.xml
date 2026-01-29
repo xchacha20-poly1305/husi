@@ -226,7 +226,6 @@
         Files.
     </string>
     <string name="need_reload">重载代理服务以应用修改</string>
-
     <!-- themes -->
     <string name="theme">主题颜色</string>
     <string name="themes_amber">寒松凝液</string>
@@ -251,7 +250,6 @@
     <string name="themes_red">铁血丹心</string>
     <string name="themes_teal">温润而泽</string>
     <string name="themes_yellow">其道大光</string>
-
     <string name="extra_headers">附加标头</string>
     <string name="username">用户名</string>
     <string name="key_opt">密码 (可选)</string>
@@ -674,4 +672,6 @@
     <string name="scroll_to_bottom">滚动到底部</string>
     <string name="ech_query_server_name">用于查询的服务名称</string>
     <string name="force_resolve_error">强制解析失败：%s</string>
+    <string name="quic">QUIC</string>
+    <string name="health_check">健康检查</string>
 </resources>
