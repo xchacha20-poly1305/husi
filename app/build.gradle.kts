@@ -82,7 +82,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.2.0")
     implementation("androidx.datastore:datastore-preferences-core:1.2.0")
 
-    implementation(platform("androidx.compose:compose-bom:2026.01.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.01.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-viewbinding")
