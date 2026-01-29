@@ -45,6 +45,8 @@ import io.nekohasekai.sagernet.fmt.socks.parseSocksOutbound
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.ssh.buildSingBoxOutboundSSHBean
 import io.nekohasekai.sagernet.fmt.ssh.parseSSHOutbound
+import io.nekohasekai.sagernet.fmt.trusttunnel.TrustTunnelBean
+import io.nekohasekai.sagernet.fmt.trusttunnel.buildSingBoxOutboundTrustTunnelBean
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.tuic.buildSingBoxOutboundTuicBean
 import io.nekohasekai.sagernet.fmt.tuic.parseTuicOutbound
@@ -77,6 +79,7 @@ fun buildSingBoxOutbound(bean: AbstractBean): String {
         is WireGuardBean -> buildSingBoxEndpointWireGuardBean(bean) // is it outbound?
         is AnyTLSBean -> buildSingBoxOutboundAnyTLSBean(bean)
         is NaiveBean -> buildSingBoxOutboundNaiveBean(bean)
+        is TrustTunnelBean -> buildSingBoxOutboundTrustTunnelBean(bean)
         else -> error("invalid bean: ${bean.javaClass.simpleName}")
     }
     map.type = bean.outboundType()
