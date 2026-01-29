@@ -70,11 +70,13 @@ import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ConfigSettingActivity
 import io.nekohasekai.sagernet.fmt.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.fmt.trusttunnel.TrustTunnelBean
 import io.nekohasekai.sagernet.fmt.v2ray.VLESSBean
 import io.nekohasekai.sagernet.ui.profile.AnyTLSSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowQUICSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowTLSSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.TrustTunnelSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.VLESSSettingsActivity
 import kotlinx.coroutines.flow.Flow
 
@@ -108,6 +110,7 @@ data class ProxyEntity(
     var directBean: DirectBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
     var shadowQUICBean: ShadowQUICBean? = null,
+    var trustTunnelBean: TrustTunnelBean? = null,
     var proxySetBean: ProxySetBean? = null,
     var chainBean: ChainBean? = null,
     var configBean: ConfigBean? = null,
@@ -134,6 +137,7 @@ data class ProxyEntity(
         const val TYPE_ANYTLS = 24
         const val TYPE_SHADOWQUIC = 25
         const val TYPE_PROXY_SET = 26
+        const val TYPE_TRUST_TUNNEL = 27
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999 // Deleted
 
@@ -230,6 +234,7 @@ data class ProxyEntity(
             TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
             TYPE_SHADOWQUIC -> shadowQUICBean = KryoConverters.shadowQUICDeserialize(byteArray)
             TYPE_PROXY_SET -> proxySetBean = KryoConverters.proxySetDeserialize(byteArray)
+            TYPE_TRUST_TUNNEL -> trustTunnelBean = KryoConverters.trustTunnelDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
         }
@@ -258,6 +263,7 @@ data class ProxyEntity(
             TYPE_SHADOWQUIC -> shadowQUICBean
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_PROXY_SET -> proxySetBean
+            TYPE_TRUST_TUNNEL -> trustTunnelBean
             TYPE_CHAIN -> chainBean
             TYPE_CONFIG -> configBean
             else -> error("Undefined type $type")
@@ -269,6 +275,7 @@ data class ProxyEntity(
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_DIRECT -> false
+        TYPE_TRUST_TUNNEL -> false
         else -> true
     }
 
@@ -278,6 +285,7 @@ data class ProxyEntity(
         TYPE_WG -> false
         TYPE_SHADOWQUIC -> false
         TYPE_SHADOWTLS -> false
+        TYPE_TRUST_TUNNEL -> false
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
@@ -403,6 +411,7 @@ data class ProxyEntity(
         shadowTLSBean = null
         anyTLSBean = null
         shadowQUICBean = null
+        trustTunnelBean = null
         proxySetBean = null
         chainBean = null
         configBean = null
@@ -493,6 +502,11 @@ data class ProxyEntity(
                 shadowQUICBean = bean
             }
 
+            is TrustTunnelBean -> {
+                type = TYPE_TRUST_TUNNEL
+                trustTunnelBean = bean
+            }
+
             is ProxySetBean -> {
                 type = TYPE_PROXY_SET
                 proxySetBean = bean
@@ -534,6 +548,7 @@ data class ProxyEntity(
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
                 TYPE_SHADOWQUIC -> ShadowQUICSettingsActivity::class.java
+                TYPE_TRUST_TUNNEL -> TrustTunnelSettingsActivity::class.java
                 TYPE_PROXY_SET -> ProxySetSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java

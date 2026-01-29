@@ -36,6 +36,7 @@ public class SingBoxOptions {
     public static final String TYPE_SHADOWTLS = "shadowtls";
     public static final String TYPE_ANYTLS = "anytls";
     public static final String TYPE_NAIVE = "naive";
+    public static final String TYPE_TRUST_TUNNEL = "trusttunnel";
 
     public static final String TRANSPORT_WS = "ws";
     public static final String TRANSPORT_HTTPUPGRADE = "httpupgrade";
@@ -420,6 +421,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -988,6 +991,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -1078,6 +1083,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -1434,6 +1441,10 @@ public class SingBoxOptions {
 
         public Integer auto_redirect_output_mark;
 
+        public Integer auto_redirect_reset_mark;
+
+        public Integer auto_redirect_nfqueue;
+
         public Boolean exclude_mptcp;
 
         public List<String> loopback_address;
@@ -1589,6 +1600,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -1641,6 +1654,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -1707,6 +1722,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -1794,6 +1811,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -1856,6 +1875,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -1921,6 +1942,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -1990,6 +2013,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2052,6 +2077,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2134,6 +2161,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2204,6 +2233,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2277,6 +2308,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2345,6 +2378,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2419,6 +2454,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2482,6 +2519,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2543,6 +2582,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2601,6 +2642,73 @@ public class SingBoxOptions {
 
     }
 
+    public static class Outbound_TrustTunnelOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public String netns;
+
+        public String connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean disable_tcp_keep_alive;
+
+        public String tcp_keep_alive;
+
+        public String tcp_keep_alive_interval;
+
+        public Boolean udp_fragment;
+
+        public DomainResolveOptions domain_resolver;
+
+        public String network_strategy;
+
+        public List<String> network_type;
+
+        public List<String> fallback_network_type;
+
+        public String fallback_delay;
+
+        public String domain_strategy;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        public String username;
+
+        public String password;
+
+        public Boolean health_check;
+
+        public Boolean quic;
+
+        public String quic_congestion_control;
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        public OutboundTLSOptions tls;
+
+    }
+
     public static class Endpoint_WireGuardOptions extends Endpoint {
 
         public Boolean system;
@@ -2629,6 +2737,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2686,6 +2796,8 @@ public class SingBoxOptions {
 
         public String inet6_bind_address;
 
+        public Boolean bind_address_no_port;
+
         public String protect_path;
 
         public Integer routing_mark;
@@ -2735,6 +2847,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2789,6 +2903,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2849,6 +2965,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 
@@ -2911,6 +3029,8 @@ public class SingBoxOptions {
         public String inet4_bind_address;
 
         public String inet6_bind_address;
+
+        public Boolean bind_address_no_port;
 
         public String protect_path;
 

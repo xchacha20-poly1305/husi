@@ -157,6 +157,7 @@ var outboundList = []any{
 	option.AnyTLSOutboundOptions{},
 	pluginoption.JuicityOutboundOptions{},
 	option.NaiveOutboundOptions{},
+	pluginoption.TrustTunnelOutboundOptions{},
 }
 
 var endpointList = []any{
