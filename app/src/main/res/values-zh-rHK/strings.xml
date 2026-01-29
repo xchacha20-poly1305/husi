@@ -7,7 +7,6 @@
     <string name="telegram">Telegram 更新頻道</string>
     <string name="app_desc">以 Kotlin 編寫的 Android 通用代理工具鏈。</string>
     <string name="group_update">更新</string>
-
     <!-- themes -->
     <string name="theme">主題顏色</string>
     <string name="themes_amber">寒松凝液</string>
@@ -32,7 +31,6 @@
     <string name="themes_red">鐵血丹心</string>
     <string name="themes_teal">溫潤而澤</string>
     <string name="themes_yellow">其道大光</string>
-
     <string name="document">文件</string>
     <string name="project">項目</string>
     <string name="oss_licenses">開放源碼授權條款</string>
@@ -124,4 +122,5 @@
     <string name="app_name_long">匪兕匪虎 率彼曠野</string>
     <string name="language">語言</string>
     <string name="language_system_default">系統預設</string>
+    <string name="quic">QUIC</string>
 </resources>

@@ -595,4 +595,5 @@
     <string name="rule_set_match">Coincidencia de conjunto de reglas</string>
     <string name="network_interface_strategy">Estrategia de interfaz de red</string>
     <string name="tls_fragment">Fragmento TLS</string>
+    <string name="quic">QUIC</string>
 </resources>
