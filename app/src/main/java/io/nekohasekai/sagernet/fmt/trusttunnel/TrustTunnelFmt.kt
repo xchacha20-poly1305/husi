@@ -24,8 +24,21 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
             if (bean.allowInsecure) insecure = true
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
             certificate = bean.certificates.blankAsNull()?.lines()
+            certificate_public_key_sha256 = bean.certPublicKeySha256.blankAsNull()?.lines()
             client_certificate = bean.clientCert.blankAsNull()?.listByLineOrComma()
             client_key = bean.clientKey.blankAsNull()?.listByLineOrComma()
+            if (bean.tlsFragment) {
+                fragment = true
+                fragment_fallback_delay = bean.tlsFragmentFallbackDelay.blankAsNull()
+            } else if (bean.tlsRecordFragment) {
+                record_fragment = true
+            }
+            bean.utlsFingerprint.blankAsNull()?.let {
+                utls = SingBoxOptions.OutboundUTLSOptions().apply {
+                    enabled = true
+                    fingerprint = it
+                }
+            }
             if (bean.ech) {
                 ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
