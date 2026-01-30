@@ -120,25 +120,8 @@ data class ProxySetItem(
     constructor(item: libcore.GroupItem) : this(
         tag = item.tag,
         type = item.type,
+        urlTestDelay = item.delay,
     )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ProxySetItem
-
-        if (tag != other.tag) return false
-        if (type != other.type) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = tag.hashCode()
-        result = 31 * result + type.hashCode()
-        return result
-    }
 }
 
 internal data class ProcessInfo(
