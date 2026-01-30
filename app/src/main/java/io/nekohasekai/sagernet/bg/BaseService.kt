@@ -280,6 +280,9 @@ class BaseService {
 
                 // change the state
                 data.changeState(State.Stopped, msg)
+                if (!msg.isNullOrBlank()) {
+                    data.binder.notifyAlert(AlertType.COMMON, msg)
+                }
                 // stop the service if nothing has bound to it
                 if (restart) startRunner() else {
                     stopSelf()
@@ -376,7 +379,8 @@ class BaseService {
 
                     lateInit()
                 } catch (_: CancellationException) { // if the job was cancelled, it is canceller's responsibility to call stopRunner
-                } catch (_: UnknownHostException) {
+                } catch (e: UnknownHostException) {
+                    Logs.e(e)
                     stopRunner(false, getString(R.string.invalid_server))
                 } catch (e: PluginManager.PluginNotFoundException) {
                     Toast.makeText(this@Interface, e.readableMessage, Toast.LENGTH_SHORT).show()
@@ -386,9 +390,9 @@ class BaseService {
                 } catch (exc: Throwable) {
                     if (exc.javaClass.name.endsWith("proxyerror")) {
                         // error from golang
-                        Logs.w(exc.readableMessage)
+                        Logs.e(exc.readableMessage)
                     } else {
-                        Logs.w(exc)
+                        Logs.e(exc)
                     }
                     stopRunner(
                         false, "${getString(R.string.service_failed)}: ${exc.readableMessage}"

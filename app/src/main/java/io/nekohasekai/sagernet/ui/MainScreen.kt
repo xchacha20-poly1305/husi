@@ -184,7 +184,13 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         connection.alert.collect { alert ->
-            showServiceAlert = alert
+            if (alert.type == AlertType.COMMON) {
+                if (alert.message.isNotBlank()) {
+                    viewModel.showSnackbar(StringOrRes.Direct(alert.message))
+                }
+            } else {
+                showServiceAlert = alert
+            }
         }
     }
 
