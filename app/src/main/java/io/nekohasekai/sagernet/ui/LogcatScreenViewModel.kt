@@ -28,7 +28,7 @@ import libcore.LogItem
 data class LogcatUiState(
     val pause: Boolean = false,
     val searchQuery: String? = null,
-    val logLevel: LogLevel = LogLevel.WARN,
+    val logLevel: LogLevel = LogLevel.entries[DataStore.logLevel],
     val logs: PersistentList<LogEntry> = persistentListOf(),
     val errorMessage: String? = null,
 )
