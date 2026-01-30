@@ -136,10 +136,11 @@ object NavRoutes {
 }
 
 object AlertType {
+    const val COMMON = 0
     // message: none
-    const val MISSING_PLUGIN = 0
+    const val MISSING_PLUGIN = 1
     // message: plugin name
-    const val NEED_WIFI_PERMISSION = 1
+    const val NEED_WIFI_PERMISSION = 2
 }
 
 fun logLevelString(level: Int): String = when (level) {
