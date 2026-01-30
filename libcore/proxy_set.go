@@ -148,13 +148,14 @@ func (c *Client) QueryProxySets() (ProxySetIterator, error) {
 
 func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance) error {
 	outboundManager := instance.Outbound()
+	historyStorage := instance.api.HistoryStorage()
 	var proxySets []*ProxySet
 	for _, outbound := range outboundManager.Outbounds() {
 		outboundGroup, isGroup := outbound.(adapter.OutboundGroup)
 		if !isGroup {
 			continue
 		}
-		proxySets = append(proxySets, buildProxySet(outboundManager, outboundGroup))
+		proxySets = append(proxySets, buildProxySet(outboundManager, outboundGroup, historyStorage))
 	}
 	err := varbin.Write(conn, binary.BigEndian, proxySets)
 	if err != nil {
@@ -163,7 +164,7 @@ func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance
 	return nil
 }
 
-func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapter.OutboundGroup) *ProxySet {
+func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapter.OutboundGroup, historyStorage adapter.URLTestHistoryStorage) *ProxySet {
 	_, isSelector := outboundGroup.(*group.Selector)
 	return &ProxySet{
 		Tag:        outboundGroup.Tag(),
@@ -172,14 +173,15 @@ func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapte
 		Selectable: isSelector,
 		Items: common.Map(outboundGroup.All(), func(it string) *GroupItem {
 			outbound, _ := outboundManager.Outbound(it)
-			return buildGroupItem(outbound)
+			return buildGroupItem(outbound, historyStorage)
 		}),
 	}
 }
 
 type GroupItem struct {
-	Tag  string
-	Type string
+	Tag   string
+	Type  string
+	Delay int16
 }
 
 type GroupItemIterator interface {
@@ -188,9 +190,16 @@ type GroupItemIterator interface {
 	Length() int32
 }
 
-func buildGroupItem(outbound adapter.Outbound) *GroupItem {
+func buildGroupItem(outbound adapter.Outbound, historyStorage adapter.URLTestHistoryStorage) *GroupItem {
+	var delay int16
+	if historyStorage != nil {
+		if history := historyStorage.LoadURLTestHistory(outbound.Type()); history != nil {
+			delay = int16(history.Delay)
+		}
+	}
 	return &GroupItem{
-		Tag:  outbound.Tag(),
-		Type: pluginoption.ProxyDisplayName(outbound.Type()),
+		Tag:   outbound.Tag(),
+		Type:  pluginoption.ProxyDisplayName(outbound.Type()),
+		Delay: delay,
 	}
 }
