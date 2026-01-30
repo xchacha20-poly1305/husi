@@ -3,22 +3,42 @@ package io.nekohasekai.sagernet.bg
 import android.net.Network
 import libcore.InterfaceUpdateListener
 import io.nekohasekai.sagernet.repository.repo
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.net.NetworkInterface
 
 object DefaultNetworkMonitor {
     var defaultNetwork: Network? = null
     private var listener: InterfaceUpdateListener? = null
+    private val access = Mutex()
+    private var refCount = 0
 
     suspend fun start() {
-        DefaultNetworkListener.start(this) {
-            defaultNetwork = it
-            checkDefaultInterfaceUpdate(it)
+        access.withLock {
+            if (refCount++ > 0) return
+            DefaultNetworkListener.start(this) {
+                defaultNetwork = it
+                checkDefaultInterfaceUpdate(it)
+            }
+            defaultNetwork = repo.connectivity.activeNetwork
         }
-        defaultNetwork = repo.connectivity.activeNetwork
     }
 
     suspend fun stop() {
-        DefaultNetworkListener.stop(this)
+        access.withLock {
+            if (refCount == 0) return
+            if (--refCount > 0) return
+            DefaultNetworkListener.stop(this)
+        }
+    }
+
+    suspend fun <T> withDefaultNetwork(block: suspend (Network) -> T): T {
+        start()
+        try {
+            return block(require())
+        } finally {
+            stop()
+        }
     }
 
     suspend fun require(): Network {
