@@ -73,9 +73,9 @@ abstract class GroupUpdater {
                             DataStore.serviceMode == Key.MODE_VPN
                         ) {
                             // FakeDNS
-                            DefaultNetworkMonitor.require()
-                                .getAllByName(profile.serverAddress)
-                                .filterNotNull()
+                            DefaultNetworkMonitor.withDefaultNetwork { defaultNetwork ->
+                                defaultNetwork.getAllByName(profile.serverAddress).filterNotNull()
+                            }
                         } else {
                             // System DNS is enough (when VPN connected, it uses v2ray-core)
                             InetAddress.getAllByName(profile.serverAddress).filterNotNull()
