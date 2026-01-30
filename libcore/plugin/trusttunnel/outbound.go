@@ -54,6 +54,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		return nil, err
 	}
 	client, err := trusttunnel.NewClient(trusttunnel.ClientOptions{
+		Ctx:    ctx,
 		Detour: detour,
 		Server: server,
 		Auth: auth.User{
