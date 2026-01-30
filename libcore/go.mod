@@ -13,6 +13,7 @@ require (
 	github.com/sagernet/cronet-go/lib/android_arm v0.0.0-20260117110516-f21660bef13f
 	github.com/sagernet/cronet-go/lib/android_arm64 v0.0.0-20260117110516-f21660bef13f
 	github.com/sagernet/gomobile v0.1.11
+	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.2
 	github.com/sagernet/sing v0.8.0-beta.11.0.20260119074053-ad7d75445a0e
 	github.com/sagernet/sing-box v1.13.0-beta.7
@@ -73,7 +74,6 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/fswatch v0.1.1 // indirect
-	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/sing-mux v0.3.4 // indirect

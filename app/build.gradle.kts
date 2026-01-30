@@ -3,7 +3,7 @@
 plugins {
     id("com.android.application")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp") version "2.3.4"
+    id("com.google.devtools.ksp") version "2.3.5"
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
 }
 
@@ -68,28 +68,28 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.activity:activity-ktx:1.12.2")
+    implementation("androidx.activity:activity-ktx:1.12.3")
     implementation("androidx.browser:browser:1.9.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
 
-    implementation("androidx.work:work-runtime-ktx:2.11.0")
-    implementation("androidx.work:work-multiprocess:2.11.0")
+    implementation("androidx.work:work-runtime-ktx:2.11.1")
+    implementation("androidx.work:work-multiprocess:2.11.1")
 
     implementation("androidx.datastore:datastore:1.2.0")
     implementation("androidx.datastore:datastore-preferences:1.2.0")
     implementation("androidx.datastore:datastore-preferences-core:1.2.0")
 
-    implementation(platform("androidx.compose:compose-bom:2026.01.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.01.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-viewbinding")
-    implementation("androidx.compose.material3:material3:1.5.0-alpha12")
+    implementation("androidx.compose.material3:material3:1.5.0-alpha13")
     implementation("androidx.compose.animation:animation-graphics")
     implementation("androidx.activity:activity-compose:1.12.2")
-    implementation("androidx.navigation:navigation-compose:2.9.6")
+    implementation("androidx.navigation:navigation-compose:2.9.7")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
@@ -100,10 +100,10 @@ dependencies {
     implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
     implementation(project(":library:compose-code-editor:codeeditor"))
 
-    implementation("androidx.camera:camera-core:1.5.2")
-    implementation("androidx.camera:camera-lifecycle:1.5.2")
-    implementation("androidx.camera:camera-camera2:1.5.2")
-    implementation("androidx.camera:camera-compose:1.5.2")
+    implementation("androidx.camera:camera-core:1.5.3")
+    implementation("androidx.camera:camera-lifecycle:1.5.3")
+    implementation("androidx.camera:camera-camera2:1.5.3")
+    implementation("androidx.camera:camera-compose:1.5.3")
     implementation("com.google.zxing:core:3.5.4")
 
     implementation("androidx.room:room-runtime:2.8.4")
