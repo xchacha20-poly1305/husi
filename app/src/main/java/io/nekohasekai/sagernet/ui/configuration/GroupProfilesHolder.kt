@@ -609,8 +609,13 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                                             },
                                             onClick = {
                                                 scope.launch {
-                                                    clipboard.setPlainText(entity.exportConfig().first)
-                                                    onCopySuccess()
+                                                    runCatching {
+                                                        clipboard.setPlainText(entity.exportConfig().first)
+                                                    }.onSuccess {
+                                                        onCopySuccess()
+                                                    }.onFailure { e ->
+                                                        showErrorAlert(e.readableMessage)
+                                                    }
                                                 }
                                                 showShareSheet = false
                                             },
@@ -624,8 +629,12 @@ private fun DraggableSwipeableItemScope<ProfileItem>.ProxyCard(
                                                 )
                                             },
                                             onClick = {
-                                                val data = entity.exportConfig()
-                                                exportToFile(data.second, data.first)
+                                                runCatching {
+                                                    val data = entity.exportConfig()
+                                                    exportToFile(data.second, data.first)
+                                                }.onFailure { e ->
+                                                    showErrorAlert(e.readableMessage)
+                                                }
                                                 showShareSheet = false
                                             },
                                         )
