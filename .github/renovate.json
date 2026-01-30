@@ -52,7 +52,8 @@
         "github.com/sagernet/sing-box",
         "github.com/sagernet/gomobile",
         "github.com/dyhkwong/sing-juicity",
-        "github.com/xchacha20-poly1305/cazilla"
+        "github.com/xchacha20-poly1305/cazilla",
+        "github.com/xchacha20-poly1305/sing-trusttunnel"
       ],
       "enabled": true,
       "postUpdateOptions": [
@@ -61,6 +62,92 @@
       "addLabels": [
         "go"
       ]
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "androidx.core",
+        "androidx.appcompat",
+        "androidx.activity",
+        "androidx.browser",
+        "androidx.lifecycle",
+        "androidx.work",
+        "androidx.datastore",
+        "androidx.camera",
+        "androidx.room"
+      ],
+      "groupName": "AndroidX",
+      "groupSlug": "androidx"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "androidx.compose"
+      ],
+      "matchPackageNames": [
+        "androidx.activity:activity-compose",
+        "androidx.lifecycle:lifecycle-runtime-compose",
+        "androidx.lifecycle:lifecycle-viewmodel-compose",
+        "androidx.navigation:navigation-compose"
+      ],
+      "groupName": "AndroidX Compose",
+      "groupSlug": "androidx-compose"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "org.jetbrains.kotlin"
+      ],
+      "groupName": "Kotlin",
+      "groupSlug": "kotlin"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "com.android.tools"
+      ],
+      "groupName": "Android tools",
+      "groupSlug": "android-tools"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "com.google."
+      ],
+      "groupName": "Google",
+      "groupSlug": "google"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "com.google.accompanist",
+        "me.zhanghai.compose.preference",
+        "io.github.oikvpqya.compose.fastscroller"
+      ],
+      "groupName": "Compose ecosystem",
+      "groupSlug": "compose-ecosystem"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "org.junit"
+      ],
+      "groupName": "JUnit",
+      "groupSlug": "junit"
     },
     {
       "matchManagers": [
@@ -75,18 +162,6 @@
         "com.google.guava:guava"
       ],
       "allowedVersions": "/-android$/"
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackageNames": [
-        "org.junit:junit-bom"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": false
     }
   ]
 }
