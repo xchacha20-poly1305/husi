@@ -59,6 +59,8 @@ import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.socks.buildSingBoxOutboundSocksBean
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.ssh.buildSingBoxOutboundSSHBean
+import io.nekohasekai.sagernet.fmt.trusttunnel.TrustTunnelBean
+import io.nekohasekai.sagernet.fmt.trusttunnel.buildSingBoxOutboundTrustTunnelBean
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.tuic.buildSingBoxOutboundTuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
@@ -516,6 +518,8 @@ fun buildConfig(
                         is JuicityBean -> buildSingBoxOutboundJuicityBean(bean).asMap()
 
                         is NaiveBean -> buildSingBoxOutboundNaiveBean(bean).asMap()
+
+                        is TrustTunnelBean -> buildSingBoxOutboundTrustTunnelBean(bean).asMap()
 
                         is ProxySetBean -> {
                             val tags = if (proxySetChildren != null) {
