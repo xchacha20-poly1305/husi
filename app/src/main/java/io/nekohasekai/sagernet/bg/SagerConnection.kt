@@ -66,6 +66,8 @@ class SagerConnection(
     val alert: SharedFlow<Alert> = _alert.asSharedFlow()
 
     private var connectionActive = false
+    private var appContext: Context? = null
+    private var reconnectAttempted = false
     private var binder: IBinder? = null
     private var service: IServiceControl? = null
     private val observer = object : IServiceObserver.Stub() {
@@ -96,6 +98,7 @@ class SagerConnection(
         } catch (_: RemoteException) {
         }
         _connected.value = true
+        reconnectAttempted = false
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
@@ -103,21 +106,26 @@ class SagerConnection(
         unregisterObserver()
         binder = null
         service = null
+        resetStatus()
+        tryReconnect()
     }
 
     override fun binderDied() {
         _connected.value = false
-        connectionActive = false
         unregisterObserver()
         binder = null
         service = null
+        resetStatus()
+        tryReconnect()
     }
 
     fun connect(context: Context) {
-        if (connectionActive) return
+        appContext = context.applicationContext
+        reconnectAttempted = false
+        if (connectionActive && binder != null) return
         connectionActive = true
-        val intent = Intent(context, serviceClass).setAction(Action.SERVICE)
-        context.bindService(intent, this, Context.BIND_AUTO_CREATE)
+        val intent = Intent(appContext, serviceClass).setAction(Action.SERVICE)
+        appContext!!.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     fun disconnect(context: Context) {
@@ -126,6 +134,7 @@ class SagerConnection(
         } catch (_: IllegalArgumentException) {
         }
         connectionActive = false
+        reconnectAttempted = false
         if (listenForDeath) try {
             binder?.unlinkToDeath(this, 0)
         } catch (_: NoSuchElementException) {
@@ -134,7 +143,7 @@ class SagerConnection(
         binder = null
         service = null
         _connected.value = false
-        _status.value = ServiceStatus()
+        resetStatus()
     }
 
     fun reconnect(context: Context) {
@@ -163,5 +172,18 @@ class SagerConnection(
             service.unregisterObserver(observer)
         } catch (_: RemoteException) {
         }
+    }
+
+    private fun resetStatus() {
+        DataStore.serviceState = BaseService.State.Idle
+        _status.value = ServiceStatus()
+    }
+
+    private fun tryReconnect() {
+        val appContext = appContext ?: return
+        if (!connectionActive || binder != null || reconnectAttempted) return
+        reconnectAttempted = true
+        val intent = Intent(appContext, serviceClass).setAction(Action.SERVICE)
+        appContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 }
