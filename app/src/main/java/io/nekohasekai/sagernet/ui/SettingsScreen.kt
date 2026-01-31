@@ -636,8 +636,8 @@ fun SettingsScreen(
                 }
                 item(Key.LOG_LEVEL, PreferenceType.LIST) {
                     val value by DataStore.configurationStore
-                        .intFlow(Key.LOG_LEVEL, 2)
-                        .collectAsStateWithLifecycle(2)
+                        .intFlow(Key.LOG_LEVEL, 3)
+                        .collectAsStateWithLifecycle(3)
                     ListPreference(
                         value = value,
                         onValueChange = {
