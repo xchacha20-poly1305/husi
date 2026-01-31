@@ -187,6 +187,7 @@
     <string name="connection_test_clear_results">Очистить результаты теста</string>
     <string name="connection_test">Тест соединения</string>
     <string name="clear_traffic_statistics">Очистить статистику трафика</string>
+    <string name="remove_insecure_servers">Удалить небезопасные серверы</string>
     <string name="always_show_address_sum">Всегда отображать адрес сервера на карте конфигурации
     </string>
     <string name="always_show_address">Всегда показывать адрес</string>
