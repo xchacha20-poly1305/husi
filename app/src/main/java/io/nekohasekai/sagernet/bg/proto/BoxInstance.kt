@@ -18,6 +18,7 @@ import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.shadowquic.ShadowQUICBean
 import io.nekohasekai.sagernet.fmt.shadowquic.buildShadowQUICConfig
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.repository.repo
@@ -259,7 +260,7 @@ abstract class BoxInstance(
                 Logs.w(e)
                 // Kill the process if it is not closed properly to clean exist inbound listeners.
                 // Do not kill in main process, whose test not starts any listener.
-                if (!repo.isMainProcess) runOnDefaultDispatcher {
+                if (!repo.isMainProcess && e.readableMessage.contains("sing-box did not close in time")) runOnDefaultDispatcher {
                     delay(500) // Wait for error handling
                     exitProcess(0)
                 }

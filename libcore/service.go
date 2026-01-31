@@ -51,10 +51,10 @@ func (s *Service) StopInstance() error {
 		return nil
 	}
 	err := s.instance.Close()
+	s.instance = nil
 	if err != nil {
 		return err
 	}
-	s.instance = nil
 	return nil
 }
 
