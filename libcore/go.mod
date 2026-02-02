@@ -15,15 +15,15 @@ require (
 	github.com/sagernet/gomobile v0.1.11
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.2
-	github.com/sagernet/sing v0.8.0-beta.12
-	github.com/sagernet/sing-box v1.13.0-beta.8
+	github.com/sagernet/sing v0.8.0-beta.14
+	github.com/sagernet/sing-box v1.13.0-rc.1
 	github.com/sagernet/sing-quic v0.6.0-beta.11
-	github.com/sagernet/sing-tun v0.8.0-beta.15
+	github.com/sagernet/sing-tun v0.8.0-beta.16
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/libping v0.10.1
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.0.3
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.1.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/sys v0.40.0
 )

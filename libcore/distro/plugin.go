@@ -6,7 +6,6 @@ import (
 	"libcore/plugin/naive"
 	"libcore/plugin/plugindns"
 	"libcore/plugin/trusttunnel"
-	_ "libcore/plugin/trusttunnel/quic"
 	"libcore/plugin/vless"
 
 	"github.com/sagernet/sing-box/adapter/outbound"
