@@ -197,12 +197,12 @@ fun ConfigurationScreen(
     )
     var isPageRestored by remember { mutableStateOf(false) }
     var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
-    LaunchedEffect(selectedGroup, hasGroups) {
+    LaunchedEffect(selectedGroup, hasGroups, uiState.groups) {
         if (!hasGroups) return@LaunchedEffect
         val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
-        val target = index.coerceIn(0, pagerState.pageCount - 1)
-        if (target != pagerState.currentPage) {
-            pagerState.scrollToPage(target)
+        if (index < 0) return@LaunchedEffect
+        if (index != pagerState.currentPage) {
+            pagerState.scrollToPage(index)
         }
         isPageRestored = true
     }
