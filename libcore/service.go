@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"libcore/vario"
+
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/binary"
 	E "github.com/sagernet/sing/common/exceptions"
-	"github.com/sagernet/sing/common/varbin"
 )
 
 type Service struct {
@@ -194,7 +194,7 @@ func (s *Service) loopHandle(listener net.Listener) {
 }
 
 func (s *Service) handleRequest(conn net.Conn) error {
-	command, err := varbin.ReadValue[uint8](conn, binary.BigEndian)
+	command, err := vario.ReadUint8(conn)
 	if err != nil {
 		return E.Cause(err, "read command")
 	}
@@ -382,16 +382,16 @@ func (s *Service) requireInstance() (*boxInstance, error) {
 }
 
 func (s *Service) handleQueryStats(conn io.ReadWriter, instance *boxInstance) error {
-	tag, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
-	isUpload, err := varbin.ReadValue[bool](conn, binary.BigEndian)
+	isUpload, err := vario.ReadBool(conn)
 	if err != nil {
 		return E.Cause(err, "read isUpload")
 	}
 	stats := instance.QueryStats(tag, isUpload)
-	err = varbin.Write(conn, binary.BigEndian, stats)
+	err = vario.WriteInt64(conn, stats)
 	if err != nil {
 		return E.Cause(err, "write stats")
 	}

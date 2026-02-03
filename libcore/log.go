@@ -10,13 +10,12 @@ import (
 	"time"
 
 	"libcore/ringqueue"
+	"libcore/vario"
 
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/binary"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
-	"github.com/sagernet/sing/common/varbin"
 
 	"golang.org/x/sys/unix"
 )
@@ -146,10 +145,10 @@ var (
 )
 
 type logWriter struct {
-	writer   io.Writer
+	writer       io.Writer
 	bufferAccess sync.RWMutex
-	buffer   *ringqueue.RingQueue[log.Entry]
-	observer *observable.Observer[log.Entry]
+	buffer       *ringqueue.RingQueue[log.Entry]
+	observer     *observable.Observer[log.Entry]
 }
 
 func newLogWriter(writer io.Writer, capacity int) *logWriter {
@@ -233,13 +232,12 @@ type LogItemFunc interface {
 }
 
 func (c *Client) SubscribeLogs(callback LogItemFunc) error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandSubscribeLogs)
+	err := vario.WriteUint8(c.conn, commandSubscribeLogs)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
 	for {
-		// Struct are same
-		item, err := varbin.ReadValue[LogItem](c.conn, binary.BigEndian)
+		item, err := readLogItem(c.conn)
 		if err != nil {
 			if E.IsClosed(err) {
 				return nil
@@ -253,7 +251,7 @@ func (c *Client) SubscribeLogs(callback LogItemFunc) error {
 func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
 	buffer := platformLogWrapper.All()
 	for i := range buffer {
-		err := varbin.Write(conn, binary.BigEndian, buffer[i])
+		err := writeLogEntry(conn, buffer[i])
 		if err != nil {
 			return E.Cause(err, "write log entry buffer ", i)
 		}
@@ -266,7 +264,7 @@ func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
 	for {
 		select {
 		case entry := <-subscription:
-			err := varbin.Write(conn, binary.BigEndian, entry)
+			err := writeLogEntry(conn, entry)
 			if err != nil {
 				return E.Cause(err, "write entry")
 			}
@@ -277,9 +275,36 @@ func (s *Service) handleSubscribeLogs(conn io.ReadWriter) error {
 }
 
 func (c *Client) ClearLog() error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandClearLog)
+	err := vario.WriteUint8(c.conn, commandClearLog)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
 	return nil
+}
+
+func writeLogEntry(writer io.Writer, entry log.Entry) error {
+	err := vario.WriteUint8(writer, entry.Level)
+	if err != nil {
+		return E.Cause(err, "write level")
+	}
+	err = vario.WriteString(writer, entry.Message)
+	if err != nil {
+		return E.Cause(err, "write message")
+	}
+	return nil
+}
+
+func readLogItem(reader io.Reader) (LogItem, error) {
+	level, err := vario.ReadUint8(reader)
+	if err != nil {
+		return LogItem{}, E.Cause(err, "read level")
+	}
+	message, err := vario.ReadString(reader)
+	if err != nil {
+		return LogItem{}, E.Cause(err, "read message")
+	}
+	return LogItem{
+		Level:   level,
+		Message: message,
+	}, nil
 }

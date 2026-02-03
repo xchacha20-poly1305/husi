@@ -4,24 +4,21 @@ import (
 	"context"
 	"crypto/rand"
 	"io"
-	"sync"
 	"syscall"
 	"time"
 
 	"libcore/protect"
+	"libcore/vario"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/binary"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/sing/common/varbin"
-
 	"github.com/xchacha20-poly1305/libping"
 	"golang.org/x/sync/errgroup"
 )
@@ -106,62 +103,47 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 	}
 }
 
-type ResultPair struct {
-	Tag   string
-	Delay int16
-}
-
-type ResultPairIterator interface {
-	Next() *ResultPair
-	HasNext() bool
-	Length() int32
-}
-
-func (c *Client) GroupTest(tag, link string, timeout int32) (ResultPairIterator, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandGroupURLTest)
+func (c *Client) GroupTest(tag, link string, timeout int32) error {
+	err := vario.WriteUint8(c.conn, commandGroupURLTest)
 	if err != nil {
-		return nil, E.Cause(err, "write command")
+		return E.Cause(err, "write command")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, tag)
+	err = vario.WriteString(c.conn, tag)
 	if err != nil {
-		return nil, E.Cause(err, "write tag")
+		return E.Cause(err, "write tag")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, link)
+	err = vario.WriteString(c.conn, link)
 	if err != nil {
-		return nil, E.Cause(err, "write link")
+		return E.Cause(err, "write link")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, timeout)
+	err = vario.WriteInt32(c.conn, timeout)
 	if err != nil {
-		return nil, E.Cause(err, "write timeout")
+		return E.Cause(err, "write timeout")
 	}
-	resultCode, err := varbin.ReadValue[uint8](c.conn, binary.BigEndian)
+	resultCode, err := vario.ReadUint8(c.conn)
 	if err != nil {
-		return nil, E.Cause(err, "read result code")
+		return E.Cause(err, "read result code")
 	}
 	if resultCode != resultNoError {
-		message, err := varbin.ReadValue[string](c.conn, binary.BigEndian)
+		message, err := vario.ReadString(c.conn)
 		if err != nil {
-			return nil, E.Cause(err, "read error message")
+			return E.Cause(err, "read error message")
 		}
-		return nil, E.New(message)
+		return E.New(message)
 	}
-	results, err := varbin.ReadValue[[]*ResultPair](c.conn, binary.BigEndian)
-	if err != nil {
-		return nil, E.Cause(err, "read results")
-	}
-	return newIterator(results), nil
+	return nil
 }
 
 func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) error {
-	tag, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
-	link, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	link, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read link")
 	}
-	timeout, err := varbin.ReadValue[int32](conn, binary.BigEndian)
+	timeout, err := vario.ReadInt32(conn)
 	if err != nil {
 		return E.Cause(err, "read timeout")
 	}
@@ -170,37 +152,33 @@ func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) err
 	outbound, loaded := outboundManager.Outbound(tag)
 	if !loaded {
 		err = E.New("group [", tag, "] is not found")
-		_ = varbin.Write(conn, binary.BigEndian, resultCommonError)
-		_ = varbin.Write(conn, binary.BigEndian, err.Error())
+		_ = vario.WriteUint8(conn, resultCommonError)
+		_ = vario.WriteString(conn, err.Error())
 		return err
 	}
 	outboundGroup, isOutboundGroup := outbound.(adapter.OutboundGroup)
 	if !isOutboundGroup {
 		err = E.New("[", tag, "] is not a group")
-		_ = varbin.Write(conn, binary.BigEndian, resultCommonError)
-		_ = varbin.Write(conn, binary.BigEndian, err.Error())
+		_ = vario.WriteUint8(conn, resultCommonError)
+		_ = vario.WriteString(conn, err.Error())
 		return err
 	}
 
 	ctx, cancel := context.WithTimeout(instance.ctx, time.Duration(timeout)*time.Millisecond)
 	defer cancel()
 
-	var results []*ResultPair
 	if urlTestGroup, isURLTestGroup := outboundGroup.(adapter.URLTestGroup); isURLTestGroup {
-		uintResult, err := urlTestGroup.URLTest(ctx)
+		_, err = urlTestGroup.URLTest(ctx)
 		if err != nil {
-			_ = varbin.Write(conn, binary.BigEndian, resultCommonError)
-			_ = varbin.Write(conn, binary.BigEndian, err.Error())
+			_ = vario.WriteUint8(conn, resultCommonError)
+			_ = vario.WriteString(conn, err.Error())
 			return err
 		}
-		results = make([]*ResultPair, 0, len(uintResult))
-		for tag, delay := range uintResult {
-			results = append(results, &ResultPair{
-				Tag:   tag,
-				Delay: int16(delay),
-			})
-		}
 	} else {
+		historyStorage := instance.api.HistoryStorage()
+		if historyStorage == nil {
+			return nil
+		}
 		outbounds := common.FilterNotNil(common.Map(outboundGroup.All(), func(it string) adapter.Outbound {
 			itOutbound, _ := outboundManager.Outbound(it)
 			return itOutbound
@@ -208,8 +186,6 @@ func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) err
 		errGroup, _ := errgroup.WithContext(ctx)
 		errGroup.SetLimit(10)
 		checked := make(map[string]bool)
-		results = make([]*ResultPair, 0, len(outbounds))
-		var resultAccess sync.Mutex
 		for _, detour := range outbounds {
 			tag := detour.Tag()
 			realTag := group.RealTag(detour)
@@ -227,63 +203,57 @@ func (s *Service) handleGroupTest(conn io.ReadWriter, instance *boxInstance) err
 					log.DebugContext(ctx, "outbound ", tag, " unavailable: ", err)
 				} else {
 					log.DebugContext(ctx, "outbound ", tag, " available: ", t, "ms")
-					resultAccess.Lock()
-					results = append(results, &ResultPair{
-						Tag:   tag,
-						Delay: int16(t),
-					})
-					resultAccess.Unlock()
 				}
+				historyStorage.StoreURLTestHistory(realTag, &adapter.URLTestHistory{
+					Time:  time.Now(),
+					Delay: t,
+				})
 				return nil
 			})
 		}
 		_ = errGroup.Wait()
 	}
 
-	err = varbin.Write(conn, binary.BigEndian, resultNoError)
+	err = vario.WriteUint8(conn, resultNoError)
 	if err != nil {
 		return E.Cause(err, "write result code")
-	}
-	err = varbin.Write(conn, binary.BigEndian, results)
-	if err != nil {
-		return E.Cause(err, "write results")
 	}
 	return nil
 }
 
 func (c *Client) NewInstanceURLTest(config, tag, link string, timeout int32) (int32, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandNewInstanceURLTest)
+	err := vario.WriteUint8(c.conn, commandNewInstanceURLTest)
 	if err != nil {
 		return -1, E.Cause(err, "write command")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, config)
+	err = vario.WriteString(c.conn, config)
 	if err != nil {
 		return -1, E.Cause(err, "write config")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, tag)
+	err = vario.WriteString(c.conn, tag)
 	if err != nil {
 		return -1, E.Cause(err, "write tag")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, link)
+	err = vario.WriteString(c.conn, link)
 	if err != nil {
 		return -1, E.Cause(err, "write link")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, timeout)
+	err = vario.WriteInt32(c.conn, timeout)
 	if err != nil {
 		return -1, E.Cause(err, "write timeout")
 	}
-	resultCode, err := varbin.ReadValue[uint8](c.conn, binary.BigEndian)
+	resultCode, err := vario.ReadUint8(c.conn)
 	if err != nil {
 		return -1, E.Cause(err, "read result code")
 	}
 	if resultCode != resultNoError {
-		errMsg, err := varbin.ReadValue[string](c.conn, binary.BigEndian)
+		errMsg, err := vario.ReadString(c.conn)
 		if err != nil {
 			return -1, E.Cause(err, "read error message")
 		}
 		return -1, E.New(errMsg)
 	}
-	latency, err := varbin.ReadValue[int32](c.conn, binary.BigEndian)
+	latency, err := vario.ReadInt32(c.conn)
 	if err != nil {
 		return -1, E.Cause(err, "read latency")
 	}
@@ -291,35 +261,35 @@ func (c *Client) NewInstanceURLTest(config, tag, link string, timeout int32) (in
 }
 
 func (s *Service) handleNewInstanceURLTest(conn io.ReadWriter) error {
-	config, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	config, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read config")
 	}
-	tag, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
-	link, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	link, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read link")
 	}
-	timeout, err := varbin.ReadValue[int32](conn, binary.BigEndian)
+	timeout, err := vario.ReadInt32(conn)
 	if err != nil {
 		return E.Cause(err, "read timeout")
 	}
 
 	latency, err := s.doURLTest(config, tag, link, timeout)
 	if err != nil {
-		_ = varbin.Write(conn, binary.BigEndian, resultCommonError)
-		_ = varbin.Write(conn, binary.BigEndian, err.Error())
+		_ = vario.WriteUint8(conn, resultCommonError)
+		_ = vario.WriteString(conn, err.Error())
 		return nil
 	}
 
-	err = varbin.Write(conn, binary.BigEndian, resultNoError)
+	err = vario.WriteUint8(conn, resultNoError)
 	if err != nil {
 		return E.Cause(err, "write result")
 	}
-	err = varbin.Write(conn, binary.BigEndian, latency)
+	err = vario.WriteInt32(conn, latency)
 	if err != nil {
 		return E.Cause(err, "write latency")
 	}
@@ -340,34 +310,34 @@ func (s *Service) doURLTest(config, tag, link string, timeout int32) (int32, err
 }
 
 func (c *Client) UrlTest(tag, link string, timeout int32) (int32, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandUrlTest)
+	err := vario.WriteUint8(c.conn, commandUrlTest)
 	if err != nil {
 		return -1, E.Cause(err, "write command")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, tag)
+	err = vario.WriteString(c.conn, tag)
 	if err != nil {
 		return -1, E.Cause(err, "write tag")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, link)
+	err = vario.WriteString(c.conn, link)
 	if err != nil {
 		return -1, E.Cause(err, "write link")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, timeout)
+	err = vario.WriteInt32(c.conn, timeout)
 	if err != nil {
 		return -1, E.Cause(err, "write timeout")
 	}
-	resultCode, err := varbin.ReadValue[uint8](c.conn, binary.BigEndian)
+	resultCode, err := vario.ReadUint8(c.conn)
 	if err != nil {
 		return -1, E.Cause(err, "read result code")
 	}
 	if resultCode != resultNoError {
-		message, err := varbin.ReadValue[string](c.conn, binary.BigEndian)
+		message, err := vario.ReadString(c.conn)
 		if err != nil {
 			return -1, E.Cause(err, "read error message")
 		}
 		return -1, E.New(message)
 	}
-	latency, err := varbin.ReadValue[int32](c.conn, binary.BigEndian)
+	latency, err := vario.ReadInt32(c.conn)
 	if err != nil {
 		return -1, E.Cause(err, "read latency")
 	}
@@ -375,29 +345,29 @@ func (c *Client) UrlTest(tag, link string, timeout int32) (int32, error) {
 }
 
 func (s *Service) handleUrlTest(conn io.ReadWriter, instance *boxInstance) error {
-	tag, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
-	link, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	link, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read link")
 	}
-	timeout, err := varbin.ReadValue[int32](conn, binary.BigEndian)
+	timeout, err := vario.ReadInt32(conn)
 	if err != nil {
 		return E.Cause(err, "read timeout")
 	}
 	latency, err := instance.urlTest(tag, link, timeout)
 	if err != nil {
-		_ = varbin.Write(conn, binary.BigEndian, resultCommonError)
-		_ = varbin.Write(conn, binary.BigEndian, err.Error())
+		_ = vario.WriteUint8(conn, resultCommonError)
+		_ = vario.WriteString(conn, err.Error())
 		return nil
 	}
-	err = varbin.Write(conn, binary.BigEndian, resultNoError)
+	err = vario.WriteUint8(conn, resultNoError)
 	if err != nil {
 		return E.Cause(err, "write result")
 	}
-	err = varbin.Write(conn, binary.BigEndian, latency)
+	err = vario.WriteInt32(conn, latency)
 	if err != nil {
 		return E.Cause(err, "write latency")
 	}
