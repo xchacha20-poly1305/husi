@@ -3,27 +3,26 @@ package libcore
 import (
 	"io"
 
+	"libcore/plugin/pluginoption"
+	"libcore/vario"
+
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/binary"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
-	"github.com/sagernet/sing/common/varbin"
-
-	"libcore/plugin/pluginoption"
 )
 
 func (c *Client) SelectOutbound(groupName, tag string) error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandSelectOutbound)
+	err := vario.WriteUint8(c.conn, commandSelectOutbound)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, groupName)
+	err = vario.WriteString(c.conn, groupName)
 	if err != nil {
 		return E.Cause(err, "write group name")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, tag)
+	err = vario.WriteString(c.conn, tag)
 	if err != nil {
 		return E.Cause(err, "write tag")
 	}
@@ -31,11 +30,11 @@ func (c *Client) SelectOutbound(groupName, tag string) error {
 }
 
 func (s *Service) handleSelectOutbound(conn io.ReadWriter, instance *boxInstance) error {
-	groupName, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	groupName, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read group name")
 	}
-	tag, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	tag, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read tag")
 	}
@@ -135,11 +134,11 @@ type ProxySetIterator interface {
 }
 
 func (c *Client) QueryProxySets() (ProxySetIterator, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandQueryProxySets)
+	err := vario.WriteUint8(c.conn, commandQueryProxySets)
 	if err != nil {
 		return nil, E.Cause(err, "write command")
 	}
-	proxySets, err := varbin.ReadValue[[]*ProxySet](c.conn, binary.BigEndian)
+	proxySets, err := vario.ReadSlices(c.conn, readProxySet)
 	if err != nil {
 		return nil, E.Cause(err, "read proxy sets")
 	}
@@ -157,7 +156,7 @@ func (s *Service) handleQueryProxySets(conn io.ReadWriter, instance *boxInstance
 		}
 		proxySets = append(proxySets, buildProxySet(outboundManager, outboundGroup, historyStorage))
 	}
-	err := varbin.Write(conn, binary.BigEndian, proxySets)
+	err := vario.WriteSlices(conn, proxySets)
 	if err != nil {
 		return E.Cause(err, "write proxy sets")
 	}
@@ -202,4 +201,94 @@ func buildGroupItem(outbound adapter.Outbound, historyStorage adapter.URLTestHis
 		Type:  pluginoption.ProxyDisplayName(outbound.Type()),
 		Delay: delay,
 	}
+}
+
+func (p *ProxySet) WriteToBinary(writer io.Writer) error {
+	err := vario.WriteString(writer, p.Tag)
+	if err != nil {
+		return E.Cause(err, "write tag")
+	}
+	err = vario.WriteString(writer, p.Type)
+	if err != nil {
+		return E.Cause(err, "write type")
+	}
+	err = vario.WriteString(writer, p.Selected)
+	if err != nil {
+		return E.Cause(err, "write selected")
+	}
+	err = vario.WriteBool(writer, p.Selectable)
+	if err != nil {
+		return E.Cause(err, "write selectable")
+	}
+	err = vario.WriteSlices(writer, p.Items)
+	if err != nil {
+		return E.Cause(err, "write items")
+	}
+	return nil
+}
+
+func readProxySet(reader io.Reader) (*ProxySet, error) {
+	tag, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read tag")
+	}
+	proxyType, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read type")
+	}
+	selected, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read selected")
+	}
+	selectable, err := vario.ReadBool(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read selectable")
+	}
+	items, err := vario.ReadSlices(reader, readGroupItem)
+	if err != nil {
+		return nil, E.Cause(err, "read items")
+	}
+	return &ProxySet{
+		Tag:        tag,
+		Type:       proxyType,
+		Selected:   selected,
+		Selectable: selectable,
+		Items:      items,
+	}, nil
+}
+
+func (g *GroupItem) WriteToBinary(writer io.Writer) error {
+	err := vario.WriteString(writer, g.Tag)
+	if err != nil {
+		return E.Cause(err, "write tag")
+	}
+	err = vario.WriteString(writer, g.Type)
+	if err != nil {
+		return E.Cause(err, "write type")
+	}
+	err = vario.WriteInt16(writer, g.Delay)
+	if err != nil {
+		return E.Cause(err, "write delay")
+	}
+	return nil
+}
+
+func readGroupItem(reader io.Reader) (*GroupItem, error) {
+	tag, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read tag")
+	}
+	itemType, err := vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read type")
+	}
+	delay, err := vario.ReadInt16(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read delay")
+	}
+	return &GroupItem{
+		Tag:   tag,
+		Type:  itemType,
+		Delay: delay,
+	}, nil
 }

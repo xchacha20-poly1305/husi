@@ -2,31 +2,31 @@ package libcore
 
 import (
 	"cmp"
+	"encoding/binary"
 	"io"
 	"runtime"
 	"strings"
 	"time"
 
 	"libcore/combinedapi/trafficcontrol"
+	"libcore/vario"
 
-	"github.com/sagernet/sing/common/binary"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
 	"github.com/sagernet/sing/common/observable"
-	"github.com/sagernet/sing/common/varbin"
 
 	"github.com/gofrs/uuid/v5"
 )
 
 func (c *Client) QueryConnections() (TrackerInfoIterator, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandQueryConnections)
+	err := vario.WriteUint8(c.conn, commandQueryConnections)
 	if err != nil {
 		return nil, E.Cause(err, "write command")
 	}
-	trackerInfos, err := varbin.ReadValue[[]*TrackerInfo](c.conn, binary.BigEndian)
+	trackerInfos, err := vario.ReadSlices(c.conn, readTrackerInfo)
 	if err != nil {
-		return nil, E.Cause(err, "read tracker info")
+		return nil, E.Cause(err, "read tracker infos")
 	}
 	return newIterator(trackerInfos), nil
 }
@@ -41,9 +41,9 @@ func (s *Service) handleQueryConnections(conn io.ReadWriter, instance *boxInstan
 		trackerInfos = append(trackerInfos, buildTrackerInfo(tracker.Metadata()))
 		return true
 	})
-	err := varbin.Write(conn, binary.BigEndian, trackerInfos)
+	err := vario.WriteSlices(conn, trackerInfos)
 	if err != nil {
-		return E.Cause(err, "write tracker infos")
+		return E.Cause(err, "write connections")
 	}
 	return nil
 }
@@ -143,6 +143,151 @@ func generateBound(bound, boundType string) string {
 	return bound + "/" + boundType
 }
 
+func (t *TrackerInfo) WriteToBinary(writer io.Writer) error {
+	_, err := writer.Write(t.UUID[:])
+	if err != nil {
+		return E.Cause(err, "write uuid")
+	}
+	err = vario.WriteString(writer, t.Inbound)
+	if err != nil {
+		return E.Cause(err, "write inbound")
+	}
+	err = binary.Write(writer, binary.BigEndian, t.IPVersion)
+	if err != nil {
+		return E.Cause(err, "write ip version")
+	}
+	err = vario.WriteString(writer, t.Network)
+	if err != nil {
+		return E.Cause(err, "write network")
+	}
+	err = vario.WriteString(writer, t.Src)
+	if err != nil {
+		return E.Cause(err, "write src")
+	}
+	err = vario.WriteString(writer, t.Dst)
+	if err != nil {
+		return E.Cause(err, "write dst")
+	}
+	err = vario.WriteString(writer, t.Host)
+	if err != nil {
+		return E.Cause(err, "write host")
+	}
+	err = vario.WriteString(writer, t.MatchedRule)
+	if err != nil {
+		return E.Cause(err, "write matched rule")
+	}
+	err = binary.Write(writer, binary.BigEndian, t.UploadTotal)
+	if err != nil {
+		return E.Cause(err, "write upload total")
+	}
+	err = binary.Write(writer, binary.BigEndian, t.DownloadTotal)
+	if err != nil {
+		return E.Cause(err, "write download total")
+	}
+	err = binary.Write(writer, binary.BigEndian, t.StartedAtUnix)
+	if err != nil {
+		return E.Cause(err, "write started at unix")
+	}
+	err = binary.Write(writer, binary.BigEndian, t.ClosedAtUnix)
+	if err != nil {
+		return E.Cause(err, "write closed at unix")
+	}
+	err = vario.WriteString(writer, t.Outbound)
+	if err != nil {
+		return E.Cause(err, "write outbound")
+	}
+	err = vario.WriteString(writer, t.Chain)
+	if err != nil {
+		return E.Cause(err, "write chain")
+	}
+	err = vario.WriteString(writer, t.Protocol)
+	if err != nil {
+		return E.Cause(err, "write protocol")
+	}
+	err = vario.WriteString(writer, t.Process)
+	if err != nil {
+		return E.Cause(err, "write process")
+	}
+	err = binary.Write(writer, binary.BigEndian, t.UID)
+	if err != nil {
+		return E.Cause(err, "write uid")
+	}
+	return nil
+}
+
+func readTrackerInfo(reader io.Reader) (*TrackerInfo, error) {
+	trackerInfo := &TrackerInfo{}
+	_, err := reader.Read(trackerInfo.UUID[:])
+	if err != nil {
+		return nil, E.Cause(err, "read uuid")
+	}
+	trackerInfo.Inbound, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read inbound")
+	}
+	err = binary.Read(reader, binary.BigEndian, &trackerInfo.IPVersion)
+	if err != nil {
+		return nil, E.Cause(err, "read ip version")
+	}
+	trackerInfo.Network, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read network")
+	}
+	trackerInfo.Src, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read src")
+	}
+	trackerInfo.Dst, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read dst")
+	}
+	trackerInfo.Host, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read host")
+	}
+	trackerInfo.MatchedRule, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read matched rule")
+	}
+	err = binary.Read(reader, binary.BigEndian, &trackerInfo.UploadTotal)
+	if err != nil {
+		return nil, E.Cause(err, "read upload total")
+	}
+	err = binary.Read(reader, binary.BigEndian, &trackerInfo.DownloadTotal)
+	if err != nil {
+		return nil, E.Cause(err, "read download total")
+	}
+	err = binary.Read(reader, binary.BigEndian, &trackerInfo.StartedAtUnix)
+	if err != nil {
+		return nil, E.Cause(err, "read started at unix")
+	}
+	err = binary.Read(reader, binary.BigEndian, &trackerInfo.ClosedAtUnix)
+	if err != nil {
+		return nil, E.Cause(err, "read closed at unix")
+	}
+	trackerInfo.Outbound, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read outbound")
+	}
+	trackerInfo.Chain, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read chain")
+	}
+	trackerInfo.Protocol, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read protocol")
+	}
+	trackerInfo.Process, err = vario.ReadString(reader)
+	if err != nil {
+		return nil, E.Cause(err, "read process")
+	}
+	err = binary.Read(reader, binary.BigEndian, &trackerInfo.UID)
+	if err != nil {
+		return nil, E.Cause(err, "read uid")
+	}
+	return trackerInfo, nil
+}
+
 const (
 	ConnectionEventNew    = int16(trafficcontrol.ConnectionEventNew)
 	ConnectionEventUpdate = int16(trafficcontrol.ConnectionEventUpdate)
@@ -187,12 +332,12 @@ type ConnectionEventCallback interface {
 }
 
 func (c *Client) SubscribeConnectionEvent(callback ConnectionEventCallback) error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandSubscribeConnections)
+	err := vario.WriteUint8(c.conn, commandSubscribeConnections)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
 	for {
-		event, err := varbin.ReadValue[ConnectionEvent](c.conn, binary.BigEndian)
+		event, err := readConnectionEvent(c.conn)
 		if err != nil {
 			return E.Cause(err, "read event")
 		}
@@ -210,7 +355,7 @@ func (s *Service) handleSubscribeConnections(conn io.ReadWriter, instance *boxIn
 	for {
 		select {
 		case event := <-subscription:
-			err := varbin.Write(conn, binary.BigEndian, toConnectionEvent(event))
+			err := writeConnectionEvent(conn, toConnectionEvent(event))
 			if err != nil {
 				if E.IsClosed(err) {
 					return nil
@@ -230,7 +375,7 @@ func (c *Client) CloseConnection(uuidString string) error {
 	if err != nil {
 		return err
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, commandCloseConnection)
+	err = vario.WriteUint8(c.conn, commandCloseConnection)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
@@ -256,11 +401,11 @@ func (s *Service) handleCloseConnection(conn io.ReadWriter, instance *boxInstanc
 }
 
 func (c *Client) QueryMemory() (int64, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandQueryMemory)
+	err := vario.WriteUint8(c.conn, commandQueryMemory)
 	if err != nil {
 		return 0, E.Cause(err, "write command")
 	}
-	memoryInuse, err := varbin.ReadValue[int64](c.conn, binary.BigEndian)
+	memoryInuse, err := vario.ReadInt64(c.conn)
 	if err != nil {
 		return 0, E.Cause(err, "read memory")
 	}
@@ -268,7 +413,7 @@ func (c *Client) QueryMemory() (int64, error) {
 }
 
 func (s *Service) handleQueryMemory(conn io.ReadWriter) error {
-	err := varbin.Write(conn, binary.BigEndian, int64(memory.Inuse()))
+	err := vario.WriteInt64(conn, int64(memory.Inuse()))
 	if err != nil {
 		return E.Cause(err, "write memory")
 	}
@@ -276,11 +421,11 @@ func (s *Service) handleQueryMemory(conn io.ReadWriter) error {
 }
 
 func (c *Client) QueryGoroutines() (int32, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandQueryGoroutines)
+	err := vario.WriteUint8(c.conn, commandQueryGoroutines)
 	if err != nil {
 		return 0, E.Cause(err, "write command")
 	}
-	goroutines, err := varbin.ReadValue[int32](c.conn, binary.BigEndian)
+	goroutines, err := vario.ReadInt32(c.conn)
 	if err != nil {
 		return 0, E.Cause(err, "read goroutines")
 	}
@@ -288,7 +433,7 @@ func (c *Client) QueryGoroutines() (int32, error) {
 }
 
 func (s *Service) handleQueryGoroutines(conn io.ReadWriter) error {
-	err := varbin.Write(conn, binary.BigEndian, int32(runtime.NumGoroutine()))
+	err := vario.WriteInt32(conn, int32(runtime.NumGoroutine()))
 	if err != nil {
 		return E.Cause(err, "write goroutines")
 	}
@@ -296,11 +441,11 @@ func (s *Service) handleQueryGoroutines(conn io.ReadWriter) error {
 }
 
 func (c *Client) QueryClashModes() (StringIterator, error) {
-	err := varbin.Write(c.conn, binary.BigEndian, commandQueryClashModes)
+	err := vario.WriteUint8(c.conn, commandQueryClashModes)
 	if err != nil {
 		return nil, E.Cause(err, "write command")
 	}
-	modes, err := varbin.ReadValue[[]string](c.conn, binary.BigEndian)
+	modes, err := vario.ReadStringSlice(c.conn)
 	if err != nil {
 		return nil, E.Cause(err, "read clash modes")
 	}
@@ -308,7 +453,7 @@ func (c *Client) QueryClashModes() (StringIterator, error) {
 }
 
 func (s *Service) handleQueryClashModes(conn io.ReadWriter, instance *boxInstance) error {
-	err := varbin.Write(conn, binary.BigEndian, instance.api.ModeList())
+	err := vario.WriteStringSlice(conn, instance.api.ModeList())
 	if err != nil {
 		return E.Cause(err, "write clash modes")
 	}
@@ -316,12 +461,12 @@ func (s *Service) handleQueryClashModes(conn io.ReadWriter, instance *boxInstanc
 }
 
 func (c *Client) SubscribeClashMode(callback StringFunc) error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandSubscribeClashMode)
+	err := vario.WriteUint8(c.conn, commandSubscribeClashMode)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
 	for {
-		mode, err := varbin.ReadValue[string](c.conn, binary.BigEndian)
+		mode, err := vario.ReadString(c.conn)
 		if err != nil {
 			return E.Cause(err, "read clash mode")
 		}
@@ -335,7 +480,7 @@ func (s *Service) handleSubscribeClashMode(conn io.ReadWriter, instance *boxInst
 	api := instance.api
 	api.SetModeUpdateHook(subscriber)
 	defer api.SetModeUpdateHook(nil)
-	err := varbin.Write(conn, binary.BigEndian, api.Mode())
+	err := vario.WriteString(conn, api.Mode())
 	if err != nil {
 		return E.Cause(err, "write first mode")
 	}
@@ -343,7 +488,7 @@ func (s *Service) handleSubscribeClashMode(conn io.ReadWriter, instance *boxInst
 	for {
 		select {
 		case <-subscription:
-			err = varbin.Write(conn, binary.BigEndian, api.Mode())
+			err = vario.WriteString(conn, api.Mode())
 			if err != nil {
 				return E.Cause(err, "write clash mode")
 			}
@@ -356,11 +501,11 @@ func (s *Service) handleSubscribeClashMode(conn io.ReadWriter, instance *boxInst
 }
 
 func (c *Client) SetClashMode(mode string) error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandSetClashMode)
+	err := vario.WriteUint8(c.conn, commandSetClashMode)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
-	err = varbin.Write(c.conn, binary.BigEndian, mode)
+	err = vario.WriteString(c.conn, mode)
 	if err != nil {
 		return E.Cause(err, "write clash mode")
 	}
@@ -368,7 +513,7 @@ func (c *Client) SetClashMode(mode string) error {
 }
 
 func (s *Service) handleSetClashMode(conn io.ReadWriter, instance *boxInstance) error {
-	mode, err := varbin.ReadValue[string](conn, binary.BigEndian)
+	mode, err := vario.ReadString(conn)
 	if err != nil {
 		return E.Cause(err, "read clash mode")
 	}
@@ -377,9 +522,86 @@ func (s *Service) handleSetClashMode(conn io.ReadWriter, instance *boxInstance) 
 }
 
 func (c *Client) ResetNetwork() error {
-	err := varbin.Write(c.conn, binary.BigEndian, commandResetNetwork)
+	err := vario.WriteUint8(c.conn, commandResetNetwork)
 	if err != nil {
 		return E.Cause(err, "write command")
 	}
 	return nil
+}
+
+func writeConnectionEvent(writer io.Writer, event ConnectionEvent) error {
+	err := vario.WriteInt16(writer, event.Type)
+	if err != nil {
+		return E.Cause(err, "write type")
+	}
+	err = vario.WriteString(writer, event.ID)
+	if err != nil {
+		return E.Cause(err, "write id")
+	}
+	switch event.Type {
+	case ConnectionEventNew:
+		if event.TrackerInfo == nil {
+			return E.New("tracker info is nil")
+		}
+		if err := event.TrackerInfo.WriteToBinary(writer); err != nil {
+			return E.Cause(err, "write tracker info")
+		}
+	case ConnectionEventUpdate:
+		err = vario.WriteInt64(writer, event.UplinkDelta)
+		if err != nil {
+			return E.Cause(err, "write uplink delta")
+		}
+		err = vario.WriteInt64(writer, event.DownlinkDelta)
+		if err != nil {
+			return E.Cause(err, "write downlink delta")
+		}
+	case ConnectionEventClosed:
+		err = vario.WriteString(writer, event.ClosedAt)
+		if err != nil {
+			return E.Cause(err, "write closed at")
+		}
+	default:
+		return E.New("unknown event type: ", event.Type)
+	}
+	return nil
+}
+
+func readConnectionEvent(reader io.Reader) (ConnectionEvent, error) {
+	eventType, err := vario.ReadInt16(reader)
+	if err != nil {
+		return ConnectionEvent{}, E.Cause(err, "read type")
+	}
+	id, err := vario.ReadString(reader)
+	if err != nil {
+		return ConnectionEvent{}, E.Cause(err, "read id")
+	}
+	event := ConnectionEvent{
+		Type: eventType,
+		ID:   id,
+	}
+	switch eventType {
+	case ConnectionEventNew:
+		trackerInfo, err := readTrackerInfo(reader)
+		if err != nil {
+			return ConnectionEvent{}, E.Cause(err, "read tracker info")
+		}
+		event.TrackerInfo = trackerInfo
+	case ConnectionEventUpdate:
+		event.UplinkDelta, err = vario.ReadInt64(reader)
+		if err != nil {
+			return ConnectionEvent{}, E.Cause(err, "read uplink delta")
+		}
+		event.DownlinkDelta, err = vario.ReadInt64(reader)
+		if err != nil {
+			return ConnectionEvent{}, E.Cause(err, "read downlink delta")
+		}
+	case ConnectionEventClosed:
+		event.ClosedAt, err = vario.ReadString(reader)
+		if err != nil {
+			return ConnectionEvent{}, E.Cause(err, "read closed at")
+		}
+	default:
+		return ConnectionEvent{}, E.New("unknown event type: ", eventType)
+	}
+	return event, nil
 }
