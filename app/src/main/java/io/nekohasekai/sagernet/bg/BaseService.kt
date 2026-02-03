@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.bg
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -119,6 +120,13 @@ class BaseService {
             state = s
             DataStore.serviceState = s
             binder.notifyState()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val context = service as Context
+                android.service.quicksettings.TileService.requestListeningState(
+                    context,
+                    ComponentName(context, TileService::class.java)
+                )
+            }
         }
 
         fun resetNetwork() {
