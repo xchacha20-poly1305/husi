@@ -7,11 +7,11 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.onIoDispatcher
 import io.nekohasekai.sagernet.repository.repo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.service.quicksettings.TileService as BaseTileService
 
@@ -21,10 +21,7 @@ class TileService : BaseTileService() {
     private val iconConnected by lazy {
         Icon.createWithResource(this, R.drawable.ic_service_active)
     }
-    private var tapPending = false
 
-    private val connection = SagerConnection(SagerConnection.CONNECTION_ID_TILE)
-    private var observeJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
 
     override fun attachBaseContext(newBase: Context) {
@@ -34,24 +31,7 @@ class TileService : BaseTileService() {
 
     override fun onStartListening() {
         super.onStartListening()
-        connection.connect(this)
-        observeJob = scope.launch {
-            connection.status.collectLatest { status ->
-                updateTile(status.state, status.profileName)
-                if (status.state.connected && tapPending) {
-                    tapPending = false
-                    onClick()
-                }
-            }
-        }
-    }
-
-    override fun onStopListening() {
-        observeJob?.cancel()
-        observeJob = null
-        tapPending = false
-        connection.disconnect(this)
-        super.onStopListening()
+        refreshTile()
     }
 
     override fun onClick() {
@@ -91,19 +71,38 @@ class TileService : BaseTileService() {
 
     private fun toggle() {
         scope.launch {
-            val isConnected = connection.connected.value
-            if (!isConnected) {
-                tapPending = true
-            } else {
-                val state = DataStore.serviceState
-                when {
-                    state.canStop -> {
-                        tapPending = false
-                        repo.stopService()
-                    }
-                    state == BaseService.State.Stopped -> repo.startService()
+            val state = DataStore.serviceState
+            when {
+                state.canStop -> {
+                    updateTile(BaseService.State.Stopping, null)
+                    repo.stopService()
+                }
+                state == BaseService.State.Stopped || state == BaseService.State.Idle -> {
+                    updateTile(BaseService.State.Connecting, null)
+                    repo.startService()
                 }
             }
+        }
+    }
+
+    private fun refreshTile() {
+        scope.launch {
+            val state = DataStore.serviceState
+            val profileName = if (state.connected) {
+                onIoDispatcher {
+                    val profileId = DataStore.currentProfile
+                    if (profileId <= 0L) {
+                        null
+                    } else {
+                        SagerDatabase.proxyDao.getById(profileId)?.let {
+                            ServiceNotification.genTitle(it)
+                        }
+                    }
+                }
+            } else {
+                null
+            }
+            updateTile(state, profileName)
         }
     }
 }
