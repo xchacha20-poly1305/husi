@@ -1,12 +1,10 @@
 package io.nekohasekai.sagernet.ui
 
-import android.content.ContentResolver
-import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.RuleProvider
 import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.DataStore
@@ -17,7 +15,6 @@ import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnIoDispatcher
-import io.nekohasekai.sagernet.ktx.use
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -134,12 +131,14 @@ internal class AssetsActivityViewModel : ViewModel() {
         } else {
             File(assetsDir, "${file.name}.version.txt")
         }
-        val version = if (versionFile.isFile) {
-            versionFile.readText().trim()
-        } else {
-            versionFile.writeText("Unknown")
-            null
-        }?.blankAsNull() ?: "Unknown"
+        val version = runCatching {
+            if (versionFile.isFile) {
+                versionFile.readText().trim()
+            } else {
+                versionFile.writeText("Unknown")
+                null
+            }
+        }.getOrNull().blankAsNull() ?: "Unknown"
         return AssetItem(
             file = file,
             version = version,
@@ -151,7 +150,7 @@ internal class AssetsActivityViewModel : ViewModel() {
     suspend fun deleteAssets(files: List<File>) {
         for (file in files) {
             file.delete()
-            val versionFile = File(file.parentFile!!.parentFile!!, "${file.name}.version.txt")
+            val versionFile = File(assetsDir, "${file.name}.version.txt")
             if (versionFile.isFile) versionFile.delete()
             SagerDatabase.assetDao.delete(file.name)
         }
@@ -161,6 +160,9 @@ internal class AssetsActivityViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 updateAsset0(destinationDir, cacheDir)
+            } catch (_: NoUpdateException) {
+                _uiEvent.emit(AssetsActivityUiEvent.Snackbar(StringOrRes.Res(R.string.route_asset_no_update)))
+                return@launch
             } catch (e: Exception) {
                 Logs.e(e)
                 _uiEvent.emit(AssetsActivityUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
@@ -240,7 +242,7 @@ internal class AssetsActivityViewModel : ViewModel() {
                     } else {
                         it
                     }
-                }
+                },
             )
         }
 
@@ -253,78 +255,39 @@ internal class AssetsActivityViewModel : ViewModel() {
             setURL(url)
             setUserAgent(USER_AGENT)
         }.execute()
-            .writeTo(File(geoDir, name).absolutePath, object : CopyCallback {
-                var saved: Double = 0.0
-                var length: Double = 0.0
-                override fun setLength(length: Long) {
-                    this.length = length.toDouble()
-                }
-
-                override fun update(n: Long) {
-                    if (length <= 0) return
-                    saved += n.toDouble()
-                    val progress = ((saved / length) * 100).toFloat()
-                    _uiState.update { state ->
-                        state.copy(
-                            assets = state.assets.map {
-                                if (it.file == asset) {
-                                    it.copy(
-                                        progress = progress,
-                                    )
-                                } else {
-                                    it
-                                }
-                            }
-                        )
+            .writeTo(
+                File(geoDir, name).absolutePath,
+                object : CopyCallback {
+                    var saved: Double = 0.0
+                    var length: Double = 0.0
+                    override fun setLength(length: Long) {
+                        this.length = length.toDouble()
                     }
-                }
 
-            })
+                    override fun update(n: Long) {
+                        if (length <= 0) return
+                        saved += n.toDouble()
+                        val progress = ((saved / length) * 100).toFloat()
+                        _uiState.update { state ->
+                            state.copy(
+                                assets = state.assets.map {
+                                    if (it.file == asset) {
+                                        it.copy(
+                                            progress = progress,
+                                        )
+                                    } else {
+                                        it
+                                    }
+                                },
+                            )
+                        }
+                    }
+
+                },
+            )
 
         val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
         File(assetsDir, "$name.version.txt").writeText(time)
-    }
-
-    fun importFile(
-        contentResolver: ContentResolver,
-        uri: Uri?,
-        cacheDir: File,
-        destinationDir: File,
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        if (uri == null) return@launch
-        val fileName = contentResolver.query(uri, null, null, null, null)
-            ?.use { cursor ->
-                cursor.moveToFirst()
-                cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
-                    .let(cursor::getString)
-            }
-            ?.blankAsNull()
-            ?: uri.path
-            ?: return@launch
-
-        val tempImportFile = File(cacheDir, fileName).apply {
-            parentFile?.mkdirs()
-        }
-        contentResolver.openInputStream(uri)?.use(tempImportFile.outputStream())
-        try {
-            Libcore.tryUnpack(tempImportFile.absolutePath, destinationDir.absolutePath)
-        } catch (e: Exception) {
-            Logs.e(e)
-            return@launch
-        } finally {
-            tempImportFile.delete()
-        }
-
-        val assetsDir = destinationDir.parentFile
-        val nameList = listOf("geosite", "geoip")
-        for (name in nameList) {
-            val file = File(assetsDir, "$name.version.txt")
-            if (file.isFile) file.delete()
-            file.createNewFile()
-            file.writeText("Custom")
-        }
-
-        refreshAssets()
     }
 
     fun undoableRemove(fileName: String) = viewModelScope.launch {
@@ -389,7 +352,7 @@ internal class AssetsActivityViewModel : ViewModel() {
 
 }
 
-internal class NoUpdateException : Exception()
+private class NoUpdateException : Exception()
 
 internal sealed class UpdateInfo {
     data class Github(val repo: String, val newVersion: String) : UpdateInfo()
@@ -521,7 +484,7 @@ internal class GithubAssetUpdater(
 
                 val cacheFile = File(
                     cacheDir,
-                    "${update.repo.replace('/', '_')}-${update.newVersion}.tmp"
+                    "${update.repo.replace('/', '_')}-${update.newVersion}.tmp",
                 )
                 cacheFile.parentFile?.mkdirs()
                 cacheFile.deleteOnExit()
@@ -559,8 +522,7 @@ internal class GithubAssetUpdater(
     }
 
     private fun fetchVersion(repo: String): String {
-        val response =
-            newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
+        val response = newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
         return JSONObject(response.contentString).optString("tag_name")
     }
 }

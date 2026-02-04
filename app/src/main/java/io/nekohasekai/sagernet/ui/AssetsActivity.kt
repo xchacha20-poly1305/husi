@@ -4,6 +4,7 @@ import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -75,8 +76,11 @@ import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.compose.showAndDismissOld
 import io.nekohasekai.sagernet.compose.startFilesForResult
 import io.nekohasekai.sagernet.compose.theme.AppTheme
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.blankAsNull
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import libcore.Libcore
 import java.io.File
 
 @ExperimentalMaterial3Api
@@ -133,11 +137,59 @@ private fun AssetsScreen(
     val cacheDir = remember(context) { context.cacheDir }
     val assetsDir = remember(context) { context.assetsDir() }
     val geoDir = remember(context) { geoDir(assetsDir) }
+    val scope = rememberCoroutineScope()
 
     val importFile = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent(),
     ) { uri ->
-        viewModel.importFile(context.contentResolver, uri, cacheDir, geoDir)
+        scope.launch(Dispatchers.IO) {
+            if (uri == null) return@launch
+            val fileName = context.contentResolver.query(uri, null, null, null, null)
+                ?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
+                            .let(cursor::getString)
+                    } else {
+                        null
+                    }
+                }
+                .blankAsNull()
+                ?: uri.path.blankAsNull()
+                ?: return@launch
+
+            val tempImportFile = File(cacheDir, fileName).apply {
+                parentFile?.mkdirs()
+            }
+            try {
+                val input = context.contentResolver.openInputStream(uri) ?: return@launch
+                input.use { inputStream ->
+                    tempImportFile.outputStream().use { output ->
+                        inputStream.copyTo(output)
+                    }
+                }
+            } catch (e: Exception) {
+                Logs.e(e)
+                return@launch
+            }
+            try {
+                Libcore.tryUnpack(tempImportFile.absolutePath, geoDir.absolutePath)
+            } catch (e: Exception) {
+                Logs.e(e)
+                return@launch
+            } finally {
+                tempImportFile.delete()
+            }
+
+            val nameList = listOf("geosite", "geoip")
+            for (name in nameList) {
+                val file = File(assetsDir, "$name.version.txt")
+                if (file.isFile) file.delete()
+                file.createNewFile()
+                file.writeText("Custom")
+            }
+
+            viewModel.refreshAssets()
+        }
     }
     val importUrl = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -151,12 +203,14 @@ private fun AssetsScreen(
                 // Callback will auto-update when asset appears in DB
             }
 
-            AssetEditActivity.RESULT_SHOULD_UPDATE -> runOnDefaultDispatcher {
+            AssetEditActivity.RESULT_SHOULD_UPDATE -> {
                 viewModel.updateSingleAsset(File(geoDir, assetName!!))
             }
 
-            AssetEditActivity.RESULT_DELETE -> runOnDefaultDispatcher {
-                viewModel.deleteAssets(listOf(File(geoDir, assetName!!)))
+            AssetEditActivity.RESULT_DELETE -> {
+                scope.launch(Dispatchers.IO) {
+                    viewModel.deleteAssets(listOf(File(geoDir, assetName!!)))
+                }
             }
         }
     }
@@ -164,7 +218,6 @@ private fun AssetsScreen(
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     DisposableEffect(Unit) {
         onDispose {
