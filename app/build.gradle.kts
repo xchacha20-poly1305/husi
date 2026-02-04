@@ -97,7 +97,7 @@ dependencies {
     implementation("me.zhanghai.compose.preference:preference:2.1.1")
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-core:0.3.2")
     implementation("io.github.oikvpqya.compose.fastscroller:fastscroller-material3:0.3.2")
-    implementation(project(":library:DragDropSwipeLazyColumn:drag-drop-swipe-lazycolumn"))
+    implementation("com.ernestoyaquello.dragdropswipelazycolumn:drag-drop-swipe-lazycolumn:0.10.2")
     implementation(project(":library:compose-code-editor:codeeditor"))
 
     implementation("androidx.camera:camera-core:1.5.3")
