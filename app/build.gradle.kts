@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
     id("kotlin-parcelize")
     id("com.google.devtools.ksp") version "2.3.5"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.3.10"
 }
 
 setupApp()
