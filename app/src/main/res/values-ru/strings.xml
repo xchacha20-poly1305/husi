@@ -67,9 +67,9 @@
     <string name="group_delete_confirm_prompt">Вы уверены, что хотите удалить эту группу\?</string>
     <string name="group_diff">различия (%s)</string>
     <string name="group_show_diff">Сравнить группы</string>
-    <string name="group_updated">%s: Обновлено %d прокси</string>
+    <string name="group_updated">%1$s: Обновлено %2$d прокси</string>
     <string name="group_no_difference">%s: Не отличаются</string>
-    <string name="group_status_proxies_subscription">%d Прокси | Обновлено %s</string>
+    <string name="group_status_proxies_subscription">%1$d Прокси | Обновлено %2$s</string>
     <string name="group_status_proxies">%d Прокси</string>
     <string name="group_status_empty_subscription">Еще не обновлено</string>
     <string name="group_status_empty">Пустая группа</string>
@@ -128,7 +128,7 @@
         и такого поведения.
     </string>
     <string name="subscription_import">Импортировать подписку</string>
-    <string name="subscription_traffic">%s Использовано / %s Осталось</string>
+    <string name="subscription_traffic">%1$s Использовано / %2$s Осталось</string>
     <string name="subscription_used">%s Использовано</string>
     <string name="group_filter">Фильтр</string>
     <string name="subscription_update_message">Обновление %s …</string>
@@ -147,7 +147,7 @@
     <string name="install_from_play_store">Установить из Play Store</string>
     <string name="action_download">СКАЧАТЬ</string>
     <string name="action_learn_more">УЗНАТЬ БОЛЬШЕ</string>
-    <string name="profile_requiring_plugin">Профиль %s требует установки подключаемого модуля %s, но
+    <string name="profile_requiring_plugin">Профиль %1$s требует установки подключаемого модуля %2$s, но
         он не найден.
     </string>
     <string name="missing_plugin">Отсутствующий плагин</string>

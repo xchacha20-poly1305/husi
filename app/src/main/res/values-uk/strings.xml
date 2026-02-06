@@ -51,9 +51,9 @@
     <string name="group_delete_confirm_prompt">Ви впевнені, що хочете видалити цю групу\?</string>
     <string name="group_diff">Різниця (%s)</string>
     <string name="group_show_diff">Порівняти групи</string>
-    <string name="group_updated">%s: Оновлено %d проксі</string>
+    <string name="group_updated">%1$s: Оновлено %2$d проксі</string>
     <string name="group_no_difference">%s: Різниці немає</string>
-    <string name="group_status_proxies_subscription">%d проксі | Оновлено на %s</string>
+    <string name="group_status_proxies_subscription">%1$d проксі | Оновлено на %2$s</string>
     <string name="group_status_proxies">%d проксі</string>
     <string name="group_status_empty_subscription">Ще не оновлено</string>
     <string name="group_status_empty">Порожня група</string>
@@ -189,7 +189,7 @@
     <string name="force_resolve_sum">Під час оновлення перетворювати всі доменні імена у IP-адреси. Хост та SNI будуть додані автоматично, якщо це можливо</string>
     <string name="deduplication_sum">Видалити дуплікати конфігурацій при оновленні</string>
     <string name="auto_update">Автоматичне оновлення</string>
-    <string name="profile_requiring_plugin">Профіль %s потребує встановлення підключаємого модуля %s, але його не знайдено.</string>
+    <string name="profile_requiring_plugin">Профіль %1$s потребує встановлення підключаємого модуля %2$s, але його не знайдено.</string>
     <string name="action_learn_more">ДІЗНАТИСЯ БІЛЬШЕ</string>
     <string name="action_download">ЗАВАНТАЖИТИ</string>
     <string name="download">Завантажити</string>
@@ -347,7 +347,7 @@
     <string name="subscription_update">Оновлення підписки</string>
     <string name="group_filter">Фільтр</string>
     <string name="subscription_used">%s Використано</string>
-    <string name="subscription_traffic">%s Використано/ %s Залишилось</string>
+    <string name="subscription_traffic">%1$s Використано/ %2$s Залишилось</string>
     <string name="subscription_expire">Спливає: %s</string>
     <string name="subscription_import">Імпортувати підписку</string>
     <string name="subscription_import_message">Ви підтверджуєте, що хочете імпортувати підписку %s? Якщо ви імпортуєте із ненадійного джерела, це може призвести до витоку вашої IP-адреси і цієї поведінки.</string>
