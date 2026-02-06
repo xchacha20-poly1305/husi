@@ -23,9 +23,9 @@
     <string name="group_status_empty">空組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_status_proxies">%d 個代理</string>
-    <string name="group_status_proxies_subscription">%d 個代理 | 更新於 %s</string>
+    <string name="group_status_proxies_subscription">%1$d 個代理 | 更新於 %2$s</string>
     <string name="group_no_difference">%s: 沒有變化</string>
-    <string name="group_updated">%s: 更新了 %d 個代理</string>
+    <string name="group_updated">%1$s: 更新了 %2$d 個代理</string>
     <string name="group_show_diff">差異</string>
     <string name="group_delete_confirm_prompt">確認刪除此組？</string>
     <string name="group_added">新增：
@@ -323,7 +323,7 @@
     <string name="subscription_user_agent">使用者代理</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">遺失外掛程式</string>
-    <string name="profile_requiring_plugin">設定檔 %s 需要外掛程式 %s，但其未被安裝。</string>
+    <string name="profile_requiring_plugin">設定檔 %1$s 需要外掛程式 %2$s，但其未被安裝。</string>
     <string name="action_learn_more">深入瞭解</string>
     <string name="action_download">下載</string>
     <string name="install_from_play_store">從 Play 商店安裝</string>
@@ -340,7 +340,7 @@
     <string name="subscription_update_message">更新 %s 中…</string>
     <string name="group_filter">篩選</string>
     <string name="subscription_used">已用 %s</string>
-    <string name="subscription_traffic">已用 %s / 剩餘 %s</string>
+    <string name="subscription_traffic">已用 %1$s / 剩餘 %2$s</string>
     <string name="subscription_import">匯入訂閱</string>
     <string name="subscription_import_message">您確定要匯入訂閱 %s 嗎？如果訂閱的來源不可信，您的 IP
         和行為將被洩漏。

@@ -34,9 +34,9 @@
     <string name="group_status_empty">Grupo vacío</string>
     <string name="group_status_empty_subscription">Aún no actualizado</string>
     <string name="group_status_proxies">%d proxies</string>
-    <string name="group_status_proxies_subscription">%d proxies | Actualizado el %s</string>
+    <string name="group_status_proxies_subscription">%1$d proxies | Actualizado el %2$s</string>
     <string name="group_no_difference">%s: Sin diferencia</string>
-    <string name="group_updated">%s: Actualizados %d proxies</string>
+    <string name="group_updated">%1$s: Actualizados %2$d proxies</string>
     <string name="group_show_diff">Diferencia</string>
     <string name="group_diff">Diferencia (%s)</string>
     <string name="group_delete_confirm_prompt">¿Realmente quieres eliminar este grupo?</string>
@@ -323,7 +323,7 @@
     <string name="subscription_user_agent">Agente de usuario</string>
     <string name="confirm">Confirmar</string>
     <string name="missing_plugin">Plugin faltante</string>
-    <string name="profile_requiring_plugin">El perfil %s requiere que el plugin %s esté instalado, pero no se ha encontrado.</string>
+    <string name="profile_requiring_plugin">El perfil %1$s requiere que el plugin %2$s esté instalado, pero no se ha encontrado.</string>
     <string name="action_learn_more">APRENDER MÁS</string>
     <string name="action_download">DESCARGAR</string>
     <string name="install_from_play_store">Instalar desde Play Store</string>
@@ -339,7 +339,7 @@
     <string name="subscription_update_message">Actualizando %s…</string>
     <string name="group_filter">Filtrar</string>
     <string name="subscription_used">%s usado</string>
-    <string name="subscription_traffic">%s usados / %s restantes</string>
+    <string name="subscription_traffic">%1$s usados / %2$s restantes</string>
     <string name="subscription_import">Importar suscripción</string>
     <string name="subscription_import_message">¿Confirmas que quieres importar la suscripción %s? Si proviene de una fuente no fiable, puede que se filtre tu IP y este comportamiento.</string>
     <string name="profile_import">Importar perfil</string>
