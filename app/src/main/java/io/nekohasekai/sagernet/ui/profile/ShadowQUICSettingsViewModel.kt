@@ -24,6 +24,8 @@ internal data class ShadowQUICUiState(
     val congestionControl: String = "bbr",
     val zeroRTT: Boolean = false,
     val udpOverStream: Boolean = false,
+    val gso: Boolean = false,
+    val subProtocol: Int = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC,
 ) : ProfileSettingsUiState
 
 @Stable
@@ -50,6 +52,7 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
                 congestionControl = congestionControl,
                 zeroRTT = zeroRTT,
                 udpOverStream = udpOverStream,
+                subProtocol = subProtocol,
             )
         }
     }
@@ -70,6 +73,7 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
         congestionControl = state.congestionControl
         zeroRTT = state.zeroRTT
         udpOverStream = state.udpOverStream
+        subProtocol = state.subProtocol
     }
 
     override fun setCustomConfig(config: String) {
@@ -130,5 +134,13 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
 
     fun setUdpOverStream(enabled: Boolean) {
         _uiState.update { it.copy(udpOverStream = enabled) }
+    }
+
+    fun setGso(enabled: Boolean) {
+        _uiState.update { it.copy(gso = enabled) }
+    }
+
+    fun setSubProtocol(protocol: Int) {
+        _uiState.update { it.copy(subProtocol = protocol) }
     }
 }

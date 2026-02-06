@@ -72,6 +72,37 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 },
             )
         }
+        item("sub_protocol") {
+            fun subProtocolText(subProtocol: Int) = when (subProtocol) {
+                ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC -> R.string.action_shadowquic
+                ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC -> R.string.action_sunnyquic
+                else -> error("impossible")
+            }
+            ListPreference(
+                value = uiState.subProtocol,
+                values = listOf(
+                    ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC,
+                    ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC,
+                ),
+                onValueChange = { viewModel.setSubProtocol(it) },
+                title = { Text(stringResource(R.string.protocol)) },
+                icon = {
+                    Icon(
+                        ImageVector.vectorResource(
+                            if (uiState.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) {
+                                R.drawable.brightness_4
+                            } else {
+                                R.drawable.wb_sunny
+                            },
+                        ),
+                        null,
+                    )
+                },
+                summary = { Text(stringResource(subProtocolText(uiState.subProtocol))) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(getString(subProtocolText(it))) },
+            )
+        }
         item("username") {
             TextFieldPreference(
                 value = uiState.username,
@@ -165,6 +196,14 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 onValueChange = { viewModel.setUdpOverStream(it) },
                 title = { Text(stringResource(R.string.udp_over_stream)) },
                 icon = { Icon(ImageVector.vectorResource(R.drawable.nat), null) },
+            )
+        }
+        item("gso") {
+            SwitchPreference(
+                value = uiState.gso,
+                onValueChange = { viewModel.setGso(it) },
+                title = { Text(stringResource(R.string.gso)) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.segment), null) },
             )
         }
     }

@@ -42,7 +42,7 @@ fun ProxyEntity.displayType(context: Context): String = when (type) {
     TYPE_SHADOWTLS -> "ShadowTLS"
     TYPE_DIRECT -> "Direct"
     TYPE_ANYTLS -> "AnyTLS"
-    TYPE_SHADOWQUIC -> "Shadow QUIC"
+    TYPE_SHADOWQUIC -> shadowQUICBean!!.displayType()
     TYPE_PROXY_SET -> proxySetBean!!.displayType()
     TYPE_TRUST_TUNNEL -> "Trust Tunnel"
     TYPE_CHAIN -> context.getString(R.string.proxy_chain)

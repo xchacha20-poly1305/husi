@@ -33,6 +33,11 @@ public class ShadowQUICBean extends AbstractBean {
     public String congestionControl;
     public Boolean zeroRTT;
     public Boolean udpOverStream;
+    public Boolean gso;
+    public Integer subProtocol;
+
+    public static final int SUB_PROTOCOL_SHADOW_QUIC = 0;
+    public static final int SUB_PROTOCOL_SUNNY_QUIC = 1;
 
     @Override
     public void initializeDefaultValues() {
@@ -46,11 +51,13 @@ public class ShadowQUICBean extends AbstractBean {
         if (congestionControl == null) congestionControl = "bbr";
         if (zeroRTT == null) zeroRTT = false;
         if (udpOverStream == null) udpOverStream = false;
+        if (gso == null) gso = false;
+        if (subProtocol == null) subProtocol = SUB_PROTOCOL_SHADOW_QUIC;
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
         super.serialize(output);
         output.writeString(password);
         output.writeString(username);
@@ -61,6 +68,8 @@ public class ShadowQUICBean extends AbstractBean {
         output.writeString(congestionControl);
         output.writeBoolean(zeroRTT);
         output.writeBoolean(udpOverStream);
+        output.writeBoolean(gso);
+        output.writeInt(subProtocol);
     }
 
     @Override
@@ -76,6 +85,11 @@ public class ShadowQUICBean extends AbstractBean {
         congestionControl = input.readString();
         zeroRTT = input.readBoolean();
         udpOverStream = input.readBoolean();
+
+        if (version >= 1) {
+            gso = input.readBoolean();
+            subProtocol = input.readInt();
+        }
     }
 
     @Override
@@ -101,5 +115,13 @@ public class ShadowQUICBean extends AbstractBean {
     @Override
     public boolean canTCPing() {
         return false;
+    }
+
+    public String displayType() {
+        if (subProtocol == SUB_PROTOCOL_SHADOW_QUIC) {
+            return "ShadowQUIC";
+        } else {
+            return "SunnyQUIC";
+        }
     }
 }
