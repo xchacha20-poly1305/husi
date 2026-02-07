@@ -37,6 +37,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +49,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -67,6 +72,7 @@ import io.nekohasekai.sagernet.ui.MainViewModel
 import io.nekohasekai.sagernet.ui.MainViewModelUiEvent
 import io.nekohasekai.sagernet.ui.getStringOrRes
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 private const val PAGE_STATUS = 0
 private const val PAGE_CONNECTIONS = 1
@@ -94,7 +100,9 @@ fun DashboardScreen(
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
     var bottomVisible by remember { mutableStateOf(true) }
-    var fabHeight by remember { mutableIntStateOf(0) }
+    var scaffoldHeightPx by remember { mutableIntStateOf(0) }
+    var fabTopPx by remember { mutableFloatStateOf(Float.NaN) }
+    var fabHeightPx by remember { mutableIntStateOf(0) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topAppBarColors = TopAppBarDefaults.topAppBarColors()
@@ -285,20 +293,27 @@ fun DashboardScreen(
         },
         snackbarHost = { SnackbarHost(snackbarState) },
         floatingActionButton = {
-            SagerFab(
-                visible = bottomVisible,
-                state = serviceStatus.state,
-                showSnackbar = { message ->
-                    scope.launch {
-                        snackbarState.showSnackbar(
-                            message = context.getStringOrRes(message),
-                            actionLabel = context.getString(android.R.string.ok),
-                            duration = SnackbarDuration.Short,
-                        )
+            Box(
+                modifier = Modifier
+                    .onGloballyPositioned { coordinates ->
+                        fabTopPx = coordinates.positionInRoot().y
                     }
-                },
-                onSizeChanged = { fabHeight = it },
-            )
+                    .onSizeChanged { fabHeightPx = it.height },
+            ) {
+                SagerFab(
+                    visible = bottomVisible,
+                    state = serviceStatus.state,
+                    showSnackbar = { message ->
+                        scope.launch {
+                            snackbarState.showSnackbar(
+                                message = context.getStringOrRes(message),
+                                actionLabel = context.getString(android.R.string.ok),
+                                duration = SnackbarDuration.Short,
+                            )
+                        }
+                    },
+                )
+            }
         },
         bottomBar = {
             if (serviceStatus.state == BaseService.State.Connected) {
@@ -310,14 +325,49 @@ fun DashboardScreen(
             }
         },
     ) { innerPadding ->
+        val density = LocalDensity.current
+        val innerBottomPx = with(density) { innerPadding.calculateBottomPadding().roundToPx() }
+        val fabReservedBottomPx by remember(scaffoldHeightPx, fabTopPx) {
+            derivedStateOf {
+                if (scaffoldHeightPx <= 0 || fabTopPx.isNaN()) {
+                    0
+                } else {
+                    (scaffoldHeightPx - fabTopPx.toInt()).coerceAtLeast(0)
+                }
+            }
+        }
+        val effectiveFabReservedBottomPx by remember(
+            bottomVisible,
+            fabReservedBottomPx,
+            fabHeightPx,
+        ) {
+            derivedStateOf {
+                if (bottomVisible && fabHeightPx > 0) fabReservedBottomPx else 0
+            }
+        }
+        val fabSearchBarSpacingPx by remember(
+            bottomVisible,
+            effectiveFabReservedBottomPx,
+            innerBottomPx,
+            fabHeightPx,
+        ) {
+            derivedStateOf {
+                if (bottomVisible && fabHeightPx > 0) {
+                    (effectiveFabReservedBottomPx - innerBottomPx - fabHeightPx).coerceAtLeast(0)
+                } else {
+                    0
+                }
+            }
+        }
+        val bottomPaddingPx = max(innerBottomPx, effectiveFabReservedBottomPx)
+        val bottomPadding = with(density) { bottomPaddingPx.toDp() }
+        val fabSearchBarSpacing = with(density) { fabSearchBarSpacingPx.toDp() }
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { scaffoldHeightPx = it.height }
                 .paddingExceptBottom(innerPadding),
         ) {
-            val density = LocalDensity.current
-            val bottomPadding =
-                innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() }
             PrimaryTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 containerColor = appBarContainerColor,
@@ -376,6 +426,7 @@ fun DashboardScreen(
                         uiState = uiState,
                         searchTextFieldState = viewModel.searchTextFieldState,
                         bottomPadding = bottomPadding,
+                        searchBarBottomSpacing = fabSearchBarSpacing,
                         resolveProcessInfo = viewModel::resolveProcessInfo,
                         closeConnection = { uuid ->
                             viewModel.closeConnection(uuid)
