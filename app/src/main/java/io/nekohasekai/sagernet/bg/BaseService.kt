@@ -41,6 +41,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import libcore.Libcore
 import java.net.UnknownHostException
@@ -191,15 +192,18 @@ class BaseService {
             )
         }
 
-        private fun notifyObservers(block: (IServiceObserver) -> Unit) {
+        private fun notifyObservers(block: (IServiceObserver) -> Unit) = launch {
             val count = observers.beginBroadcast()
-            for (index in 0 until count) {
-                try {
-                    block(observers.getBroadcastItem(index))
-                } catch (_: RemoteException) {
+            try {
+                for (index in 0 until count) {
+                    try {
+                        block(observers.getBroadcastItem(index))
+                    } catch (_: RemoteException) {
+                    }
                 }
+            } finally {
+                observers.finishBroadcast()
             }
-            observers.finishBroadcast()
         }
     }
 
