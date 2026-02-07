@@ -8,8 +8,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -46,6 +49,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,9 +60,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -76,13 +86,13 @@ import io.nekohasekai.sagernet.compose.ansiEscape
 import io.nekohasekai.sagernet.compose.rememberScrollHideState
 import io.nekohasekai.sagernet.compose.setPlainText
 import io.nekohasekai.sagernet.compose.showAndDismissOld
-import io.nekohasekai.sagernet.compose.withNavigation
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.repository.repo
 import io.nekohasekai.sagernet.utils.SendLog
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.math.max
 
 @Composable
 fun LogcatScreen(
@@ -100,12 +110,15 @@ fun LogcatScreen(
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
+    val serviceStatus by connection.status.collectAsStateWithLifecycle()
     val canScroll by remember {
         derivedStateOf {
             listState.canScrollForward || listState.canScrollBackward
         }
     }
     var autoScroll by remember { mutableStateOf(true) }
+    var scaffoldHeightPx by remember { mutableIntStateOf(0) }
+    var fabTopPx by remember { mutableFloatStateOf(Float.NaN) }
     val isAtBottom by remember {
         derivedStateOf {
             !listState.canScrollForward
@@ -152,7 +165,6 @@ fun LogcatScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
 
-    val serviceStatus by connection.status.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         viewModel.initialize()
     }
@@ -233,53 +245,80 @@ fun LogcatScreen(
         },
         snackbarHost = { SnackbarHost(snackbarState) },
         floatingActionButton = {
-            FloatingActionButtonMenu(
-                expanded = scrollHideVisible && uiState.logs.isNotEmpty(),
-                button = {
-                    SagerFab(
-                        visible = scrollHideVisible,
-                        state = serviceStatus.state,
-                        showSnackbar = { message ->
-                            scope.launch {
-                                snackbarState.showSnackbar(
-                                    message = context.getStringOrRes(message),
-                                    actionLabel = context.getString(android.R.string.ok),
-                                    duration = SnackbarDuration.Short,
-                                )
-                            }
-                        },
-                    )
+            Box(
+                modifier = Modifier.onGloballyPositioned { coordinates ->
+                    fabTopPx = coordinates.positionInRoot().y
                 },
             ) {
-                FloatingActionButtonMenuItem(
-                    onClick = {
-                        scope.launch {
-                            listState.animateScrollToItem(uiState.logs.lastIndex)
-                        }
-                    },
-                    text = { Text(stringResource(R.string.scroll_to_bottom)) },
-                    icon = {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_down),
-                            contentDescription = null,
+                FloatingActionButtonMenu(
+                    expanded = uiState.logs.isNotEmpty(),
+                    button = {
+                        SagerFab(
+                            visible = true,
+                            state = serviceStatus.state,
+                            showSnackbar = { message ->
+                                scope.launch {
+                                    snackbarState.showSnackbar(
+                                        message = context.getStringOrRes(message),
+                                        actionLabel = context.getString(android.R.string.ok),
+                                        duration = SnackbarDuration.Short,
+                                    )
+                                }
+                            },
                         )
                     },
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                )
+                ) {
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            scope.launch {
+                                listState.animateScrollToItem(uiState.logs.lastIndex)
+                            }
+                        },
+                        text = { Text(stringResource(R.string.scroll_to_bottom)) },
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.keyboard_arrow_down),
+                                contentDescription = null,
+                            )
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    )
+                }
             }
         },
         bottomBar = {
             if (serviceStatus.state == BaseService.State.Connected) {
                 StatsBar(
                     status = serviceStatus,
-                    visible = scrollHideVisible,
+                    visible = true,
                     mainViewModel = mainViewModel,
                 )
             }
         },
     ) { innerPadding ->
+        val density = LocalDensity.current
+        val layoutDirection = LocalLayoutDirection.current
+        val innerBottomPx = with(density) { innerPadding.calculateBottomPadding().roundToPx() }
+        val fabReservedBottomPx by remember(scaffoldHeightPx, fabTopPx) {
+            derivedStateOf {
+                if (scaffoldHeightPx <= 0 || fabTopPx.isNaN()) {
+                    0
+                } else {
+                    (scaffoldHeightPx - fabTopPx.toInt()).coerceAtLeast(0)
+                }
+            }
+        }
+        val bottomPaddingPx = max(innerBottomPx, fabReservedBottomPx)
+        val contentPadding = PaddingValues(
+            start = innerPadding.calculateStartPadding(layoutDirection),
+            top = innerPadding.calculateTopPadding(),
+            end = innerPadding.calculateEndPadding(layoutDirection),
+            bottom = with(density) { bottomPaddingPx.toDp() },
+        )
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { scaffoldHeightPx = it.height },
         ) {
             SelectionContainer {
                 LazyColumn(
@@ -287,7 +326,7 @@ fun LogcatScreen(
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     state = listState,
-                    contentPadding = innerPadding.withNavigation(),
+                    contentPadding = contentPadding,
                 ) {
                     itemsIndexed(
                         items = uiState.logs,
