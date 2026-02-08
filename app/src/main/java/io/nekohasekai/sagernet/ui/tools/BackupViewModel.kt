@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.nekohasekai.sagernet.database.AssetEntity
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.database.ParcelizeBridge
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -29,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.parcelableCreator
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -178,7 +178,7 @@ internal class BackupViewModel : ViewModel() {
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
-                profiles.add(ProxyEntity.CREATOR.createFromParcel(parcel))
+                profiles.add(parcelableCreator<ProxyEntity>().createFromParcel(parcel))
                 parcel.recycle()
             }
             onIoDispatcher {
@@ -193,7 +193,7 @@ internal class BackupViewModel : ViewModel() {
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
-                groups.add(ProxyGroup.CREATOR.createFromParcel(parcel))
+                groups.add(parcelableCreator<ProxyGroup>().createFromParcel(parcel))
                 parcel.recycle()
             }
             onIoDispatcher {
@@ -209,7 +209,7 @@ internal class BackupViewModel : ViewModel() {
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
-                rules.add(ParcelizeBridge.createRule(parcel))
+                rules.add(parcelableCreator<RuleEntity>().createFromParcel(parcel))
                 parcel.recycle()
             }
             onIoDispatcher {
@@ -224,7 +224,7 @@ internal class BackupViewModel : ViewModel() {
                 val parcel = Parcel.obtain()
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
-                assets.add(ParcelizeBridge.createAsset(parcel))
+                assets.add(parcelableCreator<AssetEntity>().createFromParcel(parcel))
                 parcel.recycle()
             }
             onIoDispatcher {
@@ -242,7 +242,7 @@ internal class BackupViewModel : ViewModel() {
                             val parcel = Parcel.obtain()
                             parcel.unmarshall(data, 0, data.size)
                             parcel.setDataPosition(0)
-                            pairs.add(KeyValuePair.CREATOR.createFromParcel(parcel))
+                            pairs.add(parcelableCreator<KeyValuePair>().createFromParcel(parcel))
                             parcel.recycle()
                         }
                         DataStore.configurationStore.importLegacyPairs(pairs)
