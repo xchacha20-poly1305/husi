@@ -47,11 +47,27 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
                 congestionControl.blankAsNull()?.let {
                     put("congestion-control", it)
                 }
+                keepAliveInterval.takeIf { it > 0 }?.let {
+                    put("keep-alive-interval", it)
+                }
+                if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
+                    extraPaths.blankAsNull()?.listByLineOrComma()
+                        ?.takeIf { it.isNotEmpty() }
+                        .let { paths ->
+                            put("extra-paths", JSONArray(paths))
+                            maxPaths.takeIf { it > 0 }?.let {
+                                put("max-paths", it)
+                            }
+                        }
+                }
                 if (zeroRTT) {
                     put("zero-rtt", true)
                 }
                 if (udpOverStream) {
                     put("over-stream", true)
+                }
+                if (mtuDiscovery) {
+                    put("mtu-discovery", true)
                 }
                 put("gso", gso)
                 if (shouldProtect) {
