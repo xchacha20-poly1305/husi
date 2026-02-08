@@ -10,6 +10,7 @@ import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Logical
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RULE_SET_TYPE_REMOTE
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RULE_SET_TYPE_LOCAL
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
 import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
@@ -18,179 +19,170 @@ import io.nekohasekai.sagernet.ktx.asMap
 
 class SingBoxOptionsUtilKtTest {
 
-    private lateinit var myOptions: MyOptions
+    private lateinit var options: MyOptions
 
     private inline fun <reified T> buildRule(ruleSets: List<String>): T = when (T::class.java) {
         DNSRule_Default::class.java -> DNSRule_Default().apply {
-            rule_set = ruleSets
+            rule_set = ruleSets.toMutableList()
         }
 
         Rule_Default::class.java -> Rule_Default().apply {
-            rule_set = ruleSets
+            rule_set = ruleSets.toMutableList()
         }
 
         else -> throw IllegalArgumentException("Unsupported rule type")
     } as T
 
+    private fun MyOptions.requireRuleSets(): List<RuleSet> = requireNotNull(
+        requireNotNull(route) { "route should not be null" }.rule_set
+    ) { "route.rule_set should not be null" }
+
+    private fun List<RuleSet>.assertTags(expected: Set<String>) {
+        assertEquals(expected.size, size)
+        assertEquals(expected, mapNotNull { it.tag }.toSet())
+    }
+
+    private fun List<RuleSet>.requireRemote(tag: String): RuleSet_Remote {
+        val rule = firstOrNull { it.tag == tag } ?: fail("Rule set '$tag' not found")
+        return rule as? RuleSet_Remote ?: fail("Rule set '$tag' is not remote")
+    }
+
+    private fun List<RuleSet>.requireLocal(tag: String): RuleSet_Local {
+        val rule = firstOrNull { it.tag == tag } ?: fail("Rule set '$tag' not found")
+        return rule as? RuleSet_Local ?: fail("Rule set '$tag' is not local")
+    }
+
     @BeforeEach
     fun setUp() {
-        myOptions = MyOptions()
+        options = MyOptions()
     }
 
-    // Test Case 1: No rules in DNS or Route, and `route` is initially null.
     @Test
     fun `buildRuleSets should do nothing if no rules are found and route is null`() {
-        myOptions.dns = MyDNSOptions().apply { rules = emptyList() }
-        myOptions.route = null
+        options.dns = MyDNSOptions().apply { rules = mutableListOf() }
+        options.route = null
 
-        myOptions.buildRuleSets(
+        options.buildRuleSets(
             ipURL = "http://ip.example.com",
             domainURL = "http://domain.example.com",
             localPath = "/data/local"
         )
 
-        assertNull(myOptions.route) // `route` should remain null
+        assertNull(options.route)
     }
 
-    // Test Case 2: No rules, but `route` is not null initially (e.g., has an empty rule_set).
     @Test
     fun `buildRuleSets should keep route rule_set empty if no rules are found and route already exists`() {
-        myOptions.dns = MyDNSOptions().apply { rules = emptyList() }
-        myOptions.route = MyRouteOptions().apply { rule_set = emptyList() }
+        options.dns = MyDNSOptions().apply { rules = mutableListOf() }
+        options.route = MyRouteOptions().apply { rule_set = mutableListOf() }
 
-        myOptions.buildRuleSets(
+        options.buildRuleSets(
             ipURL = "http://ip.example.com",
             domainURL = "http://domain.example.com",
             localPath = "/data/local"
         )
 
-        assertNotNull(myOptions.route)
-        assertTrue(myOptions.route!!.rule_set.isEmpty())
+        assertEquals(emptyList<RuleSet>(), requireNotNull(options.route).rule_set)
     }
 
-    // Test Case 3: `route` is null initially, and rules are present (remote configuration).
     @Test
     fun `buildRuleSets should create RouteOptions and build remote rule sets if route is null and rules exist`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("geoip-cn", "geosite-youtube")).asMap(),
                 DNSRule_Logical().apply {
-                    rules = listOf(buildRule<DNSRule_Default>(listOf("geosite-google")))
+                    rules = mutableListOf(buildRule<DNSRule_Default>(listOf("geosite-google")))
                 }.asMap(),
             )
         }
-        myOptions.route = null // Route is initially null
+        options.route = null
 
         val ipURL = "http://ip.remote.com"
         val domainURL = "http://domain.remote.com"
 
-        myOptions.buildRuleSets(
-            ipURL = ipURL,
-            domainURL = domainURL,
-            localPath = null // Not used for remote
-        )
-
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
-
-        val expectedTags = setOf("geoip-cn", "geosite-google", "geosite-youtube")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
-
-        // Assert types and URLs for remote rule sets by tag
-        val geoipCnRule = ruleSets.first { it.tag == "geoip-cn" }
-        assertTrue(geoipCnRule is RuleSet_Remote)
-        assertEquals(RULE_SET_TYPE_REMOTE, geoipCnRule.type)
-        assertEquals("$ipURL/geoip-cn.srs", (geoipCnRule as RuleSet_Remote).url)
-
-        val geositeGoogleRule = ruleSets.first { it.tag == "geosite-google" }
-        assertTrue(geositeGoogleRule is RuleSet_Remote)
-        assertEquals(RULE_SET_TYPE_REMOTE, geositeGoogleRule.type)
-        assertEquals("$domainURL/geosite-google.srs", (geositeGoogleRule as RuleSet_Remote).url)
-
-        val geositeYoutubeRule = ruleSets.first { it.tag == "geosite-youtube" }
-        assertTrue(geositeYoutubeRule is RuleSet_Remote)
-        assertEquals(RULE_SET_TYPE_REMOTE, geositeYoutubeRule.type)
-        assertEquals("$domainURL/geosite-youtube.srs", (geositeYoutubeRule as RuleSet_Remote).url)
-    }
-
-    // Test Case 4: `route` is null initially, and rules are present (local configuration).
-    @Test
-    fun `buildRuleSets should create RouteOptions and build local rule sets if route is null and rules exist`() {
-        myOptions.route = null
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
-                buildRule<DNSRule_Default>(listOf("geoip-us", "geosite-facebook")).asMap(),
-            )
-        }
-        val localPath = "/data/local_rules"
-
-        myOptions.buildRuleSets(
-            ipURL = null,    // Signifies local configuration
-            domainURL = null, // Signifies local configuration
-            localPath = localPath
-        )
-
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
-
-        val expectedTags = setOf("geosite-facebook", "geoip-us")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
-
-        val geositeFacebookRule = ruleSets.first { it.tag == "geosite-facebook" }
-        assertTrue(geositeFacebookRule is RuleSet_Local)
-        assertEquals(RULE_SET_TYPE_LOCAL, geositeFacebookRule.type)
-        assertEquals("$localPath/geosite-facebook.srs", (geositeFacebookRule as RuleSet_Local).path)
-
-        val geoipUsRule = ruleSets.first { it.tag == "geoip-us" }
-        assertTrue(geoipUsRule is RuleSet_Local)
-        assertEquals(RULE_SET_TYPE_LOCAL, geoipUsRule.type)
-        assertEquals("$localPath/geoip-us.srs", (geoipUsRule as RuleSet_Local).path)
-    }
-
-    // Test Case 5: `route` is not null, has existing `rule_set`, and new rules are found (remote).
-    @Test
-    fun `buildRuleSets should combine existing and new rule sets and refresh route rule_set (remote)`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
-                buildRule<DNSRule_Default>(listOf("geoip-jp", "twitter")).asMap(),
-            )
-        }
-        myOptions.route = MyRouteOptions().apply {
-            // Existing rule_set, their tags should be preserved and re-added
-            rule_set = listOf(
-                RuleSet_Remote().apply { tag = "existing-rule"; type = RULE_SET_TYPE_REMOTE },
-                RuleSet_Remote().apply { tag = "geoip-kr"; type = RULE_SET_TYPE_REMOTE }
-            )
-            rules = emptyList() // For this test, route.rules is empty.
-        }
-
-        val ipURL = "http://ip.remote.com"
-        val domainURL = "http://domain.remote.com"
-
-        myOptions.buildRuleSets(
+        options.buildRuleSets(
             ipURL = ipURL,
             domainURL = domainURL,
             localPath = null
         )
 
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
+        val expectedTags = setOf("geoip-cn", "geosite-google", "geosite-youtube")
+        val ruleSets = options.requireRuleSets()
+        ruleSets.assertTags(expectedTags)
+
+        val geoipCnRule = ruleSets.requireRemote("geoip-cn")
+        assertEquals(RULE_SET_TYPE_REMOTE, geoipCnRule.type)
+        assertEquals("$ipURL/geoip-cn.srs", geoipCnRule.url)
+
+        val geositeGoogleRule = ruleSets.requireRemote("geosite-google")
+        assertEquals(RULE_SET_TYPE_REMOTE, geositeGoogleRule.type)
+        assertEquals("$domainURL/geosite-google.srs", geositeGoogleRule.url)
+
+        val geositeYoutubeRule = ruleSets.requireRemote("geosite-youtube")
+        assertEquals(RULE_SET_TYPE_REMOTE, geositeYoutubeRule.type)
+        assertEquals("$domainURL/geosite-youtube.srs", geositeYoutubeRule.url)
+    }
+
+    @Test
+    fun `buildRuleSets should create RouteOptions and build local rule sets if route is null and rules exist`() {
+        options.route = null
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                buildRule<DNSRule_Default>(listOf("geoip-us", "geosite-facebook")).asMap(),
+            )
+        }
+        val localPath = "/data/local_rules"
+
+        options.buildRuleSets(
+            ipURL = null,
+            domainURL = null,
+            localPath = localPath
+        )
+
+        val expectedTags = setOf("geosite-facebook", "geoip-us")
+        val ruleSets = options.requireRuleSets()
+        ruleSets.assertTags(expectedTags)
+
+        val geositeFacebookRule = ruleSets.requireLocal("geosite-facebook")
+        assertEquals(RULE_SET_TYPE_LOCAL, geositeFacebookRule.type)
+        assertEquals("$localPath/geosite-facebook.srs", geositeFacebookRule.path)
+
+        val geoipUsRule = ruleSets.requireLocal("geoip-us")
+        assertEquals(RULE_SET_TYPE_LOCAL, geoipUsRule.type)
+        assertEquals("$localPath/geoip-us.srs", geoipUsRule.path)
+    }
+
+    @Test
+    fun `buildRuleSets should combine existing and new rule sets and refresh route rule_set (remote)`() {
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                buildRule<DNSRule_Default>(listOf("geoip-jp", "twitter")).asMap(),
+            )
+        }
+        options.route = MyRouteOptions().apply {
+            rule_set = mutableListOf(
+                RuleSet_Remote().apply { tag = "existing-rule"; type = RULE_SET_TYPE_REMOTE },
+                RuleSet_Remote().apply { tag = "geoip-kr"; type = RULE_SET_TYPE_REMOTE }
+            )
+            rules = mutableListOf()
+        }
+
+        val ipURL = "http://ip.remote.com"
+        val domainURL = "http://domain.remote.com"
+
+        options.buildRuleSets(
+            ipURL = ipURL,
+            domainURL = domainURL,
+            localPath = null
+        )
 
         val expectedTags = setOf("existing-rule", "geoip-kr", "geoip-jp", "twitter")
-        assertEquals(expectedTags.size, ruleSets.size) // existing-rule, geoip-kr, geoip-jp, twitter
-        assertEquals(expectedTags, actualTags)
+        val ruleSets = options.requireRuleSets()
+        ruleSets.assertTags(expectedTags)
 
-        // Check types and URLs (all should be remote)
         expectedTags.forEach { tag ->
-            val ruleSet = ruleSets.first { it.tag == tag }
-            assertTrue(ruleSet is RuleSet_Remote)
-            assertEquals(RULE_SET_TYPE_REMOTE, ruleSet.type)
-            val remoteRuleSet = ruleSet as RuleSet_Remote
+            val remoteRuleSet = ruleSets.requireRemote(tag)
+            assertEquals(RULE_SET_TYPE_REMOTE, remoteRuleSet.type)
             if (tag.startsWith("geoip-")) {
                 assertEquals("$ipURL/$tag.srs", remoteRuleSet.url)
             } else {
@@ -199,24 +191,23 @@ class SingBoxOptionsUtilKtTest {
         }
     }
 
-    // Test Case 6: `rules` from both `dns` and `route` contain rule sets.
     @Test
     fun `buildRuleSets should collect rules from both dns and route options`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("dns-set-1", "geoip-dns-set-2")).asMap(),
                 DNSRule_Logical().apply {
-                    rules = listOf(
+                    rules = mutableListOf(
                         buildRule<DNSRule_Default>(listOf("dns-set-3"))
                     )
                 }.asMap(),
             )
         }
-        myOptions.route = MyRouteOptions().apply {
-            rules = listOf(
+        options.route = MyRouteOptions().apply {
+            rules = mutableListOf(
                 buildRule<Rule_Default>(listOf("route-set-A", "geoip-route-set-B")).asMap(),
                 Rule_Logical().apply {
-                    rules = listOf(
+                    rules = mutableListOf(
                         buildRule<Rule_Default>(listOf("route-set-C"))
                     )
                 }.asMap(),
@@ -226,221 +217,174 @@ class SingBoxOptionsUtilKtTest {
         val ipURL = "http://ip.test.com"
         val domainURL = "http://domain.test.com"
 
-        myOptions.buildRuleSets(ipURL, domainURL, null)
-
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
+        options.buildRuleSets(ipURL, domainURL, null)
 
         val expectedTags = setOf(
             "dns-set-1", "dns-set-3", "geoip-dns-set-2",
             "geoip-route-set-B", "route-set-A", "route-set-C"
         )
-        assertEquals(expectedTags.size, ruleSets.size) // All unique sets
-        assertEquals(expectedTags, actualTags)
+        val ruleSets = options.requireRuleSets()
+        ruleSets.assertTags(expectedTags)
 
-        // Verify types and URLs for a few selected rule sets by tag
-        val dnsSet1 = ruleSets.first { it.tag == "dns-set-1" }
-        assertTrue(dnsSet1 is RuleSet_Remote)
-        assertEquals("$domainURL/dns-set-1.srs", (dnsSet1 as RuleSet_Remote).url)
+        val dnsSet1 = ruleSets.requireRemote("dns-set-1")
+        assertEquals("$domainURL/dns-set-1.srs", dnsSet1.url)
 
-        val geoipDnsSet2 = ruleSets.first { it.tag == "geoip-dns-set-2" }
-        assertTrue(geoipDnsSet2 is RuleSet_Remote)
-        assertEquals("$ipURL/geoip-dns-set-2.srs", (geoipDnsSet2 as RuleSet_Remote).url)
+        val geoipDnsSet2 = ruleSets.requireRemote("geoip-dns-set-2")
+        assertEquals("$ipURL/geoip-dns-set-2.srs", geoipDnsSet2.url)
 
-        val routeSetC = ruleSets.first { it.tag == "route-set-C" }
-        assertTrue(routeSetC is RuleSet_Remote)
-        assertEquals("$domainURL/route-set-C.srs", (routeSetC as RuleSet_Remote).url)
+        val routeSetC = ruleSets.requireRemote("route-set-C")
+        assertEquals("$domainURL/route-set-C.srs", routeSetC.url)
     }
 
-    // Test Case 7: Duplicate rule sets should only be added once.
     @Test
     fun `buildRuleSets should handle duplicate rule sets correctly`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("common-set", "geoip-common-set")).asMap(),
                 DNSRule_Logical().apply {
-                    rules = listOf(
+                    rules = mutableListOf(
                         buildRule<DNSRule_Default>(listOf("common-set"))
                     )
                 }.asMap(),
             )
         }
-        myOptions.route = MyRouteOptions().apply {
-            rules = listOf(
+        options.route = MyRouteOptions().apply {
+            rules = mutableListOf(
                 buildRule<Rule_Default>(
                     listOf(
                         "common-set",
                         "another-set"
                     )
-                ).asMap(), // Duplicate 'common-set'
+                ).asMap(),
                 Rule_Logical().apply {
-                    rules = listOf(
-                        buildRule<Rule_Default>(listOf("geoip-common-set")) // Duplicate
+                    rules = mutableListOf(
+                        buildRule<Rule_Default>(listOf("geoip-common-set"))
                     )
                 }.asMap(),
             )
         }
 
-        myOptions.buildRuleSets("ip", "domain", null)
-
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
+        options.buildRuleSets("ip", "domain", null)
 
         val expectedTags = setOf("another-set", "common-set", "geoip-common-set")
-        assertEquals(
-            expectedTags.size,
-            ruleSets.size
-        ) // Should only contain unique: common-set, geoip-common-set, another-set
-        assertEquals(expectedTags, actualTags)
+        options.requireRuleSets().assertTags(expectedTags)
     }
 
-    // Test Case 8: `rule_set` property being null in default rules.
     @Test
     fun `buildRuleSets should handle null rule_set in default rules gracefully`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
-                DNSRule_Default().asMap(), // Null rule_set
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                DNSRule_Default().asMap(),
                 buildRule<DNSRule_Default>(listOf("good-set")).asMap(),
             )
         }
-        myOptions.route = null
+        options.route = null
 
-        myOptions.buildRuleSets("ip", "domain", null)
+        options.buildRuleSets("ip", "domain", null)
 
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
         val expectedTags = setOf("good-set")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
+        options.requireRuleSets().assertTags(expectedTags)
     }
 
-    // Test Case 9: Empty `rule_set` property in default rules.
     @Test
     fun `buildRuleSets should handle empty rule_set in default rules gracefully`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
-                buildRule<DNSRule_Default>(emptyList()).asMap(), // Empty rule_set
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                buildRule<DNSRule_Default>(emptyList()).asMap(),
                 buildRule<DNSRule_Default>(listOf("another-good-set")).asMap(),
             )
         }
-        myOptions.route = null
+        options.route = null
 
-        myOptions.buildRuleSets("ip", "domain", null)
+        options.buildRuleSets("ip", "domain", null)
 
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
         val expectedTags = setOf("another-good-set")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
+        options.requireRuleSets().assertTags(expectedTags)
     }
 
-    // Test Case 10: `rules` list being null in logical rules.
     @Test
     fun `buildRuleSets should handle null rules list in logical rules gracefully`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
-                DNSRule_Logical().asMap(), // Null rules list
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                DNSRule_Logical().asMap(),
                 DNSRule_Logical().apply {
-                    rules = listOf(
+                    rules = mutableListOf(
                         buildRule<DNSRule_Default>(listOf("nested-set"))
                     )
                 }.asMap(),
             )
         }
-        myOptions.route = null
+        options.route = null
 
-        myOptions.buildRuleSets("ip", "domain", null)
+        options.buildRuleSets("ip", "domain", null)
 
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
         val expectedTags = setOf("nested-set")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
+        options.requireRuleSets().assertTags(expectedTags)
     }
 
-    // Test Case 11: `rules` list being empty in logical rules.
     @Test
     fun `buildRuleSets should handle empty rules list in logical rules gracefully`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
-                DNSRule_Logical().asMap(), // Empty rules list
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                DNSRule_Logical().asMap(),
                 DNSRule_Logical().apply {
-                    rules = listOf(
+                    rules = mutableListOf(
                         buildRule<DNSRule_Default>(listOf("another-nested-set"))
                     )
                 }.asMap(),
             )
         }
-        myOptions.route = null
+        options.route = null
 
-        myOptions.buildRuleSets("ip", "domain", null)
+        options.buildRuleSets("ip", "domain", null)
 
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
         val expectedTags = setOf("another-nested-set")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
+        options.requireRuleSets().assertTags(expectedTags)
     }
 
-    // Test Case 12: Ensure rule_set tags are collected from an existing `route.rule_set` before building new ones.
     @Test
     fun `buildRuleSets should collect tags from existing route rule_set and combine with new ones`() {
-        myOptions.dns = MyDNSOptions().apply {
-            rules = listOf(
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("new-set")).asMap(),
             )
         }
-        myOptions.route = MyRouteOptions().apply {
-            rule_set = listOf(
+        options.route = MyRouteOptions().apply {
+            rule_set = mutableListOf(
                 RuleSet_Local().apply { tag = "existing-local"; type = RULE_SET_TYPE_LOCAL },
                 RuleSet_Remote().apply { tag = "existing-remote"; type = RULE_SET_TYPE_REMOTE }
             )
-            rules = emptyList() // No rules within route.rules for this test
+            rules = mutableListOf()
         }
 
         val ipURL = "http://ip.com"
         val domainURL = "http://domain.com"
-        val localPath = "/local" // Note: localPath is used by buildRuleSets but the specific test context uses remote URLs
+        val localPath = "/local"
 
-        myOptions.buildRuleSets(ipURL, domainURL, localPath)
-
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
+        options.buildRuleSets(ipURL, domainURL, localPath)
 
         val expectedTags = setOf("new-set", "existing-local", "existing-remote")
-        assertEquals(expectedTags.size, ruleSets.size) // "new-set", "existing-local", "existing-remote"
-        assertEquals(expectedTags, actualTags)
+        val ruleSets = options.requireRuleSets()
+        ruleSets.assertTags(expectedTags)
 
-        // Verify the type and URL/path for the collected ones (re-created based on current configuration)
-        val existingLocalRule = ruleSets.first { it.tag == "existing-local" }
-        assertTrue(existingLocalRule is RuleSet_Remote) // existing-local is now remote
+        val existingLocalRule = ruleSets.requireRemote("existing-local")
         assertEquals(RULE_SET_TYPE_REMOTE, existingLocalRule.type)
-        assertEquals("$domainURL/existing-local.srs", (existingLocalRule as RuleSet_Remote).url)
+        assertEquals("$domainURL/existing-local.srs", existingLocalRule.url)
 
-        val existingRemoteRule = ruleSets.first { it.tag == "existing-remote" }
-        assertTrue(existingRemoteRule is RuleSet_Remote) // existing-remote remains remote
+        val existingRemoteRule = ruleSets.requireRemote("existing-remote")
         assertEquals(RULE_SET_TYPE_REMOTE, existingRemoteRule.type)
-        assertEquals("$domainURL/existing-remote.srs", (existingRemoteRule as RuleSet_Remote).url)
+        assertEquals("$domainURL/existing-remote.srs", existingRemoteRule.url)
 
-        val newSetRule = ruleSets.first { it.tag == "new-set" }
-        assertTrue(newSetRule is RuleSet_Remote) // new-set
+        val newSetRule = ruleSets.requireRemote("new-set")
         assertEquals(RULE_SET_TYPE_REMOTE, newSetRule.type)
-        assertEquals("$domainURL/new-set.srs", (newSetRule as RuleSet_Remote).url)
+        assertEquals("$domainURL/new-set.srs", newSetRule.url)
     }
 
-    // Test Case 13: `buildRuleSets` with only `route.rules` populated and `dns.rules` is null or empty.
     @Test
     fun `buildRuleSets should collect rules from route rules if dns rules are null or empty`() {
-        myOptions.dns = null // DNS rules are null
-        myOptions.route = MyRouteOptions().apply {
-            rules = listOf(
+        options.dns = null
+        options.route = MyRouteOptions().apply {
+            rules = mutableListOf(
                 buildRule<Rule_Default>(listOf("route-only-set-1", "geoip-route-only-set-2")).asMap(),
             )
         }
@@ -448,22 +392,16 @@ class SingBoxOptionsUtilKtTest {
         val ipURL = "http://ip.only.com"
         val domainURL = "http://domain.only.com"
 
-        myOptions.buildRuleSets(ipURL, domainURL, null)
-
-        assertNotNull(myOptions.route)
-        val ruleSets = myOptions.route!!.rule_set
-        val actualTags = ruleSets.map { it.tag }.toSet()
+        options.buildRuleSets(ipURL, domainURL, null)
 
         val expectedTags = setOf("geoip-route-only-set-2", "route-only-set-1")
-        assertEquals(expectedTags.size, ruleSets.size)
-        assertEquals(expectedTags, actualTags)
+        val ruleSets = options.requireRuleSets()
+        ruleSets.assertTags(expectedTags)
 
-        val geoipRule = ruleSets.first { it.tag == "geoip-route-only-set-2" }
-        assertTrue(geoipRule is RuleSet_Remote)
-        assertEquals("$ipURL/geoip-route-only-set-2.srs", (geoipRule as RuleSet_Remote).url)
+        val geoipRule = ruleSets.requireRemote("geoip-route-only-set-2")
+        assertEquals("$ipURL/geoip-route-only-set-2.srs", geoipRule.url)
 
-        val domainRule = ruleSets.first { it.tag == "route-only-set-1" }
-        assertTrue(domainRule is RuleSet_Remote)
-        assertEquals("$domainURL/route-only-set-1.srs", (domainRule as RuleSet_Remote).url)
+        val domainRule = ruleSets.requireRemote("route-only-set-1")
+        assertEquals("$domainURL/route-only-set-1.srs", domainRule.url)
     }
 }

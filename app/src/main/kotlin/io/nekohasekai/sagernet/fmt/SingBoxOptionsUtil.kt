@@ -1,0 +1,333 @@
+package io.nekohasekai.sagernet.fmt
+
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DNSRule_Default
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.DomainResolveOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.MyRouteOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteHTTPSDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.NewDNSServerOptions_RemoteTLSDNSServerOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.OutboundTLSOptions
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Local
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.RuleSet_Remote
+import io.nekohasekai.sagernet.fmt.SingBoxOptions.Rule_Default
+import io.nekohasekai.sagernet.ktx.parseBoolean
+import io.nekohasekai.sagernet.ktx.queryParameterNotBlank
+import libcore.Libcore
+
+fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
+    domain = mutableListOf()
+    domain_suffix = mutableListOf()
+    domain_regex = mutableListOf()
+    domain_keyword = mutableListOf()
+    rule_set = mutableListOf()
+
+    for (rule in list) {
+        when (rule.content) {
+            RuleItem.CONTENT_ANY -> {
+                ip_accept_any = true
+                continue
+            }
+
+            RuleItem.CONTENT_PRIVATE -> {
+                ip_is_private = true
+                continue
+            }
+        }
+
+        when (rule.type) {
+            RuleItem.TYPE_FLAG_RULE_SET -> rule_set!!.add(rule.content)
+            RuleItem.TYPE_FLAG_FULL -> domain!!.add(rule.content)
+            RuleItem.TYPE_FLAG_DOMAIN_SUFFIX -> domain_suffix!!.add(rule.content)
+            RuleItem.TYPE_FLAG_REGEX -> domain_regex!!.add(rule.content)
+            else -> domain_keyword!!.add(rule.content)
+        }
+    }
+
+    rule_set?.removeIf { it.isBlank() }
+    domain?.removeIf { it.isBlank() }
+    domain_suffix?.removeIf { it.isBlank() }
+    domain_regex?.removeIf { it.isBlank() }
+    domain_keyword?.removeIf { it.isBlank() }
+
+    if (ip_is_private == false) ip_is_private = null
+    if (ip_accept_any == false) ip_accept_any = null
+    if (rule_set?.isEmpty() == true) rule_set = null
+    if (domain?.isEmpty() == true) domain = null
+    if (domain_suffix?.isEmpty() == true) domain_suffix = null
+    if (domain_regex?.isEmpty() == true) domain_regex = null
+    if (domain_keyword?.isEmpty() == true) domain_keyword = null
+}
+
+fun DNSRule_Default.checkEmpty(): Boolean {
+    if (ip_is_private == true) return false
+    if (ip_accept_any == true) return false
+    if (rule_set?.isNotEmpty() == true) return false
+    if (domain?.isNotEmpty() == true) return false
+    if (domain_suffix?.isNotEmpty() == true) return false
+    if (domain_regex?.isNotEmpty() == true) return false
+    if (domain_keyword?.isNotEmpty() == true) return false
+    if (user_id?.isNotEmpty() == true) return false
+    if (wifi_ssid?.isNotEmpty() == true) return false
+    if (wifi_bssid?.isNotEmpty() == true) return false
+    return true
+}
+
+fun Rule_Default.makeCommonRule(list: List<RuleItem>, isIP: Boolean) {
+    if (isIP) {
+        ip_cidr = mutableListOf()
+    } else {
+        domain = mutableListOf()
+        domain_suffix = mutableListOf()
+        domain_regex = mutableListOf()
+        domain_keyword = mutableListOf()
+    }
+    if (rule_set == null) rule_set = mutableListOf()
+
+    for (rule in list) {
+        if (isIP) {
+            when (rule.content) {
+                RuleItem.CONTENT_ANY -> continue // just for DNS
+                RuleItem.CONTENT_PRIVATE -> {
+                    ip_is_private = true
+                    continue
+                }
+            }
+            when (rule.type) {
+                RuleItem.TYPE_FLAG_RULE_SET -> rule_set!!.add(rule.content)
+                else -> ip_cidr!!.add(rule.content)
+            }
+        } else {
+            when (rule.type) {
+                RuleItem.TYPE_FLAG_RULE_SET -> rule_set!!.add(rule.content)
+                RuleItem.TYPE_FLAG_FULL -> domain!!.add(rule.content)
+                RuleItem.TYPE_FLAG_DOMAIN_SUFFIX -> domain_suffix!!.add(rule.content)
+                RuleItem.TYPE_FLAG_REGEX -> domain_regex!!.add(rule.content)
+                else -> domain_keyword!!.add(rule.content)
+            }
+        }
+    }
+
+    rule_set?.removeIf { it.isBlank() }
+    ip_cidr?.removeIf { it.isBlank() }
+    domain?.removeIf { it.isBlank() }
+    domain_suffix?.removeIf { it.isBlank() }
+    domain_regex?.removeIf { it.isBlank() }
+    domain_keyword?.removeIf { it.isBlank() }
+    if (rule_set?.isEmpty() == true) rule_set = null
+    if (ip_cidr?.isEmpty() == true) ip_cidr = null
+    if (domain?.isEmpty() == true) domain = null
+    if (domain_suffix?.isEmpty() == true) domain_suffix = null
+    if (domain_regex?.isEmpty() == true) domain_regex = null
+    if (domain_keyword?.isEmpty() == true) domain_keyword = null
+    if (ip_is_private == false) ip_is_private = null
+}
+
+fun Rule_Default.checkEmpty(): Boolean {
+    if (ip_cidr?.isNotEmpty() == true) return false
+    if (rule_set?.isNotEmpty() == true) return false
+    if (ip_is_private == true) return false
+    if (source_ip_is_private == true) return false
+
+    if (domain?.isNotEmpty() == true) return false
+    if (domain_suffix?.isNotEmpty() == true) return false
+    if (domain_regex?.isNotEmpty() == true) return false
+    if (domain_keyword?.isNotEmpty() == true) return false
+    if (user_id?.isNotEmpty() == true) return false
+
+    if (port?.isNotEmpty() == true) return false
+    if (port_range?.isNotEmpty() == true) return false
+    if (source_ip_cidr?.isNotEmpty() == true) return false
+    if (wifi_ssid?.isNotEmpty() == true) return false
+    if (wifi_bssid?.isNotEmpty() == true) return false
+    if (clash_mode?.isNotEmpty() == true) return false
+    if (network_type?.isNotEmpty() == true) return false
+    if (network_is_expensive == true) return false
+
+    if (override_address?.isNotEmpty() == true) return false
+    if (override_port != null && override_port!! > 0) return false
+    if (tls_fragment == true) return false
+    if (tls_record_fragment == true) return false
+
+    if (strategy != null) return false
+    if (disable_cache == true) return false
+    if (rewrite_ttl != null) return false
+    if (client_subnet?.isNotEmpty() == true) return false
+
+    if (timeout?.isNotEmpty() == true) return false
+    if (sniffer?.isNotEmpty() == true) return false
+
+    return true
+}
+
+/**
+ * Builds all rule-set.
+ * This will crate route if route is null,
+ * and will refreshes route.rule_set.
+ * */
+fun MyOptions.buildRuleSets(
+    ipURL: String?,
+    domainURL: String?,
+    localPath: String?,
+) {
+    val names = hashSetOf<String>()
+    if (dns != null) collectSet(names, dns!!.rules)
+    if (route != null) collectSet(names, route!!.rules)
+
+    if (names.isEmpty()) return
+
+    if (route == null) route = MyRouteOptions()
+    if (route!!.rule_set == null) route!!.rule_set = mutableListOf()
+    for (set in route!!.rule_set!!) names.add(set.tag!!)
+    val list = ArrayList<RuleSet>(names.size)
+
+    val isRemote = ipURL != null
+    for (name in names.sorted()) {
+        if (isRemote) list.add(
+            RuleSet_Remote().apply {
+                tag = name
+                type = SingBoxOptions.RULE_SET_TYPE_REMOTE
+                val isIP = name.startsWith("geoip-")
+                url = if (isIP) {
+                    "${ipURL}/${name}.srs"
+                } else {
+                    "${domainURL}/${name}.srs"
+                }
+            },
+        ) else list.add(
+            RuleSet_Local().apply {
+                tag = name
+                type = SingBoxOptions.RULE_SET_TYPE_LOCAL
+                path = "$localPath/$name.srs"
+            },
+        )
+    }
+
+    route!!.rule_set = list
+}
+
+/**
+ * Collects all rule-set in rules.
+ * @param rules item should be DNSRule or Rule.
+ */
+@Suppress("UNCHECKED_CAST")
+private fun collectSet(set: MutableSet<String>, rules: List<*>?) {
+    if (rules.isNullOrEmpty()) return
+
+    for (rawRule in rules) {
+        val rule = rawRule as? Map<*, *> ?: continue
+        val nestedRules = rule["rules"] as? List<*>
+        val type = (rule["type"] as? String)?.lowercase()
+        if (type == "logical" || (type == null && !nestedRules.isNullOrEmpty())) {
+            collectSet(set, nestedRules)
+            continue
+        }
+
+        val ruleSet = rule["rule_set"] as? List<*>
+        if (ruleSet.isNullOrEmpty()) continue
+
+        for (name in ruleSet) {
+            val tag = (name as? String)?.takeIf { it.isNotBlank() } ?: continue
+            set.add(tag)
+        }
+    }
+}
+
+fun isEndpoint(type: String): Boolean = when (type) {
+    SingBoxOptions.TYPE_WIREGUARD -> true
+    else -> false
+}
+
+/**
+ * Turn link to new DNS options.
+ */
+fun buildDNSServer(
+    link: String,
+    out: String?,
+    tag: String,
+    domainResolver: DomainResolveOptions,
+): NewDNSServerOptions {
+    if (link == "local") return NewDNSServerOptions_LocalDNSServerOptions().also {
+        it.type = SingBoxOptions.DNS_TYPE_LOCAL
+        it.tag = tag
+    }
+
+    val url = if (!link.contains("://")) {
+        Libcore.newURL(SingBoxOptions.DNS_TYPE_UDP).apply {
+            fullHost = link
+        }
+    } else {
+        Libcore.parseURL(link)
+    }
+
+    return when (val scheme = url.scheme) {
+        SingBoxOptions.DNS_TYPE_TLS -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
+            type = scheme
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            tls = OutboundTLSOptions().apply {
+                enabled = true
+            }
+            detour = out
+            if (url.parseBoolean("pipeline")) pipeline = true
+            max_queries = url.queryParameterNotBlank("maxqueries")?.toIntOrNull()
+        }
+
+        SingBoxOptions.DNS_TYPE_QUIC -> NewDNSServerOptions_RemoteTLSDNSServerOptions().apply {
+            type = scheme
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            tls = OutboundTLSOptions().apply {
+                enabled = true
+            }
+            detour = out
+        }
+
+        "http3", SingBoxOptions.DNS_TYPE_HTTPS, SingBoxOptions.DNS_TYPE_H3 -> NewDNSServerOptions_RemoteHTTPSDNSServerOptions().apply {
+            type = if (scheme == "http3") {
+                SingBoxOptions.DNS_TYPE_H3
+            } else {
+                scheme
+            }
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            tls = OutboundTLSOptions().apply {
+                enabled = true
+            }
+            path = url.path
+            detour = out
+        }
+
+        SingBoxOptions.DNS_TYPE_TCP -> SingBoxOptions.NewDNSServerOptions_RemoteTCPDNSServerOptions()
+            .apply {
+                type = SingBoxOptions.DNS_TYPE_TCP
+                server = url.host
+                server_port = url.ports.toIntOrNull()
+                domain_resolver = domainResolver
+                detour = out
+                if (url.parseBoolean("reuse")) reuse = true
+                if (url.parseBoolean("pipeline")) pipeline = true
+                max_queries = url.queryParameterNotBlank("maxqueries")?.toIntOrNull()
+            }
+
+        // "", SingBoxOptions.DNS_TYPE_UDP ->
+        else -> NewDNSServerOptions_RemoteDNSServerOptions().apply {
+            type = scheme.ifBlank {
+                SingBoxOptions.DNS_TYPE_UDP
+            }
+            server = url.host
+            server_port = url.ports.toIntOrNull()
+            domain_resolver = domainResolver
+            detour = out
+        }
+
+    }.also {
+        it.tag = tag
+    }
+}
