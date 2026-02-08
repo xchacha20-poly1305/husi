@@ -33,10 +33,16 @@ class ShadowQUICBean : AbstractBean() {
     var zeroRTT: Boolean = false
     var udpOverStream: Boolean = false
     var gso: Boolean = false
+    var keepAliveInterval: Int = 0
+    var mtuDiscovery: Boolean = false
     var subProtocol: Int = SUB_PROTOCOL_SHADOW_QUIC
 
+    // Sunny QUIC
+    var extraPaths: String = ""
+    var maxPaths: Int = 0
+
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
         super.serialize(output)
         output.writeString(password)
         output.writeString(username)
@@ -48,7 +54,15 @@ class ShadowQUICBean : AbstractBean() {
         output.writeBoolean(zeroRTT)
         output.writeBoolean(udpOverStream)
         output.writeBoolean(gso)
+
+        // version 1
         output.writeInt(subProtocol)
+
+        // version 2
+        output.writeInt(keepAliveInterval)
+        output.writeBoolean(mtuDiscovery)
+        output.writeString(extraPaths)
+        output.writeInt(maxPaths)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -67,6 +81,13 @@ class ShadowQUICBean : AbstractBean() {
         if (version >= 1) {
             gso = input.readBoolean()
             subProtocol = input.readInt()
+        }
+
+        if (version >= 2) {
+            keepAliveInterval = input.readInt()
+            mtuDiscovery = input.readBoolean()
+            extraPaths = input.readString()
+            maxPaths = input.readInt()
         }
     }
 

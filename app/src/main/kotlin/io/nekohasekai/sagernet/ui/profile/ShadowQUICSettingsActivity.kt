@@ -206,5 +206,56 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                 icon = { Icon(ImageVector.vectorResource(R.drawable.segment), null) },
             )
         }
+        item("keep_alive_interval") {
+            TextFieldPreference(
+                value = uiState.keepAliveInterval,
+                onValueChange = { viewModel.setKeepAliveInterval(it) },
+                title = { Text(stringResource(R.string.persistent_keepalive_interval)) },
+                textToValue = { it.toIntOrNull() ?: 0 },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.timer), null) },
+                summary = { Text(LocalContext.current.contentOrUnset(uiState.keepAliveInterval)) },
+                valueToText = { it.toString() },
+                textField = { value, onValueChange, onOk ->
+                    UIntegerTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("mtu_discovery") {
+            SwitchPreference(
+                value = uiState.mtuDiscovery,
+                onValueChange = { viewModel.setMtuDiscovery(it) },
+                title = { Text(stringResource(R.string.mtu_discovery)) },
+                icon = { Icon(ImageVector.vectorResource(R.drawable.search), null) },
+            )
+        }
+
+        if (uiState.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
+            item("extra_paths") {
+                TextFieldPreference(
+                    value = uiState.extraPaths,
+                    onValueChange = { viewModel.setExtraPaths(it) },
+                    title = { Text(stringResource(R.string.extra_paths)) },
+                    textToValue = { it },
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.grid_on), null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.extraPaths)) },
+                    valueToText = { it },
+                )
+            }
+            item("max_paths") {
+                TextFieldPreference(
+                    value = uiState.maxPaths,
+                    onValueChange = { viewModel.setMaxPaths(it) },
+                    title = { Text(stringResource(R.string.extra_paths_max)) },
+                    textToValue = { it.toIntOrNull() ?: 0 },
+                    enabled = uiState.extraPaths.isNotEmpty(),
+                    icon = { Icon(ImageVector.vectorResource(R.drawable.multiple_stop), null) },
+                    summary = { Text(LocalContext.current.contentOrUnset(uiState.maxPaths)) },
+                    valueToText = { it.toString() },
+                    textField = { value, onValueChange, onOk ->
+                        UIntegerTextField(value, onValueChange, onOk)
+                    },
+                )
+            }
+        }
     }
 }

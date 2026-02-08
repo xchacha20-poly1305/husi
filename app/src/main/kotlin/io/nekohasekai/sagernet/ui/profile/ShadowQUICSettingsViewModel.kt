@@ -25,7 +25,12 @@ internal data class ShadowQUICUiState(
     val zeroRTT: Boolean = false,
     val udpOverStream: Boolean = false,
     val gso: Boolean = false,
+    val keepAliveInterval: Int = 0,
+    val mtuDiscovery: Boolean = false,
     val subProtocol: Int = ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC,
+
+    val extraPaths: String = "",
+    val maxPaths: Int = 0,
 ) : ProfileSettingsUiState
 
 @Stable
@@ -52,7 +57,13 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
                 congestionControl = congestionControl,
                 zeroRTT = zeroRTT,
                 udpOverStream = udpOverStream,
+                gso = gso,
+                keepAliveInterval = keepAliveInterval,
+                mtuDiscovery = mtuDiscovery,
                 subProtocol = subProtocol,
+
+                extraPaths = extraPaths,
+                maxPaths = maxPaths,
             )
         }
     }
@@ -73,7 +84,13 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
         congestionControl = state.congestionControl
         zeroRTT = state.zeroRTT
         udpOverStream = state.udpOverStream
+        gso = state.gso
+        keepAliveInterval = state.keepAliveInterval
+        mtuDiscovery = state.mtuDiscovery
         subProtocol = state.subProtocol
+
+        extraPaths = state.extraPaths
+        maxPaths = state.maxPaths
     }
 
     override fun setCustomConfig(config: String) {
@@ -140,7 +157,23 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
         _uiState.update { it.copy(gso = enabled) }
     }
 
+    fun setKeepAliveInterval(interval: Int) {
+        _uiState.update { it.copy(keepAliveInterval = interval) }
+    }
+
+    fun setMtuDiscovery(enabled: Boolean) {
+        _uiState.update { it.copy(mtuDiscovery = enabled) }
+    }
+
     fun setSubProtocol(protocol: Int) {
         _uiState.update { it.copy(subProtocol = protocol) }
+    }
+
+    fun setExtraPaths(extraPaths: String) {
+        _uiState.update { it.copy(extraPaths = extraPaths) }
+    }
+
+    fun setMaxPaths(maxPaths: Int) {
+        _uiState.update { it.copy(maxPaths = maxPaths) }
     }
 }
