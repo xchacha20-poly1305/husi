@@ -42,7 +42,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
                     put("initial-mtu", it)
                 }
                 minimumMTU.takeIf { it > 0 }?.let {
-                    put("minimum-mtu", it)
+                    put("min-mtu", it)
                 }
                 congestionControl.blankAsNull()?.let {
                     put("congestion-control", it)
