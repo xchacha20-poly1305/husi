@@ -712,4 +712,7 @@
     <string name="quic">QUIC</string>
     <string name="dns_only">Только DNS</string>
     <string name="health_check">Проверка работоспособности</string>
+    <string name="mtu_discovery">Определение максимального MTU маршрута</string>
+    <string name="extra_paths">Дополнительные маршруты</string>
+    <string name="extra_paths_max">Максимум дополнительных маршрутов</string>
 </resources>
