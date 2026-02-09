@@ -8,7 +8,7 @@ abstract class InternalBean : AbstractBean() {
         return ""
     }
 
-    override val canICMPing = false
-    override val canTCPing = false
-    override val canMapping = false
+    override val canICMPing get() = false
+    override val canTCPing get() = false
+    override val canMapping get() = false
 }

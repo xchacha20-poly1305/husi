@@ -22,10 +22,6 @@ class DirectBean : AbstractBean() {
         }
     }
 
-    override fun initializeDefaultValues() {
-        super.initializeDefaultValues()
-    }
-
     override fun serialize(output: ByteBufferOutput) {
         output.writeInt(0)
         super.serialize(output)
@@ -51,6 +47,6 @@ class DirectBean : AbstractBean() {
         return ""
     }
 
-    override val canICMPing = true
-    override val canTCPing = true
+    override val canICMPing get() = true
+    override val canTCPing get() = true
 }

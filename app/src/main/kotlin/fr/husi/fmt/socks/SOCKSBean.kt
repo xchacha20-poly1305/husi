@@ -82,7 +82,7 @@ class SOCKSBean : AbstractBean() {
         return KryoConverters.deserialize(SOCKSBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 1080
+    override val defaultPort get() = 1080
 
     override val needUDPOverTCP get() = udpOverTcp
 }

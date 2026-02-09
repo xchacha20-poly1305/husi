@@ -101,7 +101,7 @@ class NaiveBean : AbstractBean() {
         return KryoConverters.deserialize(NaiveBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
+    override val defaultPort get() = 443
     override val canTCPing get() = proto != PROTO_QUIC
     override val needUDPOverTCP get() = udpOverTcp
 }

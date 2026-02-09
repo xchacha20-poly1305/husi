@@ -158,6 +158,8 @@ class HysteriaBean : AbstractBean() {
         other.echConfig = echConfig
     }
 
+    override val defaultPort get() = 443
+
     override val canTCPing
         get() = when (protocolVersion) {
             PROTOCOL_VERSION_1 -> protocol == PROTOCOL_FAKETCP
@@ -172,5 +174,4 @@ class HysteriaBean : AbstractBean() {
         return KryoConverters.deserialize(HysteriaBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
 }

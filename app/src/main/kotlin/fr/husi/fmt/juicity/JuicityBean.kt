@@ -55,11 +55,11 @@ class JuicityBean : AbstractBean() {
         if (other !is JuicityBean) return
     }
 
-    override val canTCPing = false
+    override val defaultPort get() = 443
+    override val canTCPing get() = false
 
     override fun clone(): AbstractBean {
         return KryoConverters.deserialize(TuicBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
 }

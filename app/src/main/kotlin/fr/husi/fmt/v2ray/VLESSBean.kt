@@ -29,5 +29,5 @@ class VLESSBean : StandardV2RayBean() {
         return KryoConverters.deserialize(VLESSBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
+    override val defaultPort get() = 443
 }
