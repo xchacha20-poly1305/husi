@@ -63,7 +63,7 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
                 subProtocol = subProtocol,
 
                 extraPaths = extraPaths,
-                maxPaths = maxPaths,
+                maxPaths = maxPaths.coerceIn(0, extraPaths.lines().count { path -> path.isNotBlank() }),
             )
         }
     }
@@ -170,10 +170,22 @@ internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUIC
     }
 
     fun setExtraPaths(extraPaths: String) {
-        _uiState.update { it.copy(extraPaths = extraPaths) }
+        _uiState.update { state ->
+            state.copy(
+                extraPaths = extraPaths,
+                maxPaths = state.maxPaths.coerceIn(0, extraPaths.lines().count { path -> path.isNotBlank() }),
+            )
+        }
     }
 
     fun setMaxPaths(maxPaths: Int) {
-        _uiState.update { it.copy(maxPaths = maxPaths) }
+        _uiState.update { state ->
+            state.copy(
+                maxPaths = maxPaths.coerceIn(
+                    0,
+                    state.extraPaths.lines().count { path -> path.isNotBlank() },
+                ),
+            )
+        }
     }
 }

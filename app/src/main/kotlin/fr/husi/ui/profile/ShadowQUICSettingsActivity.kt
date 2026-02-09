@@ -5,12 +5,17 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.R
+import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
@@ -18,8 +23,10 @@ import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.ktx.contentOrUnset
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.SliderPreference
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
@@ -239,21 +246,27 @@ class ShadowQUICSettingsActivity : ProfileSettingsActivity<ShadowQUICBean>() {
                     icon = { Icon(ImageVector.vectorResource(R.drawable.grid_on), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.extraPaths)) },
                     valueToText = { it },
+                    textField = { value, onValueChange, onOk ->
+                        MultilineTextField(value, onValueChange, onOk)
+                    },
                 )
             }
             item("max_paths") {
-                TextFieldPreference(
-                    value = uiState.maxPaths,
-                    onValueChange = { viewModel.setMaxPaths(it) },
+                val maxPathsFloat = uiState.maxPaths.toFloat()
+                val currentPathCount = uiState.extraPaths.lines().count { it.isNotBlank() }
+                var previewValue by remember { mutableFloatStateOf(maxPathsFloat) }
+                SliderPreference(
+                    value = maxPathsFloat,
+                    onValueChange = { viewModel.setMaxPaths(it.roundToInt()) },
+                    sliderValue = previewValue,
+                    onSliderValueChange = { previewValue = it },
                     title = { Text(stringResource(R.string.extra_paths_max)) },
-                    textToValue = { it.toIntOrNull() ?: 0 },
-                    enabled = uiState.extraPaths.isNotEmpty(),
+                    valueRange = 0f..currentPathCount.toFloat(),
+                    valueSteps = currentPathCount.coerceAtLeast(1) - 1,
+                    enabled = currentPathCount > 0,
                     icon = { Icon(ImageVector.vectorResource(R.drawable.multiple_stop), null) },
                     summary = { Text(LocalContext.current.contentOrUnset(uiState.maxPaths)) },
-                    valueToText = { it.toString() },
-                    textField = { value, onValueChange, onOk ->
-                        UIntegerTextField(value, onValueChange, onOk)
-                    },
+                    valueText = { Text(previewValue.roundToInt().toString()) },
                 )
             }
         }
