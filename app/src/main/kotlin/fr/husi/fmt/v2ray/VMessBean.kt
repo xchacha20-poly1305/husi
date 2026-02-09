@@ -37,5 +37,5 @@ class VMessBean : StandardV2RayBean() {
         return KryoConverters.deserialize(VMessBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 10086
+    override val defaultPort get() = 10086
 }

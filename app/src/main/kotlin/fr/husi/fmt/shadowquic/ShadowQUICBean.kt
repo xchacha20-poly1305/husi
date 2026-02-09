@@ -108,8 +108,8 @@ class ShadowQUICBean : AbstractBean() {
         return KryoConverters.deserialize(ShadowQUICBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
-    override val canTCPing = false
+    override val defaultPort get() = 443
+    override val canTCPing get() = false
 
     fun displayType(): String {
         return if (subProtocol == SUB_PROTOCOL_SHADOW_QUIC) {

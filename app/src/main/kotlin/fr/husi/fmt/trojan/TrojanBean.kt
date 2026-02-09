@@ -38,4 +38,6 @@ class TrojanBean : StandardV2RayBean() {
         return KryoConverters.deserialize(TrojanBean(), KryoConverters.serialize(this))
     }
 
+    override val defaultPort get() = 443
+
 }

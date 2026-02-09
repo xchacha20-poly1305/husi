@@ -9,7 +9,7 @@ import fr.husi.ktx.wrapIPV6Host
 
 abstract class AbstractBean : Serializable() {
 
-    open val defaultPort = 1080
+    open val defaultPort get() = 1080
 
     var serverAddress: String = "127.0.0.1"
     var serverPort: Int = defaultPort
@@ -40,10 +40,10 @@ abstract class AbstractBean : Serializable() {
         return "tcp,udp"
     }
 
-    open val canICMPing = true
-    open val canTCPing = true
-    open val needUDPOverTCP = false
-    open val canMapping = true
+    open val canICMPing get() = true
+    open val canTCPing get() = true
+    open val needUDPOverTCP get() = false
+    open val canMapping get() = true
 
     override fun initializeDefaultValues() {
         if (serverAddress.isEmpty()) {

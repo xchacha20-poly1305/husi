@@ -61,6 +61,6 @@ class ShadowsocksBean : AbstractBean() {
         return KryoConverters.deserialize(ShadowsocksBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 8388
+    override val defaultPort get() = 8388
     override val needUDPOverTCP get() = udpOverTcp
 }

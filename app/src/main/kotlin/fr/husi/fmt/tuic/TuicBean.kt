@@ -118,11 +118,12 @@ class TuicBean : AbstractBean() {
         if (other !is TuicBean) return
     }
 
-    override val canTCPing = false
+    override val defaultPort get() = 443
+
+    override val canTCPing get() = false
 
     override fun clone(): TuicBean {
         return KryoConverters.deserialize(TuicBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
 }

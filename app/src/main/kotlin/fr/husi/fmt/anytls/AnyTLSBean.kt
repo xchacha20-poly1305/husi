@@ -136,5 +136,5 @@ class AnyTLSBean : AbstractBean() {
         return KryoConverters.deserialize(AnyTLSBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 443
+    override val defaultPort get() = 443
 }

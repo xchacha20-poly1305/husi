@@ -74,5 +74,5 @@ class SSHBean : AbstractBean() {
         return KryoConverters.deserialize(SSHBean(), KryoConverters.serialize(this))
     }
 
-    override val defaultPort = 22
+    override val defaultPort get() = 22
 }
