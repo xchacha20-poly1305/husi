@@ -21,8 +21,8 @@ package fr.husi.plugin.mieru
 
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import io.nekohasekai.sagernet.plugin.NativePluginProvider
-import io.nekohasekai.sagernet.plugin.PathProvider
+import fr.husi.plugin.NativePluginProvider
+import fr.husi.plugin.PathProvider
 import java.io.File
 import java.io.FileNotFoundException
 

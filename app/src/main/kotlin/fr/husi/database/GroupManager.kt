@@ -1,0 +1,75 @@
+package fr.husi.database
+
+import fr.husi.GroupType
+import fr.husi.bg.SubscriptionUpdater
+import fr.husi.ktx.applyDefaultValues
+import fr.husi.ktx.onIoDispatcher
+import kotlinx.coroutines.flow.first
+
+object GroupManager {
+
+    interface Interface {
+        suspend fun confirm(message: String): Boolean
+        suspend fun alert(message: String)
+        suspend fun onUpdateSuccess(
+            group: ProxyGroup,
+            changed: Int,
+            added: List<String>,
+            updated: Map<String, String>,
+            deleted: List<String>,
+            duplicate: List<String>,
+            byUser: Boolean,
+        )
+
+        suspend fun onUpdateWarning(group: String, error: String)
+        suspend fun onUpdateFailure(group: ProxyGroup, message: String)
+    }
+
+    var userInterface: Interface? = null
+
+    suspend fun clearGroup(groupId: Long) {
+        DataStore.selectedProxy = 0L
+        SagerDatabase.proxyDao.deleteAll(groupId)
+    }
+
+    suspend fun rearrange(groupId: Long) {
+        val entities = onIoDispatcher {
+            SagerDatabase.proxyDao.getByGroup(groupId).first()
+        }
+        for (index in entities.indices) {
+            entities[index].userOrder = (index + 1).toLong()
+        }
+        onIoDispatcher {
+            SagerDatabase.proxyDao.updateProxy(entities)
+        }
+    }
+
+    suspend fun createGroup(group: ProxyGroup): ProxyGroup {
+        group.userOrder = SagerDatabase.groupDao.nextOrder() ?: 1
+        group.id = SagerDatabase.groupDao.createGroup(group.applyDefaultValues())
+        if (group.type == GroupType.SUBSCRIPTION) {
+            SubscriptionUpdater.reconfigureUpdater()
+        }
+        return group
+    }
+
+    suspend fun updateGroup(group: ProxyGroup) {
+        SagerDatabase.groupDao.updateGroup(group)
+        if (group.type == GroupType.SUBSCRIPTION) {
+            SubscriptionUpdater.reconfigureUpdater()
+        }
+    }
+
+    suspend fun deleteGroup(groupId: Long) {
+        SagerDatabase.groupDao.deleteById(groupId)
+        SagerDatabase.proxyDao.deleteByGroup(groupId)
+        SubscriptionUpdater.reconfigureUpdater()
+    }
+
+    suspend fun deleteGroup(group: List<Long>) {
+        SagerDatabase.groupDao.deleteByIds(group)
+        SagerDatabase.proxyDao.deleteByGroup(group.toLongArray())
+        SubscriptionUpdater.reconfigureUpdater()
+    }
+
+}

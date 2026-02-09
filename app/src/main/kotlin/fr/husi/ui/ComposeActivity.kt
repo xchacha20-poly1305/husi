@@ -1,0 +1,37 @@
+package fr.husi.ui
+
+import android.graphics.Color
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import fr.husi.compose.theme.isDarkMode
+import fr.husi.database.DataStore
+
+open class ComposeActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val usingNightMode = resources.isDarkMode(DataStore.nightTheme)
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            // https://stackoverflow.com/questions/79319740/edge-to-edge-doesnt-work-when-activity-recreated-or-appcompatdelegate-setdefaul
+            // BAKLAVA and later VANILLA_ICE_CREAM have fixed this
+            // set this before super.onCreate(savedInstanceState)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        }
+        val style = if (usingNightMode) {
+            SystemBarStyle.dark(Color.TRANSPARENT)
+        } else {
+            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        }
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+        super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val insetController = WindowCompat.getInsetsController(window, window.decorView)
+            // https://dev.mi.com/xiaomihyperos/documentation/detail?pId=1576
+            insetController.isAppearanceLightNavigationBars = !usingNightMode
+            insetController.isAppearanceLightStatusBars = !usingNightMode
+        }
+    }
+}

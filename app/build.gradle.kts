@@ -44,7 +44,7 @@ android {
         aidl = true
         buildConfig = true
     }
-    namespace = "io.nekohasekai.sagernet"
+    namespace = "fr.husi"
 
     kotlin {
         compilerOptions {

@@ -3,7 +3,7 @@
 
 -dontobfuscate
 -keepattributes SourceFile,LineNumberTable
--keep class io.nekohasekai.sagernet.** { *;}
+-keep class fr.husi.** { *;}
 
 # Clean Kotlin
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
