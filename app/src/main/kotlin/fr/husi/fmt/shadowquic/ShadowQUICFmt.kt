@@ -51,11 +51,12 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
                     put("keep-alive-interval", it)
                 }
                 if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
-                    extraPaths.blankAsNull()?.listByLineOrComma()
-                        ?.takeIf { it.isNotEmpty() }
-                        .let { paths ->
+                    extraPaths.lines()
+                        .filter { it.isNotBlank() }
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { paths ->
                             put("extra-paths", JSONArray(paths))
-                            maxPaths.takeIf { it > 0 }?.let {
+                            maxPaths.coerceIn(0, paths.size).takeIf { it > 0 }?.let {
                                 put("max-paths", it)
                             }
                         }

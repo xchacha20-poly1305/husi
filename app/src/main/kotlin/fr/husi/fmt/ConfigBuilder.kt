@@ -51,6 +51,7 @@ import fr.husi.fmt.juicity.JuicityBean
 import fr.husi.fmt.juicity.buildSingBoxOutboundJuicityBean
 import fr.husi.fmt.naive.NaiveBean
 import fr.husi.fmt.naive.buildSingBoxOutboundNaiveBean
+import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowsocks.ShadowsocksBean
 import fr.husi.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
 import fr.husi.fmt.shadowtls.ShadowTLSBean
@@ -215,7 +216,7 @@ fun buildConfig(
             }.toHashSet().toList(),
         ).associateBy { it.id }
     val userDNSRuleList = mutableListOf<JSONMap>()
-    val domainListDNSDirectForce = mutableListOf<String>()
+    val domainListDNSDirectForce = mutableSetOf<String>()
     val bypassDNSBeans = hashSetOf<AbstractBean>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST4
@@ -556,6 +557,16 @@ fun buildConfig(
                         // don't loopback
                         if (!pastBean.serverAddress.isIpAddress()) {
                             domainListDNSDirectForce.add(pastBean.serverAddress)
+                        }
+
+                        if (pastBean is ShadowQUICBean && pastBean.subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
+                            pastBean.extraPaths.lines().forEach {
+                                val address = it.substringBeforeLast(":", "").blankAsNull()
+                                    ?: return@forEach
+                                if (!address.isIpAddress()) {
+                                    domainListDNSDirectForce.add(address)
+                                }
+                            }
                         }
                     }
 
