@@ -5,7 +5,7 @@ plugins {
 
 setupKotlinCommon()
 android {
-    namespace = "io.nekohasekai.sagernet.plugin"
+    namespace = "fr.husi.plugin"
     buildTypes {
         release {
             isMinifyEnabled = false

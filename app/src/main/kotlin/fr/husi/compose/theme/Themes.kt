@@ -1,0 +1,212 @@
+package fr.husi.compose.theme
+
+import android.content.Context
+import android.content.res.Resources
+import android.os.Build
+import androidx.annotation.ColorInt
+import androidx.annotation.StringRes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.tooling.preview.AndroidUiModes
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.husi.Key
+import fr.husi.R
+import fr.husi.database.DataStore
+
+const val RED = 1
+const val PINK_SSR = 2
+const val PINK = 3
+const val PURPLE = 4
+const val DEEP_PURPLE = 5
+const val INDIGO = 6
+const val BLUE = 7
+const val LIGHT_BLUE = 8
+const val CYAN = 9
+const val TEAL = 10
+const val GREEN = 11
+const val LIGHT_GREEN = 12
+const val LIME = 13
+const val YELLOW = 14
+const val AMBER = 15
+const val ORANGE = 16
+const val DEEP_ORANGE = 17
+const val BROWN = 18
+const val GREY = 19
+const val BLUE_GREY = 20
+const val BLACK = 21
+const val DYNAMIC = 22
+
+val DEFAULT = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    DYNAMIC
+} else {
+    RED
+}
+
+val themes = listOf(
+    Color(0xFFF44336),
+    Color(0xFFFB7299),
+    Color(0xFFE91E63),
+    Color(0xFF9C27B0),
+    Color(0xFF673AB7),
+    Color(0xFF3F51B5),
+    Color(0xFF2196F3),
+    Color(0xFF03A9F4),
+    Color(0xFF00BCD4),
+    Color(0xFF009688),
+    Color(0xFF4CAF50),
+    Color(0xFF8BC34A),
+    Color(0xFFCDDC39),
+    Color(0xFFFFEB3B),
+    Color(0xFFFFC107),
+    Color(0xFFFF9800),
+    Color(0xFFFF5722),
+    Color(0xFF795548),
+    Color(0xFF9E9E9E),
+    Color(0xFF607D8B),
+    Color(0xFF212121),
+)
+
+fun Resources.isDarkMode(mode: Int) = when (mode) {
+    1 -> true
+    2 -> false
+    else -> (configuration.uiMode and AndroidUiModes.UI_MODE_NIGHT_MASK) == AndroidUiModes.UI_MODE_NIGHT_YES
+}
+
+@Composable
+fun AppTheme(content: @Composable () -> Unit) {
+    val resources = LocalResources.current
+    val initialNightTheme = remember { DataStore.nightTheme }
+    val initialAppTheme = remember { DataStore.appTheme }
+    val nightModeValue by DataStore.configurationStore
+        .intFlow(Key.NIGHT_THEME, initialNightTheme)
+        .collectAsStateWithLifecycle(initialNightTheme)
+    val isDarkMode = remember(nightModeValue, resources.configuration) {
+        resources.isDarkMode(nightModeValue)
+    }
+    val appTheme by DataStore.configurationStore
+        .intFlow(Key.APP_THEME, initialAppTheme)
+        .collectAsStateWithLifecycle(initialAppTheme)
+    val context = LocalContext.current
+    val colorScheme = remember(appTheme, isDarkMode, context) {
+        when (appTheme) {
+            RED -> if (isDarkMode) Red.darkScheme else Red.lightScheme
+            PINK_SSR -> if (isDarkMode) PinkSSR.darkScheme else PinkSSR.lightScheme
+            PINK -> if (isDarkMode) Pink.darkScheme else Pink.lightScheme
+            PURPLE -> if (isDarkMode) Purple.darkScheme else Purple.lightScheme
+            DEEP_PURPLE -> if (isDarkMode) DeepPurple.darkScheme else DeepPurple.lightScheme
+            INDIGO -> if (isDarkMode) Indigo.darkScheme else Indigo.lightScheme
+            BLUE -> if (isDarkMode) Blue.darkScheme else Blue.lightScheme
+            LIGHT_BLUE -> if (isDarkMode) LightBlue.darkScheme else LightBlue.lightScheme
+            CYAN -> if (isDarkMode) Cyan.darkScheme else Cyan.lightScheme
+            TEAL -> if (isDarkMode) Teal.darkScheme else Teal.lightScheme
+            GREEN -> if (isDarkMode) Green.darkScheme else Green.lightScheme
+            LIGHT_GREEN -> if (isDarkMode) LightGreen.darkScheme else LightGreen.lightScheme
+            LIME -> if (isDarkMode) Lime.darkScheme else Lime.lightScheme
+            YELLOW -> if (isDarkMode) Yellow.darkScheme else Yellow.lightScheme
+            AMBER -> if (isDarkMode) Amber.darkScheme else Amber.lightScheme
+            ORANGE -> if (isDarkMode) Orange.darkScheme else Orange.lightScheme
+            DEEP_ORANGE -> if (isDarkMode) DeepOrange.darkScheme else DeepOrange.lightScheme
+            BROWN -> if (isDarkMode) Brown.darkScheme else Brown.lightScheme
+            GREY -> if (isDarkMode) Grey.darkScheme else Grey.lightScheme
+            BLUE_GREY -> if (isDarkMode) BlueGrey.darkScheme else BlueGrey.lightScheme
+            BLACK -> if (isDarkMode) Black.darkScheme else Black.lightScheme
+            DYNAMIC -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (isDarkMode) {
+                    dynamicDarkColorScheme(context)
+                } else {
+                    dynamicLightColorScheme(context)
+                }
+            } else {
+                if (isDarkMode) Red.darkScheme else Red.lightScheme
+            }
+
+            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (isDarkMode) {
+                    dynamicDarkColorScheme(context)
+                } else {
+                    dynamicLightColorScheme(context)
+                }
+            } else {
+                if (isDarkMode) Red.darkScheme else Red.lightScheme
+            }
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content,
+    )
+}
+
+@ColorInt
+fun Context.getPrimaryColor(): Int {
+    val isDark = resources.isDarkMode(DataStore.nightTheme)
+    val theme = DataStore.appTheme
+    if (theme == DYNAMIC && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        return ContextCompat.getColor(
+            this,
+            if (isDark) android.R.color.system_accent1_200 else android.R.color.system_accent1_600,
+        )
+    }
+    val color = when (theme) {
+        RED -> if (isDark) Red.primaryDark else Red.primaryLight
+        PINK_SSR -> if (isDark) PinkSSR.primaryDark else PinkSSR.primaryLight
+        PINK -> if (isDark) Pink.primaryDark else Pink.primaryLight
+        PURPLE -> if (isDark) Purple.primaryDark else Purple.primaryLight
+        DEEP_PURPLE -> if (isDark) DeepPurple.primaryDark else DeepPurple.primaryLight
+        INDIGO -> if (isDark) Indigo.primaryDark else Indigo.primaryLight
+        BLUE -> if (isDark) Blue.primaryDark else Blue.primaryLight
+        LIGHT_BLUE -> if (isDark) LightBlue.primaryDark else LightBlue.primaryLight
+        CYAN -> if (isDark) Cyan.primaryDark else Cyan.primaryLight
+        TEAL -> if (isDark) Teal.primaryDark else Teal.primaryLight
+        GREEN -> if (isDark) Green.primaryDark else Green.primaryLight
+        LIGHT_GREEN -> if (isDark) LightGreen.primaryDark else LightGreen.primaryLight
+        LIME -> if (isDark) Lime.primaryDark else Lime.primaryLight
+        YELLOW -> if (isDark) Yellow.primaryDark else Yellow.primaryLight
+        AMBER -> if (isDark) Amber.primaryDark else Amber.primaryLight
+        ORANGE -> if (isDark) Orange.primaryDark else Orange.primaryLight
+        DEEP_ORANGE -> if (isDark) DeepOrange.primaryDark else DeepOrange.primaryLight
+        BROWN -> if (isDark) Brown.primaryDark else Brown.primaryLight
+        GREY -> if (isDark) Grey.primaryDark else Grey.primaryLight
+        BLUE_GREY -> if (isDark) BlueGrey.primaryDark else BlueGrey.primaryLight
+        BLACK -> if (isDark) Black.primaryDark else Black.primaryLight
+        else -> if (isDark) Red.primaryDark else Red.primaryLight
+    }
+    return color.toArgb()
+}
+
+@StringRes
+fun themeString(theme: Int): Int = when (theme) {
+    RED -> R.string.themes_red
+    PINK_SSR -> R.string.themes_pink_ssr
+    PINK -> R.string.themes_pink
+    PURPLE -> R.string.themes_purple
+    DEEP_PURPLE -> R.string.themes_deep_purple
+    INDIGO -> R.string.themes_indigo
+    BLUE -> R.string.themes_blue
+    LIGHT_BLUE -> R.string.themes_light_blue
+    CYAN -> R.string.themes_cyan
+    TEAL -> R.string.themes_teal
+    GREEN -> R.string.themes_green
+    LIGHT_GREEN -> R.string.themes_light_green
+    LIME -> R.string.themes_lime
+    YELLOW -> R.string.themes_yellow
+    AMBER -> R.string.themes_amber
+    ORANGE -> R.string.themes_orange
+    DEEP_ORANGE -> R.string.themes_deep_orange
+    BROWN -> R.string.themes_brown
+    GREY -> R.string.themes_grey
+    BLUE_GREY -> R.string.themes_blue_grey
+    BLACK -> R.string.themes_black
+    DYNAMIC -> R.string.themes_dynamic
+    else -> error("Unknown theme $theme")
+}
