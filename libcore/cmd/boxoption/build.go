@@ -46,6 +46,7 @@ func buildClass(opt any, belongs string) []byte {
 	// open class ClashAPIOptions : SingBoxOption {
 	mainBuilder.WriteString(
 		F.ToString(
+			classSpace, "@KxsSerializable\n",
 			classSpace, openClass,
 			fieldName, " ",
 			extends, belongs, "() ",
@@ -99,9 +100,9 @@ func buildContentWithSeen(valueType reflect.Type, seen map[string]struct{}) []by
 			}
 			continue
 		case reservedDefault, reservedFinal:
-			// @SerializedName("default")
+			// @SerialName("default")
 			// var default_: String? = null
-			builder.WriteString(F.ToString(fieldSpace, "@field:SerializedName(\"", tag, "\")\n"))
+			builder.WriteString(F.ToString(fieldSpace, "@SerialName(\"", tag, "\")\n"))
 			tag += "_"
 		}
 
@@ -134,7 +135,7 @@ const (
 	kotlinInteger = "Int"
 	kotlinLong    = "Long"
 	kotlinString  = "String"
-	kotlinAny     = "Any"
+	kotlinJsonElement = "JsonElement"
 	kotlinList    = "MutableList<"
 	kotlinMap     = "MutableMap<"
 
@@ -185,7 +186,7 @@ func className(valueType reflect.Type) string {
 			"Regexp", "DNSRecordOptions", "NetworkBytesCompat":
 			return kotlinString
 		case "GeoIPOptions", "GeositeOptions", "InboundACMEOptions", "InboundECHOptions", "InboundRealityOptions":
-			return kotlinAny
+			return kotlinJsonElement
 		case "DNSServerOptions":
 			return "NewDNSServerOptions"
 		case "TunPlatformOptions":

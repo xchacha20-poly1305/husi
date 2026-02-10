@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=__HUSI_APP_NAME__
+Comment=__HUSI_APP_DESCRIPTION__
+Exec=__HUSI_PACKAGE_NAME__
+Icon=__HUSI_PACKAGE_NAME__
+Terminal=false
+Categories=Network;
+StartupNotify=true

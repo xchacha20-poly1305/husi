@@ -2,6 +2,7 @@ package libcore
 
 // PlatformInterface also named "iif".
 type PlatformInterface interface {
+	HasCoreFunction() bool
 	LocalDNSTransport() LocalDNSTransport
 	AutoDetectInterfaceControl(fd int32) bool
 	OpenTun() (int32, error)
@@ -11,6 +12,7 @@ type PlatformInterface interface {
 	StartDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	CloseDefaultInterfaceMonitor(listener InterfaceUpdateListener) error
 	GetInterfaces() (NetworkInterfaceIterator, error)
+
 	DeviceName() string
 	AnchorSSID() string
 	OnGroupSelectedChange(group, old, now string)

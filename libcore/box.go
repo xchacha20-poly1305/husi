@@ -57,10 +57,12 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 	var platformLogWriter log.PlatformWriter
 	interfaceWrapper := &boxPlatformInterfaceWrapper{
 		useProcFS: platformInterface.UseProcFS(),
-		iif:       platformInterface,
 		forTest:   forTest,
 	}
-	service.MustRegister[adapter.PlatformInterface](ctx, interfaceWrapper)
+	if platformInterface.HasCoreFunction() {
+		interfaceWrapper.iif = platformInterface
+		service.MustRegister[adapter.PlatformInterface](ctx, interfaceWrapper)
+	}
 
 	if !forTest {
 		service.MustRegister[deprecated.Manager](ctx, deprecated.NewStderrManager(log.StdLogger()))
@@ -92,12 +94,14 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 
 	if !forTest {
 		// Protect
-		b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
-			_ = platformInterface.AutoDetectInterfaceControl(int32(fd))
-			return nil
-		})
-		if err != nil {
-			log.WarnContext(ctx, "create protect service: ", err)
+		if C.IsLinux || C.IsDarwin {
+			b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
+				_ = platformInterface.AutoDetectInterfaceControl(int32(fd))
+				return nil
+			})
+			if err != nil {
+				log.WarnContext(ctx, "create protect service: ", err)
+			}
 		}
 
 		// API

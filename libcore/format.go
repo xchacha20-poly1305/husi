@@ -12,6 +12,7 @@ import (
 	"github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/byteformats"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/service"
@@ -21,7 +22,7 @@ import (
 
 func baseContext(platformInterface PlatformInterface) context.Context {
 	dnsRegistry := distro.DNSTransportRegistry()
-	if platformInterface != nil {
+	if platformInterface != nil && platformInterface.HasCoreFunction() {
 		if localTransport := platformInterface.LocalDNSTransport(); localTransport != nil {
 			dns.RegisterTransport[option.LocalDNSServerOptions](dnsRegistry, C.DNSTypeLocal, func(ctx context.Context, logger log.ContextLogger, tag string, options option.LocalDNSServerOptions) (adapter.DNSTransport, error) {
 				return newPlatformTransport(localTransport, tag, options), nil
@@ -102,3 +103,11 @@ func ParseDuration(raw string) (int64, error) {
 
 //go:linkname parseMyDuration github.com/sagernet/sing/common/json/badoption/internal/my_time.ParseDuration
 func parseMyDuration(raw string) (time.Duration, error)
+
+func FormatBytes(length int64) string {
+	return byteformats.FormatKBytes(uint64(length))
+}
+
+func FormatMemoryBytes(length int64) string {
+	return byteformats.FormatMemoryKBytes(uint64(length))
+}

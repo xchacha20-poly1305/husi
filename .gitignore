@@ -9,11 +9,9 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
-/app/libs/
+/composeApp/libs/
 /service_account_credentials.json
 jniLibs/
-/library/libcore_build/
-.idea/deploymentTargetDropDown.xml
 go.work*
 *.srs
 *.zip

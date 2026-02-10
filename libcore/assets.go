@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/sagernet/gomobile/asset"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -36,19 +35,15 @@ var (
 	externalAssetsPath string
 )
 
-// extractAssets extract assets in apk.
-func extractAssets(useOfficialAssets bool) {
-	deleteDeprecated()
+// ExtractAssets extract assets in compose resource.
+func ExtractAssets() {
+	// Prepare directory
+	targetDir := filepath.Join(externalAssetsPath, ruleSetPrefix)
+	_ = os.MkdirAll(targetDir, os.ModePerm)
 
-	if useOfficialAssets {
-		// Prepare directory
-		targetDir := filepath.Join(externalAssetsPath, ruleSetPrefix)
-		_ = os.MkdirAll(targetDir, os.ModePerm)
-
-		for _, name := range []string{geoipDat, geositeDat} {
-			if err := extractGeo(name, targetDir); err != nil {
-				log.Warn("failed to extract geo: ", err)
-			}
+	for _, name := range []string{geoipDat, geositeDat} {
+		if err := extractGeo(name, targetDir); err != nil {
+			log.Warn("failed to extract geo: ", err)
 		}
 	}
 }
@@ -69,7 +64,7 @@ func extractGeo(name, targetDir string) error {
 	}
 
 	// Unpack
-	assetFile, err := asset.Open(filepath.Join(apkAssetPrefixSingBox, name) + tarZstSuffix)
+	assetFile, err := os.Open(filepath.Join(internalAssetsPath, apkAssetPrefixSingBox, name+tarZstSuffix))
 	if err != nil {
 		return E.Cause(err, "open asset file ", name)
 	}
@@ -95,7 +90,7 @@ func extractGeo(name, targetDir string) error {
 
 // readAssetsVersion read the version from file in assets.
 func readAssetsVersion(name string) ([]byte, error) {
-	assetFile, err := asset.Open(name)
+	assetFile, err := os.Open(filepath.Join(internalAssetsPath, name))
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +98,7 @@ func readAssetsVersion(name string) ([]byte, error) {
 	return io.ReadAll(assetFile)
 }
 
-func extractAssetToFile(assetFile asset.File, path string) error {
+func extractAssetToFile(assetFile io.ReadCloser, path string) error {
 	defer assetFile.Close()
 
 	targetFile, err := os.Create(path)

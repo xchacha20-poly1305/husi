@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">husi</string>
+    <string name="quick_toggle">تبديل</string>
+    <string name="add_profile_methods_scan_qr_code">مسح رمز كيو آر</string>
+    <string name="subscription_import">اشتراك الاستيراد</string>
+    <string name="profile_import">استيراد ملف التعريف</string>
+    <string name="select_profile">حدد ملف التعريف</string>
+    <string name="tile_title">الجلاد</string>
+</resources>

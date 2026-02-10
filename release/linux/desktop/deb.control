@@ -1,0 +1,8 @@
+Package: __HUSI_PACKAGE_NAME__
+Version: __HUSI_VERSION_NAME__
+Section: net
+Priority: optional
+Architecture: __HUSI_DEB_ARCH__
+Maintainer: __HUSI_MAINTAINER__
+Depends: java21-runtime | openjdk-21-jre | openjdk-21-jre-headless
+Description: __HUSI_APP_DESCRIPTION__

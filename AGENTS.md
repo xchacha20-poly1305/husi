@@ -35,27 +35,59 @@ See [README](./README.md)
   logging-only changes, or "temporary" fixes before identifying the root cause.
 - **Pride in upstream alignment, shame in local divergence.** If an upstream fix exists, prefer
   updating dependencies to the referenced commit/version instead of local patches.
+- **Pride in explicit planning, shame in silent mutation.** Before starting any substantial work,
+  you must first state a clear plan/scope. Do not silently fetch, edit, or refactor files without
+  announcing intent.
 
 # Technical best practices
 
-## Script execution
+## AGP/Kotlin deprecations and compatibility
 
-- **Use Python3 for complex operations.** Bash long scripts are fragile and prone to syntax errors in
-  eval contexts. For file processing, batch operations, or anything beyond simple commands, write
-  Python3 scripts. Python provides better error handling, string manipulation, and doesn't suffer
-  from shell escaping issues.
-- **Avoid multi-threading when dealing with large files.** When extracting from huge archives (4GB+),
-  use single-threaded sequential processing. Opening the same large zip file in multiple threads
-  causes memory exhaustion and OOM. Instead, open the archive once, build an index, then extract
-  sequentially.
+- **AGP 9+ blocks `org.jetbrains.kotlin.multiplatform` with `com.android.application`/`com.android.library`
+  in the same module.** Use a separate Android app shell module; KMP module should use
+  `com.android.kotlin.multiplatform.library`.
+- **`android.builtInKotlin=false` and `android.newDsl=false` are deprecated bypass flags.** The default
+  is `true`, and these flags are planned for removal in AGP 10. Do not rely on them as architecture.
+- **`platform(notation: Any)`/`enforcedPlatform(notation: Any)` on Kotlin dependency handlers are
+  deprecated (scheduled removal in Kotlin 2.3).** Prefer `project.dependencies.platform(...)` or
+  `project.dependencies.enforcedPlatform(...)`.
+- **`ksp(...)` in KMP projects is deprecated.** Use target-specific configurations such as
+  `kspAndroid`/`kspJvm`.
+- **Legacy `Project.android { ... }` extension entry is deprecated under new AGP DSL.** Prefer
+  `extensions.configure<com.android.build.api.dsl.ApplicationExtension> { ... }` or
+  `extensions.configure<com.android.build.api.dsl.LibraryExtension> { ... }`.
 
 ## Icons
 
 - **Do NOT use `androidx.compose.material:material-icons-extended` dependency.** This library has been
   removed due to Compose breaking changes.
-- **Use drawable resources instead.** All icons are stored as XML drawables in
-  `app/src/main/res/drawable/`. Reference them with `ImageVector.vectorResource(R.drawable.*)`.
-- Import `androidx.compose.ui.res.vectorResource` when using this pattern.
+- **Use Compose Multiplatform resource drawables.** Icons are XML drawables in
+  `composeApp/src/commonMain/composeResources/drawable/`. Reference them with
+  `vectorResource(Res.drawable.*)` from `org.jetbrains.compose.resources.vectorResource`.
+- Android-only drawables (launcher icons, notification icons) remain in
+  `composeApp/src/androidMain/res/drawable/` and are referenced via `fr.husi.lib.R.drawable.*`.
+
+## Resource system
+
+- **Compose Multiplatform `Res` is the primary resource system.** Strings, drawables, and plurals in
+  UI code use `Res.string.*`, `Res.drawable.*`, `Res.plurals.*` from package `fr.husi.resources`.
+- **Android `R` class (`fr.husi.lib.R`) is only for bg/ service files** that need `Int` resource IDs
+  for Android framework APIs (notifications `setSmallIcon`, `Icon.createWithResource`, VPN
+  `setSession`, `Toast.makeText`, etc.).
+- **`composeApp` namespace is `fr.husi.lib`** (not `fr.husi`) to avoid collision with `androidApp`'s
+  `fr.husi` namespace. The Compose Resources package is pinned to `fr.husi.resources` via
+  `compose.resources { packageOfResClass = "fr.husi.resources" }`.
+- **`StringOrRes` uses Compose resource types** (`StringResource`, `PluralStringResource`), not
+  `@StringRes Int`. It has both a `@Composable stringOrRes()` and a `suspend getStringOrRes()`.
+
+## Module structure
+
+- **`composeApp`** — KMP library (`com.android.kotlin.multiplatform.library`), namespace
+  `fr.husi.lib`. Contains all shared code in `commonMain`, Android-specific code in `androidMain`.
+  `androidResources { enable = true }` is required for R class generation in AGP 9.
+- **`androidApp`** — Android application shell (`com.android.application`), namespace `fr.husi`.
+- **`BuildConfig`** — manually generated in `composeApp` build script at package `fr.husi`, not
+  affected by the `fr.husi.lib` namespace.
 
 # Other tips
 

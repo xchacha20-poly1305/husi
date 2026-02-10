@@ -6,14 +6,16 @@ on:
       - dev*
     paths:
       - "**.go"
-      - "app/**"
+      - "androidApp/**"
+      - "composeApp/**"
       - ".github/workflows/test.yml"
   pull_request:
     branches:
       - dev*
     paths:
       - "**.go"
-      - "app/**"
+      - "androidApp/**"
+      - "composeApp/**"
       - ".github/workflows/test.yml"
 
 jobs:
@@ -55,7 +57,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            app/libs/libcore.aar
+            composeApp/libs
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - uses: actions/setup-java@v5
         with:
@@ -75,9 +77,51 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          ./run lib core
+          # ./run lib core --android --desktop --desktoptargets linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
+          ./run lib core --android --desktop --desktoptargets linux/amd64,linux/arm64
+      - name: Upload libcore
+        uses: actions/upload-artifact@v6
+        with:
+          name: "libcore"
+          path: composeApp/libs
 
       - uses: gradle/actions/setup-gradle@v5
       - name: Gradle Test
         run: |
           make test_gradle
+
+  desktop:
+    name: Desktop Build (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - linux/amd64
+          - linux/arm64
+#          - darwin/amd64
+#          - darwin/arm64
+#          - windows/amd64
+#          - windows/arm64
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: LibCore Artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: "libcore"
+          path: composeApp/libs
+      - uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Desktop Compile
+        env:
+          BUILD_PLUGIN: none
+        run: |
+          ./run init action gradle
+          ./gradlew -p composeApp :composeApp:compileKotlinDesktop -PdesktopTarget=${{ matrix.target }}

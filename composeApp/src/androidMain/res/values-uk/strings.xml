@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">husi</string>
+    <string name="quick_toggle">Переключити</string>
+    <string name="add_profile_methods_scan_qr_code">Сканувати QR-код</string>
+    <string name="subscription_import">Імпортувати підписку</string>
+    <string name="profile_import">Імпортувати профіль</string>
+    <string name="select_profile">Обрати профіль</string>
+    <string name="tile_title">Перемикач</string>
+</resources>

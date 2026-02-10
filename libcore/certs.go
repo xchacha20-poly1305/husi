@@ -77,12 +77,14 @@ func UpdateRootCACerts(certOption int32, certFromJava StringIterator) {
 		panic("unknown cert option")
 	}
 
-	externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, customCaFile))
-	if len(externalPem) > 0 {
-		if tryAddCert(roots, externalPem) {
-			log.Info("loaded external cert")
-		} else {
-			log.Warn("failed to loaded external cert")
+	if C.IsAndroid {
+		externalPem, _ := os.ReadFile(filepath.Join(externalAssetsPath, customCaFile))
+		if len(externalPem) > 0 {
+			if tryAddCert(roots, externalPem) {
+				log.Info("loaded external cert")
+			} else {
+				log.Warn("failed to loaded external cert")
+			}
 		}
 	}
 
