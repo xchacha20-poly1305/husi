@@ -11,6 +11,7 @@ import (
 	"libcore/combinedapi/trafficcontrol"
 	"libcore/vario"
 
+	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/memory"
@@ -60,8 +61,13 @@ func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata) *TrackerInfo {
 		uid     int32 = -1
 	)
 	if processInfo := metadata.Metadata.ProcessInfo; processInfo != nil {
-		process = processInfo.AndroidPackageName
-		uid = processInfo.UserId
+		if C.IsAndroid {
+			process = processInfo.AndroidPackageName
+			uid = processInfo.UserId
+		} else {
+			process = processInfo.ProcessPath
+			uid = int32(processInfo.ProcessID)
+		}
 	}
 	var destination string
 	if dest := metadata.Metadata.Destination; dest.IsValid() {

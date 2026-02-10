@@ -1,39 +1,47 @@
 [versions]
 ksp = "2.3.5"
-kotlinComposePlugin = "2.3.10"
+kotlinComposePlugin = "2.3.20-RC"
+composeMultiplatform = "1.10.1"
+composeMaterial3 = "1.11.0-alpha02"
 kotlinCoroutines = "1.10.2"
+kotlinxSerialization = "1.10.0"
+kotlinxCli = "0.3.6"
 kotlinxImmutable = "0.4.0"
 androidxCoreKtx = "1.17.0"
 androidxAppcompat = "1.7.1"
-androidxActivity = "1.12.3"
+androidxActivity = "1.12.4"
 androidxBrowser = "1.9.0"
 androidxLifecycle = "2.10.0"
+jetbrainsLifecycle = "2.9.6"
 androidxWork = "2.11.1"
 androidxDatastore = "1.2.0"
-androidxComposeBom = "2026.01.01"
-androidxComposeMaterial3 = "1.5.0-alpha13"
+androidxComposeBom = "2026.02.00"
+androidxComposeMaterial3 = "1.5.0-alpha14"
 androidxNavigationCompose = "2.9.7"
+jetbrainsNavigationCompose = "2.9.2"
 accompanist = "0.37.3"
 composePreference = "2.1.1"
 fastScroller = "0.3.2"
-dragDropSwipe = "0.10.2"
 androidxCamera = "1.5.3"
 zxing = "3.5.4"
 androidxRoom = "2.8.4"
-gson = "2.13.2"
 smaliDexlib2 = "3.0.9"
 guava = "33.5.0-android"
 processPhoenix = "3.0.0"
+fileKit = "0.12.0"
 kryo = "5.6.2"
 ini4j = "0.5.4"
 desugarJdkLibs = "2.1.5"
-junitBom = "6.0.2"
-agp = "9.0.0"
-kotlinGradlePlugin = "2.3.10"
+junitBom = "6.0.3"
+agp = "9.0.1"
+kotlinGradlePlugin = "2.3.20-RC"
 
 [libraries]
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxImmutable" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinxCli" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
@@ -60,7 +68,6 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 compose-preference = { module = "me.zhanghai.compose.preference:preference", version.ref = "composePreference" }
 fastscroller-core = { module = "io.github.oikvpqya.compose.fastscroller:fastscroller-core", version.ref = "fastScroller" }
 fastscroller-material3 = { module = "io.github.oikvpqya.compose.fastscroller:fastscroller-material3", version.ref = "fastScroller" }
-drag-drop-swipe-lazycolumn = { module = "com.ernestoyaquello.dragdropswipelazycolumn:drag-drop-swipe-lazycolumn", version.ref = "dragDropSwipe" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "androidxCamera" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "androidxCamera" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidxCamera" }
@@ -69,10 +76,12 @@ zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.5.0" }
 smali-dexlib2 = { module = "com.android.tools.smali:smali-dexlib2", version.ref = "smaliDexlib2" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "processPhoenix" }
+filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "fileKit" }
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "fileKit" }
 kryo = { module = "com.esotericsoftware:kryo", version.ref = "kryo" }
 ini4j = { module = "org.ini4j:ini4j", version.ref = "ini4j" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
@@ -82,7 +91,18 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 agp-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
+jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3" }
+jetbrains-compose-animation-graphics = { module = "org.jetbrains.compose.animation:animation-graphics", version.ref = "composeMultiplatform" }
+jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+jetbrains-compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+jetbrains-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrainsLifecycle" }
+jetbrains-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsLifecycle" }
+jetbrains-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jetbrainsNavigationCompose" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinGradlePlugin" }

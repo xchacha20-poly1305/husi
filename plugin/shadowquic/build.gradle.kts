@@ -2,7 +2,7 @@ plugins {
     id("com.android.application")
 }
 
-android {
+extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     defaultConfig {
         applicationId = "fr.husi.plugin.shadowquic"
     }

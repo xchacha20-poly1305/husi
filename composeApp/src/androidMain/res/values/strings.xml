@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">husi</string>
+    <string name="quick_toggle">Toggle</string>
+    <string name="add_profile_methods_scan_qr_code">Scan QR code</string>
+    <string name="subscription_import">Import subscription</string>
+    <string name="profile_import">Import profile</string>
+    <string name="select_profile">Select Profile</string>
+    <string name="tile_title">Switcher</string>
+</resources>

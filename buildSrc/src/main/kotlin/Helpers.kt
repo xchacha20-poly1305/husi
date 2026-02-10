@@ -237,7 +237,7 @@ fun Project.setupApp() {
         )
 
         sourceSets.getByName("main").apply {
-            jniLibs.directories.add("executableSo")
+            jniLibs.directories.add(rootProject.file("composeApp/executableSo").toString())
         }
     }
 }

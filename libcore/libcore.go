@@ -4,20 +4,21 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/sagernet/sing-box/log"
+
+	_ "github.com/xchacha20-poly1305/anja"
 )
 
 const ProtectPath = "protect_path"
 
-func InitCore(process, cachePath, internalAssets, externalAssets string,
+func InitCore(shouldOperateFiles bool,
+	cachePath, internalAssets, externalAssets string,
 	maxLogLines int32, logLevel int32,
 	useOfficialAssets bool,
 	debugMode bool,
 ) {
 	defer catchPanic("InitCore", func(panicErr error) { log.Error(panicErr) })
-	isBgProcess := strings.HasSuffix(process, ":bg")
 
 	workDir := filepath.Join(cachePath, "../no_backup")
 	_ = os.MkdirAll(workDir, 0o755)
@@ -29,9 +30,9 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	if maxLogLines < 50 {
 		maxLogLines = 50
 	}
-	_ = setupLog(int(maxLogLines), filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), isBgProcess)
+	_ = setupLog(int(maxLogLines), filepath.Join(externalAssets, "stderr.log"), log.Level(logLevel), shouldOperateFiles)
 
-	if isBgProcess {
+	if shouldOperateFiles {
 		if debugMode {
 			runtime.SetMutexProfileFraction(1)
 			runtime.SetBlockProfileRate(1)
@@ -39,8 +40,11 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 		go func() {
 			defer catchPanic("extractAssets", func(panicErr error) { log.Error(panicErr) })
 
-			extractAssets(useOfficialAssets)
+			deleteDeprecated()
 			cleanLogCache(cachePath)
+			if useOfficialAssets {
+				ExtractAssets()
+			}
 		}()
 	}
 }

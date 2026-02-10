@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">虎兕</string>
+    <string name="quick_toggle">切换</string>
+    <string name="add_profile_methods_scan_qr_code">扫描二维码</string>
+    <string name="subscription_import">导入订阅</string>
+    <string name="profile_import">导入配置</string>
+    <string name="select_profile">选择配置</string>
+    <string name="tile_title">开关</string>
+</resources>

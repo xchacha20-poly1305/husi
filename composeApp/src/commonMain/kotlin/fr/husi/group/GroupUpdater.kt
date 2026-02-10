@@ -1,0 +1,335 @@
+package fr.husi.group
+
+import fr.husi.Key
+import fr.husi.SubscriptionType
+import fr.husi.bg.resolveByDefaultNetwork
+import fr.husi.database.DataStore
+import fr.husi.database.GroupManager
+import fr.husi.database.ProxyEntity
+import fr.husi.database.ProxyGroup
+import fr.husi.database.SagerDatabase
+import fr.husi.database.SubscriptionBean
+import fr.husi.fmt.AbstractBean
+import fr.husi.fmt.Deduplication
+import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.http.HttpBean
+import fr.husi.fmt.hysteria.HysteriaBean
+import fr.husi.fmt.v2ray.StandardV2RayBean
+import fr.husi.ktx.Logs
+import fr.husi.ktx.isIpAddress
+import fr.husi.ktx.onIoDispatcher
+import fr.husi.ktx.readableMessage
+import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.repository.repo
+import fr.husi.resources.Res
+import fr.husi.resources.update_subscription_warning
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
+import java.net.Inet4Address
+import java.net.InetAddress
+
+@Suppress("EXPERIMENTAL_API_USAGE")
+abstract class GroupUpdater {
+
+    abstract suspend fun doUpdate(
+        proxyGroup: ProxyGroup,
+        subscription: SubscriptionBean,
+        userInterface: GroupManager.Interface?,
+        byUser: Boolean,
+    )
+
+    @OptIn(DelicateCoroutinesApi::class)
+    protected suspend fun forceResolve(
+        profiles: List<AbstractBean>, groupId: Long?,
+    ) {
+        val networkStrategy = DataStore.networkStrategy
+        val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
+        val lookupJobs = mutableListOf<Job>()
+        val ipv6First = when (networkStrategy) {
+            SingBoxOptions.STRATEGY_IPV6_ONLY, SingBoxOptions.STRATEGY_PREFER_IPV6 -> true
+            else -> false
+        }
+
+        for (profile in profiles) {
+            if (profile.serverAddress.isIpAddress()) continue
+
+            lookupJobs.add(
+                GlobalScope.launch(lookupPool) {
+                    try {
+                        val results = if (
+                            DataStore.enableFakeDns &&
+                            DataStore.serviceState.started &&
+                            DataStore.serviceMode == Key.MODE_VPN
+                        ) {
+                            // FakeDNS
+                            resolveByDefaultNetwork(profile.serverAddress)
+                        } else {
+                            // System DNS is enough (when VPN connected, it uses v2ray-core)
+                            InetAddress.getAllByName(profile.serverAddress).filterNotNull()
+                        }
+                        if (results.isEmpty()) error("empty response")
+                        rewriteAddress(profile, results, ipv6First)
+                    } catch (e: Exception) {
+                        Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
+                    }
+                },
+            )
+        }
+
+        lookupJobs.joinAll()
+        lookupPool.close()
+    }
+
+    protected fun rewriteAddress(
+        bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean,
+    ) {
+        val address = addresses.sortedBy { (it is Inet4Address) xor ipv6First }[0].hostAddress!!
+
+        with(bean) {
+            when (this) {
+                is HttpBean -> {
+                    if (isTLS && sni.isBlank()) sni = bean.serverAddress
+                }
+
+                is StandardV2RayBean -> {
+                    when (security) {
+                        "tls" -> if (sni.isBlank()) sni = bean.serverAddress
+                    }
+                }
+
+                is HysteriaBean -> {
+                    if (sni.isBlank()) sni = bean.serverAddress
+                }
+            }
+
+            bean.serverAddress = address
+        }
+    }
+
+    /** Force resolve & remove deduplication */
+    open suspend fun tidyProxies(
+        proxies: List<AbstractBean>,
+        subscription: SubscriptionBean,
+        proxyGroup: ProxyGroup,
+        userInterface: GroupManager.Interface?,
+        byUser: Boolean,
+    ) {
+        var newProxies = if (subscription.filterNotRegex.isNotBlank()) {
+            val regex = subscription.filterNotRegex.toRegex()
+            proxies.filterNot { regex.containsMatchIn(it.name) }
+        } else {
+            proxies
+        }
+
+        val proxiesMap = LinkedHashMap<String, AbstractBean>()
+        for (proxy in newProxies) {
+            var index = 0
+            var name = proxy.displayName()
+            while (proxiesMap.containsKey(name)) {
+                index++
+                name = name.replace(" (${index - 1})", "")
+                name = "$name ($index)"
+                proxy.name = name
+            }
+            proxiesMap[proxy.displayName()] = proxy
+        }
+        newProxies = proxiesMap.values.toList()
+
+        if (subscription.forceResolve) {
+            try {
+                forceResolve(newProxies, proxyGroup.id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logs.w(e)
+                userInterface?.onUpdateWarning(proxyGroup.displayName(), e.readableMessage)
+            }
+        }
+
+        val exists = onIoDispatcher {
+            SagerDatabase.proxyDao.getByGroup(proxyGroup.id).first()
+        }
+        val duplicate = ArrayList<String>()
+        if (subscription.deduplication) {
+            Logs.d("Before deduplication: ${newProxies.size}")
+            val uniqueProxies = LinkedHashSet<Deduplication>()
+            val uniqueNames = HashMap<Deduplication, String>()
+            for (_proxy in newProxies) {
+                val proxy = Deduplication(_proxy, _proxy.javaClass.toString())
+                if (!uniqueProxies.add(proxy)) {
+                    val index = uniqueProxies.indexOf(proxy)
+                    if (uniqueNames.containsKey(proxy)) {
+                        val name = uniqueNames[proxy]!!.replace(" ($index)", "")
+                        if (name.isNotBlank()) {
+                            duplicate.add("$name ($index)")
+                            uniqueNames[proxy] = ""
+                        }
+                    }
+                    duplicate.add(_proxy.displayName() + " ($index)")
+                } else {
+                    uniqueNames[proxy] = _proxy.displayName()
+                }
+            }
+            uniqueProxies.retainAll(uniqueNames.keys)
+            newProxies = uniqueProxies.toList().map { it.bean }
+        }
+
+        Logs.d("New profiles: ${newProxies.size}")
+
+        Logs.d("Unique profiles: ${newProxies.size}")
+
+        val existingByName = exists.associateBy { it.displayName() }.toMutableMap()
+
+        val toUpdate = ArrayList<ProxyEntity>()
+        val toInsert = ArrayList<ProxyEntity>()
+        val updated = mutableMapOf<String, String>()
+
+        var userOrder = 1L
+        var changed = 0
+        for (bean in newProxies) {
+            val name = bean.displayName()
+            val entity = existingByName.remove(name)
+            if (entity != null) {
+                val existsBean = entity.requireBean()
+                existsBean.applyFeatureSettings(bean)
+                when {
+                    existsBean != bean -> {
+                        changed++
+                        entity.putBean(bean)
+                        toUpdate.add(entity)
+                        updated[entity.displayName()] = name
+
+                        Logs.d("Updated profile: $name")
+                    }
+
+                    entity.userOrder != userOrder -> {
+                        entity.putBean(bean)
+                        toUpdate.add(entity)
+                        entity.userOrder = userOrder
+
+                        Logs.d("Reordered profile: $name")
+                    }
+
+                    else -> {
+                        Logs.d("Ignored profile: $name")
+                    }
+                }
+            } else {
+                changed++
+                toInsert.add(
+                    ProxyEntity(
+                        groupId = proxyGroup.id, userOrder = userOrder,
+                    ).apply {
+                        putBean(bean)
+                    },
+                )
+                Logs.d("Inserted profile: $name")
+            }
+            userOrder++
+        }
+
+        val toDelete = existingByName.values.toList()
+        changed += toDelete.size
+        val deleted = toDelete.map { it.displayName() }
+        val added = toInsert.map { it.displayName() }
+
+        Logs.d("toDelete profiles: ${toDelete.size}")
+        Logs.d("toReplace profiles: ${exists.size - toDelete.size}")
+
+        SagerDatabase.proxyDao.syncProxies(toInsert, toUpdate, toDelete)
+        if (toInsert.isNotEmpty()) {
+            Logs.d("Inserted profiles: ${toInsert.size}")
+        }
+        if (toUpdate.isNotEmpty()) {
+            Logs.d("Updated profiles: ${toUpdate.size}")
+        }
+        if (toDelete.isNotEmpty()) {
+            Logs.d("Deleted profiles: ${toDelete.size}")
+        }
+
+        val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).first().toInt()
+
+        if (existCount != newProxies.size) {
+            Logs.e("Exist profiles: $existCount, new profiles: ${newProxies.size}")
+        }
+
+        subscription.lastUpdated = (System.currentTimeMillis() / 1000).toInt()
+        SagerDatabase.groupDao.updateGroup(proxyGroup)
+        finishUpdate(proxyGroup)
+
+        userInterface?.onUpdateSuccess(
+            proxyGroup, changed, added, updated, deleted, duplicate, byUser,
+        )
+    }
+
+    companion object {
+
+        private val _updatingGroups = MutableStateFlow<Set<Long>>(emptySet())
+        val updatingGroups = _updatingGroups.asStateFlow()
+
+        fun startUpdate(proxyGroup: ProxyGroup, byUser: Boolean) {
+            runOnDefaultDispatcher {
+                executeUpdate(proxyGroup, byUser)
+            }
+        }
+
+        suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {
+            return coroutineScope {
+                var added = false
+                _updatingGroups.update { current ->
+                    if (proxyGroup.id !in current) {
+                        added = true
+                        current + proxyGroup.id
+                    } else {
+                        current
+                    }
+                }
+                if (!added) cancel()
+
+                val subscription = proxyGroup.subscription!!
+                val connected = DataStore.serviceState.connected
+                val userInterface = GroupManager.userInterface
+
+                if (byUser && (subscription.link.startsWith("http://") || subscription.updateWhenConnectedOnly) && !connected) {
+                    if (userInterface == null || !userInterface.confirm(repo.getString(Res.string.update_subscription_warning))) {
+                        finishUpdate(proxyGroup)
+                        cancel()
+                        return@coroutineScope true
+                    }
+                }
+
+                try {
+                    when (subscription.type) {
+                        SubscriptionType.RAW -> RawUpdater
+                        SubscriptionType.OOCv1 -> OpenOnlineConfigUpdater
+                        SubscriptionType.SIP008 -> SIP008Updater
+                        else -> throw IllegalArgumentException()
+                    }.doUpdate(proxyGroup, subscription, userInterface, byUser)
+                    true
+                } catch (e: Throwable) {
+                    Logs.w(e)
+                    userInterface?.onUpdateFailure(proxyGroup, e.readableMessage)
+                    finishUpdate(proxyGroup)
+                    false
+                }
+            }
+        }
+
+        suspend fun finishUpdate(proxyGroup: ProxyGroup) {
+            _updatingGroups.update { it - proxyGroup.id }
+        }
+
+    }
+
+}

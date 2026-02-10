@@ -9,7 +9,7 @@ if [ -z "$TARGET_PACKAGE" ]; then
     exit 1
 fi
 
-SHORTCUTS_FILE="app/src/main/res/xml/shortcuts.xml"
+SHORTCUTS_FILE="composeApp/src/androidMain/res/xml/shortcuts.xml"
 sed -i "s/android:targetPackage=\"[^\"]*\"/android:targetPackage=\"$TARGET_PACKAGE\"/" "$SHORTCUTS_FILE"
 echo "Updated $SHORTCUTS_FILE android:targetPackage to $TARGET_PACKAGE"
 

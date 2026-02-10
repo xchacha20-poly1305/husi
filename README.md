@@ -66,7 +66,55 @@ Run:
 make libcore
 ```
 
-This will generate `app/libs/libcore.aar`.
+This will build libcore for your current host environment and generate
+`composeApp/libs/libcore-desktop-<host-platform>-<host-arch>.jar`.
+
+For Android:
+
+```shell
+make libcore_android
+```
+
+This will generate `composeApp/libs/libcore.aar`.
+
+For desktop, build libcore for your host platform:
+
+```shell
+make libcore_desktop_host
+```
+
+Or for specific targets:
+
+```shell
+make libcore_desktop DESKTOP_TARGETS=linux/amd64,darwin/arm64
+```
+
+Common desktop targets:
+
+* `linux/amd64`
+* `linux/arm64`
+* `darwin/amd64`
+* `darwin/arm64`
+* `windows/amd64`
+* `windows/arm64`
+
+Desktop Gradle builds select `composeApp/libs/libcore-desktop-<platform>-<arch>.jar` automatically from the current
+`os.name` and `os.arch`.
+
+You can override it explicitly:
+
+```shell
+./gradlew -p composeApp run -PdesktopTarget=linux/amd64
+```
+
+If the selected jar is missing, the build fails immediately.
+
+If you run `libcore/build.sh` directly:
+
+* `--android`: build Android only
+* `--desktop`: build desktop only (default target: `host`)
+* `--android --desktop`: build both
+* no platform args: defaults to Android only
 
 If gomobile is not in the GOPATH, it will be automatically downloaded and compiled.
 
@@ -111,7 +159,69 @@ Compile the release version:
 make apk
 ```
 
-The APK file will be located in `app/build/outputs/apk`.
+The APK file will be located in `androidApp/build/outputs/apk`.
+
+#### 🖥️ Desktop
+
+Environment:
+
+* jdk-21
+
+Run the desktop application:
+
+```shell
+make desktop
+```
+
+Package a distributable for the current OS:
+
+```shell
+make desktop_package
+```
+
+This now builds an **uber JAR** that runs on system Java (no bundled JRE/runtime image).
+Output directory:
+
+```shell
+composeApp/build/compose/jars/
+```
+
+Run it with system Java (JDK/JRE 21+):
+
+```shell
+java -jar composeApp/build/compose/jars/fr.husi-<platform>-<arch>-<version>.jar
+```
+
+Build Linux native packages (`deb/rpm/pacman`) with Java 21 dependency metadata:
+
+```shell
+make desktop_package_linux
+```
+
+This command still builds the uber jar first, then packages it with native Linux tooling.
+Required host tools: `dpkg-deb`, `rpmbuild`, `bsdtar`, `zstd`.
+Default output directory:
+
+```shell
+composeApp/build/compose/packages/linux/
+```
+
+You can select target formats:
+
+```shell
+make desktop_package_linux LINUX_PACKAGE_FORMATS=deb,pacman
+```
+
+Installed launcher supports user config files:
+
+* `~/.config/husi/desktop-java-opts.conf` for JVM options
+* `~/.config/husi/desktop-app-args.conf` for application startup arguments
+
+Or run the direct command:
+
+```shell
+make desktop_uberjar
+```
 
 #### 🌈 Plugins
 

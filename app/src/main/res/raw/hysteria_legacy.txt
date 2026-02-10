@@ -1,3 +1,0 @@
-The configuration (Hysteria1) is deprecated.
-
-Learn more: https://v2.hysteria.network/docs/misc/2-vs-1/

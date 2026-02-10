@@ -2,5 +2,5 @@ component:
   name: Husi
   slug: husi
   project: husi
-  filemask: app/src/main/res/values-*/strings.xml
-  template: app/src/main/res/values/strings.xml
+  filemask: composeApp/src/commonMain/composeResources/values-*/strings.xml
+  template: composeApp/src/commonMain/composeResources/values/strings.xml

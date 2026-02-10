@@ -3,4 +3,4 @@
 source buildScript/init/env.sh
 
 cd libcore
-./build.sh || exit 1
+./build.sh "$@" || exit 1

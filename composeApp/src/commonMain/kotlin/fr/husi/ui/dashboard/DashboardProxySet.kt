@@ -1,0 +1,271 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
+package fr.husi.ui.dashboard
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.colorForUrlTestDelay
+import fr.husi.compose.rememberScrollHideState
+import fr.husi.resources.*
+
+@Composable
+internal fun DashboardProxySetScreen(
+    modifier: Modifier = Modifier,
+    uiState: DashboardState,
+    bottomPadding: Dp,
+    selectProxy: (group: String, tag: String) -> Unit,
+    urlTestForGroup: (group: String) -> Unit,
+    onVisibleChange: (Boolean) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    val visible by rememberScrollHideState(listState)
+
+    LaunchedEffect(visible) {
+        onVisibleChange(visible)
+    }
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(bottom = bottomPadding),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(
+            items = uiState.proxySets,
+            key = { it.type + it.tag },
+            contentType = { 0 },
+        ) { proxySet ->
+            ProxySetCard(
+                proxySet = proxySet,
+                selectProxy = selectProxy,
+                urlTestForGroup = urlTestForGroup,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProxySetCard(
+    modifier: Modifier = Modifier,
+    proxySet: ProxySet,
+    selectProxy: (group: String, tag: String) -> Unit,
+    urlTestForGroup: (group: String) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    ElevatedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(
+                        text = proxySet.type,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleMediumEmphasized,
+                    )
+                    Text(
+                        text = proxySet.tag,
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+
+                Row {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.bolt),
+                        contentDescription = stringResource(Res.string.connection_test_url),
+                        enabled = !proxySet.isTesting,
+                        onClick = { urlTestForGroup(proxySet.tag) },
+                    )
+                    SimpleIconButton(
+                        imageVector = vectorResource(
+                            if (expanded) {
+                                Res.drawable.expand_less
+                            } else {
+                                Res.drawable.expand_more
+                            },
+                        ),
+                        contentDescription = stringResource(Res.string.expand),
+                        onClick = { expanded = !expanded },
+                    )
+                }
+            }
+
+            if (expanded) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    proxySet.items.chunked(2).forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            rowItems.forEach { proxy ->
+                                val selected = proxySet.selected == proxy.tag
+                                ProxyCard(
+                                    proxy = proxy,
+                                    selected = selected,
+                                    selectable = proxySet.selectable,
+                                    onClick = { selectProxy(proxySet.tag, proxy.tag) },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            // Fill remaining space if odd number of items
+                            if (rowItems.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            } else {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.selected),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                            Text(
+                                text = proxySet.selected,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.titleSmallEmphasized,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProxyCard(
+    modifier: Modifier = Modifier,
+    proxy: ProxySetItem,
+    selected: Boolean,
+    selectable: Boolean,
+    onClick: () -> Unit,
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        enabled = selectable,
+        shape = CardDefaults.elevatedShape,
+        colors = CardDefaults.elevatedCardColors(),
+        elevation = CardDefaults.elevatedCardElevation(),
+        border = BorderStroke(
+            1.dp,
+            if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outlineVariant
+            },
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .width(4.dp)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.primary),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = proxy.type,
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.titleSmallEmphasized,
+                )
+                Text(
+                    text = proxy.tag,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    style = MaterialTheme.typography.bodyMediumEmphasized,
+                )
+                // TODO URL test for single proxy
+                if (proxy.urlTestDelay > 0) Surface(
+                    shape = RoundedCornerShape(50),
+                    color = Color.Black,
+                    shadowElevation = 6.dp,
+                ) {
+                    Text(
+                        text = proxy.urlTestDelay.toString(),
+                        color = colorForUrlTestDelay(proxy.urlTestDelay),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+            }
+        }
+    }
+}

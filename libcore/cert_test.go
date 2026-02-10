@@ -8,6 +8,7 @@ import (
 	"time"
 
 	aTLS "github.com/sagernet/sing-box/common/tls"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing/common"
 	N "github.com/sagernet/sing/common/network"
 )
@@ -89,10 +90,10 @@ func Test_UpdateRootCACerts(t *testing.T) {
 	// Load local cert and Mozilla CA
 	UpdateRootCACerts(CertMozilla, nil)
 	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
-	testConnect(husi, listen, false, "loaded custom")
+	testConnect(husi, listen, !C.IsAndroid, "loaded custom")
 
 	// Set back but load local
 	UpdateRootCACerts(CertGoOrigin, nil)
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
-	testConnect(husi, listen, false, "loaded custom 2")
+	testConnect(husi, listen, !C.IsAndroid, "loaded custom 2")
 }

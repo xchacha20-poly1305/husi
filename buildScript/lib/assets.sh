@@ -4,7 +4,7 @@ set -e
 
 source buildScript/init/version.sh
 
-DIR="app/src/main/assets/sing-box"
+DIR="composeApp/src/commonMain/composeResources/files/sing-box"
 GENERATER="libcore/cmd/ruleset_generate"
 rm -rf $DIR || true
 mkdir -p $DIR
