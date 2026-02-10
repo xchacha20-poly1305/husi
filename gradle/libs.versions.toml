@@ -1,0 +1,88 @@
+[versions]
+ksp = "2.3.5"
+kotlinComposePlugin = "2.3.10"
+kotlinCoroutines = "1.10.2"
+kotlinxImmutable = "0.4.0"
+androidxCoreKtx = "1.17.0"
+androidxAppcompat = "1.7.1"
+androidxActivity = "1.12.3"
+androidxBrowser = "1.9.0"
+androidxLifecycle = "2.10.0"
+androidxWork = "2.11.1"
+androidxDatastore = "1.2.0"
+androidxComposeBom = "2026.01.01"
+androidxComposeMaterial3 = "1.5.0-alpha13"
+androidxNavigationCompose = "2.9.7"
+accompanist = "0.37.3"
+composePreference = "2.1.1"
+fastScroller = "0.3.2"
+dragDropSwipe = "0.10.2"
+androidxCamera = "1.5.3"
+zxing = "3.5.4"
+androidxRoom = "2.8.4"
+gson = "2.13.2"
+smaliDexlib2 = "3.0.9"
+guava = "33.5.0-android"
+processPhoenix = "3.0.0"
+kryo = "5.6.2"
+ini4j = "0.5.4"
+desugarJdkLibs = "2.1.5"
+junitBom = "6.0.2"
+agp = "9.0.0"
+kotlinGradlePlugin = "2.3.10"
+
+[libraries]
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxImmutable" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "androidxBrowser" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWork" }
+androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "androidxWork" }
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidxDatastore" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
+androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "androidxDatastore" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "androidxComposeMaterial3" }
+androidx-compose-animation-graphics = { module = "androidx.compose.animation:animation-graphics" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigationCompose" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+compose-preference = { module = "me.zhanghai.compose.preference:preference", version.ref = "composePreference" }
+fastscroller-core = { module = "io.github.oikvpqya.compose.fastscroller:fastscroller-core", version.ref = "fastScroller" }
+fastscroller-material3 = { module = "io.github.oikvpqya.compose.fastscroller:fastscroller-material3", version.ref = "fastScroller" }
+drag-drop-swipe-lazycolumn = { module = "com.ernestoyaquello.dragdropswipelazycolumn:drag-drop-swipe-lazycolumn", version.ref = "dragDropSwipe" }
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "androidxCamera" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "androidxCamera" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidxCamera" }
+androidx-camera-compose = { module = "androidx.camera:camera-compose", version.ref = "androidxCamera" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+smali-dexlib2 = { module = "com.android.tools.smali:smali-dexlib2", version.ref = "smaliDexlib2" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "processPhoenix" }
+kryo = { module = "com.esotericsoftware:kryo", version.ref = "kryo" }
+ini4j = { module = "org.ini4j:ini4j", version.ref = "ini4j" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
+agp-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
+
+[plugins]
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposePlugin" }

@@ -15,7 +15,8 @@
   "gradle": {
     "managerFilePatterns": [
       "/(^|/)build.gradle.kts$/",
-      "/(^|/)settings.gradle.kts$/"
+      "/(^|/)settings.gradle.kts$/",
+      "/(^|/)gradle/libs\\.versions\\.toml$/"
     ]
   },
   "gomod": {
