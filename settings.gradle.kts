@@ -1,3 +1,7 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 include(":plugin:api")
 
 val buildPlugin = System.getenv("BUILD_PLUGIN")
