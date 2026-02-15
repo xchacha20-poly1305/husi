@@ -27,7 +27,7 @@ processPhoenix = "3.0.0"
 kryo = "5.6.2"
 ini4j = "0.5.4"
 desugarJdkLibs = "2.1.5"
-junitBom = "6.0.2"
+junitBom = "6.0.3"
 agp = "9.0.0"
 kotlinGradlePlugin = "2.3.10"
 
