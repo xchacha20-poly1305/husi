@@ -78,6 +78,7 @@
       ],
       "matchPackagePrefixes": [
         "com.google.",
+        "com.android.",
         "com.android.tools"
       ],
       "groupName": "Google & Android Tools",
@@ -146,6 +147,18 @@
       ],
       "groupName": "Compose Ecosystem",
       "groupSlug": "compose-ecosystem"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "com.esotericsoftware:kryo",
+        "com.jakewharton:process-phoenix",
+        "org.ini4j:ini4j"
+      ],
+      "groupName": "Utility Libraries",
+      "groupSlug": "utility-libraries"
     },
     {
       "matchManagers": [
