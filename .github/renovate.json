@@ -68,26 +68,75 @@
       "matchManagers": [
         "gradle"
       ],
-      "matchPackagePrefixes": [
-        "androidx.core",
-        "androidx.appcompat",
-        "androidx.activity",
-        "androidx.browser",
-        "androidx.lifecycle",
-        "androidx.work",
-        "androidx.datastore",
-        "androidx.camera",
-        "androidx.room"
-      ],
-      "groupName": "AndroidX",
-      "groupSlug": "androidx"
+      "addLabels": [
+        "java"
+      ]
     },
     {
       "matchManagers": [
         "gradle"
       ],
       "matchPackagePrefixes": [
-        "androidx.compose"
+        "com.google.",
+        "com.android.tools"
+      ],
+      "groupName": "Google & Android Tools",
+      "groupSlug": "google-android-tools"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "org.jetbrains.kotlin",
+        "org.jetbrains.kotlinx"
+      ],
+      "matchPackageNames": [
+        "com.google.devtools.ksp"
+      ],
+      "groupName": "Kotlin Ecosystem",
+      "groupSlug": "kotlin-ecosystem"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "androidx.work",
+        "androidx.datastore",
+        "androidx.room",
+        "androidx.sqlite"
+      ],
+      "groupName": "AndroidX Architecture & Data",
+      "groupSlug": "androidx-arch"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "androidx.core",
+        "androidx.appcompat",
+        "androidx.activity",
+        "androidx.browser",
+        "androidx.lifecycle",
+        "androidx.camera"
+      ],
+      "groupName": "AndroidX Core & UI",
+      "groupSlug": "androidx-core-ui"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "androidx.compose",
+        "org.jetbrains.compose",
+        "org.jetbrains.androidx",
+        "com.google.accompanist",
+        "me.zhanghai.compose.preference",
+        "io.github.oikvpqya.compose.fastscroller",
+        "io.github.vinceglb"
       ],
       "matchPackageNames": [
         "androidx.activity:activity-compose",
@@ -95,50 +144,22 @@
         "androidx.lifecycle:lifecycle-viewmodel-compose",
         "androidx.navigation:navigation-compose"
       ],
-      "groupName": "AndroidX Compose",
-      "groupSlug": "androidx-compose"
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlin"
-      ],
-      "groupName": "Kotlin",
-      "groupSlug": "kotlin"
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackagePrefixes": [
-        "com.android.tools"
-      ],
-      "groupName": "Android tools",
-      "groupSlug": "android-tools"
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackagePrefixes": [
-        "com.google."
-      ],
-      "groupName": "Google",
-      "groupSlug": "google"
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackagePrefixes": [
-        "com.google.accompanist",
-        "me.zhanghai.compose.preference",
-        "io.github.oikvpqya.compose.fastscroller"
-      ],
-      "groupName": "Compose ecosystem",
+      "groupName": "Compose Ecosystem",
       "groupSlug": "compose-ecosystem"
+    },
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackagePrefixes": [
+        "com.mikepenz"
+      ],
+      "matchPackageNames": [
+        "org.jetbrains.dokka",
+        "org.gradle.toolchains.foojay-resolver-convention"
+      ],
+      "groupName": "Build Plugins & Tooling",
+      "groupSlug": "build-plugins-tooling"
     },
     {
       "matchManagers": [
@@ -147,16 +168,8 @@
       "matchPackagePrefixes": [
         "org.junit"
       ],
-      "groupName": "JUnit",
-      "groupSlug": "junit"
-    },
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "addLabels": [
-        "java"
-      ]
+      "groupName": "Testing",
+      "groupSlug": "testing"
     },
     {
       "matchPackageNames": [
