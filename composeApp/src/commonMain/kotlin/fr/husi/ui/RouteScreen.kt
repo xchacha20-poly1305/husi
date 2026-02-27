@@ -66,8 +66,8 @@ import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLa
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import androidx.compose.foundation.layout.fillMaxHeight
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.PlatformMenuIcon
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
@@ -369,7 +369,7 @@ fun RouteScreen(
                 // Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
             }
 
-            VerticalScrollbar(
+            BoxedVerticalScrollbar(
                 modifier = Modifier.fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
                 style = defaultMaterialScrollbarStyle().copy(

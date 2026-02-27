@@ -62,7 +62,7 @@ import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import fr.husi.GroupType
 import androidx.compose.foundation.layout.fillMaxHeight
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
+import fr.husi.compose.BoxedVerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SheetSectionTitle
@@ -241,7 +241,7 @@ internal fun GroupHolderScreen(
             }
         }
 
-        VerticalScrollbar(
+        BoxedVerticalScrollbar(
             modifier = Modifier.fillMaxHeight(),
             adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
             style = defaultMaterialScrollbarStyle().copy(

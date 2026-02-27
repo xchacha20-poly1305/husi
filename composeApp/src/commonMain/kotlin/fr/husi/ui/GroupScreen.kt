@@ -61,8 +61,8 @@ import fr.husi.GroupType
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import androidx.compose.foundation.layout.fillMaxHeight
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.PlatformMenuIcon
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
@@ -290,7 +290,7 @@ fun GroupScreen(
                 }
             }
 
-            VerticalScrollbar(
+            BoxedVerticalScrollbar(
                 modifier = Modifier.fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
                 style = defaultMaterialScrollbarStyle().copy(
