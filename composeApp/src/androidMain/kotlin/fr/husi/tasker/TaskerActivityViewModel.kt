@@ -27,7 +27,7 @@ internal class TaskerActivityViewModel : ViewModel() {
     private val initialState = MutableStateFlow<TaskerActivityUiState?>(null)
     val isDirty = uiState.map { currentState ->
         initialState.value?.let {
-            initialState != currentState
+            it != currentState
         } ?: false
     }.stateIn(
         scope = viewModelScope,

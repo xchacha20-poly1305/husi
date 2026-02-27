@@ -204,6 +204,8 @@ class TaskerActivity : ComposeActivity() {
         val uiState = viewModel.uiState.value
         val action = uiState.action
         val profileId = uiState.profileID
+        settings.action = action
+        settings.profileId = profileId
         var blurb = ""
         when (action) {
             TaskerBundle.ACTION_START -> {
