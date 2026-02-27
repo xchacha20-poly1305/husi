@@ -147,6 +147,7 @@ fun MainScreen(
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val isAtStartDestination = currentDestination?.id == navController.graph.startDestinationId
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     fun openProfileSelect(preSelected: Long?, onSelected: (Long) -> Unit) {
@@ -196,7 +197,14 @@ fun MainScreen(
         when {
             canCollapseDrawer && drawerState.isOpen -> scope.launch { drawerState.close() }
 
-            !currentDestination.matchesRoute(NavRoutes.Configuration) -> navController.navigateUp()
+            !isAtStartDestination -> {
+                val popped = navController.popBackStack()
+                if (!popped) {
+                    navController.navigate(NavRoutes.Configuration) {
+                        launchSingleTop = true
+                    }
+                }
+            }
 
             else -> moveToBackground()
         }
