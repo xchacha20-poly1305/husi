@@ -2,7 +2,7 @@
 ksp = "2.3.5"
 kotlinComposePlugin = "2.3.20-RC"
 composeMultiplatform = "1.10.1"
-composeMaterial3 = "1.11.0-alpha02"
+composeMaterial3 = "1.11.0-SNAPSHOT+default"
 kotlinCoroutines = "1.10.2"
 kotlinxSerialization = "1.10.0"
 kotlinxCli = "0.3.6"
