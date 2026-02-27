@@ -155,10 +155,15 @@ jobs:
         run: |
           ./run init action gradle
           ./gradlew -p composeApp :composeApp:compileKotlinDesktop -PdesktopTarget=${{ matrix.target }}
+      - name: Normalize artifact target
+        id: artifact_target
+        run: |
+          target="${{ matrix.target }}"
+          echo "safe=${target//\//-}" >> "$GITHUB_OUTPUT"
       - name: Upload Desktop Build Artifact
         uses: actions/upload-artifact@v6
         with:
-          name: "desktop-build-${{ replace(matrix.target, '/', '-') }}"
+          name: "desktop-build-${{ steps.artifact_target.outputs.safe }}"
           if-no-files-found: warn
           path: |
             composeApp/build/kotlin/compileKotlinDesktop

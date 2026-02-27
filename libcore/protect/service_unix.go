@@ -12,7 +12,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/logger"
 
-	"libcore/sysop"
+	"golang.org/x/sys/unix"
 )
 
 const netUnix = "unix"
@@ -86,7 +86,31 @@ func (p *Service) handle(conn *net.UnixConn) {
 	}
 	var receivedFd int
 	controlErr := rawConn.Control(func(fd uintptr) {
-		receivedFd, err = sysop.RecvRightsFD(int(fd))
+		buf := make([]byte, unix.CmsgSpace(4))
+		_, _, _, _, err = unix.Recvmsg(int(fd), nil, buf, 0)
+		if err != nil {
+			return
+		}
+		var controlMessages []unix.SocketControlMessage
+		controlMessages, err = unix.ParseSocketControlMessage(buf)
+		if err != nil {
+			return
+		}
+		if len(controlMessages) != 1 {
+			err = E.New("invalid control messages count: ", len(controlMessages))
+			return
+		}
+		var fds []int
+		fds, err = unix.ParseUnixRights(&controlMessages[0])
+		if err != nil {
+			err = E.Cause(err, "parse unix rights")
+			return
+		}
+		if len(fds) != 1 {
+			err = E.New("invalid fds count: ", len(fds))
+			return
+		}
+		receivedFd = fds[0]
 	})
 	err = cmp.Or(controlErr, err)
 	if err != nil {

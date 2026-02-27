@@ -16,7 +16,8 @@ import (
 
 	"libcore/procfs"
 	"libcore/protect"
-	"libcore/sysop"
+
+	"golang.org/x/sys/unix"
 )
 
 type boxPlatformInterfaceWrapper struct {
@@ -78,9 +79,9 @@ func (w *boxPlatformInterfaceWrapper) OpenInterface(options *tun.Options, platfo
 		return nil, E.Cause(err, "tunnelName")
 	}
 	options.InterfaceMonitor.RegisterMyInterface(options.Name)
-	dupFd, err := sysop.Dup(int(tunFd))
+	dupFd, err := unix.Dup(int(tunFd))
 	if err != nil {
-		return nil, E.Cause(err, "sysop.Dup")
+		return nil, E.Cause(err, "unix.Dup")
 	}
 	options.FileDescriptor = dupFd
 	w.myTunName = options.Name
@@ -181,9 +182,9 @@ func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindC
 
 		var network string
 		switch request.IpProtocol {
-		case sysop.IPProtocolTCP:
+		case int32(unix.IPPROTO_TCP):
 			network = N.NetworkTCP
-		case sysop.IPProtocolUDP:
+		case int32(unix.IPPROTO_UDP):
 			network = N.NetworkUDP
 		default:
 			return nil, E.New("unknown protocol: ", request.IpProtocol)
