@@ -2,13 +2,13 @@
 
 EXEC=""
 TARGET="buildScript"
-declare -A PARAMS
+declare -a PARAMS
 declare -i INDEX=0
 
-for e in $@; do
+for e in "$@"; do
   TARGET="$TARGET/$e"
-  PARAMS[$INDEX]=$e
-  INDEX=$INDEX+1
+  PARAMS[$INDEX]="$e"
+  ((INDEX += 1))
   shift
   if [ -x "${TARGET}.sh" ]; then
     EXEC="${TARGET}.sh"
@@ -18,4 +18,4 @@ for e in $@; do
 done
 
 echo ">> $EXEC"
-exec "$EXEC" $PARAMS
+exec "$EXEC" "${PARAMS[@]}"
