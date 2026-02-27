@@ -8,6 +8,18 @@
 
 Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.
 
+## 🗣️ Alert
+
+In August 2025, Google [announced](https://developer.android.com/developer-verification) that as of September 2026, it will no longer be possible to develop apps for the Android platform without first registering centrally with Google. This registration will involve:
+
+- Paying a fee to Google
+- Agreeing to Google’s Terms and Conditions
+- Providing government identification
+- Uploading evidence of the developer’s private signing key
+- Listing all current and future application identifiers
+
+As a free software, husi will never submit to Google. Visit [Keep Android Open](https://keepandroidopen.org/) to defend the openness!
+
 ## 🛠️ Contribution
 
 ## 🧭 Guide
