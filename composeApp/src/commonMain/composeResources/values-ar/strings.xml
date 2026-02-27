@@ -304,7 +304,6 @@
     <string name="route_warn">تأكد من قراءة الوثائق قبل إضافة القواعد المخصصة، وإلا فقد لا تتمكن من
         الاتصال بالإنترنت.
     </string>
-    <string name="license">الرخصة</string>
     <string name="need_reload">أعد تحميل خدمة البروکسی لتطبيق التغييرات</string>
     <string name="apply">تطبيق</string>
     <string name="no">لا</string>

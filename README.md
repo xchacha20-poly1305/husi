@@ -153,6 +153,12 @@ Download geo resource files:
 make assets
 ```
 
+Generate open source license metadata:
+
+```shell
+./gradlew :composeApp:exportLibraryDefinitions
+```
+
 Compile the release version:
 
 ```shell

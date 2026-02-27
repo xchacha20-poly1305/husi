@@ -162,7 +162,6 @@
     <string name="unsaved_changes_prompt">要儲存變更嗎？</string>
     <string name="no">否</string>
     <string name="apply">套用</string>
-    <string name="license">授權協定</string>
     <string name="document">文件</string>
     <string name="early_data_header_name">前置資料標頭</string>
     <string name="certificates">憑證（鏈結）</string>

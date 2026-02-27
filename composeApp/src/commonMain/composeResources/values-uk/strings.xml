@@ -311,7 +311,6 @@
     <string name="unsaved_changes_prompt">Зміни не збережно. Зберегти?</string>
     <string name="no">Ні</string>
     <string name="need_reload">Перезавантажте проксі-сервіс, аби застосувати зміни</string>
-    <string name="license">Ліцензія</string>
     <string name="route_warn">Перед додаванням власних правил переконайтеся, що ви прочитали документацію, інакше підключення до Інтернету може не вдатися.</string>
     <string name="lines">%1$d рядків</string>
     <string name="night_mode">Нічний режим</string>

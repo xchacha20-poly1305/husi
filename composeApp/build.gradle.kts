@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.aboutlibraries)
 }
 
 val metadata = requireMetadata()
@@ -309,6 +310,7 @@ kotlin {
                 implementation(libs.fastscroller.material3)
                 implementation(libs.filekit.core)
                 implementation(libs.filekit.dialogs.compose)
+                implementation(libs.aboutlibraries.compose.m3)
                 implementation(libs.zxing.core)
                 implementation(project(":library:compose-code-editor:codeeditor"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
@@ -406,6 +408,15 @@ compose.desktop {
 
 compose.resources {
     packageOfResClass = "fr.husi.resources"
+}
+
+aboutLibraries {
+    collect {
+        configPath = file("src/commonMain/aboutlibraries")
+    }
+    export {
+        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+    }
 }
 
 ksp {

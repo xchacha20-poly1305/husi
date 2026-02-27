@@ -202,7 +202,6 @@
     <string name="route_warn">Перед добавлением собственных правил убедитесь, что вы прочитали
         документацию, иначе подключение к Интернету может не удасться.
     </string>
-    <string name="license">Лицензия</string>
     <string name="need_reload">Перезагрузите прокси-сервис, чтобы применить изменения</string>
     <string name="apply">Применить</string>
     <string name="no">Нет</string>

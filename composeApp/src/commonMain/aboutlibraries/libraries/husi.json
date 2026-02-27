@@ -1,0 +1,13 @@
+{
+  "uniqueId": "fr.husi:husi",
+  "name": "husi",
+  "website": "https://github.com/xchacha20-poly1305/husi",
+  "developers": [
+    {
+      "name": "Husi authors"
+    }
+  ],
+  "licenses": [
+    "GPL-3.0-or-later"
+  ]
+}

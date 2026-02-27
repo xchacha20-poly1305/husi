@@ -167,7 +167,6 @@
     <string name="unsaved_changes_prompt">是否要保存修改？</string>
     <string name="no">否</string>
     <string name="apply">应用</string>
-    <string name="license">授权协议</string>
     <string name="route_proxy">代理</string>
     <string name="route_bypass">绕过</string>
     <string name="route_block">屏蔽</string>

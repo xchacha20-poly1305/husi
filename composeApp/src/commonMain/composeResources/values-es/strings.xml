@@ -263,7 +263,6 @@
     <string name="no">No</string>
     <string name="apply">Aplicar</string>
     <string name="need_reload">Vuelve a cargar el servicio de proxy para aplicar los cambios</string>
-    <string name="license">Licencia</string>
     <string name="route_warn">Asegúrate de haber leído la documentación antes de añadir reglas personalizadas; de lo contrario, es posible que no puedas conectarte a Internet.</string>
     <string name="lines">%1$d líneas</string>
     <string name="night_mode">Modo nocturno</string>

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
@@ -34,7 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -46,7 +44,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import fr.husi.AlertType
-import fr.husi.LICENSE
 import fr.husi.bg.Alert
 import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
@@ -55,12 +52,10 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.DrawerCompat
 import fr.husi.compose.TextButton
 import fr.husi.compose.drawerIsCollapsible
-import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.ktx.showToast
 import fr.husi.permission.AppPermission
 import fr.husi.permission.rememberPermissionPlatform
 import fr.husi.repository.repo
@@ -70,7 +65,6 @@ import fr.husi.resources.bug_report
 import fr.husi.resources.cancel
 import fr.husi.resources.close
 import fr.husi.resources.construction
-import fr.husi.resources.copyright
 import fr.husi.resources.data_usage
 import fr.husi.resources.description
 import fr.husi.resources.directions
@@ -79,7 +73,6 @@ import fr.husi.resources.error
 import fr.husi.resources.fast_rewind
 import fr.husi.resources.have_a_nice_day
 import fr.husi.resources.info
-import fr.husi.resources.license
 import fr.husi.resources.location_permission_description
 import fr.husi.resources.location_permission_title
 import fr.husi.resources.menu_about
@@ -117,7 +110,6 @@ import fr.husi.ui.tools.VPNScannerScreen
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -127,7 +119,6 @@ import org.jetbrains.compose.resources.vectorResource
 fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel,
-    exit: () -> Unit,
     moveToBackground: () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -195,11 +186,6 @@ fun MainScreen(
         if (!hasPostNotification) {
             permissionPlatform.requestPermission(AppPermission.PostNotifications)
         }
-    }
-
-    var showLicenseDialog by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        if (!DataStore.acceptedLicense) showLicenseDialog = true
     }
 
     BackHandler(enabled = true) {
@@ -609,6 +595,12 @@ fun MainScreen(
                 AboutScreen(
                     mainViewModel = viewModel,
                     onDrawerClick = ::onDrawerClick,
+                    onNavigateToLibraries = { navController.navigate(NavRoutes.Libraries) },
+                )
+            }
+            composable<NavRoutes.Libraries> {
+                LibrariesScreen(
+                    onBackPress = { navController.navigateUp() },
                 )
             }
         }
@@ -646,40 +638,6 @@ fun MainScreen(
         },
         title = { Text(stringResource(Res.string.permission_denied)) },
         text = { Text(stringResource(Res.string.query_package_denied)) },
-    )
-
-    if (showLicenseDialog) AlertDialog(
-        onDismissRequest = {},
-        confirmButton = {
-            TextButton(stringResource(Res.string.ok)) {
-                DataStore.acceptedLicense = true
-                showLicenseDialog = false
-            }
-        },
-        dismissButton = {
-            TextButton(stringResource(Res.string.no_thanks)) {
-                val text = runBlocking { repo.getString(Res.string.have_a_nice_day) }
-                showToast(text)
-                exit()
-                showLicenseDialog = false
-            }
-        },
-        icon = {
-            Icon(vectorResource(Res.drawable.copyright), null)
-        },
-        title = { Text(stringResource(Res.string.license)) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-            ) {
-                SelectionContainer {
-                    Text(
-                        text = LICENSE,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-            }
-        },
     )
 
     if (showServiceAlert != null) {

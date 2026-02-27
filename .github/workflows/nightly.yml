@@ -172,6 +172,7 @@ jobs:
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "${{ secrets.LOCAL_PROPERTIES }}" >> local.properties
+          ./gradlew :composeApp:exportLibraryDefinitions
           ./gradlew clean androidApp:assembleFossDebug
           APK=$(find androidApp/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname $APK)
@@ -238,6 +239,7 @@ jobs:
         env:
           BUILD_PLUGIN: none
         run: |
+          ./gradlew :composeApp:exportLibraryDefinitions
           ./gradlew -p composeApp packageUberJarForCurrentOS -PdesktopTarget=${{ matrix.target }}
       - name: Normalize artifact target
         id: artifact_target

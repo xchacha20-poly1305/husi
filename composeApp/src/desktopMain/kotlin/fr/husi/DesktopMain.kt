@@ -43,7 +43,6 @@ fun main(args: Array<String>) {
                 ProvidePermissionPlatform {
                     MainScreen(
                         viewModel = viewModel,
-                        exit = ::exitApplication,
                         moveToBackground = {},
                     )
                 }

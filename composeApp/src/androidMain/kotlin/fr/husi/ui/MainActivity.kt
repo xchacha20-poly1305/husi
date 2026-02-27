@@ -43,7 +43,6 @@ class MainActivity : ComposeActivity() {
                 ProvidePermissionPlatform {
                     MainScreen(
                         viewModel = viewModel,
-                        exit = ::finish,
                         moveToBackground = { moveTaskToBack(true) },
                     )
                 }

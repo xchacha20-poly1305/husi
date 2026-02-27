@@ -259,7 +259,6 @@
     <string name="no">نه</string>
     <string name="apply">اعمال کردن</string>
     <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگذاری کنید</string>
-    <string name="license">مجوز</string>
     <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در
         غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.
     </string>

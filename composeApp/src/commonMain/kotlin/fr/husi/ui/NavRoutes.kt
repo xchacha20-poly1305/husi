@@ -52,6 +52,9 @@ sealed class NavRoutes {
     data object About : NavRoutes()
 
     @Serializable
+    data object Libraries : NavRoutes()
+
+    @Serializable
     data class ProfileEditor(
         val type: Int,
         val id: Long = -1L,

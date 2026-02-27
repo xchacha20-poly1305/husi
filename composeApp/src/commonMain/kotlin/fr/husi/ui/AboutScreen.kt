@@ -37,21 +37,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.BuildConfig
-import fr.husi.LICENSE
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.PlatformMenuIcon
@@ -76,6 +69,7 @@ fun AboutScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     onDrawerClick: () -> Unit,
+    onNavigateToLibraries: () -> Unit,
 ) {
     val windowInsets = WindowInsets.safeDrawing
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -104,39 +98,6 @@ fun AboutScreen(
     val shouldRequestBattery = rememberShouldRequestBatteryOptimizations()
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
-
-    val annotatedLicense = buildAnnotatedString {
-        val links = listOf(
-            "HystericalDragons@proton.me" to "mailto:HystericalDragons@proton.me",
-            "HystericalDragon@protomail.com" to "mailto:HystericalDragon@protomail.com",
-            "contact-sagernet@sekai.icu" to "mailto:contact-sagernet@sekai.icu",
-            "http://www.gnu.org/licenses/" to "http://www.gnu.org/licenses/",
-        )
-        val sortedLinks = links.map { (text, url) ->
-            val index = LICENSE.indexOf(text)
-            Triple(index, text, url)
-        }.sortedBy { it.first }
-
-        var lastIndex = 0
-        sortedLinks.forEach { (index, text, url) ->
-            append(LICENSE.substring(lastIndex, index))
-            withLink(
-                LinkAnnotation.Url(
-                    url,
-                    TextLinkStyles(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline,
-                        ),
-                    ),
-                ),
-            ) {
-                append(text)
-            }
-            lastIndex = index + text.length
-        }
-        append(LICENSE.substring(lastIndex))
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -305,35 +266,17 @@ fun AboutScreen(
                             title = stringResource(Res.string.translate_platform),
                             onCLick = { uriHandler.openUri("https://hosted.weblate.org/projects/husi/husi/") },
                         )
-                    }
-                }
-            }
-
-            item("license_card") {
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.license),
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.titleMedium,
+                        CardItem(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.gavel),
+                                    null,
+                                )
+                            },
+                            title = stringResource(Res.string.oss_licenses),
+                            onCLick = onNavigateToLibraries,
                         )
-                        SelectionContainer {
-                            Text(
-                                text = annotatedLicense,
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
                     }
                 }
             }
@@ -429,6 +372,7 @@ private fun PreviewAboutScreen() {
         AboutScreen(
             mainViewModel = mainViewModel,
             onDrawerClick = {},
+            onNavigateToLibraries = {},
         )
     }
 }

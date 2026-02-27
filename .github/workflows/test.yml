@@ -139,4 +139,5 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       - name: Gradle Test
         run: |
+          ./gradlew :composeApp:exportLibraryDefinitions
           make test_gradle
