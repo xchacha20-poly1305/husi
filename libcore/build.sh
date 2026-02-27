@@ -56,6 +56,29 @@ desktop_jar_name() {
     echo "libcore-desktop-${platform}-${arch}.jar"
 }
 
+build_tags_include() {
+    local tag="$1"
+    [[ ",$BUILD_TAGS," == *",$tag,"* ]]
+}
+
+apply_naive_toolchain_env() {
+    local desktop_target="$1"
+    local platform="${desktop_target%%/*}"
+    if [ "$platform" != "linux" ]; then
+        return
+    fi
+    local cronet_go_root="${CRONET_GO_ROOT:-$HOME/cronet-go}"
+    if [ ! -d "$cronet_go_root" ]; then
+        echo "Missing cronet-go root: $cronet_go_root"
+        echo "Set CRONET_GO_ROOT to a cronet-go checkout with naiveproxy toolchain prepared."
+        exit 1
+    fi
+    eval "$(
+        cd "$cronet_go_root" &&
+            go run ./cmd/build-naive --target="$desktop_target" env --export
+    )"
+}
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --desktop)
@@ -154,6 +177,10 @@ if [ "$BUILD_DESKTOP" == "1" ]; then
         desktop_output="$(desktop_jar_name "$desktop_target")"
         if [ -f "$desktop_output" ]; then
             rm -f "$desktop_output"
+        fi
+        unset CC CXX CGO_LDFLAGS QEMU_LD_PREFIX
+        if build_tags_include "with_naive_outbound"; then
+            apply_naive_toolchain_env "$desktop_target"
         fi
         anja bind -target=jvm \
             -desktoptargets "$desktop_target" \

@@ -78,11 +78,45 @@ jobs:
           add-to-path: true
           ndk-version: r29
           local-cache: false
+      - name: Resolve cronet-go version
+        if: steps.verify_libcore.outputs.ready != 'true'
+        id: cronet-go-version
+        run: |
+          echo "version=$(tr -d '[:space:]' < .github/CRONET_GO_VERSION)" >> "$GITHUB_OUTPUT"
+      - name: Checkout cronet-go
+        if: steps.verify_libcore.outputs.ready != 'true'
+        uses: actions/checkout@v6
+        with:
+          repository: sagernet/cronet-go
+          ref: ${{ steps.cronet-go-version.outputs.version }}
+          path: cronet-go
+          submodules: recursive
+          fetch-depth: 1
+      - name: Cache Chromium toolchain
+        if: steps.verify_libcore.outputs.ready != 'true'
+        uses: actions/cache@v5
+        with:
+          path: |
+            cronet-go/naiveproxy/src/third_party/llvm-build/
+            cronet-go/naiveproxy/src/gn/out/
+            cronet-go/naiveproxy/src/chrome/build/pgo_profiles/
+            cronet-go/naiveproxy/src/out/sysroot-build/
+          key: cronet-toolchain-linux-amd64-arm64-${{ steps.cronet-go-version.outputs.version }}
+      - name: Download Chromium toolchain
+        if: steps.verify_libcore.outputs.ready != 'true'
+        run: |
+          set -xeuo pipefail
+          rm -f "$GITHUB_WORKSPACE/cronet-go/naiveproxy/src/build/linux/sysroot_scripts/keyring.gpg"
+          cd "$GITHUB_WORKSPACE/cronet-go"
+          GPG_TTY=/dev/null ./naiveproxy/src/build/linux/sysroot_scripts/generate_keyring.sh
+          go run ./cmd/build-naive --target=linux/amd64 download-toolchain
+          go run ./cmd/build-naive --target=linux/arm64 download-toolchain
       - name: Native Build
         if: steps.verify_libcore.outputs.ready != 'true'
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
+          export CRONET_GO_ROOT="$GITHUB_WORKSPACE/cronet-go"
           # ./run lib core --android --desktop --desktoptargets linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
           ./run lib core --android --desktop --desktoptargets linux/amd64,linux/arm64
       - name: Upload libcore
@@ -206,4 +240,3 @@ jobs:
           path: |
             composeApp/build/kotlin/compileKotlinDesktop
             composeApp/build/classes/kotlin/desktop
-
