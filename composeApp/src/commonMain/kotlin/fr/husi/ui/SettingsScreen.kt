@@ -1655,10 +1655,7 @@ fun SettingsScreen(
 
                 BoxedVerticalScrollbar(
                     modifier = Modifier
-                        .padding(
-                            top = contentPadding.calculateTopPadding(),
-                            bottom = contentPadding.calculateBottomPadding(),
-                        )
+                        .padding(contentPadding)
                         .fillMaxHeight(),
                     adapter = rememberScrollbarAdapter(scrollState = listState),
                     style = defaultMaterialScrollbarStyle().copy(
