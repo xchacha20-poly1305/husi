@@ -164,10 +164,13 @@ require(desktopTarget in supportedDesktopTargets) {
 
 val desktopJarName = "libcore-desktop-${desktopTarget.substringBefore("/")}-${desktopTarget.substringAfter("/")}.jar"
 val desktopJarFile = layout.projectDirectory.file("libs/$desktopJarName").asFile
-require(desktopJarFile.isFile) {
-    "Missing desktop libcore jar '${desktopJarFile.path}'. Build it first, e.g. make libcore_desktop DESKTOP_TARGETS=$desktopTarget."
-}
-val libcoreDesktopJar = files(desktopJarFile)
+val libcoreDesktopJar =
+    files({
+        require(desktopJarFile.isFile) {
+            "Missing desktop libcore jar '${desktopJarFile.path}'. Build it first, e.g. make libcore_desktop DESKTOP_TARGETS=$desktopTarget."
+        }
+        desktopJarFile
+    })
 val hostDesktopPlatform = normalizeDesktopPlatform(System.getProperty("os.name"))
 val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
 val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
