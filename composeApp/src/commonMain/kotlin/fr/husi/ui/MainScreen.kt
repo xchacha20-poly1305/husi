@@ -3,6 +3,7 @@ package fr.husi.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,6 +50,7 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.DrawerCompat
 import fr.husi.compose.TextButton
 import fr.husi.compose.drawerIsCollapsible
@@ -110,6 +112,8 @@ import fr.husi.ui.tools.VPNScannerScreen
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -736,10 +740,24 @@ fun MainScreen(
             },
             title = { Text(stringOrRes(dialog.title)) },
             text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                ) {
-                    Text(stringOrRes(dialog.message))
+                val scrollState = rememberScrollState()
+                Row {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .verticalScroll(scrollState),
+                    ) {
+                        Text(stringOrRes(dialog.message))
+                    }
+
+                    BoxedVerticalScrollbar(
+                        modifier = Modifier.fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                        style = defaultMaterialScrollbarStyle().copy(
+                            thickness = 12.dp,
+                        ),
+                    )
                 }
             },
         )

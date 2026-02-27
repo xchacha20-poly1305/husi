@@ -2,11 +2,15 @@ package fr.husi.ui
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Icon
@@ -24,12 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.dp
 import fr.husi.compose.BackHandler
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.contentOrUnset
 import fr.husi.repository.repo
@@ -58,6 +64,8 @@ import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 sealed interface AssetEditResult {
     data object Saved : AssetEditResult
@@ -171,13 +179,31 @@ internal fun AssetEditScreen(
             )
         },
     ) { innerPadding ->
+        val listState = rememberLazyListState()
         ProvidePreferenceLocals {
-            LazyColumn(
-                contentPadding = innerPadding.withNavigation(),
-            ) {
-                assetEditSettings(
-                    uiState = uiState,
-                    viewModel = viewModel,
+            val contentPadding = innerPadding.withNavigation()
+            Row(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentPadding = contentPadding,
+                ) {
+                    assetEditSettings(
+                        uiState = uiState,
+                        viewModel = viewModel,
+                    )
+                }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = listState),
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
+                    ),
                 )
             }
         }

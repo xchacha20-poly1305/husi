@@ -45,7 +45,10 @@ import androidx.compose.ui.unit.dp
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.rememberScrollHideState
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.resources.*
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
 internal fun DashboardProxySetScreen(
@@ -63,23 +66,35 @@ internal fun DashboardProxySetScreen(
         onVisibleChange(visible)
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = PaddingValues(bottom = bottomPadding),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        items(
-            items = uiState.proxySets,
-            key = { it.type + it.tag },
-            contentType = { 0 },
-        ) { proxySet ->
-            ProxySetCard(
-                proxySet = proxySet,
-                selectProxy = selectProxy,
-                urlTestForGroup = urlTestForGroup,
-            )
+    Row(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            state = listState,
+            contentPadding = PaddingValues(bottom = bottomPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(
+                items = uiState.proxySets,
+                key = { it.type + it.tag },
+                contentType = { 0 },
+            ) { proxySet ->
+                ProxySetCard(
+                    proxySet = proxySet,
+                    selectProxy = selectProxy,
+                    urlTestForGroup = urlTestForGroup,
+                )
+            }
         }
+
+        BoxedVerticalScrollbar(
+            modifier = Modifier.fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = listState),
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 12.dp,
+            ),
+        )
     }
 }
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -83,6 +84,7 @@ import com.wakaztahir.codeeditor.theme.CodeTheme
 import com.wakaztahir.codeeditor.theme.SyntaxColors
 import com.wakaztahir.codeeditor.utils.parseCodeAsAnnotatedString
 import fr.husi.compose.BackHandler
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
@@ -109,6 +111,8 @@ import fr.husi.resources.redo
 import fr.husi.resources.undo
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -432,30 +436,41 @@ private fun ConfigEditScreenContent(
             val extraHeight = with(density) { toolbarHeightPx.toDp() } + toolbarYOffset
             val focusRequester = remember { FocusRequester() }
             val verticalScrollState = rememberScrollState()
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .horizontalScroll(rememberScrollState())
-                    .verticalScroll(verticalScrollState)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) { focusRequester.requestFocus() },
-            ) {
-                BasicTextField(
-                    state = viewModel.textFieldState,
+            Row(modifier = Modifier.fillMaxSize()) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .horizontalScroll(rememberScrollState())
+                        .verticalScroll(verticalScrollState)
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) { focusRequester.requestFocus() },
+                ) {
+                    BasicTextField(
+                        state = viewModel.textFieldState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        lineLimits = TextFieldLineLimits.MultiLine(),
+                        outputTransformation = outputTransformation,
+                    )
+                    Spacer(modifier = Modifier.height(extraHeight))
+                }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier.fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = verticalScrollState),
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
                     ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    lineLimits = TextFieldLineLimits.MultiLine(),
-                    outputTransformation = outputTransformation,
                 )
-                Spacer(modifier = Modifier.height(extraHeight))
             }
         }
     }

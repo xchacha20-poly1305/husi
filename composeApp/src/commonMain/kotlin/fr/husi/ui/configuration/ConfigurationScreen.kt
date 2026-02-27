@@ -8,9 +8,11 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,6 +77,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.ExpandableDropdownMenuItem
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
@@ -157,6 +160,8 @@ import fr.husi.resources.undo
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.getStringOrRes
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -1016,10 +1021,22 @@ private fun ConfigurationDialogs(
             },
             text = {
                 val scrollState = rememberScrollState()
-                Text(
-                    text = alert.summary,
-                    modifier = Modifier.verticalScroll(scrollState),
-                )
+                Row {
+                    Text(
+                        text = alert.summary,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .verticalScroll(scrollState),
+                    )
+                    BoxedVerticalScrollbar(
+                        modifier = Modifier.fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                        style = defaultMaterialScrollbarStyle().copy(
+                            thickness = 12.dp,
+                        ),
+                    )
+                }
             },
             confirmButton = {
                 TextButton(stringResource(Res.string.ok)) {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.CardDefaults
@@ -44,6 +46,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.withNavigation
 import fr.husi.fmt.SingBoxOptions
@@ -84,6 +87,8 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 private enum class ConnectionFields {
     // STATUS,
@@ -198,13 +203,18 @@ fun ConnectionDetailScreen(
             )
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = innerPadding.withNavigation(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        val listState = rememberLazyListState()
+        val contentPadding = innerPadding.withNavigation()
+        Row(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = contentPadding,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
             item("status", 0) {
                 ConnectionDataCard(
                     field = Res.string.connection_status,
@@ -439,6 +449,17 @@ fun ConnectionDetailScreen(
                     },
                 )
             }
+            }
+
+            BoxedVerticalScrollbar(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
         }
     }
 }

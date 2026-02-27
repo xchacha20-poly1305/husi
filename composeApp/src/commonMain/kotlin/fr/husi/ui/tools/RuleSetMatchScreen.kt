@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -45,9 +47,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.TextButton
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.ui.getStringOrRes
 import fr.husi.resources.*
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
 internal fun RuleSetMatchScreen(
@@ -88,6 +93,7 @@ internal fun RuleSetMatchScreen(
         },
     ) { innerPadding ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val listState = rememberLazyListState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -135,31 +141,44 @@ internal fun RuleSetMatchScreen(
                     .fillMaxWidth()
                     .weight(1f),
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    items(
-                        items = uiState.matched,
-                        key = { it },
-                    ) { text ->
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp, horizontal = 8.dp)
-                                .clickable {}, // make ripple
-                        ) {
-                            Row(
+                Row(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                    ) {
+                        items(
+                            items = uiState.matched,
+                            key = { it },
+                        ) { text ->
+                            ElevatedCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.Center,
+                                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                                    .clickable {}, // make ripple
                             ) {
-                                SelectionContainer {
-                                    Text(text)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                ) {
+                                    SelectionContainer {
+                                        Text(text)
+                                    }
                                 }
                             }
                         }
                     }
+
+                    BoxedVerticalScrollbar(
+                        modifier = Modifier.fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(scrollState = listState),
+                        style = defaultMaterialScrollbarStyle().copy(
+                            thickness = 12.dp,
+                        ),
+                    )
                 }
             }
 

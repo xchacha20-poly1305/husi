@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,8 +43,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.husi.compose.theme.LogColors
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.resources.*
 import fr.husi.libcore.Libcore
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -74,49 +78,61 @@ internal fun DashboardConnectionsScreen(
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = PaddingValues(bottom = listBottomPadding),
-            verticalArrangement = Arrangement.spacedBy(itemSpacing),
-        ) {
-            items(
-                items = uiState.connections,
-                key = { it.uuid },
-                contentType = { 0 },
-            ) { connection ->
-                val swipState = rememberSwipeToDismissBoxState()
-                SwipeToDismissBox(
-                    state = swipState,
-                    backgroundContent = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            contentAlignment = Alignment.CenterEnd,
-                        ) {
-                            Icon(
-                                imageVector = vectorResource(Res.drawable.delete_forever),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onError,
-                            )
-                        }
-                    },
-                    enableDismissFromStartToEnd = false,
-                    modifier = Modifier.fillMaxWidth(),
-                    onDismiss = { swipeToDismissBoxValue ->
-                        if (swipeToDismissBoxValue == SwipeToDismissBoxValue.EndToStart) {
-                            closeConnection(connection.uuid)
-                        }
-                    },
-                ) {
-                    ConnectionCard(
-                        connection = connection,
-                        resolveProcessInfo = resolveProcessInfo,
-                        openDetail = openDetail,
-                    )
+        Row(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                state = listState,
+                contentPadding = PaddingValues(bottom = listBottomPadding),
+                verticalArrangement = Arrangement.spacedBy(itemSpacing),
+            ) {
+                items(
+                    items = uiState.connections,
+                    key = { it.uuid },
+                    contentType = { 0 },
+                ) { connection ->
+                    val swipState = rememberSwipeToDismissBoxState()
+                    SwipeToDismissBox(
+                        state = swipState,
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                Icon(
+                                    imageVector = vectorResource(Res.drawable.delete_forever),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onError,
+                                )
+                            }
+                        },
+                        enableDismissFromStartToEnd = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        onDismiss = { swipeToDismissBoxValue ->
+                            if (swipeToDismissBoxValue == SwipeToDismissBoxValue.EndToStart) {
+                                closeConnection(connection.uuid)
+                            }
+                        },
+                    ) {
+                        ConnectionCard(
+                            connection = connection,
+                            resolveProcessInfo = resolveProcessInfo,
+                            openDetail = openDetail,
+                        )
+                    }
                 }
             }
+
+            BoxedVerticalScrollbar(
+                modifier = Modifier.fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
         }
 
         DockedSearchBar(

@@ -8,10 +8,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -77,6 +79,7 @@ import fr.husi.compose.SagerFab
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.ansiEscape
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
@@ -84,6 +87,8 @@ import fr.husi.ktx.readableMessage
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.repo
 import fr.husi.utils.SendLog
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import fr.husi.resources.*
@@ -312,25 +317,41 @@ fun LogcatScreen(
                 .fillMaxSize()
                 .onSizeChanged { scaffoldHeightPx = it.height },
         ) {
-            SelectionContainer {
-                LazyColumn(
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    state = listState,
-                    contentPadding = contentPadding,
+                        .weight(1f)
+                        .fillMaxHeight(),
                 ) {
-                    itemsIndexed(
-                        items = uiState.logs,
-                        key = { index, _ -> index },
-                        contentType = { _, _ -> 0 },
-                    ) { _, logLine ->
-                        LogCard(
-                            logLine = logLine.message,
-                            highlightQuery = queryLowerCase,
-                        )
+                    SelectionContainer {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            state = listState,
+                            contentPadding = contentPadding,
+                        ) {
+                            itemsIndexed(
+                                items = uiState.logs,
+                                key = { index, _ -> index },
+                                contentType = { _, _ -> 0 },
+                            ) { _, logLine ->
+                                LogCard(
+                                    logLine = logLine.message,
+                                    highlightQuery = queryLowerCase,
+                                )
+                            }
+                        }
                     }
                 }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier.fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = listState),
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
+                    ),
+                )
             }
 
             AnimatedVisibility(

@@ -5,9 +5,11 @@ package fr.husi.ui.profile
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +51,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.GroupType
 import fr.husi.compose.BackHandler
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
@@ -75,6 +78,8 @@ import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
 import fr.husi.ui.stringOrRes
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
@@ -488,17 +493,29 @@ private fun <T : AbstractBean> ProfileSettingsMainColumn(
                 }
         }
 
-        LazyColumn(
-            modifier = modifier,
-            state = listState,
-        ) {
-            settings(this, uiState) { key ->
-                scrollToKey = key
+        Row(modifier = modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                state = listState,
+            ) {
+                settings(this, uiState) { key ->
+                    scrollToKey = key
+                }
+
+                item("bottom_padding") {
+                    Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                }
             }
 
-            item("bottom_padding") {
-                Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-            }
+            BoxedVerticalScrollbar(
+                modifier = Modifier.fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
         }
     }
 }

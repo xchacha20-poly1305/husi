@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,9 +22,12 @@ import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.extraBottomPadding
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.ui.NavRoutes
 import fr.husi.resources.*
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
 internal fun NetworkScreen(
@@ -38,44 +42,55 @@ internal fun NetworkScreen(
         onVisibleChange(visible)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(extraBottomPadding())
-            .padding(horizontal = 16.dp),
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        ActivityCard(
-            title = stringResource(Res.string.stun_test),
-            description = stringResource(Res.string.stun_test_summary),
-            launch = {
-                onOpenTool(NavRoutes.ToolsPage.Stun)
-            },
+    Row(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(scrollState)
+                .padding(extraBottomPadding())
+                .padding(horizontal = 16.dp),
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            ActivityCard(
+                title = stringResource(Res.string.stun_test),
+                description = stringResource(Res.string.stun_test_summary),
+                launch = {
+                    onOpenTool(NavRoutes.ToolsPage.Stun)
+                },
+            )
+            ActivityCard(
+                title = stringResource(Res.string.get_cert),
+                description = stringResource(Res.string.get_cert_summary),
+                launch = {
+                    onOpenTool(NavRoutes.ToolsPage.GetCert)
+                },
+            )
+            PlatformNetworkTools(onOpenTool)
+            ActivityCard(
+                title = stringResource(Res.string.speed_test),
+                description = "",
+                launch = {
+                    onOpenTool(NavRoutes.ToolsPage.SpeedTest)
+                },
+            )
+            ActivityCard(
+                title = stringResource(Res.string.rule_set_match),
+                description = "",
+                launch = {
+                    onOpenTool(NavRoutes.ToolsPage.RuleSetMatch)
+                },
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        BoxedVerticalScrollbar(
+            modifier = Modifier.fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 12.dp,
+            ),
         )
-        ActivityCard(
-            title = stringResource(Res.string.get_cert),
-            description = stringResource(Res.string.get_cert_summary),
-            launch = {
-                onOpenTool(NavRoutes.ToolsPage.GetCert)
-            },
-        )
-        PlatformNetworkTools(onOpenTool)
-        ActivityCard(
-            title = stringResource(Res.string.speed_test),
-            description = "",
-            launch = {
-                onOpenTool(NavRoutes.ToolsPage.SpeedTest)
-            },
-        )
-        ActivityCard(
-            title = stringResource(Res.string.rule_set_match),
-            description = "",
-            launch = {
-                onOpenTool(NavRoutes.ToolsPage.RuleSetMatch)
-            },
-        )
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

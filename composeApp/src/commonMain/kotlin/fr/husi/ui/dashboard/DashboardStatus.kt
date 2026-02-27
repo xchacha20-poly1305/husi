@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,9 +34,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
+import fr.husi.compose.BoxedVerticalScrollbar
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
 import fr.husi.libcore.Libcore
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,18 +60,20 @@ internal fun DashboardStatusScreen(
         onVisibleChange(visible)
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(
-                start = 16.dp,
-                end = 16.dp,
-                top = 8.dp,
-                bottom = bottomPadding + 8.dp,
-            ),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+    Row(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(scrollState)
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = bottomPadding + 8.dp,
+                ),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -235,5 +241,14 @@ internal fun DashboardStatusScreen(
             }
         }
 
+        }
+
+        BoxedVerticalScrollbar(
+            modifier = Modifier.fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 12.dp,
+            ),
+        )
     }
 }

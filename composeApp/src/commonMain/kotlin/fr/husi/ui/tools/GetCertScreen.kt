@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -62,11 +63,14 @@ import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.TooltipIconButton
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.FakeRepository
 import fr.husi.repository.repo
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
 
@@ -132,15 +136,18 @@ private fun GetCertContent(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var alert by remember { mutableStateOf<String?>(null) }
+    val scrollState = rememberScrollState()
     LaunchedEffect(uiState.alert) {
         alert = uiState.alert?.readableMessage
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
+    Row(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(scrollState),
+        ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -278,7 +285,16 @@ private fun GetCertContent(
             }
         }
 
-        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+        }
+
+        BoxedVerticalScrollbar(
+            modifier = Modifier.fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 12.dp,
+            ),
+        )
     }
 
     if (alert != null) AlertDialog(

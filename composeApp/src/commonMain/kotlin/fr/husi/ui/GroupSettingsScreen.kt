@@ -1,12 +1,16 @@
 package fr.husi.ui
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Icon
@@ -24,12 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.GroupOrder
 import fr.husi.GroupType
 import fr.husi.SubscriptionType
 import fr.husi.compose.BackHandler
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.PreferenceCategory
@@ -102,6 +108,8 @@ import fr.husi.resources.update_settings
 import fr.husi.resources.update_when_connected_only
 import fr.husi.resources.update_when_connected_only_sum
 import fr.husi.resources.vpn_key
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -188,28 +196,46 @@ internal fun GroupSettingsScreen(
             )
         },
     ) { innerPadding ->
+        val listState = rememberLazyListState()
         ProvidePreferenceLocals {
-            LazyColumn(
-                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = innerPadding.withNavigation(),
-            ) {
-                groupSettings(
-                    uiState = uiState,
-                    viewModel = viewModel,
-                    selectFrontProxy = {
-                        onOpenProfileSelect(uiState.frontProxy.takeIf { it > 0 }) { id ->
-                            val profile =
-                                ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
-                            viewModel.setFrontProxy(profile.id)
-                        }
-                    },
-                    selectLandingProxy = {
-                        onOpenProfileSelect(uiState.landingProxy.takeIf { it > 0 }) { id ->
-                            val profile =
-                                ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
-                            viewModel.setLandingProxy(profile.id)
-                        }
-                    },
+            val contentPadding = innerPadding.withNavigation()
+            Row(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    contentPadding = contentPadding,
+                ) {
+                    groupSettings(
+                        uiState = uiState,
+                        viewModel = viewModel,
+                        selectFrontProxy = {
+                            onOpenProfileSelect(uiState.frontProxy.takeIf { it > 0 }) { id ->
+                                val profile =
+                                    ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
+                                viewModel.setFrontProxy(profile.id)
+                            }
+                        },
+                        selectLandingProxy = {
+                            onOpenProfileSelect(uiState.landingProxy.takeIf { it > 0 }) { id ->
+                                val profile =
+                                    ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
+                                viewModel.setLandingProxy(profile.id)
+                            }
+                        },
+                    )
+                }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = listState),
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
+                    ),
                 )
             }
         }

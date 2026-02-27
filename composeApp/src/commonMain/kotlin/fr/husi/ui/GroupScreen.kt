@@ -217,6 +217,7 @@ fun GroupScreen(
             }
         },
     ) { innerPadding ->
+        val contentPadding = innerPadding.withNavigation()
         Row(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -227,7 +228,7 @@ fun GroupScreen(
                 key = { it.group.id },
                 contentType = { 0 },
                 userScrollEnabled = true,
-                contentPadding = innerPadding.withNavigation(),
+                contentPadding = contentPadding,
                 onIndicesChangedViaDragAndDrop = { viewModel.submitReorder(it) },
             ) { _, groupState ->
                 val swipeState = rememberSwipeToDismissBoxState()
@@ -291,7 +292,9 @@ fun GroupScreen(
             }
 
             BoxedVerticalScrollbar(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(scrollState = dragDropListState.lazyListState),
                 style = defaultMaterialScrollbarStyle().copy(
                     thickness = 12.dp,

@@ -3,6 +3,7 @@ package fr.husi.compose
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,6 +35,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.PreferenceCategory
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
@@ -172,32 +175,43 @@ fun <K, V> MapPreference(
         title = { title() },
         text = {
             val scroll = rememberScrollState()
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .verticalScroll(scroll),
-            ) {
-                var isFirst = true
-                for (key in keys) {
-                    val textFieldValue = textStates.getOrPut(key) {
-                        val text = value[key]?.let(valueToText).orEmpty()
-                        TextFieldValue(text, TextRange(text.length))
+            Row {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 24.dp)
+                        .verticalScroll(scroll),
+                ) {
+                    var isFirst = true
+                    for (key in keys) {
+                        val textFieldValue = textStates.getOrPut(key) {
+                            val text = value[key]?.let(valueToText).orEmpty()
+                            TextFieldValue(text, TextRange(text.length))
+                        }
+                        OutlinedTextField(
+                            value = textFieldValue,
+                            onValueChange = { textStates[key] = it },
+                            label = { Text(displayKey(key)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = if (isFirst) 0.dp else 12.dp)
+                                .then(if (key == firstKey) Modifier.focusRequester(focusRequester) else Modifier),
+                            singleLine = false,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { onOk() }),
+                        )
+                        isFirst = false
                     }
-                    OutlinedTextField(
-                        value = textFieldValue,
-                        onValueChange = { textStates[key] = it },
-                        label = { Text(displayKey(key)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = if (isFirst) 0.dp else 12.dp)
-                            .then(if (key == firstKey) Modifier.focusRequester(focusRequester) else Modifier),
-                        singleLine = false,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { onOk() }),
-                    )
-                    isFirst = false
                 }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier.fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = scroll),
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
+                    ),
+                )
             }
         },
         confirmButton = {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -58,6 +60,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.Key
 import fr.husi.RuleProvider
 import fr.husi.compose.MoreOverIcon
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
@@ -75,6 +78,8 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.io.File
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 private const val ASSET_BUILT_IN = 0
 private const val ASSET_CUSTOM = 1
@@ -284,50 +289,65 @@ internal fun AssetsScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = innerPadding.withNavigation(),
-        ) {
-            items(
-                items = uiState.assets,
-                key = { asset -> asset.file.name },
-                contentType = { asset ->
-                    if (asset.builtIn) {
-                        ASSET_BUILT_IN
-                    } else {
-                        ASSET_CUSTOM
-                    }
-                },
-            ) { asset ->
-                val swipeState = rememberSwipeToDismissBoxState()
+        val listState = rememberLazyListState()
+        val contentPadding = innerPadding.withNavigation()
+        Row(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = contentPadding,
+            ) {
+                items(
+                    items = uiState.assets,
+                    key = { asset -> asset.file.name },
+                    contentType = { asset ->
+                        if (asset.builtIn) {
+                            ASSET_BUILT_IN
+                        } else {
+                            ASSET_CUSTOM
+                        }
+                    },
+                ) { asset ->
+                    val swipeState = rememberSwipeToDismissBoxState()
 
-                if (!asset.builtIn) {
-                    LaunchedEffect(swipeState.currentValue) {
-                        if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
-                            viewModel.undoableRemove(asset.file.name)
-                            swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                    if (!asset.builtIn) {
+                        LaunchedEffect(swipeState.currentValue) {
+                            if (swipeState.currentValue != SwipeToDismissBoxValue.Settled) {
+                                viewModel.undoableRemove(asset.file.name)
+                                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+                            }
                         }
                     }
-                }
 
-                if (!asset.builtIn) {
-                    SwipeToDismissBox(
-                        state = swipeState,
-                        enableDismissFromStartToEnd = true,
-                        enableDismissFromEndToStart = true,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                Icon(vectorResource(Res.drawable.delete), null)
-                            }
-                        },
-                    ) {
+                    if (!asset.builtIn) {
+                        SwipeToDismissBox(
+                            state = swipeState,
+                            enableDismissFromStartToEnd = true,
+                            enableDismissFromEndToStart = true,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp),
+                                    contentAlignment = Alignment.CenterEnd,
+                                ) {
+                                    Icon(vectorResource(Res.drawable.delete), null)
+                                }
+                            },
+                        ) {
+                            AssetCard(
+                                asset = asset,
+                                viewModel = viewModel,
+                                uiState = uiState,
+                                onEditAsset = { name ->
+                                    onOpenAssetEditor(name, ::handleAssetEditResult)
+                                },
+                            )
+                        }
+                    } else {
                         AssetCard(
                             asset = asset,
                             viewModel = viewModel,
@@ -337,17 +357,18 @@ internal fun AssetsScreen(
                             },
                         )
                     }
-                } else {
-                    AssetCard(
-                        asset = asset,
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onEditAsset = { name ->
-                            onOpenAssetEditor(name, ::handleAssetEditResult)
-                        },
-                    )
                 }
             }
+
+            BoxedVerticalScrollbar(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 12.dp,
+                ),
+            )
         }
     }
 }

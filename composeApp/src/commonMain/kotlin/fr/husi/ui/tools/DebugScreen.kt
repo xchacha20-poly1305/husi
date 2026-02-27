@@ -1,7 +1,9 @@
 package fr.husi.ui.tools
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,10 +26,13 @@ import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.unit.dp
 import fr.husi.compose.TextButton
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.database.DataStore
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.resources.*
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -44,42 +49,53 @@ internal fun DebugScreen(
     }
 
     var showResetAlert by remember { mutableStateOf(false) }
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 16.dp),
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
+    Row(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 16.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(
-                    text = "Debug Actions",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = { error("Test crash") },
-                    modifier = Modifier.fillMaxWidth(),
+                Column(
+                    modifier = Modifier.padding(16.dp),
                 ) {
-                    Text("Crash from Kotlin")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { showResetAlert = true },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Reset settings")
+                    Text(
+                        text = "Debug Actions",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { error("Test crash") },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Crash from Kotlin")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { showResetAlert = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Reset settings")
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        BoxedVerticalScrollbar(
+            modifier = Modifier.fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+            style = defaultMaterialScrollbarStyle().copy(
+                thickness = 12.dp,
+            ),
+        )
     }
     if (showResetAlert) AlertDialog(
         onDismissRequest = { showResetAlert = false },

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,6 +49,7 @@ import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
 import fr.husi.repository.repo
@@ -61,6 +63,8 @@ import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
 fun PluginScreen(
@@ -125,13 +129,28 @@ fun PluginScreen(
         },
     ) { innerPadding ->
         ProvidePreferenceLocals {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = innerPadding.withNavigation(),
-            ) {
-                installedPlugins(uiState.plugins, uriHandler::openUri)
-                desktopPluginPreferences()
+            val contentPadding = innerPadding.withNavigation()
+            Row(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentPadding = contentPadding,
+                ) {
+                    installedPlugins(uiState.plugins, uriHandler::openUri)
+                    desktopPluginPreferences()
+                }
+
+                BoxedVerticalScrollbar(
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(scrollState = listState),
+                    style = defaultMaterialScrollbarStyle().copy(
+                        thickness = 12.dp,
+                    ),
+                )
             }
         }
     }
