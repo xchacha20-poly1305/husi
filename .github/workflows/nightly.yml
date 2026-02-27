@@ -32,25 +32,45 @@ jobs:
           path: |
             composeApp/libs
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+      - name: Verify LibCore cache
+        id: verify_libcore
+        run: |
+          missing=0
+          required_files=(
+            "composeApp/libs/libcore.aar"
+            "composeApp/libs/libcore-desktop-linux-amd64.jar"
+            "composeApp/libs/libcore-desktop-linux-arm64.jar"
+          )
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Missing required libcore artifact: $file"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
       - name: Golang Version
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.verify_libcore.outputs.ready != 'true'
         id: version
         run: |
           source buildScript/init/version.sh
           echo go_version=$GO_VERSION >> $GITHUB_OUTPUT
       - name: Install Golang
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.verify_libcore.outputs.ready != 'true'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.version.outputs.go_version }}
           cache-dependency-path: libcore/go.sum
       - uses: actions/setup-java@v5
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.verify_libcore.outputs.ready != 'true'
         with:
           java-version: "21"
           distribution: "temurin"
       - name: Setup Android NDK
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.verify_libcore.outputs.ready != 'true'
         # Pin NDK version for `gomobile`.
         id: setup-ndk
         uses: nttld/setup-ndk@v1
@@ -59,7 +79,7 @@ jobs:
           ndk-version: r29
           local-cache: false
       - name: Native Build
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.verify_libcore.outputs.ready != 'true'
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
@@ -68,7 +88,11 @@ jobs:
       - name: Upload libcore
         uses: actions/upload-artifact@v6
         with:
-          path: composeApp/libs
+          path: |
+            composeApp/libs/libcore.aar
+            composeApp/libs/libcore-desktop-linux-amd64.jar
+            composeApp/libs/libcore-desktop-linux-arm64.jar
+          if-no-files-found: error
           name: "libcore"
   build:
     name: Build FOSS APK
@@ -85,6 +109,11 @@ jobs:
         with:
           name: "libcore"
           path: composeApp/libs
+      - name: Verify libcore artifacts
+        run: |
+          ls -la composeApp/libs || true
+          test -f composeApp/libs/libcore.aar
+          test -f composeApp/libs/libcore-desktop-linux-amd64.jar
       - uses: actions/setup-java@v5
         with:
           java-version: "21"
@@ -144,6 +173,15 @@ jobs:
         with:
           name: "libcore"
           path: composeApp/libs
+      - name: Verify libcore artifacts
+        run: |
+          target="${{ matrix.target }}"
+          platform="${target%%/*}"
+          arch="${target##*/}"
+          required_jar="composeApp/libs/libcore-desktop-${platform}-${arch}.jar"
+          ls -la composeApp/libs || true
+          test -f composeApp/libs/libcore.aar
+          test -f "$required_jar"
       - uses: actions/setup-java@v5
         with:
           java-version: "21"
