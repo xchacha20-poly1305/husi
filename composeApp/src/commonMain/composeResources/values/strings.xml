@@ -760,6 +760,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="search_go">Search</string>
+
     <!-- security warnings -->
     <string name="warn_hysteria_legacy">The configuration (Hysteria1) is deprecated.\n\nLearn more: https://v2.hysteria.network/docs/misc/2-vs-1/</string>
     <string name="warn_insecure">The configuration (insecure) can be detected and identified, the transmission is fully visible to the censor and is not resistant to man-in-the-middle tampering with the content of the communication.</string>
@@ -768,4 +769,7 @@
     <string name="warn_shadowsocks_stream_cipher">This configuration (Shadowsocks streaming cipher) can be accurately proactively detected and decrypted by censors without requiring a password, and cannot be mitigated by turning on IV replay filters on the server side.\n\nLearn more: https://github.com/net4people/bbs/issues/24</string>
     <string name="warn_shadowtls_legacy">This configuration (ShadowTLS with old version) is deprecated.\n\nLearn more: https://github.com/ihciah/shadow-tls/blob/master/docs/protocol-v3-en.md#version-evolution</string>
     <string name="warn_vmess_md5_auth">This configuration (VMess MD5 authentication) has been deprecated by upstream because of its questionable resistance to tampering and concealment.\n\nAs of January 1, 2022, compatibility with MD5 authentication information will be disabled on the server side by default. Any client using MD5 authentication information will not be able to connect to a server with VMess MD5 authentication information disabled.\n\nLearn more: https://github.com/v2ray/v2ray-core/issues/2523</string>
+
+    <string name="show_window">Show window</string>
+    <string name="exit">Exit</string>
 </resources>
