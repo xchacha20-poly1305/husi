@@ -67,6 +67,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -89,6 +95,7 @@ import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
+import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.action_format
@@ -119,29 +126,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-
-@Composable
-fun ConfigEditDialog(
-    initialText: String,
-    onDismiss: () -> Unit,
-    onSave: (text: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val viewModel: ConfigEditViewModel = viewModel { ConfigEditViewModel() }
-
-    LaunchedEffect(initialText) {
-        viewModel.initialize(initialText)
-    }
-
-    ConfigEditScreen(
-        modifier = modifier,
-        viewModel = viewModel,
-        onBackPress = onDismiss,
-        initialText = initialText,
-        finish = onDismiss,
-        saveAndExit = onSave,
-    )
-}
 
 @Composable
 private fun RepeatableIconButton(
@@ -189,12 +173,11 @@ private fun RepeatableIconButton(
 }
 
 @Composable
-private fun ConfigEditScreen(
+fun ConfigEditScreen(
     modifier: Modifier = Modifier,
-    viewModel: ConfigEditViewModel,
-    onBackPress: () -> Unit,
     initialText: String,
-    finish: () -> Unit,
+    viewModel: ConfigEditViewModel = viewModel { ConfigEditViewModel(initialText) },
+    back: () -> Unit,
     saveAndExit: (text: String) -> Unit,
 ) {
     // Force LTR ( this is json editor + make AutoMirrored arrow correct  )
@@ -202,9 +185,8 @@ private fun ConfigEditScreen(
         ConfigEditScreenContent(
             modifier = modifier,
             viewModel = viewModel,
-            onBackPress = onBackPress,
             initialText = initialText,
-            finish = finish,
+            back = back,
             saveAndExit = saveAndExit,
         )
     }
@@ -214,9 +196,8 @@ private fun ConfigEditScreen(
 private fun ConfigEditScreenContent(
     modifier: Modifier = Modifier,
     viewModel: ConfigEditViewModel,
-    onBackPress: () -> Unit,
     initialText: String,
-    finish: () -> Unit,
+    back: () -> Unit,
     saveAndExit: (text: String) -> Unit,
 ) {
     var alert by remember { mutableStateOf<String?>(null) }
@@ -301,7 +282,7 @@ private fun ConfigEditScreenContent(
                         imageVector = vectorResource(Res.drawable.close),
                         contentDescription = stringResource(Res.string.close),
                     ) {
-                        onBackPress()
+                        back()
                     }
                 },
                 actions = {
@@ -453,7 +434,21 @@ private fun ConfigEditScreenContent(
                         state = viewModel.textFieldState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester),
+                            .focusRequester(focusRequester)
+                            .onPreviewKeyEvent { keyEvent ->
+                                if (keyEvent.type != KeyEventType.KeyDown) {
+                                    return@onPreviewKeyEvent false
+                                }
+                                if (!keyEvent.isTypeControlPressed || keyEvent.key != Key.Z) {
+                                    return@onPreviewKeyEvent false
+                                }
+                                if (keyEvent.isShiftPressed) {
+                                    viewModel.redo()
+                                } else {
+                                    viewModel.undo()
+                                }
+                                true
+                            },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
@@ -500,7 +495,7 @@ private fun ConfigEditScreenContent(
         },
         dismissButton = {
             TextButton(stringResource(Res.string.no)) {
-                finish()
+                back()
             }
         },
         icon = { Icon(vectorResource(Res.drawable.warning), null) },
@@ -511,12 +506,9 @@ private fun ConfigEditScreenContent(
 @Preview()
 @Composable
 private fun PreviewConfigEditScreen() {
-    val viewModel = viewModel<ConfigEditViewModel>()
     ConfigEditScreen(
-        viewModel = viewModel,
-        onBackPress = {},
         initialText = "{}",
-        finish = {},
+        back = {},
         saveAndExit = {},
     )
 }

@@ -27,8 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
@@ -78,7 +76,7 @@ fun ConfigSettingScreen(
 
     var showBackAlert by remember { mutableStateOf(false) }
     var showDeleteAlert by remember { mutableStateOf(false) }
-    var showEditor by remember { mutableStateOf(false) }
+    val openConfigEditor = LocalOpenConfigEditor.current
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
@@ -182,7 +180,7 @@ fun ConfigSettingScreen(
                                 Text(text)
                             },
                             onClick = {
-                                showEditor = true
+                                openConfigEditor(config, viewModel::setConfig)
                             },
                         )
                     }
@@ -199,23 +197,6 @@ fun ConfigSettingScreen(
                     ),
                 )
             }
-        }
-    }
-
-    if (showEditor) {
-        Dialog(
-            onDismissRequest = { showEditor = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-        ) {
-            ConfigEditDialog(
-                initialText = config,
-                onDismiss = { showEditor = false },
-                onSave = {
-                    viewModel.setConfig(it)
-                    showEditor = false
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
         }
     }
 

@@ -10,7 +10,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,13 +20,7 @@ import androidx.core.net.toUri
 import fr.husi.ktx.MIUIUtils
 
 @Composable
-actual fun ProvidePermissionPlatform(content: @Composable () -> Unit) {
-    val permissionPlatform = rememberAndroidPermissionPlatform()
-    CompositionLocalProvider(LocalPermissionPlatform provides permissionPlatform, content = content)
-}
-
-@Composable
-private fun rememberAndroidPermissionPlatform(): PermissionPlatform {
+fun rememberAndroidPermissionPlatform(): PermissionPlatform {
     val context = LocalContext.current
 
     var onQueryInstalledAppsResult by remember { mutableStateOf<(Boolean) -> Unit>({}) }

@@ -26,20 +26,20 @@ import fr.husi.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 @Immutable
-internal sealed interface ConfigEditUiEvent {
+sealed interface ConfigEditUiEvent {
     class Finish(val text: String) : ConfigEditUiEvent
     class Alert(val message: String) : ConfigEditUiEvent
     class SnackBar(val id: StringResource) : ConfigEditUiEvent
 }
 
 @Immutable
-internal data class ConfigEditUiState(
+data class ConfigEditUiState(
     val canUndo: Boolean = false,
     val canRedo: Boolean = false,
 )
 
 @Stable
-internal class ConfigEditViewModel : ViewModel() {
+class ConfigEditViewModel(initialText: String) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ConfigEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
@@ -47,22 +47,16 @@ internal class ConfigEditViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ConfigEditUiState())
     val uiState: StateFlow<ConfigEditUiState> = _uiState.asStateFlow()
 
-    val textFieldState = TextFieldState()
+    val textFieldState = TextFieldState(initialText)
 
-    private val historyStack = mutableListOf<String>()
-    private var historyPointer = -1
+    private val historyStack = mutableListOf(initialText)
+    private var historyPointer = 0
     private val maxHistorySize = 25
 
     private var debounceJob: Job? = null
     private val debounceDelay = 500L
 
-    private var lastText: String = ""
-
-    fun initialize(initialText: String) {
-        textFieldState.setTextAndPlaceCursorAtEnd(initialText)
-        lastText = initialText
-        addToHistory(initialText)
-    }
+    private var lastText: String = initialText
 
     fun onTextChange() {
         val newText = textFieldState.text.toString()

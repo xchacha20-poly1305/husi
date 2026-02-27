@@ -76,7 +76,7 @@ sealed interface MainViewModelUiEvent {
 }
 
 @Stable
-class MainViewModel() : ViewModel(), GroupManager.Interface {
+class MainViewModel : ViewModel(), GroupManager.Interface {
 
     private val _urlTestStatus = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
     val urlTestStatus = _urlTestStatus.asStateFlow()

@@ -1,6 +1,5 @@
 package fr.husi.permission
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 
 enum class AppPermission {
@@ -20,7 +19,7 @@ interface PermissionPlatform {
     fun openPermissionSettings()
 }
 
-private object NoPermissionPlatform : PermissionPlatform {
+object NoPermissionPlatform : PermissionPlatform {
 
     override fun hasPermission(permission: AppPermission): Boolean = true
 
@@ -36,9 +35,3 @@ private object NoPermissionPlatform : PermissionPlatform {
 val LocalPermissionPlatform = staticCompositionLocalOf<PermissionPlatform> {
     NoPermissionPlatform
 }
-
-@Composable
-fun rememberPermissionPlatform(): PermissionPlatform = LocalPermissionPlatform.current
-
-@Composable
-expect fun ProvidePermissionPlatform(content: @Composable () -> Unit)

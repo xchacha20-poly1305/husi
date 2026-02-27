@@ -4,11 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
 import fr.husi.Key
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
-import fr.husi.permission.ProvidePermissionPlatform
+import fr.husi.permission.LocalPermissionPlatform
+import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.service.ServiceConnector
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -40,7 +42,10 @@ class MainActivity : ComposeActivity() {
 
         setContent {
             AppTheme {
-                ProvidePermissionPlatform {
+                val permissionPlatform = rememberAndroidPermissionPlatform()
+                CompositionLocalProvider(
+                    LocalPermissionPlatform provides permissionPlatform,
+                ) {
                     MainScreen(
                         viewModel = viewModel,
                         moveToBackground = { moveTaskToBack(true) },

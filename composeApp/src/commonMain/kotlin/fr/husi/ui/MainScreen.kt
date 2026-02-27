@@ -59,7 +59,7 @@ import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.permission.AppPermission
-import fr.husi.permission.rememberPermissionPlatform
+import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.action_download
@@ -101,7 +101,7 @@ import fr.husi.ui.configuration.ConfigurationScreen
 import fr.husi.ui.configuration.ProfileSelectSheet
 import fr.husi.ui.dashboard.ConnectionDetailScreen
 import fr.husi.ui.dashboard.DashboardScreen
-import fr.husi.ui.profile.ConfigEditDialog
+import fr.husi.ui.profile.ConfigEditScreen
 import fr.husi.ui.profile.ProfileEditorScreen
 import fr.husi.ui.tools.GetCertScreen
 import fr.husi.ui.tools.RuleSetMatchScreen
@@ -109,11 +109,11 @@ import fr.husi.ui.tools.SpeedtestScreen
 import fr.husi.ui.tools.StunScreen
 import fr.husi.ui.tools.ToolsScreen
 import fr.husi.ui.tools.VPNScannerScreen
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -125,9 +125,9 @@ fun MainScreen(
     viewModel: MainViewModel,
     moveToBackground: () -> Unit,
 ) {
+    val permission = LocalPermissionPlatform.current
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
-    val permissionPlatform = rememberPermissionPlatform()
 
     val navController = rememberNavController()
     var profileEditorResultCallback by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
@@ -168,10 +168,10 @@ fun MainScreen(
      */
     var showQueryPackageDeniedDialog by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        if (permissionPlatform.canRequestPermission(AppPermission.QueryInstalledApps) &&
-            !permissionPlatform.hasPermission(AppPermission.QueryInstalledApps)
+        if (permission.canRequestPermission(AppPermission.QueryInstalledApps) &&
+            !permission.hasPermission(AppPermission.QueryInstalledApps)
         ) {
-            permissionPlatform.requestPermission(AppPermission.QueryInstalledApps) { granted ->
+            permission.requestPermission(AppPermission.QueryInstalledApps) { granted ->
                 if (granted) runOnDefaultDispatcher {
                     repo.stopService()
                     delay(500)
@@ -187,9 +187,9 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         val hasPostNotification =
-            permissionPlatform.hasPermission(AppPermission.PostNotifications)
+            permission.hasPermission(AppPermission.PostNotifications)
         if (!hasPostNotification) {
-            permissionPlatform.requestPermission(AppPermission.PostNotifications)
+            permission.requestPermission(AppPermission.PostNotifications)
         }
     }
 
@@ -457,6 +457,13 @@ fun MainScreen(
                     profileId = route.id,
                     isSubscription = route.subscription,
                     onOpenProfileSelect = ::openProfileSelect,
+                    onOpenConfigEditor = { initialText, onResult ->
+                        configEditorSession = ConfigEditorSession(
+                            initialText = initialText,
+                            onResult = onResult,
+                        )
+                        navController.navigate(NavRoutes.ConfigEditor)
+                    },
                     onResult = { updated ->
                         profileEditorResultCallback?.invoke(updated)
                         profileEditorResultCallback = null
@@ -535,13 +542,13 @@ fun MainScreen(
                         navController.navigateUp()
                     }
                 } else {
-                    ConfigEditDialog(
+                    ConfigEditScreen(
                         initialText = session.initialText,
-                        onDismiss = {
+                        back = {
                             configEditorSession = null
                             navController.navigateUp()
                         },
-                        onSave = { text ->
+                        saveAndExit = { text ->
                             session.onResult(text)
                             configEditorSession = null
                             navController.navigateUp()
@@ -635,7 +642,7 @@ fun MainScreen(
         onDismissRequest = {},
         confirmButton = {
             TextButton(stringResource(Res.string.ok)) {
-                permissionPlatform.openPermissionSettings()
+                permission.openPermissionSettings()
                 showQueryPackageDeniedDialog = false
             }
         },
@@ -690,7 +697,7 @@ fun MainScreen(
                     confirmButton = {
                         TextButton(stringResource(Res.string.ok)) {
                             showServiceAlert = null
-                            permissionPlatform.requestPermission(AppPermission.WifiInfo)
+                            permission.requestPermission(AppPermission.WifiInfo)
                         }
                     },
                     dismissButton = {

@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,11 +44,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.GroupType
 import fr.husi.compose.BackHandler
@@ -87,144 +87,153 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
+internal val LocalOpenConfigEditor = staticCompositionLocalOf<(String, (String) -> Unit) -> Unit> {
+    { _, _ -> }
+}
+
 @Composable
 fun ProfileEditorScreen(
     type: Int,
     profileId: Long,
     isSubscription: Boolean,
     onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
+    onOpenConfigEditor: (String, (String) -> Unit) -> Unit,
     onResult: (updated: Boolean) -> Unit,
 ) {
-    when (type) {
-        ProxyEntity.TYPE_CONFIG -> ConfigSettingScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+    CompositionLocalProvider(
+        LocalOpenConfigEditor provides onOpenConfigEditor,
+    ) {
+        when (type) {
+            ProxyEntity.TYPE_CONFIG -> ConfigSettingScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_DIRECT -> DirectSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_DIRECT -> DirectSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_HTTP -> HttpSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_HTTP -> HttpSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_SOCKS -> SocksSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_SOCKS -> SocksSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_SSH -> SSHSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_SSH -> SSHSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_HYSTERIA -> HysteriaSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_HYSTERIA -> HysteriaSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_MIERU -> MieruSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_MIERU -> MieruSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_ANYTLS -> AnyTLSSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_ANYTLS -> AnyTLSSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_CHAIN -> ChainSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onOpenProfileSelect = onOpenProfileSelect,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_CHAIN -> ChainSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onOpenProfileSelect = onOpenProfileSelect,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_PROXY_SET -> ProxySetSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onOpenProfileSelect = onOpenProfileSelect,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_PROXY_SET -> ProxySetSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onOpenProfileSelect = onOpenProfileSelect,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_SS -> ShadowsocksSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_SS -> ShadowsocksSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_NAIVE -> NaiveSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_NAIVE -> NaiveSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_JUICITY -> JuicitySettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_JUICITY -> JuicitySettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_WG -> WireGuardSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_WG -> WireGuardSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_TUIC -> TuicSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_TUIC -> TuicSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_SHADOWTLS -> ShadowTLSSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_SHADOWTLS -> ShadowTLSSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_SHADOWQUIC -> ShadowQUICSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_SHADOWQUIC -> ShadowQUICSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_TRUST_TUNNEL -> TrustTunnelSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_TRUST_TUNNEL -> TrustTunnelSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_VMESS -> VMessSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_VMESS -> VMessSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_VLESS -> VLESSSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_VLESS -> VLESSSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        ProxyEntity.TYPE_TROJAN -> TrojanSettingsScreen(
-            profileId = profileId,
-            isSubscription = isSubscription,
-            onResult = onResult,
-        )
+            ProxyEntity.TYPE_TROJAN -> TrojanSettingsScreen(
+                profileId = profileId,
+                isSubscription = isSubscription,
+                onResult = onResult,
+            )
 
-        else -> error("Unsupported profile type: $type")
+            else -> error("Unsupported profile type: $type")
+        }
     }
 }
 
@@ -256,8 +265,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     var showDeleteAlert by remember { mutableStateOf(false) }
     var showExtendMenu by remember { mutableStateOf(false) }
-    var editingCustomConfig by remember { mutableStateOf<String?>(null) }
-    var editingOutbound by remember { mutableStateOf(false) }
+    val openConfigEditor = LocalOpenConfigEditor.current
 
     BackHandler(enabled = isDirty) {
         showBackAlert = true
@@ -358,17 +366,19 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.outbound)) },
                                     onClick = {
-                                        editingOutbound = true
-                                        editingCustomConfig = viewModel.uiState.value.customOutbound
                                         showExtendMenu = false
+                                        openConfigEditor(viewModel.uiState.value.customOutbound) { text ->
+                                            viewModel.setCustomOutbound(text)
+                                        }
                                     },
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.full)) },
                                     onClick = {
-                                        editingOutbound = false
-                                        editingCustomConfig = viewModel.uiState.value.customConfig
                                         showExtendMenu = false
+                                        openConfigEditor(viewModel.uiState.value.customConfig) { text ->
+                                            viewModel.setCustomConfig(text)
+                                        }
                                     },
                                 )
                             }
@@ -445,27 +455,6 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
             title = { Text(stringOrRes(alert.title)) },
             text = { Text(stringOrRes(alert.message)) },
         )
-    }
-
-    editingCustomConfig?.let { initialText ->
-        Dialog(
-            onDismissRequest = { editingCustomConfig = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-        ) {
-            ConfigEditDialog(
-                initialText = initialText,
-                onDismiss = { editingCustomConfig = null },
-                onSave = { text ->
-                    if (editingOutbound) {
-                        viewModel.setCustomOutbound(text)
-                    } else {
-                        viewModel.setCustomConfig(text)
-                    }
-                    editingCustomConfig = null
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
     }
 }
 
