@@ -1,5 +1,5 @@
 [versions]
-ksp = "2.3.5"
+ksp = "2.3.6"
 kotlinComposePlugin = "2.3.20-RC"
 composeMultiplatform = "1.10.1"
 composeMaterial3 = "1.11.0-alpha02"
