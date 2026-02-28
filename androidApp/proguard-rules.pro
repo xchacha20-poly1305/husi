@@ -36,3 +36,4 @@
 -dontwarn java.beans.VetoableChangeSupport
 -dontwarn java.beans.PropertyVetoException
 -dontwarn android.app.ActivityThread
+-dontwarn kotlinx.parcelize.Parcelize
