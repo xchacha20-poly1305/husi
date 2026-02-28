@@ -1,5 +1,7 @@
 package fr.husi.repository
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.UiModeManager
 import android.content.Context
@@ -8,6 +10,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.PowerManager
 import android.os.UserManager
 import androidx.core.content.ContextCompat
@@ -15,18 +18,30 @@ import androidx.core.content.getSystemService
 import fr.husi.Action
 import fr.husi.bg.SagerConnection
 import fr.husi.libcore.createBoxService
-import kotlinx.coroutines.runBlocking
+import fr.husi.resources.Res
+import fr.husi.resources.service_proxy
+import fr.husi.resources.service_subscription
+import fr.husi.resources.service_vpn
+import fr.husi.ui.MainActivity
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.setResourceReaderAndroidContext
 import java.io.File
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
+@OptIn(ExperimentalResourceApi::class)
 open class SagerRepository(
     override val context: Context,
     override val isMainProcess: Boolean,
     override val isBgProcess: Boolean,
 ) : AndroidRepository {
+
+    init {
+        // We don't know when could the resource be initialized
+        setResourceReaderAndroidContext(context)
+    }
 
     override val isAndroid = true
     override val isLinux = false
@@ -44,7 +59,7 @@ open class SagerRepository(
             PendingIntent.getActivity(
                 callerContext,
                 0,
-                Intent(serviceContext, Class.forName("fr.husi.ui.MainActivity"))
+                Intent(serviceContext, MainActivity::class.java)
                     .setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
                 PendingIntent.FLAG_IMMUTABLE,
             )
@@ -72,6 +87,10 @@ open class SagerRepository(
     }
 
     override val packageManager: PackageManager = serviceContext.packageManager
+
+    private val notification: NotificationManager by lazy {
+        serviceContext.getSystemService<NotificationManager>()!!
+    }
 
     override val cacheDir: File by lazy {
         serviceContext.cacheDir.apply { mkdirs() }
@@ -115,7 +134,7 @@ open class SagerRepository(
     override fun startService() {
         ContextCompat.startForegroundService(
             serviceContext,
-            Intent(androidRepo.context, SagerConnection.serviceClass),
+            Intent(context, SagerConnection.serviceClass),
         )
     }
 
@@ -129,5 +148,34 @@ open class SagerRepository(
         serviceContext.sendBroadcast(
             Intent(Action.CLOSE).setPackage(serviceContext.packageName),
         )
+    }
+
+    override suspend fun updateNotificationChannels() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+        val importanceVpn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            NotificationManager.IMPORTANCE_MIN
+        } else {
+            NotificationManager.IMPORTANCE_LOW
+        }
+
+        val channels = listOf(
+            NotificationChannel(
+                "service-vpn",
+                getString(Res.string.service_vpn),
+                importanceVpn,
+            ),
+            NotificationChannel(
+                "service-proxy",
+                getString(Res.string.service_proxy),
+                NotificationManager.IMPORTANCE_LOW,
+            ),
+            NotificationChannel(
+                "service-subscription",
+                getString(Res.string.service_subscription),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
+        notification.createNotificationChannels(channels)
     }
 }

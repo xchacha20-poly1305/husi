@@ -118,9 +118,9 @@ class ServiceNotification(
         update()
     }
 
-    suspend fun postNotificationTitle(newTitle: String) {
+    override suspend fun onTitle(title: String) {
         useBuilder {
-            it.setContentTitle(newTitle)
+            it.setContentTitle(title)
         }
         update()
     }

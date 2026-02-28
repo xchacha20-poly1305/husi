@@ -364,10 +364,10 @@ class BaseService {
 
             val data = data
             if (data.state != ServiceState.Stopped) return Service.START_NOT_STICKY
+            data.notification = createNotifier("")
             val profile = runBlocking { SagerDatabase.proxyDao.getById(DataStore.selectedProxy) }
             this as Context
             if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
-                data.notification = createNotifier("")
                 stopRunner(false, runBlocking { repo.getString(Res.string.profile_empty) })
                 return Service.START_NOT_STICKY
             }
@@ -402,9 +402,9 @@ class BaseService {
             }
 
             data.changeState(ServiceState.Connecting)
-            runOnMainDispatcher {
+            runOnDefaultDispatcher {
                 try {
-                    data.notification = createNotifier(profile.displayNameForService())
+                    data.notification.onTitle(profile.displayNameForService())
 
                     Executable.killAll()    // clean up old processes
                     preInit()
@@ -420,7 +420,9 @@ class BaseService {
                     Logs.e(e)
                     stopRunner(false, repo.getString(Res.string.invalid_server))
                 } catch (e: PluginNotFoundException) {
-                    showToast(e.readableMessage)
+                    onMainDispatcher {
+                        showToast(e.readableMessage)
+                    }
                     Logs.w(e)
                     stopRunner(false, e.readableMessage)
                     data.binder.notifyAlert(AlertType.MISSING_PLUGIN, e.plugin)

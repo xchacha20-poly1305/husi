@@ -7,7 +7,6 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.os.UserManager
-import androidx.annotation.StringRes
 import java.io.File
 
 interface AndroidRepository : Repository {
@@ -22,6 +21,7 @@ interface AndroidRepository : Repository {
     val noBackupFilesDir: File
     fun getDatabasePath(name: String): File
 
+    suspend fun updateNotificationChannels()
 }
 
 val androidRepo: AndroidRepository get() = repo as AndroidRepository
