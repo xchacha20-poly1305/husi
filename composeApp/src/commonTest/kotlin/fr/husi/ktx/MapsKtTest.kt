@@ -2,10 +2,10 @@
 
 package fr.husi.ktx
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 // Define a simple data class for testing the `shouldAsMap` true path
 data class TestConfigObject(val retries: String)
@@ -19,7 +19,7 @@ class MergeJsonTest {
 
     private lateinit var to: JSONMap
 
-    @BeforeEach
+    @BeforeTest
     fun setup() {
         // Initialize 'to' map before each test
         to = mutableMapOf()
@@ -68,8 +68,7 @@ class MergeJsonTest {
         )
         mergeJson(from, to)
 
-        val address = to["address"] as? JSONMap
-        assertNotNull(address)
+        val address = assertNotNull(to["address"] as? JSONMap)
         assertEquals("Paris", address["city"], "City should be updated")
         assertEquals("SW1", address["zip"], "Zip should remain")
         assertEquals("Baker St", address["street"], "Street should be added")
@@ -81,8 +80,7 @@ class MergeJsonTest {
             "address" to mutableMapOf("city" to "London")
         )
         mergeJson(from, to)
-        val address = to["address"] as? JSONMap
-        assertNotNull(address)
+        val address = assertNotNull(to["address"] as? JSONMap)
         assertEquals("London", address["city"])
     }
 
@@ -93,8 +91,7 @@ class MergeJsonTest {
             "address" to mutableMapOf("city" to "Paris")
         )
         mergeJson(from, to)
-        val address = to["address"] as? JSONMap
-        assertNotNull(address, "'address' should now be a map")
+        val address = assertNotNull(to["address"] as? JSONMap, "'address' should now be a map")
         assertEquals("Paris", address["city"])
     }
 
@@ -105,8 +102,7 @@ class MergeJsonTest {
             "config" to TestConfigObject("3")
         )
         mergeJson(from, to)
-        val config = to["config"] as? JSONMap
-        assertNotNull(config)
+        val config = assertNotNull(to["config"] as? JSONMap)
         assertEquals(1000, config["timeout"], "Existing value 'timeout' should remain")
         assertEquals(
             "value",
@@ -123,8 +119,7 @@ class MergeJsonTest {
             "config" to TestConfigObject("3")
         )
         mergeJson(from, to)
-        val config = to["config"] as? JSONMap
-        assertNotNull(config, "Config should be a map now")
+        val config = assertNotNull(to["config"] as? JSONMap, "Config should be a map now")
         assertEquals("3", config["retries"], "New map should be created and value merged")
     }
 
@@ -189,8 +184,7 @@ class MergeJsonTest {
         )
         mergeJson(from, to)
 
-        val nested = to["nested"] as? JSONMap
-        assertNotNull(nested)
+        val nested = assertNotNull(to["nested"] as? JSONMap)
         assertEquals(listOf("!", "A", "B", "C"), nested["items"])
     }
 

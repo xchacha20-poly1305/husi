@@ -1,8 +1,5 @@
 package fr.husi.fmt
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import fr.husi.fmt.SingBoxOptions.MyOptions
 import fr.husi.fmt.SingBoxOptions.MyDNSOptions
 import fr.husi.fmt.SingBoxOptions.MyRouteOptions
@@ -16,6 +13,12 @@ import fr.husi.fmt.SingBoxOptions.RuleSet_Local
 import fr.husi.fmt.SingBoxOptions.Rule_Default
 import fr.husi.fmt.SingBoxOptions.Rule_Logical
 import fr.husi.ktx.asMap
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class SingBoxOptionsUtilKtTest {
 
@@ -52,7 +55,7 @@ class SingBoxOptionsUtilKtTest {
         return rule as? RuleSet_Local ?: fail("Rule set '$tag' is not local")
     }
 
-    @BeforeEach
+    @BeforeTest
     fun setUp() {
         options = MyOptions()
     }
@@ -82,7 +85,7 @@ class SingBoxOptionsUtilKtTest {
             localPath = "/data/local"
         )
 
-        assertEquals(emptyList<RuleSet>(), requireNotNull(options.route).rule_set)
+        assertTrue(requireNotNull(options.route).rule_set.isNullOrEmpty())
     }
 
     @Test

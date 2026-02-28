@@ -76,7 +76,7 @@ fmt_go_install:
 test: test_gradle test_go
 
 test_gradle:
-	./gradlew testFossDebugUnitTest
+	./gradlew :composeApp:allTests
 
 test_go:
 	cd libcore/ && go test -v -count=1 ./...
