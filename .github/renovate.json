@@ -186,6 +186,12 @@
     },
     {
       "matchPackageNames": [
+        "/.*/"
+      ],
+      "allowedVersions": "!/.*-[Ss][Nn][Aa][Pp][Ss][Hh][Oo][Tt](\\+.*)?$/"
+    },
+    {
+      "matchPackageNames": [
         "com.google.guava:guava"
       ],
       "allowedVersions": "/-android$/"

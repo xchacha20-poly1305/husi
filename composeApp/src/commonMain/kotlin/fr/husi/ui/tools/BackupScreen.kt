@@ -33,34 +33,50 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.TextButton
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.TextButton
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
+import fr.husi.repository.repo
+import fr.husi.resources.Res
+import fr.husi.resources.action_export
+import fr.husi.resources.action_export_msg
+import fr.husi.resources.action_import_file
+import fr.husi.resources.backup_groups_and_configurations
+import fr.husi.resources.backup_import
+import fr.husi.resources.backup_import_summary
+import fr.husi.resources.backup_rules
+import fr.husi.resources.backup_settings
+import fr.husi.resources.backup_summary
+import fr.husi.resources.cancel
+import fr.husi.resources.error
+import fr.husi.resources.error_title
+import fr.husi.resources.ok
+import fr.husi.resources.question_mark
+import fr.husi.resources.share
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
-import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import fr.husi.resources.*
-import fr.husi.repository.repo
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
 internal fun BackupScreen(
@@ -80,7 +96,9 @@ internal fun BackupScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var errorDialog by remember { mutableStateOf<String?>(null) }
 
-    val exportFileLauncher = rememberFileSaverLauncher { file ->
+    val exportFileLauncher = rememberFileSaverLauncher(
+        dialogSettings = FileKitDialogSettings.createDefault(),
+    ) { file ->
         if (file == null) {
             viewModel.postExport()
             return@rememberFileSaverLauncher

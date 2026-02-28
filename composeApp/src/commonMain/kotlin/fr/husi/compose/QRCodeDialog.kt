@@ -31,6 +31,7 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 
 @Composable
 fun QRCodeDialog(
@@ -57,7 +58,9 @@ fun QRCodeDialog(
         generateQRCodeBitmap(url, qrSize)
     }
 
-    val fileSaver = rememberFileSaverLauncher { file ->
+    val fileSaver = rememberFileSaverLauncher(
+        dialogSettings = FileKitDialogSettings.createDefault(),
+    ) { file ->
         if (file != null && qrBitmap != null) {
             scope.launch {
                 try {

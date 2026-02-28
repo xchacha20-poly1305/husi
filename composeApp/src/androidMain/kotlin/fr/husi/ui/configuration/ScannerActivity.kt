@@ -47,6 +47,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,8 +76,8 @@ import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.theme.AppTheme
 import fr.husi.ktx.forEachTry
 import fr.husi.permission.AppPermission
-import fr.husi.permission.ProvidePermissionPlatform
-import fr.husi.permission.rememberPermissionPlatform
+import fr.husi.permission.LocalPermissionPlatform
+import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.ui.ComposeActivity
 import fr.husi.ui.MainActivity
 import fr.husi.ui.getStringOrRes
@@ -111,7 +112,9 @@ class ScannerActivity : ComposeActivity() {
 
         setContent {
             AppTheme {
-                ProvidePermissionPlatform {
+                CompositionLocalProvider(
+                    LocalPermissionPlatform provides rememberAndroidPermissionPlatform(),
+                ) {
                     ScannerScreen(
                         viewModel = viewModel,
                         onBackPress = { onBackPressedDispatcher.onBackPressed() },
@@ -140,11 +143,11 @@ private fun ScannerScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val permissionPlatform = rememberPermissionPlatform()
+    val permission = LocalPermissionPlatform.current
 
     LaunchedEffect(Unit) {
-        if (!permissionPlatform.hasPermission(AppPermission.Camera)) {
-            permissionPlatform.requestPermission(AppPermission.Camera)
+        if (!permission.hasPermission(AppPermission.Camera)) {
+            permission.requestPermission(AppPermission.Camera)
         }
     }
 

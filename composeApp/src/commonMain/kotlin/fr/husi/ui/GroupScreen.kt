@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -46,8 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,10 +59,8 @@ import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLa
 import fr.husi.GroupType
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
-import androidx.compose.foundation.layout.fillMaxHeight
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.PlatformMenuIcon
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SheetActionRow
@@ -79,19 +76,61 @@ import fr.husi.fmt.toUniversalLink
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.formatTime
 import fr.husi.ktx.onIoDispatcher
+import fr.husi.ktx.showAndDismissOld
+import fr.husi.libcore.Libcore
+import fr.husi.repository.repo
+import fr.husi.resources.Res
+import fr.husi.resources.action_export
+import fr.husi.resources.action_export_clipboard
+import fr.husi.resources.action_export_file
+import fr.husi.resources.cancel
+import fr.husi.resources.clear_profiles
+import fr.husi.resources.clear_profiles_message
+import fr.husi.resources.confirm
+import fr.husi.resources.content_copy
+import fr.husi.resources.copy_success
+import fr.husi.resources.delete
+import fr.husi.resources.drag_indicator
+import fr.husi.resources.edit
+import fr.husi.resources.file_export
+import fr.husi.resources.group_create
+import fr.husi.resources.group_status_empty
+import fr.husi.resources.group_status_empty_subscription
+import fr.husi.resources.group_status_proxies
+import fr.husi.resources.group_status_proxies_subscription
+import fr.husi.resources.group_update
+import fr.husi.resources.internal_link
+import fr.husi.resources.link
+import fr.husi.resources.menu
+import fr.husi.resources.menu_group
+import fr.husi.resources.mop
+import fr.husi.resources.more_vert
+import fr.husi.resources.ok
+import fr.husi.resources.playlist_add
+import fr.husi.resources.qr_code
+import fr.husi.resources.removed
+import fr.husi.resources.share
+import fr.husi.resources.share_qr_nfc
+import fr.husi.resources.share_subscription
+import fr.husi.resources.subscription_expire
+import fr.husi.resources.subscription_traffic
+import fr.husi.resources.subscription_used
+import fr.husi.resources.undo
+import fr.husi.resources.update
+import fr.husi.resources.update_all_subscription
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import fr.husi.resources.*
-import fr.husi.repository.repo
-import fr.husi.ktx.showAndDismissOld
-import fr.husi.libcore.Libcore
 
 @Composable
 fun GroupScreen(
@@ -132,7 +171,9 @@ fun GroupScreen(
     }
 
     var groupToExport by remember { mutableStateOf<Long?>(null) }
-    val exportProfiles = rememberFileSaverLauncher { file ->
+    val exportProfiles = rememberFileSaverLauncher(
+        dialogSettings = FileKitDialogSettings.createDefault(),
+    ) { file ->
         if (file != null && groupToExport != null) {
             viewModel.exportToFile(
                 group = groupToExport!!,
@@ -284,7 +325,10 @@ fun GroupScreen(
                             },
                             exportToFile = {
                                 groupToExport = groupState.group.id
-                                exportProfiles.launch("profiles_${groupState.group.displayName()}", "txt")
+                                exportProfiles.launch(
+                                    "profiles_${groupState.group.displayName()}",
+                                    "txt",
+                                )
                             },
                         )
                     }
@@ -741,9 +785,10 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         if (state.counts == 0L) {
                                             stringResource(Res.string.group_status_empty_subscription)
                                         } else {
-                                            val formattedDate = Instant.ofEpochMilli(state.group.subscription!!.lastUpdated * 1000L)
-                                                .atZone(ZoneId.systemDefault())
-                                                .format(DateTimeFormatter.ofPattern("M - d"))
+                                            val formattedDate =
+                                                Instant.ofEpochMilli(state.group.subscription!!.lastUpdated * 1000L)
+                                                    .atZone(ZoneId.systemDefault())
+                                                    .format(DateTimeFormatter.ofPattern("M - d"))
                                             stringResource(
                                                 Res.string.group_status_proxies_subscription,
                                                 state.counts,

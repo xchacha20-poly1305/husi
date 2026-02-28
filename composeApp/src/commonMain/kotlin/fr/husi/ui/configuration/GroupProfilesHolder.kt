@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,9 +48,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -61,9 +59,7 @@ import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItemScope
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
 import com.ernestoyaquello.dragdropswipelazycolumn.state.rememberDragDropSwipeLazyColumnState
 import fr.husi.GroupType
-import androidx.compose.foundation.layout.fillMaxHeight
 import fr.husi.compose.BoxedVerticalScrollbar
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SheetActionRow
 import fr.husi.compose.SheetSectionTitle
 import fr.husi.compose.SimpleIconButton
@@ -83,14 +79,50 @@ import fr.husi.ktx.isInsecure
 import fr.husi.ktx.onMainDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.readableUrlTestError
+import fr.husi.libcore.Libcore
+import fr.husi.resources.Res
+import fr.husi.resources.action_export_clipboard
+import fr.husi.resources.action_export_file
+import fr.husi.resources.action_export_msg
+import fr.husi.resources.arrow_outward
+import fr.husi.resources.available
+import fr.husi.resources.connection_test_unreachable
+import fr.husi.resources.content_copy
+import fr.husi.resources.copy_all
+import fr.husi.resources.delete
+import fr.husi.resources.deprecated
+import fr.husi.resources.drag_indicator
+import fr.husi.resources.edit
+import fr.husi.resources.error
+import fr.husi.resources.error_title
+import fr.husi.resources.file_export
+import fr.husi.resources.fingerprint
+import fr.husi.resources.insecure
+import fr.husi.resources.internal_link
+import fr.husi.resources.link
+import fr.husi.resources.menu_configuration
+import fr.husi.resources.ok
+import fr.husi.resources.outbound
+import fr.husi.resources.qr_code
+import fr.husi.resources.send
+import fr.husi.resources.settings
+import fr.husi.resources.share
+import fr.husi.resources.share_qr_nfc
+import fr.husi.resources.standard
+import fr.husi.resources.traffic
+import fr.husi.resources.unavailable
+import fr.husi.resources.warning
 import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
-import fr.husi.libcore.Libcore
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 internal fun GroupHolderScreen(
@@ -158,7 +190,9 @@ internal fun GroupHolderScreen(
     var editingID by remember { mutableLongStateOf(-1L) }
 
     var exportConfig by remember { mutableStateOf("") }
-    val exportFileLauncher = rememberFileSaverLauncher { file ->
+    val exportFileLauncher = rememberFileSaverLauncher(
+        dialogSettings = FileKitDialogSettings.createDefault(),
+    ) { file ->
         if (file != null) lifecycleOwner.lifecycleScope.launch {
             try {
                 file.write(exportConfig.encodeToByteArray())
