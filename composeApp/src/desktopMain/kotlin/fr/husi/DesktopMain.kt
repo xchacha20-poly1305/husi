@@ -18,7 +18,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.bg.BackendState
+import fr.husi.bg.ServiceState
 import fr.husi.compose.getPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
@@ -36,7 +39,12 @@ import fr.husi.resources.app_name
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
 import fr.husi.resources.ic_service_rest
+import fr.husi.resources.service_mode
+import fr.husi.resources.service_mode_proxy
+import fr.husi.resources.service_mode_vpn
 import fr.husi.resources.show_window
+import fr.husi.resources.start
+import fr.husi.resources.stop
 import fr.husi.ui.MainScreen
 import fr.husi.ui.MainViewModel
 import fr.husi.utils.CrashHandler
@@ -78,6 +86,51 @@ fun main(args: Array<String>) {
             onAction = ::openWindow,
         ) {
             // TODO mnemonic and icon is not supported on some desktop environments (GNOME)
+            val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+            Item(
+                text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+            ) {}
+            Item(
+                text = stringResource(
+                    if (serviceStatus.state == ServiceState.Connected) {
+                        Res.string.stop
+                    } else {
+                        Res.string.start
+                    },
+                ),
+                enabled = serviceStatus.state == ServiceState.Connected || serviceStatus.state == ServiceState.Stopped,
+            ) {
+                when (serviceStatus.state) {
+                    ServiceState.Stopped -> repo.startService()
+                    ServiceState.Connected -> repo.stopService()
+                    else -> {}
+                }
+            }
+            Menu(
+                text = stringResource(Res.string.service_mode),
+            ) {
+                val serviceMode by DataStore.configurationStore
+                    .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                    .collectAsStateWithLifecycle(Key.MODE_VPN)
+                RadioButtonItem(
+                    text = stringResource(Res.string.service_mode_proxy),
+                    selected = serviceMode == Key.MODE_PROXY,
+                ) {
+                    if (serviceMode != Key.MODE_PROXY) {
+                        DataStore.serviceMode = Key.MODE_PROXY
+                        repo.reloadService()
+                    }
+                }
+                RadioButtonItem(
+                    text = stringResource(Res.string.service_mode_vpn),
+                    selected = serviceMode == Key.MODE_VPN,
+                ) {
+                    if (serviceMode != Key.MODE_VPN) {
+                        DataStore.serviceMode = Key.MODE_VPN
+                        repo.reloadService()
+                    }
+                }
+            }
             Item(
                 text = stringResource(Res.string.show_window),
                 // mnemonic = 'S',
