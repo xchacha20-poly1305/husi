@@ -13,9 +13,7 @@
     <string name="connection_test_available_http">Успішно: рукостискання HTTP зайняло %1$dms</string>
     <string name="connection_test_available">Успіх: рукостискання HTTPS зайняло %1$dms</string>
     <string name="connection_test_testing">Тестування…</string>
-    <string name="speed_detail">Проксі: %1$s↑ %2$s↓
-        \nПрямий: %3$s↑ %4$s↓
-    </string>
+    <string name="speed_detail">Проксі: %1$s↑ %2$s↓\nПрямий: %3$s↑ %4$s↓</string>
     <string name="allow_insecure_sum">Вимкнути перевірку сертифікатів. Якщо ввімкнено, ця конфігурація є такою ж безпечною, як і передача пароля у відкритому вигляді</string>
     <string name="allow_insecure">Дозволити незахищене підключення</string>
     <string name="security_settings">Налаштування безпеки</string>
@@ -25,8 +23,7 @@
     <string name="show_stop">Показати кнопку зупинки</string>
     <string name="cag_misc">Різні налаштування</string>
     <string name="speed_interval">Інтервал оновлення сповіщення про швидкість</string>
-    <string name="ws_browser_forwarding_sum">Пересилайте відповідні WebSockets через браузер.
-    </string>
+    <string name="ws_browser_forwarding_sum">Пересилайте відповідні WebSockets через браузер.</string>
     <string name="ws_browser_forwarding">Переадресація браузера</string>
     <string name="cag_ws">Налаштування WebSocket</string>
     <string name="general_settings">Налаштування застосунку</string>
@@ -36,18 +33,10 @@
     <string name="port_proxy">Порт проксі SOCKS5</string>
     <string name="service_mode_proxy">Тільки проксі</string>
     <string name="service_mode">Режим обслуговування</string>
-    <string name="group_duplicate">Дублікат:
-        \n%1$s
-    </string>
-    <string name="group_deleted">Видалено:
-        \n%1$s
-    </string>
-    <string name="group_changed">Оновлено:
-        \n%1$s
-    </string>
-    <string name="group_added">Додано:
-        \n%1$s
-    </string>
+    <string name="group_duplicate">Дублікат:\n%1$s</string>
+    <string name="group_deleted">Видалено:\n%1$s</string>
+    <string name="group_changed">Оновлено:\n%1$s</string>
+    <string name="group_added">Додано:\n%1$s</string>
     <string name="group_delete_confirm_prompt">Ви впевнені, що хочете видалити цю групу\?</string>
     <string name="group_diff">Різниця (%1$s)</string>
     <string name="group_show_diff">Порівняти групи</string>
@@ -444,9 +433,7 @@
     <string name="copy_failed">Не вдалося скопіювати.</string>
     <string name="ooc_warning">Попередження</string>
     <string name="resolve_destination_summary">Якщо адреса призначення є доменом, то вона передається у відповідности до стратегії IPv6 (конфліктує з FakeDNS)</string>
-    <string name="naive_insecure_concurrency_summary">Використовувати N паралельних з\'єднань для збільшення відмовостійкості в умовах ненадійної мережі. Більша кількість з\'єднань збільшує ризик виявлення тунелів та зменшує безпеку. Цей проект прагне максимального захисту від аналізу трафіку, тому використання його таким чином суперечить даній меті.
-\n
-\nЯкщо необхідно використовувати дану функцію, спробуйте N=2, аби перевірити, чи вирішить це проблему. Наполегливо не рекомендується використовувати більше ніж 4 з\'єднання.</string>
+    <string name="naive_insecure_concurrency_summary">Використовувати N паралельних з\'єднань для збільшення відмовостійкості в умовах ненадійної мережі. Більша кількість з\'єднань збільшує ризик виявлення тунелів та зменшує безпеку. Цей проект прагне максимального захисту від аналізу трафіку, тому використання його таким чином суперечить даній меті.\n\nЯкщо необхідно використовувати дану функцію, спробуйте N=2, аби перевірити, чи вирішить це проблему. Наполегливо не рекомендується використовувати більше ніж 4 з\'єднання.</string>
     <string name="stun_test">Виявлення поведінки NAT</string>
     <string name="group_type">Тип групи</string>
     <string name="stun_test_summary">Визначити поведінку співставлення адресів NAT та поведінку фільтрації NAT відповідно до RFC 5780 за допомогою STUN.</string>

@@ -29,15 +29,9 @@
     <string name="group_updated">%1$s: 更新了 %2$d 个节点</string>
     <string name="group_show_diff">变化</string>
     <string name="group_delete_confirm_prompt">您确定要删除这个分组吗?</string>
-    <string name="group_added">新增:
-        \n%1$s
-    </string>
-    <string name="group_changed">更新:
-        \n%1$s
-    </string>
-    <string name="group_deleted">删除:
-        \n%1$s
-    </string>
+    <string name="group_added">新增:\n%1$s</string>
+    <string name="group_changed">更新:\n%1$s</string>
+    <string name="group_deleted">删除:\n%1$s</string>
     <!-- misc -->
     <string name="service_mode">运行模式</string>
     <string name="service_mode_proxy">仅代理</string>
@@ -53,9 +47,7 @@
     <string name="ws_browser_forwarding_sum">转发相应的 WebSockets 到浏览器.</string>
     <string name="speed_interval">速度通知更新间隔</string>
     <string name="traffic">%1$s↑ %2$s↓</string>
-    <string name="speed_detail">代理： %1$s↑ %2$s↓
-        \n直连： %3$s↑ %4$s↓
-    </string>
+    <string name="speed_detail">代理： %1$s↑ %2$s↓\n直连： %3$s↑ %4$s↓</string>
     <string name="speed">%1$s/s</string>
     <string name="connection_test_testing">测试中…</string>
     <string name="connection_test_available">连接成功: HTTPS 握手耗时 %1$dms</string>
@@ -184,9 +176,7 @@
     <string name="utls_fingerprint">uTLS 指纹</string>
     <string name="grpc_service_name">gRPC 服务名称</string>
     <string name="alpn">应用层协议协商</string>
-    <string name="group_duplicate">重复:
-        \n%1$s
-    </string>
+    <string name="group_duplicate">重复:\n%1$s</string>
     <string name="deduplication">去重</string>
     <string name="version_x">版本 (%1$s)</string>
     <string name="show_stop">显示停止按钮</string>
@@ -201,8 +191,7 @@
     <string name="chain_settings">链设置</string>
     <string name="circular_reference">循环引用</string>
     <string name="circular_reference_sum">路由中不能包含自己.</string>
-    <string name="mux_sum">多路复用是为了减少与服务器的握手延迟而设计, 而非提高连接的吞吐量. 用于看视频、下载或者测速通常都有反效果。如果服务器不支持，则无法上网。
-    </string>
+    <string name="mux_sum">多路复用是为了减少与服务器的握手延迟而设计, 而非提高连接的吞吐量. 用于看视频、下载或者测速通常都有反效果。如果服务器不支持，则无法上网。</string>
     <string name="tcp_keep_alive_interval">TCP 保持活跃数据包发送间隔</string>
     <string name="route_add">新建路由规则</string>
     <string name="delete_route_prompt">您确定要移除此路由吗?</string>
@@ -210,9 +199,7 @@
     <string name="route_profile">选择配置…</string>
     <string name="empty_route">空路由</string>
     <string name="empty_route_notice">在保存前设置一些规则</string>
-    <string name="route_warn">
-        在添加自定义规则之前，请确保您已经阅读了文档，否则您将可能无法连接到互联网。
-    </string>
+    <string name="route_warn">在添加自定义规则之前，请确保您已经阅读了文档，否则您将可能无法连接到互联网。</string>
     <string name="route_bypass_domain">%1$s 域名规则</string>
     <string name="route_bypass_ip">%1$s IP 规则</string>
     <string name="no_proxies_found_in_file">未在此文件内找到服务器配置</string>
@@ -220,9 +207,7 @@
     <string name="route_reset">重置</string>
     <string name="reset_rule_set">重置规则集</string>
     <string name="clear_profiles">清空</string>
-    <string name="file_manager_missing">您的设备缺少 Android 标准文件选择器, 请安装一个, 如 Material
-        Files.
-    </string>
+    <string name="file_manager_missing">您的设备缺少 Android 标准文件选择器, 请安装一个, 如 Material Files.</string>
     <string name="need_reload">重载代理服务以应用修改</string>
     <!-- themes -->
     <string name="theme">主题颜色</string>
@@ -300,9 +285,7 @@
     <string name="connection_test_unreachable">不可达</string>
     <string name="tile_title">开关</string>
     <string name="append_http_proxy">追加 HTTP 代理至 VPN</string>
-    <string name="append_http_proxy_sum">浏览器 / 一些支持的应用 将直接使用 HTTP 代理, 而不经过虚拟网卡设备
-        (Android 10+)
-    </string>
+    <string name="append_http_proxy_sum">浏览器 / 一些支持的应用 将直接使用 HTTP 代理, 而不经过虚拟网卡设备 (Android 10+)</string>
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="protocol_settings">协议设置</string>
     <string name="trojan_provider">Trojan 提供程序</string>
@@ -314,9 +297,7 @@
     <string name="subscription_type">订阅类型</string>
     <string name="delete_group_prompt">您确定要删除该分组吗 ?</string>
     <string name="force_resolve">强制解析</string>
-    <string name="force_resolve_sum">更新时解析所有域名到 IP 地址. 如果可能,
-        主机与服务器名称指示值将被自动覆盖
-    </string>
+    <string name="force_resolve_sum">更新时解析所有域名到 IP 地址. 如果可能, 主机与服务器名称指示值将被自动覆盖</string>
     <string name="deduplication_sum">更新时移除重复配置</string>
     <string name="raw">原始</string>
     <string name="update_settings">更新设置</string>
@@ -335,8 +316,7 @@
     <string name="download">下载</string>
     <string name="ooc_subscription_token_invalid">无效的 OOCv1 Token</string>
     <string name="ooc_warning">警告</string>
-    <string name="ooc_missing_protocol">该订阅要求 %1$s 协议支持, 但找不到. 不支持的配置将被忽略.
-    </string>
+    <string name="ooc_missing_protocol">该订阅要求 %1$s 协议支持, 但找不到. 不支持的配置将被忽略.</string>
     <string name="service_subscription">订阅更新服务</string>
     <string name="subscription_update">订阅更新</string>
     <string name="subscription_update_message">正更新 %1$s …</string>
@@ -345,9 +325,7 @@
     <string name="subscription_used">已用 %1$s</string>
     <string name="subscription_traffic">已用 %1$s / 剩余 %2$s</string>
     <string name="subscription_import">导入订阅</string>
-    <string name="subscription_import_message">确认要导入订阅 %1$s？如果来源不可信, 您的 IP
-        和行为将被泄露.
-    </string>
+    <string name="subscription_import_message">确认要导入订阅 %1$s？如果来源不可信, 您的 IP 和行为将被泄露.</string>
     <string name="profile_import">导入配置</string>
     <string name="profile_import_message">确认要导入配置 %1$s？</string>
     <string name="no_proxies_found_in_subscription">未在此订阅内找到服务器配置</string>
@@ -356,8 +334,7 @@
     <string name="remote_dns">远程 DNS</string>
     <string name="direct_dns">直连 DNS</string>
     <string name="enable_fakedns">启用 FakeDNS</string>
-    <string name="fakedns_message">可能导致其他应用程序在代理停止后需要重新启动以重新连接到网络
-    </string>
+    <string name="fakedns_message">可能导致其他应用程序在代理停止后需要重新启动以重新连接到网络</string>
     <string name="dns_hosts">域名重写</string>
     <string name="dns_only">仅 DNS</string>
     <string name="apps">应用</string>
@@ -404,9 +381,7 @@
     <string name="wireguard_local_address">本地地址</string>
     <string name="wireguard_public_key">节点公钥</string>
     <string name="wireguard_psk">节点预共享密钥</string>
-    <string name="resolve_destination_summary">如果目标地址是一个域, 则根据 IPv6 策略传出（与 FakeDNS
-        冲突）
-    </string>
+    <string name="resolve_destination_summary">如果目标地址是一个域, 则根据 IPv6 策略传出（与 FakeDNS 冲突）</string>
     <string name="resolve_destination">解析目标地址</string>
     <string name="tun_implementation">TUN 实现</string>
     <string name="profile_traffic_statistics_summary">禁用后将不统计使用的流量</string>
@@ -420,11 +395,7 @@
     <string name="route_play_store">%1$s Play 商店规则</string>
     <string name="route_opt_block_analysis">屏蔽跟踪器</string>
     <string name="naive_insecure_concurrency">不安全并发</string>
-    <string name="naive_insecure_concurrency_summary">
-        使用N个并发的隧道连接，在恶劣的网络条件下更加强大。更多的连接使隧道更容易被发现，安全性更低。这个项目力求对流量分析有最强的安全性。以不安全的方式使用它就违背了它的目的。
-        \n
-        \n如果你必须使用它，先试试N=2，看看是否能解决你的问题。强烈建议不要在这里使用超过4个连接。
-    </string>
+    <string name="naive_insecure_concurrency_summary">使用N个并发的隧道连接，在恶劣的网络条件下更加强大。更多的连接使隧道更容易被发现，安全性更低。这个项目力求对流量分析有最强的安全性。以不安全的方式使用它就违背了它的目的。\n\n如果你必须使用它，先试试N=2，看看是否能解决你的问题。强烈建议不要在这里使用超过4个连接。</string>
     <string name="tools_network">网络</string>
     <string name="backup">备份</string>
     <string name="backup_groups_and_configurations">分组和配置</string>

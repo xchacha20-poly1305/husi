@@ -37,10 +37,10 @@
     <string name="group_show_diff">Diferencia</string>
     <string name="group_diff">Diferencia (%1$s)</string>
     <string name="group_delete_confirm_prompt">¿Realmente quieres eliminar este grupo?</string>
-    <string name="group_added">Añadido: \n%1$s</string>
-    <string name="group_changed">Actualizado: \n%1$s</string>
-    <string name="group_deleted">Eliminado: \n%1$s</string>
-    <string name="group_duplicate">Duplicado: \n%1$s</string>
+    <string name="group_added">Añadido:\n%1$s</string>
+    <string name="group_changed">Actualizado:\n%1$s</string>
+    <string name="group_deleted">Eliminado:\n%1$s</string>
+    <string name="group_duplicate">Duplicado:\n%1$s</string>
     <!-- misc -->
     <string name="service_mode">Modo de servicio</string>
     <string name="service_mode_proxy">Solo proxy</string>
@@ -53,17 +53,13 @@
     <string name="cag_ws">Ajustes de WebSocket</string>
     <string name="ws_max_early_data" translatable="false">Max early data</string>
     <string name="ws_browser_forwarding">Reenvío del navegador</string>
-    <string name="ws_browser_forwarding_sum">Reenvía los WebSockets correspondientes a través del
-        navegador.
-    </string>
+    <string name="ws_browser_forwarding_sum">Reenvía los WebSockets correspondientes a través del navegador.</string>
     <string name="speed_interval">Interv. de actu. de notificación de velocidad</string>
     <string name="cag_misc">Otros ajustes</string>
     <string name="show_stop">Mostrar botón de detener</string>
     <string name="show_stop_sum">Si no quieres utilizar el acceso rápido como interruptor</string>
     <string name="show_direct_speed">Mostrar velocidad directa</string>
-    <string name="show_direct_speed_sum">Muestra la velocidad del tráfico sin proxy en la
-        notificación también
-    </string>
+    <string name="show_direct_speed_sum">Muestra la velocidad del tráfico sin proxy en la notificación también</string>
     <string name="security_settings">Ajustes de seguridad TLS</string>
     <string name="allow_insecure">Permitir inseguro</string>
     <string name="allow_insecure_sum">Desactiva la comprobación de certificados. Cuando está activada, esta configuración es tan segura como el texto sin formato</string>
@@ -72,8 +68,7 @@
     <string name="speed">%1$s/s</string>
     <string name="connection_test_testing">Probando…</string>
     <string name="connection_test_available">Éxito: el protocolo de enlace HTTPS tomó %1$dms</string>
-    <string name="connection_test_available_http">Éxito: el protocolo de enlace HTTP tomó %1$dms
-    </string>
+    <string name="connection_test_available_http">Éxito: el protocolo de enlace HTTP tomó %1$dms</string>
     <string name="connection_test_error">Error: %1$s</string>
     <string name="connection_test_fail">Internet no disponible</string>
     <string name="connection_test_error_status_code">Código de error: #%1$d</string>
@@ -81,9 +76,7 @@
     <string name="remote_dns">DNS remoto</string>
     <string name="direct_dns">DNS directo</string>
     <string name="enable_fakedns">Activar FakeDNS</string>
-    <string name="fakedns_message">Puede hacer que sea necesario reiniciar otras aplicaciones para
-        volver a conectarse a la red después de detener el proxy
-    </string>
+    <string name="fakedns_message">Puede hacer que sea necesario reiniciar otras aplicaciones para volver a conectarse a la red después de detener el proxy</string>
     <string name="dns_hosts">Reescritura de dominio</string>
     <string name="port_local_dns">Puerto DNS local</string>
     <string name="connection_test_url">URL de prueba de conexión</string>
@@ -150,11 +143,9 @@
     <string name="route_opt_block_analysis">Bloquear analítica</string>
     <string name="domain_strategy">Estrategia de resolución de dominio</string>
     <string name="enable_mux">Activar multiplexor</string>
-    <string name="tcp_keep_alive_interval">TCP mantiene activo el intervalo de entrega de paquetes
-    </string>
+    <string name="tcp_keep_alive_interval">TCP mantiene activo el intervalo de entrega de paquetes</string>
     <string name="proxied_apps">Modo VPN de aplicaciones</string>
-    <string name="proxied_apps_summary">Configurar el modo VPN para las aplicaciones seleccionadas
-    </string>
+    <string name="proxied_apps_summary">Configurar el modo VPN para las aplicaciones seleccionadas</string>
     <string name="on">Encendido</string>
     <string name="off">Apagado</string>
     <string name="search_apps">Buscar…</string>
@@ -163,9 +154,7 @@
     <string name="clear_selections">Borrar selecciones</string>
     <string name="bypass_apps">Omitir</string>
     <string name="auto_connect">Conexión automática</string>
-    <string name="auto_connect_summary">Activa el proxy en el inicio/actualización de la aplicación
-        si se estaba ejecutando antes
-    </string>
+    <string name="auto_connect_summary">Activa el proxy en el inicio/actualización de la aplicación si se estaba ejecutando antes</string>
     <string name="direct_boot_aware">Permitir alternar en pantalla de bloqueo</string>
     <string name="direct_boot_aware_summary">La información de tu perfil seleccionado estará menos protegida</string>
     <!-- notification category -->
@@ -279,9 +268,7 @@
     <string name="available" translatable="false">%1$dms</string>
     <string name="unavailable">No disponible</string>
     <string name="always_show_address">Mostrar siempre la dirección</string>
-    <string name="always_show_address_sum">Muestra siempre la dirección del servidor en la tarjeta
-        de configuración
-    </string>
+    <string name="always_show_address_sum">Muestra siempre la dirección del servidor en la tarjeta de configuración</string>
     <string name="clear_traffic_statistics">Borrar estadísticas de tráfico</string>
     <string name="connection_test">Prueba de conexión</string>
     <string name="connection_test_clear_results">Borrar resultados de prueba</string>
@@ -295,10 +282,7 @@
     <string name="connection_test_unreachable">Inaccesible</string>
     <string name="connection_test_timeout">Tiempo agotado</string>
     <string name="append_http_proxy">Añadir proxy HTTP a la VPN</string>
-    <string name="append_http_proxy_sum">El proxy HTTP se utilizará directamente desde
-        (navegador/algunas aplicaciones compatibles), sin pasar por el dispositivo NIC virtual
-        (Android 10+)
-    </string>
+    <string name="append_http_proxy_sum">El proxy HTTP se utilizará directamente desde (navegador/algunas aplicaciones compatibles), sin pasar por el dispositivo NIC virtual (Android 10+)</string>
     <string name="protocol_settings">Ajustes de protocolo</string>
     <string name="trojan_provider">Proveedor Trojan</string>
     <string name="group_basic">Básico</string>
@@ -377,9 +361,7 @@
     <string name="route_for">Regla para %1$s</string>
     <string name="route_need_vpn">La regla de enrutamiento %1$s depende de que la VPN esté activa, por lo que se ignora.</string>
     <string name="profile_traffic_statistics">Estadísticas de tráfico del perfil</string>
-    <string name="profile_traffic_statistics_summary">Cuando está desactivado, el tráfico utilizado
-        no se contará
-    </string>
+    <string name="profile_traffic_statistics_summary">Cuando está desactivado, el tráfico utilizado no se contará</string>
     <string name="no_statistics">Aún no hay estadísticas</string>
     <string name="app_statistics_disabled">Estadísticas de tráfico de apps desactivadas</string>
     <string name="ssh_auth_type_none">Ninguno</string>
@@ -399,9 +381,7 @@
     <string name="pcap" translatable="false">Pcap</string>
     <string name="pcap_notice">Los archivos Pcap se guardarán en %1$s</string>
     <string name="naive_insecure_concurrency">Concurrencia insegura</string>
-    <string name="naive_insecure_concurrency_summary">Utiliza N conexiones de túnel simultáneas para ser más robusto en malas condiciones de red. Un mayor número de conexiones hace que la tunelización sea más fácil de detectar y menos segura. Este proyecto busca la mayor seguridad contra el análisis de tráfico. Utilizarlo de forma insegura frustra su propósito.
-\n
-\nSi tienes que utilizarlo, prueba primero con N=2 para ver si resuelve tus problemas. Se recomienda encarecidamente no utilizar más de 4 conexiones.</string>
+    <string name="naive_insecure_concurrency_summary">Utiliza N conexiones de túnel simultáneas para ser más robusto en malas condiciones de red. Un mayor número de conexiones hace que la tunelización sea más fácil de detectar y menos segura. Este proyecto busca la mayor seguridad contra el análisis de tráfico. Utilizarlo de forma insegura frustra su propósito.\n\nSi tienes que utilizarlo, prueba primero con N=2 para ver si resuelve tus problemas. Se recomienda encarecidamente no utilizar más de 4 conexiones.</string>
     <string name="stun_test">Detección de comportamiento NAT</string>
     <string name="stun_test_summary">Determina el comportamiento de mapeo NAT del cliente y el comportamiento de filtrado NAT definido en RFC 3478 utilizando STUN.</string>
     <string name="start">Iniciar</string>
@@ -414,9 +394,7 @@
     <string name="backup_groups_and_configurations">Grupos y configuraciones</string>
     <string name="backup_rules">Reglas de enrutamiento</string>
     <string name="backup_settings">Ajustes</string>
-    <string name="backup_summary">Si no se realiza un respaldo de los ajustes de enrutamiento con
-        las configuraciones, se perderán las salidas personalizadas.
-    </string>
+    <string name="backup_summary">Si no se realiza un respaldo de los ajustes de enrutamiento con las configuraciones, se perderán las salidas personalizadas.</string>
     <string name="backup_not_file">No es un archivo de respaldo: se esperaba .json, pero se obtuvo %1$s</string>
     <string name="invalid_backup_file">Archivo de respaldo no válido</string>
     <string name="backup_import">Importar</string>

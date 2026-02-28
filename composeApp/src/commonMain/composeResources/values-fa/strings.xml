@@ -38,12 +38,10 @@
     <string name="group_show_diff">تفاوت</string>
     <string name="group_diff">تفاوت (%1$s)</string>
     <string name="group_delete_confirm_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید؟</string>
-    <string name="group_added">اضافه شده: \n%1$s</string>
-    <string name="group_changed">به‌روزرسانی شد:
-\n%1$s</string>
-    <string name="group_deleted">حذف شد:
-\n%1$s</string>
-    <string name="group_duplicate">تکراری: \n%1$s</string>
+    <string name="group_added">اضافه شده:\n%1$s</string>
+    <string name="group_changed">به‌روزرسانی شد:\n%1$s</string>
+    <string name="group_deleted">حذف شد:\n%1$s</string>
+    <string name="group_duplicate">تکراری:\n%1$s</string>
     <!-- misc -->
     <string name="service_mode">حالت سرویس</string>
     <string name="service_mode_proxy">فقط پروکسی</string>
@@ -54,8 +52,7 @@
     <string name="general_settings">تنظیمات برنامه</string>
     <string name="cag_ws">تنظیمات وب سوکت</string>
     <string name="ws_browser_forwarding">ارسال مرورگر</string>
-    <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.
-    </string>
+    <string name="ws_browser_forwarding_sum">وب‌سوکت‌های مربوط را از طریق مرورگر ارسال کنید.</string>
     <string name="speed_interval">فاصله به‌روزرسانی اعلان سرعت</string>
     <string name="cag_misc">تنظیمات متفرقه</string>
     <string name="show_stop">نمایش دکمه توقف</string>
@@ -116,8 +113,7 @@
     <string name="edit_config">ویرایش پیکربندی</string>
     <!-- feature category -->
     <string name="metered">اشاره گر اندازه گیری شده</string>
-    <string name="metered_summary">سیستم راهنمایی برای برخورد با VPN به عنوان اندازه‌گیری شده
-    </string>
+    <string name="metered_summary">سیستم راهنمایی برای برخورد با VPN به عنوان اندازه‌گیری شده</string>
     <string name="menu_route">مسیر</string>
     <string name="route_add">ایجاد مسیر</string>
     <string name="delete_route_prompt">آیا مطمئن هستید که می خواهید این مسیر را حذف کنید؟</string>
@@ -157,9 +153,7 @@
     <string name="clear_selections">پاک کردن انتخاب ها</string>
     <string name="bypass_apps">بایپس</string>
     <string name="auto_connect">ارتباط خودکار</string>
-    <string name="auto_connect_summary">فعال کردن پروکسی در هنگام راه‌اندازی/به‌روزرسانی برنامه اگر
-        قبلاً اجرا می‌شد
-    </string>
+    <string name="auto_connect_summary">فعال کردن پروکسی در هنگام راه‌اندازی/به‌روزرسانی برنامه اگر قبلاً اجرا می‌شد</string>
     <string name="direct_boot_aware">تغییر در صفحه قفل مجاز است</string>
     <string name="direct_boot_aware_summary">اطلاعات نمایه انتخابی شما کمتر محافظت می شود</string>
     <!-- notification category -->
@@ -172,9 +166,7 @@
     <string name="stopping">خاموش شدن…</string>
     <string name="vpn_error">%1$s</string>
     <string name="vpn_permission_denied">اجازه ایجاد سرویس VPN رد شد</string>
-    <string name="reboot_required">سرویس VPN راه اندازی نشد. ممکن است لازم باشد دستگاه خود را مجددا
-        راه اندازی کنید.
-    </string>
+    <string name="reboot_required">سرویس VPN راه اندازی نشد. ممکن است لازم باشد دستگاه خود را مجددا راه اندازی کنید.</string>
     <!-- alert category -->
     <string name="profile_empty">لطفا یک پروفایل انتخاب کنید</string>
     <string name="connect">اتصال</string>
@@ -249,9 +241,7 @@
     <string name="plugin_configure">پیکربندی…</string>
     <string name="plugin_disabled">غیرفعال شده</string>
     <string name="plugin_unknown">%1$s افزونه ناشناخته است</string>
-    <string name="plugin_untrusted">هشدار: به نظر نمی رسد این افزونه از یک منبع معتبر شناخته شده
-        باشد.
-    </string>
+    <string name="plugin_untrusted">هشدار: به نظر نمی رسد این افزونه از یک منبع معتبر شناخته شده باشد.</string>
     <string name="plugin_auto_connect_unlock_only">این افزونه ممکن است با اتصال خودکار کار نکند</string>
     <string name="proxy_cat">تنظیمات سرور</string>
     <string name="ss_cat">تنظیمات شدوساکس</string>
@@ -259,9 +249,7 @@
     <string name="no">نه</string>
     <string name="apply">اعمال کردن</string>
     <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگذاری کنید</string>
-    <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در
-        غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.
-    </string>
+    <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.</string>
     <string name="lines">%1$d خط</string>
     <string name="night_mode">حالت شب</string>
     <string name="follow_system">دنبال کردن سیستم</string>
@@ -286,9 +274,7 @@
     <string name="connection_test_unreachable">غیر قابل دسترسی</string>
     <string name="connection_test_timeout">تایم اوت</string>
     <string name="append_http_proxy">اضافه کردن پروکسی HTTP به VPN</string>
-    <string name="append_http_proxy_sum">پروکسی HTTP مستقیماً از (مرورگر/برخی برنامه‌های
-        پشتیبانی‌شده) بدون استفاده از دستگاه NIC مجازی (Android 10+) استفاده می‌شود.
-    </string>
+    <string name="append_http_proxy_sum">پروکسی HTTP مستقیماً از (مرورگر/برخی برنامه‌های پشتیبانی‌شده) بدون استفاده از دستگاه NIC مجازی (Android 10+) استفاده می‌شود.</string>
     <string name="protocol_settings">تنظیمات پروتکل</string>
     <string name="trojan_provider">ارائه دهنده تروجان</string>
     <string name="group_basic">پایه ای</string>
@@ -331,8 +317,7 @@
     <string name="subscription_import_message">تأیید کنید که می خواهید اشتراک %1$s را وارد کنید؟ اگر از یک منبع نامعتبر وارد می کنید، انجام این کار ممکن است منجر به لو رفتن IP شما و این رفتار شود.</string>
     <string name="profile_import">وارد کردن پروفایل</string>
     <string name="profile_import_message">تأیید کنید که می‌خواهید پروفایل %1$s را وارد کنید؟</string>
-    <string name="clear_profiles_message">آیا مطمئن هستید که می خواهید این گروه را پاک کنید؟
-    </string>
+    <string name="clear_profiles_message">آیا مطمئن هستید که می خواهید این گروه را پاک کنید؟</string>
     <string name="apps">برنامه‌ها</string>
     <string name="select_apps">انتخاب برنامه‌ها</string>
     <string name="apps_message">%1$d برنامه</string>
@@ -363,13 +348,9 @@
     <string name="copy_failed">کپی ناموفق بود.</string>
     <string name="app_no_launcher">برنامه هیچ رابطی ندارد.</string>
     <string name="route_for">قانون برای %1$s</string>
-    <string name="route_need_vpn">قانون مسیریابی %1$s برای کارایی VPN متکی است، بنابراین نادیده گرفته
-        می شود.
-    </string>
+    <string name="route_need_vpn">قانون مسیریابی %1$s برای کارایی VPN متکی است، بنابراین نادیده گرفته می شود.</string>
     <string name="profile_traffic_statistics">آمار ترافیک پروفایل</string>
-    <string name="profile_traffic_statistics_summary">در صورت غیرفعال شدن، ترافیک استفاده شده محاسبه
-        نخواهد شد
-    </string>
+    <string name="profile_traffic_statistics_summary">در صورت غیرفعال شدن، ترافیک استفاده شده محاسبه نخواهد شد</string>
     <string name="no_statistics">هنوز آماری وجود ندارد</string>
     <string name="app_statistics_disabled">آمار ترافیک برنامه غیرفعال شد</string>
     <string name="ssh_auth_type_none">هیچ یک</string>
@@ -388,17 +369,9 @@
     <string name="resolve_destination_summary">اگر آدرس مقصد یک دامنه باشد، بر اساس استراتژی IPv6 ارسال می‌شود (در تضاد با FakeDNS).</string>
     <string name="pcap_notice">فایل های Pcap در %1$s ذخیره می شوند</string>
     <string name="naive_insecure_concurrency">همزمانی ناامن</string>
-    <string name="naive_insecure_concurrency_summary">از N اتصال تونل همزمان برای قوی تر بودن در
-        شرایط بد شبکه استفاده کنید. اتصالات بیشتر تشخیص تونل را آسان تر و ایمن تر می کند. این پروژه
-        برای قوی ترین امنیت در برابر تجزیه و تحلیل ترافیک تلاش می کند. استفاده از آن به روشی ناامن،
-        هدف آن را شکست می دهد. \n\n اگر باید از این استفاده کنید، ابتدا N=2 را امتحان کنید تا ببینید
-        آیا مشکلات شما حل می شود یا خیر. اکیداً توصیه می شود از بیش از 4 اتصال در اینجا استفاده
-        نکنید.
-    </string>
+    <string name="naive_insecure_concurrency_summary">از N اتصال تونل همزمان برای قوی تر بودن در شرایط بد شبکه استفاده کنید. اتصالات بیشتر تشخیص تونل را آسان تر و ایمن تر می کند. این پروژه برای قوی ترین امنیت در برابر تجزیه و تحلیل ترافیک تلاش می کند. استفاده از آن به روشی ناامن، هدف آن را شکست می دهد.\n\nاگر باید از این استفاده کنید، ابتدا N=2 را امتحان کنید تا ببینید آیا مشکلات شما حل می شود یا خیر. اکیداً توصیه می شود از بیش از 4 اتصال در اینجا استفاده نکنید.</string>
     <string name="stun_test">کشف رفتار NAT</string>
-    <string name="stun_test_summary">رفتار نگاشت NAT کلاینت و رفتار فیلتر NAT تعریف شده در RFC 3478
-        را با استفاده از STUN تعیین کنید.
-    </string>
+    <string name="stun_test_summary">رفتار نگاشت NAT کلاینت و رفتار فیلتر NAT تعریف شده در RFC 3478 را با استفاده از STUN تعیین کنید.</string>
     <string name="start">شروع</string>
     <string name="stun_attest_loading">این ممکن است چند دقیقه طول بکشد…</string>
     <string name="nat_stun_server_hint">سرور STUN</string>

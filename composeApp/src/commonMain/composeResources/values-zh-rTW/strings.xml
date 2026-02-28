@@ -27,15 +27,9 @@
     <string name="group_updated">%1$s: 更新了 %2$d 個代理</string>
     <string name="group_show_diff">差異</string>
     <string name="group_delete_confirm_prompt">確認刪除此組？</string>
-    <string name="group_added">新增：
-        \n%1$s
-    </string>
-    <string name="group_changed">更新：
-        \n%1$s
-    </string>
-    <string name="group_deleted">刪除：
-        \n%1$s
-    </string>
+    <string name="group_added">新增：\n%1$s</string>
+    <string name="group_changed">更新：\n%1$s</string>
+    <string name="group_deleted">刪除：\n%1$s</string>
     <!-- misc -->
     <string name="service_mode">執行模式</string>
     <string name="service_mode_proxy">僅代理</string>
@@ -51,9 +45,7 @@
     <string name="ws_browser_forwarding_sum">轉傳對應的 WebSocket 連線至瀏覽器。</string>
     <string name="speed_interval">速度通知更新間隔</string>
     <string name="traffic">%1$s↑ %2$s↓</string>
-    <string name="speed_detail">代理： %1$s↑ %2$s↓
-        \n直連： %3$s↑ %4$s↓
-    </string>
+    <string name="speed_detail">代理： %1$s↑ %2$s↓\n直連： %3$s↑ %4$s↓</string>
     <string name="speed">%1$s/s</string>
     <string name="connection_test_testing">測試中……</string>
     <string name="connection_test_available">成功：HTTPS 握手耗時 %1$d 毫秒</string>
@@ -188,9 +180,7 @@
     <string name="show_stop_sum">如果您不想使用快速設定圖塊進行切換</string>
     <string name="show_stop">顯示停止按鈕</string>
     <string name="cag_misc">其他設定</string>
-    <string name="group_duplicate">重複：
-        \n%1$s
-    </string>
+    <string name="group_duplicate">重複：\n%1$s</string>
     <string name="group_diff">差異（%1$s）</string>
     <string name="tile_title">切換器</string>
     <string name="group_default">未分組</string>
@@ -296,9 +286,7 @@
     <string name="connection_test_unreachable">無法連線</string>
     <string name="connection_test_timeout">逾時</string>
     <string name="append_http_proxy">為 VPN 附加 HTTP 代理</string>
-    <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android
-        10+）
-    </string>
+    <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android 10+）</string>
     <string name="trojan_provider">Trojan 提供程式</string>
     <string name="protocol_settings">協議設定</string>
     <string name="group_basic">基本</string>
@@ -309,9 +297,7 @@
     <string name="subscription_type">訂閱類型</string>
     <string name="delete_group_prompt">您真的希望移除此組嗎？</string>
     <string name="force_resolve">強制解析</string>
-    <string name="force_resolve_sum">在更新時將所有網域解析為
-        IP。主機名和伺服器名稱指示將在可能時被自動附加
-    </string>
+    <string name="force_resolve_sum">在更新時將所有網域解析為 IP。主機名和伺服器名稱指示將在可能時被自動附加</string>
     <string name="deduplication_sum">在更新時移除重複的設定檔</string>
     <string name="raw">原始</string>
     <string name="update_settings">更新設定</string>
@@ -331,9 +317,7 @@
     <string name="ooc_subscription_token_invalid">無效的 OOCv1 權杖</string>
     <string name="update_subscription_warning">代理尚未連線，您真的希望繼續更新嗎？</string>
     <string name="ooc_warning">警告</string>
-    <string name="ooc_missing_protocol">此訂閱需要 %1$s
-        協定支援，但其未被安裝，不支援的設定檔將被忽略。
-    </string>
+    <string name="ooc_missing_protocol">此訂閱需要 %1$s 協定支援，但其未被安裝，不支援的設定檔將被忽略。</string>
     <string name="service_subscription">訂閱更新服務</string>
     <string name="subscription_update">訂閱更新</string>
     <string name="subscription_update_message">更新 %1$s 中…</string>
@@ -341,18 +325,14 @@
     <string name="subscription_used">已用 %1$s</string>
     <string name="subscription_traffic">已用 %1$s / 剩餘 %2$s</string>
     <string name="subscription_import">匯入訂閱</string>
-    <string name="subscription_import_message">您確定要匯入訂閱 %1$s 嗎？如果訂閱的來源不可信，您的 IP
-        和行為將被洩漏。
-    </string>
+    <string name="subscription_import_message">您確定要匯入訂閱 %1$s 嗎？如果訂閱的來源不可信，您的 IP 和行為將被洩漏。</string>
     <string name="profile_import">匯入設定檔</string>
     <string name="profile_import_message">您確定要匯入設定檔 %1$s 嗎？</string>
     <string name="clear_profiles_message">您確定要清除此組嗎？</string>
     <string name="apps">應用程式</string>
     <string name="select_apps">選擇應用程式</string>
     <string name="apps_message">%1$d 個應用程式</string>
-    <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器, 請安裝一個, 如 Material
-        Files.
-    </string>
+    <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器, 請安裝一個, 如 Material Files.</string>
     <string name="menu_traffic">流量</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android 外掛程式)</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 外掛程式)</string>
@@ -405,15 +385,9 @@
     <string name="route_play_store">%1$s 谷歌Play商店規則</string>
     <string name="naive_insecure_concurrency">不安全並發</string>
     <string name="stun_test">NAT 行為尋找</string>
-    <string name="naive_insecure_concurrency_summary">
-        使用N個並發的隧道能使網路條件較差时更加可用。但數量越多，越易被偵測，安全性越低。由於本項目致力於面對流量分析的安全性，以不安全的方式使用違背了其初忠。
-        \n
-        \n如一定要使用，請先嘗試 N=2，觀察其是否解決了您的問題。強烈反對於此使用多於4個隧道。
-    </string>
+    <string name="naive_insecure_concurrency_summary">使用N個並發的隧道能使網路條件較差时更加可用。但數量越多，越易被偵測，安全性越低。由於本項目致力於面對流量分析的安全性，以不安全的方式使用違背了其初忠。\n\n如一定要使用，請先嘗試 N=2，觀察其是否解決了您的問題。強烈反對於此使用多於4個隧道。</string>
     <string name="stun_attest_loading">這可能需要數分鐘…</string>
-    <string name="stun_test_summary">使用 STUN 確定客戶端的 NAT 映射行為和 RFC 5780 中定義的 NAT
-        過濾行為。
-    </string>
+    <string name="stun_test_summary">使用 STUN 確定客戶端的 NAT 映射行為和 RFC 5780 中定義的 NAT 過濾行為。</string>
     <string name="start">開始</string>
     <string name="backup">備份</string>
     <string name="backup_rules">路由規則</string>

@@ -30,9 +30,7 @@
     <string name="connection_test_url">Тэст URL падлучэння</string>
     <string name="port_local_dns">Лакальны порт DNS</string>
     <string name="dns_hosts">Перапісаць дамен</string>
-    <string name="fakedns_message">Можа выклікаць перазапуск іншых прыкладанняў для паўторнага
-        падлучэння да сеткі пасля спынення проксі
-    </string>
+    <string name="fakedns_message">Можа выклікаць перазапуск іншых прыкладанняў для паўторнага падлучэння да сеткі пасля спынення проксі</string>
     <string name="enable_fakedns">Уключыць FakeDNS</string>
     <string name="direct_dns">Прамы DNS</string>
     <string name="remote_dns">Аддалены DNS</string>
@@ -44,20 +42,13 @@
     <string name="connection_test_available">Поспех: поціск рукі HTTPS заняў %1$dms</string>
     <string name="connection_test_testing">Тэставанне…</string>
     <string name="speed">%1$s/s</string>
-    <string name="speed_detail">Проксі : %1$s↑ %2$s↓
-        \nПрамая : %3$s↑ %4$s↓
-    </string>
-    <string name="allow_insecure_sum">Адключыць праверку сертыфікатаў. Калі ўключана, гэтая
-        канфігурацыя такая ж бяспечная, як і адкрыты тэкст
-    </string>
+    <string name="speed_detail">Проксі : %1$s↑ %2$s↓\nПрамая : %3$s↑ %4$s↓</string>
+    <string name="allow_insecure_sum">Адключыць праверку сертыфікатаў. Калі ўключана, гэтая канфігурацыя такая ж бяспечная, як і адкрыты тэкст</string>
     <string name="allow_insecure">Дазволіць небяспечна</string>
     <string name="security_settings">Налады бяспекі</string>
-    <string name="show_direct_speed_sum">У апавяшчэнні таксама паказвайце хуткасць руху без проксі
-    </string>
+    <string name="show_direct_speed_sum">У апавяшчэнні таксама паказвайце хуткасць руху без проксі</string>
     <string name="show_direct_speed">Паказаць прамую хуткасць</string>
-    <string name="show_stop_sum">Калі вы не хочаце выкарыстоўваць кнопку панэлі апавяшчэнняў у
-        якасці пераключальніка злучэння
-    </string>
+    <string name="show_stop_sum">Калі вы не хочаце выкарыстоўваць кнопку панэлі апавяшчэнняў у якасці пераключальніка злучэння</string>
     <string name="show_stop">Паказаць кнопку прыпынку</string>
     <string name="cag_misc">Розныя налады</string>
     <string name="speed_interval">Інтэрвал абнаўлення апавяшчэнняў аб хуткасці</string>
@@ -70,20 +61,11 @@
     <string name="port_proxy">Порт проксі -сервера SOCKS5</string>
     <string name="service_mode_proxy">Толькі проксі</string>
     <string name="service_mode">Рэжым абслугоўвання</string>
-    <string name="group_duplicate">Дублікат:
-        \n%1$s
-    </string>
-    <string name="group_deleted">Выдалена:
-        \n%1$s
-    </string>
-    <string name="group_changed">Абноўлена:
-        \n%1$s
-    </string>
-    <string name="group_added">Дададзена:
-        \n%1$s
-    </string>
-    <string name="group_delete_confirm_prompt">Вы ўпэўненыя, што хочаце выдаліць гэтую групу\?
-    </string>
+    <string name="group_duplicate">Дублікат:\n%1$s</string>
+    <string name="group_deleted">Выдалена:\n%1$s</string>
+    <string name="group_changed">Абноўлена:\n%1$s</string>
+    <string name="group_added">Дададзена:\n%1$s</string>
+    <string name="group_delete_confirm_prompt">Вы ўпэўненыя, што хочаце выдаліць гэтую групу\?</string>
     <string name="group_diff">Розніца (%1$s)</string>
     <string name="group_show_diff">Розніца</string>
     <string name="group_updated">%1$s: Абноўлены %2$d проксі</string>

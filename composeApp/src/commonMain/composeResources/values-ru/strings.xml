@@ -12,9 +12,7 @@
     <string name="traffic">%1$s↑ %2$s↓</string>
     <string name="port_local_dns">Локальный порт DNS</string>
     <string name="dns_hosts">Перезапись домена</string>
-    <string name="fakedns_message">Может вызвать необходимость перезапуска других приложений для
-        повторного подключения к сети после остановки прокси
-    </string>
+    <string name="fakedns_message">Может вызвать необходимость перезапуска других приложений для повторного подключения к сети после остановки прокси</string>
     <string name="enable_fakedns">Включить FakeDNS</string>
     <string name="direct_dns">Прямой DNS</string>
     <string name="remote_dns">Удаленный DNS</string>
@@ -25,25 +23,17 @@
     <string name="connection_test_available_http">Время отклика по HTTP %1$d мс</string>
     <string name="connection_test_available">Время отклика по HTTPS %1$d мс</string>
     <string name="connection_test_testing">Тестирование…</string>
-    <string name="speed_detail">Прокси ：%1$s↑ %2$s↓
-        \nПрямой ：%3$s↑%4$s↓
-    </string>
+    <string name="speed_detail">Прокси ：%1$s↑ %2$s↓\nПрямой ：%3$s↑%4$s↓</string>
     <string name="allow_insecure_sum">Отключить проверку сертификата. При включении этой настройки безопасность становится эквивалентной передаче данных в открытом виде</string>
     <string name="allow_insecure">Разрешить небезопасное подключение</string>
     <string name="security_settings">Настройки безопасности (TLS)</string>
-    <string name="show_direct_speed_sum">Также в уведомлении показывать скорость трафика без
-        прокси
-    </string>
+    <string name="show_direct_speed_sum">Также в уведомлении показывать скорость трафика без прокси</string>
     <string name="show_direct_speed">Показать прямую скорость</string>
-    <string name="show_stop_sum">Если вы не хотите использовать Quick Tile в качестве
-        переключателя
-    </string>
+    <string name="show_stop_sum">Если вы не хотите использовать Quick Tile в качестве переключателя</string>
     <string name="show_stop">Показать кнопку остановки</string>
     <string name="cag_misc">Прочие настройки</string>
     <string name="speed_interval">Скорость - интервал в уведомлении</string>
-    <string name="ws_browser_forwarding_sum">Перенаправьте соответствующие веб-сокеты через
-        браузер.
-    </string>
+    <string name="ws_browser_forwarding_sum">Перенаправьте соответствующие веб-сокеты через браузер.</string>
     <string name="ws_browser_forwarding">Пересылка через браузер</string>
     <string name="cag_ws">Настройки WebSocket</string>
     <string name="general_settings">Настройки приложения</string>
@@ -52,18 +42,10 @@
     <string name="allow_access">Разрешить подключения из локальной сети</string>
     <string name="service_mode_proxy">Только прокси</string>
     <string name="service_mode">Режим работы</string>
-    <string name="group_duplicate">Дубликат:
-        \n%1$s
-    </string>
-    <string name="group_deleted">Удалено:
-        \n%1$s
-    </string>
-    <string name="group_changed">Обновлено:
-        \n%1$s
-    </string>
-    <string name="group_added">Создано:
-        \n%1$s
-    </string>
+    <string name="group_duplicate">Дубликат:\n%1$s</string>
+    <string name="group_deleted">Удалено:\n%1$s</string>
+    <string name="group_changed">Обновлено:\n%1$s</string>
+    <string name="group_added">Создано:\n%1$s</string>
     <string name="group_delete_confirm_prompt">Вы уверены, что хотите удалить эту группу\?</string>
     <string name="group_diff">различия (%1$s)</string>
     <string name="group_show_diff">Сравнить группы</string>
@@ -117,13 +99,9 @@
     <string name="select_apps">Выберите приложения</string>
     <string name="apps">Приложения</string>
     <string name="clear_profiles_message">Вы уверены, что хотите очистить эту группу\?</string>
-    <string name="profile_import_message">Подтвердите, что хотите импортировать профиль %1$s\?
-    </string>
+    <string name="profile_import_message">Подтвердите, что хотите импортировать профиль %1$s\?</string>
     <string name="profile_import">Импортировать профиль</string>
-    <string name="subscription_import_message">Подтвердите, что хотите импортировать подписку %1$s\?
-        Если вы импортируете из ненадежного источника, это может привести к утечке вашего IP-адреса
-        и такого поведения.
-    </string>
+    <string name="subscription_import_message">Подтвердите, что хотите импортировать подписку %1$s\? Если вы импортируете из ненадежного источника, это может привести к утечке вашего IP-адреса и такого поведения.</string>
     <string name="subscription_import">Импортировать подписку</string>
     <string name="subscription_traffic">%1$s Использовано / %2$s Осталось</string>
     <string name="subscription_used">%1$s Использовано</string>
@@ -131,22 +109,16 @@
     <string name="subscription_update_message">Обновление %1$s …</string>
     <string name="subscription_update">Обновление подписки</string>
     <string name="service_subscription">Служба обновления подписки</string>
-    <string name="ooc_missing_protocol">Подписка требует поддержки протокола %1$s, но ее нельзя найти.
-        Неподдерживаемые профили игнорируются.
-    </string>
+    <string name="ooc_missing_protocol">Подписка требует поддержки протокола %1$s, но ее нельзя найти. Неподдерживаемые профили игнорируются.</string>
     <string name="ooc_warning">Предупреждение</string>
-    <string name="update_subscription_warning">Прокси-сервер не подключен, вы уверены, что хотите
-        продолжить обновление\?
-    </string>
+    <string name="update_subscription_warning">Прокси-сервер не подключен, вы уверены, что хотите продолжить обновление\?</string>
     <string name="ooc_subscription_token_invalid">Недействительный токен OOCv1</string>
     <string name="download">Получено</string>
     <string name="install_from_fdroid">Установить с F-Droid</string>
     <string name="install_from_play_store">Установить из Play Store</string>
     <string name="action_download">СКАЧАТЬ</string>
     <string name="action_learn_more">УЗНАТЬ БОЛЬШЕ</string>
-    <string name="profile_requiring_plugin">Профиль %1$s требует установки подключаемого модуля %2$s, но
-        он не найден.
-    </string>
+    <string name="profile_requiring_plugin">Профиль %1$s требует установки подключаемого модуля %2$s, но он не найден.</string>
     <string name="missing_plugin">Отсутствующий плагин</string>
     <string name="confirm">Подтвердить</string>
     <string name="subscription_user_agent">UserAgent</string>
@@ -155,9 +127,7 @@
     <string name="auto_update_delay">Задержка автоматического обновления (в минутах)</string>
     <string name="auto_update">Автоматическое обновление</string>
     <string name="update_settings">Настройки обновления</string>
-    <string name="force_resolve_sum">При обновлении преобразовать все доменные имена в IP-адреса.
-        Хост и SNI будут добавлены автоматически, если это возможно
-    </string>
+    <string name="force_resolve_sum">При обновлении преобразовать все доменные имена в IP-адреса. Хост и SNI будут добавлены автоматически, если это возможно</string>
     <string name="raw">Обычный</string>
     <string name="deduplication_sum">Удалить повторяющиеся конфигурации при обновлении</string>
     <string name="force_resolve">Принудительный резолвинг</string>
@@ -170,10 +140,7 @@
     <string name="group_basic">Базовый</string>
     <string name="trojan_provider">Провайдер Trojan</string>
     <string name="protocol_settings">Настройки протоколов</string>
-    <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера /
-        некоторых поддерживаемых приложений), без использования виртуального сетевого интерфейса
-        (Android 10+)
-    </string>
+    <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера / некоторых поддерживаемых приложений), без использования виртуального сетевого интерфейса (Android 10+)</string>
     <string name="append_http_proxy">Добавить HTTP-прокси к VPN</string>
     <string name="connection_test_timeout">Тайм-аут</string>
     <string name="connection_test_unreachable">Недоступен</string>
@@ -184,8 +151,7 @@
     <string name="connection_test_clear_results">Очистить результаты теста</string>
     <string name="connection_test">Тест соединения</string>
     <string name="clear_traffic_statistics">Очистить статистику трафика</string>
-    <string name="always_show_address_sum">Всегда отображать адрес сервера на карте конфигурации
-    </string>
+    <string name="always_show_address_sum">Всегда отображать адрес сервера на карте конфигурации</string>
     <string name="always_show_address">Всегда показывать адрес</string>
     <string name="unavailable">Недоступен</string>
     <string name="standard">Стандарт</string>
@@ -199,21 +165,15 @@
     <string name="follow_system">Система</string>
     <string name="night_mode">Ночной режим</string>
     <string name="lines">%1$d строк</string>
-    <string name="route_warn">Перед добавлением собственных правил убедитесь, что вы прочитали
-        документацию, иначе подключение к Интернету может не удасться.
-    </string>
+    <string name="route_warn">Перед добавлением собственных правил убедитесь, что вы прочитали документацию, иначе подключение к Интернету может не удасться.</string>
     <string name="need_reload">Перезагрузите прокси-сервис, чтобы применить изменения</string>
     <string name="apply">Применить</string>
     <string name="no">Нет</string>
     <string name="unsaved_changes_prompt">Есть несохраненные изменения. Сохранить\?</string>
     <string name="ss_cat">Настройки Shadowsocks</string>
     <string name="proxy_cat">Настройки сервера</string>
-    <string name="plugin_auto_connect_unlock_only">Этот плагин может не работать с
-        автоподключением
-    </string>
-    <string name="plugin_untrusted">Предупреждение: похоже, что этот плагин не из известного
-        надежного источника.
-    </string>
+    <string name="plugin_auto_connect_unlock_only">Этот плагин может не работать с автоподключением</string>
+    <string name="plugin_untrusted">Предупреждение: похоже, что этот плагин не из известного надежного источника.</string>
     <string name="plugin_unknown">Неизвестный плагин %1$s</string>
     <string name="plugin_disabled">Отключено</string>
     <string name="plugin_configure">Настроить…</string>
@@ -221,15 +181,12 @@
     <string name="ignore_battery_optimizations_sum">Снять некоторые ограничения</string>
     <string name="ignore_battery_optimizations">Игнорировать оптимизации батареи</string>
     <string name="deduplication">Дедупликация</string>
-    <string name="no_proxies_found_in_clipboard">В буфере обмена не найдено ни одного прокси
-    </string>
+    <string name="no_proxies_found_in_clipboard">В буфере обмена не найдено ни одного прокси</string>
     <string name="no_proxies_found_in_file">В файле не найдено прокси-серверов</string>
     <string name="no_proxies_found_in_subscription">В подписке не найдено прокси-серверов</string>
     <string name="no_proxies_found">В ссылке не найдено прокси-серверов</string>
     <string name="error_title">Ошибка</string>
-    <string name="cleartext_http_warning">Передача HTTP-трафика в виде открытого текста
-        небезопасна
-    </string>
+    <string name="cleartext_http_warning">Передача HTTP-трафика в виде открытого текста небезопасна</string>
     <string name="subscriptions">Подписки</string>
     <string name="not_connected">Не подключен</string>
     <string name="vpn_connected">Подключено, нажмите для проверки соединения</string>
@@ -243,9 +200,7 @@
     <string name="delete_confirm_prompt">Вы уверены, что хотите удалить этот профиль\?</string>
     <string name="delete">Удалить</string>
     <string name="profile_config">Конфигурация профиля</string>
-    <string name="file_manager_missing">На вашем устройстве отсутствует стандартный селектор файлов
-        Android, установите его, например Material Files.
-    </string>
+    <string name="file_manager_missing">На вашем устройстве отсутствует стандартный селектор файлов Android, установите его, например Material Files.</string>
     <string name="action_import_err">Не удалось импортировать.</string>
     <string name="action_import_msg">Успешно импортировано!</string>
     <string name="action_export_err">Не удалось экспортировать.</string>
@@ -277,9 +232,7 @@
     <string name="clipboard_empty">Буфер обмена пуст</string>
     <string name="connect">Подключиться</string>
     <string name="profile_empty">Пожалуйста, выберите профиль</string>
-    <string name="reboot_required">Не удалось запустить службу VPN. Возможно, вам потребуется
-        перезагрузить устройство.
-    </string>
+    <string name="reboot_required">Не удалось запустить службу VPN. Возможно, вам потребуется перезагрузить устройство.</string>
     <string name="vpn_permission_denied">Отказано в разрешении на создание службы VPN</string>
     <string name="vpn_error">%1$s</string>
     <string name="stopping">Выключение…</string>
@@ -289,13 +242,9 @@
     <string name="forward_success">Прокси запущен.</string>
     <string name="service_proxy">Прокси-сервис</string>
     <string name="service_vpn">VPN-сервис</string>
-    <string name="direct_boot_aware_summary">Выбранная вами информация профиля будет менее
-        защищена
-    </string>
+    <string name="direct_boot_aware_summary">Выбранная вами информация профиля будет менее защищена</string>
     <string name="direct_boot_aware">Разрешить переключение на экране блокировки</string>
-    <string name="auto_connect_summary">Включить прокси при запуске/обновлении приложения, если он
-        был запущен до этого
-    </string>
+    <string name="auto_connect_summary">Включить прокси при запуске/обновлении приложения, если он был запущен до этого</string>
     <string name="auto_connect">Автоматическое подключение</string>
     <string name="bypass_apps">Обход</string>
     <string name="clear_selections">Очистить выбор</string>
@@ -332,9 +281,7 @@
     <string name="delete_route_prompt">Вы уверены, что хотите удалить этот маршрут\?</string>
     <string name="route_add">Создать маршрут</string>
     <string name="menu_route">Маршруты</string>
-    <string name="metered_summary">Подсказывать системе, что VPN следует рассматривать как сеть с
-        лимитным тарифным планом
-    </string>
+    <string name="metered_summary">Подсказывать системе, что VPN следует рассматривать как сеть с лимитным тарифным планом</string>
     <string name="metered">Подсказка о соединении с лимитным тарифным планом</string>
     <string name="edit_config">Изменить конфигурацию</string>
     <string name="config_type">Тип конфигурации</string>
@@ -363,8 +310,7 @@
     <string name="hysteria_auth_type">Тип аутентификации</string>
     <string name="hysteria_obfs">Обфускация пароля</string>
     <string name="experimental_settings">Экспериментальные</string>
-    <string name="route_need_vpn">Правило маршрутизации `%1$s` зависит от VPN, поэтому игнорируется.
-    </string>
+    <string name="route_need_vpn">Правило маршрутизации `%1$s` зависит от VPN, поэтому игнорируется.</string>
     <string name="route_for">Правило для %1$s</string>
     <string name="app_no_launcher">У приложения нет интерфейса.</string>
     <string name="copy_failed">Не удалось скопировать.</string>
@@ -397,11 +343,8 @@
     <string name="ssh_public_key">Открытый ключ</string>
     <string name="ssh_auth_type_none">Отсутствует</string>
     <string name="profile_traffic_statistics">Статистика трафика профиля</string>
-    <string name="profile_traffic_statistics_summary">Когда отключено, использованный трафик не
-        будет отображаться
-    </string>
-    <string name="app_statistics_disabled">Статистика трафика приложений отключена в настройках
-    </string>
+    <string name="profile_traffic_statistics_summary">Когда отключено, использованный трафик не будет отображаться</string>
+    <string name="app_statistics_disabled">Статистика трафика приложений отключена в настройках</string>
     <string name="tun_implementation">Реализация TUN</string>
     <string name="wireguard_local_address">Локальный адрес (интерфейс WG)</string>
     <string name="resolve_destination_summary">Если адрес назначения является доменом, то он передается в соответствии со стратегией IPv6 (конфликтует с FakeDNS)</string>
@@ -411,22 +354,12 @@
     <string name="wireguard_public_key">Открытый ключ сервера</string>
     <string name="wireguard_psk">Пароль сервера</string>
     <string name="naive_insecure_concurrency">Небезопасный параллелизм</string>
-    <string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для
-        повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений
-        увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к
-        максимальной защите от анализа трафика, следовательно, использование его небезопасным
-        образом противоречит данной цели.
-        \n
-        \nЕсли придётся использовать данную функцию, попробуйте N=2, чтобы проверить, решит ли это
-        проблему. Настоятельно не рекомендуется использовать более 4 соединений.
-    </string>
+    <string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к максимальной защите от анализа трафика, следовательно, использование его небезопасным образом противоречит данной цели.\n\nЕсли придётся использовать данную функцию, попробуйте N=2, чтобы проверить, решит ли это проблему. Настоятельно не рекомендуется использовать более 4 соединений.</string>
     <string name="resolve_destination">Резолвить адрес назначения</string>
     <string name="start">Старт</string>
     <string name="stun_attest_loading">Это может занять несколько минут…</string>
     <string name="stun_test">Обнаружение поведения NAT</string>
-    <string name="stun_test_summary">Определить поведение сопоставления адресов NAT и поведение
-        фильтрации NAT в соответствии с RFC 5780 при помощи STUN.
-    </string>
+    <string name="stun_test_summary">Определить поведение сопоставления адресов NAT и поведение фильтрации NAT в соответствии с RFC 5780 при помощи STUN.</string>
     <string name="tools_network">Сеть</string>
     <string name="backup">Резервная копия</string>
     <string name="backup_rules">Правила маршрутизации</string>
@@ -437,9 +370,7 @@
     <string name="backup_importing">Импортирование…</string>
     <string name="backup_import">Импортировать</string>
     <string name="backup_groups_and_configurations">Группы и конфигурации</string>
-    <string name="backup_summary">Если правила маршрутизации резервируются без конфигураций, то
-        пользовательские исходящие соединения будут потеряны.
-    </string>
+    <string name="backup_summary">Если правила маршрутизации резервируются без конфигураций, то пользовательские исходящие соединения будут потеряны.</string>
     <string name="packet_encoding">Кодирование пакетов</string>
     <string name="action_open">Открыть</string>
     <string name="update_all_subscription">Обновить все подписки</string>
