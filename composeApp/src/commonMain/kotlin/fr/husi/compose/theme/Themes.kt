@@ -1,6 +1,5 @@
 package fr.husi.compose.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -66,7 +65,7 @@ fun AppTheme(content: @Composable () -> Unit) {
     val nightModeValue by DataStore.configurationStore
         .intFlow(Key.NIGHT_THEME, initialNightTheme)
         .collectAsStateWithLifecycle(initialNightTheme)
-    val systemDarkMode = isSystemInDarkTheme()
+    val systemDarkMode = rememberPlatformSystemDarkMode()
     val isDarkMode = remember(nightModeValue, systemDarkMode) {
         when (nightModeValue) {
             1 -> true
