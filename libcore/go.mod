@@ -9,7 +9,7 @@ require (
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.0-beta.16.0.20260227013657-e419e9875a07
-	github.com/sagernet/sing-box v1.13.0-rc.7
+	github.com/sagernet/sing-box v1.13.0
 	github.com/sagernet/sing-tun v0.8.0-beta.18
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
