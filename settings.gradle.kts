@@ -8,7 +8,6 @@ pluginManagement {
     plugins {
         id("org.jetbrains.kotlin.plugin.compose") version "2.3.20-RC"
         id("org.jetbrains.compose") version "1.10.1"
-        id("org.jetbrains.dokka") version "1.9.20"
     }
 }
 

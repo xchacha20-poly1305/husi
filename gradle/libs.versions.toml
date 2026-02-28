@@ -25,6 +25,7 @@ fastScroller = "0.3.2"
 androidxCamera = "1.5.3"
 zxing = "3.5.4"
 androidxRoom = "2.8.4"
+androidxSqlite = "2.6.2"
 smaliDexlib2 = "3.0.9"
 guava = "33.5.0-android"
 processPhoenix = "3.0.0"
@@ -77,7 +78,7 @@ zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
-androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.5.0" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite" }
 smali-dexlib2 = { module = "com.android.tools.smali:smali-dexlib2", version.ref = "smaliDexlib2" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "processPhoenix" }

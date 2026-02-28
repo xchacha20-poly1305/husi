@@ -168,7 +168,6 @@
         "com.mikepenz"
       ],
       "matchPackageNames": [
-        "org.jetbrains.dokka",
         "org.gradle.toolchains.foojay-resolver-convention"
       ],
       "groupName": "Build Plugins & Tooling",
