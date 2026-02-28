@@ -66,6 +66,7 @@ import fr.husi.fmt.wireguard.WireGuardBean
 import fr.husi.fmt.wireguard.buildSingBoxEndpointWireGuardBean
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.asKxsMap
+import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.defaultOr
 import fr.husi.ktx.isExpert
@@ -1107,24 +1108,24 @@ fun buildConfig(
                     it.rules = mutableListOf(
                         Rule_Default().apply {
                             inbound = mutableListOf(TAG_DNS_IN)
-                        },
+                        }.toJsonObjectKxs(),
                         Rule_Default().apply {
                             ip_cidr = mutableListOf(
                                 VpnConstants.PRIVATE_VLAN4_ROUTER,
                                 VpnConstants.PRIVATE_VLAN6_ROUTER,
                             )
-                        },
+                        }.toJsonObjectKxs(),
                     )
                     it.action = SingBoxOptions.ACTION_HIJACK_DNS
-                }
+                }.asKxsMap()
             } ?: Rule_Default().apply {
                 ip_cidr = mutableListOf(
                     VpnConstants.PRIVATE_VLAN4_ROUTER,
                     VpnConstants.PRIVATE_VLAN6_ROUTER,
                 )
                 action = SingBoxOptions.ACTION_HIJACK_DNS
-            }
-            route!!.rules!!.add(0, builtInDNSRule.asKxsMap())
+            }.asKxsMap()
+            route!!.rules!!.add(0, builtInDNSRule)
 
             // FakeDNS obj
             if (useFakeDns) {

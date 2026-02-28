@@ -590,7 +590,7 @@ object SingBoxOptions {
         var servers: MutableList<NewDNSServerOptions>? = null
 
         @JvmField
-        var rules: MutableList<DNSRule>? = null
+        var rules: MutableList<JsonElement>? = null
 
         @SerialName("final")
         @JvmField
@@ -794,7 +794,7 @@ object SingBoxOptions {
         var geosite: JsonElement? = null
 
         @JvmField
-        var rules: MutableList<Rule>? = null
+        var rules: MutableList<JsonElement>? = null
 
         @JvmField
         var rule_set: MutableList<RuleSet>? = null
@@ -1417,7 +1417,7 @@ object SingBoxOptions {
         var mode: String? = null
 
         @JvmField
-        var rules: MutableList<Rule>? = null
+        var rules: MutableList<JsonElement>? = null
 
         @JvmField
         var invert: Boolean? = null
@@ -1729,7 +1729,7 @@ object SingBoxOptions {
         var mode: String? = null
 
         @JvmField
-        var rules: MutableList<DNSRule>? = null
+        var rules: MutableList<JsonElement>? = null
 
         @JvmField
         var invert: Boolean? = null
@@ -1777,7 +1777,7 @@ object SingBoxOptions {
     open class RuleSet_Plain : RuleSet() {
 
         @JvmField
-        var rules: MutableList<HeadlessRule>? = null
+        var rules: MutableList<JsonElement>? = null
 
     }
 
@@ -3738,6 +3738,9 @@ object SingBoxOptions {
         var extra_headers: MutableMap<String, MutableList<String>>? = null
 
         @JvmField
+        var stream_receive_window: Int? = null
+
+        @JvmField
         var udp_over_tcp: UDPOverTCPOptions? = null
 
         @JvmField
@@ -3745,6 +3748,9 @@ object SingBoxOptions {
 
         @JvmField
         var quic_congestion_control: String? = null
+
+        @JvmField
+        var quic_session_receive_window: Int? = null
 
         // Generate note: nested type OutboundTLSOptionsContainer
         @JvmField
@@ -4402,6 +4408,7 @@ object SingBoxOptions {
         var inet6_range: String? = null
 
     }
+
 
 
 }
