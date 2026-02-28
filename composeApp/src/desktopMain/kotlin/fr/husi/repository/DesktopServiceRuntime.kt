@@ -32,7 +32,6 @@ internal class DesktopServiceRuntime(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val access = Mutex()
 
-    private var serviceStarted = false
     private var runningProfileName: String? = null
     private var processes: GuardedProcessPool? = null
     private val cacheFiles = ArrayList<java.io.File>()
@@ -90,8 +89,6 @@ internal class DesktopServiceRuntime(
         BackendState.setConnected(false)
 
         try {
-            ensureServiceStarted(service)
-
             val config = fr.husi.fmt.buildConfig(profile)
             cacheFiles.clear()
             val pluginConfigs = initPlugins(
@@ -180,12 +177,6 @@ internal class DesktopServiceRuntime(
             if (!DataStore.serviceState.canStop) return
             stopLocked("${repo.getString(Res.string.service_failed)}: ${throwable.readableMessage}")
         }
-    }
-
-    private fun ensureServiceStarted(service: Service) {
-        if (serviceStarted) return
-        service.start()
-        serviceStarted = true
     }
 
     private fun changeState(state: ServiceState, profileName: String? = null) {

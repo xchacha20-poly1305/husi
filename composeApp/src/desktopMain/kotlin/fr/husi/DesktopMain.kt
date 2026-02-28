@@ -194,4 +194,5 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
         DataStore.isExpert,
     )
     loadCA(DataStore.certProvider)
+    repo.boxService?.start()
 }
