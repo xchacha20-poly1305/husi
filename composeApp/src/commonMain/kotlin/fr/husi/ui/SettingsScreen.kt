@@ -308,6 +308,9 @@ fun SettingsScreen(
     val ntpEnableState by DataStore.configurationStore
         .booleanFlow(Key.ENABLE_NTP, false)
         .collectAsStateWithLifecycle(false)
+    val serviceModeState by DataStore.configurationStore
+        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+        .collectAsStateWithLifecycle(Key.MODE_VPN)
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
@@ -532,7 +535,7 @@ fun SettingsScreen(
                             valueToText = { it.toString() },
                         )
                     }
-                    androidGeneralOptions { needReload() }
+                    platformGeneralOptions { needReload() }
                     item(Key.PROFILE_TRAFFIC_STATISTICS, PreferenceType.SWITCH) {
                         val value by DataStore.configurationStore
                             .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)
@@ -665,7 +668,10 @@ fun SettingsScreen(
                         PreferenceCategory(text = { Text(stringResource(Res.string.route_options)) })
                     }
                     proxyAppsPreferences(openAppManager)
-                    androidRouteOptions { needReload() }
+                    platformRouteOptions(
+                        needReload = { needReload() },
+                        isVpnMode = serviceModeState == Key.MODE_VPN,
+                    )
                     item(Key.NETWORK_STRATEGY, PreferenceType.LIST) {
                         val values =
                             listOf("", "prefer_ipv6", "prefer_ipv4", "ipv4_only", "ipv6_only")
@@ -1488,7 +1494,7 @@ fun SettingsScreen(
                             valueText = { Text(previewValue.toInt().toString()) },
                         )
                     }
-                    androidMiscOptions { needReload() }
+                    platformMiscOptions { needReload() }
                     item(Key.CERT_PROVIDER, PreferenceType.LIST) {
                         fun certProviderTextRes(index: Int): StringResource = when (index) {
                             CertProvider.SYSTEM -> Res.string.follow_system

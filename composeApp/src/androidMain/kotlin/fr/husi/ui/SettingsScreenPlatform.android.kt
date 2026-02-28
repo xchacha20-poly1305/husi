@@ -93,7 +93,7 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit {
     }
 }
 
-internal actual fun LazyListScope.androidGeneralOptions(needReload: () -> Unit) {
+internal actual fun LazyListScope.platformGeneralOptions(needReload: () -> Unit) {
     item(Key.ALLOW_APPS_BYPASS_VPN, PreferenceType.SWITCH) {
         val value by DataStore.configurationStore
             .booleanFlow(Key.ALLOW_APPS_BYPASS_VPN, false)
@@ -187,7 +187,7 @@ internal actual fun LazyListScope.meteredNetworkSetting(needReload: () -> Unit) 
     }
 }
 
-internal actual fun LazyListScope.androidRouteOptions(needReload: () -> Unit) {
+internal actual fun LazyListScope.platformRouteOptions(needReload: () -> Unit, isVpnMode: Boolean) {
     item(Key.BYPASS_LAN, PreferenceType.SWITCH) {
         val value by DataStore.configurationStore
             .booleanFlow(Key.BYPASS_LAN, true)
@@ -209,7 +209,7 @@ internal actual fun LazyListScope.androidRouteOptions(needReload: () -> Unit) {
     }
 }
 
-internal actual fun LazyListScope.androidMiscOptions(needReload: () -> Unit) {
+internal actual fun LazyListScope.platformMiscOptions(needReload: () -> Unit) {
     item(Key.ACQUIRE_WAKE_LOCK, PreferenceType.SWITCH) {
         val value by DataStore.configurationStore
             .booleanFlow(Key.ACQUIRE_WAKE_LOCK, true)

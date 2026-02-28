@@ -101,6 +101,7 @@ object DataStore {
 
     //    var tcpKeepAliveInterval by configurationStore.int(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
     var mtu by configurationStore.int(Key.MTU) { 9000 }
+    var tunStrictRoute by configurationStore.boolean(Key.TUN_STRICT_ROUTE) { true }
     var allowAppsBypassVpn by configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }
 
     var bypassLan by configurationStore.boolean(Key.BYPASS_LAN) { true }

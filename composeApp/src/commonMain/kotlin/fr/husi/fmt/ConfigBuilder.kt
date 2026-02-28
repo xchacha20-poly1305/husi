@@ -309,6 +309,7 @@ fun buildConfig(
                         else -> "mixed"
                     }
                     mtu = DataStore.mtu
+                    applyPlatformConfig()
                     when (networkStrategy) {
                         SingBoxOptions.STRATEGY_IPV4_ONLY -> {
                             address = mutableListOf(VpnConstants.PRIVATE_VLAN4_CLIENT + "/28")

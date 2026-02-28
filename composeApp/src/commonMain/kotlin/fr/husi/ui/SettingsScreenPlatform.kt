@@ -40,13 +40,16 @@ internal enum class AppLanguage(val tag: String) {
 @Composable
 internal expect fun rememberApplyNightMode(): (Int) -> Unit
 
-internal expect fun LazyListScope.androidGeneralOptions(needReload: () -> Unit)
+internal expect fun LazyListScope.platformGeneralOptions(needReload: () -> Unit)
 
 internal expect fun LazyListScope.meteredNetworkSetting(needReload: () -> Unit)
 
-internal expect fun LazyListScope.androidRouteOptions(needReload: () -> Unit)
+internal expect fun LazyListScope.platformRouteOptions(
+    needReload: () -> Unit,
+    isVpnMode: Boolean,
+)
 
-internal expect fun LazyListScope.androidMiscOptions(needReload: () -> Unit)
+internal expect fun LazyListScope.platformMiscOptions(needReload: () -> Unit)
 
 @Composable
 internal expect fun rememberThemeExtraColors(): List<Color>

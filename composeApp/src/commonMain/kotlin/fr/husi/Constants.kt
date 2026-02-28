@@ -77,6 +77,7 @@ object Key {
     const val LOG_LEVEL = "logLevel"
     const val LOG_MAX_LINE = "logMaxLine"
     const val MTU = "mtu"
+    const val TUN_STRICT_ROUTE = "tunStrictRoute"
     const val ALLOW_APPS_BYPASS_VPN = "allowAppsBypassVpn"
     const val ALWAYS_SHOW_ADDRESS = "alwaysShowAddress"
     const val BLURRED_ADDRESS = "blurredAddress"
