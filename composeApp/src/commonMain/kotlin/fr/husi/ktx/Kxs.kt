@@ -1,3 +1,5 @@
+@file:OptIn(InternalSerializationApi::class)
+
 package fr.husi.ktx
 
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -39,14 +41,24 @@ fun JSONMap.toJsonElementKxs(): JsonElement = anyToJsonElementKxs(this)
 
 fun JSONMap.toJsonObjectKxs(): JsonObject = toJsonElementKxs() as JsonObject
 
-inline fun <reified T> T.asKxsMap(): JSONMap = kxs.encodeToJsonElement(serializer<T>(), this).toJsonMapKxs()
+fun Any.asKxsMap(): JSONMap {
+    @Suppress("UNCHECKED_CAST")
+    val serializer = this::class.serializer() as KSerializer<Any>
+    return kxs.encodeToJsonElement(serializer, this).toJsonMapKxs()
+}
 
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
 fun Any.toJsonObjectKxs(): JsonObject {
     @Suppress("UNCHECKED_CAST")
     val serializer = this::class.serializer() as KSerializer<Any>
     val element = kxs.encodeToJsonElement(serializer, this)
     return element as? JsonObject ?: error("JSON root is not an object")
+}
+
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+fun Any.toJsonStringKxs(): String {
+    @Suppress("UNCHECKED_CAST")
+    val serializer = this::class.serializer() as KSerializer<Any>
+    return kxs.encodeToString(serializer, this)
 }
 
 private fun JsonElement.toAnyKxs(): Any? = when (this) {
