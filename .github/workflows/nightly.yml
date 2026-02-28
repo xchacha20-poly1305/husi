@@ -186,16 +186,20 @@ jobs:
           path: ${{ env.APK }}
 
   desktop:
-    name: Build Desktop (${{ matrix.target }})
-    runs-on: ubuntu-latest
+    name: Build Desktop (${{ matrix.name }})
+    runs-on: ${{ matrix.runs_on }}
     needs:
       - libcore
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - linux/amd64
-          - linux/arm64
+        include:
+          - name: linux-amd64
+            target: linux/amd64
+            runs_on: ubuntu-24.04
+          - name: linux-arm64
+            target: linux/arm64
+            runs_on: ubuntu-24.04-arm
 #          - darwin/amd64
 #          - darwin/arm64
 #          - windows/amd64

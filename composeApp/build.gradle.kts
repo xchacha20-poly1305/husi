@@ -51,6 +51,13 @@ fun normalizeDesktopTarget(rawValue: String): String {
     return "${normalizeDesktopPlatform(tokens[0])}/${normalizeDesktopArch(tokens[1])}"
 }
 
+fun desktopJarArchToken(arch: String): String =
+    when (arch) {
+        "amd64" -> "x64"
+        "arm64" -> "arm64"
+        else -> error("Unsupported desktop arch '$arch'.")
+    }
+
 fun resolveHostDesktopTarget(): String {
     val platform = normalizeDesktopPlatform(System.getProperty("os.name"))
     val arch = normalizeDesktopArch(System.getProperty("os.arch"))
@@ -157,6 +164,7 @@ val desktopTarget =
     } else {
         resolveHostDesktopTarget()
     }
+val composeDesktopVersion = libs.versions.composeMultiplatform.get()
 
 require(desktopTarget in supportedDesktopTargets) {
     "Unsupported desktop target '$desktopTarget'. Supported targets: ${supportedDesktopTargets.joinToString()}."
@@ -172,6 +180,9 @@ val libcoreDesktopJar =
         desktopJarFile
     })
 val hostDesktopPlatform = normalizeDesktopPlatform(System.getProperty("os.name"))
+val hostDesktopArch = normalizeDesktopArch(System.getProperty("os.arch"))
+val desktopTargetPlatform = desktopTarget.substringBefore("/")
+val desktopTargetArch = desktopTarget.substringAfter("/")
 val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
 val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
 val desktopVersionCode = metadata.getProperty("VERSION_CODE").trim().toInt()
@@ -340,7 +351,18 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(compose.desktop.currentOs)
+                if (requestedDesktopTarget.isEmpty()) {
+                    implementation(compose.desktop.currentOs)
+                } else {
+                    when (desktopTarget) {
+                        "linux/amd64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-linux-x64:$composeDesktopVersion")
+                        "linux/arm64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-linux-arm64:$composeDesktopVersion")
+                        "darwin/amd64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-macos-x64:$composeDesktopVersion")
+                        "darwin/arm64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-macos-arm64:$composeDesktopVersion")
+                        "windows/amd64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-windows-x64:$composeDesktopVersion")
+                        "windows/arm64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-windows-arm64:$composeDesktopVersion")
+                    }
+                }
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.kotlinx.cli)
                 implementation(libcoreDesktopJar)
@@ -435,6 +457,30 @@ tasks.withType<AbstractJPackageTask>().configureEach {
                 appArgsTemplateFile = linuxAppArgsTemplateFile,
             )
         }
+    }
+}
+
+tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
+    doLast {
+        if (requestedDesktopTarget.isEmpty()) {
+            return@doLast
+        }
+
+        val jarOutputDir = layout.buildDirectory.dir("compose/jars").get().asFile
+        val sourceJarName = "$desktopPackageName-$hostDesktopPlatform-${desktopJarArchToken(hostDesktopArch)}-$desktopVersion.jar"
+        val targetJarName = "$desktopPackageName-$desktopTargetPlatform-${desktopJarArchToken(desktopTargetArch)}-$desktopVersion.jar"
+        val sourceJar = jarOutputDir.resolve(sourceJarName)
+        val targetJar = jarOutputDir.resolve(targetJarName)
+
+        require(sourceJar.isFile) {
+            "Expected source uberjar '${sourceJar.path}' was not generated."
+        }
+
+        if (sourceJar.path == targetJar.path) {
+            return@doLast
+        }
+
+        sourceJar.copyTo(targetJar, overwrite = true)
     }
 }
 

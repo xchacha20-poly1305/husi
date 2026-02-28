@@ -5,9 +5,12 @@ CLIP = sh -c 'if [ -n "$$WAYLAND_DISPLAY" ]; then exec wl-copy; \
               elif [ -n "$$DISPLAY" ]; then exec xclip -selection clipboard; \
               else echo "No display detected (WAYLAND_DISPLAY/DISPLAY missing)"; exit 1; fi'
 DESKTOP_TARGETS_COMMON = linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
+DESKTOP_TARGETS_LINUX = linux/amd64 linux/arm64
 LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
+DESKTOP_TARGET_GRADLE_ARG = $(if $(DESKTOP_TARGET),-PdesktopTarget=$(DESKTOP_TARGET),)
+DESKTOP_TARGET_SCRIPT_ARG = $(if $(DESKTOP_TARGET),--target $(DESKTOP_TARGET),)
 
-.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_uberjar lint_go test_go plugin generate_option
+.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_uberjar lint_go test_go plugin generate_option
 
 build: libcore_android assets apk
 
@@ -34,12 +37,18 @@ desktop_release:
 	BUILD_PLUGIN=none ./gradlew -p composeApp runRelease
 
 desktop_package_linux:
-	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS
-	./launcher/build.sh
-	./release/linux/package-native.sh --formats $(LINUX_PACKAGE_FORMATS)
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	./launcher/build.sh $(DESKTOP_TARGET_SCRIPT_ARG)
+	./release/linux/package-native.sh --formats $(LINUX_PACKAGE_FORMATS) $(DESKTOP_TARGET_SCRIPT_ARG)
+
+desktop_package_linux_all:
+	$(MAKE) libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64
+	@for desktop_target in $(DESKTOP_TARGETS_LINUX); do \
+		$(MAKE) desktop_package_linux DESKTOP_TARGET=$$desktop_target LINUX_PACKAGE_FORMATS=$(LINUX_PACKAGE_FORMATS) || exit $$?; \
+	done
 
 desktop_uberjar:
-	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS
+	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 
 apk:
 	BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease

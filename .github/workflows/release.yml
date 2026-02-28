@@ -190,8 +190,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: linux
-            runs_on: ubuntu-latest
+          - name: linux-amd64
+            runs_on: ubuntu-24.04
+            desktop_target: linux/amd64
+          - name: linux-arm64
+            runs_on: ubuntu-24.04-arm
+            desktop_target: linux/arm64
 #          - name: macos
 #            runs_on: macos-latest
 #          - name: windows
@@ -225,13 +229,14 @@ jobs:
         shell: bash
         env:
           BUILD_PLUGIN: none
+          DESKTOP_TARGET: ${{ matrix.desktop_target }}
         run: |
           ./run init action gradle
           ./gradlew :composeApp:exportLibraryDefinitions
-          ./gradlew -p composeApp packageUberJarForCurrentOS
-          CC=musl-gcc ./launcher/build.sh
+          ./gradlew -p composeApp packageUberJarForCurrentOS -PdesktopTarget=${DESKTOP_TARGET}
+          CC=musl-gcc ./launcher/build.sh --target ${DESKTOP_TARGET}
           mkdir -p desktop-dist
-          ./release/linux/package-native.sh --formats deb,rpm,pacman --output-dir desktop-dist
+          ./release/linux/package-native.sh --formats deb,rpm,pacman --target ${DESKTOP_TARGET} --output-dir desktop-dist
           find composeApp/build/compose/jars -type f -name "*.jar" -exec cp {} desktop-dist/ \;
       - name: Upload Desktop Packages
         uses: actions/upload-artifact@v7
@@ -264,8 +269,9 @@ jobs:
       - name: Download Desktop Linux Packages
         uses: actions/download-artifact@v8
         with:
-          name: desktop-packages-linux
+          pattern: desktop-packages-linux-*
           path: desktop/linux
+          merge-multiple: true
 #      - name: Download Desktop macOS Packages
 #        uses: actions/download-artifact@v8
 #        with:

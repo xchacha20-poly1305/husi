@@ -38,7 +38,7 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>] [--pkgrel <n>]
+  $(basename "$0") [--formats deb,rpm,pacman] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>] [--pkgrel <n>]
   $(basename "$0") --check-tools [--formats deb,rpm,pacman]
 
 Description:
@@ -143,24 +143,71 @@ load_metadata() {
     MAINTAINER="Husi contributors"
 }
 
+normalize_platform() {
+    local value
+    value="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+    case "$value" in
+        linux)
+            echo "linux"
+            ;;
+        *)
+            error "Unsupported platform '$1'. Use linux."
+            exit 1
+            ;;
+    esac
+}
+
+normalize_arch() {
+    local value
+    value="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+    case "$value" in
+        amd64|x86_64)
+            echo "amd64"
+            ;;
+        arm64|aarch64)
+            echo "arm64"
+            ;;
+        *)
+            error "Unsupported arch '$1'. Use amd64 or arm64."
+            exit 1
+            ;;
+    esac
+}
+
+resolve_target() {
+    if [[ -n "$TARGET" ]]; then
+        local raw_platform="${TARGET%%/*}"
+        local raw_arch="${TARGET#*/}"
+        if [[ "$raw_platform" == "$raw_arch" ]]; then
+            error "Invalid --target '$TARGET'. Use <platform>/<arch>, e.g. linux/amd64."
+            exit 1
+        fi
+        TARGET_PLATFORM="$(normalize_platform "$raw_platform")"
+        TARGET_ARCH="$(normalize_arch "$raw_arch")"
+    else
+        TARGET_PLATFORM="linux"
+        TARGET_ARCH="$(normalize_arch "$(uname -m)")"
+    fi
+}
+
 resolve_arch() {
-    local machine
-    machine="$(uname -m)"
-    case "$machine" in
-        x86_64|amd64)
+    case "$TARGET_ARCH" in
+        amd64)
             JAR_ARCH="x64"
             DEB_ARCH="amd64"
             RPM_ARCH="x86_64"
             PACMAN_ARCH="x86_64"
+            LAUNCHER_MACHINE="x86_64"
             ;;
-        aarch64|arm64)
+        arm64)
             JAR_ARCH="arm64"
             DEB_ARCH="arm64"
             RPM_ARCH="aarch64"
             PACMAN_ARCH="aarch64"
+            LAUNCHER_MACHINE="aarch64"
             ;;
         *)
-            error "Unsupported architecture '$machine'."
+            error "Unsupported architecture '$TARGET_ARCH'."
             exit 1
             ;;
     esac
@@ -215,6 +262,22 @@ require_tools_for_formats() {
     fi
 }
 
+validate_rpm_target() {
+    if [[ -z "${ENABLED_FORMATS[rpm]:-}" ]]; then
+        return
+    fi
+
+    local detected_target_cpu
+    detected_target_cpu="$(rpmbuild --target "$RPM_ARCH" -E '%{_target_cpu}' 2>/dev/null | tr -d '\r\n' || true)"
+    if [[ "$detected_target_cpu" == "$RPM_ARCH" ]]; then
+        return
+    fi
+
+    error "rpmbuild on this host does not support target RPM arch '$RPM_ARCH' (resolved target cpu: '${detected_target_cpu:-unknown}')."
+    error "Build rpm on a matching host/toolchain, or exclude rpm via: --formats deb,pacman"
+    exit 1
+}
+
 resolve_input_jar() {
     local requested="$1"
     if [[ -n "$requested" ]]; then
@@ -246,7 +309,7 @@ resolve_input_jar() {
 
 resolve_launcher_bin() {
     local requested="$1"
-    local default_path="$ROOT_DIR/launcher/build/${PACKAGE_NAME}-launcher-bin-$(uname -m)"
+    local default_path="$ROOT_DIR/launcher/build/${PACKAGE_NAME}-launcher-bin-${LAUNCHER_MACHINE}"
 
     if [[ -n "$requested" ]]; then
         if [[ ! -f "$requested" ]]; then
@@ -385,6 +448,7 @@ build_rpm() {
         "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
 
     rpmbuild \
+        --target "$RPM_ARCH" \
         --define "_topdir $rpm_top" \
         --define "husi_root $rootfs" \
         -bb "$spec_file"
@@ -442,6 +506,9 @@ build_pacman() {
 }
 
 FORMATS="deb,rpm,pacman"
+TARGET=""
+TARGET_PLATFORM=""
+TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
@@ -453,6 +520,11 @@ while [[ $# -gt 0 ]]; do
         -f|--formats)
             require_arg "$1" "${2:-}"
             FORMATS="$2"
+            shift 2
+            ;;
+        --target)
+            require_arg "$1" "${2:-}"
+            TARGET="$2"
             shift 2
             ;;
         -i|--input-jar)
@@ -493,9 +565,11 @@ done
 
 PKGREL="$(normalize_pkgrel "$PKGREL")"
 load_metadata
+resolve_target
 resolve_arch
 resolve_formats "$FORMATS"
 require_tools_for_formats
+validate_rpm_target
 
 if [[ "$CHECK_TOOLS" -eq 1 ]]; then
     log "All required tools are available for formats: $FORMATS"
