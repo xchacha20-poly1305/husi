@@ -460,7 +460,7 @@ fun SettingsScreen(
                             value = stored,
                             onValueChange = {
                                 DataStore.serviceMode = it
-                                repo.stopService()
+                                needReload()
                             },
                             values = values,
                             title = { Text(stringResource(Res.string.service_mode)) },
