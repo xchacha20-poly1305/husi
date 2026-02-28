@@ -2,6 +2,7 @@ package fr.husi
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +20,8 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.bg.BackendState
+import fr.husi.bg.ServiceState
 import fr.husi.compose.getPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
@@ -36,7 +39,11 @@ import fr.husi.resources.app_name
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
 import fr.husi.resources.ic_service_rest
-import fr.husi.resources.show_window
+import fr.husi.resources.service_mode
+import fr.husi.resources.service_mode_proxy
+import fr.husi.resources.service_mode_vpn
+import fr.husi.resources.start
+import fr.husi.resources.stop
 import fr.husi.ui.MainScreen
 import fr.husi.ui.MainViewModel
 import fr.husi.utils.CrashHandler
@@ -78,11 +85,55 @@ fun main(args: Array<String>) {
             onAction = ::openWindow,
         ) {
             // TODO mnemonic and icon is not supported on some desktop environments (GNOME)
+            val serviceStatus by BackendState.status.collectAsState()
             Item(
-                text = stringResource(Res.string.show_window),
-                // mnemonic = 'S',
-                onClick = ::openWindow,
-            )
+                text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+            ) {
+                openWindow()
+            }
+            Item(
+                text = stringResource(
+                    if (serviceStatus.state == ServiceState.Connected) {
+                        Res.string.stop
+                    } else {
+                        Res.string.start
+                    },
+                ),
+                enabled = serviceStatus.state == ServiceState.Connected
+                        || serviceStatus.state == ServiceState.Stopped
+                        || serviceStatus.state == ServiceState.Idle,
+            ) {
+                when (serviceStatus.state) {
+                    ServiceState.Stopped -> repo.startService()
+                    ServiceState.Idle,ServiceState.Connected -> repo.stopService()
+                    else -> {}
+                }
+            }
+            Menu(
+                text = stringResource(Res.string.service_mode),
+            ) {
+                val serviceMode by DataStore.configurationStore
+                    .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                    .collectAsState(Key.MODE_VPN)
+                CheckboxItem(
+                    text = stringResource(Res.string.service_mode_proxy),
+                    checked = serviceMode == Key.MODE_PROXY,
+                ) {
+                    if (serviceMode != Key.MODE_PROXY) {
+                        DataStore.serviceMode = Key.MODE_PROXY
+                        repo.reloadService()
+                    }
+                }
+                CheckboxItem(
+                    text = stringResource(Res.string.service_mode_vpn),
+                    checked = serviceMode == Key.MODE_VPN,
+                ) {
+                    if (serviceMode != Key.MODE_VPN) {
+                        DataStore.serviceMode = Key.MODE_VPN
+                        repo.reloadService()
+                    }
+                }
+            }
             Item(
                 text = stringResource(Res.string.exit),
                 // icon = painterResource(Res.drawable.close),

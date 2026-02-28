@@ -686,7 +686,6 @@
     <string name="warn_shadowtls_legacy">该配置 (旧版本 ShadowTLS) 已被弃用。\n\n了解更多: https://github.com/ihciah/shadow-tls/blob/master/docs/protocol-v3-zh.md#%%E7%%89%%88%%E6%%9C%%AC%%E6%%BC%%94%%E8%%BF%%9B</string>
     <string name="warn_vmess_md5_auth">该配置 (VMess MD5 认证) 抗篡改能力存疑, 隐蔽性存疑, 已被上游废弃.\n\n自 2022 年 1 月 1 日起, 服务器端将默认禁用对于 MD5 认证信息 的兼容. 任何使用 MD5 认证信息的客户端将无法连接到禁用 VMess MD5 认证信息的服务器端.\n\n了解更多: https://github.com/v2ray/v2ray-core/issues/2523</string>
 
-    <string name="show_window">显示窗口</string>
     <string name="exit">退出</string>
     <string name="tun_strict_route">Tun 严格路由</string>
 </resources>

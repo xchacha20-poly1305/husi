@@ -769,7 +769,6 @@
     <string name="warn_shadowtls_legacy">This configuration (ShadowTLS with old version) is deprecated.\n\nLearn more: https://github.com/ihciah/shadow-tls/blob/master/docs/protocol-v3-en.md#version-evolution</string>
     <string name="warn_vmess_md5_auth">This configuration (VMess MD5 authentication) has been deprecated by upstream because of its questionable resistance to tampering and concealment.\n\nAs of January 1, 2022, compatibility with MD5 authentication information will be disabled on the server side by default. Any client using MD5 authentication information will not be able to connect to a server with VMess MD5 authentication information disabled.\n\nLearn more: https://github.com/v2ray/v2ray-core/issues/2523</string>
 
-    <string name="show_window">Show window</string>
     <string name="exit">Exit</string>
     <string name="tun_strict_route">Tun strict route</string>
 </resources>
