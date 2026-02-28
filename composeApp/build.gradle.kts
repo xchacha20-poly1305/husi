@@ -184,26 +184,19 @@ val desktopTargetFormats =
         "windows" -> resolveWindowsTargetFormats()
         else -> error("Unsupported host desktop platform '$hostDesktopPlatform'.")
     }
-val linuxWrappedLauncherSuffix = "-launcher-bin"
-val linuxWrappedLauncherPlaceholder = "__HUSI_WRAPPED_LAUNCHER__"
 val linuxJavaOptionsTemplateTarget = "desktop-java-opts.conf.template"
 val linuxAppArgsTemplateTarget = "desktop-app-args.conf.template"
 
 val linuxDesktopReleaseDir = rootProject.layout.projectDirectory.dir("release/linux/desktop")
-val linuxLauncherTemplateFile = linuxDesktopReleaseDir.file("launcher.sh").asFile
 val linuxJavaOptionsTemplateFile = linuxDesktopReleaseDir.file("desktop-java-opts.conf").asFile
 val linuxAppArgsTemplateFile = linuxDesktopReleaseDir.file("desktop-app-args.conf").asFile
 
 fun patchLinuxDesktopLauncher(
     appImageRoot: File,
     launcherName: String,
-    launcherTemplateFile: File,
     javaOptionsTemplateFile: File,
     appArgsTemplateFile: File,
 ) {
-    require(launcherTemplateFile.isFile) {
-        "Missing release launcher template '${launcherTemplateFile.path}'."
-    }
     require(javaOptionsTemplateFile.isFile) {
         "Missing release JVM options template '${javaOptionsTemplateFile.path}'."
     }
@@ -216,28 +209,6 @@ fun patchLinuxDesktopLauncher(
     require(launcherScript.isFile) {
         "Launcher '${launcherScript.path}' not found in Linux app image."
     }
-
-    val wrappedLauncherName = "$launcherName$linuxWrappedLauncherSuffix"
-    val wrappedLauncher = launcherDir.resolve(wrappedLauncherName)
-    if (!wrappedLauncher.exists()) {
-        launcherScript.copyTo(wrappedLauncher, overwrite = true)
-        launcherScript.delete()
-    }
-
-    val launcherCfgDir = appImageRoot.resolve("lib/app")
-    val launcherCfg = launcherCfgDir.resolve("$launcherName.cfg")
-    if (launcherCfg.isFile) {
-        launcherCfg.copyTo(launcherCfgDir.resolve("$wrappedLauncherName.cfg"), overwrite = true)
-    }
-
-    val launcherTemplate = launcherTemplateFile.readText()
-    require(launcherTemplate.contains(linuxWrappedLauncherPlaceholder)) {
-        "Launcher template '${launcherTemplateFile.path}' must contain $linuxWrappedLauncherPlaceholder."
-    }
-    launcherScript.writeText(
-        launcherTemplate.replace(linuxWrappedLauncherPlaceholder, wrappedLauncherName),
-    )
-    launcherScript.setExecutable(true, false)
 
     javaOptionsTemplateFile.copyTo(launcherDir.resolve(linuxJavaOptionsTemplateTarget), overwrite = true)
     appArgsTemplateFile.copyTo(launcherDir.resolve(linuxAppArgsTemplateTarget), overwrite = true)
@@ -460,7 +431,6 @@ tasks.withType<AbstractJPackageTask>().configureEach {
             patchLinuxDesktopLauncher(
                 appImageRoot = appImageRoot,
                 launcherName = desktopPackageName,
-                launcherTemplateFile = linuxLauncherTemplateFile,
                 javaOptionsTemplateFile = linuxJavaOptionsTemplateFile,
                 appArgsTemplateFile = linuxAppArgsTemplateFile,
             )

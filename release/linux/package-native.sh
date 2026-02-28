@@ -7,7 +7,6 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 METADATA_FILE="$ROOT_DIR/husi.properties"
 JAR_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/jars"
 OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/linux"
-LAUNCHER_WRAPPED_PLACEHOLDER="__HUSI_WRAPPED_LAUNCHER__"
 PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
 VERSION_NAME_PLACEHOLDER="__HUSI_VERSION_NAME__"
 APP_NAME_PLACEHOLDER="__HUSI_APP_NAME__"
@@ -24,6 +23,9 @@ PACMAN_VERSION_FULL_PLACEHOLDER="__HUSI_PACMAN_VERSION_FULL__"
 PACMAN_ARCH_PLACEHOLDER="__HUSI_PACMAN_ARCH__"
 BUILD_DATE_PLACEHOLDER="__HUSI_BUILD_DATE__"
 SIZE_BYTES_PLACEHOLDER="__HUSI_SIZE_BYTES__"
+LAUNCHER_PATH_PLACEHOLDER="__HUSI_LAUNCHER_PATH__"
+LAUNCHER_CAPS_PLACEHOLDER="__HUSI_LAUNCHER_CAPS__"
+LAUNCHER_SETCAPS="cap_setpcap,cap_net_admin,cap_net_raw,cap_net_bind_service,cap_sys_ptrace,cap_dac_read_search=ep"
 
 log() {
     echo "[package-native] $*"
@@ -36,7 +38,7 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats deb,rpm,pacman] [--input-jar <file>] [--output-dir <dir>] [--pkgrel <n>]
+  $(basename "$0") [--formats deb,rpm,pacman] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>] [--pkgrel <n>]
   $(basename "$0") --check-tools [--formats deb,rpm,pacman]
 
 Description:
@@ -45,6 +47,7 @@ Description:
 Defaults:
   --formats    deb,rpm,pacman
   --input-jar  newest matching jar under $JAR_DIR_DEFAULT
+  --launcher-bin  $ROOT_DIR/launcher/build/<package>-launcher-bin-<machine>
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
 EOF
@@ -241,41 +244,50 @@ resolve_input_jar() {
     exit 1
 }
 
+resolve_launcher_bin() {
+    local requested="$1"
+    local default_path="$ROOT_DIR/launcher/build/${PACKAGE_NAME}-launcher-bin-$(uname -m)"
+
+    if [[ -n "$requested" ]]; then
+        if [[ ! -f "$requested" ]]; then
+            error "Launcher binary not found: $requested"
+            exit 1
+        fi
+        INPUT_LAUNCHER_BIN="$requested"
+        return
+    fi
+
+    if [[ -f "$default_path" ]]; then
+        INPUT_LAUNCHER_BIN="$default_path"
+        return
+    fi
+
+    error "Launcher binary not found: $default_path"
+    error "Build one first: ./launcher/build.sh"
+    exit 1
+}
+
 prepare_rootfs() {
     local rootfs="$1"
     local app_root="$rootfs/usr/lib/$PACKAGE_NAME"
     local bin_dir="$app_root/bin"
     local app_dir="$app_root/app"
-    local launcher_template="$ROOT_DIR/release/linux/desktop/launcher.sh"
-    local launcher_bin_template="$ROOT_DIR/release/linux/desktop/launcher-bin.sh"
     local java_opts_template="$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf"
     local app_args_template="$ROOT_DIR/release/linux/desktop/desktop-app-args.conf"
     local desktop_entry_template="$ROOT_DIR/release/linux/desktop/husi.desktop"
-    local wrapped_launcher="${PACKAGE_NAME}-launcher-bin"
     local main_launcher="$bin_dir/$PACKAGE_NAME"
-    local wrapped_launcher_path="$bin_dir/$wrapped_launcher"
     local system_launcher="$rootfs/usr/bin/$PACKAGE_NAME"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
 
-    if [[ ! -f "$launcher_template" || ! -f "$launcher_bin_template" || ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" ]]; then
+    if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" ]]; then
         error "Missing launcher templates under release/linux/desktop"
         exit 1
     fi
 
     mkdir -p "$bin_dir" "$app_dir" "$rootfs/usr/bin" "$rootfs/usr/share/applications" "$rootfs/usr/share/pixmaps"
     cp "$INPUT_JAR" "$app_dir/$PACKAGE_NAME.jar"
-
-    render_template \
-        "$launcher_template" \
-        "$main_launcher" \
-        "$LAUNCHER_WRAPPED_PLACEHOLDER" "$wrapped_launcher"
+    cp "$INPUT_LAUNCHER_BIN" "$main_launcher"
     chmod 755 "$main_launcher"
-
-    render_template \
-        "$launcher_bin_template" \
-        "$wrapped_launcher_path" \
-        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME"
-    chmod 755 "$wrapped_launcher_path"
 
     cp "$java_opts_template" "$bin_dir/desktop-java-opts.conf.template"
     cp "$app_args_template" "$bin_dir/desktop-app-args.conf.template"
@@ -301,8 +313,13 @@ build_deb() {
     local deb_root="$work_dir/deb-rootfs"
     local control_dir="$deb_root/DEBIAN"
     local control_template="$ROOT_DIR/release/linux/desktop/deb.control"
+    local postinst_template="$ROOT_DIR/release/linux/desktop/deb.postinst"
+    local postrm_template="$ROOT_DIR/release/linux/desktop/deb.postrm"
     local control_file="$control_dir/control"
+    local postinst_file="$control_dir/postinst"
+    local postrm_file="$control_dir/postrm"
     local output_path="$output_dir/${PACKAGE_NAME}_${VERSION_NAME}_${DEB_ARCH}.deb"
+    local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
 
     rm -rf "$deb_root"
     mkdir -p "$deb_root"
@@ -316,6 +333,16 @@ build_deb() {
         "$DEB_ARCH_PLACEHOLDER" "$DEB_ARCH" \
         "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
         "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION"
+    render_template \
+        "$postinst_template" \
+        "$postinst_file" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
+        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
+    render_template \
+        "$postrm_template" \
+        "$postrm_file" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path"
+    chmod 755 "$postinst_file" "$postrm_file"
 
     dpkg-deb --root-owner-group --build "$deb_root" "$output_path"
     log "Built deb: $output_path"
@@ -334,6 +361,7 @@ build_rpm() {
     local spec_file="$rpm_top/SPECS/${PACKAGE_NAME}.spec"
     local icon_target="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     local icon_entry=""
+    local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
 
     mkdir -p "$rpm_top"/BUILD "$rpm_top"/BUILDROOT "$rpm_top"/RPMS "$rpm_top"/SOURCES "$rpm_top"/SPECS "$rpm_top"/SRPMS
 
@@ -352,7 +380,9 @@ build_rpm() {
         "$RPM_ARCH_PLACEHOLDER" "$RPM_ARCH" \
         "$PIXMAP_FILE_ENTRY_PLACEHOLDER" "$icon_entry" \
         "$CHANGELOG_DATE_PLACEHOLDER" "$changelog_date" \
-        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER"
+        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
+        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
 
     rpmbuild \
         --define "_topdir $rpm_top" \
@@ -375,6 +405,7 @@ build_pacman() {
     local work_dir="$3"
     local pacman_root="$work_dir/pacman-rootfs"
     local pkginfo_template="$ROOT_DIR/release/linux/desktop/.PKGINFO"
+    local install_template="$ROOT_DIR/release/linux/desktop/pacman.install"
     local pacman_pkgver
     pacman_pkgver="$(normalize_pacman_version "$VERSION_NAME")"
     local pkgver_full="${pacman_pkgver}-${PKGREL}"
@@ -383,6 +414,7 @@ build_pacman() {
     size_bytes="$(du -sb "$rootfs" | awk '{print $1}')"
     local build_date
     build_date="$(date +%s)"
+    local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
 
     rm -rf "$pacman_root"
     mkdir -p "$pacman_root"
@@ -399,13 +431,19 @@ build_pacman() {
         "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
         "$SIZE_BYTES_PLACEHOLDER" "$size_bytes" \
         "$PACMAN_ARCH_PLACEHOLDER" "$PACMAN_ARCH"
+    render_template \
+        "$install_template" \
+        "$pacman_root/.INSTALL" \
+        "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path" \
+        "$LAUNCHER_CAPS_PLACEHOLDER" "$LAUNCHER_SETCAPS"
 
-    bsdtar --numeric-owner --uid 0 --gid 0 -C "$pacman_root" -cf - .PKGINFO usr | zstd -q -19 -T0 >"$output_pkg"
+    bsdtar --numeric-owner --uid 0 --gid 0 -C "$pacman_root" -cf - .PKGINFO .INSTALL usr | zstd -q -19 -T0 >"$output_pkg"
     log "Built pacman: $output_pkg"
 }
 
 FORMATS="deb,rpm,pacman"
 INPUT_JAR=""
+INPUT_LAUNCHER_BIN=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
 PKGREL="1"
 CHECK_TOOLS=0
@@ -420,6 +458,11 @@ while [[ $# -gt 0 ]]; do
         -i|--input-jar)
             require_arg "$1" "${2:-}"
             INPUT_JAR="$2"
+            shift 2
+            ;;
+        --launcher-bin)
+            require_arg "$1" "${2:-}"
+            INPUT_LAUNCHER_BIN="$2"
             shift 2
             ;;
         -o|--output-dir)
@@ -460,6 +503,7 @@ if [[ "$CHECK_TOOLS" -eq 1 ]]; then
 fi
 
 resolve_input_jar "$INPUT_JAR"
+resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
 mkdir -p "$OUTPUT_DIR"
 
 work_dir="$(mktemp -d)"

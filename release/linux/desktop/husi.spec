@@ -6,6 +6,7 @@ License: GPL-3.0-or-later
 URL: __HUSI_APP_URL__
 BuildArch: __HUSI_RPM_ARCH__
 Requires: java >= 21
+Requires(post): /usr/sbin/setcap
 
 %description
 __HUSI_APP_DESCRIPTION__
@@ -17,6 +18,9 @@ __HUSI_APP_DESCRIPTION__
 %install
 mkdir -p %{buildroot}
 cp -a %{husi_root}/. %{buildroot}/
+
+%post
+/usr/sbin/setcap '__HUSI_LAUNCHER_CAPS__' '__HUSI_LAUNCHER_PATH__'
 
 %files
 /usr/bin/__HUSI_PACKAGE_NAME__

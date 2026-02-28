@@ -7,6 +7,8 @@ on:
       - "androidApp/**"
       - "composeApp/**"
       - "buildScript/**"
+      - "release/linux/**"
+      - "launcher/**"
       - "buildScr/**"
       - "libcore/**"
       - "grade/**"

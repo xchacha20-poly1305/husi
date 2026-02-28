@@ -8,6 +8,8 @@ on:
       - "**.go"
       - "androidApp/**"
       - "composeApp/**"
+      - "release/linux/**"
+      - "launcher/**"
       - ".github/workflows/test.yml"
   pull_request:
     branches:
@@ -16,6 +18,8 @@ on:
       - "**.go"
       - "androidApp/**"
       - "composeApp/**"
+      - "release/linux/**"
+      - "launcher/**"
       - ".github/workflows/test.yml"
 
 jobs:
@@ -26,6 +30,11 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
+
+      - name: Build Linux launcher
+        run: |
+          ./launcher/build.sh --output /tmp/husi-launcher
+          rm -f /tmp/husi-launcher
 
       - name: Golang Version
         id: version

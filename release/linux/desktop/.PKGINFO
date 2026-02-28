@@ -9,3 +9,5 @@ size = __HUSI_SIZE_BYTES__
 arch = __HUSI_PACMAN_ARCH__
 license = GPL3
 depend = java-runtime>=21
+depend = libcap
+install = __HUSI_PACKAGE_NAME__.install

@@ -4,5 +4,5 @@ Section: net
 Priority: optional
 Architecture: __HUSI_DEB_ARCH__
 Maintainer: __HUSI_MAINTAINER__
-Depends: java21-runtime | openjdk-21-jre | openjdk-21-jre-headless
+Depends: java21-runtime | openjdk-21-jre | openjdk-21-jre-headless, libcap2-bin
 Description: __HUSI_APP_DESCRIPTION__

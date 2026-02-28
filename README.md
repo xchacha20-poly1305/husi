@@ -217,7 +217,7 @@ make desktop_package_linux
 ```
 
 This command still builds the uber jar first, then packages it with native Linux tooling.
-Required host tools: `dpkg-deb`, `rpmbuild`, `bsdtar`, `zstd`.
+Required host tools: `cc`, `dpkg-deb`, `rpmbuild`, `bsdtar`, `zstd`.
 Default output directory:
 
 ```shell
@@ -234,6 +234,13 @@ Installed launcher supports user config files:
 
 * `~/.config/husi/desktop-java-opts.conf` for JVM options
 * `~/.config/husi/desktop-app-args.conf` for application startup arguments
+
+Linux native packages include a native launcher from `launcher/husi-launcher.c`.
+The default packaging flow runs `./launcher/build.sh` first, then `package-native.sh` consumes that binary.
+`./launcher/build.sh` uses static linking for launcher and exits directly if static link cannot be completed.
+You can choose compiler via `CC=<compiler> ./launcher/build.sh` or `./launcher/build.sh --cc <compiler>`.
+For smaller static launcher in CI, use `CC=musl-gcc ./launcher/build.sh` (requires `musl-tools`).
+Package install scripts call `setcap` on the launcher so capabilities can be raised to ambient set before starting the JVM.
 
 Or run the direct command:
 

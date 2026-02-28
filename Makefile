@@ -41,6 +41,7 @@ desktop_package:
 
 desktop_package_linux:
 	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS
+	./launcher/build.sh
 	./release/linux/package-native.sh --formats $(LINUX_PACKAGE_FORMATS)
 
 desktop_uberjar:
