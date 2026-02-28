@@ -14,8 +14,6 @@ internal actual fun LazyListScope.autoConnect() {
 @Composable
 internal actual fun rememberApplyNightMode(): (Int) -> Unit = {}
 
-internal actual fun isMemoryLimitSettingSupported(): Boolean = false
-
 internal actual fun LazyListScope.androidGeneralOptions(needReload: () -> Unit) {
 }
 

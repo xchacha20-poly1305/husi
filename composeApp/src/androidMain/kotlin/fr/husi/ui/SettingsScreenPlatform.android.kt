@@ -93,9 +93,6 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit {
     }
 }
 
-internal actual fun isMemoryLimitSettingSupported(): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
-
 internal actual fun LazyListScope.androidGeneralOptions(needReload: () -> Unit) {
     item(Key.ALLOW_APPS_BYPASS_VPN, PreferenceType.SWITCH) {
         val value by DataStore.configurationStore

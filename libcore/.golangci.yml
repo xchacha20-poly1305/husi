@@ -6,7 +6,6 @@ linters:
 
 run:
   build-tags:
-    - "with_conntrack"
     - "with_gvisor"
     - "with_quic"
     - "with_wireguard"

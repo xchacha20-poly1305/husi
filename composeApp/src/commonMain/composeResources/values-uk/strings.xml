@@ -423,7 +423,6 @@
     <string name="location_permission_title">Дозвіл геолокації</string>
     <string name="no_thanks">Ні, дякую</string>
     <string name="test_timeout">Таймаут (мс)</string>
-    <string name="memory_limit">Ліміт пам\'яті</string>
     <string name="ntp_category">Налаштування клієнта NTP</string>
     <string name="enable_ntp">Увімкнути NTP</string>
     <string name="ntp_sum">Увімкнути вбудований NTP-клієнт та використовувати час, що ним надається, замість системного</string>

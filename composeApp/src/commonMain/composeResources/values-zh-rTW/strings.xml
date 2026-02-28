@@ -505,7 +505,6 @@
     <string name="experimental_authenticated_length">使每個有效負載段的長度不再可變。此實驗要求伺服器和客戶端使用相同版本的 v2ray-core。預計此實驗將有更多重大更新。</string>
     <string name="keep_default">保持預設</string>
     <string name="connection_test_mux">伺服器不支援此多工協定</string>
-    <string name="memory_limit">記憶體限制</string>
     <string name="ntp_category">NTP 客戶端設定</string>
     <string name="enable_ntp">啟用 NTP</string>
     <string name="ntp_sum">啟用內建的 NTP 客戶端，並使用其提供的時間取代系統時間</string>

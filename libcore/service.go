@@ -328,10 +328,9 @@ func (s *Service) handleRequest(conn net.Conn) error {
 		instance, err := s.requireInstance()
 		s.access.RUnlock()
 		if err != nil {
-			ResetAllConnections()
-		} else {
-			instance.ResetNetwork()
+			return err
 		}
+		instance.ResetNetwork()
 		return nil
 	case commandSubscribeLogs:
 		err := s.handleSubscribeLogs(conn)

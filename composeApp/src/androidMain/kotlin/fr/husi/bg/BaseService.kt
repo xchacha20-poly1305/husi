@@ -31,7 +31,6 @@ import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.ktx.showToast
-import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
 import fr.husi.repository.repo
 import fr.husi.resources.*
@@ -88,9 +87,9 @@ class BaseService {
         override fun resetNetwork() {
             val proxy = proxy
             if (proxy != null && proxy.isInitialized()) {
-                repo.boxService?.resetNetwork()
-            } else {
-                Libcore.resetAllConnections()
+                runCatching {
+                    repo.boxService?.resetNetwork()
+                }
             }
         }
     }

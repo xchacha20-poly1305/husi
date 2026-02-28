@@ -89,7 +89,6 @@ object DataStore {
     var nightTheme by configurationStore.int(Key.NIGHT_THEME)
     var appLanguage by configurationStore.string(Key.APP_LANGUAGE)
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
-    var memoryLimit by configurationStore.boolean(Key.MEMORY_LIMIT) { false }
     var debugListen by configurationStore.string(Key.DEBUG_LISTEN)
     var networkStrategy by configurationStore.string(Key.NETWORK_STRATEGY)
     var anchorSSID by configurationStore.string(Key.ANCHOR_SSID)

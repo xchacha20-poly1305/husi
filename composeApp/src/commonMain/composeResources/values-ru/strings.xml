@@ -517,7 +517,6 @@
     <string name="action_flash_on">Включить вспышку</string>
     <string name="action_flash_off">Выключить вспышку</string>
     <string name="http_upgrade_path">HTTPUpgrade - Путь</string>
-    <string name="memory_limit">Лимит памяти</string>
     <string name="enable_ntp">Включить NTP</string>
     <string name="ntp_server_address">Адрес сервера NTP</string>
     <string name="ntp_server_port">Порт сервера NTP</string>

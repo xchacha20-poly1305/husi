@@ -483,7 +483,6 @@
     <string name="hysteria2_provider">ارائه دهنده Hysteria2</string>
     <string name="keep_default">پیش فرض را حفظ کنید</string>
     <string name="connection_test_mux">سرور از این پروتکل چندگانه پشتیبانی نمی کند</string>
-    <string name="memory_limit">محدودیت حافظه</string>
     <string name="ntp_category">تنظیمات سرویس گیرنده NTP</string>
     <string name="ntp_server_address">آدرس سرور NTP</string>
     <string name="start_time">شروع شده در</string>

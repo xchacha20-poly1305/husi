@@ -490,7 +490,6 @@
     <string name="location_permission_background_description">A partir de Android 10, se requiere permiso de ubicación en segundo plano. Seleccione Permitir siempre para otorgar el permiso.</string>
     <string name="connection_test_mux">Servidor no compatible con este protocolo múltiplex</string>
     <string name="front_proxy">Proxy frontal</string>
-    <string name="memory_limit">Limitar memoria</string>
     <string name="insecure_warn">Aviso de seguridad</string>
     <string name="hysteria2_provider">Proveedor de Hysteria2</string>
     <string name="authenticated_length">Longitud autenticada</string>

@@ -40,8 +40,6 @@ internal enum class AppLanguage(val tag: String) {
 @Composable
 internal expect fun rememberApplyNightMode(): (Int) -> Unit
 
-internal expect fun isMemoryLimitSettingSupported(): Boolean
-
 internal expect fun LazyListScope.androidGeneralOptions(needReload: () -> Unit)
 
 internal expect fun LazyListScope.meteredNetworkSetting(needReload: () -> Unit)

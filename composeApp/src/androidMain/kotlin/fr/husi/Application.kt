@@ -104,7 +104,6 @@ class Application : Application(),
 
         if (isBgProcess) {
             repo.boxService?.start()
-            if (DataStore.memoryLimit) Libcore.setMemoryLimit()
         }
 
         if (BuildConfig.DEBUG) StrictMode.setVmPolicy(

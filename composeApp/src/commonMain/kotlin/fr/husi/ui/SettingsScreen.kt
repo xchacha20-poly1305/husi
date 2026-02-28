@@ -164,12 +164,10 @@ import fr.husi.resources.juicity_provider
 import fr.husi.resources.keep_default
 import fr.husi.resources.language
 import fr.husi.resources.language_system_default
-import fr.husi.resources.local_bar
 import fr.husi.resources.lock
 import fr.husi.resources.log_level
 import fr.husi.resources.long_click_to_see_name
 import fr.husi.resources.max_log_line
-import fr.husi.resources.memory_limit
 import fr.husi.resources.menu
 import fr.husi.resources.mozilla
 import fr.husi.resources.mtu
@@ -474,28 +472,6 @@ fun SettingsScreen(
                             valueToText = {
                                 val text = runBlocking { repo.getString(serviceModeText(it)) }
                                 AnnotatedString(text)
-                            },
-                        )
-                    }
-                    if (isMemoryLimitSettingSupported()) item(
-                        Key.MEMORY_LIMIT,
-                        PreferenceType.SWITCH,
-                    ) {
-                        val value by DataStore.configurationStore
-                            .booleanFlow(Key.MEMORY_LIMIT, false)
-                            .collectAsStateWithLifecycle(false)
-                        SwitchPreference(
-                            value = value,
-                            onValueChange = {
-                                DataStore.memoryLimit = it
-                                needReload()
-                            },
-                            title = { Text(stringResource(Res.string.memory_limit)) },
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.local_bar),
-                                    null,
-                                )
                             },
                         )
                     }

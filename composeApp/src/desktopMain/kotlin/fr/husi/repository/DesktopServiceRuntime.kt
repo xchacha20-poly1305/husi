@@ -11,7 +11,6 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
-import fr.husi.libcore.Libcore
 import fr.husi.libcore.Service
 import fr.husi.plugin.PluginNotFoundException
 import fr.husi.resources.Res
@@ -186,9 +185,6 @@ internal class DesktopServiceRuntime(
     private fun ensureServiceStarted(service: Service) {
         if (serviceStarted) return
         service.start()
-        if (DataStore.memoryLimit) {
-            Libcore.setMemoryLimit()
-        }
         serviceStarted = true
     }
 

@@ -7,7 +7,6 @@ import (
 
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/conntrack"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/deprecated"
 	"github.com/sagernet/sing-box/log"
@@ -22,11 +21,6 @@ import (
 	"libcore/combinedapi"
 	"libcore/protect"
 )
-
-func ResetAllConnections() {
-	conntrack.Close()
-	log.Debug("Reset system connections done.")
-}
 
 type boxInstance struct {
 	ctx    context.Context
