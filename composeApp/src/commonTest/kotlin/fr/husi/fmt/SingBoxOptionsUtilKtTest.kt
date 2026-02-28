@@ -3,7 +3,6 @@ package fr.husi.fmt
 import fr.husi.fmt.SingBoxOptions.MyOptions
 import fr.husi.fmt.SingBoxOptions.MyDNSOptions
 import fr.husi.fmt.SingBoxOptions.MyRouteOptions
-import fr.husi.fmt.SingBoxOptions.DNSRule_Logical
 import fr.husi.fmt.SingBoxOptions.DNSRule_Default
 import fr.husi.fmt.SingBoxOptions.RULE_SET_TYPE_REMOTE
 import fr.husi.fmt.SingBoxOptions.RULE_SET_TYPE_LOCAL
@@ -11,7 +10,7 @@ import fr.husi.fmt.SingBoxOptions.RuleSet
 import fr.husi.fmt.SingBoxOptions.RuleSet_Remote
 import fr.husi.fmt.SingBoxOptions.RuleSet_Local
 import fr.husi.fmt.SingBoxOptions.Rule_Default
-import fr.husi.fmt.SingBoxOptions.Rule_Logical
+import fr.husi.ktx.JSONMap
 import fr.husi.ktx.asMap
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -35,6 +34,11 @@ class SingBoxOptionsUtilKtTest {
 
         else -> throw IllegalArgumentException("Unsupported rule type")
     } as T
+
+    private fun logicalRule(vararg rules: JSONMap): JSONMap = mutableMapOf<String, Any?>(
+        "type" to "logical",
+        "rules" to rules.toMutableList(),
+    )
 
     private fun MyOptions.requireRuleSets(): List<RuleSet> = requireNotNull(
         requireNotNull(route) { "route should not be null" }.rule_set
@@ -93,9 +97,7 @@ class SingBoxOptionsUtilKtTest {
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("geoip-cn", "geosite-youtube")).asMap(),
-                DNSRule_Logical().apply {
-                    rules = mutableListOf(buildRule<DNSRule_Default>(listOf("geosite-google")))
-                }.asMap(),
+                logicalRule(buildRule<DNSRule_Default>(listOf("geosite-google")).asMap()),
             )
         }
         options.route = null
@@ -199,21 +201,13 @@ class SingBoxOptionsUtilKtTest {
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("dns-set-1", "geoip-dns-set-2")).asMap(),
-                DNSRule_Logical().apply {
-                    rules = mutableListOf(
-                        buildRule<DNSRule_Default>(listOf("dns-set-3"))
-                    )
-                }.asMap(),
+                logicalRule(buildRule<DNSRule_Default>(listOf("dns-set-3")).asMap()),
             )
         }
         options.route = MyRouteOptions().apply {
             rules = mutableListOf(
                 buildRule<Rule_Default>(listOf("route-set-A", "geoip-route-set-B")).asMap(),
-                Rule_Logical().apply {
-                    rules = mutableListOf(
-                        buildRule<Rule_Default>(listOf("route-set-C"))
-                    )
-                }.asMap(),
+                logicalRule(buildRule<Rule_Default>(listOf("route-set-C")).asMap()),
             )
         }
 
@@ -244,11 +238,7 @@ class SingBoxOptionsUtilKtTest {
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
                 buildRule<DNSRule_Default>(listOf("common-set", "geoip-common-set")).asMap(),
-                DNSRule_Logical().apply {
-                    rules = mutableListOf(
-                        buildRule<DNSRule_Default>(listOf("common-set"))
-                    )
-                }.asMap(),
+                logicalRule(buildRule<DNSRule_Default>(listOf("common-set")).asMap()),
             )
         }
         options.route = MyRouteOptions().apply {
@@ -259,11 +249,7 @@ class SingBoxOptionsUtilKtTest {
                         "another-set"
                     )
                 ).asMap(),
-                Rule_Logical().apply {
-                    rules = mutableListOf(
-                        buildRule<Rule_Default>(listOf("geoip-common-set"))
-                    )
-                }.asMap(),
+                logicalRule(buildRule<Rule_Default>(listOf("geoip-common-set")).asMap()),
             )
         }
 
@@ -309,12 +295,8 @@ class SingBoxOptionsUtilKtTest {
     fun `buildRuleSets should handle null rules list in logical rules gracefully`() {
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
-                DNSRule_Logical().asMap(),
-                DNSRule_Logical().apply {
-                    rules = mutableListOf(
-                        buildRule<DNSRule_Default>(listOf("nested-set"))
-                    )
-                }.asMap(),
+                mutableMapOf("type" to "logical"),
+                logicalRule(buildRule<DNSRule_Default>(listOf("nested-set")).asMap()),
             )
         }
         options.route = null
@@ -329,12 +311,8 @@ class SingBoxOptionsUtilKtTest {
     fun `buildRuleSets should handle empty rules list in logical rules gracefully`() {
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
-                DNSRule_Logical().asMap(),
-                DNSRule_Logical().apply {
-                    rules = mutableListOf(
-                        buildRule<DNSRule_Default>(listOf("another-nested-set"))
-                    )
-                }.asMap(),
+                mutableMapOf("type" to "logical"),
+                logicalRule(buildRule<DNSRule_Default>(listOf("another-nested-set")).asMap()),
             )
         }
         options.route = null
