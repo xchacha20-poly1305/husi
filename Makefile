@@ -7,7 +7,7 @@ CLIP = sh -c 'if [ -n "$$WAYLAND_DISPLAY" ]; then exec wl-copy; \
 DESKTOP_TARGETS_COMMON = linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
 LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
 
-.PHONY: update libcore libcore_android libcore_desktop_host libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_uberjar lint_go test_go plugin generate_option
+.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_uberjar lint_go test_go plugin generate_option
 
 build: libcore_android assets apk
 
@@ -16,9 +16,6 @@ libcore:
 
 libcore_android:
 	./run lib core --android
-
-libcore_desktop_host:
-	$(MAKE) libcore
 
 libcore_desktop_common:
 	$(MAKE) libcore_desktop DESKTOP_TARGETS=$(DESKTOP_TARGETS_COMMON)
@@ -36,16 +33,13 @@ desktop:
 desktop_release:
 	BUILD_PLUGIN=none ./gradlew -p composeApp runRelease
 
-desktop_package:
-	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS
-
 desktop_package_linux:
 	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS
 	./launcher/build.sh
 	./release/linux/package-native.sh --formats $(LINUX_PACKAGE_FORMATS)
 
 desktop_uberjar:
-	$(MAKE) desktop_package
+	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS
 
 apk:
 	BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease

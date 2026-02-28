@@ -72,15 +72,6 @@ Environment:
 
 * Openjdk-21 (Later may OK, too.)
 
-Run:
-
-```shell
-make libcore
-```
-
-This will build libcore for your current host environment and generate
-`composeApp/libs/libcore-desktop-<host-platform>-<host-arch>.jar`.
-
 For Android:
 
 ```shell
@@ -92,8 +83,10 @@ This will generate `composeApp/libs/libcore.aar`.
 For desktop, build libcore for your host platform:
 
 ```shell
-make libcore_desktop_host
+make libcore
 ```
+
+This will generate `composeApp/libs/libcore-desktop-<host-platform>-<host-arch>.jar`.
 
 Or for specific targets:
 
@@ -105,10 +98,14 @@ Common desktop targets:
 
 * `linux/amd64`
 * `linux/arm64`
-* `darwin/amd64`
-* `darwin/arm64`
-* `windows/amd64`
-* `windows/arm64`
+
+For Linux targets, the build includes `with_naive_outbound` and requires a
+[`cronet-go`](https://github.com/sagernet/cronet-go) checkout with the naiveproxy toolchain prepared. By default it is expected at
+`$HOME/cronet-go`; override with `CRONET_GO_ROOT`:
+
+```shell
+CRONET_GO_ROOT=/path/to/cronet-go make libcore
+```
 
 Desktop Gradle builds select `composeApp/libs/libcore-desktop-<platform>-<arch>.jar` automatically from the current
 `os.name` and `os.arch`.
@@ -128,7 +125,7 @@ If you run `libcore/build.sh` directly:
 * `--android --desktop`: build both
 * no platform args: defaults to Android only
 
-If gomobile is not in the GOPATH, it will be automatically downloaded and compiled.
+If anja is not in GOPATH, it will be automatically downloaded and compiled.
 
 If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
@@ -143,8 +140,14 @@ Environment:
 * jdk-21
 * ndk 29.0.14206865
 
-If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, you can run the script
-`buildScript/init/env_ndk.sh`:
+If the environment variables `$ANDROID_HOME` and `$ANDROID_NDK_HOME` are not set, source
+`buildScript/init/env_ndk.sh` to set them:
+
+```shell
+source buildScript/init/env_ndk.sh
+```
+
+Then write the SDK path to `local.properties`:
 
 ```shell
 echo "sdk.dir=${ANDROID_HOME}" > local.properties
@@ -194,7 +197,7 @@ make desktop
 Package a distributable for the current OS:
 
 ```shell
-make desktop_package
+make desktop_uberjar
 ```
 
 This now builds an **uber JAR** that runs on system Java (no bundled JRE/runtime image).
@@ -241,12 +244,6 @@ The default packaging flow runs `./launcher/build.sh` first, then `package-nativ
 You can choose compiler via `CC=<compiler> ./launcher/build.sh` or `./launcher/build.sh --cc <compiler>`.
 For smaller static launcher in CI, use `CC=musl-gcc ./launcher/build.sh` (requires `musl-tools`).
 Package install scripts call `setcap` on the launcher so capabilities can be raised to ambient set before starting the JVM.
-
-Or run the direct command:
-
-```shell
-make desktop_uberjar
-```
 
 #### 🌈 Plugins
 
