@@ -24,13 +24,13 @@ import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 
 fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
-    return mutableMapOf<String, Any?>(
+    return mutableMapOf(
         "activeProfile" to "default",
         "socks5Port" to port,
         "loggingLevel" to logLevel.takeIf { it > 0 }?.let { logLevelString(it).uppercase() },
         "advancedSettings" to mapOf("noCheckUpdate" to true),
         "profiles" to listOf(
-            mutableMapOf<String, Any?>(
+            mutableMapOf(
                 "profileName" to "default",
                 "user" to mapOf(
                     "name" to username,
@@ -42,7 +42,10 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
                     mapOf(
                         "ipAddress" to finalAddress,
                         "portBindings" to listOf(
-                            mapOf("port" to finalPort, "protocol" to protocol),
+                            mapOf(
+                                "port" to finalPort,
+                                "protocol" to protocol.uppercase(),
+                            ),
                         ),
                     ),
                 ),

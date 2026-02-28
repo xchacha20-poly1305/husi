@@ -49,7 +49,7 @@ class MieruBean : AbstractBean() {
     override fun deserialize(input: ByteBufferInput) {
         input.readInt()
         super.deserialize(input)
-        protocol = input.readString()
+        protocol = input.readString().uppercase()
         username = input.readString()
         password = input.readString()
         if (protocol == PROTOCOL_TCP) {

@@ -68,7 +68,7 @@ private fun LazyListScope.mieruSettings(
     uiState: MieruUiState,
     viewModel: MieruSettingsViewModel,
 ) {
-    val protocols = listOf("tcp", "udp")
+    val protocols = listOf("TCP", "UDP")
 
     item("name") {
         TextFieldPreference(
