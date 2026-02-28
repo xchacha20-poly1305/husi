@@ -51,6 +51,8 @@ import androidx.compose.ui.input.key.Key as InputKey
 
 private const val MIN_LOG_LEVEL = 0
 private const val MAX_LOG_LEVEL = 6
+private const val PreferenceNodePropertyName = "me.zhanghai.compose.preference.node"
+private const val PreferenceNodeName = "/fr/husi/preference"
 
 fun main(args: Array<String>) {
     val desktopArgs = parseDesktopStartupArgs(args)
@@ -162,6 +164,9 @@ private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
 }
 
 private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
+    // Fix jar package
+    System.setProperty(PreferenceNodePropertyName, PreferenceNodeName)
+
     val baseDir = startupArgs.baseDir ?: File(System.getProperty("user.home"), ".husi")
     baseDir.mkdirs()
     repo = DesktopRepository(baseDir)
