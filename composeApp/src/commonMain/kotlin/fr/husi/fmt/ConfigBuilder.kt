@@ -586,10 +586,8 @@ fun buildConfig(
                         this["udp_over_tcp"] = true
                     }
 
-                    this["domain_resolver"] = if (forTest || bean is ProxySetBean) {
-                        null
-                    } else {
-                        DomainResolveOptions().apply {
+                    if (!forTest && bean !is ProxySetBean) {
+                        this["domain_resolver"] = DomainResolveOptions().apply {
                             server = TAG_DNS_DIRECT
                             strategy = defaultOr(
                                 DataStore.domainStrategyForServer.replace("auto", "").blankAsNull(),
