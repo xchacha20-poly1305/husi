@@ -120,9 +120,6 @@ import fr.husi.resources.check
 import fr.husi.resources.color_lens
 import fr.husi.resources.connection_test_url
 import fr.husi.resources.construction
-import fr.husi.resources.copyright
-import fr.husi.resources.custom_plugin_prefix
-import fr.husi.resources.custom_plugin_prefix_summary
 import fr.husi.resources.custom_rule_provider
 import fr.husi.resources.description
 import fr.husi.resources.developer_mode
@@ -1013,29 +1010,6 @@ fun SettingsScreen(
                             },
                         )
                     }
-                    item(Key.CUSTOM_PLUGIN_PREFIX, PreferenceType.TEXT_FIELD) {
-                        val value by DataStore.configurationStore
-                            .stringFlow(Key.CUSTOM_PLUGIN_PREFIX, "")
-                            .collectAsStateWithLifecycle("")
-                        TextFieldPreference(
-                            value = value,
-                            onValueChange = {
-                                DataStore.customPluginPrefix = it
-                                needRestart()
-                            },
-                            title = { Text(stringResource(Res.string.custom_plugin_prefix)) },
-                            textToValue = { it },
-                            icon = {
-                                Icon(
-                                    vectorResource(Res.drawable.copyright),
-                                    null,
-                                )
-                            },
-                            summary = { Text(stringResource(Res.string.custom_plugin_prefix_summary)) },
-                            valueToText = { it },
-                        )
-                    }
-                    desktopPluginPreferences()
 
                     item(Key.DNS_SETTINGS, PreferenceType.CATEGORY) {
                         PreferenceCategory(text = { Text(stringResource(Res.string.cag_dns)) })

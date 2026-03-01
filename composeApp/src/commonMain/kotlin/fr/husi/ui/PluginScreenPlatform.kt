@@ -1,8 +1,9 @@
 package fr.husi.ui
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.flow.Flow
 
-internal expect suspend fun loadPlatformPlugins(onPlugin: suspend (PluginDisplay) -> Unit)
+internal expect fun platformPluginsFlow(): Flow<List<PluginDisplay>>
 
 internal expect fun openPluginCard(plugin: PluginDisplay)
 

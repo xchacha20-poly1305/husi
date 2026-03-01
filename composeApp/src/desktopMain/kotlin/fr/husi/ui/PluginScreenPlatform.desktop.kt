@@ -6,32 +6,32 @@ import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.openFilePath
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-internal actual suspend fun loadPlatformPlugins(onPlugin: suspend (PluginDisplay) -> Unit) {
+internal actual fun platformPluginsFlow(): Flow<List<PluginDisplay>> {
     val entries = enumValues<PluginEntry>().toList()
-    val plugins = SagerDatabase.pluginDao.getAll().first()
-        .associateBy { it.pluginId }
-    for (entry in entries) {
-        val record = plugins[entry.pluginId] ?: continue
-        val path = record.path.trim()
-        if (path.isBlank()) continue
-        val version = runCatching { entry.getVersion(path) }
-            .getOrElse {
-                Logs.w(it)
-                "unknown"
-            }
-        onPlugin(
+    return SagerDatabase.pluginDao.getAll().map { plugins ->
+        val pluginMap = plugins.associateBy { it.pluginId }
+        entries.mapNotNull { entry ->
+            val record = pluginMap[entry.pluginId] ?: return@mapNotNull null
+            val path = record.path.trim()
+            if (path.isBlank()) return@mapNotNull null
+            val version = runCatching { entry.getVersion(path) }
+                .getOrElse {
+                    Logs.w(it)
+                    "unknown"
+                }
             PluginDisplay(
                 id = entry.pluginId,
                 packageName = "",
                 version = version,
                 versionCode = 0L,
-                provider = "Desktop",
+                provider = "Original",
                 entry = entry,
                 path = path,
-            ),
-        )
+            )
+        }
     }
 }
 

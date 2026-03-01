@@ -18,25 +18,30 @@ import fr.husi.plugin.Plugins
 import fr.husi.plugin.loadString
 import fr.husi.repository.androidRepo
 import fr.husi.utils.PackageCache
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
-internal actual suspend fun loadPlatformPlugins(onPlugin: suspend (PluginDisplay) -> Unit) {
+internal actual fun platformPluginsFlow(): Flow<List<PluginDisplay>> = flow {
     PackageCache.awaitLoadSync()
-    for ((packageName, plugin) in PackageCache.installedPluginPackages) try {
-        val id = plugin.providers!![0].loadString(Plugins.METADATA_KEY_ID)
-        if (id.isNullOrBlank()) continue
-        onPlugin(
-            PluginDisplay(
-                id = id,
-                packageName = packageName,
-                version = plugin.versionName ?: "unknown",
-                versionCode = plugin.versionCodeCompat(),
-                provider = Plugins.displayExeProvider(packageName),
-                entry = PluginEntry.find(id),
-            ),
-        )
-    } catch (e: Exception) {
-        Logs.w(e)
+    val list = buildList {
+        for ((packageName, plugin) in PackageCache.installedPluginPackages) try {
+            val id = plugin.providers!![0].loadString(Plugins.METADATA_KEY_ID)
+            if (id.isNullOrBlank()) continue
+            add(
+                PluginDisplay(
+                    id = id,
+                    packageName = packageName,
+                    version = plugin.versionName ?: "unknown",
+                    versionCode = plugin.versionCodeCompat(),
+                    provider = Plugins.displayExeProvider(packageName),
+                    entry = PluginEntry.find(id),
+                ),
+            )
+        } catch (e: Exception) {
+            Logs.w(e)
+        }
     }
+    emit(list)
 }
 
 internal actual fun openPluginCard(plugin: PluginDisplay) {

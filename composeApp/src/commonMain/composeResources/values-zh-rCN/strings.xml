@@ -661,4 +661,5 @@
 
     <string name="exit">退出</string>
     <string name="tun_strict_route">Tun 严格路由</string>
+    <string name="no_plugin_found">没有找到任何插件！</string>
 </resources>

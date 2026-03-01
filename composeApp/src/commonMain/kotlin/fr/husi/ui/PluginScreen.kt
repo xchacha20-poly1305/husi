@@ -28,11 +28,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -42,38 +44,42 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.BuildConfig
+import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
-import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
+import fr.husi.database.DataStore
+import fr.husi.ktx.restartApplication
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.menu
+import fr.husi.resources.need_restart
 import fr.husi.resources.nfc
+import fr.husi.resources.no_plugin_found
 import fr.husi.resources.ok
 import fr.husi.resources.plugin
 import fr.husi.resources.version_x
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
 @Composable
 fun PluginScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
-    viewModel: PluginScreenViewModel = viewModel { PluginScreenViewModel() },
     onDrawerClick: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val plugins by platformPluginsFlow().collectAsStateWithLifecycle(emptyList())
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     val windowInsets = WindowInsets.safeDrawing
@@ -83,6 +89,27 @@ fun PluginScreen(
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
     val uriHandler = LocalUriHandler.current
+
+    val isExpert by if (BuildConfig.DEBUG) {
+        remember { mutableStateOf(true) }
+    } else {
+        DataStore.configurationStore
+            .booleanFlow(Key.APP_EXPERT, false)
+            .collectAsStateWithLifecycle(false)
+    }
+
+    fun needRestart() {
+        scope.launch {
+            val result = snackbarState.showSnackbar(
+                message = repo.getString(Res.string.need_restart),
+                actionLabel = repo.getString(Res.string.ok),
+                duration = SnackbarDuration.Short,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                restartApplication()
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -138,8 +165,8 @@ fun PluginScreen(
                         .fillMaxHeight(),
                     contentPadding = contentPadding,
                 ) {
-                    installedPlugins(uiState.plugins, uriHandler::openUri)
-                    desktopPluginPreferences()
+                    installedPlugins(plugins, uriHandler::openUri)
+                    platformPluginPreferences(isExpert, ::needRestart)
                 }
 
                 BoxedVerticalScrollbar(
@@ -185,30 +212,44 @@ private fun LazyListScope.installedPlugins(
     plugins: List<PluginDisplay>,
     openUri: (String) -> Unit,
 ) {
-    if (plugins.isEmpty()) return
     item("plugins_card") {
         OutlinedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                for (plugin in plugins) {
-                    PluginCardItem(
-                        icon = { Icon(vectorResource(Res.drawable.nfc), null) },
-                        title = stringResource(Res.string.version_x, plugin.id) + " (${plugin.provider})",
-                        description = "v${plugin.version}",
-                        onClick = { openPluginCard(plugin) },
-                        onLongClick = {
-                            plugin.entry?.let {
-                                openUri(it.downloadSource.apk)
-                            }
-                        },
+            if (plugins.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    for (plugin in plugins) {
+                        PluginCardItem(
+                            icon = { Icon(vectorResource(Res.drawable.nfc), null) },
+                            title = stringResource(Res.string.version_x, plugin.id) + " (${plugin.provider})",
+                            description = "v${plugin.version}",
+                            onClick = { openPluginCard(plugin) },
+                            onLongClick = {
+                                plugin.entry?.let {
+                                    openUri(it.downloadSource.apk)
+                                }
+                            },
+                        )
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(Res.string.no_plugin_found),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }

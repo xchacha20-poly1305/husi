@@ -25,7 +25,10 @@ import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 
-internal actual fun LazyListScope.desktopPluginPreferences() {
+internal actual fun LazyListScope.platformPluginPreferences(
+    isExpert: Boolean,
+    needRestart: () -> Unit
+) {
     item("desktop_plugins_category", PreferenceType.CATEGORY) {
         PreferenceCategory(text = { Text(stringResource(Res.string.desktop_plugins)) })
     }

@@ -720,4 +720,5 @@
 
     <string name="exit">Exit</string>
     <string name="tun_strict_route">Tun strict route</string>
+    <string name="no_plugin_found">No plugin found!</string>
 </resources>
