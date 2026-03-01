@@ -96,6 +96,8 @@ import fr.husi.resources.more_vert
 import fr.husi.resources.network_expensive
 import fr.husi.resources.network_type
 import fr.husi.resources.no
+import fr.husi.resources.no_changes
+import fr.husi.resources.no_changes_notice
 import fr.husi.resources.not_set
 import fr.husi.resources.ok
 import fr.husi.resources.outbound
@@ -168,7 +170,8 @@ internal fun RouteSettingsScreen(
 
     var showExpandedMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    var showUnchangedAlert by remember { mutableStateOf(false) }
+    var showEmptyRouteAlert by remember { mutableStateOf(false) }
+    var showNoChangesAlert by remember { mutableStateOf(false) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -206,10 +209,12 @@ internal fun RouteSettingsScreen(
                         imageVector = vectorResource(Res.drawable.done),
                         contentDescription = stringResource(Res.string.apply),
                     ) {
-                        if (isDirty) {
+                        if (uiState.isEmpty()) {
+                            showEmptyRouteAlert = true
+                        } else if (isDirty) {
                             saveAndExit()
                         } else {
-                            showUnchangedAlert = true
+                            showNoChangesAlert = true
                         }
                     }
 
@@ -340,17 +345,30 @@ internal fun RouteSettingsScreen(
             title = { Text(stringResource(Res.string.delete_confirm_prompt)) },
         )
     }
-    if (showUnchangedAlert) {
+    if (showEmptyRouteAlert) {
         AlertDialog(
-            onDismissRequest = { showUnchangedAlert = false },
+            onDismissRequest = { showEmptyRouteAlert = false },
             confirmButton = {
                 TextButton(stringResource(Res.string.ok)) {
-                    showUnchangedAlert = false
+                    showEmptyRouteAlert = false
                 }
             },
             icon = { Icon(vectorResource(Res.drawable.warning_amber), null) },
             title = { Text(stringResource(Res.string.empty_route)) },
             text = { Text(stringResource(Res.string.empty_route_notice)) },
+        )
+    }
+    if (showNoChangesAlert) {
+        AlertDialog(
+            onDismissRequest = { showNoChangesAlert = false },
+            confirmButton = {
+                TextButton(stringResource(Res.string.ok)) {
+                    showNoChangesAlert = false
+                }
+            },
+            icon = { Icon(vectorResource(Res.drawable.warning_amber), null) },
+            title = { Text(stringResource(Res.string.no_changes)) },
+            text = { Text(stringResource(Res.string.no_changes_notice)) },
         )
     }
 }

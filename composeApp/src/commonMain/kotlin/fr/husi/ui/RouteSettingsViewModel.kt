@@ -57,7 +57,26 @@ data class RouteSettingsUiState(
     val dnsOnly: Boolean = false,
     val customConfig: String = "",
     val customDnsConfig: String = "",
-)
+) {
+    fun isEmpty(): Boolean =
+        domains.isBlank() &&
+            ip.isBlank() &&
+            port.isBlank() &&
+            sourcePort.isBlank() &&
+            network.isEmpty() &&
+            source.isBlank() &&
+            protocol.isEmpty() &&
+            ssid.isBlank() &&
+            bssid.isBlank() &&
+            client.isBlank() &&
+            clashMode.isBlank() &&
+            networkType.isEmpty() &&
+            !networkIsExpensive &&
+            networkInterfaceAddress.isEmpty() &&
+            packages.isEmpty() &&
+            customConfig.isBlank() &&
+            customDnsConfig.isBlank()
+}
 
 @Stable
 internal class RouteSettingsViewModel : ViewModel() {

@@ -221,6 +221,8 @@
     <string name="route_profile">選擇設定檔…</string>
     <string name="empty_route">空白路由規則</string>
     <string name="empty_route_notice">在儲存前需設定一些規則</string>
+    <string name="no_changes">無變更</string>
+    <string name="no_changes_notice">沒有任何修改</string>
     <string name="route_bypass_domain">%1$s 網域規則</string>
     <string name="route_bypass_ip">%1$s IP 規則</string>
     <string name="route_reset">重設</string>

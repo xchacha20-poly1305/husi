@@ -154,6 +154,8 @@
     <string name="route_profile">Select Profile…</string>
     <string name="empty_route">Empty Route</string>
     <string name="empty_route_notice">Set some rules before saving</string>
+    <string name="no_changes">No Changes</string>
+    <string name="no_changes_notice">Nothing has been modified</string>
     <string name="route_bypass_domain">Domain rule for %1$s</string>
     <string name="route_play_store">Play store rule for %1$s</string>
     <string name="route_bypass_ip">IP rule for %1$s</string>

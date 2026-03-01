@@ -199,6 +199,8 @@
     <string name="route_profile">选择配置…</string>
     <string name="empty_route">空路由</string>
     <string name="empty_route_notice">在保存前设置一些规则</string>
+    <string name="no_changes">无更改</string>
+    <string name="no_changes_notice">没有任何修改</string>
     <string name="route_warn">在添加自定义规则之前，请确保您已经阅读了文档，否则您将可能无法连接到互联网。</string>
     <string name="route_bypass_domain">%1$s 域名规则</string>
     <string name="route_bypass_ip">%1$s IP 规则</string>
