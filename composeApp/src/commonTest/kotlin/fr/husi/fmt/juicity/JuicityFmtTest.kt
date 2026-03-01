@@ -1,5 +1,6 @@
 package fr.husi.fmt.juicity
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,9 +11,7 @@ class JuicityFmtTest {
 
     @Test
     fun `parseJuicity should parse url with all fields`() {
-        val bean = parseJuicity(
-            "juicity://uuid:password@example.com:8443?sni=sni.example.com&allow_insecure=1&pinned_certchain_sha256=sha256value",
-        )
+        val bean = parseJuicity(FmtTestConstant.JUICITY_URL)
 
         assertEquals("example.com", bean.serverAddress)
         assertEquals(8443, bean.serverPort)
@@ -24,7 +23,7 @@ class JuicityFmtTest {
 
     @Test
     fun `parseJuicity should use default port 443 when not specified`() {
-        val bean = parseJuicity("juicity://uuid:password@example.com")
+        val bean = parseJuicity(FmtTestConstant.JUICITY_DEFAULT_PORT_URL)
 
         assertEquals(443, bean.serverPort)
     }

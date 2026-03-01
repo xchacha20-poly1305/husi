@@ -18,6 +18,7 @@ import fr.husi.fmt.v2ray.parseV2Ray
 import java.io.ByteArrayOutputStream
 import java.util.zip.Deflater
 import java.util.zip.Inflater
+import kotlin.io.encoding.Base64
 
 fun String.b64EncodeUrlSafe(): String {
     return toByteArray().b64EncodeUrlSafe()
@@ -42,8 +43,8 @@ fun String.b64Decode(): ByteArray {
     val str = replace("-", "+").replace("_", "/")
 
     val decoders = listOf(
-        kotlin.io.encoding.Base64.Default,
-        kotlin.io.encoding.Base64.Mime,
+        Base64.Default,
+        Base64.Mime,
     )
 
     for (decoder in decoders) {

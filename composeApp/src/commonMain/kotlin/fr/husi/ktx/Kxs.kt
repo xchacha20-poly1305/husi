@@ -18,7 +18,6 @@ import kotlinx.serialization.json.longOrNull
 
 val kxs: Json = Json {
     prettyPrint = true
-    isLenient = true
     ignoreUnknownKeys = true
     explicitNulls = false
 }

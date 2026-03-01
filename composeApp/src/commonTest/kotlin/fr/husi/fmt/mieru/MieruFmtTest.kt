@@ -1,5 +1,6 @@
 package fr.husi.fmt.mieru
 
+import fr.husi.fmt.FmtTestConstant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -8,9 +9,7 @@ class MieruFmtTest {
 
     @Test
     fun `parseMieru should parse url with all fields`() {
-        val bean = parseMieru(
-            "mierus://user:pass@example.com:8080?profile=myprofile&mtu=1400&multiplexing=MULTIPLEXING_HIGH",
-        )
+        val bean = parseMieru(FmtTestConstant.MIERU_URL)
 
         assertEquals("example.com", bean.serverAddress)
         assertEquals(8080, bean.serverPort)

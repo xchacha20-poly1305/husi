@@ -1,5 +1,6 @@
 package fr.husi.fmt.internal
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -28,7 +29,7 @@ class ProxySetFmtTest {
     fun `buildSingBoxOutboundProxySetBean should build urltest outbound`() {
         val bean = ProxySetBean().apply {
             management = ProxySetBean.MANAGEMENT_URLTEST
-            testURL = "https://www.gstatic.com/generate_204"
+            testURL = FmtTestConstant.URLTEST_URL
             testInterval = "3m"
             testIdleTimeout = "10m"
             testTolerance = 50
@@ -41,7 +42,7 @@ class ProxySetFmtTest {
         val urltest = assertIs<SingBoxOptions.Outbound_URLTestOptions>(outbound)
         assertEquals(SingBoxOptions.TYPE_URLTEST, urltest.type)
         assertEquals(outbounds, urltest.outbounds?.toList())
-        assertEquals("https://www.gstatic.com/generate_204", urltest.url)
+        assertEquals(FmtTestConstant.URLTEST_URL, urltest.url)
         assertEquals("3m", urltest.interval)
         assertEquals("10m", urltest.idle_timeout)
         assertEquals(50, urltest.tolerance)

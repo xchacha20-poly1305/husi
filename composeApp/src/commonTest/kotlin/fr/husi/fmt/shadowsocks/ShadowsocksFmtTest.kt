@@ -1,5 +1,6 @@
 package fr.husi.fmt.shadowsocks
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,7 +10,7 @@ class ShadowsocksFmtTest {
 
     @Test
     fun `parseShadowsocks should parse 2022-style url`() {
-        val bean = parseShadowsocks("ss://2022-blake3-aes-128-gcm:password@example.com:8388#test")
+        val bean = parseShadowsocks(FmtTestConstant.SHADOWSOCKS_2022_URL)
 
         assertEquals("2022-blake3-aes-128-gcm", bean.method)
         assertEquals("password", bean.password)

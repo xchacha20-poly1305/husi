@@ -1,5 +1,6 @@
 package fr.husi.fmt.http
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,7 +10,7 @@ class HttpFmtTest {
 
     @Test
     fun `parseHttp should parse https url and detect tls`() {
-        val bean = parseHttp("https://user:pass@example.com:443?sni=sni.example.com#test-node")
+        val bean = parseHttp(FmtTestConstant.HTTP_AUTH_TLS_URL)
 
         assertEquals("example.com", bean.serverAddress)
         assertEquals(443, bean.serverPort)
@@ -22,8 +23,8 @@ class HttpFmtTest {
 
     @Test
     fun `parseHttp should use default port 443 for https and 80 for http`() {
-        val beanHttps = parseHttp("https://example.com")
-        val beanHttp = parseHttp("http://example.com")
+        val beanHttps = parseHttp(FmtTestConstant.HTTPS_DEFAULT_PORT_URL)
+        val beanHttp = parseHttp(FmtTestConstant.HTTP_DEFAULT_PORT_URL)
 
         assertEquals(443, beanHttps.serverPort)
         assertEquals(80, beanHttp.serverPort)
@@ -31,7 +32,7 @@ class HttpFmtTest {
 
     @Test
     fun `parseHttp should not set isTLS for http scheme`() {
-        val bean = parseHttp("http://example.com:8080")
+        val bean = parseHttp(FmtTestConstant.HTTP_CUSTOM_PORT_URL)
 
         assertEquals(8080, bean.serverPort)
         assertTrue(!bean.isTLS)

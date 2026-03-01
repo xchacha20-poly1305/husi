@@ -1,5 +1,6 @@
 package fr.husi.fmt.hysteria
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -50,9 +51,7 @@ class HysteriaFmtTest {
 
     @Test
     fun `parseHysteria1 should parse url with all fields`() {
-        val bean = parseHysteria1(
-            "hysteria://example.com:9080?auth=secret&peer=sni.example.com&insecure=1&alpn=hysteria#test",
-        )
+        val bean = parseHysteria1(FmtTestConstant.HYSTERIA1_URL)
 
         assertEquals(HysteriaBean.PROTOCOL_VERSION_1, bean.protocolVersion)
         assertEquals("example.com", bean.serverAddress)
@@ -67,16 +66,14 @@ class HysteriaFmtTest {
 
     @Test
     fun `parseHysteria1 should detect faketcp protocol`() {
-        val bean = parseHysteria1("hysteria://example.com:9080?auth=abc&protocol=faketcp")
+        val bean = parseHysteria1(FmtTestConstant.HYSTERIA1_FAKETCP_URL)
 
         assertEquals(HysteriaBean.PROTOCOL_FAKETCP, bean.protocol)
     }
 
     @Test
     fun `parseHysteria2 should parse url with password auth`() {
-        val bean = parseHysteria2(
-            "hysteria2://secret@example.com:9443?sni=sni.example.com&insecure=1#test",
-        )
+        val bean = parseHysteria2(FmtTestConstant.HYSTERIA2_URL)
 
         assertEquals(HysteriaBean.PROTOCOL_VERSION_2, bean.protocolVersion)
         assertEquals("example.com", bean.serverAddress)
@@ -89,7 +86,7 @@ class HysteriaFmtTest {
 
     @Test
     fun `parseHysteria2 should combine user and password when both present`() {
-        val bean = parseHysteria2("hysteria2://user:pass@example.com:9443")
+        val bean = parseHysteria2(FmtTestConstant.HYSTERIA2_USER_PASS_URL)
 
         assertEquals("user:pass", bean.authPayload)
     }

@@ -1,5 +1,6 @@
 package fr.husi.fmt.anytls
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
@@ -13,7 +14,7 @@ class AnyTLSFmtTest {
 
     @Test
     fun `parseAnyTLS should parse host default port and query flags`() {
-        val bean = parseAnyTLS("anytls://secret@example.com?sni=edge.example.com&insecure=1")
+        val bean = parseAnyTLS(FmtTestConstant.ANYTLS_URL)
 
         assertEquals("example.com", bean.serverAddress)
         assertEquals(443, bean.serverPort)

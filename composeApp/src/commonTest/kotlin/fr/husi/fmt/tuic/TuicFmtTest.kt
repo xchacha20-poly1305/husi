@@ -1,5 +1,6 @@
 package fr.husi.fmt.tuic
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
@@ -11,9 +12,7 @@ class TuicFmtTest {
 
     @Test
     fun `parseTuic should parse url with all fields`() {
-        val bean = parseTuic(
-            "tuic://uuid:token@example.com:9443?sni=sni.example.com&congestion_control=bbr&udp_relay_mode=native&alpn=h3&allow_insecure=1&disable_sni=1#test-node",
-        )
+        val bean = parseTuic(FmtTestConstant.TUIC_URL)
 
         assertEquals("example.com", bean.serverAddress)
         assertEquals(9443, bean.serverPort)
@@ -30,7 +29,7 @@ class TuicFmtTest {
 
     @Test
     fun `parseTuic should use default port 443 when not specified`() {
-        val bean = parseTuic("tuic://uuid:token@example.com")
+        val bean = parseTuic(FmtTestConstant.TUIC_DEFAULT_PORT_URL)
 
         assertEquals(443, bean.serverPort)
     }

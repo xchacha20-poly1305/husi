@@ -1,5 +1,6 @@
 package fr.husi.fmt.socks
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -8,7 +9,7 @@ class SOCKSFmtTest {
 
     @Test
     fun `parseSOCKS should parse socks5 url with credentials`() {
-        val bean = parseSOCKS("socks5://user:pass@example.com:1080#test-node")
+        val bean = parseSOCKS(FmtTestConstant.SOCKS5_URL)
 
         assertEquals("example.com", bean.serverAddress)
         assertEquals(1080, bean.serverPort)
@@ -20,7 +21,7 @@ class SOCKSFmtTest {
 
     @Test
     fun `parseSOCKS should detect socks4 protocol and default port`() {
-        val bean = parseSOCKS("socks4://example.com")
+        val bean = parseSOCKS(FmtTestConstant.SOCKS4_URL)
 
         assertEquals(SOCKSBean.PROTOCOL_SOCKS4, bean.protocol)
         assertEquals(1080, bean.serverPort)
@@ -28,7 +29,7 @@ class SOCKSFmtTest {
 
     @Test
     fun `parseSOCKS should detect socks4a protocol`() {
-        val bean = parseSOCKS("socks4a://example.com:1234")
+        val bean = parseSOCKS(FmtTestConstant.SOCKS4A_URL)
 
         assertEquals(SOCKSBean.PROTOCOL_SOCKS4A, bean.protocol)
         assertEquals(1234, bean.serverPort)

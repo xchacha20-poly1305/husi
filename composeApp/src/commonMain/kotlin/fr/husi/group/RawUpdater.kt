@@ -22,11 +22,13 @@ import fr.husi.ktx.parseProxies
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.libcore.Libcore
 import fr.husi.repository.repo
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.no_proxies_found
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.ini4j.Ini
 import java.io.StringReader
 
@@ -116,7 +118,8 @@ object RawUpdater : GroupUpdater() {
 
         try {
             val element = kxs.parseToJsonElement(text)
-            return parseJSON(element)
+            if (element is JsonPrimitive) error("unexpected JSON primitive")
+            parseJSON(element).takeIf { it.isNotEmpty() }?.let { return it }
         } catch (e: Exception) {
             Logs.w(e)
         }

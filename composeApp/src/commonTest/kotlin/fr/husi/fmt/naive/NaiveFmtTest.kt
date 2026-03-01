@@ -1,5 +1,6 @@
 package fr.husi.fmt.naive
 
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
 import kotlin.test.Test
@@ -11,9 +12,7 @@ class NaiveFmtTest {
 
     @Test
     fun `parseNaive should parse naive+https url`() {
-        val bean = parseNaive(
-            "naive+https://user:pass@example.com:443?sni=sni.example.com#test-node",
-        )
+        val bean = parseNaive(FmtTestConstant.NAIVE_HTTPS_URL)
 
         assertEquals("https", bean.proto)
         assertEquals("example.com", bean.serverAddress)
@@ -26,7 +25,7 @@ class NaiveFmtTest {
 
     @Test
     fun `parseNaive should parse naive+quic url`() {
-        val bean = parseNaive("naive+quic://user:pass@example.com:443?insecure-concurrency=3")
+        val bean = parseNaive(FmtTestConstant.NAIVE_QUIC_URL)
 
         assertEquals("quic", bean.proto)
         assertEquals(3, bean.insecureConcurrency)

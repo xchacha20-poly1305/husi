@@ -1,6 +1,7 @@
 package fr.husi.fmt.v2ray
 
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.trojan.TrojanBean
 import fr.husi.fmt.trojan.parseTrojan
 import fr.husi.ktx.JSONMap
@@ -14,9 +15,7 @@ class V2RayFmtTest {
 
     @Test
     fun `parseV2Ray should parse vmess ducksoft url`() {
-        val bean = parseV2Ray(
-            "vmess://uuid@example.com:10086?type=ws&security=tls&sni=sni.example.com&host=host.example.com&path=/path&encryption=auto#test-vmess",
-        )
+        val bean = parseV2Ray(FmtTestConstant.VMESS_DUCKSOFT_URL)
 
         assertIs<VMessBean>(bean)
         assertEquals("example.com", bean.serverAddress)
@@ -33,9 +32,7 @@ class V2RayFmtTest {
 
     @Test
     fun `parseV2Ray should parse vless url with flow`() {
-        val bean = parseV2Ray(
-            "vless://uuid@example.com:443?type=grpc&security=tls&sni=sni.example.com&serviceName=/grpc&flow=xtls-rprx-vision#test-vless",
-        )
+        val bean = parseV2Ray(FmtTestConstant.VLESS_GRPC_URL)
 
         assertIs<VLESSBean>(bean)
         assertEquals("uuid", bean.uuid)
