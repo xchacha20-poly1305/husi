@@ -2,10 +2,13 @@ package fr.husi.ktx
 
 import kotlin.system.exitProcess
 
+const val RESTART_EXIT_CODE = 50
+
 actual fun restartApplication() {
-    exitProcess(0)
+    // launcher will handle it
+    exitProcess(RESTART_EXIT_CODE)
 }
 
 actual fun exitApplication() {
-    exitProcess(1)
+    exitProcess(0)
 }

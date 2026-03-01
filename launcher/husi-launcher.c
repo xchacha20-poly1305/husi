@@ -9,6 +9,7 @@
 #include <sys/prctl.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #ifndef HUSI_PACKAGE_NAME
@@ -16,6 +17,7 @@
 #endif
 
 #define HUSI_CONFIG_DIR_NAME "husi"
+#define HUSI_EXIT_RESTART 50
 #define U32_BITS 32U
 
 // To not include <linux/capability.h> and break on older kernels, we define only the necessary constants and structures here.
@@ -535,9 +537,36 @@ int main(int argc, char **argv) {
     }
     child_argv[index] = NULL;
 
-    execvp(java_command, child_argv);
-    perror("execvp(java)");
-    result = (errno == ENOENT) ? 127 : 1;
+    for (;;) {
+        const pid_t pid = fork();
+        if (pid < 0) {
+            perror("fork");
+            goto cleanup;
+        }
+
+        if (pid == 0) {
+            execvp(java_command, child_argv);
+            perror("execvp(java)");
+            _exit((errno == ENOENT) ? 127 : 1);
+        }
+
+        int status;
+        if (waitpid(pid, &status, 0) < 0) {
+            perror("waitpid");
+            goto cleanup;
+        }
+
+        if (!WIFEXITED(status)) {
+            result = 1;
+            goto cleanup;
+        }
+
+        const int exit_code = WEXITSTATUS(status);
+        if (exit_code != HUSI_EXIT_RESTART) {
+            result = exit_code;
+            goto cleanup;
+        }
+    }
 
 cleanup:
     free(child_argv);
