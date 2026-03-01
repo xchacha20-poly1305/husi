@@ -88,7 +88,7 @@ func newBoxInstance(config string, platformInterface PlatformInterface, forTest 
 
 	if !forTest {
 		// Protect
-		if C.IsLinux || C.IsDarwin {
+		if C.IsAndroid {
 			b.protect, err = protect.New(log.ContextWithNewID(ctx), logFactory.NewLogger("protect"), ProtectPath, func(fd int) error {
 				_ = platformInterface.AutoDetectInterfaceControl(int32(fd))
 				return nil
