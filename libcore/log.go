@@ -12,12 +12,11 @@ import (
 	"libcore/ringqueue"
 	"libcore/vario"
 
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
-
-	"golang.org/x/sys/unix"
 )
 
 func LogDebug(l string) {
@@ -78,11 +77,17 @@ func setupLog(maxLogLine int, path string, level log.Level, notTruncateOnStart b
 		_, _ = os.Stderr.WriteString(E.Cause(err, "open log").Error())
 		return
 	}
-	fd := int(file.Fd())
-	// redirect stderr
-	_ = unix.Dup3(fd, int(os.Stderr.Fd()), 0)
 
-	platformLogWrapper = newLogWriter(file, maxLogLine)
+	writers := []io.Writer{file}
+	if C.IsAndroid {
+		fd := int(file.Fd())
+		// redirect stderr
+		_ = dup(fd, int(os.Stderr.Fd()), 0)
+	} else {
+		writers = append(writers, os.Stderr)
+	}
+
+	platformLogWrapper = newLogWriter(writers, maxLogLine)
 	logFactory = log.NewDefaultFactory(
 		context.Background(),
 		log.Formatter{
@@ -145,17 +150,17 @@ var (
 )
 
 type logWriter struct {
-	writer       io.Writer
+	writers      []io.Writer
 	bufferAccess sync.RWMutex
 	buffer       *ringqueue.RingQueue[log.Entry]
 	observer     *observable.Observer[log.Entry]
 }
 
-func newLogWriter(writer io.Writer, capacity int) *logWriter {
+func newLogWriter(writers []io.Writer, bufferCapacity int) *logWriter {
 	subscriber := observable.NewSubscriber[log.Entry](128)
 	return &logWriter{
-		writer:   writer,
-		buffer:   ringqueue.New[log.Entry](capacity),
+		writers:  writers,
+		buffer:   ringqueue.New[log.Entry](bufferCapacity),
 		observer: observable.NewObserver(subscriber, 64),
 	}
 }
@@ -173,7 +178,7 @@ func (w *logWriter) WriteMessage(level log.Level, message string) {
 	w.buffer.Add(entry)
 	w.bufferAccess.Unlock()
 	w.observer.Emit(entry)
-	_, _ = io.WriteString(w.writer, message+"\n")
+	_, _ = io.WriteString(w, message+"\n")
 }
 
 func (w *logWriter) Subscribe() (subscription observable.Subscription[log.Entry], done <-chan struct{}, err error) {
@@ -193,31 +198,49 @@ func (w *logWriter) All() []log.Entry {
 var _ io.Writer = (*logWriter)(nil)
 
 func (w *logWriter) Write(p []byte) (n int, err error) {
-	if w.writer == nil {
-		return len(p), nil
+	for _, writer := range w.writers {
+		var unlock func() error
+		if file, isFile := writer.(*os.File); isFile {
+			fd := int(file.Fd())
+			unlock = flock(fd)
+		}
+		_, _ = writer.Write(p)
+		if unlock != nil {
+			_ = unlock()
+		}
 	}
-
-	file, isFile := w.writer.(*os.File)
-	if isFile {
-		fd := int(file.Fd())
-		_ = unix.Flock(fd, unix.LOCK_EX)
-		defer unix.Flock(fd, unix.LOCK_UN)
-	}
-	return w.writer.Write(p)
+	return len(p), nil
 }
 
 func (w *logWriter) truncate() {
-	if file, isFile := w.writer.(*os.File); isFile {
-		_ = file.Truncate(0)
+	for _, writer := range w.writers {
+		if file, isFile := writer.(*os.File); isFile {
+			fd := int(file.Fd())
+			unlock := flock(fd)
+			_ = file.Truncate(0)
+			if unlock != nil {
+				_ = unlock()
+			}
+		}
 	}
 }
 
 func (w *logWriter) Close() error {
 	w.buffer.Clear()
-	return common.Close(
-		w.writer,
+	var errs []error
+	err := common.Close(
 		w.observer,
 	)
+	if err != nil {
+		errs = append(errs, err)
+	}
+	for _, writer := range w.writers {
+		err := common.Close(writer)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return E.Errors(errs...)
 }
 
 func (w *logWriter) Clear() {
