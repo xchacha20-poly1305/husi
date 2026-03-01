@@ -88,7 +88,7 @@ actual suspend fun shareQRCodeImage(
                 Intent.createChooser(
                     shareIntent,
                     repo.getString(Res.string.share),
-                ),
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
         }
     } catch (e: Exception) {

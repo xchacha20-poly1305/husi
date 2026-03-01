@@ -49,7 +49,8 @@ internal actual fun openPluginCard(plugin: PluginDisplay) {
                     plugin.packageName,
                     null,
                 ),
-            ),
+            )
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
     )
 }
 
@@ -76,6 +77,7 @@ internal actual fun requestIgnoreBatteryOptimizations() {
     androidRepo.context.startActivity(
         Intent()
             .setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-            .setData("package:${androidRepo.context.packageName}".toUri()),
+            .setData("package:${androidRepo.context.packageName}".toUri())
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
     )
 }

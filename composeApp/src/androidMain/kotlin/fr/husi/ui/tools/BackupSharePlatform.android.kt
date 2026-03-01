@@ -26,7 +26,7 @@ internal actual fun shareBackupFile(file: File) {
             Intent.createChooser(
                 intent,
                 repo.getString(Res.string.share),
-            ),
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }
 }
