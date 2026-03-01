@@ -25,6 +25,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -525,11 +526,15 @@ fun MainScreen(
                         navController.navigateUp()
                     }
                 } else {
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            appListSession = null
+                        }
+                    }
                     AppListScreen(
                         initialPackages = session.initialPackages,
                         onSave = { selectedPackages ->
                             session.onResult(selectedPackages)
-                            appListSession = null
                             navController.navigateUp()
                         },
                     )

@@ -424,13 +424,15 @@ private fun AppList(
             }
         }
 
-        VerticalScrollbar(
-            modifier = Modifier.fillMaxHeight(),
-            adapter = rememberScrollbarAdapter(scrollState = scrollState),
-            style = defaultMaterialScrollbarStyle().copy(
-                thickness = 16.dp,
-            ),
-        )
+        Box {
+            VerticalScrollbar(
+                modifier = Modifier.fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                style = defaultMaterialScrollbarStyle().copy(
+                    thickness = 16.dp,
+                ),
+            )
+        }
     }
 }
 

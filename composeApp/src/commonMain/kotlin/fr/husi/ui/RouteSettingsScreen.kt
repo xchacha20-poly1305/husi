@@ -156,11 +156,7 @@ internal fun RouteSettingsScreen(
     viewModel: RouteSettingsViewModel = viewModel { RouteSettingsViewModel() },
 ) {
     LaunchedEffect(viewModel, routeId, initialState) {
-        if (initialState != null) {
-            viewModel.createFromIntent(initialState)
-        } else {
-            viewModel.loadRule(routeId)
-        }
+        viewModel.initialize(routeId, initialState)
     }
 
     val isDirty by viewModel.isDirty.collectAsState()
