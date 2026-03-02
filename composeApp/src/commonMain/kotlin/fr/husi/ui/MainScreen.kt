@@ -298,7 +298,7 @@ fun MainScreen(
                 selected = false,
                 onClick = {
                     closeDrawer()
-                    uriHandler.openUri("https://github.com/xchacha20-poly1305/husi/wiki")
+                    uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi/wiki")
                 },
                 modifier = modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 icon = {

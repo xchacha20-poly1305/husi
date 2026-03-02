@@ -4,6 +4,8 @@
     height="80">
 </a>
 
+We have migrated to [codeberg](https://codeberg.org/xchacha20-poly1305/husi)!
+
 # Husi (虎兕)
 
 Husi is a non-professional and recreational proxy tool integration, aiming at promoting proxy customization.
@@ -47,7 +49,7 @@ as [version.sh](./buildScript/init/version.sh).
 #### 🧰 Get the Source Code
 
 ```shell
-git clone https://github.com/xchacha20-poly1305/husi.git --depth=1
+git clone https://codeberg.org/xchacha20-poly1305/husi.git --depth=1
 cd husi/
 ./run lib source # Will help you to get submodules
 ```
@@ -267,7 +269,7 @@ Plugin name list:
 
 ## ☠️ End users
 
-[Wiki](https://github.com/xchacha20-poly1305/husi/wiki)
+[Wiki](https://codeberg.org/xchacha20-poly1305/husi/wiki)
 
 ## 📖 License
 

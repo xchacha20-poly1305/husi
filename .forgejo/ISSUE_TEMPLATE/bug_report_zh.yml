@@ -1,5 +1,5 @@
 name: 错误反馈
-description: "提交 虎兕 漏洞"
+about: "提交 虎兕 漏洞"
 body:
   - type: textarea
     attributes:

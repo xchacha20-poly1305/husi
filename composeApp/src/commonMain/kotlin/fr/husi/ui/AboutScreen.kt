@@ -92,9 +92,9 @@ fun AboutScreen(
     val releaseLink = remember {
         val isPreVersion = Libcore.isPreRelease(BuildConfig.VERSION_NAME)
         if (isPreVersion) {
-            "https://github.com/xchacha20-poly1305/husi/releases"
+            "https://codeberg.org/xchacha20-poly1305/husi/releases"
         } else {
-            "https://github.com/xchacha20-poly1305/husi/releases/latest"
+            "https://codeberg.org/xchacha20-poly1305/husi/releases/latest"
         }
     }
     val coreVersion = remember { Libcore.version() }
@@ -260,7 +260,7 @@ fun AboutScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             icon = { Icon(vectorResource(Res.drawable.code), null) },
                             title = stringResource(Res.string.github),
-                            onCLick = { uriHandler.openUri("https://github.com/xchacha20-poly1305/husi") },
+                            onCLick = { uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi") },
                         )
                         CardItem(
                             modifier = Modifier.padding(horizontal = 16.dp),

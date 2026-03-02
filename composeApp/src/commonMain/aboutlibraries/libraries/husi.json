@@ -1,7 +1,7 @@
 {
   "uniqueId": "fr.husi:husi",
   "name": "husi",
-  "website": "https://github.com/xchacha20-poly1305/husi",
+  "website": "https://codeberg.org/xchacha20-poly1305/husi",
   "developers": [
     {
       "name": "Husi authors"

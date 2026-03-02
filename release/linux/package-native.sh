@@ -139,7 +139,7 @@ load_metadata() {
 
     APP_NAME="Husi"
     APP_DESCRIPTION="Husi desktop proxy integration tool"
-    APP_URL="https://github.com/xchacha20-poly1305/husi"
+    APP_URL="https://codeberg.org/xchacha20-poly1305/husi"
     MAINTAINER="Husi contributors"
 }
 
