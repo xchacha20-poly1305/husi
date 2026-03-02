@@ -26,10 +26,10 @@ val supportedDesktopTargets =
 
 fun normalizeDesktopPlatform(rawValue: String): String {
     val value = rawValue.trim().lowercase()
-    return when (value) {
-        "linux" -> "linux"
-        "darwin", "macos", "mac", "osx" -> "darwin"
-        "windows", "win" -> "windows"
+    return when {
+        value.contains("linux") -> "linux"
+        value.contains("darwin") || value.contains("mac") || value.contains("osx") -> "darwin"
+        value.contains("windows") || value.contains("win") -> "windows"
         else -> error("Unsupported desktop platform '$rawValue'. Use linux, darwin, or windows.")
     }
 }
