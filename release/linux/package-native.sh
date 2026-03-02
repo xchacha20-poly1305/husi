@@ -47,7 +47,7 @@ Description:
 Defaults:
   --formats    deb,rpm,pacman
   --input-jar  newest matching jar under $JAR_DIR_DEFAULT
-  --launcher-bin  $ROOT_DIR/launcher/build/<package>-launcher-bin-<machine>
+  --launcher-bin  $ROOT_DIR/launcher/zig-out/bin/launcher
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
 EOF
@@ -309,7 +309,7 @@ resolve_input_jar() {
 
 resolve_launcher_bin() {
     local requested="$1"
-    local default_path="$ROOT_DIR/launcher/build/${PACKAGE_NAME}-launcher-bin-${LAUNCHER_MACHINE}"
+    local default_path="$ROOT_DIR/launcher/zig-out/bin/launcher-${LAUNCHER_MACHINE}"
 
     if [[ -n "$requested" ]]; then
         if [[ ! -f "$requested" ]]; then
@@ -326,7 +326,7 @@ resolve_launcher_bin() {
     fi
 
     error "Launcher binary not found: $default_path"
-    error "Build one first: ./launcher/build.sh"
+    error "Build one first: cd launcher && zig build -Doptimize=ReleaseSmall"
     exit 1
 }
 

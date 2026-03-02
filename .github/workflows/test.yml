@@ -31,10 +31,12 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: https://codeberg.org/mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+
       - name: Build Linux launcher
-        run: |
-          ./launcher/build.sh --output /tmp/husi-launcher
-          rm -f /tmp/husi-launcher
+        run: cd launcher && zig build
 
       - name: Golang Version
         id: version

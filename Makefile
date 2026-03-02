@@ -9,8 +9,10 @@ DESKTOP_TARGETS_LINUX = linux/amd64 linux/arm64
 LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
 DESKTOP_TARGET_GRADLE_ARG = $(if $(DESKTOP_TARGET),-PdesktopTarget=$(DESKTOP_TARGET),)
 DESKTOP_TARGET_SCRIPT_ARG = $(if $(DESKTOP_TARGET),--target $(DESKTOP_TARGET),)
+LAUNCHER_ZIG_TARGET = $(subst linux/amd64,x86_64-linux-musl,$(subst linux/arm64,aarch64-linux-musl,$(DESKTOP_TARGET)))
+LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TARGET),)
 
-.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_uberjar lint_go test_go plugin generate_option
+.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_uberjar launcher lint_go test_go plugin generate_option
 
 build: libcore_android assets apk
 
@@ -38,7 +40,7 @@ desktop_release:
 
 desktop_package_linux:
 	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
-	./launcher/build.sh $(DESKTOP_TARGET_SCRIPT_ARG)
+	$(MAKE) launcher
 	./release/linux/package-native.sh --formats $(LINUX_PACKAGE_FORMATS) $(DESKTOP_TARGET_SCRIPT_ARG)
 
 desktop_package_linux_all:
@@ -49,6 +51,9 @@ desktop_package_linux_all:
 
 desktop_uberjar:
 	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+
+launcher:
+	cd launcher && zig build -Doptimize=ReleaseSmall $(LAUNCHER_ZIG_TARGET_ARG)
 
 apk:
 	BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease

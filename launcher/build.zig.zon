@@ -1,0 +1,14 @@
+.{
+    .name = .launcher,
+    .version = "0.0.1",
+    // Changing this has security and trust implications.
+    .fingerprint = 0x7b9c3515ee6a6527,
+    .minimum_zig_version = "0.15.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+    },
+}

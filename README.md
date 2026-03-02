@@ -187,6 +187,7 @@ The APK file will be located in `androidApp/build/outputs/apk`.
 Environment:
 
 * jdk-21
+* zig 0.15
 
 Run the desktop application:
 
@@ -238,11 +239,16 @@ Installed launcher supports user config files:
 * `~/.config/husi/desktop-java-opts.conf` for JVM options
 * `~/.config/husi/desktop-app-args.conf` for application startup arguments
 
-Linux native packages include a native launcher from `launcher/husi-launcher.c`.
-The default packaging flow runs `./launcher/build.sh` first, then `package-native.sh` consumes that binary.
-`./launcher/build.sh` uses static linking for launcher and exits directly if static link cannot be completed.
-You can choose compiler via `CC=<compiler> ./launcher/build.sh` or `./launcher/build.sh --cc <compiler>`.
-For smaller static launcher in CI, use `CC=musl-gcc ./launcher/build.sh` (requires `musl-tools`).
+Linux native packages include a native launcher built with Zig from `launcher/`.
+
+Build the launcher standalone:
+
+```shell
+make launcher
+```
+
+The default packaging flow runs `make launcher` first, then `package-native.sh` consumes that binary.
+Zig targets musl by default for static linking; no external C toolchain is needed.
 Package install scripts call `setcap` on the launcher so capabilities can be raised to ambient set before starting the JVM.
 
 #### 🌈 Plugins
