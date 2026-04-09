@@ -368,7 +368,7 @@
     <string name="menu_traffic">Трафик</string>
     <string name="no_statistics">Статистики пока нет</string>
     <string name="clear_logcat">Очистить журнал</string>
-    <string name="menu_log">Журналы</string>
+    <string name="menu_log">Журнал</string>
     <string name="menu_tools">Инструменты</string>
     <string name="translate_platform">Платформа локализации</string>
     <string name="ssh_private_key_passphrase">Парольная фраза закрытого ключа</string>
