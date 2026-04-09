@@ -2,41 +2,25 @@ package fr.husi.ui
 
 import fr.husi.database.DataStore
 import fr.husi.database.GroupManager
-import fr.husi.di.initHusiKoin
-import fr.husi.repository.FakeRepository
-import kotlinx.coroutines.Dispatchers
+import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.koin.core.context.stopKoin
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainViewModelTest {
+class MainViewModelTest : HusiKoinMainDispatcherTest() {
 
-    private val dispatcher = StandardTestDispatcher()
-
-    @BeforeTest
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-        initHusiKoin(FakeRepository())
+    override suspend fun postStartKoin() {
         DataStore.configurationStore.reset()
     }
 
-    @AfterTest
-    fun tearDown() {
+    override suspend fun preStopKoin() {
         GroupManager.userInterface = null
-        stopKoin()
-        Dispatchers.resetMain()
     }
 
     /**
