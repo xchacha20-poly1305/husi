@@ -62,6 +62,7 @@ sealed interface MainViewModelUiEvent {
         val message: StringOrRes,
         val confirmButton: AlertButton,
         val dismissButton: AlertButton? = null,
+        val onDismiss: (() -> Unit)? = null,
     ) : MainViewModelUiEvent
 }
 
@@ -289,6 +290,9 @@ class MainViewModel(
                     deferred.complete(true)
                 },
                 dismissButton = AlertButton(StringOrRes.Res(Res.string.cancel)) {
+                    deferred.complete(false)
+                },
+                onDismiss = {
                     deferred.complete(false)
                 },
             ),

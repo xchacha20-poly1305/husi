@@ -40,7 +40,7 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
-import fr.husi.compose.ScrollableDialog
+import fr.husi.compose.MainViewModelAlertDialog
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.DrawerItem
 import fr.husi.compose.material3.Icon
@@ -494,39 +494,10 @@ private fun MainScreenContent(
             }
         }
     }
-    if (showAlertDialog != null) {
-        val dialog = showAlertDialog!!
-        ScrollableDialog(
-            onDismissRequest = { showAlertDialog = null },
-            confirmButton = {
-                TextButton(stringOrRes(dialog.confirmButton.label)) {
-                    dialog.confirmButton.onClick()
-                    showAlertDialog = null
-                }
-            },
-            dismissButton = dialog.dismissButton?.let { button ->
-                {
-                    TextButton(stringOrRes(button.label)) {
-                        button.onClick()
-                        showAlertDialog = null
-                    }
-                }
-            },
-            icon = {
-                Icon(
-                    vectorResource(
-                        if (dialog.dismissButton != null) {
-                            Res.drawable.question_mark
-                        } else {
-                            Res.drawable.error
-                        },
-                    ),
-                    null,
-                )
-            },
-            title = { Text(stringOrRes(dialog.title)) },
-            text = { Text(stringOrRes(dialog.message)) },
-        )
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
+        }
     }
 }
 

@@ -83,6 +83,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.ExpandableDropdownMenuItem
+import fr.husi.compose.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
@@ -148,7 +149,6 @@ import fr.husi.resources.copy_success
 import fr.husi.resources.custom_config
 import fr.husi.resources.delete_confirm_prompt
 import fr.husi.resources.ecg
-import fr.husi.resources.error
 import fr.husi.resources.group_order_by_delay
 import fr.husi.resources.group_order_by_name
 import fr.husi.resources.group_order_origin
@@ -162,7 +162,6 @@ import fr.husi.resources.ok
 import fr.husi.resources.plugin_unknown
 import fr.husi.resources.proxy_chain
 import fr.husi.resources.proxy_set
-import fr.husi.resources.question_mark
 import fr.husi.resources.remove_duplicate
 import fr.husi.resources.removed
 import fr.husi.resources.search
@@ -771,37 +770,9 @@ fun ConfigurationScreen(
     }
 
     showAlertDialog?.let { dialog ->
-        ScrollableDialog(
-            onDismissRequest = { showAlertDialog = null },
-            confirmButton = {
-                TextButton(stringOrRes(dialog.confirmButton.label)) {
-                    dialog.confirmButton.onClick()
-                    showAlertDialog = null
-                }
-            },
-            dismissButton = dialog.dismissButton?.let { button ->
-                {
-                    TextButton(stringOrRes(button.label)) {
-                        button.onClick()
-                        showAlertDialog = null
-                    }
-                }
-            },
-            icon = {
-                Icon(
-                    vectorResource(
-                        if (dialog.dismissButton != null) {
-                            Res.drawable.question_mark
-                        } else {
-                            Res.drawable.error
-                        },
-                    ),
-                    null,
-                )
-            },
-            title = { Text(stringOrRes(dialog.title)) },
-            text = { Text(stringOrRes(dialog.message)) },
-        )
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
+        }
     }
 }
 
