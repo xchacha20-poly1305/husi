@@ -166,7 +166,7 @@
     <string name="action_import">Імпортувати з буферу обміну</string>
     <string name="action_import_file">Імпортувати з файла</string>
     <string name="action_import_err">Не вдалося імпортувати.</string>
-    <string name="undo">Відмінити</string>
+    <string name="undo">Скасувати</string>
     <string name="deprecated">Застаріло</string>
     <string name="connecting">Підключення…</string>
     <string name="vpn_connected">Підключено, натисність, аби перевірити підключення</string>
