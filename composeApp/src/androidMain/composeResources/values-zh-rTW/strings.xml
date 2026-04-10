@@ -1,4 +1,6 @@
 <resources>
     <string name="auto_connect">自動連線</string>
     <string name="auto_connect_summary">如果代理在開機或應用更新前正在運行則自動啓動</string>
+    <string name="vpn_session_name">VPN 工作階段名稱</string>
+    <string name="vpn_session_name_summary">留空則使用應用程式名稱</string>
 </resources>

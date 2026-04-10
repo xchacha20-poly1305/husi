@@ -19,6 +19,7 @@ import fr.husi.DEFAULT_HTTP_BYPASS
 import fr.husi.Key
 import fr.husi.compose.HostTextField
 import fr.husi.compose.PreferenceType
+import fr.husi.compose.ValidatedTextField
 import fr.husi.database.DataStore
 import fr.husi.ktx.findActivity
 import fr.husi.ktx.getColour
@@ -45,6 +46,8 @@ import fr.husi.resources.privacy_mode_summary
 import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.show_group_in_notification
 import fr.husi.resources.transform
+import fr.husi.resources.vpn_session_name
+import fr.husi.resources.vpn_session_name_summary
 import kotlinx.coroutines.flow.flowOf
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -90,6 +93,39 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit {
 }
 
 internal actual fun LazyListScope.platformGeneralOptions(needReload: () -> Unit) {
+    item(Key.VPN_SESSION_NAME, PreferenceType.TEXT_FIELD) {
+        val value by DataStore.configurationStore
+            .stringFlow(Key.VPN_SESSION_NAME, "")
+            .collectAsStateWithLifecycle("")
+        TextFieldPreference(
+            value = value,
+            onValueChange = {
+                DataStore.vpnSessionName = it
+                needReload()
+            },
+            title = { Text(stringResource(Res.string.vpn_session_name)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.label), null) },
+            summary = {
+                val text = value.ifBlank { stringResource(Res.string.vpn_session_name_summary) }
+                Text(text)
+            },
+            valueToText = { it },
+        ) { value, onValueChange, onOk ->
+            ValidatedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                onOk = onOk,
+                validator = { text ->
+                    if (text.lines().size > 1) {
+                        "Unexpected new line"
+                    } else {
+                        null
+                    }
+                },
+            )
+        }
+    }
     item(Key.ALLOW_APPS_BYPASS_VPN, PreferenceType.SWITCH) {
         val value by DataStore.configurationStore
             .booleanFlow(Key.ALLOW_APPS_BYPASS_VPN, false)

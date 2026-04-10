@@ -77,6 +77,8 @@ object Key {
     const val LOG_LEVEL = "logLevel"
     const val LOG_MAX_LINE = "logMaxLine"
     const val MTU = "mtu"
+    const val VPN_SESSION_NAME = "vpnSessionName"
+    const val TUN_INTERFACE_NAME = "tunInterfaceName"
     const val TUN_STRICT_ROUTE = "tunStrictRoute"
     const val TUN_AUTO_REDIRECT = "tunAutoRedirect"
     const val ALLOW_APPS_BYPASS_VPN = "allowAppsBypassVpn"

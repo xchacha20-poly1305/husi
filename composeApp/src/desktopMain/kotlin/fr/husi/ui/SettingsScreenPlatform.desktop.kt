@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.compose.PreferenceType
+import fr.husi.compose.ValidatedTextField
+import fr.husi.compose.validateTunInterfaceName
 import fr.husi.database.DataStore
 import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
@@ -17,9 +19,12 @@ import fr.husi.resources.auto_connect_desktop
 import fr.husi.resources.auto_connect_summary_desktop
 import fr.husi.resources.arrow_and_edge
 import fr.husi.resources.phonelink_ring
+import fr.husi.resources.tun_interface_name
+import fr.husi.resources.tun_interface_name_summary
 import fr.husi.resources.tun_auto_redirect
 import fr.husi.resources.tun_strict_route
 import me.zhanghai.compose.preference.SwitchPreference
+import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -55,6 +60,34 @@ internal actual fun LazyListScope.meteredNetworkSetting(needReload: () -> Unit) 
 }
 
 internal actual fun LazyListScope.platformRouteOptions(needReload: () -> Unit, isVpnMode: Boolean) {
+    item(Key.TUN_INTERFACE_NAME, PreferenceType.TEXT_FIELD) {
+        val value by DataStore.configurationStore
+            .stringFlow(Key.TUN_INTERFACE_NAME, "")
+            .collectAsStateWithLifecycle("")
+        TextFieldPreference(
+            value = value,
+            onValueChange = {
+                DataStore.tunInterfaceName = it
+                needReload()
+            },
+            title = { Text(stringResource(Res.string.tun_interface_name)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.arrow_and_edge), null) },
+            summary = {
+                val text = value.ifBlank { stringResource(Res.string.tun_interface_name_summary) }
+                Text(text)
+            },
+            valueToText = { it },
+            enabled = isVpnMode,
+        ) { value, onValueChange, onOk ->
+            ValidatedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                onOk = onOk,
+                validator = ::validateTunInterfaceName,
+            )
+        }
+    }
     item(Key.TUN_STRICT_ROUTE, PreferenceType.SWITCH) {
         val value by DataStore.configurationStore
             .booleanFlow(Key.TUN_STRICT_ROUTE, true)

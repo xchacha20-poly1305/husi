@@ -294,6 +294,30 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals(null, disabledTunInbound["auto_redirect"])
     }
 
+    @Test
+    fun `buildConfig should forward tun interface name on desktop`() = runBlocking {
+        DataStore.serviceMode = Key.MODE_VPN
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        DataStore.tunInterfaceName = "tun0"
+        val configuredTunInbound = parseTunInbound(buildConfig(proxy))
+        assertEquals("tun0", configuredTunInbound["interface_name"]?.jsonPrimitive?.content)
+
+        DataStore.tunInterfaceName = ""
+        val defaultTunInbound = parseTunInbound(buildConfig(proxy))
+        assertEquals(null, defaultTunInbound["interface_name"])
+    }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
             .jsonArray

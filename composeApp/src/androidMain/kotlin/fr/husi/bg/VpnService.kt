@@ -103,8 +103,10 @@ class VpnService : BaseVpnService(),
 
     fun startVpn(): Int {
         // address & route & MTU ...... use GUI config
+        val sessionName = DataStore.vpnSessionName.trim().blankAsNull()
+            ?: runBlocking { resolveRepository().getString(Res.string.app_name) }
         val builder = Builder().setConfigureIntent(resolveAndroidRepository().configureIntent(this))
-            .setSession(runBlocking { resolveRepository().getString(Res.string.app_name) })
+            .setSession(sessionName)
             .setMtu(DataStore.mtu)
         val networkStrategy = DataStore.networkStrategy
 

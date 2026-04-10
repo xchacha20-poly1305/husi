@@ -101,6 +101,8 @@ object DataStore {
 
     //    var tcpKeepAliveInterval by configurationStore.int(Key.TCP_KEEP_ALIVE_INTERVAL) { 15 }
     var mtu by configurationStore.int(Key.MTU) { 9000 }
+    var vpnSessionName by configurationStore.string(Key.VPN_SESSION_NAME) { "" }
+    var tunInterfaceName by configurationStore.string(Key.TUN_INTERFACE_NAME) { "" }
     var tunStrictRoute by configurationStore.boolean(Key.TUN_STRICT_ROUTE) { true }
     var tunAutoRedirect by configurationStore.boolean(Key.TUN_AUTO_REDIRECT) { true }
     var allowAppsBypassVpn by configurationStore.boolean(Key.ALLOW_APPS_BYPASS_VPN) { false }

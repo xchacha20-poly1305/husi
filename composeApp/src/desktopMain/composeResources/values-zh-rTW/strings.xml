@@ -1,4 +1,6 @@
 <resources>
     <string name="auto_connect_desktop">登入時連線</string>
     <string name="auto_connect_summary_desktop">登入系統時啟動並自動連線</string>
+    <string name="tun_interface_name">Tun 介面名稱</string>
+    <string name="tun_interface_name_summary">留空則使用 sing-box 預設值</string>
 </resources>

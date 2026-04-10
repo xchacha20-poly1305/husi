@@ -1,4 +1,6 @@
 <resources>
     <string name="auto_connect">Auto Connect</string>
     <string name="auto_connect_summary">Enable proxy on startup/app update if it was running before</string>
+    <string name="vpn_session_name">VPN session name</string>
+    <string name="vpn_session_name_summary">Leave empty to use app name</string>
 </resources>
