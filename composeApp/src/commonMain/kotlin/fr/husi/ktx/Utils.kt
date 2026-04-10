@@ -13,6 +13,7 @@ import fr.husi.resources.not_set
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import java.io.Closeable
+import java.io.File
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.security.MessageDigest
@@ -99,6 +100,10 @@ operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
 
 fun String?.emptyAsNull(): String? = if (isNullOrEmpty()) null else this
+
+fun File.invariantPathString(): String = absolutePath.replace('\\', '/')
+
+fun File.invariantDirectoryPathString(): String = invariantPathString().trimEnd('/') + "/"
 
 /**
  * Returns the first non-default value from the provided getters.

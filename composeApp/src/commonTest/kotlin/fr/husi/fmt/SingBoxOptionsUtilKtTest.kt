@@ -4,6 +4,7 @@ import fr.husi.fmt.SingBoxOptions.MyOptions
 import fr.husi.fmt.SingBoxOptions.MyDNSOptions
 import fr.husi.fmt.SingBoxOptions.MyRouteOptions
 import fr.husi.fmt.SingBoxOptions.DNSRule_Default
+import fr.husi.fmt.SingBoxOptions.RULE_SET_FORMAT_BINARY
 import fr.husi.fmt.SingBoxOptions.RULE_SET_TYPE_REMOTE
 import fr.husi.fmt.SingBoxOptions.RULE_SET_TYPE_LOCAL
 import fr.husi.fmt.SingBoxOptions.RuleSet
@@ -117,14 +118,17 @@ class SingBoxOptionsUtilKtTest {
 
         val geoipCnRule = ruleSets.requireRemote("geoip-cn")
         assertEquals(RULE_SET_TYPE_REMOTE, geoipCnRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geoipCnRule.format)
         assertEquals("$ipURL/geoip-cn.srs", geoipCnRule.url)
 
         val geositeGoogleRule = ruleSets.requireRemote("geosite-google")
         assertEquals(RULE_SET_TYPE_REMOTE, geositeGoogleRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geositeGoogleRule.format)
         assertEquals("$domainURL/geosite-google.srs", geositeGoogleRule.url)
 
         val geositeYoutubeRule = ruleSets.requireRemote("geosite-youtube")
         assertEquals(RULE_SET_TYPE_REMOTE, geositeYoutubeRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geositeYoutubeRule.format)
         assertEquals("$domainURL/geosite-youtube.srs", geositeYoutubeRule.url)
     }
 
@@ -150,10 +154,12 @@ class SingBoxOptionsUtilKtTest {
 
         val geositeFacebookRule = ruleSets.requireLocal("geosite-facebook")
         assertEquals(RULE_SET_TYPE_LOCAL, geositeFacebookRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geositeFacebookRule.format)
         assertEquals("$localPath/geosite-facebook.srs", geositeFacebookRule.path)
 
         val geoipUsRule = ruleSets.requireLocal("geoip-us")
         assertEquals(RULE_SET_TYPE_LOCAL, geoipUsRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, geoipUsRule.format)
         assertEquals("$localPath/geoip-us.srs", geoipUsRule.path)
     }
 
@@ -188,6 +194,7 @@ class SingBoxOptionsUtilKtTest {
         expectedTags.forEach { tag ->
             val remoteRuleSet = ruleSets.requireRemote(tag)
             assertEquals(RULE_SET_TYPE_REMOTE, remoteRuleSet.type)
+            assertEquals(RULE_SET_FORMAT_BINARY, remoteRuleSet.format)
             if (tag.startsWith("geoip-")) {
                 assertEquals("$ipURL/$tag.srs", remoteRuleSet.url)
             } else {
@@ -350,14 +357,17 @@ class SingBoxOptionsUtilKtTest {
 
         val existingLocalRule = ruleSets.requireRemote("existing-local")
         assertEquals(RULE_SET_TYPE_REMOTE, existingLocalRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, existingLocalRule.format)
         assertEquals("$domainURL/existing-local.srs", existingLocalRule.url)
 
         val existingRemoteRule = ruleSets.requireRemote("existing-remote")
         assertEquals(RULE_SET_TYPE_REMOTE, existingRemoteRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, existingRemoteRule.format)
         assertEquals("$domainURL/existing-remote.srs", existingRemoteRule.url)
 
         val newSetRule = ruleSets.requireRemote("new-set")
         assertEquals(RULE_SET_TYPE_REMOTE, newSetRule.type)
+        assertEquals(RULE_SET_FORMAT_BINARY, newSetRule.format)
         assertEquals("$domainURL/new-set.srs", newSetRule.url)
     }
 
@@ -380,9 +390,31 @@ class SingBoxOptionsUtilKtTest {
         ruleSets.assertTags(expectedTags)
 
         val geoipRule = ruleSets.requireRemote("geoip-route-only-set-2")
+        assertEquals(RULE_SET_FORMAT_BINARY, geoipRule.format)
         assertEquals("$ipURL/geoip-route-only-set-2.srs", geoipRule.url)
 
         val domainRule = ruleSets.requireRemote("route-only-set-1")
+        assertEquals(RULE_SET_FORMAT_BINARY, domainRule.format)
         assertEquals("$domainURL/route-only-set-1.srs", domainRule.url)
+    }
+
+    @Test
+    fun `buildRuleSets should normalize local windows paths to forward slashes`() {
+        options.route = null
+        options.dns = MyDNSOptions().apply {
+            rules = mutableListOf(
+                buildRule<DNSRule_Default>(listOf("geosite-facebook")).asMap(),
+            )
+        }
+
+        options.buildRuleSets(
+            ipURL = null,
+            domainURL = null,
+            localPath = """C:\Users\demo\.config\husi\external\geo""",
+        )
+
+        val ruleSet = options.requireRuleSets().requireLocal("geosite-facebook")
+        assertEquals(RULE_SET_FORMAT_BINARY, ruleSet.format)
+        assertEquals("C:/Users/demo/.config/husi/external/geo/geosite-facebook.srs", ruleSet.path)
     }
 }

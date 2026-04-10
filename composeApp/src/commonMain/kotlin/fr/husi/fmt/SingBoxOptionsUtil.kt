@@ -296,6 +296,7 @@ fun MyOptions.buildRuleSets(
             RuleSet_Remote().apply {
                 tag = name
                 type = SingBoxOptions.RULE_SET_TYPE_REMOTE
+                format = SingBoxOptions.RULE_SET_FORMAT_BINARY
                 val isIP = name.startsWith("geoip-")
                 url = if (isIP) {
                     "${ipURL}/${name}.srs"
@@ -307,6 +308,7 @@ fun MyOptions.buildRuleSets(
             RuleSet_Local().apply {
                 tag = name
                 type = SingBoxOptions.RULE_SET_TYPE_LOCAL
+                format = SingBoxOptions.RULE_SET_FORMAT_BINARY
                 path = "$localPath/$name.srs"
             },
         )

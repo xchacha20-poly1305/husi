@@ -31,6 +31,7 @@ import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.Logs
 import fr.husi.ktx.exitApplication
+import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
@@ -263,7 +264,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         val repository = DesktopRepository(baseDir)
         DesktopAutoStart.initialize()
         initHusiKoin(repository)
-        val filesDir = repository.filesDir.absolutePath + "/"
+        val filesDir = repository.filesDir.invariantDirectoryPathString()
 
         if (!many) {
             when (checkExistingInstance(filesDir, deepLinks)) {
@@ -281,8 +282,8 @@ private class DesktopMain : CliktCommand(APP_NAME) {
 
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
-        val cacheDir = repository.cacheDir.absolutePath + "/"
-        val externalAssetsDir = repository.externalAssetsDir.absolutePath + "/"
+        val cacheDir = repository.cacheDir.invariantDirectoryPathString()
+        val externalAssetsDir = repository.externalAssetsDir.invariantDirectoryPathString()
 
         val rulesProvider = DataStore.rulesProvider
         val isOfficialProvider = rulesProvider == RuleProvider.OFFICIAL

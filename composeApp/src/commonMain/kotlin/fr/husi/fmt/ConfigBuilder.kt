@@ -71,6 +71,7 @@ import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.defaultOr
 import fr.husi.ktx.isIpAddress
+import fr.husi.ktx.invariantPathString
 import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.mergeJson
@@ -1267,7 +1268,7 @@ fun buildConfig(
             }
         }
         if (geositeLink == null) {
-            ruleSetResource = repository.externalAssetsDir.absolutePath + "/geo"
+            ruleSetResource = repository.externalAssetsDir.resolve("geo").invariantPathString()
         }
         buildRuleSets(geoipLink, geositeLink, ruleSetResource)
         partitionEndpoints()

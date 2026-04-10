@@ -73,6 +73,30 @@ Truly readable code is more than just clear—it's understandable even without c
 
 * Our style uses **names** to communicate meaning.
 
+### Path Handling
+
+* Do **not** build filesystem paths by string concatenation such as `base + "/child"` or `absolutePath + "/"`.
+
+* Prefer `File.resolve(...)`, `File(parent, child)`, or equivalent path APIs when combining local paths.
+
+* On Windows, we should use `/` instead of `\`
+
+  **Bad:**
+
+  ```kotlin
+  val geoDir = repository.externalAssetsDir.absolutePath + "/geo"
+  ruleSet.path = "$geoDir/$name.srs"
+  ```
+
+  **Good:**
+
+  ```kotlin
+  import fr.husi.ktx.invariantPathString
+  
+  val geoDir = repository.externalAssetsDir.resolve("geo")
+  ruleSet.path = geoDir.resolve("$name.srs").invariantPathString()
+  ```
+
 ---
 
 ### Go Guidelines

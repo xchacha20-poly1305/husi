@@ -14,6 +14,7 @@ import fr.husi.bg.SubscriptionUpdater
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
 import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.ktx.invariantDirectoryPathString
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.repository.AndroidRepository
@@ -70,9 +71,9 @@ class Application : Application(),
         }
         Libcore.initCore(
             isBgProcess,
-            cacheDir.absolutePath + "/",
-            filesDir.absolutePath + "/",
-            externalAssets.absolutePath + "/",
+            cacheDir.invariantDirectoryPathString(),
+            filesDir.invariantDirectoryPathString(),
+            externalAssets.invariantDirectoryPathString(),
             DataStore.logMaxLine,
             DataStore.logLevel,
             DataStore.rulesProvider == 0,
