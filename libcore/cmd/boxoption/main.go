@@ -66,6 +66,7 @@ var boxList = []any{
 	// option.NewDNSServerOptions{},
 	option.DNSClientOptions{},
 	// option.DNSRule{},
+	option.OptimisticDNSOptions{},
 
 	// Experimental
 	option.ExperimentalOptions{},

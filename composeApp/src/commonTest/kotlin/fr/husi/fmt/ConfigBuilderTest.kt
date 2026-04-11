@@ -4,6 +4,8 @@ import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
+import fr.husi.database.ProfileManager
+import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
@@ -318,11 +320,245 @@ class ConfigBuilderTest : HusiKoinTest() {
         assertEquals(null, defaultTunInbound["interface_name"])
     }
 
+    @Test
+    fun `buildConfig should migrate response-based direct DNS rules to evaluate then route`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "dns-geoip-direct",
+                ip = "set+dns:geoip-cn",
+                outbound = RuleEntity.OUTBOUND_DIRECT,
+            ),
+        )
+
+        val dnsRules = parseDnsRules(buildConfig(proxy))
+        val evaluateIndex = dnsRules.indexOfFirst {
+            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+        }
+
+        assertTrue(evaluateIndex >= 0)
+        assertEquals(TAG_DNS_REMOTE, dnsRules[evaluateIndex]["server"]?.jsonPrimitive?.content)
+
+        val responseRule = dnsRules[evaluateIndex + 1]
+        assertEquals(SingBoxOptions.ACTION_ROUTE, responseRule["action"]?.jsonPrimitive?.content)
+        assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
+        assertEquals(TAG_DNS_DIRECT, responseRule["server"]?.jsonPrimitive?.content)
+        assertEquals(
+            listOf("geoip-cn"),
+            responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun `buildConfig should migrate response-based proxy DNS rules to evaluate then respond`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "dns-geoip-proxy",
+                ip = "set+dns:geoip-cn",
+                outbound = RuleEntity.OUTBOUND_PROXY,
+            ),
+        )
+
+        val dnsRules = parseDnsRules(buildConfig(proxy))
+        val evaluateIndex = dnsRules.indexOfFirst {
+            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+        }
+
+        assertTrue(evaluateIndex >= 0)
+        assertEquals(TAG_DNS_REMOTE, dnsRules[evaluateIndex]["server"]?.jsonPrimitive?.content)
+
+        val responseRule = dnsRules[evaluateIndex + 1]
+        assertEquals(SingBoxOptions.ACTION_RESPOND, responseRule["action"]?.jsonPrimitive?.content)
+        assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
+        assertEquals(null, responseRule["server"])
+        assertEquals(
+            listOf("geoip-cn"),
+            responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun `buildConfig should keep request-based DNS rules as direct route without evaluate`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "dns-geosite-direct",
+                domains = "set+dns:geosite-cn",
+                outbound = RuleEntity.OUTBOUND_DIRECT,
+            ),
+        )
+
+        val dnsRules = parseDnsRules(buildConfig(proxy))
+        assertEquals(
+            -1,
+            dnsRules.indexOfFirst {
+                it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+            },
+        )
+
+        val routeRule = dnsRules.firstOrNull {
+            it["server"]?.jsonPrimitive?.content == TAG_DNS_DIRECT &&
+                it["rule_set"]?.jsonArray?.map { item -> item.jsonPrimitive.content } == listOf("geosite-cn")
+        }
+        assertNotNull(routeRule)
+        assertEquals(null, routeRule["match_response"])
+    }
+
+    @Test
+    fun `buildConfig should treat ip field dns rule set as response-based without geoip prefix`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "dns-custom-ip-set",
+                ip = "set+dns:custom-ip-set",
+                outbound = RuleEntity.OUTBOUND_DIRECT,
+            ),
+        )
+
+        val dnsRules = parseDnsRules(buildConfig(proxy))
+        val evaluateIndex = dnsRules.indexOfFirst {
+            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+        }
+
+        assertTrue(evaluateIndex >= 0)
+        assertEquals(TAG_DNS_REMOTE, dnsRules[evaluateIndex]["server"]?.jsonPrimitive?.content)
+
+        val responseRule = dnsRules[evaluateIndex + 1]
+        assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
+        assertEquals(TAG_DNS_DIRECT, responseRule["server"]?.jsonPrimitive?.content)
+        assertEquals(
+            listOf("custom-ip-set"),
+            responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun `buildConfig should keep domain field dns rule set as request-based without geosite prefix`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "dns-custom-domain-set",
+                domains = "set+dns:custom-domain-set",
+                outbound = RuleEntity.OUTBOUND_DIRECT,
+            ),
+        )
+
+        val dnsRules = parseDnsRules(buildConfig(proxy))
+        assertEquals(
+            -1,
+            dnsRules.indexOfFirst {
+                it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+            },
+        )
+
+        val routeRule = dnsRules.firstOrNull {
+            it["server"]?.jsonPrimitive?.content == TAG_DNS_DIRECT &&
+                it["rule_set"]?.jsonArray?.map { item -> item.jsonPrimitive.content } == listOf("custom-domain-set")
+        }
+        assertNotNull(routeRule)
+        assertEquals(null, routeRule["match_response"])
+    }
+
+    @Test
+    fun `buildConfig should preserve request dns rule set when ip dns rule set needs response matching`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+        ProfileManager.createRule(
+            RuleEntity(
+                enabled = true,
+                name = "dns-mixed-set",
+                domains = "set+dns:custom-domain-set",
+                ip = "set+dns:custom-ip-set",
+                outbound = RuleEntity.OUTBOUND_DIRECT,
+            ),
+        )
+
+        val dnsRules = parseDnsRules(buildConfig(proxy))
+        val evaluateIndex = dnsRules.indexOfFirst {
+            it["action"]?.jsonPrimitive?.content == SingBoxOptions.ACTION_EVALUATE
+        }
+
+        assertTrue(evaluateIndex >= 0)
+
+        val evaluateRule = dnsRules[evaluateIndex]
+        assertEquals(
+            listOf("custom-domain-set"),
+            evaluateRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+        assertEquals(null, evaluateRule["match_response"])
+
+        val responseRule = dnsRules[evaluateIndex + 1]
+        assertEquals("true", responseRule["match_response"]?.jsonPrimitive?.content)
+        assertEquals(
+            listOf("custom-domain-set", "custom-ip-set"),
+            responseRule["rule_set"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+    }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
             .jsonArray
             .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
             .mapValues { it.value.jsonObject }
+
+    private fun parseDnsRules(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["dns"]!!
+            .jsonObject["rules"]!!
+            .jsonArray
+            .map { it.jsonObject }
 
     private fun parseTunInbound(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["inbounds"]!!

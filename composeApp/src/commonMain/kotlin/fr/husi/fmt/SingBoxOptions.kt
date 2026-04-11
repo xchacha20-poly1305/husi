@@ -52,6 +52,8 @@ object SingBoxOptions {
     const val TYPE_LOGICAL = "logical"
 
     const val ACTION_ROUTE = "route"
+    const val ACTION_EVALUATE = "evaluate"
+    const val ACTION_RESPOND = "respond"
     const val ACTION_ROUTE_OPTIONS = "route-options"
     const val ACTION_REJECT = "reject"
     const val ACTION_HIJACK_DNS = "hijack-dns"
@@ -619,6 +621,9 @@ object SingBoxOptions {
         var cache_capacity: Int? = null
 
         @JvmField
+        var optimistic: OptimisticDNSOptions? = null
+
+        @JvmField
         var client_subnet: String? = null
 
     }
@@ -642,7 +647,21 @@ object SingBoxOptions {
         var cache_capacity: Int? = null
 
         @JvmField
+        var optimistic: OptimisticDNSOptions? = null
+
+        @JvmField
         var client_subnet: String? = null
+
+    }
+
+    @KxsSerializable
+    open class OptimisticDNSOptions : SingBoxOption() {
+
+        @JvmField
+        var enabled: Boolean? = null
+
+        @JvmField
+        var timeout: String? = null
 
     }
 
@@ -683,6 +702,9 @@ object SingBoxOptions {
 
         @JvmField
         var rdrc_timeout: String? = null
+
+        @JvmField
+        var store_dns: Boolean? = null
 
     }
 
@@ -1163,6 +1185,9 @@ object SingBoxOptions {
         var disable_cache: Boolean? = null
 
         @JvmField
+        var disable_optimistic_cache: Boolean? = null
+
+        @JvmField
         var rewrite_ttl: Int? = null
 
         @JvmField
@@ -1264,6 +1289,9 @@ object SingBoxOptions {
 
         @JvmField
         var package_name: MutableList<String>? = null
+
+        @JvmField
+        var package_name_regex: MutableList<String>? = null
 
         @JvmField
         var user: MutableList<String>? = null
@@ -1436,6 +1464,9 @@ object SingBoxOptions {
         var disable_cache: Boolean? = null
 
         @JvmField
+        var disable_optimistic_cache: Boolean? = null
+
+        @JvmField
         var rewrite_ttl: Int? = null
 
         @JvmField
@@ -1576,6 +1607,9 @@ object SingBoxOptions {
         var disable_cache: Boolean? = null
 
         @JvmField
+        var disable_optimistic_cache: Boolean? = null
+
+        @JvmField
         var rewrite_ttl: Int? = null
 
         @JvmField
@@ -1618,24 +1652,6 @@ object SingBoxOptions {
         var domain_regex: MutableList<String>? = null
 
         @JvmField
-        var geosite: MutableList<String>? = null
-
-        @JvmField
-        var source_geoip: MutableList<String>? = null
-
-        @JvmField
-        var geoip: MutableList<String>? = null
-
-        @JvmField
-        var ip_cidr: MutableList<String>? = null
-
-        @JvmField
-        var ip_is_private: Boolean? = null
-
-        @JvmField
-        var ip_accept_any: Boolean? = null
-
-        @JvmField
         var source_ip_cidr: MutableList<String>? = null
 
         @JvmField
@@ -1664,6 +1680,9 @@ object SingBoxOptions {
 
         @JvmField
         var package_name: MutableList<String>? = null
+
+        @JvmField
+        var package_name_regex: MutableList<String>? = null
 
         @JvmField
         var user: MutableList<String>? = null
@@ -1714,10 +1733,43 @@ object SingBoxOptions {
         var rule_set_ip_cidr_match_source: Boolean? = null
 
         @JvmField
-        var rule_set_ip_cidr_accept_empty: Boolean? = null
+        var match_response: Boolean? = null
+
+        @JvmField
+        var ip_cidr: MutableList<String>? = null
+
+        @JvmField
+        var ip_is_private: Boolean? = null
+
+        @JvmField
+        var ip_accept_any: Boolean? = null
+
+        @JvmField
+        var response_rcode: String? = null
+
+        @JvmField
+        var response_answer: MutableList<String>? = null
+
+        @JvmField
+        var response_ns: MutableList<String>? = null
+
+        @JvmField
+        var response_extra: MutableList<String>? = null
 
         @JvmField
         var invert: Boolean? = null
+
+        @JvmField
+        var geosite: MutableList<String>? = null
+
+        @JvmField
+        var source_geoip: MutableList<String>? = null
+
+        @JvmField
+        var geoip: MutableList<String>? = null
+
+        @JvmField
+        var rule_set_ip_cidr_accept_empty: Boolean? = null
 
         @JvmField
         var rule_set_ipcidr_match_source: Boolean? = null
@@ -1734,6 +1786,9 @@ object SingBoxOptions {
 
         @JvmField
         var disable_cache: Boolean? = null
+
+        @JvmField
+        var disable_optimistic_cache: Boolean? = null
 
         @JvmField
         var rewrite_ttl: Int? = null
@@ -1786,6 +1841,9 @@ object SingBoxOptions {
 
         @JvmField
         var disable_cache: Boolean? = null
+
+        @JvmField
+        var disable_optimistic_cache: Boolean? = null
 
         @JvmField
         var rewrite_ttl: Int? = null

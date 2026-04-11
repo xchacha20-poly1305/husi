@@ -725,12 +725,14 @@ fun buildConfig(
                     makeProcessRule(processRules)
                 }
                 var domainList: List<RuleItem> = listOf()
+                var ipList: List<RuleItem> = listOf()
                 if (rule.domains.isNotBlank()) {
                     domainList = RuleItem.parseRules(rule.domains.listByLineOrComma(), true)
                     makeCommonRule(domainList, false)
                 }
                 if (rule.ip.isNotBlank()) {
-                    makeCommonRule(RuleItem.parseRules(rule.ip.listByLineOrComma(), false), true)
+                    ipList = RuleItem.parseRules(rule.ip.listByLineOrComma(), false)
+                    makeCommonRule(ipList, true)
                 }
                 if (rule.port.isNotBlank()) {
                     port = mutableListOf()
@@ -796,65 +798,116 @@ fun buildConfig(
                         }
                 }
 
-                fun makeDnsRuleObj(): DNSRule_Default {
-                    return DNSRule_Default().apply {
-                        if (uidList.isNotEmpty()) user_id = uidList.toMutableList()
-                        if (processRules.isNotEmpty()) {
-                            makeProcessRule(processRules)
-                        }
-                        val ips = RuleItem.parseRules(rule.ip.listByLineOrComma(), false)
-                        makeCommonRule((domainList + ips).filter { it.dns })
-                    }
+                fun RuleItem.isResponseOnlyRule(): Boolean {
+                    return content == RuleItem.CONTENT_ANY || content == RuleItem.CONTENT_PRIVATE
                 }
 
-                var dnsRuleJson: JSONMap? = null
+                val requestDNSRules = domainList.filter { it.dns && !it.isResponseOnlyRule() }
+                val responseDNSRules = buildList {
+                    addAll(domainList.filter { it.dns && it.isResponseOnlyRule() })
+                    addAll(ipList.filter { it.dns })
+                }
+
+                fun DNSRule_Default.applyDnsBase(
+                    useFakeQueryScope: Boolean = false,
+                ): DNSRule_Default {
+                    if (uidList.isNotEmpty()) user_id = uidList.toMutableList()
+                    if (processRules.isNotEmpty()) {
+                        makeProcessRule(processRules)
+                    }
+                    if (requestDNSRules.isNotEmpty()) {
+                        makeCommonRule(requestDNSRules)
+                    }
+                    if (useFakeQueryScope) {
+                        inbound = mutableListOf(TAG_TUN)
+                        query_type = FAKE_DNS_QUERY_TYPE.toMutableList()
+                    }
+                    return this
+                }
+
+                fun buildDnsRules(
+                    action: String? = null,
+                    server: String? = null,
+                    useFakeQueryScope: Boolean = false,
+                ): MutableList<JSONMap>? {
+                    val hasResponseRule = DNSRule_Default().apply {
+                        makeResponseRule(responseDNSRules)
+                    }.let { !it.checkEmpty() }
+                    val terminalAction = if (
+                        hasResponseRule &&
+                        action == SingBoxOptions.ACTION_ROUTE &&
+                        server == TAG_DNS_REMOTE
+                    ) {
+                        SingBoxOptions.ACTION_RESPOND
+                    } else {
+                        action
+                    }
+                    val terminalRule = DNSRule_Default().applyDnsBase(useFakeQueryScope).apply {
+                        if (hasResponseRule) {
+                            match_response = true
+                            makeResponseRule(responseDNSRules)
+                        }
+                        this.action = terminalAction
+                        this.server = if (terminalAction == SingBoxOptions.ACTION_RESPOND) {
+                            null
+                        } else {
+                            server
+                        }
+                    }
+                    if (!hasResponseRule) {
+                        return terminalRule.takeIf { !it.checkEmpty() }
+                            ?.let { mutableListOf(it.asKxsMap()) }
+                    }
+                    val evaluateRule = DNSRule_Default().applyDnsBase(useFakeQueryScope).apply {
+                        this.action = SingBoxOptions.ACTION_EVALUATE
+                        this.server = TAG_DNS_REMOTE
+                    }
+                    return mutableListOf(
+                        evaluateRule.asKxsMap(),
+                        terminalRule.asKxsMap(),
+                    )
+                }
+
+                var dnsRuleList: MutableList<JSONMap>? = null
                 when (val ruleAction = rule.action) {
                     "", SingBoxOptions.ACTION_ROUTE -> {
                         action = SingBoxOptions.ACTION_ROUTE
 
                         when (val outID = rule.outbound) {
                             RuleEntity.OUTBOUND_DIRECT -> {
-                                if (dnsRuleJson == null) {
-                                    val dnsRule = makeDnsRuleObj().apply {
+                                if (dnsRuleList == null) {
+                                    dnsRuleList = buildDnsRules(
+                                        action = SingBoxOptions.ACTION_ROUTE,
                                         server = if (fakeDNSForAll) {
                                             TAG_DNS_FAKE
                                         } else {
                                             TAG_DNS_DIRECT
-                                        }
-                                    }
-                                    if (!dnsRule.checkEmpty()) {
-                                        dnsRuleJson = dnsRule.asKxsMap()
-                                    }
+                                        },
+                                    )
                                 }
                                 outbound = TAG_DIRECT
                             }
 
                             RuleEntity.OUTBOUND_PROXY -> {
-                                if (dnsRuleJson == null) {
-                                    val dnsRule = makeDnsRuleObj().apply {
-                                        if (useFakeDns) {
-                                            server = TAG_DNS_FAKE
-                                            inbound = mutableListOf(TAG_TUN)
-                                            query_type = FAKE_DNS_QUERY_TYPE.toMutableList()
+                                if (dnsRuleList == null) {
+                                    dnsRuleList = buildDnsRules(
+                                        action = SingBoxOptions.ACTION_ROUTE,
+                                        server = if (useFakeDns) {
+                                            TAG_DNS_FAKE
                                         } else {
-                                            server = TAG_DNS_REMOTE
-                                        }
-                                    }
-                                    if (!dnsRule.checkEmpty()) {
-                                        dnsRuleJson = dnsRule.asKxsMap()
-                                    }
+                                            TAG_DNS_REMOTE
+                                        },
+                                        useFakeQueryScope = useFakeDns,
+                                    )
                                 }
                                 outbound = mainTag
                             }
 
                             RuleEntity.OUTBOUND_BLOCK -> {
-                                if (dnsRuleJson == null) {
-                                    val dnsRule = makeDnsRuleObj().apply {
-                                        action = SingBoxOptions.ACTION_REJECT
-                                    }
-                                    if (!dnsRule.checkEmpty()) {
-                                        dnsRuleJson = dnsRule.asKxsMap()
-                                    }
+                                if (dnsRuleList == null) {
+                                    dnsRuleList = buildDnsRules(
+                                        action = SingBoxOptions.ACTION_REJECT,
+                                    )
                                 }
                                 outbound = TAG_BLOCK
                             }
@@ -905,11 +958,10 @@ fun buildConfig(
                     }
 
                     SingBoxOptions.ACTION_REJECT -> {
-                        val dnsRule = makeDnsRuleObj().apply {
-                            action = SingBoxOptions.ACTION_REJECT
-                        }
-                        if (!dnsRule.checkEmpty()) {
-                            dnsRuleJson = dnsRule.asKxsMap()
+                        if (dnsRuleList == null) {
+                            dnsRuleList = buildDnsRules(
+                                action = SingBoxOptions.ACTION_REJECT,
+                            )
                         }
                         action = ruleAction
                     }
@@ -918,14 +970,14 @@ fun buildConfig(
                 }
 
                 rule.customDnsConfig.blankAsNull()?.toJsonMapKxs()?.let { customDns ->
-                    if (dnsRuleJson == null) {
-                        dnsRuleJson = customDns
+                    if (dnsRuleList == null) {
+                        dnsRuleList = mutableListOf(customDns)
                     } else {
-                        mergeJson(customDns, dnsRuleJson)
+                        mergeJson(customDns, dnsRuleList.last())
                     }
                 }
-                dnsRuleJson?.let {
-                    userDNSRuleList.add(it)
+                dnsRuleList?.let {
+                    userDNSRuleList.addAll(it)
                 }
 
             }

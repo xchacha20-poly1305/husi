@@ -63,7 +63,40 @@ fun DNSRule_Default.makeCommonRule(list: List<RuleItem>) {
     if (domain_keyword?.isEmpty() == true) domain_keyword = null
 }
 
+fun DNSRule_Default.makeResponseRule(list: List<RuleItem>) {
+    ip_cidr = mutableListOf()
+    if (rule_set == null) rule_set = mutableListOf()
+
+    for (rule in list) {
+        when (rule.content) {
+            RuleItem.CONTENT_ANY -> {
+                ip_accept_any = true
+                continue
+            }
+
+            RuleItem.CONTENT_PRIVATE -> {
+                ip_is_private = true
+                continue
+            }
+        }
+
+        when (rule.type) {
+            RuleItem.TYPE_FLAG_RULE_SET -> rule_set!!.add(rule.content)
+            else -> ip_cidr!!.add(rule.content)
+        }
+    }
+
+    rule_set?.removeIf { it.isBlank() }
+    ip_cidr?.removeIf { it.isBlank() }
+    if (rule_set?.isEmpty() == true) rule_set = null
+    if (ip_cidr?.isEmpty() == true) ip_cidr = null
+    if (ip_is_private == false) ip_is_private = null
+    if (ip_accept_any == false) ip_accept_any = null
+}
+
 fun DNSRule_Default.checkEmpty(): Boolean {
+    if (match_response == true) return false
+    if (ip_cidr?.isNotEmpty() == true) return false
     if (ip_is_private == true) return false
     if (ip_accept_any == true) return false
     if (rule_set?.isNotEmpty() == true) return false
@@ -71,6 +104,10 @@ fun DNSRule_Default.checkEmpty(): Boolean {
     if (domain_suffix?.isNotEmpty() == true) return false
     if (domain_regex?.isNotEmpty() == true) return false
     if (domain_keyword?.isNotEmpty() == true) return false
+    if (response_rcode != null) return false
+    if (response_answer?.isNotEmpty() == true) return false
+    if (response_ns?.isNotEmpty() == true) return false
+    if (response_extra?.isNotEmpty() == true) return false
     if (process_name?.isNotEmpty() == true) return false
     if (process_path?.isNotEmpty() == true) return false
     if (process_path_regex?.isNotEmpty() == true) return false
