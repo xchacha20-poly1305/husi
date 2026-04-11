@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -34,8 +33,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import fr.husi.compose.material3.Surface
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -80,6 +77,9 @@ import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Surface
+import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.theme.DEFAULT
 import fr.husi.compose.theme.themeString
@@ -131,6 +131,7 @@ import fr.husi.resources.dns_hosts
 import fr.husi.resources.domain_strategy_for_direct
 import fr.husi.resources.domain_strategy_for_server
 import fr.husi.resources.download
+import fr.husi.resources.emoji_emotions
 import fr.husi.resources.enable
 import fr.husi.resources.enable_ntp
 import fr.husi.resources.fake_dns
@@ -182,6 +183,7 @@ import fr.husi.resources.ntp_server_port
 import fr.husi.resources.ntp_sum
 import fr.husi.resources.ntp_sync_interval
 import fr.husi.resources.ok
+import fr.husi.resources.optimistic_cache
 import fr.husi.resources.person
 import fr.husi.resources.plugin
 import fr.husi.resources.port_local_dns
@@ -1071,6 +1073,31 @@ fun SettingsScreen(
                             },
                             summary = { Text(contentOrUnset(value)) },
                             valueToText = { it },
+                        )
+                    }
+                    item(Key.DNS_OPTIMISTIC_CACHE, PreferenceType.TEXT_FIELD) {
+                        val value by DataStore.configurationStore
+                            .stringFlow(Key.DNS_OPTIMISTIC_CACHE, "")
+                            .collectAsStateWithLifecycle("")
+                        TextFieldPreference(
+                            value = value,
+                            onValueChange = {
+                                DataStore.dnsOptimisticCache = it
+                                needReload()
+                            },
+                            title = { Text(stringResource(Res.string.optimistic_cache)) },
+                            textToValue = { it },
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.emoji_emotions),
+                                    null,
+                                )
+                            },
+                            summary = { Text(contentOrUnset(value)) },
+                            valueToText = { it },
+                            textField = { value, onValueChange, onOk ->
+                                DurationTextField(value, onValueChange, onOk)
+                            },
                         )
                     }
                     item(Key.DOMAIN_STRATEGY_FOR_DIRECT, PreferenceType.LIST) {

@@ -38,6 +38,7 @@ object Key {
     const val FAKE_DNS_RANGE_4 = "fakeDNSRange4"
     const val FAKE_DNS_RANGE_6 = "fakeDNSRange6"
     const val DNS_HOSTS = "dnsHosts"
+    const val DNS_OPTIMISTIC_CACHE = "dnsOptimisticCache"
 
     const val PROXY_APPS = "proxyApps"
     const val UPDATE_PROXY_APPS_WHEN_INSTALL = "updateProxyAppsWhenInstall"

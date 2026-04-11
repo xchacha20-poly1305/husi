@@ -7,6 +7,7 @@ import fr.husi.fmt.SingBoxOptions.MyDNSOptions
 import fr.husi.fmt.SingBoxOptions.MyOptions
 import fr.husi.fmt.SingBoxOptions.MyRouteOptions
 import fr.husi.fmt.SingBoxOptions.NTPOptions
+import fr.husi.fmt.SingBoxOptions.OptimisticDNSOptions
 import fr.husi.ktx.toJsonObjectKxs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable as KxsSerializable
@@ -24,6 +25,7 @@ data class MyDNSOptionsKxs(
     val disable_expire: Boolean? = null,
     val independent_cache: Boolean? = null,
     val cache_capacity: Int? = null,
+    val optimistic: OptimisticDNSOptions? = null,
     val client_subnet: String? = null,
 )
 
@@ -67,6 +69,7 @@ fun MyDNSOptions.toKxs(): MyDNSOptionsKxs = MyDNSOptionsKxs(
     disable_expire = disable_expire,
     independent_cache = independent_cache,
     cache_capacity = cache_capacity,
+    optimistic = optimistic,
     client_subnet = client_subnet,
 )
 

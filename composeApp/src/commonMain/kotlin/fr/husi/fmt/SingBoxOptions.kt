@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +411
+    // Generate on line +414
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -190,6 +190,9 @@ object SingBoxOptions {
 
         @JvmField
         var cache_capacity: Int? = null
+
+        @JvmField
+        var optimistic: OptimisticDNSOptions? = null
 
         @JvmField
         var client_subnet: String? = null

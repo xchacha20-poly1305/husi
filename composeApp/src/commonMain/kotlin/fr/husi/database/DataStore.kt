@@ -131,6 +131,7 @@ object DataStore {
     var fakeDNSRange4 by configurationStore.string(Key.FAKE_DNS_RANGE_4) { "198.51.100.0/24" }
     var fakeDNSRange6 by configurationStore.string(Key.FAKE_DNS_RANGE_6) { "2001:2::/48" }
     var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
+    var dnsOptimisticCache by configurationStore.string(Key.DNS_OPTIMISTIC_CACHE) { "" }
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
     var rulesProvider by configurationStore.int(Key.RULES_PROVIDER)

@@ -27,6 +27,7 @@ import fr.husi.fmt.SingBoxOptions.NTPOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_FakeIPDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_HostsDNSServerOptions
 import fr.husi.fmt.SingBoxOptions.NewDNSServerOptions_LocalDNSServerOptions
+import fr.husi.fmt.SingBoxOptions.OptimisticDNSOptions
 import fr.husi.fmt.SingBoxOptions.Outbound
 import fr.husi.fmt.SingBoxOptions.Outbound_DirectOptions
 import fr.husi.fmt.SingBoxOptions.Outbound_SOCKSOptions
@@ -290,7 +291,14 @@ fun buildConfig(
         dns = MyDNSOptions().apply {
             servers = mutableListOf()
             rules = mutableListOf()
-            independent_cache = true
+            if (!forTest) {
+                DataStore.dnsOptimisticCache.blankAsNull()?.let { it ->
+                    optimistic = OptimisticDNSOptions().apply {
+                        enabled = true
+                        timeout = it
+                    }
+                }
+            }
         }
 
         inbounds = mutableListOf()
