@@ -9,10 +9,6 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkerParameters
 import androidx.work.multiprocess.RemoteWorkManager
 import fr.husi.lib.R
-import fr.husi.database.DataStore
-import fr.husi.database.SagerDatabase
-import fr.husi.group.GroupUpdater
-import fr.husi.ktx.Logs
 import fr.husi.repository.resolveAndroidRepository
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
@@ -24,28 +20,21 @@ actual object SubscriptionUpdater {
     private const val WORK_NAME = "SubscriptionUpdater"
 
     actual suspend fun reconfigureUpdater() {
-        RemoteWorkManager.getInstance(resolveAndroidRepository().context).cancelUniqueWork(WORK_NAME)
+        val repo = resolveAndroidRepository()
+        RemoteWorkManager.getInstance(repo.context).cancelUniqueWork(WORK_NAME)
 
-        val subscriptions = SagerDatabase.groupDao.subscriptions()
-            .filter { it.subscription!!.autoUpdate }
-        if (subscriptions.isEmpty()) return
-
-        // PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS
-        var minDelay =
-            subscriptions.minByOrNull { it.subscription!!.autoUpdateDelay }!!.subscription!!.autoUpdateDelay.toLong()
-        val now = System.currentTimeMillis() / 1000L
-        var minInitDelay =
-            subscriptions.minOf { now - it.subscription!!.lastUpdated - (minDelay * 60) }
-        if (minDelay < 15) minDelay = 15
-        if (minInitDelay > 60) minInitDelay = 60
+        val plan = SubscriptionAutoUpdatePlanner.plan() ?: return
+        val repeatIntervalMinutes = plan.repeatIntervalMinutes.coerceAtLeast(15).toLong()
 
         // main process
-        RemoteWorkManager.getInstance(resolveAndroidRepository().context).enqueueUniquePeriodicWork(
+        RemoteWorkManager.getInstance(repo.context).enqueueUniquePeriodicWork(
             WORK_NAME,
             UPDATE,
-            PeriodicWorkRequest.Builder(UpdateTask::class.java, minDelay, TimeUnit.MINUTES)
+            PeriodicWorkRequest.Builder(UpdateTask::class.java, repeatIntervalMinutes, TimeUnit.MINUTES)
                 .apply {
-                    if (minInitDelay > 0) setInitialDelay(minInitDelay, TimeUnit.SECONDS)
+                    if (plan.initialDelaySeconds > 0) {
+                        setInitialDelay(plan.initialDelaySeconds, TimeUnit.SECONDS)
+                    }
                 }
                 .build(),
         )
@@ -58,31 +47,17 @@ actual object SubscriptionUpdater {
         val nm = NotificationManagerCompat.from(applicationContext)
 
         val notification = runBlocking {
+            val repo = resolveAndroidRepository()
             NotificationCompat.Builder(applicationContext, "service-subscription")
                 .setWhen(0)
-                .setTicker(resolveRepository().getString(Res.string.forward_success))
-                .setContentTitle(resolveRepository().getString(Res.string.subscription_update))
+                .setTicker(repo.getString(Res.string.forward_success))
+                .setContentTitle(repo.getString(Res.string.subscription_update))
                 .setSmallIcon(R.drawable.ic_service_active)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
         }
 
         override suspend fun doWork(): Result {
-            var subscriptions =
-                SagerDatabase.groupDao.subscriptions().filter { it.subscription!!.autoUpdate }
-            if (!DataStore.serviceState.connected) {
-                Logs.d("work: not connected")
-                subscriptions = subscriptions.filter { !it.subscription!!.updateWhenConnectedOnly }
-            }
-
-            if (subscriptions.isNotEmpty()) for (profile in subscriptions) {
-                val subscription = profile.subscription!!
-
-                if (((System.currentTimeMillis() / 1000).toInt() - subscription.lastUpdated) < subscription.autoUpdateDelay * 60) {
-                    Logs.d("work: not updating " + profile.displayName())
-                    continue
-                }
-                Logs.d("work: updating " + profile.displayName())
-
+            SubscriptionAutoUpdateRunner.run { profile ->
                 notification.setContentText(
                     resolveRepository().getString(
                         Res.string.subscription_update_message,
@@ -90,8 +65,6 @@ actual object SubscriptionUpdater {
                     ),
                 )
                 nm.notify(2, notification.build())
-
-                GroupUpdater.executeUpdate(profile, false)
             }
 
             nm.cancel(2)

@@ -25,7 +25,10 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
 import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
+import fr.husi.bg.DesktopTaskRegistry
+import fr.husi.bg.DesktopTaskScheduler
 import fr.husi.bg.ServiceState
+import fr.husi.bg.SubscriptionUpdater
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
@@ -111,14 +114,31 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         help = "Start without opening the main window",
     ).flag()
 
+    val taskId: String? by option(
+        "--task",
+        hidden = true,
+        help = "[Internal] Run a hidden desktop task and exit.",
+    )
+
     val deepLinks: List<String> by argument(
         name = "deep-link",
         help = "Deep links",
     ).multiple()
 
     override fun run() {
+        taskId?.let {
+            exitProcess(runTaskMode(it))
+        }
+
         registerMacOSOpenUriHandler()
         initDesktopRuntime()
+        runCatching {
+            runBlocking {
+                SubscriptionUpdater.reconfigureUpdater()
+            }
+        }.onFailure {
+            Logs.e("reconfigure desktop tasks on startup", it)
+        }
         for (link in deepLinks) {
             DeepLinkDispatcher.emit(link)
         }
@@ -256,14 +276,8 @@ private class DesktopMain : CliktCommand(APP_NAME) {
     }
 
     private fun initDesktopRuntime() {
-        // Fix jar package
-        System.setProperty(PREFERENCE_NODE_PROPERTY_NAME, PREFERENCE_NODE_NAME)
-
-        val baseDir = baseDir ?: File(System.getProperty("user.home"), ".config").resolve("husi")
-        baseDir.mkdirs()
-        val repository = DesktopRepository(baseDir)
-        DesktopAutoStart.initialize()
-        initHusiKoin(repository)
+        fixComposePreferenceNode()
+        val repository = createDesktopRepository()
         val filesDir = repository.filesDir.invariantDirectoryPathString()
 
         if (!many) {
@@ -274,15 +288,62 @@ private class DesktopMain : CliktCommand(APP_NAME) {
 
                 ExistingInstanceCheckResult.ExistsNoDeepLink,
                 ExistingInstanceCheckResult.ExistsForwardFailed,
-                    -> warnForExistInstanceAndExit(filesDir)
+                    -> warnForExistInstanceAndExit(repository, filesDir)
 
                 ExistingInstanceCheckResult.ExistsForwarded -> exitApplication()
             }
         }
 
+        bootstrapDesktopRuntime(repository, startCommandServer = true)
+    }
+
+    /**
+     * @return Exit code
+     */
+    private fun runTaskMode(taskId: String): Int {
+        DesktopTaskRegistry.require(taskId)
+        val repository = createDesktopRepository()
+        val filesDir = repository.filesDir.invariantDirectoryPathString()
+
+        when (checkExistingTaskInstance(filesDir, taskId)) {
+            ExistingTaskDispatchResult.NotFound -> Unit
+            ExistingTaskDispatchResult.Forwarded -> return 0
+            ExistingTaskDispatchResult.ForwardFailed -> return 1
+        }
+
+        bootstrapDesktopRuntime(repository, startCommandServer = false)
+        return try {
+            runBlocking {
+                DesktopTaskRegistry.require(taskId).run()
+            }
+            0
+        } catch (e: Exception) {
+            Logs.e("run desktop task $taskId", e)
+            1
+        }
+    }
+
+    private fun fixComposePreferenceNode() {
+        System.setProperty(PREFERENCE_NODE_PROPERTY_NAME, PREFERENCE_NODE_NAME)
+    }
+
+    private fun createDesktopRepository(): DesktopRepository {
+        val baseDir = baseDir ?: File(System.getProperty("user.home"), ".config").resolve("husi")
+        baseDir.mkdirs()
+        return DesktopRepository(baseDir)
+    }
+
+    private fun bootstrapDesktopRuntime(
+        repository: DesktopRepository,
+        startCommandServer: Boolean,
+    ) {
+        DesktopAutoStart.initialize()
+        DesktopTaskScheduler.initialize()
+        initHusiKoin(repository)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
         val cacheDir = repository.cacheDir.invariantDirectoryPathString()
+        val filesDir = repository.filesDir.invariantDirectoryPathString()
         val externalAssetsDir = repository.externalAssetsDir.invariantDirectoryPathString()
 
         val rulesProvider = DataStore.rulesProvider
@@ -303,7 +364,9 @@ private class DesktopMain : CliktCommand(APP_NAME) {
             DataStore.isExpert,
         )
         loadCA(DataStore.certProvider)
-        repository.boxService?.start()
+        if (startCommandServer) {
+            repository.boxService?.start()
+        }
     }
 }
 
@@ -327,13 +390,17 @@ private enum class ExistingInstanceCheckResult {
     ExistsForwardFailed,
 }
 
+private enum class ExistingTaskDispatchResult {
+    NotFound,
+    Forwarded,
+    ForwardFailed,
+}
+
 private fun checkExistingInstance(
     socketBasePath: String,
     deepLinks: List<String>,
 ): ExistingInstanceCheckResult {
-    val client = runCatching {
-        Libcore.newClient(socketBasePath)
-    }.getOrNull() ?: return ExistingInstanceCheckResult.NotFound
+    val client = connectExistingClient(socketBasePath) ?: return ExistingInstanceCheckResult.NotFound
     return try {
         if (deepLinks.isEmpty()) {
             ExistingInstanceCheckResult.ExistsNoDeepLink
@@ -347,6 +414,22 @@ private fun checkExistingInstance(
     }
 }
 
+private fun connectExistingClient(socketBasePath: String): Client? {
+    val client = runCatching {
+        Libcore.newClient(socketBasePath)
+    }.getOrNull() ?: return null
+    val helloSucceed = runCatching {
+        client.hello()
+    }.onFailure {
+        Logs.w("probe existing desktop instance", it)
+    }.isSuccess
+    if (helloSucceed) return client
+    runCatching {
+        client.close()
+    }
+    return null
+}
+
 private fun forwardDeepLinks(client: Client, deepLinks: List<String>): Boolean {
     return runCatching {
         client.importDeepLinks(deepLinks.toStringIterator(deepLinks.size))
@@ -355,8 +438,31 @@ private fun forwardDeepLinks(client: Client, deepLinks: List<String>): Boolean {
     }.isSuccess
 }
 
-private fun warnForExistInstanceAndExit(socketBasePath: String) {
-    val repository = resolveDesktopRepository()
+private fun checkExistingTaskInstance(
+    socketBasePath: String,
+    taskId: String,
+): ExistingTaskDispatchResult {
+    val client = connectExistingClient(socketBasePath) ?: return ExistingTaskDispatchResult.NotFound
+    return try {
+        if (forwardTask(client, taskId)) {
+            ExistingTaskDispatchResult.Forwarded
+        } else {
+            ExistingTaskDispatchResult.ForwardFailed
+        }
+    } finally {
+        client.close()
+    }
+}
+
+private fun forwardTask(client: Client, taskId: String): Boolean {
+    return runCatching {
+        client.runTask(taskId)
+    }.onFailure {
+        Logs.e(it)
+    }.isSuccess
+}
+
+private fun warnForExistInstanceAndExit(repository: DesktopRepository, socketBasePath: String) {
     val socketPath = socketBasePath + Libcore.Socket
     val title = runBlocking { repository.getString(Res.string.instance_already_running_title) }
     val message = runBlocking {

@@ -199,6 +199,12 @@ func (s *Service) handleRequest(conn net.Conn) error {
 		return E.Cause(err, "read command")
 	}
 	switch command {
+	case commandHello:
+		err := s.handleHello(conn)
+		if err != nil {
+			return E.Cause(err, "handle hello")
+		}
+		return nil
 	case commandQueryConnections:
 		s.access.RLock()
 		instance, err := s.requireInstance()
@@ -359,6 +365,12 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle deep link import")
 		}
 		return nil
+	case commandRunTask:
+		err := s.handleRunTask(conn)
+		if err != nil {
+			return E.Cause(err, "handle task request")
+		}
+		return nil
 	default:
 		return E.New("unknown command: ", command)
 	}
@@ -384,6 +396,14 @@ func (s *Service) requireInstance() (*boxInstance, error) {
 		return nil, E.New("box instance not created")
 	}
 	return s.instance, nil
+}
+
+func (s *Service) handleHello(conn io.ReadWriter) error {
+	err := vario.WriteUint8(conn, resultNoError)
+	if err != nil {
+		return E.Cause(err, "write result")
+	}
+	return nil
 }
 
 func (s *Service) handleQueryStats(conn io.ReadWriter, instance *boxInstance) error {
@@ -414,5 +434,17 @@ func (s *Service) handleImportDeepLink(conn io.ReadWriter) error {
 	for _, deepLink := range deepLinks {
 		s.platformInterface.OnDeepLink(deepLink)
 	}
+	return nil
+}
+
+func (s *Service) handleRunTask(conn io.ReadWriter) error {
+	taskID, err := vario.ReadString(conn)
+	if err != nil {
+		return E.Cause(err, "read task id")
+	}
+	if taskID == "" || s.platformInterface == nil {
+		return nil
+	}
+	s.platformInterface.OnTask(taskID)
 	return nil
 }

@@ -7,9 +7,7 @@ import fr.husi.libcore.LocalDNSTransport
 import fr.husi.libcore.NetworkInterfaceIterator
 import fr.husi.libcore.PlatformInterface
 import fr.husi.libcore.WIFIState
-import fr.husi.repository.DesktopRepository
 import fr.husi.repository.resolveDesktopRepository
-import fr.husi.repository.resolveRepository
 import java.net.InetAddress
 
 class DesktopPlatformInterface : PlatformInterface {
@@ -60,6 +58,10 @@ class DesktopPlatformInterface : PlatformInterface {
 
     override fun onDeepLink(deepLink: String) {
         DeepLinkDispatcher.emit(deepLink)
+    }
+
+    override fun onTask(taskId: String) {
+        DesktopTaskRegistry.dispatch(taskId)
     }
 
     override fun openTun(): Int {

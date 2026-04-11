@@ -151,6 +151,8 @@ class AndroidPlatformInterface : PlatformInterface {
         DeepLinkDispatcher.emit(deepLink)
     }
 
+    override fun onTask(taskId: String) = Unit
+
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,
         private val size: Int,

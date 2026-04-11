@@ -37,6 +37,21 @@ func (c *Client) Close() error {
 	return common.Close(c.conn)
 }
 
+func (c *Client) Hello() error {
+	err := vario.WriteUint8(c.conn, commandHello)
+	if err != nil {
+		return E.Cause(err, "write command")
+	}
+	result, err := vario.ReadUint8(c.conn)
+	if err != nil {
+		return E.Cause(err, "read result")
+	}
+	if result != resultNoError {
+		return E.New("hello failed")
+	}
+	return nil
+}
+
 func (c *Client) ImportDeepLinks(deepLinks StringIterator) error {
 	err := vario.WriteUint8(c.conn, commandImportDeepLink)
 	if err != nil {
@@ -45,6 +60,18 @@ func (c *Client) ImportDeepLinks(deepLinks StringIterator) error {
 	err = vario.WriteStringSlice(c.conn, iteratorToArray(deepLinks))
 	if err != nil {
 		return E.Cause(err, "write deep link")
+	}
+	return nil
+}
+
+func (c *Client) RunTask(taskID string) error {
+	err := vario.WriteUint8(c.conn, commandRunTask)
+	if err != nil {
+		return E.Cause(err, "write command")
+	}
+	err = vario.WriteString(c.conn, taskID)
+	if err != nil {
+		return E.Cause(err, "write task id")
 	}
 	return nil
 }

@@ -7,7 +7,8 @@ import (
 const Socket = "api.sock"
 
 const (
-	commandQueryConnections uint8 = iota
+	commandHello uint8 = iota
+	commandQueryConnections
 	commandSubscribeConnections
 	commandCloseConnection
 	commandQueryMemory
@@ -24,6 +25,7 @@ const (
 	commandClearLog
 	commandSubscribeLogs
 	commandImportDeepLink
+	commandRunTask
 )
 
 const (

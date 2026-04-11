@@ -17,6 +17,7 @@ type PlatformInterface interface {
 	AnchorSSID() string
 	OnGroupSelectedChange(group, old, now string)
 	OnDeepLink(deepLink string)
+	OnTask(taskID string)
 }
 
 type StringFunc interface {
