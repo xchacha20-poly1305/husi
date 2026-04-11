@@ -438,7 +438,6 @@
     <string name="copy_failed">Copy failed.</string>
     <string name="app_no_launcher">The app has no interface.</string>
     <string name="route_for">Rule for %1$s</string>
-    <string name="route_need_vpn">Routing rule %1$s relies on the VPN to be in effect, so it is ignored.</string>
     <string name="profile_traffic_statistics">Profile Traffic Statistics</string>
     <string name="profile_traffic_statistics_summary">When disabled, the used traffic will not be counted</string>
     <string name="no_statistics">No statistics yet</string>
@@ -667,6 +666,7 @@
     <string name="selected">Selected</string>
     <string name="update_proxy_apps_when_install">Update Proxy Apps when Install</string>
     <string name="filter_regex">Filter (Regex)</string>
+    <string name="package_name_regex">Package Name Regex</string>
     <string name="tasker_settings">Tasker Settings</string>
     <string name="tasker_action">Tasker Action</string>
     <string name="tasker_action_start_service">Start service</string>

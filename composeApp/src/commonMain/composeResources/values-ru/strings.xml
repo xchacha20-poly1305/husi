@@ -333,7 +333,6 @@
     <string name="hysteria_auth_type">Тип аутентификации</string>
     <string name="hysteria_obfs">Обфускация пароля</string>
     <string name="experimental_settings">Экспериментальные</string>
-    <string name="route_need_vpn">Правило маршрутизации `%1$s` зависит от VPN, поэтому игнорируется.</string>
     <string name="route_for">Правило для %1$s</string>
     <string name="app_no_launcher">У приложения нет интерфейса.</string>
     <string name="copy_failed">Не удалось скопировать.</string>

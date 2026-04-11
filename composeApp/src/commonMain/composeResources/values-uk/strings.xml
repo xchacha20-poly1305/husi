@@ -389,7 +389,6 @@
     <string name="shadowsocks_plugin_v2ray">V2Ray (плагін Shadowsocks для Android)</string>
     <string name="create_rule">Створити правило</string>
     <string name="copy_success">Копіювання успішне!</string>
-    <string name="route_need_vpn">Правило маршрутизації %1$s залежить від VPN, тому ігнорується.</string>
     <string name="profile_traffic_statistics">Статистика трафіку профілю</string>
     <string name="profile_traffic_statistics_summary">Коли вимкнено, використаний трафік не буде відображатися</string>
     <string name="no_statistics">Статистика поки що відсутня</string>

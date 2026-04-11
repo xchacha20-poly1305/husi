@@ -367,7 +367,6 @@
     <string name="copy_failed">کپی ناموفق بود.</string>
     <string name="app_no_launcher">برنامه هیچ رابطی ندارد.</string>
     <string name="route_for">قانون برای %1$s</string>
-    <string name="route_need_vpn">قانون مسیریابی %1$s برای کارایی VPN متکی است، بنابراین نادیده گرفته می شود.</string>
     <string name="profile_traffic_statistics">آمار ترافیک پروفایل</string>
     <string name="profile_traffic_statistics_summary">در صورت غیرفعال شدن، ترافیک استفاده شده محاسبه نخواهد شد</string>
     <string name="no_statistics">هنوز آماری وجود ندارد</string>

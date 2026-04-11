@@ -351,7 +351,6 @@
     <string name="ssh_public_key">公開金鑰</string>
     <string name="ssh_auth_type_none">無</string>
     <string name="no_statistics">暫無統計資料</string>
-    <string name="route_need_vpn">路由規則`%1$s` 需要 VPN 模式以生效，因此被忽略。</string>
     <string name="route_for">%1$s 的規則</string>
     <string name="app_no_launcher">此應用程式沒有介面。</string>
     <string name="copy_failed">複製失敗。</string>

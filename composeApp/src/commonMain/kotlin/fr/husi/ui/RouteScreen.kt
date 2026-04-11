@@ -550,6 +550,7 @@ private fun RuleEntity.summary(): String {
             "${stringResource(Res.string.process)}: ${packages.joinToString(", ")}"
         } + "\n"
     }
+    if (packageNameRegex.isNotBlank()) summary += "packageNameRegex: $packageNameRegex\n"
     if (ssid.isNotBlank()) summary += "ssid: $ssid\n"
     if (bssid.isNotBlank()) summary += "bssid: $bssid\n"
     if (clashMode.isNotBlank()) summary += "clashMode: $clashMode\n"

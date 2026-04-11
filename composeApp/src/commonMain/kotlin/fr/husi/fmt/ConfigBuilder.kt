@@ -84,8 +84,6 @@ import fr.husi.ktx.toJsonMapKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 import fr.husi.repository.resolveRepository
-import fr.husi.resources.*
-import fr.husi.utils.PackageResolver
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -701,33 +699,15 @@ fun buildConfig(
                 rule.packages,
                 defaultToPackage = PlatformInfo.isAndroid,
             )
-            if (packageNames.isNotEmpty()) {
-                PackageResolver.awaitLoadSync()
-            }
-            val uidList = packageNames.mapNotNullTo(LinkedHashSet()) {
-                if (!isVPN) {
-                    val text = runBlocking {
-                        repository.getString(Res.string.route_need_vpn, rule.displayName())
-                    }
-                    showToast(text)
-                }
-                PackageResolver.findUidForPackage(it)?.takeIf { uid -> uid >= 1000 }
-            }.toList()
-
-            if (packageNames.isNotEmpty() &&
-                uidList.isEmpty() &&
-                processRules.isEmpty()
-            ) {
-                // all packages in the rule are not installed
-                // the rule would be never hit, skipping
-                continue
-            }
 
             val ruleObj = Rule_Default().apply {
                 action = SingBoxOptions.ACTION_ROUTE
-                if (uidList.isNotEmpty()) {
-                    PackageResolver.awaitLoadSync()
-                    user_id = uidList.toMutableList()
+                if (packageNames.isNotEmpty()) {
+                    package_name = packageNames.toMutableList()
+                }
+                rule.packageNameRegex.blankAsNull()?.let {
+                    // Do not use listByLineOrComma for regex
+                    package_name_regex = it.split("\n").toMutableList()
                 }
                 if (processRules.isNotEmpty()) {
                     makeProcessRule(processRules)
@@ -819,7 +799,10 @@ fun buildConfig(
                 fun DNSRule_Default.applyDnsBase(
                     useFakeQueryScope: Boolean = false,
                 ): DNSRule_Default {
-                    if (uidList.isNotEmpty()) user_id = uidList.toMutableList()
+                    if (packageNames.isNotEmpty()) package_name = packageNames.toMutableList()
+                    rule.packageNameRegex.blankAsNull()?.let {
+                        package_name_regex = mutableListOf(it)
+                    }
                     if (processRules.isNotEmpty()) {
                         makeProcessRule(processRules)
                     }

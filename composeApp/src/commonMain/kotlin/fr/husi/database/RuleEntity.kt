@@ -31,6 +31,7 @@ data class RuleEntity(
     var protocol: Set<String> = emptySet(),
     @ColumnInfo(defaultValue = "") var clientType: String = "",
     var packages: Set<String> = emptySet(), // Also process in desktop
+    @ColumnInfo(defaultValue = "") var packageNameRegex: String = "",
     var ssid: String = "",
     var bssid: String = "",
     @ColumnInfo(defaultValue = "") var clashMode: String = "",
@@ -87,9 +88,6 @@ data class RuleEntity(
     @androidx.room.Dao
     interface Dao {
 
-        @Query("SELECT * from rules WHERE (packages != '') AND enabled = 1")
-        suspend fun checkVpnNeeded(): List<RuleEntity>
-
         /**
          * Get all rules as a Flow.
          *
@@ -136,4 +134,3 @@ data class RuleEntity(
 
 
 }
-

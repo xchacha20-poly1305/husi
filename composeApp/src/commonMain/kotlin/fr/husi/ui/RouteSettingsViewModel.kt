@@ -56,6 +56,7 @@ data class RouteSettingsUiState(
 
     val outbound: Long = RuleEntity.OUTBOUND_PROXY,
     val packages: Set<String> = emptySet(),
+    val packageNameRegex: String = "",
 
     val dnsOnly: Boolean = false,
     val customConfig: String = "",
@@ -77,6 +78,7 @@ data class RouteSettingsUiState(
             !networkIsExpensive &&
             networkInterfaceAddress.isEmpty() &&
             packages.isEmpty() &&
+            packageNameRegex.isBlank() &&
             customConfig.isBlank() &&
             customDnsConfig.isBlank()
 
@@ -157,6 +159,7 @@ internal class RouteSettingsViewModel(
 
                 outbound = entity.outbound,
                 packages = entity.packages,
+                packageNameRegex = entity.packageNameRegex,
 
                 overrideAddress = entity.overrideAddress,
                 overridePort = entity.overridePort,
@@ -202,6 +205,7 @@ internal class RouteSettingsViewModel(
 
         outbound = state.outbound
         packages = state.packages
+        packageNameRegex = state.packageNameRegex
 
         overrideAddress = state.overrideAddress
         overridePort = state.overridePort
@@ -365,6 +369,10 @@ internal class RouteSettingsViewModel(
 
     fun setPackages(packages: Set<String>) = viewModelScope.launch {
         _uiState.update { it.copy(packages = packages) }
+    }
+
+    fun setPackageNameRegex(packageNameRegex: String) = viewModelScope.launch {
+        _uiState.update { it.copy(packageNameRegex = packageNameRegex) }
     }
 
     fun setCustomConfig(config: String) = viewModelScope.launch {

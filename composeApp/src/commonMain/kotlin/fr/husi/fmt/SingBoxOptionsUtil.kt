@@ -112,6 +112,7 @@ fun DNSRule_Default.checkEmpty(): Boolean {
     if (process_path?.isNotEmpty() == true) return false
     if (process_path_regex?.isNotEmpty() == true) return false
     if (package_name?.isNotEmpty() == true) return false
+    if (package_name_regex?.isNotEmpty() == true) return false
     if (user?.isNotEmpty() == true) return false
     if (user_id?.isNotEmpty() == true) return false
     if (wifi_ssid?.isNotEmpty() == true) return false
@@ -183,6 +184,7 @@ fun Rule_Default.checkEmpty(): Boolean {
     if (process_path?.isNotEmpty() == true) return false
     if (process_path_regex?.isNotEmpty() == true) return false
     if (package_name?.isNotEmpty() == true) return false
+    if (package_name_regex?.isNotEmpty() == true) return false
     if (user?.isNotEmpty() == true) return false
     if (user_id?.isNotEmpty() == true) return false
 

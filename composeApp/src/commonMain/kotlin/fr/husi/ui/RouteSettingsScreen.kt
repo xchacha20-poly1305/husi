@@ -110,6 +110,7 @@ import fr.husi.resources.ok
 import fr.husi.resources.outbound
 import fr.husi.resources.override_address
 import fr.husi.resources.override_port
+import fr.husi.resources.package_name_regex
 import fr.husi.resources.pin_drop
 import fr.husi.resources.public_icon
 import fr.husi.resources.push_pin
@@ -441,6 +442,19 @@ private fun RouteSettings(
                 )
             }
             appSelectPreference(uiState.packages, onSelectApps)
+            if (PlatformInfo.isAndroid) {
+                item("package_name_regex") {
+                    TextFieldPreference(
+                        value = uiState.packageNameRegex,
+                        onValueChange = { viewModel.setPackageNameRegex(it) },
+                        title = { Text(stringResource(Res.string.package_name_regex)) },
+                        textToValue = { it },
+                        icon = { Icon(vectorResource(Res.drawable.fiber_smart_record), null) },
+                        summary = { Text(contentOrUnset(uiState.packageNameRegex)) },
+                        valueToText = { it },
+                    )
+                }
+            }
             item("network_type") {
                 MultiSelectListPreference(
                     value = uiState.networkType,

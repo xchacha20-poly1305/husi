@@ -328,7 +328,6 @@
     </plurals>
     <string name="add_profile_methods_manual_settings">الإعدادات اليدوية</string>
     <string name="experimental_settings">تجريبي</string>
-    <string name="route_need_vpn">تعتمد قاعدة التوجيه %1$s على أن تكون VPN سارية المفعول، لذلك يتم تجاهلها.</string>
     <string name="route_for">حكم ل %1$s</string>
     <string name="app_no_launcher">التطبيق ليس له واجهة.</string>
     <string name="copy_failed">فشل النسخ.</string>
