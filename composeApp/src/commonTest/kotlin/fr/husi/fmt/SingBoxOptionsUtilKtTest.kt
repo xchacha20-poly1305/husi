@@ -399,7 +399,7 @@ class SingBoxOptionsUtilKtTest {
     }
 
     @Test
-    fun `buildRuleSets should normalize local windows paths to forward slashes`() {
+    fun `buildRuleSets should append file name to local path as provided`() {
         options.route = null
         options.dns = MyDNSOptions().apply {
             rules = mutableListOf(
@@ -415,6 +415,6 @@ class SingBoxOptionsUtilKtTest {
 
         val ruleSet = options.requireRuleSets().requireLocal("geosite-facebook")
         assertEquals(RULE_SET_FORMAT_BINARY, ruleSet.format)
-        assertEquals("C:/Users/demo/.config/husi/external/geo/geosite-facebook.srs", ruleSet.path)
+        assertEquals("""C:\Users\demo\.config\husi\external\geo/geosite-facebook.srs""", ruleSet.path)
     }
 }

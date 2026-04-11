@@ -53,7 +53,7 @@ fun String.b64Decode(): ByteArray {
             errors += e.readableMessage
         }
     }
-    throw IllegalStateException(errors.joinToString(separator = ", ", prefix = "decode base64"))
+    throw IllegalStateException(errors.joinToString(separator = ", ", prefix = "decode base64: "))
 }
 
 fun String.b64DecodeToString(): String {
