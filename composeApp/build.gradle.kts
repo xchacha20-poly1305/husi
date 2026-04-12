@@ -206,10 +206,11 @@ val generateDesktopPlatformInfo by tasks.registering {
             outputDir = outputDir.get().asFile,
             packageName = platformInfoPackage,
             fileName = "PlatformInfo.desktop.kt",
-            isAndroid = false,
-            isLinux = desktopTarget.platform == DesktopPlatform.Linux,
-            isMacOs = desktopTarget.platform == DesktopPlatform.Darwin,
-            isWindows = desktopTarget.platform == DesktopPlatform.Windows,
+            platform = when (desktopTarget.platform) {
+                DesktopPlatform.Linux -> "Linux"
+                DesktopPlatform.Darwin -> "MacOs"
+                DesktopPlatform.Windows -> "Windows"
+            },
         )
     }
 }

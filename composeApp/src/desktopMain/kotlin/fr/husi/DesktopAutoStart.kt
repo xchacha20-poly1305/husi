@@ -2,6 +2,7 @@ package fr.husi
 
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import java.io.File
 
@@ -40,20 +41,20 @@ private class DesktopAutoStartManager(
     }
 
     private fun enable() {
-        when {
-            PlatformInfo.isLinux -> writeLinuxDesktopEntry()
-            PlatformInfo.isMacOs -> writeMacLaunchAgent()
-            PlatformInfo.isWindows -> writeWindowsRunKey()
-            else -> error("Unsupported desktop platform")
+        when (PlatformInfo.platform) {
+            Platform.Android -> error("Unsupported desktop platform")
+            Platform.Linux -> writeLinuxDesktopEntry()
+            Platform.MacOs -> writeMacLaunchAgent()
+            Platform.Windows -> writeWindowsRunKey()
         }
     }
 
     private fun disable() {
-        when {
-            PlatformInfo.isLinux -> deleteFileIfPresent(linuxDesktopEntryFile())
-            PlatformInfo.isMacOs -> deleteFileIfPresent(macLaunchAgentFile())
-            PlatformInfo.isWindows -> deleteWindowsRunKey()
-            else -> error("Unsupported desktop platform")
+        when (PlatformInfo.platform) {
+            Platform.Android -> error("Unsupported desktop platform")
+            Platform.Linux -> deleteFileIfPresent(linuxDesktopEntryFile())
+            Platform.MacOs -> deleteFileIfPresent(macLaunchAgentFile())
+            Platform.Windows -> deleteWindowsRunKey()
         }
     }
 

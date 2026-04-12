@@ -1,5 +1,6 @@
 package fr.husi
 
+import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import java.io.File
 
@@ -128,20 +129,19 @@ private fun resolvePackagedDesktopLauncher(): File? {
         ?.takeIf { runtimePath.isFile && it.name == "app" }
         ?: return null
     val appRoot = appDir.parentFile ?: return null
-    return when {
-        PlatformInfo.isLinux -> resolveSingleDesktopLauncher(File(appRoot, "bin")) {
+    return when (PlatformInfo.platform) {
+        Platform.Android -> null
+        Platform.Linux -> resolveSingleDesktopLauncher(File(appRoot, "bin")) {
             it.canExecute()
         }
 
-        PlatformInfo.isMacOs -> resolveSingleDesktopLauncher(File(appRoot, "MacOS")) {
+        Platform.MacOs -> resolveSingleDesktopLauncher(File(appRoot, "MacOS")) {
             it.canExecute()
         }
 
-        PlatformInfo.isWindows -> resolveSingleDesktopLauncher(appRoot) {
+        Platform.Windows -> resolveSingleDesktopLauncher(appRoot) {
             it.extension.equals("exe", ignoreCase = true)
         }
-
-        else -> null
     }
 }
 

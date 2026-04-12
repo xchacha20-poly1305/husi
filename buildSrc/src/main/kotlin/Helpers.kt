@@ -374,10 +374,7 @@ fun Project.writePlatformInfo(
     outputDir: File,
     packageName: String,
     fileName: String,
-    isAndroid: Boolean,
-    isLinux: Boolean,
-    isMacOs: Boolean,
-    isWindows: Boolean,
+    platform: String,
 ) {
     val dir = outputDir.resolve(packageName.replace('.', '/'))
     dir.mkdirs()
@@ -386,10 +383,15 @@ fun Project.writePlatformInfo(
         |package $packageName
         |
         |actual object PlatformInfo {
-        |    actual const val isAndroid: Boolean = $isAndroid
-        |    actual const val isLinux: Boolean = $isLinux
-        |    actual const val isMacOs: Boolean = $isMacOs
-        |    actual const val isWindows: Boolean = $isWindows
+        |    actual val platform: Platform = Platform.$platform
+        |    actual val isAndroid: Boolean
+        |        get() = platform == Platform.Android
+        |    actual val isLinux: Boolean
+        |        get() = platform == Platform.Linux
+        |    actual val isMacOs: Boolean
+        |        get() = platform == Platform.MacOs
+        |    actual val isWindows: Boolean
+        |        get() = platform == Platform.Windows
         |}
         """.trimMargin(),
     )

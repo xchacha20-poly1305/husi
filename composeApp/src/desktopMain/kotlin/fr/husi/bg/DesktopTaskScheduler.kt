@@ -3,6 +3,7 @@ package fr.husi.bg
 import fr.husi.buildLauncherCommand
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import fr.husi.quoteSystemdArgument
 import fr.husi.quoteWindowsArgument
@@ -60,20 +61,20 @@ private class DesktopTaskSchedulerManager {
         }
 
         val launcherCommand = buildLauncherCommand(*task.launcherArguments.toTypedArray())
-        when {
-            PlatformInfo.isLinux -> installLinuxTask(task.id, launcherCommand, schedule)
-            PlatformInfo.isMacOs -> installMacTask(task.id, launcherCommand, schedule)
-            PlatformInfo.isWindows -> installWindowsTask(task.id, launcherCommand, schedule)
-            else -> error("Unsupported desktop platform")
+        when (PlatformInfo.platform) {
+            Platform.Android -> error("Unsupported desktop platform")
+            Platform.Linux -> installLinuxTask(task.id, launcherCommand, schedule)
+            Platform.MacOs -> installMacTask(task.id, launcherCommand, schedule)
+            Platform.Windows -> installWindowsTask(task.id, launcherCommand, schedule)
         }
     }
 
     private fun removeTask(taskId: String) {
-        when {
-            PlatformInfo.isLinux -> removeLinuxTask(taskId)
-            PlatformInfo.isMacOs -> removeMacTask(taskId)
-            PlatformInfo.isWindows -> removeWindowsTask(taskId)
-            else -> error("Unsupported desktop platform")
+        when (PlatformInfo.platform) {
+            Platform.Android -> error("Unsupported desktop platform")
+            Platform.Linux -> removeLinuxTask(taskId)
+            Platform.MacOs -> removeMacTask(taskId)
+            Platform.Windows -> removeWindowsTask(taskId)
         }
     }
 

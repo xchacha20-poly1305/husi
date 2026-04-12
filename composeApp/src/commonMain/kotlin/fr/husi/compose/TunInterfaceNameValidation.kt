@@ -1,5 +1,6 @@
 package fr.husi.compose
 
+import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 
 internal fun validateMacOsTunInterfaceName(value: String): String? {
@@ -34,10 +35,10 @@ internal fun validateWindowsTunInterfaceName(value: String): String? {
 }
 
 internal fun validateTunInterfaceName(value: String): String? {
-    return when {
-        PlatformInfo.isMacOs -> validateMacOsTunInterfaceName(value)
-        PlatformInfo.isLinux -> validateLinuxTunInterfaceName(value)
-        PlatformInfo.isWindows -> validateWindowsTunInterfaceName(value)
-        else -> error("unreachable")
+    return when (PlatformInfo.platform) {
+        Platform.Android -> error("unreachable")
+        Platform.Linux -> validateLinuxTunInterfaceName(value)
+        Platform.MacOs -> validateMacOsTunInterfaceName(value)
+        Platform.Windows -> validateWindowsTunInterfaceName(value)
     }
 }
