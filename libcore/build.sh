@@ -134,7 +134,7 @@ apply_darwin_toolchain_env() {
     esac
 
     if [ "$host_platform" != "darwin" ]; then
-        local framework_root
+        local framework_root sdk_include_root
         if ! command -v zig >/dev/null 2>&1; then
             echo "Missing zig compiler in PATH for Darwin desktop target $desktop_target"
             exit 1
@@ -149,14 +149,19 @@ apply_darwin_toolchain_env() {
             exit 1
         fi
         framework_root="$DARWIN_SDKROOT/System/Library/Frameworks"
+        sdk_include_root="$DARWIN_SDKROOT/usr/include"
         if [ ! -d "$framework_root" ]; then
             echo "Missing Darwin frameworks under $framework_root"
+            exit 1
+        fi
+        if [ ! -d "$sdk_include_root" ]; then
+            echo "Missing Darwin SDK headers under $sdk_include_root"
             exit 1
         fi
         export SDKROOT="$DARWIN_SDKROOT"
         export CC="zig cc -target $zig_target"
         export CXX="zig c++ -target $zig_target"
-        export CGO_CFLAGS="-isysroot $SDKROOT"
+        export CGO_CFLAGS="-isysroot $SDKROOT -isystem $sdk_include_root"
         export CGO_CXXFLAGS="$CGO_CFLAGS"
         export CGO_LDFLAGS="-isysroot $SDKROOT -L$SDKROOT/usr/lib -F$framework_root"
         if [ -n "$EXTERNAL_MACOSX_DEPLOYMENT_TARGET" ]; then
