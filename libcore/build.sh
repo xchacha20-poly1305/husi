@@ -82,6 +82,23 @@ read_gn_string_var() {
     sed -n "s/^[[:space:]]*$key = \"\\([^\"]*\\)\".*/\\1/p" "$file" | head -n1
 }
 
+resolve_cronet_go_root() {
+    if [ -n "$CRONET_GO_ROOT" ]; then
+        echo "$CRONET_GO_ROOT"
+        return
+    fi
+
+    local repo_default="../../cronet-go"
+    local home_default="$HOME/cronet-go"
+
+    if [ -d "$repo_default" ]; then
+        echo "$repo_default"
+        return
+    fi
+
+    echo "$home_default"
+}
+
 apply_darwin_toolchain_env() {
     local desktop_target="$1"
     local host_platform
@@ -151,10 +168,10 @@ apply_darwin_toolchain_env() {
         return
     fi
 
-    cronet_go_root="${CRONET_GO_ROOT:-$HOME/cronet-go}"
+    cronet_go_root="$(resolve_cronet_go_root)"
     if [ ! -d "$cronet_go_root" ]; then
         echo "Missing cronet-go root: $cronet_go_root"
-        echo "Set CRONET_GO_ROOT to a cronet-go checkout for desktop target $desktop_target."
+        echo "Set CRONET_GO_ROOT or place cronet-go at ../../cronet-go or ~/cronet-go for desktop target $desktop_target."
         exit 1
     fi
 
@@ -249,10 +266,11 @@ apply_naive_toolchain_env() {
         apply_darwin_toolchain_env "$desktop_target"
         return
     fi
-    local cronet_go_root="${CRONET_GO_ROOT:-$HOME/cronet-go}"
+    local cronet_go_root
+    cronet_go_root="$(resolve_cronet_go_root)"
     if [ ! -d "$cronet_go_root" ]; then
         echo "Missing cronet-go root: $cronet_go_root"
-        echo "Set CRONET_GO_ROOT to a cronet-go checkout for desktop target $desktop_target."
+        echo "Set CRONET_GO_ROOT or place cronet-go at ../../cronet-go or ~/cronet-go for desktop target $desktop_target."
         exit 1
     fi
     local exported_env

@@ -112,8 +112,8 @@ Common desktop targets:
 * `darwin/arm64`
 
 For Linux desktop targets, the build includes `with_naive_outbound` and consults a
-[`cronet-go`](https://github.com/sagernet/cronet-go) checkout via `build-naive env`. By default it is expected at
-`$HOME/cronet-go`; override with `CRONET_GO_ROOT`:
+[`cronet-go`](https://github.com/sagernet/cronet-go) checkout via `build-naive env`. If `CRONET_GO_ROOT` is unset,
+`libcore/build.sh` first checks `../../cronet-go`, then falls back to `$HOME/cronet-go`:
 
 ```shell
 CRONET_GO_ROOT=/path/to/cronet-go make libcore
