@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 18,
-    "identityHash": "27b22922b3ea2299bc2043aa75ca11d3",
+    "identityHash": "c403da24b08131e1d5ada0f543d61648",
     "entities": [
       {
         "tableName": "proxy_groups",
@@ -500,7 +500,7 @@
       },
       {
         "tableName": "assets",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `name` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `name` TEXT NOT NULL, `version` TEXT NOT NULL DEFAULT '', `autoUpdateDelay` INTEGER NOT NULL DEFAULT 0, `lastUpdated` INTEGER NOT NULL DEFAULT 0)",
         "fields": [
           {
             "fieldPath": "id",
@@ -519,6 +519,27 @@
             "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "version",
+            "columnName": "version",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "autoUpdateDelay",
+            "columnName": "autoUpdateDelay",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -555,7 +576,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '27b22922b3ea2299bc2043aa75ca11d3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c403da24b08131e1d5ada0f543d61648')"
     ]
   }
 }

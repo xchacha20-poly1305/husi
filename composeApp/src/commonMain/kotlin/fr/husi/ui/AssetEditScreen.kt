@@ -36,6 +36,7 @@ import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.contentOrUnset
 import fr.husi.repository.resolveRepository
@@ -54,6 +55,8 @@ import fr.husi.resources.no
 import fr.husi.resources.ok
 import fr.husi.resources.question_mark
 import fr.husi.resources.route_asset_name
+import fr.husi.resources.route_asset_auto_update_delay
+import fr.husi.resources.timer
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.url
 import fr.husi.resources.warning
@@ -316,6 +319,20 @@ private fun LazyListScope.assetEditSettings(
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
                 LinkOrContentTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("auto_update_delay", PreferenceType.TEXT_FIELD) {
+        TextFieldPreference(
+            value = uiState.autoUpdateDelay,
+            onValueChange = { viewModel.setAutoUpdateDelay(it) },
+            title = { Text(stringResource(Res.string.route_asset_auto_update_delay)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.timer), null) },
+            summary = { Text(uiState.autoUpdateDelay.toString()) },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
             },
         )
     }

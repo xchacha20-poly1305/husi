@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.bg.RouteAssetUpdater
 import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.blankAsNull
@@ -24,6 +25,7 @@ import org.jetbrains.compose.resources.StringResource
 internal data class AssetEditUiState(
     val name: String = "",
     val link: String = "",
+    val autoUpdateDelay: Int = 0,
 )
 
 @Stable
@@ -66,6 +68,7 @@ internal class AssetEditViewModel(
             state.copy(
                 name = asset.name,
                 link = asset.url,
+                autoUpdateDelay = asset.autoUpdateDelay,
             ).also {
                 initialState.value = it
             }
@@ -84,11 +87,13 @@ internal class AssetEditViewModel(
             entity.loadFromUiState(_uiState.value)
             SagerDatabase.assetDao.update(entity)
         }
+        RouteAssetUpdater.reconfigureUpdater()
     }
 
     private fun AssetEntity.loadFromUiState(state: AssetEditUiState) {
         name = state.name
         url = state.link
+        autoUpdateDelay = state.autoUpdateDelay
     }
 
     fun setName(name: String) = viewModelScope.launch {
@@ -108,7 +113,13 @@ internal class AssetEditViewModel(
         shouldUpdateFromInternet = true
     }
 
-        fun validate(text: String): StringResource? {
+    fun setAutoUpdateDelay(autoUpdateDelay: Int) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(autoUpdateDelay = autoUpdateDelay)
+        }
+    }
+
+    fun validate(text: String): StringResource? {
         if (text.length > 255 || text.contains('/')) {
             return Res.string.invalid_filename
         }

@@ -5,19 +5,25 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.husi.RuleProvider
+import fr.husi.bg.NoUpdateException
+import fr.husi.bg.RouteAssetUpdater
+import fr.husi.bg.currentEpochSeconds
+import fr.husi.bg.routeAssetVersionFile
+import fr.husi.bg.updateManagedRouteAssets
+import fr.husi.bg.updateSingleRouteAsset
 import fr.husi.database.AssetEntity
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.Logs
-import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.libcore.CopyCallback
-import fr.husi.libcore.HTTPRequest
 import fr.husi.libcore.Libcore
+import fr.husi.resources.Res
+import fr.husi.resources.route_asset_no_update
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,24 +37,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import fr.husi.ktx.kxs
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import java.io.File
-import fr.husi.resources.*
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.FormatStringsInDatetimeFormats
-import kotlinx.datetime.format.byUnicodePattern
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
-
-internal typealias UpdateProgress = (Float) -> Unit
-
-@OptIn(FormatStringsInDatetimeFormats::class)
-private val assetVersionFormat = LocalDateTime.Format {
-    byUnicodePattern("yyyyMMddHHmmssSSS")
-}
 
 @Immutable
 internal data class AssetsUiState(
@@ -62,93 +50,13 @@ internal data class AssetItem(
     val file: File,
     val version: String,
     val builtIn: Boolean,
+    val autoUpdateDelay: Int = 0,
     val progress: Float? = null,
 )
 
 @Immutable
 internal sealed interface AssetsScreenUiEvent {
     class Snackbar(val message: StringOrRes) : AssetsScreenUiEvent
-}
-
-@Serializable
-private data class GithubRelease(
-    @SerialName("tag_name")
-    val tagName: String = "",
-)
-
-internal data class GithubRepository(
-    val author: String,
-    val name: String,
-    val branch: String = "rule-set",
-    val unstableBranch: String? = null,
-) {
-    val fullName: String
-        get() = "$author/$name"
-
-    fun resolveBranch(useUnstableBranch: Boolean): String {
-        return if (useUnstableBranch && unstableBranch != null) {
-            unstableBranch
-        } else {
-            branch
-        }
-    }
-}
-
-internal data class GithubAssetSource(
-    val repository: GithubRepository,
-    val versionFile: File,
-)
-
-internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): List<GithubAssetSource> {
-    return when (provider) {
-        RuleProvider.OFFICIAL -> listOf(
-            GithubAssetSource(
-                repository = GithubRepository(
-                    author = "SagerNet",
-                    name = "sing-geoip",
-                ),
-                versionFile = versionFiles[0],
-            ),
-            GithubAssetSource(
-                repository = GithubRepository(
-                    author = "SagerNet",
-                    name = "sing-geosite",
-                    unstableBranch = "rule-set-unstable",
-                ),
-                versionFile = versionFiles[1],
-            ),
-        )
-
-        RuleProvider.LOYALSOLDIER -> listOf(
-            GithubAssetSource(
-                repository = GithubRepository(
-                    author = "1715173329",
-                    name = "sing-geoip",
-                ),
-                versionFile = versionFiles[0],
-            ),
-            GithubAssetSource(
-                repository = GithubRepository(
-                    author = "1715173329",
-                    name = "sing-geosite",
-                    unstableBranch = "rule-set-unstable",
-                ),
-                versionFile = versionFiles[1],
-            ),
-        )
-
-        RuleProvider.CHOCOLATE4U -> listOf(
-            GithubAssetSource(
-                repository = GithubRepository(
-                    author = "Chocolate4U",
-                    name = "Iran-sing-box-rules",
-                ),
-                versionFile = versionFiles[0],
-            ),
-        )
-
-        else -> throw IllegalStateException("Unknown provider $provider")
-    }
 }
 
 @Stable
@@ -196,7 +104,7 @@ internal class AssetsScreenViewModel(
                 val newAssets = currentNames - previousAssetNames
 
                 newAssets.forEach { name ->
-                    updateSingleAsset(File(geoDir, name))
+                    updateSingleAsset(geoDir.resolve(name))
                 }
 
                 previousAssetNames = currentNames
@@ -211,17 +119,18 @@ internal class AssetsScreenViewModel(
     }
 
     private suspend fun refreshAssets0(dbAssets: List<AssetEntity>) {
+        val assetsByName = dbAssets.associateBy(AssetEntity::name)
         val files = buildList {
-            add(File(assetsDir, "geoip.version.txt"))
-            add(File(assetsDir, "geosite.version.txt"))
-            dbAssets.forEach { add(File(geoDir, it.name)) }
+            add(assetsDir.resolve("geoip.version.txt"))
+            add(assetsDir.resolve("geosite.version.txt"))
+            dbAssets.forEach { add(geoDir.resolve(it.name)) }
         }
 
         hiddenAssetsAccess.withLock {
             _uiState.update { state ->
                 state.copy(
-                    assets = files.mapIndexed { i, asset ->
-                        buildAssetItem(i, asset)
+                    assets = files.mapIndexed { index, file ->
+                        buildAssetItem(index, file, assetsByName[file.name])
                     }.filterNot { hiddenAssets.contains(it.file.name) },
                     pendingDeleteCount = hiddenAssets.size,
                     process = null,
@@ -230,25 +139,27 @@ internal class AssetsScreenViewModel(
         }
     }
 
-    private fun buildAssetItem(index: Int, file: File): AssetItem {
-        val isVersionName = file.name.endsWith(".version.txt")
-        val versionFile = if (isVersionName) {
-            file
+    private fun buildAssetItem(index: Int, file: File, entity: AssetEntity?): AssetItem {
+        val builtIn = isBuiltIn(index)
+        val version = if (builtIn) {
+            file.takeIf(File::isFile)
+                ?.readText()
+                ?.trim()
+                .blankAsNull()
+                ?: "Unknown"
         } else {
-            File(assetsDir, "${file.name}.version.txt")
+            entity?.version.blankAsNull()
+                ?: routeAssetVersionFile(assetsDir, file.name).takeIf(File::isFile)
+                    ?.readText()
+                    ?.trim()
+                    .blankAsNull()
+                ?: "Unknown"
         }
-        val version = runCatching {
-            if (versionFile.isFile) {
-                versionFile.readText().trim()
-            } else {
-                versionFile.writeText("Unknown")
-                null
-            }
-        }.getOrNull().blankAsNull() ?: "Unknown"
         return AssetItem(
             file = file,
             version = version,
-            builtIn = isBuiltIn(index),
+            builtIn = builtIn,
+            autoUpdateDelay = entity?.autoUpdateDelay ?: 0,
             progress = null,
         )
     }
@@ -256,25 +167,39 @@ internal class AssetsScreenViewModel(
     suspend fun deleteAssets(files: List<File>) {
         for (file in files) {
             file.delete()
-            val versionFile = File(assetsDir, "${file.name}.version.txt")
+            val versionFile = routeAssetVersionFile(assetsDir, file.name)
             if (versionFile.isFile) versionFile.delete()
             SagerDatabase.assetDao.delete(file.name)
         }
+        RouteAssetUpdater.reconfigureUpdater()
     }
 
-    fun updateAsset(destinationDir: File, cacheDir: File) {
+    fun updateAsset(cacheDir: File) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateAsset0(destinationDir, cacheDir)
+                updateAsset0(cacheDir)
             } catch (_: NoUpdateException) {
                 _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Res(Res.string.route_asset_no_update)))
-                return@launch
             } catch (e: Exception) {
                 Logs.e(e)
                 _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
             }
+            RouteAssetUpdater.reconfigureUpdater()
             val assets = SagerDatabase.assetDao.getAll().first()
             refreshAssets0(assets)
+        }
+    }
+
+    private suspend fun updateAsset0(cacheDir: File) {
+        _uiState.update { it.copy(process = 0f) }
+
+        var process = 0f
+        updateManagedRouteAssets(
+            externalAssetsDir = assetsDir,
+            cacheDir = cacheDir,
+        ) { progressDelta ->
+            process += progressDelta
+            _uiState.update { it.copy(process = process) }
         }
     }
 
@@ -283,52 +208,17 @@ internal class AssetsScreenViewModel(
         _uiState.update { it.copy(process = 0f) }
         try {
             copyBundledRuleSetAssetsIfNeeded()
-            File(assetsDir, "geoip.version.txt").delete()
-            File(assetsDir, "geosite.version.txt").delete()
+            assetsDir.resolve("geoip.version.txt").delete()
+            assetsDir.resolve("geosite.version.txt").delete()
             Libcore.extractAssets()
+            DataStore.routeAssetsLastUpdated = currentEpochSeconds()
+            RouteAssetUpdater.reconfigureUpdater()
         } catch (e: Exception) {
             Logs.e(e)
             _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
         val assets = SagerDatabase.assetDao.getAll().first()
         refreshAssets0(assets)
-    }
-
-    private suspend fun updateAsset0(destinationDir: File, cacheDir: File) {
-        _uiState.update { it.copy(process = 0f) }
-
-        var process = 0f
-        val updateProgress: UpdateProgress = { p ->
-            process += p
-            _uiState.update { it.copy(process = process) }
-        }
-
-        val assetsDir = destinationDir.parentFile!!
-        val versionFiles = listOf(
-            File(assetsDir, "geoip.version.txt"),
-            File(assetsDir, "geosite.version.txt"),
-        )
-        val provider = DataStore.rulesProvider
-        val updater = if (provider == RuleProvider.CUSTOM) {
-            CustomAssetUpdater(
-                versionFiles,
-                updateProgress,
-                cacheDir,
-                destinationDir,
-                DataStore.customRuleProvider.lines(),
-            )
-        } else {
-            GithubAssetUpdater(
-                versionFiles,
-                updateProgress,
-                cacheDir,
-                destinationDir,
-                buildGithubAssetSources(provider, versionFiles),
-                RuleProvider.hasUnstableBranch(provider),
-            )
-        }
-
-        updater.runUpdateIfAvailable()
     }
 
     fun updateSingleAsset(asset: File) = viewModelScope.launch(Dispatchers.IO) {
@@ -338,22 +228,19 @@ internal class AssetsScreenViewModel(
             Logs.e(e)
             _uiEvent.emit(AssetsScreenUiEvent.Snackbar(StringOrRes.Direct(e.readableMessage)))
         }
+        RouteAssetUpdater.reconfigureUpdater()
         val assets = SagerDatabase.assetDao.getAll().first()
         refreshAssets0(assets)
     }
 
     private suspend fun updateSingleAsset0(asset: File) {
-        val name = asset.name
-        val entity = SagerDatabase.assetDao.get(name)!!
-        val url = entity.url
+        val entity = SagerDatabase.assetDao.get(asset.name) ?: return
 
         _uiState.update { state ->
             state.copy(
                 assets = state.assets.map {
                     if (it.file == asset) {
-                        it.copy(
-                            progress = 0f,
-                        )
+                        it.copy(progress = 0f)
                     } else {
                         it
                     }
@@ -361,50 +248,21 @@ internal class AssetsScreenViewModel(
             )
         }
 
-        Libcore.newHttpClient().apply {
-            keepAlive()
-            if (DataStore.serviceState.started) {
-                useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
-            }
-        }.newRequest().apply {
-            setURL(url)
-            setUserAgent(USER_AGENT)
-        }.execute()
-            .writeTo(
-                File(geoDir, name).absolutePath,
-                object : CopyCallback {
-                    var saved: Double = 0.0
-                    var length: Double = 0.0
-                    override fun setLength(length: Long) {
-                        this.length = length.toDouble()
-                    }
-
-                    override fun update(n: Long) {
-                        if (length <= 0) return
-                        saved += n.toDouble()
-                        val progress = ((saved / length) * 100).toFloat()
-                        _uiState.update { state ->
-                            state.copy(
-                                assets = state.assets.map {
-                                    if (it.file == asset) {
-                                        it.copy(
-                                            progress = progress,
-                                        )
-                                    } else {
-                                        it
-                                    }
-                                },
-                            )
+        entity.version = updateSingleRouteAsset(entity, assetsDir) { progress ->
+            _uiState.update { state ->
+                state.copy(
+                    assets = state.assets.map {
+                        if (it.file == asset) {
+                            it.copy(progress = progress)
+                        } else {
+                            it
                         }
-                    }
-
-                },
-            )
-
-        val time = assetVersionFormat.format(
-            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        )
-        File(assetsDir, "$name.version.txt").writeText(time)
+                    },
+                )
+            }
+        }
+        entity.lastUpdated = currentEpochSeconds()
+        SagerDatabase.assetDao.update(entity)
     }
 
     fun undoableRemove(fileName: String) = viewModelScope.launch {
@@ -446,195 +304,25 @@ internal class AssetsScreenViewModel(
         deleteTimer?.cancel()
         deleteTimer = null
         val toDelete = hiddenAssetsAccess.withLock {
-            val toDelete = hiddenAssets.toList()
+            val pending = hiddenAssets.toList()
             hiddenAssets.clear()
-            toDelete
+            pending
         }
         runOnIoDispatcher {
             for (fileName in toDelete) {
                 val file = if (fileName.endsWith(".version.txt")) {
-                    File(assetsDir, fileName)
+                    assetsDir.resolve(fileName)
                 } else {
-                    File(geoDir, fileName)
+                    geoDir.resolve(fileName)
                 }
                 file.delete()
                 if (!fileName.endsWith(".version.txt")) {
-                    val versionFile = File(assetsDir, "$fileName.version.txt")
+                    val versionFile = routeAssetVersionFile(assetsDir, fileName)
                     if (versionFile.isFile) versionFile.delete()
                     SagerDatabase.assetDao.delete(fileName)
                 }
             }
+            RouteAssetUpdater.reconfigureUpdater()
         }
-    }
-
-}
-
-private class NoUpdateException : Exception()
-
-internal sealed class UpdateInfo {
-    data class Github(val source: GithubAssetSource, val newVersion: String) : UpdateInfo()
-    data class Custom(val link: String) : UpdateInfo()
-}
-
-internal abstract class AssetsUpdater(
-    val versionFiles: List<File>,
-    val updateProgress: UpdateProgress,
-    val cacheDir: File,
-    val destinationDir: File,
-) {
-    private val httpClient = Libcore.newHttpClient().apply {
-        keepAlive()
-        if (DataStore.serviceState.started) {
-            useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
-        }
-    }
-
-    fun newRequest(url: String): HTTPRequest = httpClient.newRequest().apply {
-        setURL(url)
-        setUserAgent(USER_AGENT)
-    }
-
-    suspend fun runUpdateIfAvailable() {
-        val updatesToPerform = check()
-
-        if (updatesToPerform.isNotEmpty()) {
-            performUpdate(updatesToPerform)
-        } else {
-            throw NoUpdateException()
-        }
-    }
-
-    protected abstract suspend fun check(): List<UpdateInfo>
-
-    protected abstract suspend fun performUpdate(updates: List<UpdateInfo>)
-}
-
-internal class CustomAssetUpdater(
-    versionFiles: List<File>,
-    updateProgress: UpdateProgress,
-    cacheDir: File,
-    destinationDir: File,
-    val links: List<String>,
-) : AssetsUpdater(versionFiles, updateProgress, cacheDir, destinationDir) {
-
-    override suspend fun check(): List<UpdateInfo> = links.map { link ->
-        UpdateInfo.Custom(link)
-    }
-
-    override suspend fun performUpdate(updates: List<UpdateInfo>) {
-        val cacheFiles = ArrayList<File>(updates.size)
-
-        try {
-            updateProgress(35f)
-            for ((i, update) in updates.withIndex()) {
-                update as UpdateInfo.Custom
-                val response = newRequest(update.link).execute()
-
-                val cacheFile = File(cacheDir, "custom_asset_$i.tmp")
-                cacheFile.parentFile?.mkdirs()
-                cacheFile.deleteOnExit()
-
-                response.writeTo(cacheFile.absolutePath, null)
-                cacheFiles.add(cacheFile)
-            }
-
-            updateProgress(25f)
-            for (file in cacheFiles) {
-                Libcore.tryUnpack(file.absolutePath, destinationDir.absolutePath)
-            }
-
-            updateProgress(25f)
-            for (version in versionFiles) {
-                version.writeText("custom")
-            }
-            updateProgress(15f)
-        } finally {
-            for (file in cacheFiles) {
-                file.runCatching { delete() }
-            }
-        }
-    }
-}
-
-internal class GithubAssetUpdater(
-    versionFiles: List<File>,
-    updateProgress: UpdateProgress,
-    parent: File,
-    toDir: File,
-    val sources: List<GithubAssetSource>,
-    val useUnstableBranch: Boolean,
-) : AssetsUpdater(versionFiles, updateProgress, parent, toDir) {
-
-    override suspend fun check(): List<UpdateInfo> {
-        val updatesNeeded = mutableListOf<UpdateInfo.Github>()
-
-        for (source in sources) {
-            val latestVersion = fetchVersion(source.repository)
-            val currentVersion = source.versionFile.readText()
-
-            if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
-                updatesNeeded.add(UpdateInfo.Github(source, latestVersion))
-                updateProgress(5f)
-            }
-        }
-        return updatesNeeded
-    }
-
-    override suspend fun performUpdate(updates: List<UpdateInfo>) {
-        val cacheFiles = ArrayList<File>(updates.size)
-        val progressTotalDownload = 60f
-        val progressTotalUnpack = 25f
-
-        try {
-            val progressPerDownload = progressTotalDownload / updates.size
-            for (update in updates) {
-                update as UpdateInfo.Github
-                // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
-                val source = update.source
-                val branchName = source.repository.resolveBranch(useUnstableBranch)
-                val url =
-                    "https://codeload.github.com/${source.repository.fullName}/tar.gz/refs/heads/${branchName}"
-                val response = newRequest(url).execute()
-
-                val cacheFile = File(
-                    cacheDir,
-                    "${source.repository.fullName.replace('/', '_')}-${update.newVersion}.tmp",
-                )
-                cacheFile.parentFile?.mkdirs()
-                cacheFile.deleteOnExit()
-
-                response.writeTo(cacheFile.absolutePath, null)
-                cacheFiles.add(cacheFile)
-
-                updateProgress(progressPerDownload)
-            }
-
-            val progressPerUnpack = progressTotalUnpack / cacheFiles.size
-            for (file in cacheFiles) {
-                Libcore.untargzWithoutDir(file.absolutePath, destinationDir.absolutePath)
-                updateProgress(progressPerUnpack)
-            }
-
-            if (sources.size == 1) {
-                // Chocolate4U
-                val newVersion = (updates.firstOrNull() as? UpdateInfo.Github)?.newVersion ?: return
-                versionFiles.forEach { it.writeText(newVersion) }
-            } else {
-                for (update in updates) {
-                    update as UpdateInfo.Github
-                    update.source.versionFile.writeText(update.newVersion)
-                }
-            }
-        } finally {
-            for (file in cacheFiles) {
-                file.runCatching { delete() }
-            }
-        }
-    }
-
-    private fun fetchVersion(repository: GithubRepository): String {
-        val response =
-            newRequest("https://api.github.com/repos/${repository.fullName}/releases/latest").execute()
-        return kxs.decodeFromString<GithubRelease>(response.contentString).tagName
     }
 }

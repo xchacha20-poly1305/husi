@@ -1,5 +1,6 @@
 package fr.husi.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
@@ -14,7 +15,9 @@ class AssetEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var url: String = "",
     var name: String = "",
-    // TODO version
+    @ColumnInfo(defaultValue = "''") var version: String = "",
+    @ColumnInfo(defaultValue = "0") var autoUpdateDelay: Int = 0,
+    @ColumnInfo(defaultValue = "0") var lastUpdated: Long = 0L,
 ) {
 
     @androidx.room.Dao

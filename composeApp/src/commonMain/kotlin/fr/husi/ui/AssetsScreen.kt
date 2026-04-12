@@ -21,7 +21,10 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AppBarRow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
 import fr.husi.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +34,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -49,27 +53,32 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.Key
 import fr.husi.RuleProvider
-import fr.husi.compose.MoreOverIcon
+import fr.husi.bg.RouteAssetUpdater
+import fr.husi.bg.currentEpochSeconds
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.TextButton
+import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
 import fr.husi.repository.resolveRepository
-import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEffect
 import fr.husi.resources.*
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -77,7 +86,6 @@ import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -106,11 +114,27 @@ internal fun AssetsScreen(
     val geoDir = remember { geoDir(assetsDir) }
     val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, geoDir) }
     val scope = rememberCoroutineScope()
-    val resultBus = LocalResultEventBus.current
     val activeResultKeys = remember { mutableStateListOf<String>() }
     val rulesProvider by DataStore.configurationStore
         .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
         .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
+    val routeAssetsAutoUpdateDelay by DataStore.configurationStore
+        .intFlow(Key.ROUTE_ASSETS_AUTO_UPDATE_DELAY, 0)
+        .collectAsStateWithLifecycle(0)
+    var showAutoUpdateDelayDialog by remember { mutableStateOf(false) }
+    var autoUpdateDelayValue by remember(routeAssetsAutoUpdateDelay, showAutoUpdateDelayDialog) {
+        mutableStateOf(TextFieldValue(routeAssetsAutoUpdateDelay.toString()))
+    }
+    var isOverflowMenuExpanded by remember { mutableStateOf(false) }
+
+    fun saveRouteAssetsAutoUpdateDelay() {
+        val delay = autoUpdateDelayValue.text.toIntOrNull() ?: 0
+        showAutoUpdateDelayDialog = false
+        scope.launch(Dispatchers.Default) {
+            DataStore.routeAssetsAutoUpdateDelay = delay
+            RouteAssetUpdater.reconfigureUpdater()
+        }
+    }
 
     fun handleAssetEditResult(result: AssetEditResult) {
         when (result) {
@@ -174,6 +198,8 @@ internal fun AssetsScreen(
                 file.writeText("Custom")
             }
 
+            DataStore.routeAssetsLastUpdated = currentEpochSeconds()
+            RouteAssetUpdater.reconfigureUpdater()
             viewModel.refreshAssets()
         }
     }
@@ -243,52 +269,76 @@ internal fun AssetsScreen(
                         )
                     },
                     actions = {
-                        AppBarRow(
-                            overflowIndicator = ::MoreOverIcon,
-                            maxItemCount = 2,
-                        ) {
-                            val canOperate =
-                                uiState.process == null && uiState.assets.all { it.progress == null }
-                            val canReset = canOperate && rulesProvider == RuleProvider.OFFICIAL
-                            clickableItem(
-                                onClick = {
-                                    viewModel.updateAsset(
-                                        destinationDir = geoDir,
-                                        cacheDir = cacheDir,
+                        val canOperate =
+                            uiState.process == null && uiState.assets.all { it.progress == null }
+                        val canReset = canOperate && rulesProvider == RuleProvider.OFFICIAL
+
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.timer),
+                            contentDescription = stringResource(Res.string.route_global_asset_auto_update_delay),
+                            onClick = { showAutoUpdateDelayDialog = true },
+                        )
+                        SimpleIconButton(
+                            imageVector = vectorResource(Res.drawable.update),
+                            contentDescription = stringResource(Res.string.assets_update),
+                            enabled = canOperate,
+                            onClick = {
+                                viewModel.updateAsset(cacheDir = cacheDir)
+                            },
+                        )
+                        Box {
+                            SimpleIconButton(
+                                imageVector = vectorResource(Res.drawable.more_vert),
+                                contentDescription = stringResource(Res.string.more),
+                                onClick = { isOverflowMenuExpanded = true },
+                            )
+
+                            DropdownMenuPopup(
+                                expanded = isOverflowMenuExpanded,
+                                onDismissRequest = { isOverflowMenuExpanded = false },
+                            ) {
+                                DropdownMenuGroup(
+                                    shapes = MenuDefaults.groupShape(0, 1),
+                                ) {
+                                    DropdownMenuItem(
+                                        selected = false,
+                                        text = { Text(stringResource(Res.string.reset_rule_set)) },
+                                        onClick = {
+                                            isOverflowMenuExpanded = false
+                                            viewModel.resetRuleSet()
+                                        },
+                                        leadingIcon = {
+                                            Icon(vectorResource(Res.drawable.replay), null)
+                                        },
+                                        enabled = canReset,
+                                        shapes = MenuDefaults.itemShape(0, 3),
                                     )
-                                },
-                                icon = {
-                                    Icon(vectorResource(Res.drawable.update), null)
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.assets_update) },
-                                enabled = canOperate,
-                            )
-                            clickableItem(
-                                onClick = {
-                                    viewModel.resetRuleSet()
-                                },
-                                icon = {
-                                    Icon(vectorResource(Res.drawable.replay), null)
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.reset_rule_set) },
-                                enabled = canReset,
-                            )
-                            clickableItem(
-                                onClick = {
-                                    importFile.launch()
-                                },
-                                icon = {
-                                    Icon(vectorResource(Res.drawable.note_add), null)
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.action_import_file) },
-                            )
-                            clickableItem(
-                                onClick = { openAssetEditor("") },
-                                icon = {
-                                    Icon(vectorResource(Res.drawable.link), null)
-                                },
-                                label = runBlocking { resolveRepository().getString(Res.string.import_url) },
-                            )
+                                    DropdownMenuItem(
+                                        selected = false,
+                                        text = { Text(stringResource(Res.string.action_import_file)) },
+                                        onClick = {
+                                            isOverflowMenuExpanded = false
+                                            importFile.launch()
+                                        },
+                                        leadingIcon = {
+                                            Icon(vectorResource(Res.drawable.note_add), null)
+                                        },
+                                        shapes = MenuDefaults.itemShape(1, 3),
+                                    )
+                                    DropdownMenuItem(
+                                        selected = false,
+                                        text = { Text(stringResource(Res.string.import_url)) },
+                                        onClick = {
+                                            isOverflowMenuExpanded = false
+                                            openAssetEditor("")
+                                        },
+                                        leadingIcon = {
+                                            Icon(vectorResource(Res.drawable.link), null)
+                                        },
+                                        shapes = MenuDefaults.itemShape(2, 3),
+                                    )
+                                }
+                            }
                         }
                     },
                     windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -358,6 +408,7 @@ internal fun AssetsScreen(
                         ) {
                             AssetCard(
                                 asset = asset,
+                                globalAutoUpdateDelay = routeAssetsAutoUpdateDelay,
                                 viewModel = viewModel,
                                 uiState = uiState,
                                 onEditAsset = { openAssetEditor(it) },
@@ -366,6 +417,7 @@ internal fun AssetsScreen(
                     } else {
                         AssetCard(
                             asset = asset,
+                            globalAutoUpdateDelay = routeAssetsAutoUpdateDelay,
                             viewModel = viewModel,
                             uiState = uiState,
                             onEditAsset = { openAssetEditor(it) },
@@ -385,15 +437,46 @@ internal fun AssetsScreen(
             )
         }
     }
+
+    if (showAutoUpdateDelayDialog) {
+        AlertDialog(
+            onDismissRequest = { showAutoUpdateDelayDialog = false },
+            confirmButton = {
+                TextButton(stringResource(Res.string.ok)) {
+                    saveRouteAssetsAutoUpdateDelay()
+                }
+            },
+            dismissButton = {
+                TextButton(stringResource(Res.string.cancel)) {
+                    showAutoUpdateDelayDialog = false
+                }
+            },
+            icon = { Icon(vectorResource(Res.drawable.timer), null) },
+            title = { Text(stringResource(Res.string.route_global_asset_auto_update_delay)) },
+            text = {
+                UIntegerTextField(
+                    value = autoUpdateDelayValue,
+                    onValueChange = { autoUpdateDelayValue = it },
+                    onOk = ::saveRouteAssetsAutoUpdateDelay,
+                )
+            },
+        )
+    }
 }
 
 @Composable
 private fun AssetCard(
     asset: AssetItem,
+    globalAutoUpdateDelay: Int,
     viewModel: AssetsScreenViewModel,
     uiState: AssetsUiState,
     onEditAsset: (String) -> Unit,
 ) {
+    val autoUpdateDelay = if (asset.builtIn) {
+        globalAutoUpdateDelay
+    } else {
+        asset.autoUpdateDelay
+    }
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.elevatedCardElevation(),
@@ -431,6 +514,11 @@ private fun AssetCard(
                             Res.string.route_asset_status,
                             asset.version,
                         ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = routeAssetAutoUpdateSummary(autoUpdateDelay),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -472,5 +560,14 @@ private fun AssetCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun routeAssetAutoUpdateSummary(autoUpdateDelay: Int): String {
+    return if (autoUpdateDelay <= 0) {
+        stringResource(Res.string.route_asset_auto_update_off)
+    } else {
+        stringResource(Res.string.route_asset_auto_update_on, autoUpdateDelay)
     }
 }

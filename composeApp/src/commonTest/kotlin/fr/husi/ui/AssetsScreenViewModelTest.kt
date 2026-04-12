@@ -1,6 +1,8 @@
 package fr.husi.ui
 
 import fr.husi.RuleProvider
+import fr.husi.bg.GithubRepository
+import fr.husi.bg.buildGithubAssetSources
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test

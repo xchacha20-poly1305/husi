@@ -238,6 +238,10 @@
     <string name="route_asset_status">本地版本：%1$s</string>
     <string name="route_asset_no_update">無更新</string>
     <string name="route_asset_updated">已更新</string>
+    <string name="route_global_asset_auto_update_delay">規則資源更新間隔（分鐘）</string>
+    <string name="route_asset_auto_update_delay">單個資源更新間隔（分鐘）</string>
+    <string name="route_asset_auto_update_off">已停用自動更新</string>
+    <string name="route_asset_auto_update_on">每 %1$d 分鐘自動更新</string>
     <string name="route_opt_bypass_lan">略過區域網路位址</string>
     <string name="route_opt_block_ads">封鎖廣告</string>
     <string name="domain_strategy">網域解析策略</string>

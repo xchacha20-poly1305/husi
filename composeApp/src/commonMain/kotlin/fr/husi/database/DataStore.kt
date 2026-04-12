@@ -136,6 +136,8 @@ object DataStore {
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
     var rulesProvider by configurationStore.int(Key.RULES_PROVIDER)
     var customRuleProvider by configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
+    var routeAssetsAutoUpdateDelay by configurationStore.int(Key.ROUTE_ASSETS_AUTO_UPDATE_DELAY) { 0 }
+    var routeAssetsLastUpdated by configurationStore.long(Key.ROUTE_ASSETS_LAST_UPDATED) { 0L }
     var logLevel by configurationStore.int(Key.LOG_LEVEL) { 3 /* WARN */ }
     var logMaxLine by configurationStore.int(Key.LOG_MAX_LINE) { 1024 }
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)

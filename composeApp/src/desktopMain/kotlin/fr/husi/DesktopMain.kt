@@ -27,6 +27,7 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.DesktopTaskRegistry
 import fr.husi.bg.DesktopTaskScheduler
+import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.compose.theme.AppTheme
@@ -135,6 +136,7 @@ private class DesktopMain : CliktCommand(APP_NAME) {
         runCatching {
             runBlocking {
                 SubscriptionUpdater.reconfigureUpdater()
+                RouteAssetUpdater.reconfigureUpdater()
             }
         }.onFailure {
             Logs.e("reconfigure desktop tasks on startup", it)

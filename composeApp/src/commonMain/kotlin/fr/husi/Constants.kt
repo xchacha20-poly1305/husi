@@ -53,6 +53,8 @@ object Key {
     // const val FORCED_SEARCH_PROCESS = "forcedSearchProcess"
     const val RULES_PROVIDER = "rulesProvider"
     const val CUSTOM_RULE_PROVIDER = "customRuleProvider"
+    const val ROUTE_ASSETS_AUTO_UPDATE_DELAY = "routeAssetsAutoUpdateDelay"
+    const val ROUTE_ASSETS_LAST_UPDATED = "routeAssetsLastUpdated"
 
     const val BYPASS_LAN = "bypassLan"
 

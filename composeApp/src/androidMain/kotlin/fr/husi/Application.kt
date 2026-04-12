@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.StrictMode
 import fr.husi.bg.AppChangeReceiver
 import fr.husi.bg.DefaultNetworkMonitor
+import fr.husi.bg.RouteAssetUpdater
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
@@ -84,6 +85,7 @@ class Application : Application(),
         if (isMainProcess) runOnDefaultDispatcher {
             runCatching {
                 SubscriptionUpdater.reconfigureUpdater()
+                RouteAssetUpdater.reconfigureUpdater()
             }
             registerReceiver(
                 AppChangeReceiver(),

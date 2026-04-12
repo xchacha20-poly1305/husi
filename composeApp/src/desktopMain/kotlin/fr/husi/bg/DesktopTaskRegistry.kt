@@ -38,7 +38,28 @@ internal object DesktopTaskRegistry {
         }
     }
 
-    private val definitions = listOf(subscriptionAutoUpdateTask)
+    private val routeAssetAutoUpdateTask = object : DesktopTaskDefinition {
+        override val id: String = "route-asset-auto-update"
+        override val launcherArguments: List<String> = listOf("--task", id)
+
+        override suspend fun schedule(): DesktopTaskSchedule? {
+            val plan = RouteAssetAutoUpdatePlanner.plan() ?: return null
+            return DesktopTaskSchedule(
+                repeatIntervalMinutes = plan.repeatIntervalMinutes,
+                initialDelaySeconds = plan.initialDelaySeconds,
+            )
+        }
+
+        override suspend fun run() {
+            try {
+                RouteAssetAutoUpdateRunner.run()
+            } finally {
+                RouteAssetUpdater.reconfigureUpdater()
+            }
+        }
+    }
+
+    private val definitions = listOf(subscriptionAutoUpdateTask, routeAssetAutoUpdateTask)
         .associateBy(DesktopTaskDefinition::id)
 
     fun require(taskId: String): DesktopTaskDefinition {
