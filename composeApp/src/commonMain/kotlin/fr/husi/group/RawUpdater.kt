@@ -1,7 +1,6 @@
 package fr.husi.group
 
 import fr.husi.database.DataStore
-import fr.husi.database.GroupManager
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
@@ -38,9 +37,9 @@ object RawUpdater : GroupUpdater() {
     override suspend fun doUpdate(
         proxyGroup: ProxyGroup,
         subscription: SubscriptionBean,
-        userInterface: GroupManager.Interface?,
         byUser: Boolean,
-    ) {
+        warnings: MutableList<GroupUpdateWarning>,
+    ): GroupUpdateResult.Success {
 
         var proxies: List<AbstractBean>
         if (subscription.link.startsWith("content://")) {
@@ -92,7 +91,7 @@ object RawUpdater : GroupUpdater() {
             }
         }
 
-        tidyProxies(proxies, subscription, proxyGroup, userInterface, byUser)
+        return tidyProxies(proxies, subscription, proxyGroup, byUser, warnings)
     }
 
     @Suppress("UNCHECKED_CAST")

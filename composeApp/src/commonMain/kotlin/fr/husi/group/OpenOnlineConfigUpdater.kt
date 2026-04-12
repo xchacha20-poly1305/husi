@@ -20,7 +20,6 @@
 package fr.husi.group
 
 import fr.husi.database.DataStore
-import fr.husi.database.GroupManager
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
@@ -76,9 +75,9 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
     override suspend fun doUpdate(
         proxyGroup: ProxyGroup,
         subscription: SubscriptionBean,
-        userInterface: GroupManager.Interface?,
         byUser: Boolean,
-    ) {
+        warnings: MutableList<GroupUpdateWarning>,
+    ): GroupUpdateResult.Success {
         val repository = resolveRepository()
         val token: OOCSubscriptionToken
         val baseLink: URL
@@ -140,7 +139,8 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         val protocols = oocResponse.protocols
         for (protocol in protocols) {
             if (protocol !in OOC_PROTOCOLS) {
-                userInterface?.alert(
+                warnings += GroupUpdateWarning(
+                    proxyGroup.displayName(),
                     repository.getString(Res.string.ooc_missing_protocol, protocol),
                 )
             }
@@ -178,6 +178,6 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             }
         }
 
-        tidyProxies(proxies, subscription, proxyGroup, userInterface, byUser)
+        return tidyProxies(proxies, subscription, proxyGroup, byUser, warnings)
     }
 }

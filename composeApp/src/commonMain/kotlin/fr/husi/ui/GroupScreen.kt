@@ -60,7 +60,6 @@ import fr.husi.GroupType
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
@@ -322,8 +321,8 @@ fun GroupScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         GroupCard(
+                            mainViewModel = mainViewModel,
                             state = groupState,
-                            viewModel = viewModel,
                             openGroupSettings = openGroupSettings,
                             snackbar = { message ->
                                 scope.launch {
@@ -368,7 +367,7 @@ fun GroupScreen(
         onDismissRequest = { showUpdateAll = false },
         confirmButton = {
             TextButton(stringResource(Res.string.ok)) {
-                viewModel.doUpdateAll()
+                mainViewModel.updateAllSubscriptionGroups()
                 showUpdateAll = false
             }
         },
@@ -455,8 +454,8 @@ fun GroupScreen(
 @Composable
 private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
     modifier: Modifier = Modifier,
+    mainViewModel: MainViewModel,
     state: GroupItemUiState,
-    viewModel: GroupScreenViewModel,
     openGroupSettings: (Long) -> Unit,
     snackbar: suspend (message: String) -> Unit,
     showQRDialog: (url: String, name: String) -> Unit,
@@ -841,7 +840,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
 
                         if (group.type == GroupType.SUBSCRIPTION) {
                             TextButton(
-                                onClick = { viewModel.doUpdate(group) },
+                                onClick = { mainViewModel.updateSubscriptionGroup(group) },
                                 modifier = Modifier.padding(end = 8.dp),
                                 enabled = !state.isUpdating,
                             ) {

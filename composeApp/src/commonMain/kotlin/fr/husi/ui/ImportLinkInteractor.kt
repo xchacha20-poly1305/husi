@@ -86,9 +86,13 @@ class ImportLinkInteractor {
         return parseProxies(uri)
     }
 
+    suspend fun createSubscriptionGroup(group: ProxyGroup): ProxyGroup {
+        return GroupManager.createGroup(group)
+    }
+
     suspend fun importSubscription(group: ProxyGroup) {
-        GroupManager.createGroup(group)
-        GroupUpdater.startUpdate(group, true)
+        val createdGroup = createSubscriptionGroup(group)
+        GroupUpdater.executeUpdate(createdGroup, true)
     }
 
     suspend fun importProfiles(proxies: List<AbstractBean>): Int {

@@ -1,7 +1,6 @@
 package fr.husi.ui
 
 import fr.husi.database.DataStore
-import fr.husi.database.GroupManager
 import fr.husi.test.HusiKoinMainDispatcherTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -18,11 +17,6 @@ class MainViewModelTest : HusiKoinMainDispatcherTest() {
     override suspend fun postStartKoin() {
         DataStore.configurationStore.reset()
     }
-
-    override suspend fun preStopKoin() {
-        GroupManager.userInterface = null
-    }
-
     /**
      * https://codeberg.org/xchacha20-poly1305/husi/issues/50
      */

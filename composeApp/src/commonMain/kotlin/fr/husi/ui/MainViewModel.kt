@@ -7,20 +7,25 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.husi.GroupType
 import fr.husi.Key
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.database.DataStore
-import fr.husi.database.GroupManager
 import fr.husi.database.ProxyGroup
+import fr.husi.database.SagerDatabase
 import fr.husi.fmt.AbstractBean
+import fr.husi.group.GroupUpdateResult
+import fr.husi.group.GroupUpdateWarning
+import fr.husi.group.GroupUpdater
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
+import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
-import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.Repository
 import fr.husi.repository.resolveRepository
 import fr.husi.utils.LibcoreClientManager
+import fr.husi.resources.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,11 +33,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import fr.husi.resources.*
 
 @Immutable
 sealed interface URLTestStatus {
@@ -70,7 +75,7 @@ sealed interface MainViewModelUiEvent {
 class MainViewModel(
     private val repository: Repository = resolveRepository(),
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
-) : ViewModel(), GroupManager.Interface {
+) : ViewModel() {
 
     private val _urlTestStatus = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
     val urlTestStatus = _urlTestStatus.asStateFlow()
@@ -88,8 +93,6 @@ class MainViewModel(
     )
 
     init {
-        GroupManager.userInterface = this
-
         viewModelScope.launch {
             DeepLinkDispatcher.flow.collect { link ->
                 importFromUri(link)
@@ -120,7 +123,6 @@ class MainViewModel(
     }
 
     override fun onCleared() {
-        GroupManager.userInterface = null
         runBlocking {
             urlTestClient.close()
         }
@@ -194,8 +196,11 @@ class MainViewModel(
                 title = StringOrRes.Res(Res.string.subscription_import),
                 message = StringOrRes.ResWithParams(Res.string.subscription_import_message, detail),
                 confirmButton = AlertButton(StringOrRes.Res(Res.string.ok)) {
-                    runOnIoDispatcher {
-                        importLinkInteractor.importSubscription(group)
+                    viewModelScope.launch(Dispatchers.Default) {
+                        val createdGroup = onIoDispatcher {
+                            importLinkInteractor.createSubscriptionGroup(group)
+                        }
+                        performGroupUpdate(createdGroup, true)
                     }
                 },
                 dismissButton = AlertButton(StringOrRes.Res(Res.string.cancel)) {},
@@ -216,7 +221,7 @@ class MainViewModel(
                     profiles.joinToString("\n") { it.displayName() },
                 ),
                 confirmButton = AlertButton(StringOrRes.Res(Res.string.ok)) {
-                    runOnIoDispatcher {
+                    viewModelScope.launch(Dispatchers.IO) {
                         importProfile(profiles)
                     }
                 },
@@ -230,7 +235,6 @@ class MainViewModel(
             _uiEvent.emit(MainViewModelUiEvent.Snackbar(StringOrRes.Res(Res.string.clipboard_empty)))
             return@launch
         }
-        // Import as proxy or subscription
         when (text.substringBefore("://", "").lowercase()) {
             "http", "https" -> _uiEvent.emit(
                 MainViewModelUiEvent.AlertDialog(
@@ -280,7 +284,21 @@ class MainViewModel(
         )
     }
 
-    override suspend fun confirm(message: String): Boolean {
+    fun updateSubscriptionGroup(group: ProxyGroup) = viewModelScope.launch(Dispatchers.Default) {
+        performGroupUpdate(group, true)
+    }
+
+    fun updateAllSubscriptionGroups() = viewModelScope.launch(Dispatchers.Default) {
+        val groups = onIoDispatcher {
+            SagerDatabase.groupDao.allGroups().first()
+                .filter { it.type == GroupType.SUBSCRIPTION }
+        }
+        for (group in groups) {
+            performGroupUpdate(group, true)
+        }
+    }
+
+    suspend fun confirm(message: String): Boolean {
         val deferred = CompletableDeferred<Boolean>()
         _uiEvent.emit(
             MainViewModelUiEvent.AlertDialog(
@@ -300,34 +318,54 @@ class MainViewModel(
         return deferred.await()
     }
 
-    override suspend fun alert(message: String) {
-        _uiEvent.emit(alertDialog(StringOrRes.Direct(message)))
+    private suspend fun performGroupUpdate(group: ProxyGroup, byUser: Boolean) {
+        var allowDisconnectedUpdate = false
+        while (true) {
+            when (val result = GroupUpdater.executeUpdate(group, byUser, allowDisconnectedUpdate)) {
+                is GroupUpdateResult.AlreadyUpdating -> return
+
+                is GroupUpdateResult.ConfirmRequired -> {
+                    if (!confirm(result.message)) return
+                    allowDisconnectedUpdate = true
+                }
+
+                else -> {
+                    presentGroupUpdateResult(result)
+                    return
+                }
+            }
+        }
     }
 
-    override suspend fun onUpdateSuccess(
-        group: ProxyGroup,
-        changed: Int,
-        added: List<String>,
-        updated: Map<String, String>,
-        deleted: List<String>,
-        duplicate: List<String>,
-        byUser: Boolean,
-    ) {
+    private suspend fun presentGroupUpdateResult(result: GroupUpdateResult) {
+        presentGroupUpdateWarnings(result.warningsOrEmpty())
+        when (result) {
+            is GroupUpdateResult.Success -> presentGroupUpdateSuccess(result)
+            is GroupUpdateResult.Failure -> {
+                _uiEvent.emit(alertDialog(StringOrRes.Direct("${result.group.name}: ${result.message}")))
+            }
+
+            else -> Unit
+        }
+    }
+
+    private suspend fun presentGroupUpdateSuccess(result: GroupUpdateResult.Success) {
+        val changed = result.diff.changed
         if (changed == 0) {
             _uiEvent.emit(
                 MainViewModelUiEvent.Snackbar(
-                    StringOrRes.ResWithParams(Res.string.group_no_difference, group.displayName()),
+                    StringOrRes.ResWithParams(Res.string.group_no_difference, result.group.displayName()),
                 ),
             )
             return
         }
-        if (!byUser) {
+        if (!result.byUser) {
             _uiEvent.emit(
                 MainViewModelUiEvent.Snackbar(
                     StringOrRes.PluralsRes(
                         Res.plurals.group_updated,
                         changed,
-                        group.displayName(),
+                        result.group.displayName(),
                         changed,
                     ),
                 ),
@@ -340,34 +378,34 @@ class MainViewModel(
                 StringOrRes.PluralsRes(
                     Res.plurals.group_updated,
                     changed,
-                    group.displayName(),
+                    result.group.displayName(),
                     changed,
                 ),
             )
-            if (added.isNotEmpty()) {
-                add(StringOrRes.ResWithParams(Res.string.group_added, added.joinToString("\n")))
+            if (result.diff.added.isNotEmpty()) {
+                add(StringOrRes.ResWithParams(Res.string.group_added, result.diff.added.joinToString("\n")))
             }
-            if (updated.isNotEmpty()) {
+            if (result.diff.updated.isNotEmpty()) {
                 add(
                     StringOrRes.ResWithParams(
                         Res.string.group_changed,
-                        updated.entries.joinToString("\n") { "${it.key} -> ${it.value}" },
+                        result.diff.updated.entries.joinToString("\n") { "${it.key} -> ${it.value}" },
                     ),
                 )
             }
-            if (deleted.isNotEmpty()) {
+            if (result.diff.deleted.isNotEmpty()) {
                 add(
                     StringOrRes.ResWithParams(
                         Res.string.group_deleted,
-                        deleted.joinToString("\n"),
+                        result.diff.deleted.joinToString("\n"),
                     ),
                 )
             }
-            if (duplicate.isNotEmpty()) {
+            if (result.diff.duplicate.isNotEmpty()) {
                 add(
                     StringOrRes.ResWithParams(
                         Res.string.group_duplicate,
-                        duplicate.joinToString("\n"),
+                        result.diff.duplicate.joinToString("\n"),
                     ),
                 )
             }
@@ -375,28 +413,30 @@ class MainViewModel(
         _uiEvent.emit(
             alertDialog(
                 message = StringOrRes.Compound(parts),
-                title = StringOrRes.ResWithParams(Res.string.group_diff, group.displayName()),
+                title = StringOrRes.ResWithParams(Res.string.group_diff, result.group.displayName()),
             ),
         )
     }
 
-    override suspend fun onUpdateWarning(group: String, error: String) {
-        _uiEvent.emit(
-            MainViewModelUiEvent.Snackbar(
-                StringOrRes.Compound(
-                    parts = listOf(
-                        StringOrRes.Direct(group),
-                        StringOrRes.ResWithParams(Res.string.force_resolve_error, error),
+    private suspend fun presentGroupUpdateWarnings(warnings: List<GroupUpdateWarning>) {
+        for (warning in warnings) {
+            _uiEvent.emit(
+                MainViewModelUiEvent.Snackbar(
+                    StringOrRes.Compound(
+                        parts = listOf(
+                            StringOrRes.Direct(warning.group),
+                            StringOrRes.Direct(warning.message),
+                        ),
+                        separator = ": ",
                     ),
-                    separator = ": ",
                 ),
-            ),
-        )
+            )
+        }
     }
+}
 
-    override suspend fun onUpdateFailure(group: ProxyGroup, message: String) {
-        _uiEvent.emit(
-            alertDialog(StringOrRes.Direct("${group.name}: $message")),
-        )
-    }
+private fun GroupUpdateResult.warningsOrEmpty(): List<GroupUpdateWarning> = when (this) {
+    is GroupUpdateResult.Success -> warnings
+    is GroupUpdateResult.Failure -> warnings
+    else -> emptyList()
 }

@@ -8,25 +8,6 @@ import kotlinx.coroutines.flow.first
 
 object GroupManager {
 
-    interface Interface {
-        suspend fun confirm(message: String): Boolean
-        suspend fun alert(message: String)
-        suspend fun onUpdateSuccess(
-            group: ProxyGroup,
-            changed: Int,
-            added: List<String>,
-            updated: Map<String, String>,
-            deleted: List<String>,
-            duplicate: List<String>,
-            byUser: Boolean,
-        )
-
-        suspend fun onUpdateWarning(group: String, error: String)
-        suspend fun onUpdateFailure(group: ProxyGroup, message: String)
-    }
-
-    var userInterface: Interface? = null
-
     suspend fun clearGroup(groupId: Long) {
         DataStore.selectedProxy = 0L
         SagerDatabase.proxyDao.deleteAll(groupId)

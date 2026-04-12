@@ -5,7 +5,6 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ernestoyaquello.dragdropswipelazycolumn.OrderedItem
-import fr.husi.GroupType
 import fr.husi.database.GroupManager
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
@@ -188,18 +187,6 @@ class GroupScreenViewModel : ViewModel() {
         onIoDispatcher {
             GroupManager.deleteGroup(toDelete)
         }
-    }
-
-    fun doUpdate(group: ProxyGroup) {
-        GroupUpdater.startUpdate(group, true)
-    }
-
-    fun doUpdateAll() = runOnDefaultDispatcher {
-        SagerDatabase.groupDao.allGroups().first()
-            .filter { it.type == GroupType.SUBSCRIPTION }
-            .forEach { group ->
-                GroupUpdater.startUpdate(group, true)
-            }
     }
 
     fun clearGroup(id: Long) = runOnIoDispatcher {

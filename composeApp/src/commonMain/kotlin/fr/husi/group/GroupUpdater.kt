@@ -4,7 +4,6 @@ import fr.husi.Key
 import fr.husi.SubscriptionType
 import fr.husi.bg.resolveByDefaultNetwork
 import fr.husi.database.DataStore
-import fr.husi.database.GroupManager
 import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
@@ -19,13 +18,12 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
-import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
+import fr.husi.resources.force_resolve_error
 import fr.husi.resources.update_subscription_warning
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,14 +33,54 @@ import kotlinx.coroutines.launch
 import java.net.Inet4Address
 import java.net.InetAddress
 
+data class GroupUpdateWarning(
+    val group: String,
+    val message: String,
+)
+
+data class GroupUpdateDiff(
+    val changed: Int,
+    val added: List<String>,
+    val updated: Map<String, String>,
+    val deleted: List<String>,
+    val duplicate: List<String>,
+)
+
+sealed interface GroupUpdateResult {
+    val group: ProxyGroup
+
+    data class AlreadyUpdating(
+        override val group: ProxyGroup,
+    ) : GroupUpdateResult
+
+    data class ConfirmRequired(
+        override val group: ProxyGroup,
+        val message: String,
+    ) : GroupUpdateResult
+
+    data class Success(
+        override val group: ProxyGroup,
+        val diff: GroupUpdateDiff,
+        val warnings: List<GroupUpdateWarning>,
+        val byUser: Boolean,
+    ) : GroupUpdateResult
+
+    data class Failure(
+        override val group: ProxyGroup,
+        val message: String,
+        val warnings: List<GroupUpdateWarning>,
+        val byUser: Boolean,
+    ) : GroupUpdateResult
+}
+
 abstract class GroupUpdater {
 
     abstract suspend fun doUpdate(
         proxyGroup: ProxyGroup,
         subscription: SubscriptionBean,
-        userInterface: GroupManager.Interface?,
         byUser: Boolean,
-    )
+        warnings: MutableList<GroupUpdateWarning>,
+    ): GroupUpdateResult.Success
 
     private suspend fun forceResolve(profiles: List<AbstractBean>) = coroutineScope {
         val networkStrategy = DataStore.networkStrategy
@@ -106,9 +144,9 @@ abstract class GroupUpdater {
         proxies: List<AbstractBean>,
         subscription: SubscriptionBean,
         proxyGroup: ProxyGroup,
-        userInterface: GroupManager.Interface?,
         byUser: Boolean,
-    ) {
+        warnings: MutableList<GroupUpdateWarning>,
+    ): GroupUpdateResult.Success {
         var newProxies = if (subscription.filterNotRegex.isNotBlank()) {
             val regex = subscription.filterNotRegex.toRegex()
             proxies.filterNot { regex.containsMatchIn(it.name) }
@@ -137,7 +175,10 @@ abstract class GroupUpdater {
                 throw e
             } catch (e: Exception) {
                 Logs.w(e)
-                userInterface?.onUpdateWarning(proxyGroup.displayName(), e.readableMessage)
+                warnings += GroupUpdateWarning(
+                    proxyGroup.displayName(),
+                    resolveRepository().getString(Res.string.force_resolve_error, e.readableMessage),
+                )
             }
         }
 
@@ -250,10 +291,18 @@ abstract class GroupUpdater {
 
         subscription.lastUpdated = (System.currentTimeMillis() / 1000).toInt()
         SagerDatabase.groupDao.updateGroup(proxyGroup)
-        finishUpdate(proxyGroup)
 
-        userInterface?.onUpdateSuccess(
-            proxyGroup, changed, added, updated, deleted, duplicate, byUser,
+        return GroupUpdateResult.Success(
+            group = proxyGroup,
+            diff = GroupUpdateDiff(
+                changed = changed,
+                added = added,
+                updated = updated,
+                deleted = deleted,
+                duplicate = duplicate,
+            ),
+            warnings = warnings.toList(),
+            byUser = byUser,
         )
     }
 
@@ -262,54 +311,59 @@ abstract class GroupUpdater {
         private val _updatingGroups = MutableStateFlow<Set<Long>>(emptySet())
         val updatingGroups = _updatingGroups.asStateFlow()
 
-        fun startUpdate(proxyGroup: ProxyGroup, byUser: Boolean) {
-            runOnDefaultDispatcher {
-                executeUpdate(proxyGroup, byUser)
-            }
-        }
-
         suspend fun executeUpdate(
             proxyGroup: ProxyGroup,
             byUser: Boolean,
-        ): Boolean {
-            return coroutineScope {
-                var added = false
-                _updatingGroups.update { current ->
-                    if (proxyGroup.id !in current) {
-                        added = true
-                        current + proxyGroup.id
-                    } else {
-                        current
-                    }
+            allowDisconnectedUpdate: Boolean = false,
+        ): GroupUpdateResult {
+            var added = false
+            _updatingGroups.update { current ->
+                if (proxyGroup.id !in current) {
+                    added = true
+                    current + proxyGroup.id
+                } else {
+                    current
                 }
-                if (!added) cancel()
+            }
+            if (!added) return GroupUpdateResult.AlreadyUpdating(proxyGroup)
 
+            try {
                 val subscription = proxyGroup.subscription!!
                 val connected = DataStore.serviceState.connected
-                val userInterface = GroupManager.userInterface
-
-                if (byUser && subscription.link.startsWith("http://") && subscription.updateWhenConnectedOnly && !connected) {
-                    if (userInterface == null || !userInterface.confirm(resolveRepository().getString(Res.string.update_subscription_warning))) {
-                        finishUpdate(proxyGroup)
-                        cancel()
-                        return@coroutineScope true
-                    }
+                if (
+                    byUser &&
+                    subscription.link.startsWith("http://") &&
+                    subscription.updateWhenConnectedOnly &&
+                    !connected &&
+                    !allowDisconnectedUpdate
+                ) {
+                    return GroupUpdateResult.ConfirmRequired(
+                        group = proxyGroup,
+                        message = resolveRepository().getString(Res.string.update_subscription_warning),
+                    )
                 }
 
-                try {
+                val warnings = mutableListOf<GroupUpdateWarning>()
+                return try {
                     when (subscription.type) {
                         SubscriptionType.RAW -> RawUpdater
                         SubscriptionType.OOCv1 -> OpenOnlineConfigUpdater
                         SubscriptionType.SIP008 -> SIP008Updater
                         else -> throw IllegalArgumentException()
-                    }.doUpdate(proxyGroup, subscription, userInterface, byUser)
-                    true
+                    }.doUpdate(proxyGroup, subscription, byUser, warnings)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Throwable) {
                     Logs.w(e)
-                    userInterface?.onUpdateFailure(proxyGroup, e.readableMessage)
-                    finishUpdate(proxyGroup)
-                    false
+                    GroupUpdateResult.Failure(
+                        group = proxyGroup,
+                        message = e.readableMessage,
+                        warnings = warnings.toList(),
+                        byUser = byUser,
+                    )
                 }
+            } finally {
+                finishUpdate(proxyGroup)
             }
         }
 
