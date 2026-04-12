@@ -2,21 +2,43 @@ package fr.husi.fmt.shadowquic
 
 import fr.husi.database.DataStore
 import fr.husi.fmt.LOCALHOST4
+import fr.husi.ktx.JSONMap
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
+import java.io.File
 
 private const val BITS_PER_MEGABIT = 1_000_000L
 
 fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logLevel: Int): String {
+    return buildShadowQUICConfig(port, shouldProtect, logLevel, null)
+}
+
+fun ShadowQUICBean.buildShadowQUICConfig(
+    port: Int,
+    shouldProtect: Boolean,
+    logLevel: Int,
+    cacheFile: ((type: String) -> File)?,
+): String {
     val paths = if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
         extraPaths.lines().filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }
     } else {
         null
     }
-    return buildMap<String, Any?> {
+    val certPath = if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SUNNY_QUIC) {
+        cacheFile?.let {
+            certificates.blankAsNull()?.let { certs ->
+                val certFile = cacheFile("cert.pem")
+                certFile.writeText(certs)
+                certFile.absolutePath
+            }
+        }
+    } else {
+        null
+    }
+    val config: JSONMap = buildMap<String, Any?> {
         put(
             "inbound",
             buildMap<String, Any?> {
@@ -26,7 +48,7 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
         )
         put(
             "outbound",
-            buildMap {
+            buildMap<String, Any?> {
                 put(
                     "type",
                     if (subProtocol == ShadowQUICBean.SUB_PROTOCOL_SHADOW_QUIC) "shadowquic" else "sunnyquic",
@@ -41,7 +63,8 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
                 put("congestion-control", buildCongestionControl())
                 put("keep-alive-interval", keepAliveInterval.takeIf { it > 0 })
                 put("extra-paths", paths)
-                put("max-paths", paths?.let { maxPaths.coerceIn(0, it.size).takeIf { it > 0 } })
+                put("max-path-num", paths?.let { maxPaths.coerceIn(0, it.size).takeIf { it > 0 } })
+                put("cert-path", certPath)
                 put("zero-rtt", zeroRTT.takeIf { it })
                 put("over-stream", udpOverStream.takeIf { it })
                 put("mtu-discovery", this@buildShadowQUICConfig.mtuDiscovery.takeIf { it })
@@ -56,7 +79,8 @@ fun ShadowQUICBean.buildShadowQUICConfig(port: Int, shouldProtect: Boolean, logL
                 else -> logLevelString(logLevel)
             },
         )
-    }.toJsonStringKxs()
+    }.toMutableMap()
+    return config.toJsonStringKxs()
 }
 
 private fun ShadowQUICBean.buildCongestionControl(): Any? {

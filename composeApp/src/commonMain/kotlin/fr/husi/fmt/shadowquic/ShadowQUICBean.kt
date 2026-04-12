@@ -44,9 +44,10 @@ class ShadowQUICBean : AbstractBean() {
     // Sunny QUIC
     var extraPaths: String = ""
     var maxPaths: Int = 0
+    var certificates: String = ""
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(2)
+        output.writeInt(3)
         super.serialize(output)
         output.writeString(password)
         output.writeString(username)
@@ -67,6 +68,9 @@ class ShadowQUICBean : AbstractBean() {
         output.writeBoolean(mtuDiscovery)
         output.writeString(extraPaths)
         output.writeInt(maxPaths)
+
+        // version 3
+        output.writeString(certificates)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -93,6 +97,10 @@ class ShadowQUICBean : AbstractBean() {
             extraPaths = input.readString()
             maxPaths = input.readInt()
         }
+
+        if (version >= 3) {
+            certificates = input.readString()
+        }
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
@@ -106,6 +114,13 @@ class ShadowQUICBean : AbstractBean() {
         other.congestionControl = congestionControl
         other.zeroRTT = zeroRTT
         other.udpOverStream = udpOverStream
+        other.gso = gso
+        other.keepAliveInterval = keepAliveInterval
+        other.mtuDiscovery = mtuDiscovery
+        other.subProtocol = subProtocol
+        other.extraPaths = extraPaths
+        other.maxPaths = maxPaths
+        other.certificates = certificates
     }
 
     override fun clone(): AbstractBean {

@@ -61,7 +61,12 @@ fun initPlugins(
                 is ShadowQUICBean -> {
                     PluginManager.init("shadowquic-plugin")
                     pluginConfigs[port] =
-                        profile.type to bean.buildShadowQUICConfig(port, isVPN, logLevel)
+                        profile.type to bean.buildShadowQUICConfig(port, isVPN, logLevel) { type ->
+                            File(repository.cacheDir, "shadowquic_${System.currentTimeMillis()}.$type").also {
+                                it.parentFile?.mkdirs()
+                                cacheFiles.add(it)
+                            }
+                        }
                 }
             }
         }

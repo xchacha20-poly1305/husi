@@ -31,6 +31,7 @@ internal data class ShadowQUICUiState(
 
     val extraPaths: String = "",
     val maxPaths: Int = 0,
+    val certificates: String = "",
 ) : ProfileEditorUiState
 
 @Stable
@@ -64,6 +65,7 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
 
                 extraPaths = extraPaths,
                 maxPaths = maxPaths.coerceIn(0, extraPaths.lines().count { path -> path.isNotBlank() }),
+                certificates = certificates,
             )
         }
     }
@@ -91,6 +93,7 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
 
         extraPaths = state.extraPaths
         maxPaths = state.maxPaths
+        certificates = state.certificates
     }
 
     override fun setCustomConfig(config: String) {
@@ -187,5 +190,9 @@ internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBe
                 ),
             )
         }
+    }
+
+    fun setCertificates(certificates: String) {
+        _uiState.update { it.copy(certificates = certificates) }
     }
 }

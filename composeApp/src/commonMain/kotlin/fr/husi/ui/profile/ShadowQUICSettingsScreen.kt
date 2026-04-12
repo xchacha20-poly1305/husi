@@ -22,6 +22,7 @@ import fr.husi.resources.action_shadowquic
 import fr.husi.resources.action_sunnyquic
 import fr.husi.resources.alpn
 import fr.husi.resources.brightness_4
+import fr.husi.resources.certificates
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
 import fr.husi.resources.developer_board
@@ -309,6 +310,20 @@ private fun LazyListScope.shadowQuicSettings(
                 textToValue = { it },
                 icon = { Icon(vectorResource(Res.drawable.grid_on), null) },
                 summary = { Text(contentOrUnset(uiState.extraPaths)) },
+                valueToText = { it },
+                textField = { value, onValueChange, onOk ->
+                    MultilineTextField(value, onValueChange, onOk)
+                },
+            )
+        }
+        item("certificates") {
+            TextFieldPreference(
+                value = uiState.certificates,
+                onValueChange = { viewModel.setCertificates(it) },
+                title = { Text(stringResource(Res.string.certificates)) },
+                textToValue = { it },
+                icon = { Icon(vectorResource(Res.drawable.copyright), null) },
+                summary = { Text(contentOrUnset(uiState.certificates)) },
                 valueToText = { it },
                 textField = { value, onValueChange, onOk ->
                     MultilineTextField(value, onValueChange, onOk)
