@@ -38,6 +38,9 @@ See [README](./README.md)
 - **Pride in explicit planning, shame in silent mutation.** Before starting any substantial work,
   you must first state a clear plan/scope. Do not silently fetch, edit, or refactor files without
   announcing intent.
+- **Pride in reuse build cache, shame in use temporary directory to bypass sandbox**. Never use
+  temporary directory when build failed due to the sandbox limitation. I will panic if you ignore the
+  existing build cache / package cache.
 
 # Technical best practices
 
@@ -46,8 +49,6 @@ See [README](./README.md)
 - **AGP 9+ blocks `org.jetbrains.kotlin.multiplatform` with `com.android.application`/`com.android.library`
   in the same module.** Use a separate Android app shell module; KMP module should use
   `com.android.kotlin.multiplatform.library`.
-- **`android.builtInKotlin=false` and `android.newDsl=false` are deprecated bypass flags.** The default
-  is `true`, and these flags are planned for removal in AGP 10. Do not rely on them as architecture.
 - **`platform(notation: Any)`/`enforcedPlatform(notation: Any)` on Kotlin dependency handlers are
   deprecated (scheduled removal in Kotlin 2.3).** Prefer `project.dependencies.platform(...)` or
   `project.dependencies.enforcedPlatform(...)`.

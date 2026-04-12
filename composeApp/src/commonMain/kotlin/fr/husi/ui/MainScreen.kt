@@ -40,7 +40,8 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
-import fr.husi.compose.MainViewModelAlertDialog
+import fr.husi.compose.ScrollableDialog
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.DrawerItem
 import fr.husi.compose.material3.Icon
@@ -484,21 +485,6 @@ private fun MainScreenContent(
         }
     }
 
-    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
-
-                else -> {}
-            }
-        }
-    }
-    showAlertDialog?.let { dialog ->
-        MainViewModelAlertDialog(dialog) {
-            showAlertDialog = null
-        }
-    }
 }
 
 @Immutable
@@ -538,4 +524,45 @@ private fun NavRoutes?.matchesRoute(
 ): Boolean {
     val current = this ?: return false
     return current::class == route::class
+}
+
+@Composable
+fun MainViewModelAlertDialog(
+    dialog: MainViewModelUiEvent.AlertDialog,
+    onConsumed: () -> Unit,
+) {
+    ScrollableDialog(
+        onDismissRequest = {
+            dialog.onDismiss?.invoke()
+            onConsumed()
+        },
+        confirmButton = {
+            TextButton(stringOrRes(dialog.confirmButton.label)) {
+                dialog.confirmButton.onClick()
+                onConsumed()
+            }
+        },
+        dismissButton = dialog.dismissButton?.let { button ->
+            {
+                TextButton(stringOrRes(button.label)) {
+                    button.onClick()
+                    onConsumed()
+                }
+            }
+        },
+        icon = {
+            Icon(
+                vectorResource(
+                    if (dialog.dismissButton != null) {
+                        Res.drawable.question_mark
+                    } else {
+                        Res.drawable.error
+                    },
+                ),
+                null,
+            )
+        },
+        title = { Text(stringOrRes(dialog.title)) },
+        text = { Text(stringOrRes(dialog.message)) },
+    )
 }

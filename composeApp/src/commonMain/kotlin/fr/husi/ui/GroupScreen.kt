@@ -60,6 +60,7 @@ import fr.husi.GroupType
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
@@ -166,6 +167,7 @@ fun GroupScreen(
     var showUpdateAll by remember { mutableStateOf(false) }
     var qrDialogData by remember { mutableStateOf<Pair<String, String>?>(null) } // url:name
     var clearGroupConfirm by remember { mutableStateOf<Long?>(null) }
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.hiddenGroups) {
@@ -437,11 +439,16 @@ fun GroupScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
         }
     }
 
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

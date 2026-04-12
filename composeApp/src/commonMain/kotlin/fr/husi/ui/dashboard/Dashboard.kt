@@ -76,6 +76,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.TrafficSortMode
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleIconButton
@@ -103,6 +104,7 @@ fun DashboardScreen(
 ) {
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
     val loadPlatformNetworkInfo = rememberLoadPlatformNetworkInfo()
 
     val pagerState = rememberPagerState(
@@ -577,9 +579,15 @@ fun DashboardScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
 
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 }

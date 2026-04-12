@@ -32,8 +32,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -45,6 +47,7 @@ import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
@@ -89,6 +92,7 @@ fun PluginScreen(
     val scrollHideVisible by rememberScrollHideState(listState)
     val uriHandler = LocalUriHandler.current
     val openPluginCard = rememberOpenPluginCard()
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val isExpert by DataStore.configurationStore
         .booleanFlow(Key.APP_EXPERT, false)
@@ -198,8 +202,14 @@ fun PluginScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 }

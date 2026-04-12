@@ -75,6 +75,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SheetActionRow
@@ -127,6 +128,7 @@ fun LogcatScreen(
 
     var expandMenu by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val queryLowerCase = uiState.searchQuery?.lowercase()
     LaunchedEffect(listState) {
@@ -419,8 +421,14 @@ fun LogcatScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 

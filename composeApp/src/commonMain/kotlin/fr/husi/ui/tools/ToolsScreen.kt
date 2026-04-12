@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.StatsBar
@@ -66,6 +67,7 @@ fun ToolsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val isExpert by DataStore.configurationStore
         .booleanFlow(Key.APP_EXPERT, false)
@@ -240,8 +242,14 @@ fun ToolsScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 }

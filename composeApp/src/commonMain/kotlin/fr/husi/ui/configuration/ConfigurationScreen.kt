@@ -83,7 +83,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.ExpandableDropdownMenuItem
-import fr.husi.compose.MainViewModelAlertDialog
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab

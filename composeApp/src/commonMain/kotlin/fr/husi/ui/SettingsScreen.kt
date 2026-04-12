@@ -67,6 +67,7 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.HostTextField
 import fr.husi.compose.LinkOrContentTextField
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.PortTextField
@@ -256,6 +257,7 @@ fun SettingsScreen(
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
     val applyNightMode = rememberApplyNightMode()
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     LaunchedEffect(Unit) {
         onIoDispatcher {
@@ -1681,8 +1683,14 @@ fun SettingsScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 }

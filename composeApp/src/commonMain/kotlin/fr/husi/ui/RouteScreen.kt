@@ -67,6 +67,7 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import androidx.compose.foundation.layout.fillMaxHeight
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.PlatformMenuIcon
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SagerFab
@@ -148,6 +149,7 @@ fun RouteScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showMoreAction by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     fun needReload() = scope.launch {
         if (!DataStore.serviceState.started) return@launch
@@ -418,8 +420,14 @@ fun RouteScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 }

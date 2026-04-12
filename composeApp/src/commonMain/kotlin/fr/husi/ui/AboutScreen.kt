@@ -32,8 +32,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -53,6 +55,7 @@ import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.ui.MainViewModelAlertDialog
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
@@ -81,6 +84,7 @@ fun AboutScreen(
     val snackbarState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
 
     val displayVersion = remember { "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})" }
     val releaseLink = remember {
@@ -316,8 +320,14 @@ fun AboutScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
+        }
+    }
+
+    showAlertDialog?.let { dialog ->
+        MainViewModelAlertDialog(dialog) {
+            showAlertDialog = null
         }
     }
 }
