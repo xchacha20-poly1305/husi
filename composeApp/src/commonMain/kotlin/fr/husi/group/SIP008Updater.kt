@@ -93,7 +93,7 @@ object SIP008Updater : GroupUpdater() {
         } else {
 
             val response = Libcore.newHttpClient().apply {
-                if (DataStore.serviceState.started) {
+                if (DataStore.serviceState.connected) {
                     useSocks5(
                         DataStore.mixedPort,
                         DataStore.inboundUsername,

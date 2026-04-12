@@ -118,7 +118,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
         try {
             Libcore.newHttpClient()
                 .apply {
-                    if (DataStore.serviceState.started) {
+                    if (DataStore.serviceState.connected) {
                         useSocks5(
                             DataStore.mixedPort,
                             DataStore.inboundUsername,
@@ -157,7 +157,7 @@ internal class SpeedTestScreenViewModel : ViewModel() {
         try {
             Libcore.newHttpClient()
                 .apply {
-                    if (DataStore.serviceState.started) {
+                    if (DataStore.serviceState.connected) {
                         useSocks5(
                             DataStore.mixedPort,
                             DataStore.inboundUsername,

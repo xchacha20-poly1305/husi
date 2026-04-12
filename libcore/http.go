@@ -106,13 +106,18 @@ type httpClient struct {
 	transport http.Transport
 }
 
+func (c *httpClient) setTimeout(timeout time.Duration) {
+	c.client.Timeout = timeout
+	c.transport.TLSHandshakeTimeout = timeout
+}
+
 // NewHttpClient returns the basic HTTPClient.
 func NewHttpClient() HTTPClient {
 	client := new(httpClient)
 	client.client.Transport = &client.transport
-	client.transport.TLSHandshakeTimeout = C.TCPTimeout
 	client.transport.TLSClientConfig = &client.tls
 	client.transport.DisableKeepAlives = true
+	client.setTimeout(C.TCPTimeout)
 	return client
 }
 
@@ -247,7 +252,7 @@ func (r *httpRequest) SetContentZero(n int64, callback CopyCallback) {
 }
 
 func (r *httpRequest) SetTimeout(timeout int32) {
-	r.client.Timeout = time.Duration(timeout) * time.Millisecond
+	r.httpClient.setTimeout(time.Duration(timeout) * time.Millisecond)
 }
 
 func (r *httpRequest) Execute() (HTTPResponse, error) {

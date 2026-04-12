@@ -95,7 +95,7 @@ internal suspend fun updateSingleRouteAsset(
 
     Libcore.newHttpClient().apply {
         keepAlive()
-        if (DataStore.serviceState.started) {
+        if (DataStore.serviceState.connected) {
             useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
         }
     }.newRequest().apply {
@@ -220,7 +220,7 @@ internal abstract class AssetsUpdater(
 ) {
     private val httpClient = Libcore.newHttpClient().apply {
         keepAlive()
-        if (DataStore.serviceState.started) {
+        if (DataStore.serviceState.connected) {
             useSocks5(DataStore.mixedPort, DataStore.inboundUsername, DataStore.inboundPassword)
         }
     }

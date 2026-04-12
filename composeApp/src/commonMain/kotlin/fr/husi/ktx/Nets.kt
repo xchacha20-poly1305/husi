@@ -36,7 +36,7 @@ fun URL.parseBoolean(key: String): Boolean = when (queryParameter(key).lowercase
     else -> false
 }
 
-fun currentSocks5(): URL? = if (!DataStore.serviceState.started) {
+fun currentSocks5(): URL? = if (!DataStore.serviceState.connected) {
     null
 } else {
     Libcore.newURL("socks5").apply {
