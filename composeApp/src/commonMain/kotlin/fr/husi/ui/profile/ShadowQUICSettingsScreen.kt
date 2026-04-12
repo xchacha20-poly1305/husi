@@ -2,8 +2,6 @@ package fr.husi.ui.profile
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -15,6 +13,8 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
@@ -96,6 +96,13 @@ private fun LazyListScope.shadowQuicSettings(
     uiState: ShadowQUICUiState,
     viewModel: ShadowQUICSettingsViewModel,
 ) {
+    val congestionControls = listOf(
+        "bbr",
+        "cubic",
+        "new-reno",
+        ShadowQUICBean.CONGESTION_CONTROL_BRUTAL,
+    )
+
     item("name") {
         TextFieldPreference(
             value = uiState.name,

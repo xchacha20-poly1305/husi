@@ -13,6 +13,8 @@ class ShadowQUICBean : AbstractBean() {
         const val SUB_PROTOCOL_SHADOW_QUIC = 0
         const val SUB_PROTOCOL_SUNNY_QUIC = 1
 
+        const val CONGESTION_CONTROL_BRUTAL = "brutal"
+
         @JvmField
         val CREATOR = object : CREATOR<ShadowQUICBean>() {
             override fun newInstance(): ShadowQUICBean {
@@ -76,7 +78,7 @@ class ShadowQUICBean : AbstractBean() {
         alpn = input.readString()
         initialMTU = input.readInt()
         minimumMTU = input.readInt()
-        congestionControl = input.readString()
+        congestionControl = input.readString().replace("_", "-") // Fix invalid old value `new_reno`
         zeroRTT = input.readBoolean()
         udpOverStream = input.readBoolean()
 
