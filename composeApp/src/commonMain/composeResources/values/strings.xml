@@ -757,4 +757,5 @@
     <string name="tun_auto_redirect">Tun auto redirect</string>
     <string name="no_plugin_found">No plugin found!</string>
     <string name="traffic_pattern">Traffic Pattern</string>
+    <string name="route_invert">Invert Match</string>
 </resources>

@@ -20,6 +20,7 @@ data class RuleEntity(
     var name: String = "",
     var userOrder: Long = 0L,
     var enabled: Boolean = false,
+    @ColumnInfo(defaultValue = "0") var invert: Boolean = false,
 
     // common rules
     var domains: String = "",

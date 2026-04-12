@@ -22,11 +22,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,9 +32,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
@@ -56,6 +54,8 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.withNavigation
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
@@ -118,6 +118,7 @@ import fr.husi.resources.question_mark
 import fr.husi.resources.route_action
 import fr.husi.resources.route_block
 import fr.husi.resources.route_bypass
+import fr.husi.resources.route_invert
 import fr.husi.resources.route_name
 import fr.husi.resources.route_options
 import fr.husi.resources.route_proxy
@@ -154,6 +155,7 @@ import java.io.File
 import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
+
 // If too big, the performance is low and no one will check it patiently.
 private const val RULE_SET_SUGGESTION_LIMIT = 64
 
@@ -258,7 +260,18 @@ internal fun RouteSettingsScreen(
                             onDismissRequest = { showExpandedMenu = false },
                         ) {
                             DropdownMenuGroup(
-                                shapes = MenuDefaults.groupShape(0, 2),
+                                shapes = MenuDefaults.groupShape(0, 3),
+                            ) {
+                                DropdownMenuItem(
+                                    checked = uiState.invert,
+                                    onCheckedChange = viewModel::setInvert,
+                                    text = { Text(stringResource(Res.string.route_invert)) },
+                                    shapes = MenuDefaults.itemShapes(),
+                                )
+                            }
+                            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                            DropdownMenuGroup(
+                                shapes = MenuDefaults.groupShape(1, 3),
                             ) {
                                 DropdownMenuItem(
                                     text = {
@@ -298,7 +311,7 @@ internal fun RouteSettingsScreen(
                             }
                             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
                             DropdownMenuGroup(
-                                shapes = MenuDefaults.groupShape(1, 2),
+                                shapes = MenuDefaults.groupShape(2, 3),
                             ) {
                                 DropdownMenuItem(
                                     selected = uiState.dnsOnly,

@@ -702,6 +702,9 @@ fun buildConfig(
 
             val ruleObj = Rule_Default().apply {
                 action = SingBoxOptions.ACTION_ROUTE
+                if (rule.invert) {
+                    invert = true
+                }
                 if (packageNames.isNotEmpty()) {
                     package_name = packageNames.toMutableList()
                 }
@@ -799,6 +802,9 @@ fun buildConfig(
                 fun DNSRule_Default.applyDnsBase(
                     useFakeQueryScope: Boolean = false,
                 ): DNSRule_Default {
+                    if (rule.invert) {
+                        invert = true
+                    }
                     if (packageNames.isNotEmpty()) package_name = packageNames.toMutableList()
                     rule.packageNameRegex.blankAsNull()?.let {
                         package_name_regex = mutableListOf(it)

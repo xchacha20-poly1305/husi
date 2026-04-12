@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
 @Immutable
 data class RouteSettingsUiState(
     val name: String = "",
+    val invert: Boolean = false,
     val action: String = "",
 
     val domains: String = "",
@@ -139,6 +140,7 @@ internal class RouteSettingsViewModel(
         _uiState.update { state ->
             state.copy(
                 name = entity.name,
+                invert = entity.invert,
                 action = entity.action,
 
                 domains = entity.domains,
@@ -185,6 +187,7 @@ internal class RouteSettingsViewModel(
 
     private fun RuleEntity.loadFromUiState(state: RouteSettingsUiState) {
         name = state.name
+        invert = state.invert
         action = state.action
 
         domains = state.domains
@@ -251,6 +254,10 @@ internal class RouteSettingsViewModel(
 
     fun setName(name: String) = viewModelScope.launch {
         _uiState.update { it.copy(name = name) }
+    }
+
+    fun setInvert(invert: Boolean) = viewModelScope.launch {
+        _uiState.update { it.copy(invert = invert) }
     }
 
     fun setAction(action: String) = viewModelScope.launch {
