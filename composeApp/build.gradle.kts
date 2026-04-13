@@ -116,6 +116,16 @@ data class DesktopTarget(
         setOf(
             "com/sun/jna/${platform.jnaName}-${arch.jnaName}/",
         )
+    val skikoNativeKeepEntries: Set<String> =
+        buildSet {
+            val baseName = "skiko-${platform.composeDependencyId}-${arch.composeDependencyId}"
+            add("$baseName.dll")
+            add("$baseName.dll.sha256")
+            add("lib$baseName.so")
+            add("lib$baseName.so.sha256")
+            add("lib$baseName.dylib")
+            add("lib$baseName.dylib.sha256")
+        }
 
     override fun toString(): String = id
 
@@ -392,6 +402,7 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
 
         val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
         val jnaNativeKeepPrefixes = desktopTarget.jnaNativeKeepPrefixes
+        val skikoNativeKeepEntries = desktopTarget.skikoNativeKeepEntries
         val targetJarName =
             "$desktopPackageName-${desktopTarget.platform.id}-${desktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
         val targetJar = layout.buildDirectory.file("compose/jars/$targetJarName")
@@ -412,6 +423,12 @@ tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
                         entryPath.endsWith(".jnilib") ||
                         entryPath.endsWith(".a"))
             if (isJnaNativeBinary && jnaNativeKeepPrefixes.none(entryPath::startsWith)) {
+                exclude()
+                return@eachFile
+            }
+
+            val fileName = entryPath.substringAfterLast('/')
+            if (fileName.contains("skiko-", ignoreCase = false) && fileName !in skikoNativeKeepEntries) {
                 exclude()
             }
         }
