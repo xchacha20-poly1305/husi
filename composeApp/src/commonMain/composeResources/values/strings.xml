@@ -332,7 +332,7 @@
     <string name="leastPing" translatable="false">Ping</string>
     <string name="probe_interval">Balancer observation interval</string>
     <string name="standard">Standard</string>
-    <string name="available" translatable="false">%1$dms</string>
+    <string name="available" translatable="false">%1$d ms</string>
     <string name="unavailable">Unavailable</string>
     <string name="always_show_address">Always Show Address</string>
     <string name="always_show_address_sum">Always display the server address on the configuration card</string>
@@ -470,6 +470,11 @@
     <string name="stun_attest_loading">This may take a few minutes…</string>
     <string name="nat_stun_server_hint">STUN server</string>
     <string name="nat_result_hint">NAT check result</string>
+    <string name="nat_external_address">External address</string>
+    <string name="nat_mapping">NAT Mapping</string>
+    <string name="nat_filtering">NAT Filtering</string>
+    <string name="nat_type_detection">NAT Type Detection</string>
+    <string name="nat_type_not_supported">Not supported by the server</string>
     <string name="tools_network">Network</string>
     <string name="mtu" translatable="false">MTU</string>
     <string name="backup">Backup</string>
@@ -758,4 +763,5 @@
     <string name="no_plugin_found">No plugin found!</string>
     <string name="traffic_pattern">Traffic Pattern</string>
     <string name="route_invert">Invert Match</string>
+    <string name="latency">Latency</string>
 </resources>

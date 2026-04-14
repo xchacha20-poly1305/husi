@@ -4,12 +4,18 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.husi.BuildConfig
+import fr.husi.ktx.Logs
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.currentSocks5
-import fr.husi.libcore.Libcore
+import fr.husi.ktx.onIoDispatcher
+import fr.husi.libcore.STUNTestHandler
+import fr.husi.libcore.STUNTestReport
+import fr.husi.libcore.StunTester
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -18,46 +24,112 @@ internal data class StunScreenUiState(
     val server: String = "stun.voipgate.com:3478",
     val proxy: String = "",
     val isDoing: Boolean = false,
-    val result: String = "",
+    val report: StunReport? = null,
 )
+
+@Immutable
+internal data class StunReport(
+    val externalAddress: String? = null,
+    val latencyMs: Int? = null,
+    val natMapping: Int = 0,
+    val natFiltering: Int = 0,
+    val natTypeUnsupported: Boolean = true,
+)
+
+@Immutable
+internal sealed interface StunScreenUiEvent {
+    data class Alert(val message: String) : StunScreenUiEvent
+}
 
 @Stable
 internal class StunScreenViewModel : ViewModel() {
 
-    companion object {
-        private const val STUN_SOFTWARE_NAME = "husi ${BuildConfig.VERSION_NAME}"
-    }
-
-    private val _uiState = MutableStateFlow(StunScreenUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<StunScreenUiState>
+        field = MutableStateFlow(StunScreenUiState())
+    val uiEvent: SharedFlow<StunScreenUiEvent>
+        field = MutableSharedFlow()
+    private val tester = StunTester()
 
     init {
         initialize()
     }
 
+    override fun onCleared() {
+        tester.cancel()
+        super.onCleared()
+    }
+
     fun initialize() {
-        _uiState.update {
+        uiState.update {
             it.copy(proxy = currentSocks5()?.string.orEmpty())
         }
     }
 
     fun doTest() = viewModelScope.launch(Dispatchers.IO) {
-        val uiState = _uiState.value
-        _uiState.update { it.copy(isDoing = true) }
-        val result = Libcore.stunTest(uiState.server, uiState.proxy, STUN_SOFTWARE_NAME)
-        _uiState.update {
-            it.copy(
-                isDoing = false,
-                result = result,
-            )
+        var server = ""
+        var proxy = ""
+        uiState.update { state ->
+            state.copy(
+                isDoing = true,
+                report = StunReport(),
+            ).also {
+                server = it.server
+                proxy = it.proxy
+            }
+        }
+        tester.start(server, proxy, handler)
+    }
+
+    private val handler = object : STUNTestHandler {
+        override fun onError(message: String) {
+            tester.cancel()
+            uiState.update { state ->
+                val report = state.report
+                state.copy(
+                    isDoing = false,
+                    report = report?.copy(
+                        externalAddress = report.externalAddress ?: "-",
+                        latencyMs = report.latencyMs ?: -1,
+                    ),
+                )
+            }
+            viewModelScope.launch {
+                uiEvent.emit(StunScreenUiEvent.Alert(message))
+                onIoDispatcher {
+                    Logs.e(message)
+                }
+            }
+        }
+
+        override fun onReport(report: STUNTestReport, done: Boolean) {
+            if (done) {
+                tester.cancel()
+            }
+            uiState.update { state ->
+                state.copy(
+                    isDoing = !done,
+                    report = StunReport(
+                        externalAddress = report.externalAddr.blankAsNull(),
+                        latencyMs = report.latencyMs.takeIf { it > 0 },
+                        natMapping = report.natMapping,
+                        natFiltering = report.natFiltering,
+                        natTypeUnsupported = !report.natTypeSupported,
+                    ),
+                )
+            }
         }
     }
 
     fun setServer(server: String) {
-        _uiState.update { it.copy(server = server) }
+        uiState.update { it.copy(server = server) }
     }
 
     fun setProxy(proxy: String) {
-        _uiState.update { it.copy(proxy = proxy) }
+        uiState.update { it.copy(proxy = proxy) }
+    }
+
+    fun cancel() {
+        tester.cancel()
+        uiState.update { it.copy(isDoing = false) }
     }
 }

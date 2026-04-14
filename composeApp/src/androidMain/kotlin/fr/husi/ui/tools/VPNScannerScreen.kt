@@ -29,7 +29,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -39,19 +38,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import fr.husi.compose.KeyValueLine
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.material3.Text
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.ktx.blankAsNull
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.arrow_back
+import fr.husi.resources.back
+import fr.husi.resources.cached
+import fr.husi.resources.refresh
+import fr.husi.resources.scan_vpn_app
+import fr.husi.resources.vpn_app_type
+import fr.husi.resources.vpn_app_type_other
+import fr.husi.resources.vpn_core_path
+import fr.husi.resources.vpn_core_type
+import fr.husi.resources.vpn_core_type_unknown
+import fr.husi.resources.vpn_golang_version
 import fr.husi.ui.ensurePreviewRepository
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 private const val TYPE_ITEM_CARD = 0
 private const val TYPE_SPACER = 1
@@ -206,30 +217,6 @@ internal actual fun VPNScannerScreen(
             item("navigation_space", TYPE_SPACER) {
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
             }
-        }
-    }
-}
-
-@Composable
-private fun KeyValueLine(key: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = key,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f),
-        )
-        SelectionContainer {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.End,
-            )
         }
     }
 }
