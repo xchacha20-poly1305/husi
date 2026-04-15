@@ -18,6 +18,7 @@ type TrustTunnelURL struct {
 	SkipVerification bool
 	Certificate      string // pem
 	QUIC             bool
+	Name             string
 }
 
 func (t *TrustTunnelURL) Build() (string, error) {
@@ -48,6 +49,7 @@ func (t *TrustTunnelURL) Build() (string, error) {
 		SkipVerification: t.SkipVerification,
 		Certificate:      der,
 		UpstreamProtocol: upstreamProtocol,
+		Name:             t.Name,
 	}
 	return url.Build()
 }
@@ -69,5 +71,6 @@ func ParseTrustTunnelLink(link string) (*TrustTunnelURL, error) {
 			Bytes: url.Certificate,
 		})),
 		QUIC: url.UpstreamProtocol == tturl.UpstreamProtocolHTTP3,
+		Name: url.Name,
 	}, nil
 }

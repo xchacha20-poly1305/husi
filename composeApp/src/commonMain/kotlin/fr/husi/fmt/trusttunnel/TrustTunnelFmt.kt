@@ -18,6 +18,7 @@ fun parseTrustTunnel(link: String): TrustTunnelBean {
         allowInsecure = url.skipVerification
         certificates = url.certificate
         quic = url.quic
+        name = url.name
     }
 }
 
@@ -31,6 +32,7 @@ fun TrustTunnelBean.toUri(): String {
         skipVerification = allowInsecure
         certificate = certificates
         quic = quic
+        name = this@toUri.name
     }.build()
 }
 

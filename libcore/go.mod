@@ -17,7 +17,7 @@ require (
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/anja v0.22.12
 	github.com/xchacha20-poly1305/libping v0.10.1
-	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.1-0.20260314153016-08d91e19d8c2
+	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.2-0.20260416045808-a8947db4cb32
 	golang.org/x/sync v0.20.0
 	golang.org/x/sys v0.43.0
 	google.golang.org/protobuf v1.36.11
