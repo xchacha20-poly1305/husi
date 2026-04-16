@@ -408,17 +408,30 @@ fn resolveMacOSJavaHome(allocator: mem.Allocator) !?[]const u8 {
     return null;
 }
 
+fn resolveJavaHomeCommand(allocator: mem.Allocator, java_home: []const u8) !?[]const u8 {
+    if (java_home.len == 0) return null;
+
+    const candidate_names = if (native_os == .windows)
+        [_][]const u8{ "javaw.exe", "java.exe" }
+    else
+        [_][]const u8{"java"};
+
+    for (candidate_names) |candidate_name| {
+        const candidate = try fs.path.join(allocator, &.{ java_home, "bin", candidate_name });
+        if (fs.accessAbsolute(candidate, .{})) |_| {
+            return candidate;
+        } else |_| {
+            allocator.free(candidate);
+        }
+    }
+
+    return null;
+}
+
 fn selectJavaCommand(allocator: mem.Allocator) ![]const u8 {
     if (process.getEnvVarOwned(allocator, "JAVA_HOME") catch null) |java_home| {
         defer allocator.free(java_home);
-        if (java_home.len > 0) {
-            const bin = try std.fmt.allocPrint(allocator, "{s}/bin/java", .{java_home});
-            if (fs.accessAbsolute(bin, .{})) |_| {
-                return bin;
-            } else |_| {
-                allocator.free(bin);
-            }
-        }
+        if (try resolveJavaHomeCommand(allocator, java_home)) |bin| return bin;
     }
     if (process.getEnvVarOwned(allocator, "JAVA") catch null) |java_env| {
         if (java_env.len > 0) return java_env;

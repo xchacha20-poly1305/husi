@@ -3,6 +3,9 @@ package fr.husi
 import fr.husi.platform.Platform
 import fr.husi.platform.PlatformInfo
 import java.io.File
+import java.lang.management.ManagementFactory
+
+private const val DESKTOP_MAIN_CLASS = "fr.husi.DesktopMainKt"
 
 internal fun buildLauncherCommand(vararg arguments: String): List<String> {
     return buildList {
@@ -99,7 +102,8 @@ internal fun xmlEscape(value: String): String {
  * Resolve based on package path -> try resolving jpackage -> try getting from process
  */
 private fun resolveLauncherCommand(): List<String> {
-    resolvePackagedDesktopLauncher()
+    val packagedLauncher = resolvePackagedDesktopLauncher()
+    packagedLauncher
         ?.let { return listOf(it.absolutePath) }
 
     System.getProperty("jpackage.app-path")
@@ -108,12 +112,8 @@ private fun resolveLauncherCommand(): List<String> {
         ?.takeIf(File::isFile)
         ?.let { return listOf(it.absolutePath) }
 
-    ProcessHandle.current().info().command().orElse(null)
-        ?.takeIf { it.isNotBlank() }
-        ?.let(::File)
-        ?.takeIf(File::isFile)
-        ?.takeIf { !it.name.lowercase().startsWith("java") }
-        ?.let { return listOf(it.absolutePath) }
+    resolveCurrentProcessCommand(allowJava = packagedLauncher == null)
+        ?.let { return it }
 
     error("Desktop launcher not found")
 }
@@ -139,13 +139,62 @@ private fun resolvePackagedDesktopLauncher(): File? {
             it.canExecute()
         }
 
-        Platform.Windows -> resolveSingleDesktopLauncher(appRoot) {
-            it.extension.equals("exe", ignoreCase = true)
-        }
+        Platform.Windows -> resolveWindowsDesktopLauncher(appRoot)
     }
 }
 
 private fun resolveSingleDesktopLauncher(directory: File, predicate: (File) -> Boolean): File? {
     val files = directory.listFiles() ?: return null
     return files.singleOrNull { it.isFile && predicate(it) }
+}
+
+private fun resolveWindowsDesktopLauncher(appRoot: File): File? {
+    val executables = appRoot.listFiles()
+        ?.filter { it.isFile && it.extension.equals("exe", ignoreCase = true) }
+        ?: return null
+    if (executables.isEmpty()) return null
+
+    val preferredName = System.getProperty("jpackage.app-path")
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::File)
+        ?.name
+        ?.lowercase()
+    if (preferredName != null) {
+        executables.firstOrNull { it.name.lowercase() == preferredName }?.let { return it }
+    }
+
+    executables.firstOrNull { it.nameWithoutExtension.equals(appRoot.name, ignoreCase = true) }?.let { return it }
+    return executables.singleOrNull()
+}
+
+private fun resolveCurrentProcessCommand(allowJava: Boolean): List<String>? {
+    val processInfo = ProcessHandle.current().info()
+    val command = processInfo.command().orElse(null)
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::File)
+        ?.takeIf(File::isFile)
+        ?: return null
+    val arguments = processInfo.arguments().orElse(null)?.toList().orEmpty()
+    val isJavaCommand = command.name.lowercase().startsWith("java")
+    if (!isJavaCommand) {
+        return buildList {
+            add(command.absolutePath)
+            addAll(arguments)
+        }
+    }
+    if (!allowJava) return null
+    return resolveJavaProcessCommand(command)
+}
+
+private fun resolveJavaProcessCommand(javaCommand: File): List<String>? {
+    val classPath = System.getProperty("java.class.path")
+        ?.takeIf { it.isNotBlank() }
+        ?: return null
+    return buildList {
+        add(javaCommand.absolutePath)
+        addAll(ManagementFactory.getRuntimeMXBean().inputArguments)
+        add("-cp")
+        add(classPath)
+        add(DESKTOP_MAIN_CLASS)
+    }
 }
