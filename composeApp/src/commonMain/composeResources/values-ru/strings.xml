@@ -118,7 +118,7 @@
     </plurals>
     <string name="select_apps">Выберите приложения</string>
     <string name="apps">Приложения</string>
-    <string name="clear_profiles_message">Вы уверены, что хотите очистить эту группу\?</string>
+    <string name="clear_profiles_message">Вы уверены, что хотите очистить эту группу?</string>
     <string name="profile_import_message">Подтвердите, что хотите импортировать профиль %1$s\?</string>
     <string name="profile_import">Импортировать профиль</string>
     <string name="subscription_import_message">Подтвердите, что хотите импортировать подписку %1$s\? Если вы импортируете из ненадежного источника, это может привести к утечке вашего IP-адреса и такого поведения.</string>
@@ -151,7 +151,7 @@
     <string name="raw">Обычный</string>
     <string name="deduplication_sum">Удалить повторяющиеся конфигурации при обновлении</string>
     <string name="force_resolve">Принудительный резолвинг</string>
-    <string name="delete_group_prompt">Вы уверены, что хотите удалить эту группу\?</string>
+    <string name="delete_group_prompt">Вы уверены, что хотите удалить эту группу?</string>
     <string name="subscription_type">Тип подписки</string>
     <string name="group_type">Тип группы</string>
     <string name="subscription_settings">Настройки подписки</string>
@@ -194,7 +194,7 @@
     <string name="need_reload">Перезагрузите прокси-сервис, чтобы применить изменения</string>
     <string name="apply">Применить</string>
     <string name="no">Нет</string>
-    <string name="unsaved_changes_prompt">Есть несохраненные изменения. Сохранить\?</string>
+    <string name="unsaved_changes_prompt">Есть несохраненные изменения. Сохранить?</string>
     <string name="ss_cat">Настройки Shadowsocks</string>
     <string name="proxy_cat">Настройки сервера</string>
     <string name="plugin_auto_connect_unlock_only">Этот плагин может не работать с автоподключением</string>
@@ -222,10 +222,10 @@
     <string name="add_profile_methods_manual_settings">Ручные настройки</string>
     <string name="add_profile_methods_scan_qr_code">Отсканировать QR-код</string>
     <string name="share_qr_nfc">QR-код</string>
-    <string name="delete_confirm_prompt">Вы уверены, что хотите удалить этот профиль\?</string>
+    <string name="delete_confirm_prompt">Вы уверены, что хотите удалить этот профиль?</string>
     <string name="delete">Удалить</string>
     <string name="profile_config">Конфигурация профиля</string>
-    <string name="file_manager_missing">На вашем устройстве отсутствует стандартный селектор файлов Android, установите его, например Material Files.</string>
+    <string name="file_manager_missing">На вашем устройстве отсутствует стандартное средство выбора файлов Android, установите его, например Material Files.</string>
     <string name="action_import_err">Не удалось импортировать.</string>
     <string name="action_import_msg">Успешно импортировано!</string>
     <string name="action_export_err">Не удалось экспортировать.</string>
@@ -301,7 +301,7 @@
     <string name="route_bypass">Обход</string>
     <string name="route_proxy">Прокси</string>
     <string name="route_name">Название маршрута</string>
-    <string name="delete_route_prompt">Вы уверены, что хотите удалить этот маршрут\?</string>
+    <string name="delete_route_prompt">Вы уверены, что хотите удалить этот маршрут?</string>
     <string name="route_add">Создать маршрут</string>
     <string name="menu_route">Маршруты</string>
     <string name="metered_summary">Подсказывать системе, что VPN следует рассматривать как сеть с лимитным тарифным планом</string>
@@ -391,7 +391,7 @@
     <string name="start">Старт</string>
     <string name="stun_attest_loading">Это может занять несколько минут…</string>
     <string name="stun_test">Обнаружение поведения NAT</string>
-    <string name="stun_test_summary">Определить поведение сопоставления адресов NAT и поведение фильтрации NAT в соответствии с RFC 5780 при помощи STUN.</string>
+    <string name="stun_test_summary">Определите поведение клиента при сопоставлении NAT и поведение при фильтрации NAT, описанное в RFC 3478, с помощью протокола STUN.</string>
     <string name="tools_network">Сеть</string>
     <string name="backup">Резервная копия</string>
     <string name="backup_rules">Правила маршрутизации</string>
@@ -702,4 +702,17 @@
     <string name="hysteria_bbr_profile_aggressive">Агрессивный</string>
     <string name="privacy_mode_summary">Запретить скриншоты и запись экрана, а также скрыть содержимое в списке недавних приложений</string>
     <string name="privacy_mode">Приватный Режим</string>
+    <string name="optimistic_cache">Оптимистичная длительность кэширования</string>
+    <string name="route_global_asset_auto_update_delay">Периодичность обновления правила (в минутах)</string>
+    <string name="route_asset_auto_update_delay">Периодичность обновления активов (в минутах)</string>
+    <string name="route_asset_auto_update_off">Автоматическое обновление отключено</string>
+    <string name="route_asset_auto_update_on">Автоматическое обновление каждые %1$d минут</string>
+    <string name="nat_external_address">Внешний адрес</string>
+    <string name="nat_mapping">Отображение преобразования сетевых адресов (NAT)</string>
+    <string name="nat_filtering">Фильтрация преобразования сетевых адресов (NAT)</string>
+    <string name="nat_type_detection">Определение типа преобразования сетевых адресов (NAT)</string>
+    <string name="nat_type_not_supported">Не поддерживается сервером</string>
+    <string name="package_name_regex">Регулярное выражение имени пакета</string>
+    <string name="route_invert">Инвертировать совпадение</string>
+    <string name="latency">Задержка</string>
 </resources>
