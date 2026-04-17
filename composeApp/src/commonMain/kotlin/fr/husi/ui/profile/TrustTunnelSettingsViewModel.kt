@@ -29,6 +29,8 @@ internal data class TrustTunnelUiState(
     val tlsFragment: Boolean = false,
     val tlsFragmentFallbackDelay: String = "0s",
     val tlsRecordFragment: Boolean = false,
+    val tlsSpoof: String = "",
+    val tlsSpoofMethod: String = "",
     val ech: Boolean = false,
     val echConfig: String = "",
     val echQueryServerName: String = "",
@@ -65,6 +67,8 @@ internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnel
                 tlsFragment = tlsFragment,
                 tlsFragmentFallbackDelay = tlsFragmentFallbackDelay,
                 tlsRecordFragment = tlsRecordFragment,
+                tlsSpoof = tlsSpoof,
+                tlsSpoofMethod = tlsSpoofMethod,
                 ech = ech,
                 echConfig = echConfig,
                 echQueryServerName = echQueryServerName,
@@ -96,6 +100,8 @@ internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnel
         tlsFragment = state.tlsFragment
         tlsFragmentFallbackDelay = state.tlsFragmentFallbackDelay
         tlsRecordFragment = state.tlsRecordFragment
+        tlsSpoof = state.tlsSpoof
+        tlsSpoofMethod = state.tlsSpoofMethod
         ech = state.ech
         echConfig = state.echConfig
         echQueryServerName = state.echQueryServerName
@@ -177,6 +183,14 @@ internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnel
 
     fun setTlsRecordFragment(enabled: Boolean) {
         _uiState.update { it.copy(tlsRecordFragment = enabled) }
+    }
+
+    fun setTlsSpoof(value: String) {
+        _uiState.update { it.copy(tlsSpoof = value) }
+    }
+
+    fun setTlsSpoofMethod(value: String) {
+        _uiState.update { it.copy(tlsSpoofMethod = value) }
     }
 
     fun setEch(enabled: Boolean) {

@@ -31,6 +31,8 @@ abstract class StandardV2RayBean : AbstractBean() {
     var fragment: Boolean = false
     var fragmentFallbackDelay: String = "500ms"
     var recordFragment: Boolean = false
+    var tlsSpoof: String = ""
+    var tlsSpoofMethod: String = ""
     var certificates: String = ""
     var certPublicKeySha256: String = ""
     var clientCert: String = ""
@@ -55,7 +57,7 @@ abstract class StandardV2RayBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(11)
+        output.writeInt(12)
         super.serialize(output)
 
         output.writeString(uuid)
@@ -117,6 +119,8 @@ abstract class StandardV2RayBean : AbstractBean() {
             output.writeString(clientCert)
             output.writeString(clientKey)
             output.writeString(echQueryServerName)
+            output.writeString(tlsSpoof)
+            output.writeString(tlsSpoofMethod)
         }
 
         output.writeInt(packetEncoding)
@@ -211,6 +215,11 @@ abstract class StandardV2RayBean : AbstractBean() {
 
             if (version >= 11) {
                 echQueryServerName = input.readString()
+            }
+
+            if (version >= 12) {
+                tlsSpoof = input.readString()
+                tlsSpoofMethod = input.readString()
             }
         }
 

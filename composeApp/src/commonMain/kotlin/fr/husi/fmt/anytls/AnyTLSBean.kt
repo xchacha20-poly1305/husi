@@ -41,6 +41,8 @@ class AnyTLSBean : AbstractBean() {
     var echQueryServerName: String = ""
     var clientCert: String = ""
     var clientKey: String = ""
+    var tlsSpoof: String = ""
+    var tlsSpoofMethod: String = ""
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
@@ -50,7 +52,7 @@ class AnyTLSBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(7)
+        output.writeInt(8)
 
         // version 0
         super.serialize(output)
@@ -87,6 +89,10 @@ class AnyTLSBean : AbstractBean() {
 
         // version 7
         output.writeString(echQueryServerName)
+
+        // version 8
+        output.writeString(tlsSpoof)
+        output.writeString(tlsSpoofMethod)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -131,6 +137,11 @@ class AnyTLSBean : AbstractBean() {
 
         if (version >= 7) {
             echQueryServerName = input.readString()
+        }
+
+        if (version >= 8) {
+            tlsSpoof = input.readString()
+            tlsSpoofMethod = input.readString()
         }
     }
 

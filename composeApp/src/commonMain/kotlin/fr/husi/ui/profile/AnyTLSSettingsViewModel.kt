@@ -29,6 +29,8 @@ internal data class AnyTLSUiState(
     val tlsFragment: Boolean = false,
     val tlsFragmentFallbackDelay: String = "",
     val tlsRecordFragment: Boolean = false,
+    val tlsSpoof: String = "",
+    val tlsSpoofMethod: String = "",
     val ech: Boolean = false,
     val echConfig: String = "",
     val echQueryServerName: String = "",
@@ -65,6 +67,8 @@ internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
                 tlsFragment = tlsFragment,
                 tlsFragmentFallbackDelay = tlsFragmentFallbackDelay,
                 tlsRecordFragment = tlsRecordFragment,
+                tlsSpoof = tlsSpoof,
+                tlsSpoofMethod = tlsSpoofMethod,
                 ech = ech,
                 echConfig = echConfig,
                 echQueryServerName = echQueryServerName,
@@ -95,6 +99,8 @@ internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
         tlsFragment = state.tlsFragment
         tlsFragmentFallbackDelay = state.tlsFragmentFallbackDelay
         tlsRecordFragment = state.tlsRecordFragment
+        tlsSpoof = state.tlsSpoof
+        tlsSpoofMethod = state.tlsSpoofMethod
         ech = state.ech
         echConfig = state.echConfig
         echQueryServerName = state.echQueryServerName
@@ -180,6 +186,14 @@ internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
 
     fun setTlsRecordFragment(enabled: Boolean) {
         _uiState.update { it.copy(tlsRecordFragment = enabled) }
+    }
+
+    fun setTlsSpoof(value: String) {
+        _uiState.update { it.copy(tlsSpoof = value) }
+    }
+
+    fun setTlsSpoofMethod(value: String) {
+        _uiState.update { it.copy(tlsSpoofMethod = value) }
     }
 
     fun setEch(enabled: Boolean) {

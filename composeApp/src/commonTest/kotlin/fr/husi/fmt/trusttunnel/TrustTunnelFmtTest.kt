@@ -103,4 +103,38 @@ class TrustTunnelFmtTest {
         assertTrue(tls.record_fragment == true)
         assertNull(tls.fragment_fallback_delay)
     }
+
+    @Test
+    fun `buildSingBoxOutboundTrustTunnelBean should map TLS spoof fields when quic is disabled`() {
+        val bean = TrustTunnelBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            quic = false
+            tlsSpoof = "spoof.example.com"
+            tlsSpoofMethod = "wrong-checksum"
+        }
+
+        val outbound = buildSingBoxOutboundTrustTunnelBean(bean)
+
+        val tls = assertNotNull(outbound.tls)
+        assertEquals("spoof.example.com", tls.spoof)
+        assertEquals("wrong-checksum", tls.spoof_method)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundTrustTunnelBean should suppress TLS spoof fields when quic is enabled`() {
+        val bean = TrustTunnelBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            quic = true
+            tlsSpoof = "spoof.example.com"
+            tlsSpoofMethod = "wrong-checksum"
+        }
+
+        val outbound = buildSingBoxOutboundTrustTunnelBean(bean)
+
+        val tls = assertNotNull(outbound.tls)
+        assertNull(tls.spoof)
+        assertNull(tls.spoof_method)
+    }
 }

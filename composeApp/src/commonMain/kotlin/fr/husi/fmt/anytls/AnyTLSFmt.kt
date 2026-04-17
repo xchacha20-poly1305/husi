@@ -69,6 +69,10 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
                 fragment_fallback_delay = bean.tlsFragmentFallbackDelay.blankAsNull()
             }
             if (bean.tlsRecordFragment) record_fragment = true
+            bean.tlsSpoof.blankAsNull()?.let {
+                spoof = it
+                spoof_method = bean.tlsSpoofMethod.blankAsNull()
+            }
             if (bean.ech) {
                 ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true

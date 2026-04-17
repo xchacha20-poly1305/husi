@@ -27,6 +27,8 @@ internal sealed interface StandardV2RayUiState : ProfileEditorUiState {
     val tlsFragment: Boolean
     val tlsFragmentFallbackDelay: String
     val tlsRecordFragment: Boolean
+    val tlsSpoof: String
+    val tlsSpoofMethod: String
     val utlsFingerprint: String
     val realityPublicKey: String
     val realityShortID: String
@@ -67,6 +69,8 @@ internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
     abstract fun setTlsFragment(enable: Boolean)
     abstract fun setTlsFragmentFallbackDelay(delay: String)
     abstract fun setTlsRecordFragment(enable: Boolean)
+    abstract fun setTlsSpoof(value: String)
+    abstract fun setTlsSpoofMethod(value: String)
     abstract fun setUtlsFingerprint(fingerprint: String)
     abstract fun setRealityPublicKey(publicKey: String)
     abstract fun setRealityShortID(shortID: String)

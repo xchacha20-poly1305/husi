@@ -42,9 +42,11 @@ class TrustTunnelBean : AbstractBean() {
     var echQueryServerName: String = ""
     var clientCert: String = ""
     var clientKey: String = ""
+    var tlsSpoof: String = ""
+    var tlsSpoofMethod: String = ""
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(0)
+        output.writeInt(1)
         super.serialize(output)
         output.writeString(username)
         output.writeString(password)
@@ -65,10 +67,14 @@ class TrustTunnelBean : AbstractBean() {
         output.writeString(echQueryServerName)
         output.writeString(clientCert)
         output.writeString(clientKey)
+
+        // version 1
+        output.writeString(tlsSpoof)
+        output.writeString(tlsSpoofMethod)
     }
 
     override fun deserialize(input: ByteBufferInput) {
-        input.readInt()
+        val version = input.readInt()
         super.deserialize(input)
         username = input.readString()
         password = input.readString()
@@ -89,6 +95,11 @@ class TrustTunnelBean : AbstractBean() {
         echQueryServerName = input.readString()
         clientCert = input.readString()
         clientKey = input.readString()
+
+        if (version >= 1) {
+            tlsSpoof = input.readString()
+            tlsSpoofMethod = input.readString()
+        }
     }
 
     override fun clone(): TrustTunnelBean {

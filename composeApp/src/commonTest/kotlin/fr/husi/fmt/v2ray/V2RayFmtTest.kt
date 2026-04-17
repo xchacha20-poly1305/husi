@@ -165,6 +165,46 @@ class V2RayFmtTest {
     }
 
     @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should map TLS spoof fields`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            uuid = "test-uuid"
+            encryption = "auto"
+            security = "tls"
+            sni = "sni.example.com"
+            tlsSpoof = "spoof.example.com"
+            tlsSpoofMethod = "wrong-checksum"
+        }
+
+        val outbound = buildSingBoxOutboundStandardV2RayBean(bean)
+
+        val vmess = assertIs<SingBoxOptions.Outbound_VMessOptions>(outbound)
+        val tls = assertNotNull(vmess.tls)
+        assertEquals("spoof.example.com", tls.spoof)
+        assertEquals("wrong-checksum", tls.spoof_method)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should omit blank TLS spoof fields`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 443
+            uuid = "test-uuid"
+            encryption = "auto"
+            security = "tls"
+            sni = "sni.example.com"
+        }
+
+        val outbound = buildSingBoxOutboundStandardV2RayBean(bean)
+
+        val vmess = assertIs<SingBoxOptions.Outbound_VMessOptions>(outbound)
+        val tls = assertNotNull(vmess.tls)
+        assertNull(tls.spoof)
+        assertNull(tls.spoof_method)
+    }
+
+    @Test
     fun `buildSingBoxOutboundStandardV2RayBean should build vless outbound with flow`() {
         val bean = VLESSBean().apply {
             serverAddress = "example.com"

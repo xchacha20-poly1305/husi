@@ -601,6 +601,9 @@
     <string name="tls_fragment">TLS 分片</string>
     <string name="tls_fragment_fallback_delay">TLS 分片回退延迟</string>
     <string name="tls_record_fragment">TLS 记录分片</string>
+    <string name="tls_spoof">TLS 伪造 SNI</string>
+    <string name="tls_spoof_sum">在真实握手前注入带有此 SNI 的伪造 ClientHello。仅桌面端。</string>
+    <string name="tls_spoof_method">伪造方法</string>
     <string name="prefer_ipv4">IPv4 优先</string>
     <string name="prefer_ipv6">IPv6 优先</string>
     <string name="ipv4_only">仅 IPv4</string>

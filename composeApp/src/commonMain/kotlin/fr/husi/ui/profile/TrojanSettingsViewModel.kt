@@ -33,6 +33,8 @@ internal data class TrojanUiState(
     override val tlsFragment: Boolean = false,
     override val tlsFragmentFallbackDelay: String = "",
     override val tlsRecordFragment: Boolean = false,
+    override val tlsSpoof: String = "",
+    override val tlsSpoofMethod: String = "",
     override val utlsFingerprint: String = "",
     override val realityPublicKey: String = "",
     override val realityShortID: String = "",
@@ -86,6 +88,8 @@ internal class TrojanSettingsViewModel : StandardV2RaySettingsViewModel<TrojanBe
                 tlsFragment = fragment,
                 tlsFragmentFallbackDelay = fragmentFallbackDelay,
                 tlsRecordFragment = recordFragment,
+                tlsSpoof = tlsSpoof,
+                tlsSpoofMethod = tlsSpoofMethod,
                 utlsFingerprint = utlsFingerprint,
                 realityPublicKey = realityPublicKey,
                 realityShortID = realityShortID,
@@ -134,6 +138,8 @@ internal class TrojanSettingsViewModel : StandardV2RaySettingsViewModel<TrojanBe
         fragment = state.tlsFragment
         fragmentFallbackDelay = state.tlsFragmentFallbackDelay
         recordFragment = state.tlsRecordFragment
+        tlsSpoof = state.tlsSpoof
+        tlsSpoofMethod = state.tlsSpoofMethod
         utlsFingerprint = state.utlsFingerprint
         realityPublicKey = state.realityPublicKey
         realityShortID = state.realityShortID
@@ -238,6 +244,14 @@ internal class TrojanSettingsViewModel : StandardV2RaySettingsViewModel<TrojanBe
 
     override fun setTlsRecordFragment(enable: Boolean) {
         _uiState.update { it.copy(tlsRecordFragment = enable) }
+    }
+
+    override fun setTlsSpoof(value: String) {
+        _uiState.update { it.copy(tlsSpoof = value) }
+    }
+
+    override fun setTlsSpoofMethod(value: String) {
+        _uiState.update { it.copy(tlsSpoofMethod = value) }
     }
 
     override fun setUtlsFingerprint(fingerprint: String) {

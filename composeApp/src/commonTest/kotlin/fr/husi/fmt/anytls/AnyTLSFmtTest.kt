@@ -67,6 +67,8 @@ class AnyTLSFmtTest {
             ech = true
             echConfig = "cfg-1\ncfg-2"
             echQueryServerName = "ech.example.com"
+            tlsSpoof = "spoof.example.com"
+            tlsSpoofMethod = "wrong-checksum"
         }
 
         val outbound = buildSingBoxOutboundAnyTLSBean(bean)
@@ -97,6 +99,8 @@ class AnyTLSFmtTest {
         assertEquals(tls.fragment, true)
         assertEquals("200ms", tls.fragment_fallback_delay)
         assertEquals(tls.record_fragment, true)
+        assertEquals("spoof.example.com", tls.spoof)
+        assertEquals("wrong-checksum", tls.spoof_method)
 
         val ech = assertNotNull(tls.ech)
         assertEquals(ech.enabled, true)
@@ -126,6 +130,8 @@ class AnyTLSFmtTest {
             ech = false
             echConfig = ""
             echQueryServerName = ""
+            tlsSpoof = ""
+            tlsSpoofMethod = ""
         }
 
         val outbound = buildSingBoxOutboundAnyTLSBean(bean)
@@ -148,6 +154,8 @@ class AnyTLSFmtTest {
         assertNotEquals(tls.fragment, true)
         assertNull(tls.fragment_fallback_delay)
         assertNotEquals(tls.record_fragment, true)
+        assertNull(tls.spoof)
+        assertNull(tls.spoof_method)
         assertNull(tls.ech)
     }
 

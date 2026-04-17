@@ -501,6 +501,10 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
             fragment_fallback_delay = bean.fragmentFallbackDelay.blankAsNull()
         }
         if (bean.recordFragment) record_fragment = true
+        bean.tlsSpoof.blankAsNull()?.let {
+            spoof = it
+            spoof_method = bean.tlsSpoofMethod.blankAsNull()
+        }
         var fingerprint = bean.utlsFingerprint
         if (bean.realityPublicKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {

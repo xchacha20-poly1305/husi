@@ -12,14 +12,17 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.ktx.contentOrUnset
+import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.allow_insecure
 import fr.husi.resources.alpn
 import fr.husi.resources.block
 import fr.husi.resources.cert_public_key_sha256
 import fr.husi.resources.certificates
+import fr.husi.resources.computer_cancel
 import fr.husi.resources.copyright
 import fr.husi.resources.directions_boat
+import fr.husi.resources.domino_mask
 import fr.husi.resources.ech
 import fr.husi.resources.ech_config
 import fr.husi.resources.ech_query_server_name
@@ -51,6 +54,8 @@ import fr.husi.resources.timer
 import fr.husi.resources.tls_fragment
 import fr.husi.resources.tls_fragment_fallback_delay
 import fr.husi.resources.tls_record_fragment
+import fr.husi.resources.tls_spoof
+import fr.husi.resources.tls_spoof_method
 import fr.husi.resources.toc
 import fr.husi.resources.tuic_disable_sni
 import fr.husi.resources.utls_fingerprint
@@ -263,6 +268,32 @@ private fun LazyListScope.anyTlsSettings(
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(it) },
         )
+    }
+    if (!PlatformInfo.isAndroid) {
+        item("tls_spoof") {
+            TextFieldPreference(
+                value = uiState.tlsSpoof,
+                onValueChange = { viewModel.setTlsSpoof(it) },
+                title = { Text(stringResource(Res.string.tls_spoof)) },
+                textToValue = { it },
+                icon = { Icon(vectorResource(Res.drawable.domino_mask), null) },
+                summary = { Text(contentOrUnset(uiState.tlsSpoof)) },
+                valueToText = { it },
+            )
+        }
+        item("tls_spoof_method") {
+            ListPreference(
+                value = uiState.tlsSpoofMethod,
+                values = listOf("wrong-sequence", "wrong-checksum"),
+                onValueChange = { viewModel.setTlsSpoofMethod(it) },
+                title = { Text(stringResource(Res.string.tls_spoof_method)) },
+                enabled = uiState.tlsSpoof.isNotBlank(),
+                icon = { Icon(vectorResource(Res.drawable.computer_cancel), null) },
+                summary = { Text(contentOrUnset(uiState.tlsSpoofMethod)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(it) },
+            )
+        }
     }
     item("disable_sni") {
         SwitchPreference(

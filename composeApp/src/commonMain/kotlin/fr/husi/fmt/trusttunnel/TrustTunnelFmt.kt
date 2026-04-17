@@ -67,6 +67,12 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
             } else if (bean.tlsRecordFragment) {
                 record_fragment = true
             }
+            if (!bean.quic) {
+                bean.tlsSpoof.blankAsNull()?.let {
+                    spoof = it
+                    spoof_method = bean.tlsSpoofMethod.blankAsNull()
+                }
+            }
             bean.utlsFingerprint.blankAsNull()?.let {
                 utls = SingBoxOptions.OutboundUTLSOptions().apply {
                     enabled = true
