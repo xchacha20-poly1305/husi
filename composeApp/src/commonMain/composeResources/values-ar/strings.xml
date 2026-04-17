@@ -352,9 +352,9 @@
     <string name="group_order_by_name">بالاسم</string>
     <string name="group_order_origin">أصل</string>
     <string name="group_order">ترتيب</string>
-    <string name="hysteria_disable_mtu_discovery">تعطيل اكتشاف MTU للمسار</string>
-    <string name="hysteria_connection_receive_window">نافذة تلقي اتصال QUIC</string>
-    <string name="hysteria_stream_receive_window">نافذة تلقي دفق QUIC</string>
+    <string name="quic_disable_path_mtu_discovery">تعطيل اكتشاف MTU للمسار</string>
+    <string name="quic_connection_receive_window">نافذة تلقي اتصال QUIC</string>
+    <string name="quic_stream_receive_window">نافذة تلقي دفق QUIC</string>
     <string name="menu_traffic">مرور</string>
     <string name="no_statistics">لا توجد إحصاءات حتى الآن</string>
     <string name="clear_logcat">تقارير أداء واضحة</string>

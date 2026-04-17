@@ -449,6 +449,9 @@ object SingBoxOptions {
         var certificate_providers: MutableList<CertificateProvider>? = null
 
         @JvmField
+        var http_clients: MutableList<HTTPClient>? = null
+
+        @JvmField
         var endpoints: MutableList<Endpoint>? = null
 
         @JvmField
@@ -867,6 +870,9 @@ object SingBoxOptions {
         @JvmField
         var default_fallback_delay: String? = null
 
+        @JvmField
+        var default_http_client: String? = null
+
     }
 
     @KxsSerializable
@@ -949,6 +955,9 @@ object SingBoxOptions {
         var enabled: Boolean? = null
 
         @JvmField
+        var engine: String? = null
+
+        @JvmField
         var disable_sni: Boolean? = null
 
         @JvmField
@@ -1003,10 +1012,19 @@ object SingBoxOptions {
         var record_fragment: Boolean? = null
 
         @JvmField
+        var spoof: String? = null
+
+        @JvmField
+        var spoof_method: String? = null
+
+        @JvmField
         var kernel_tx: Boolean? = null
 
         @JvmField
         var kernel_rx: Boolean? = null
+
+        @JvmField
+        var handshake_timeout: String? = null
 
         @JvmField
         var ech: OutboundECHOptions? = null
@@ -1125,6 +1143,9 @@ object SingBoxOptions {
         var kernel_rx: Boolean? = null
 
         @JvmField
+        var handshake_timeout: String? = null
+
+        @JvmField
         var certificate_provider: CertificateProviderOptions? = null
 
         @JvmField
@@ -1211,6 +1232,188 @@ object SingBoxOptions {
 
     @KxsSerializable
     open class CertificateProviderOptions : SingBoxOption() {
+
+    }
+
+    @KxsSerializable
+    open class HTTPClient : SingBoxOption() {
+
+        @JvmField
+        var tag: String? = null
+
+        @JvmField
+        var engine: String? = null
+
+        @JvmField
+        var version: Int? = null
+
+        @JvmField
+        var disable_version_fallback: Boolean? = null
+
+        @JvmField
+        var headers: MutableMap<String, MutableList<String>>? = null
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        @JvmField
+        var tls: OutboundTLSOptions? = null
+
+        // Generate note: nested type DialerOptions
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var inet4_bind_address: String? = null
+
+        @JvmField
+        var inet6_bind_address: String? = null
+
+        @JvmField
+        var bind_address_no_port: Boolean? = null
+
+        @JvmField
+        var protect_path: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var connect_timeout: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var domain_resolver: DomainResolveOptions? = null
+
+        @JvmField
+        var network_strategy: String? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_delay: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
+
+    }
+
+    @KxsSerializable
+    open class HTTPClientOptions : SingBoxOption() {
+
+        @JvmField
+        var tag: String? = null
+
+        @JvmField
+        var engine: String? = null
+
+        @JvmField
+        var version: Int? = null
+
+        @JvmField
+        var disable_version_fallback: Boolean? = null
+
+        @JvmField
+        var headers: MutableMap<String, MutableList<String>>? = null
+
+        // Generate note: nested type OutboundTLSOptionsContainer
+        @JvmField
+        var tls: OutboundTLSOptions? = null
+
+        // Generate note: nested type DialerOptions
+        @JvmField
+        var detour: String? = null
+
+        @JvmField
+        var bind_interface: String? = null
+
+        @JvmField
+        var inet4_bind_address: String? = null
+
+        @JvmField
+        var inet6_bind_address: String? = null
+
+        @JvmField
+        var bind_address_no_port: Boolean? = null
+
+        @JvmField
+        var protect_path: String? = null
+
+        @JvmField
+        var routing_mark: Int? = null
+
+        @JvmField
+        var reuse_addr: Boolean? = null
+
+        @JvmField
+        var netns: String? = null
+
+        @JvmField
+        var connect_timeout: String? = null
+
+        @JvmField
+        var tcp_fast_open: Boolean? = null
+
+        @JvmField
+        var tcp_multi_path: Boolean? = null
+
+        @JvmField
+        var disable_tcp_keep_alive: Boolean? = null
+
+        @JvmField
+        var tcp_keep_alive: String? = null
+
+        @JvmField
+        var tcp_keep_alive_interval: String? = null
+
+        @JvmField
+        var udp_fragment: Boolean? = null
+
+        @JvmField
+        var domain_resolver: DomainResolveOptions? = null
+
+        @JvmField
+        var network_strategy: String? = null
+
+        @JvmField
+        var network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_network_type: MutableList<String>? = null
+
+        @JvmField
+        var fallback_delay: String? = null
+
+        @JvmField
+        var domain_strategy: String? = null
 
     }
 
@@ -1897,10 +2100,13 @@ object SingBoxOptions {
         var url: String? = null
 
         @JvmField
-        var download_detour: String? = null
+        var http_client: HTTPClientOptions? = null
 
         @JvmField
         var update_interval: String? = null
+
+        @JvmField
+        var download_detour: String? = null
 
     }
 
@@ -3134,6 +3340,29 @@ object SingBoxOptions {
         @JvmField
         var tls: OutboundTLSOptions? = null
 
+        // Generate note: nested type QUICOptions
+        // Generate note: nested type HTTP2Options
+        @JvmField
+        var idle_timeout: String? = null
+
+        @JvmField
+        var keep_alive_period: String? = null
+
+        @JvmField
+        var stream_receive_window: Int? = null
+
+        @JvmField
+        var connection_receive_window: Int? = null
+
+        @JvmField
+        var max_concurrent_streams: Int? = null
+
+        @JvmField
+        var initial_packet_size: Int? = null
+
+        @JvmField
+        var disable_path_mtu_discovery: Boolean? = null
+
     }
 
     @KxsSerializable
@@ -3240,6 +3469,29 @@ object SingBoxOptions {
         // Generate note: nested type OutboundTLSOptionsContainer
         @JvmField
         var tls: OutboundTLSOptions? = null
+
+        // Generate note: nested type QUICOptions
+        // Generate note: nested type HTTP2Options
+        @JvmField
+        var idle_timeout: String? = null
+
+        @JvmField
+        var keep_alive_period: String? = null
+
+        @JvmField
+        var stream_receive_window: Int? = null
+
+        @JvmField
+        var connection_receive_window: Int? = null
+
+        @JvmField
+        var max_concurrent_streams: Int? = null
+
+        @JvmField
+        var initial_packet_size: Int? = null
+
+        @JvmField
+        var disable_path_mtu_discovery: Boolean? = null
 
         @JvmField
         var bbr_profile: String? = null
@@ -3353,6 +3605,29 @@ object SingBoxOptions {
         // Generate note: nested type OutboundTLSOptionsContainer
         @JvmField
         var tls: OutboundTLSOptions? = null
+
+        // Generate note: nested type QUICOptions
+        // Generate note: nested type HTTP2Options
+        @JvmField
+        var idle_timeout: String? = null
+
+        @JvmField
+        var keep_alive_period: String? = null
+
+        @JvmField
+        var stream_receive_window: Int? = null
+
+        @JvmField
+        var connection_receive_window: Int? = null
+
+        @JvmField
+        var max_concurrent_streams: Int? = null
+
+        @JvmField
+        var initial_packet_size: Int? = null
+
+        @JvmField
+        var disable_path_mtu_discovery: Boolean? = null
 
     }
 

@@ -8,8 +8,8 @@ require (
 	github.com/klauspost/compress v1.18.2
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
-	github.com/sagernet/sing v0.8.5-0.20260414061014-3597f84f897c
-	github.com/sagernet/sing-box v1.14.0-alpha.12
+	github.com/sagernet/sing v0.8.7-0.20260416084641-60846c117dd8
+	github.com/sagernet/sing-box v1.14.0-alpha.13.0.20260417131748-8cd48f429fbd
 	github.com/sagernet/sing-tun v0.8.8-0.20260410061515-018f5eaae695
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
@@ -112,7 +112,7 @@ require (
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/quic-go v0.59.0-sing-box-mod.4 // indirect
 	github.com/sagernet/sing-mux v0.3.4 // indirect
-	github.com/sagernet/sing-quic v0.6.2-0.20260330152607-bf674c163212 // indirect
+	github.com/sagernet/sing-quic v0.6.2-0.20260412143638-8f65b6be7cd6 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect

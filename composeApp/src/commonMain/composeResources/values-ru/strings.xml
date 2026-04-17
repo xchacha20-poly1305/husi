@@ -361,9 +361,9 @@
     <string name="group_order_by_name">По имени</string>
     <string name="group_order_origin">По происхождению</string>
     <string name="group_order">Сортировка</string>
-    <string name="hysteria_disable_mtu_discovery">Отключить определение MTU маршрута</string>
-    <string name="hysteria_connection_receive_window">Окно получения соединения QUIC</string>
-    <string name="hysteria_stream_receive_window">Окно приема потока QUIC</string>
+    <string name="quic_disable_path_mtu_discovery">Отключить определение MTU маршрута</string>
+    <string name="quic_connection_receive_window">Окно получения соединения QUIC</string>
+    <string name="quic_stream_receive_window">Окно приема потока QUIC</string>
     <string name="menu_traffic">Трафик</string>
     <string name="no_statistics">Статистики пока нет</string>
     <string name="clear_logcat">Очистить журнал</string>

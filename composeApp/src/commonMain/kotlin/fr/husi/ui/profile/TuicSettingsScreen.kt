@@ -6,6 +6,7 @@ import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
+import fr.husi.compose.DurationTextField
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
@@ -29,12 +30,22 @@ import fr.husi.resources.enable
 import fr.husi.resources.flight_takeoff
 import fr.husi.resources.lock
 import fr.husi.resources.lock_open
+import fr.husi.resources.multiple_stop
 import fr.husi.resources.mutual_tls
 import fr.husi.resources.nfc
+import fr.husi.resources.not_set
 import fr.husi.resources.person
 import fr.husi.resources.profile_config
 import fr.husi.resources.profile_name
 import fr.husi.resources.proxy_cat
+import fr.husi.resources.quic
+import fr.husi.resources.quic_connection_receive_window
+import fr.husi.resources.quic_disable_path_mtu_discovery
+import fr.husi.resources.quic_idle_timeout
+import fr.husi.resources.quic_initial_packet_size
+import fr.husi.resources.quic_keep_alive_period
+import fr.husi.resources.quic_max_concurrent_streams
+import fr.husi.resources.quic_stream_receive_window
 import fr.husi.resources.router
 import fr.husi.resources.search
 import fr.husi.resources.security
@@ -42,7 +53,10 @@ import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.sni
 import fr.husi.resources.ssh_private_key
+import fr.husi.resources.texture
+import fr.husi.resources.timelapse
 import fr.husi.resources.toc
+import fr.husi.resources.transform
 import fr.husi.resources.tuic_congestion_controller
 import fr.husi.resources.tuic_disable_sni
 import fr.husi.resources.tuic_reduce_rtt
@@ -241,6 +255,130 @@ private fun LazyListScope.tuicSettings(
             onValueChange = { viewModel.setAllowInsecure(it) },
             title = { Text(stringResource(Res.string.allow_insecure)) },
             icon = { Icon(vectorResource(Res.drawable.lock_open), null) },
+        )
+    }
+
+    item("category_quic") {
+        PreferenceCategory(text = { Text(stringResource(Res.string.quic)) })
+    }
+    item("stream_receive_window") {
+        TextFieldPreference(
+            value = uiState.streamReceiveWindow,
+            onValueChange = { viewModel.setStreamReceiveWindow(it) },
+            title = { Text(stringResource(Res.string.quic_stream_receive_window)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.texture), null) },
+            summary = {
+                val text = if (uiState.streamReceiveWindow == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.streamReceiveWindow.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("connection_receive_window") {
+        TextFieldPreference(
+            value = uiState.connectionReceiveWindow,
+            onValueChange = { viewModel.setConnectionReceiveWindow(it) },
+            title = { Text(stringResource(Res.string.quic_connection_receive_window)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.transform), null) },
+            summary = {
+                val text = if (uiState.connectionReceiveWindow == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.connectionReceiveWindow.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("disable_path_mtu_discovery") {
+        SwitchPreference(
+            value = uiState.disablePathMtuDiscovery,
+            onValueChange = { viewModel.setDisablePathMtuDiscovery(it) },
+            title = { Text(stringResource(Res.string.quic_disable_path_mtu_discovery)) },
+            icon = { Icon(vectorResource(Res.drawable.multiple_stop), null) },
+        )
+    }
+    item("idle_timeout") {
+        TextFieldPreference(
+            value = uiState.idleTimeout,
+            onValueChange = { viewModel.setIdleTimeout(it) },
+            title = { Text(stringResource(Res.string.quic_idle_timeout)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            summary = { Text(contentOrUnset(uiState.idleTimeout)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                DurationTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("keep_alive_period") {
+        TextFieldPreference(
+            value = uiState.keepAlivePeriod,
+            onValueChange = { viewModel.setKeepAlivePeriod(it) },
+            title = { Text(stringResource(Res.string.quic_keep_alive_period)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            summary = { Text(contentOrUnset(uiState.keepAlivePeriod)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                DurationTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("max_concurrent_streams") {
+        TextFieldPreference(
+            value = uiState.maxConcurrentStreams,
+            onValueChange = { viewModel.setMaxConcurrentStreams(it) },
+            title = { Text(stringResource(Res.string.quic_max_concurrent_streams)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.transform), null) },
+            summary = {
+                val text = if (uiState.maxConcurrentStreams == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.maxConcurrentStreams.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("initial_packet_size") {
+        TextFieldPreference(
+            value = uiState.initialPacketSize,
+            onValueChange = { viewModel.setInitialPacketSize(it) },
+            title = { Text(stringResource(Res.string.quic_initial_packet_size)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.texture), null) },
+            summary = {
+                val text = if (uiState.initialPacketSize == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.initialPacketSize.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
         )
     }
 

@@ -37,6 +37,10 @@ internal data class HysteriaUiState(
     val ech: Boolean = false,
     val echConfig: String = "",
     val echQueryServerName: String = "",
+    val idleTimeout: String = "",
+    val keepAlivePeriod: String = "",
+    val maxConcurrentStreams: Int = 0,
+    val initialPacketSize: Int = 0,
 ) : ProfileEditorUiState
 
 @Stable
@@ -76,6 +80,10 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
                 ech = ech,
                 echConfig = echConfig,
                 echQueryServerName = echQueryServerName,
+                idleTimeout = idleTimeout,
+                keepAlivePeriod = keepAlivePeriod,
+                maxConcurrentStreams = maxConcurrentStreams,
+                initialPacketSize = initialPacketSize,
             )
         }
     }
@@ -109,6 +117,10 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
         ech = state.ech
         echConfig = state.echConfig
         echQueryServerName = state.echQueryServerName
+        idleTimeout = state.idleTimeout
+        keepAlivePeriod = state.keepAlivePeriod
+        maxConcurrentStreams = state.maxConcurrentStreams
+        initialPacketSize = state.initialPacketSize
     }
 
     override fun setCustomConfig(config: String) {
@@ -217,5 +229,21 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
 
     fun setEchQueryServerName(name: String) {
         _uiState.update { it.copy(echQueryServerName = name) }
+    }
+
+    fun setIdleTimeout(value: String) {
+        _uiState.update { it.copy(idleTimeout = value) }
+    }
+
+    fun setKeepAlivePeriod(value: String) {
+        _uiState.update { it.copy(keepAlivePeriod = value) }
+    }
+
+    fun setMaxConcurrentStreams(value: Int) {
+        _uiState.update { it.copy(maxConcurrentStreams = value) }
+    }
+
+    fun setInitialPacketSize(value: Int) {
+        _uiState.update { it.copy(initialPacketSize = value) }
     }
 }

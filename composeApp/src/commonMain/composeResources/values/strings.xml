@@ -411,9 +411,13 @@
     <string name="hysteria_upload_mbps">Max Upload Speed (in Mbps) (Hysteria)</string>
     <string name="hysteria_download_mbps">Max Download Speed (in Mbps) (Brutal)</string>
     <string name="experimental_settings">Experimental</string>
-    <string name="hysteria_stream_receive_window">QUIC Stream Receive Window</string>
-    <string name="hysteria_connection_receive_window">QUIC Connection Receive Window</string>
-    <string name="hysteria_disable_mtu_discovery">Disable Path MTU Discovery</string>
+    <string name="quic_stream_receive_window">QUIC Stream Receive Window</string>
+    <string name="quic_connection_receive_window">QUIC Connection Receive Window</string>
+    <string name="quic_disable_path_mtu_discovery">Disable Path MTU Discovery</string>
+    <string name="quic_idle_timeout">QUIC Idle Timeout</string>
+    <string name="quic_keep_alive_period">QUIC Keep-Alive Period</string>
+    <string name="quic_max_concurrent_streams">QUIC Max Concurrent Streams</string>
+    <string name="quic_initial_packet_size">QUIC Initial Packet Size</string>
     <string name="group_order">Order</string>
     <string name="group_order_origin">Origin</string>
     <string name="group_order_by_name">By Name</string>

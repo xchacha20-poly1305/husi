@@ -363,9 +363,13 @@
     <string name="hysteria_upload_mbps">最大上行 (Mbps) (Brutal)</string>
     <string name="hysteria_download_mbps">最大下行 (Mbps) (Brutal)</string>
     <string name="experimental_settings">实验性</string>
-    <string name="hysteria_stream_receive_window">QUIC 流接收窗口</string>
-    <string name="hysteria_connection_receive_window">QUIC 连接接收窗口</string>
-    <string name="hysteria_disable_mtu_discovery">禁用路径最大传输单元发现</string>
+    <string name="quic_stream_receive_window">QUIC 流接收窗口</string>
+    <string name="quic_connection_receive_window">QUIC 连接接收窗口</string>
+    <string name="quic_disable_path_mtu_discovery">禁用路径最大传输单元发现</string>
+    <string name="quic_idle_timeout">QUIC 空闲超时</string>
+    <string name="quic_keep_alive_period">QUIC 保活间隔</string>
+    <string name="quic_max_concurrent_streams">QUIC 最大并发流</string>
+    <string name="quic_initial_packet_size">QUIC 初始报文大小</string>
     <string name="group_order">排序</string>
     <string name="group_order_origin">原始</string>
     <string name="group_order_by_name">以名称</string>

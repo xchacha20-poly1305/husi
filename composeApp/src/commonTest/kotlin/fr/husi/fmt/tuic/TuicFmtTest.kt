@@ -6,6 +6,7 @@ import fr.husi.ktx.JSONMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TuicFmtTest {
@@ -157,5 +158,75 @@ class TuicFmtTest {
         assertTrue(bean.ech)
         assertEquals("ech-cfg", bean.echConfig)
         assertEquals("ech.example.com", bean.echQueryServerName)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundTuicBean should emit QUIC fields when set`() {
+        val bean = TuicBean().apply {
+            serverAddress = "example.com"
+            serverPort = 9443
+            uuid = "u"
+            token = "t"
+            streamReceiveWindow = 65536
+            connectionReceiveWindow = 131072
+            disablePathMtuDiscovery = true
+            idleTimeout = "30s"
+            keepAlivePeriod = "15s"
+            maxConcurrentStreams = 128
+            initialPacketSize = 1200
+        }
+
+        val outbound = buildSingBoxOutboundTuicBean(bean)
+
+        assertEquals(65536, outbound.stream_receive_window)
+        assertEquals(131072, outbound.connection_receive_window)
+        assertEquals(true, outbound.disable_path_mtu_discovery)
+        assertEquals("30s", outbound.idle_timeout)
+        assertEquals("15s", outbound.keep_alive_period)
+        assertEquals(128, outbound.max_concurrent_streams)
+        assertEquals(1200, outbound.initial_packet_size)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundTuicBean should leave QUIC fields null when defaults`() {
+        val bean = TuicBean().apply {
+            serverAddress = "example.com"
+            serverPort = 9443
+            uuid = "u"
+            token = "t"
+        }
+
+        val outbound = buildSingBoxOutboundTuicBean(bean)
+
+        assertNull(outbound.stream_receive_window)
+        assertNull(outbound.connection_receive_window)
+        assertNull(outbound.disable_path_mtu_discovery)
+        assertNull(outbound.idle_timeout)
+        assertNull(outbound.keep_alive_period)
+        assertNull(outbound.max_concurrent_streams)
+        assertNull(outbound.initial_packet_size)
+    }
+
+    @Test
+    fun `TuicBean serialize round-trip should preserve QUIC fields`() {
+        val source = TuicBean().apply {
+            idleTimeout = "30s"
+            keepAlivePeriod = "15s"
+            streamReceiveWindow = 65536
+            connectionReceiveWindow = 131072
+            maxConcurrentStreams = 128
+            initialPacketSize = 1200
+            disablePathMtuDiscovery = true
+        }
+
+        val restored = source.clone()
+
+        assertEquals("30s", restored.idleTimeout)
+        assertEquals("15s", restored.keepAlivePeriod)
+        assertEquals(65536, restored.streamReceiveWindow)
+        assertEquals(131072, restored.connectionReceiveWindow)
+        assertEquals(128, restored.maxConcurrentStreams)
+        assertEquals(1200, restored.initialPacketSize)
+        assertTrue(restored.disablePathMtuDiscovery)
     }
 }

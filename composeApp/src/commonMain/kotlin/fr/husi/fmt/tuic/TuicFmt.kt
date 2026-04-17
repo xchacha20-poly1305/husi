@@ -66,6 +66,21 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
             udp_over_stream = false
         }
         zero_rtt_handshake = bean.zeroRTT
+        if (bean.streamReceiveWindow > 0) {
+            stream_receive_window = bean.streamReceiveWindow
+        }
+        if (bean.connectionReceiveWindow > 0) {
+            connection_receive_window = bean.connectionReceiveWindow
+        }
+        bean.idleTimeout.blankAsNull()?.let { idle_timeout = it }
+        bean.keepAlivePeriod.blankAsNull()?.let { keep_alive_period = it }
+        if (bean.maxConcurrentStreams > 0) {
+            max_concurrent_streams = bean.maxConcurrentStreams
+        }
+        if (bean.initialPacketSize > 0) {
+            initial_packet_size = bean.initialPacketSize
+        }
+        if (bean.disablePathMtuDiscovery) disable_path_mtu_discovery = true
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             if (bean.sni.isNotBlank()) {
                 server_name = bean.sni

@@ -203,8 +203,8 @@
         <item quantity="many">%1$d застосунків</item>
         <item quantity="other">%1$d застосунків</item>
     </plurals>
-    <string name="hysteria_disable_mtu_discovery">Вимкнути виявлення MTU шляху</string>
-    <string name="hysteria_stream_receive_window">Вікно прийому потоку QUIC</string>
+    <string name="quic_disable_path_mtu_discovery">Вимкнути виявлення MTU шляху</string>
+    <string name="quic_stream_receive_window">Вікно прийому потоку QUIC</string>
     <string name="group_order_by_delay">За затримкою</string>
     <string name="copy_label">Скопіювати ім'я</string>
     <string name="copy_package_name">Скопіювати ім'я пакета</string>
@@ -367,7 +367,7 @@
     <string name="apps">Застосунки</string>
     <string name="experimental_settings">Експерементально</string>
     <string name="group_order">Сортування</string>
-    <string name="hysteria_connection_receive_window">Вікно отримання з'єднання QUIC</string>
+    <string name="quic_connection_receive_window">Вікно отримання з'єднання QUIC</string>
     <string name="group_order_origin">За походженням</string>
     <string name="group_order_by_name">За назвою</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагін Shadowsocks для Android)</string>

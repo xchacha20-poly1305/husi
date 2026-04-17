@@ -375,9 +375,13 @@
     <string name="group_order_by_name">以名稱</string>
     <string name="group_order_origin">原始</string>
     <string name="group_order">順序</string>
-    <string name="hysteria_disable_mtu_discovery">停用路徑 MTU 探索</string>
-    <string name="hysteria_connection_receive_window">QUIC 連線接收視窗</string>
-    <string name="hysteria_stream_receive_window">QUIC 串流接收視窗</string>
+    <string name="quic_disable_path_mtu_discovery">停用路徑 MTU 探索</string>
+    <string name="quic_connection_receive_window">QUIC 連線接收視窗</string>
+    <string name="quic_stream_receive_window">QUIC 串流接收視窗</string>
+    <string name="quic_idle_timeout">QUIC 閒置逾時</string>
+    <string name="quic_keep_alive_period">QUIC 保持連線間隔</string>
+    <string name="quic_max_concurrent_streams">QUIC 最大並行串流</string>
+    <string name="quic_initial_packet_size">QUIC 初始封包大小</string>
     <string name="experimental_settings">實驗性</string>
     <string name="hysteria_download_mbps">最大下載速度 (Mbps) (Brutal)</string>
     <string name="hysteria_upload_mbps">最大上傳速度 (Mbps) (Brutal)</string>

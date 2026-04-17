@@ -98,6 +98,8 @@ var boxList = []any{
 	option.DomainResolveOptions{},
 	option.CertificateProvider{},
 	option.CertificateProviderOptions{},
+	option.HTTPClient{},
+	option.HTTPClientOptions{},
 
 	// MITM
 	// option.MITMOptions{},

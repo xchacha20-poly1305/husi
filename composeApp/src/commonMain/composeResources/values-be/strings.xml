@@ -356,9 +356,9 @@
     <string name="hysteria_upload_mbps">Максімальная хуткасць загрузкі (у Мбіт/з) (Hysteria)</string>
     <string name="hysteria_download_mbps">Максімальная хуткасць загрузкі (у Мбіт/ з) (Brutal)</string>
     <string name="experimental_settings">Эксперыментальны</string>
-    <string name="hysteria_stream_receive_window">Акно прыёму патоку QUIC</string>
-    <string name="hysteria_connection_receive_window">Акно атрымання злучэння QUIC</string>
-    <string name="hysteria_disable_mtu_discovery">Адключыць вызначэнне MTU маршруту</string>
+    <string name="quic_stream_receive_window">Акно прыёму патоку QUIC</string>
+    <string name="quic_connection_receive_window">Акно атрымання злучэння QUIC</string>
+    <string name="quic_disable_path_mtu_discovery">Адключыць вызначэнне MTU маршруту</string>
     <string name="group_order">Сартаванне</string>
     <string name="group_order_origin">Па паходжанні</string>
     <string name="group_order_by_name">Па імені</string>

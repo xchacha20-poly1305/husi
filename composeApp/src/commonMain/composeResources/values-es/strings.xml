@@ -348,8 +348,8 @@
     <string name="hysteria_upload_mbps">Velocidad máxima de subida (en Mbps) (Hysteria)</string>
     <string name="hysteria_download_mbps">Velocidad máxima de descarga (en Mbps) (Brutal)</string>
     <string name="experimental_settings">Experimental</string>
-    <string name="hysteria_stream_receive_window">Ventana de recepción de transmisión QUIC</string>
-    <string name="hysteria_connection_receive_window">Ventana de recepción de conexión QUIC</string>
+    <string name="quic_stream_receive_window">Ventana de recepción de transmisión QUIC</string>
+    <string name="quic_connection_receive_window">Ventana de recepción de conexión QUIC</string>
     <string name="group_order">Orden</string>
     <string name="group_order_origin">Origen</string>
     <string name="group_order_by_name">Por nombre</string>
@@ -428,7 +428,7 @@
     <string name="update_all_subscription">Actualizar suscripciones</string>
     <string name="route_opt_block_quic">Bloquear QUIC</string>
     <string name="subscription_expire">Expira: %1$s</string>
-    <string name="hysteria_disable_mtu_discovery">Desactivar detección de MTU de ruta</string>
+    <string name="quic_disable_path_mtu_discovery">Desactivar detección de MTU de ruta</string>
     <string name="tuic_disable_sni">Desactivar SNI</string>
     <string name="tuic_reduce_rtt">Activar protocolo de enlace QUIC 0-RTT</string>
     <string name="move">Mover</string>

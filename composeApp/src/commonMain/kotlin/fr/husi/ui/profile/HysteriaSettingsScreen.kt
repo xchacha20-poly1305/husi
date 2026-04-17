@@ -46,11 +46,8 @@ import fr.husi.resources.hysteria_bbr_profile
 import fr.husi.resources.hysteria_bbr_profile_aggressive
 import fr.husi.resources.hysteria_bbr_profile_conservative
 import fr.husi.resources.hysteria_bbr_profile_standard
-import fr.husi.resources.hysteria_connection_receive_window
-import fr.husi.resources.hysteria_disable_mtu_discovery
 import fr.husi.resources.hysteria_hop_interval_range_hint
 import fr.husi.resources.hysteria_obfs
-import fr.husi.resources.hysteria_stream_receive_window
 import fr.husi.resources.layers
 import fr.husi.resources.lock
 import fr.husi.resources.multiple_stop
@@ -64,6 +61,14 @@ import fr.husi.resources.profile_name
 import fr.husi.resources.protocol
 import fr.husi.resources.protocol_version
 import fr.husi.resources.proxy_cat
+import fr.husi.resources.quic
+import fr.husi.resources.quic_connection_receive_window
+import fr.husi.resources.quic_disable_path_mtu_discovery
+import fr.husi.resources.quic_idle_timeout
+import fr.husi.resources.quic_initial_packet_size
+import fr.husi.resources.quic_keep_alive_period
+import fr.husi.resources.quic_max_concurrent_streams
+import fr.husi.resources.quic_stream_receive_window
 import fr.husi.resources.router
 import fr.husi.resources.search
 import fr.husi.resources.security
@@ -326,57 +331,128 @@ private fun LazyListScope.hysteriaSettings(
             icon = { Icon(vectorResource(Res.drawable.block), null) },
         )
     }
-    if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
-        item("stream_receive_window") {
-            TextFieldPreference(
-                value = uiState.streamReceiveWindow,
-                onValueChange = { viewModel.setStreamReceiveWindow(it) },
-                title = { Text(stringResource(Res.string.hysteria_stream_receive_window)) },
-                textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(vectorResource(Res.drawable.texture), null) },
-                summary = {
-                    val text = if (uiState.streamReceiveWindow == 0) {
-                        stringResource(Res.string.not_set)
-                    } else {
-                        uiState.streamReceiveWindow.toString()
-                    }
-                    Text(text)
-                },
-                valueToText = { it.toString() },
-                textField = { value, onValueChange, onOk ->
-                    UIntegerTextField(value, onValueChange, onOk)
-                },
-            )
-        }
-        item("connection_receive_window") {
-            TextFieldPreference(
-                value = uiState.connectionReceiveWindow,
-                onValueChange = { viewModel.setConnectionReceiveWindow(it) },
-                title = { Text(stringResource(Res.string.hysteria_connection_receive_window)) },
-                textToValue = { it.toIntOrNull() ?: 0 },
-                icon = { Icon(vectorResource(Res.drawable.transform), null) },
-                summary = {
-                    val text = if (uiState.connectionReceiveWindow == 0) {
-                        stringResource(Res.string.not_set)
-                    } else {
-                        uiState.connectionReceiveWindow.toString()
-                    }
-                    Text(text)
-                },
-                valueToText = { it.toString() },
-                textField = { value, onValueChange, onOk ->
-                    UIntegerTextField(value, onValueChange, onOk)
-                },
-            )
-        }
-        item("disable_mtu_discovery") {
-            SwitchPreference(
-                value = uiState.disableMtuDiscovery,
-                onValueChange = { viewModel.setDisableMtuDiscovery(it) },
-                title = { Text(stringResource(Res.string.hysteria_disable_mtu_discovery)) },
-                icon = { Icon(vectorResource(Res.drawable.multiple_stop), null) },
-            )
-        }
+    item("category_quic") {
+        PreferenceCategory(text = { Text(stringResource(Res.string.quic)) })
+    }
+    item("stream_receive_window") {
+        TextFieldPreference(
+            value = uiState.streamReceiveWindow,
+            onValueChange = { viewModel.setStreamReceiveWindow(it) },
+            title = { Text(stringResource(Res.string.quic_stream_receive_window)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.texture), null) },
+            summary = {
+                val text = if (uiState.streamReceiveWindow == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.streamReceiveWindow.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("connection_receive_window") {
+        TextFieldPreference(
+            value = uiState.connectionReceiveWindow,
+            onValueChange = { viewModel.setConnectionReceiveWindow(it) },
+            title = { Text(stringResource(Res.string.quic_connection_receive_window)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.transform), null) },
+            summary = {
+                val text = if (uiState.connectionReceiveWindow == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.connectionReceiveWindow.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("disable_mtu_discovery") {
+        SwitchPreference(
+            value = uiState.disableMtuDiscovery,
+            onValueChange = { viewModel.setDisableMtuDiscovery(it) },
+            title = { Text(stringResource(Res.string.quic_disable_path_mtu_discovery)) },
+            icon = { Icon(vectorResource(Res.drawable.multiple_stop), null) },
+        )
+    }
+    item("idle_timeout") {
+        TextFieldPreference(
+            value = uiState.idleTimeout,
+            onValueChange = { viewModel.setIdleTimeout(it) },
+            title = { Text(stringResource(Res.string.quic_idle_timeout)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            summary = { Text(contentOrUnset(uiState.idleTimeout)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                DurationTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("keep_alive_period") {
+        TextFieldPreference(
+            value = uiState.keepAlivePeriod,
+            onValueChange = { viewModel.setKeepAlivePeriod(it) },
+            title = { Text(stringResource(Res.string.quic_keep_alive_period)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.timelapse), null) },
+            summary = { Text(contentOrUnset(uiState.keepAlivePeriod)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                DurationTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("max_concurrent_streams") {
+        TextFieldPreference(
+            value = uiState.maxConcurrentStreams,
+            onValueChange = { viewModel.setMaxConcurrentStreams(it) },
+            title = { Text(stringResource(Res.string.quic_max_concurrent_streams)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.transform), null) },
+            summary = {
+                val text = if (uiState.maxConcurrentStreams == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.maxConcurrentStreams.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
+    }
+    item("initial_packet_size") {
+        TextFieldPreference(
+            value = uiState.initialPacketSize,
+            onValueChange = { viewModel.setInitialPacketSize(it) },
+            title = { Text(stringResource(Res.string.quic_initial_packet_size)) },
+            textToValue = { it.toIntOrNull() ?: 0 },
+            icon = { Icon(vectorResource(Res.drawable.texture), null) },
+            summary = {
+                val text = if (uiState.initialPacketSize == 0) {
+                    stringResource(Res.string.not_set)
+                } else {
+                    uiState.initialPacketSize.toString()
+                }
+                Text(text)
+            },
+            valueToText = { it.toString() },
+            textField = { value, onValueChange, onOk ->
+                UIntegerTextField(value, onValueChange, onOk)
+            },
+        )
     }
 
     if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2) {

@@ -358,16 +358,24 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             up_mbps = generateUploadSpeed()
             down_mbps = generateDownloadSpeed()
             obfs = bean.obfuscation
-            disable_mtu_discovery = bean.disableMtuDiscovery
+            if (bean.disableMtuDiscovery) disable_path_mtu_discovery = true
             when (bean.authPayloadType) {
                 HysteriaBean.TYPE_BASE64 -> auth = bean.authPayload
                 HysteriaBean.TYPE_STRING -> auth_str = bean.authPayload
             }
             if (bean.streamReceiveWindow > 0) {
-                recv_window_conn = bean.streamReceiveWindow.toLong()
+                stream_receive_window = bean.streamReceiveWindow
             }
             if (bean.connectionReceiveWindow > 0) {
-                recv_window_conn = bean.connectionReceiveWindow.toLong()
+                connection_receive_window = bean.connectionReceiveWindow
+            }
+            bean.idleTimeout.blankAsNull()?.let { idle_timeout = it }
+            bean.keepAlivePeriod.blankAsNull()?.let { keep_alive_period = it }
+            if (bean.maxConcurrentStreams > 0) {
+                max_concurrent_streams = bean.maxConcurrentStreams
+            }
+            if (bean.initialPacketSize > 0) {
+                initial_packet_size = bean.initialPacketSize
             }
             tls = SingBoxOptions.OutboundTLSOptions().apply {
                 if (bean.sni.isNotBlank()) {
@@ -418,14 +426,22 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     password = bean.obfuscation
                 }
             }
-//            disable_mtu_discovery = bean.disableMtuDiscovery
             password = bean.authPayload
-//            if (bean.streamReceiveWindow > 0) {
-//                recv_window_conn = bean.streamReceiveWindow.toLong()
-//            }
-//            if (bean.connectionReceiveWindow > 0) {
-//                recv_window_conn = bean.connectionReceiveWindow.toLong()
-//            }
+            if (bean.disableMtuDiscovery) disable_path_mtu_discovery = true
+            if (bean.streamReceiveWindow > 0) {
+                stream_receive_window = bean.streamReceiveWindow
+            }
+            if (bean.connectionReceiveWindow > 0) {
+                connection_receive_window = bean.connectionReceiveWindow
+            }
+            bean.idleTimeout.blankAsNull()?.let { idle_timeout = it }
+            bean.keepAlivePeriod.blankAsNull()?.let { keep_alive_period = it }
+            if (bean.maxConcurrentStreams > 0) {
+                max_concurrent_streams = bean.maxConcurrentStreams
+            }
+            if (bean.initialPacketSize > 0) {
+                initial_packet_size = bean.initialPacketSize
+            }
             tls = SingBoxOptions.OutboundTLSOptions().apply {
                 enabled = true
                 if (bean.sni.isNotBlank()) {

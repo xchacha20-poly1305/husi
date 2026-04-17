@@ -31,6 +31,13 @@ internal data class TuicUiState(
     val echQueryServerName: String = "",
     val clientCert: String = "",
     val clientKey: String = "",
+    val idleTimeout: String = "",
+    val keepAlivePeriod: String = "",
+    val streamReceiveWindow: Int = 0,
+    val connectionReceiveWindow: Int = 0,
+    val maxConcurrentStreams: Int = 0,
+    val initialPacketSize: Int = 0,
+    val disablePathMtuDiscovery: Boolean = false,
 ) : ProfileEditorUiState
 
 @Stable
@@ -64,6 +71,13 @@ internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
                 echQueryServerName = echQueryServerName,
                 clientCert = clientCert,
                 clientKey = clientKey,
+                idleTimeout = idleTimeout,
+                keepAlivePeriod = keepAlivePeriod,
+                streamReceiveWindow = streamReceiveWindow,
+                connectionReceiveWindow = connectionReceiveWindow,
+                maxConcurrentStreams = maxConcurrentStreams,
+                initialPacketSize = initialPacketSize,
+                disablePathMtuDiscovery = disablePathMtuDiscovery,
             )
         }
     }
@@ -92,6 +106,13 @@ internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
         echQueryServerName = state.echQueryServerName
         clientCert = state.clientCert
         clientKey = state.clientKey
+        idleTimeout = state.idleTimeout
+        keepAlivePeriod = state.keepAlivePeriod
+        streamReceiveWindow = state.streamReceiveWindow
+        connectionReceiveWindow = state.connectionReceiveWindow
+        maxConcurrentStreams = state.maxConcurrentStreams
+        initialPacketSize = state.initialPacketSize
+        disablePathMtuDiscovery = state.disablePathMtuDiscovery
     }
 
     override fun setCustomConfig(config: String) {
@@ -176,5 +197,33 @@ internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
 
     fun setClientKey(key: String) {
         _uiState.update { it.copy(clientKey = key) }
+    }
+
+    fun setIdleTimeout(value: String) {
+        _uiState.update { it.copy(idleTimeout = value) }
+    }
+
+    fun setKeepAlivePeriod(value: String) {
+        _uiState.update { it.copy(keepAlivePeriod = value) }
+    }
+
+    fun setStreamReceiveWindow(value: Int) {
+        _uiState.update { it.copy(streamReceiveWindow = value) }
+    }
+
+    fun setConnectionReceiveWindow(value: Int) {
+        _uiState.update { it.copy(connectionReceiveWindow = value) }
+    }
+
+    fun setMaxConcurrentStreams(value: Int) {
+        _uiState.update { it.copy(maxConcurrentStreams = value) }
+    }
+
+    fun setInitialPacketSize(value: Int) {
+        _uiState.update { it.copy(initialPacketSize = value) }
+    }
+
+    fun setDisablePathMtuDiscovery(value: Boolean) {
+        _uiState.update { it.copy(disablePathMtuDiscovery = value) }
     }
 }

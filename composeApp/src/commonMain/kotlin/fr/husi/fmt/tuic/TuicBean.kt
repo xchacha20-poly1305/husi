@@ -46,6 +46,15 @@ class TuicBean : AbstractBean() {
     var clientCert: String = ""
     var clientKey: String = ""
 
+    // QUIC
+    var idleTimeout: String = ""
+    var keepAlivePeriod: String = ""
+    var streamReceiveWindow: Int = 0
+    var connectionReceiveWindow: Int = 0
+    var maxConcurrentStreams: Int = 0
+    var initialPacketSize: Int = 0
+    var disablePathMtuDiscovery: Boolean = false
+
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
         if (udpRelayMode.isEmpty()) udpRelayMode = "native"
@@ -53,7 +62,7 @@ class TuicBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(3)
+        output.writeInt(4)
 
         // version 0
         super.serialize(output)
@@ -81,6 +90,15 @@ class TuicBean : AbstractBean() {
 
         // version 3
         output.writeString(echQueryServerName)
+
+        // version 4
+        output.writeString(idleTimeout)
+        output.writeString(keepAlivePeriod)
+        output.writeInt(streamReceiveWindow)
+        output.writeInt(connectionReceiveWindow)
+        output.writeInt(maxConcurrentStreams)
+        output.writeInt(initialPacketSize)
+        output.writeBoolean(disablePathMtuDiscovery)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -113,6 +131,16 @@ class TuicBean : AbstractBean() {
 
         if (version >= 3) {
             echQueryServerName = input.readString()
+        }
+
+        if (version >= 4) {
+            idleTimeout = input.readString()
+            keepAlivePeriod = input.readString()
+            streamReceiveWindow = input.readInt()
+            connectionReceiveWindow = input.readInt()
+            maxConcurrentStreams = input.readInt()
+            initialPacketSize = input.readInt()
+            disablePathMtuDiscovery = input.readBoolean()
         }
     }
 

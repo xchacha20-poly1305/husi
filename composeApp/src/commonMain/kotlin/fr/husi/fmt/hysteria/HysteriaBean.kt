@@ -72,6 +72,12 @@ class HysteriaBean : AbstractBean() {
     var congestionControl: String = CONGESTION_CONTROL_BBR
     var bbrProfile: Int = BBR_PROFILE_STANDARD
 
+    // QUIC
+    var idleTimeout: String = ""
+    var keepAlivePeriod: String = ""
+    var maxConcurrentStreams: Int = 0
+    var initialPacketSize: Int = 0
+
     override val canMapping get() = protocol != PROTOCOL_FAKETCP
 
     override fun initializeDefaultValues() {
@@ -81,7 +87,7 @@ class HysteriaBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(6)
+        output.writeInt(7)
         super.serialize(output)
 
         output.writeInt(protocolVersion)
@@ -120,6 +126,12 @@ class HysteriaBean : AbstractBean() {
         // version 6
         output.writeString(congestionControl)
         output.writeInt(bbrProfile)
+
+        // version 7
+        output.writeString(idleTimeout)
+        output.writeString(keepAlivePeriod)
+        output.writeInt(maxConcurrentStreams)
+        output.writeInt(initialPacketSize)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -169,6 +181,13 @@ class HysteriaBean : AbstractBean() {
             congestionControl = input.readString()
             bbrProfile = input.readInt()
         }
+
+        if (version >= 7) {
+            idleTimeout = input.readString()
+            keepAlivePeriod = input.readString()
+            maxConcurrentStreams = input.readInt()
+            initialPacketSize = input.readInt()
+        }
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
@@ -181,6 +200,10 @@ class HysteriaBean : AbstractBean() {
         other.echConfig = echConfig
         other.congestionControl = congestionControl
         other.bbrProfile = bbrProfile
+        other.idleTimeout = idleTimeout
+        other.keepAlivePeriod = keepAlivePeriod
+        other.maxConcurrentStreams = maxConcurrentStreams
+        other.initialPacketSize = initialPacketSize
     }
 
     override val defaultPort get() = 443

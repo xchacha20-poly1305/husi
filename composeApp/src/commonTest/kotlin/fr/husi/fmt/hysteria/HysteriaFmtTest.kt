@@ -1,13 +1,21 @@
 package fr.husi.fmt.hysteria
 
+import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
+import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
+import fr.husi.test.HusiKoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class HysteriaFmtTest {
+class HysteriaFmtTest : HusiKoinTest() {
+
+    override suspend fun postStartKoin() {
+        DataStore.configurationStore.reset()
+    }
 
     @Test
     fun `HopPort from should return Single for a plain port`() {
@@ -189,5 +197,125 @@ class HysteriaFmtTest {
         assertEquals("obfs-secret", bean.obfuscation)
         assertEquals("sni.example.com", bean.sni)
         assertTrue(bean.allowInsecure)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundHysteriaBean hy1 should emit new QUIC field names and drop legacy`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
+            serverAddress = "example.com"
+            serverPorts = "9080"
+            streamReceiveWindow = 65536
+            connectionReceiveWindow = 131072
+            disableMtuDiscovery = true
+            idleTimeout = "30s"
+            keepAlivePeriod = "15s"
+            maxConcurrentStreams = 128
+            initialPacketSize = 1200
+        }
+
+        val outbound = assertIs<SingBoxOptions.Outbound_HysteriaOptions>(
+            buildSingBoxOutboundHysteriaBean(bean),
+        )
+
+        assertEquals(65536, outbound.stream_receive_window)
+        assertEquals(131072, outbound.connection_receive_window)
+        assertEquals(true, outbound.disable_path_mtu_discovery)
+        assertEquals("30s", outbound.idle_timeout)
+        assertEquals("15s", outbound.keep_alive_period)
+        assertEquals(128, outbound.max_concurrent_streams)
+        assertEquals(1200, outbound.initial_packet_size)
+
+        assertNull(outbound.recv_window_conn)
+        assertNull(outbound.recv_window)
+        assertNull(outbound.disable_mtu_discovery)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundHysteriaBean hy1 should leave QUIC fields null when defaults`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
+            serverAddress = "example.com"
+            serverPorts = "9080"
+        }
+
+        val outbound = assertIs<SingBoxOptions.Outbound_HysteriaOptions>(
+            buildSingBoxOutboundHysteriaBean(bean),
+        )
+
+        assertNull(outbound.stream_receive_window)
+        assertNull(outbound.connection_receive_window)
+        assertNull(outbound.disable_path_mtu_discovery)
+        assertNull(outbound.idle_timeout)
+        assertNull(outbound.keep_alive_period)
+        assertNull(outbound.max_concurrent_streams)
+        assertNull(outbound.initial_packet_size)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundHysteriaBean hy2 should emit QUIC fields`() {
+        val bean = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            authPayload = "secret"
+            streamReceiveWindow = 65536
+            connectionReceiveWindow = 131072
+            disableMtuDiscovery = true
+            idleTimeout = "30s"
+            keepAlivePeriod = "15s"
+            maxConcurrentStreams = 128
+            initialPacketSize = 1200
+        }
+
+        val outbound = assertIs<SingBoxOptions.Outbound_Hysteria2Options>(
+            buildSingBoxOutboundHysteriaBean(bean),
+        )
+
+        assertEquals(65536, outbound.stream_receive_window)
+        assertEquals(131072, outbound.connection_receive_window)
+        assertEquals(true, outbound.disable_path_mtu_discovery)
+        assertEquals("30s", outbound.idle_timeout)
+        assertEquals("15s", outbound.keep_alive_period)
+        assertEquals(128, outbound.max_concurrent_streams)
+        assertEquals(1200, outbound.initial_packet_size)
+    }
+
+    @Test
+    fun `HysteriaBean serialize round-trip should preserve QUIC fields`() {
+        val source = HysteriaBean().apply {
+            protocolVersion = HysteriaBean.PROTOCOL_VERSION_2
+            serverAddress = "example.com"
+            serverPorts = "9443"
+            idleTimeout = "30s"
+            keepAlivePeriod = "15s"
+            maxConcurrentStreams = 128
+            initialPacketSize = 1200
+        }
+
+        val restored = source.clone()
+
+        assertEquals("30s", restored.idleTimeout)
+        assertEquals("15s", restored.keepAlivePeriod)
+        assertEquals(128, restored.maxConcurrentStreams)
+        assertEquals(1200, restored.initialPacketSize)
+    }
+
+    @Test
+    fun `applyFeatureSettings should copy QUIC fields`() {
+        val source = HysteriaBean().apply {
+            idleTimeout = "30s"
+            keepAlivePeriod = "15s"
+            maxConcurrentStreams = 128
+            initialPacketSize = 1200
+        }
+        val target = HysteriaBean()
+
+        source.applyFeatureSettings(target)
+
+        assertEquals("30s", target.idleTimeout)
+        assertEquals("15s", target.keepAlivePeriod)
+        assertEquals(128, target.maxConcurrentStreams)
+        assertEquals(1200, target.initialPacketSize)
     }
 }
