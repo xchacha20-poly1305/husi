@@ -5,16 +5,16 @@ go 1.26
 require (
 	github.com/dyhkwong/sing-juicity v0.1.2
 	github.com/gofrs/uuid/v5 v5.4.0
-	github.com/klauspost/compress v1.18.2
+	github.com/klauspost/compress v1.18.5
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
-	github.com/sagernet/sing v0.8.7-0.20260416084641-60846c117dd8
-	github.com/sagernet/sing-box v1.14.0-alpha.13.0.20260417131748-8cd48f429fbd
+	github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386
+	github.com/sagernet/sing-box v1.14.0-alpha.14
 	github.com/sagernet/sing-tun v0.8.8-0.20260410061515-018f5eaae695
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
-	github.com/xchacha20-poly1305/anchor v0.7.1
+	github.com/xchacha20-poly1305/anchor v0.8.0
 	github.com/xchacha20-poly1305/anja v0.22.12
 	github.com/xchacha20-poly1305/libping v0.10.1
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.2-0.20260416045808-a8947db4cb32

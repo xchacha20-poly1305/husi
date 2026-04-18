@@ -60,8 +60,8 @@ github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91 h1:u9i04mGE3iliB
 github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91/go.mod h1:qfvBmyDNp+/liLEYWRvqny/PEz9hGe2Dz833eXILSmo=
 github.com/jsimonetti/rtnetlink v1.4.0 h1:Z1BF0fRgcETPEa0Kt0MRk3yV5+kF1FWTni6KUFKrq2I=
 github.com/jsimonetti/rtnetlink v1.4.0/go.mod h1:5W1jDvWdnthFJ7fxYX1GMK07BUpI4oskfOqvPteYS6E=
-github.com/klauspost/compress v1.18.2 h1:iiPHWW0YrcFgpBYhsA6D1+fqHssJscY/Tm/y2Uqnapk=
-github.com/klauspost/compress v1.18.2/go.mod h1:R0h/fSBs8DE4ENlcrlib3PsXS61voFxhIs2DeRhCvJ4=
+github.com/klauspost/compress v1.18.5 h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=
+github.com/klauspost/compress v1.18.5/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/klauspost/cpuid/v2 v2.3.0 h1:S4CRMLnYUhGeDFDqkGriYKdfoFlDnMtqTiI/sFzhA9Y=
 github.com/klauspost/cpuid/v2 v2.3.0/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
 github.com/letsencrypt/challtestsrv v1.4.2 h1:0ON3ldMhZyWlfVNYYpFuWRTmZNnyfiL9Hh5YzC3JVwU=
@@ -172,10 +172,10 @@ github.com/sagernet/nftables v0.3.0-beta.4 h1:kbULlAwAC3jvdGAC1P5Fa3GSxVwQJibNen
 github.com/sagernet/nftables v0.3.0-beta.4/go.mod h1:OQXAjvjNGGFxaTgVCSTRIhYB5/llyVDeapVoENYBDS8=
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.4 h1:6qvrUW79S+CrPwWz6cMePXohgjHoKxLo3c+MDhNwc3o=
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.4/go.mod h1:OqILvS182CyOol5zNNo6bguvOGgXzV459+chpRaUC+4=
-github.com/sagernet/sing v0.8.7-0.20260416084641-60846c117dd8 h1:gBTi6DvU/F/ZKcq9HvEWpT/DhpNU68FTGHK2c+m80vo=
-github.com/sagernet/sing v0.8.7-0.20260416084641-60846c117dd8/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.14.0-alpha.13.0.20260417131748-8cd48f429fbd h1:lGxC170ZcYpNP2pIgzaEUvJ9FTRNODnNAWe268Q0RBo=
-github.com/sagernet/sing-box v1.14.0-alpha.13.0.20260417131748-8cd48f429fbd/go.mod h1:MVh7xJvLiOmTa3ucHM3P6IB+v+iSjNwbsjiQ7amDdaI=
+github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386 h1:gNonzIaoKi4MiEmK/5iJI+RoGof1PtYqzSaNE/lmWLw=
+github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing-box v1.14.0-alpha.14 h1:s2eR2NHBX9BO7PBqFNvXhLViKj18MOgP8ygGQ4sFcQI=
+github.com/sagernet/sing-box v1.14.0-alpha.14/go.mod h1:XXR9cyFCL34gTdAyBj/yyK+QOd4i2Xit3C+HlNBnjLM=
 github.com/sagernet/sing-mux v0.3.4 h1:ZQplKl8MNXutjzbMVtWvWG31fohhgOfCuUZR4dVQ8+s=
 github.com/sagernet/sing-mux v0.3.4/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-quic v0.6.2-0.20260412143638-8f65b6be7cd6 h1:j3ISQRDyY5rs27NzUS/le+DHR0iOO0K0x+mWDLzu4Ok=
@@ -204,8 +204,8 @@ github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zd
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xchacha20-poly1305/TLS-scribe v0.12.1 h1:9KHvZ/ie7gHl787L2S/s0RzqvAPAvyZc0f+UUcnwMeE=
 github.com/xchacha20-poly1305/TLS-scribe v0.12.1/go.mod h1:B/sYsfSuNW5R/+ZmPfg+q/LtT1/PPXKprtZtOaj9O/8=
-github.com/xchacha20-poly1305/anchor v0.7.1 h1:eNGdCeaqGX+Gghy5grhzV53uDaxVwHgs7EerGum1j9U=
-github.com/xchacha20-poly1305/anchor v0.7.1/go.mod h1:EFLk1U04Kdc6tHgL7VCp1PQ9S1bhUU5Gn+nd9W8NTjs=
+github.com/xchacha20-poly1305/anchor v0.8.0 h1:mqLX+9iPDvBsTeVsrWhrqdzU60BaDnCyx0a/jv2AIzQ=
+github.com/xchacha20-poly1305/anchor v0.8.0/go.mod h1:qnTJ6Y4/LYa9EqPyi+LbJe+ks/BUBIM7ujzdLTK9tug=
 github.com/xchacha20-poly1305/anja v0.22.12 h1:zIJNPR0pVyuD3FAZ+xXxx+a1aAZ20JKPuW3PUy48LMA=
 github.com/xchacha20-poly1305/anja v0.22.12/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
