@@ -314,6 +314,9 @@ fun parseBoxTLS(field: JSONMap): OutboundTLSOptions = OutboundTLSOptions().apply
             "fragment_fallback_delay" -> fragment_fallback_delay = value.toString()
             "record_fragment" -> record_fragment = value.toString().toBoolean()
 
+            "spoof" -> spoof = value.toString()
+            "spoof_method" -> spoof_method = value.toString()
+
             "utls" -> {
                 val utlsField = value as JSONMap
                 utls = OutboundUTLSOptions().also {

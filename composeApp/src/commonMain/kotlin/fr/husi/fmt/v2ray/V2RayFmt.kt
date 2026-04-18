@@ -697,6 +697,8 @@ fun parseStandardV2RayOutbound(json: JSONMap): StandardV2RayBean {
                 bean.fragment = tls.fragment == true
                 bean.fragmentFallbackDelay = tls.fragment_fallback_delay.orEmpty()
                 bean.recordFragment = tls.record_fragment == true
+                bean.tlsSpoof = tls.spoof.orEmpty()
+                bean.tlsSpoofMethod = tls.spoof_method.orEmpty()
                 tls.ech?.let {
                     bean.ech = it.enabled == true
                     bean.echConfig = it.config?.joinToString("\n").orEmpty()

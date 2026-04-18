@@ -111,6 +111,8 @@ fun parseAnyTLSOutbound(json: JSONMap): AnyTLSBean = AnyTLSBean().apply {
                 tlsFragment = tls.fragment == true
                 tlsFragmentFallbackDelay = tls.fragment_fallback_delay.orEmpty()
                 tlsRecordFragment = tls.record_fragment == true
+                tlsSpoof = tls.spoof.orEmpty()
+                tlsSpoofMethod = tls.spoof_method.orEmpty()
                 tls.ech?.let {
                     ech = it.enabled == true
                     it.config?.joinToString("\n")?.let {
