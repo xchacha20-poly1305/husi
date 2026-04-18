@@ -58,7 +58,7 @@ func TestDecodeBase64JSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := DecodeBase64JSON(tt.encoded)
 			require.NoError(t, err)
-			assert.JSONEq(t, tt.want, got)
+			assert.JSONEq(t, tt.want, string(got))
 		})
 	}
 }
