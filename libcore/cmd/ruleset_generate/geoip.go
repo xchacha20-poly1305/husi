@@ -4,9 +4,10 @@ import (
 	"net"
 	"strings"
 
+	"github.com/sagernet/sing/common/x/linkedhashmap"
+
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"
-	"github.com/sagernet/sing/common/x/linkedhashmap"
 )
 
 func parseGeoip(binary []byte) (countryMap *linkedhashmap.Map[string, []*net.IPNet], err error) {

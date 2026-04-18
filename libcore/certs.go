@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	_ "unsafe" // for go:linkname
 
+	"libcore/plugin/raybridge"
+
 	_ "github.com/sagernet/sing-box/common/certificate"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
@@ -20,8 +22,6 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/protocol/socks"
-
-	"libcore/plugin/raybridge"
 
 	scribe "github.com/xchacha20-poly1305/TLS-scribe"
 )

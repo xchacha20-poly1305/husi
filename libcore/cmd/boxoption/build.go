@@ -131,13 +131,13 @@ func writeActionFields(builder *bytes.Buffer, seen map[string]struct{}, actionTy
 }
 
 const (
-	kotlinBoolean = "Boolean"
-	kotlinInteger = "Int"
-	kotlinLong    = "Long"
-	kotlinString  = "String"
+	kotlinBoolean     = "Boolean"
+	kotlinInteger     = "Int"
+	kotlinLong        = "Long"
+	kotlinString      = "String"
 	kotlinJsonElement = "JsonElement"
-	kotlinList    = "MutableList<"
-	kotlinMap     = "MutableMap<"
+	kotlinList        = "MutableList<"
+	kotlinMap         = "MutableMap<"
 
 	reservedDefault = "default"
 	reservedFinal   = "final"

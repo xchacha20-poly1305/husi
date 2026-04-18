@@ -4,10 +4,9 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"google.golang.org/protobuf/proto"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestDecodeBase64JSON(t *testing.T) {

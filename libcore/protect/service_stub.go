@@ -9,8 +9,7 @@ import (
 	"github.com/sagernet/sing/common/logger"
 )
 
-type Service struct {
-}
+type Service struct{}
 
 func New(ctx context.Context, ctxLogger logger.ContextLogger, path string, do func(fd int) error) (*Service, error) {
 	return nil, os.ErrInvalid

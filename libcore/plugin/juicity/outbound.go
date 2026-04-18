@@ -9,6 +9,9 @@ import (
 	"net"
 	"os"
 
+	"libcore/plugin/pluginoption"
+	"libcore/plugin/raybridge"
+
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
 	"github.com/sagernet/sing-box/common/dialer"
@@ -20,9 +23,6 @@ import (
 	"github.com/sagernet/sing/common/logger"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-
-	"libcore/plugin/pluginoption"
-	"libcore/plugin/raybridge"
 
 	"github.com/dyhkwong/sing-juicity"
 	"github.com/gofrs/uuid/v5"

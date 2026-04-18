@@ -4,6 +4,7 @@ import (
 	"unsafe"
 
 	E "github.com/sagernet/sing/common/exceptions"
+
 	"golang.org/x/sys/unix"
 )
 

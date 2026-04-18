@@ -4,12 +4,12 @@ import (
 	"flag"
 	"os"
 
+	"libcore/plugin/pluginoption"
+
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/memory"
 	"github.com/sagernet/sing/common/x/collections"
-
-	"libcore/plugin/pluginoption"
 )
 
 var output string

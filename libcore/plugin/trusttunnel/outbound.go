@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/netip"
 
+	"libcore/plugin/pluginoption"
+
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
 	"github.com/sagernet/sing-box/common/dialer"
@@ -18,8 +20,6 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
-
-	"libcore/plugin/pluginoption"
 
 	"github.com/xchacha20-poly1305/sing-trusttunnel"
 )

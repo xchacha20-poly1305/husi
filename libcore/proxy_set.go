@@ -4,14 +4,14 @@ import (
 	"bufio"
 	"io"
 
+	"libcore/plugin/pluginoption"
+	"libcore/vario"
+
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/protocol/group"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
-
-	"libcore/plugin/pluginoption"
-	"libcore/vario"
 )
 
 func (c *Client) SelectOutbound(groupName, tag string) error {

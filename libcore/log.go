@@ -10,15 +10,15 @@ import (
 	"sync"
 	"time"
 
+	"libcore/oscall"
+	"libcore/ringqueue"
+	"libcore/vario"
+
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/observable"
-
-	"libcore/oscall"
-	"libcore/ringqueue"
-	"libcore/vario"
 )
 
 func LogDebug(l string) {

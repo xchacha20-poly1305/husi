@@ -5,6 +5,9 @@ import (
 	"runtime/debug"
 	"time"
 
+	"libcore/combinedapi"
+	"libcore/protect"
+
 	"github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
@@ -17,9 +20,6 @@ import (
 	"github.com/sagernet/sing/service/pause"
 
 	"github.com/xchacha20-poly1305/anchor/anchorservice"
-
-	"libcore/combinedapi"
-	"libcore/protect"
 )
 
 type boxInstance struct {
